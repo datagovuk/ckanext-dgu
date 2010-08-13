@@ -8,6 +8,7 @@ from ckan.tests import *
 import ckan.model as model
 from ckan.lib import importer
 from ckanext.getdata.bis import BisImporter
+from ckanclient import wsgi_ckanclient
 
 SAMPLES_DIR = '../dgu/ckanext/tests/getdata/samples'
 BIS_1_FILEBASE = os.path.abspath(os.path.join(config['here'], SAMPLES_DIR, 'bis1'))
@@ -198,7 +199,9 @@ class TestImport:
             ('maintainer_email', u''),
             ('notes', u'This dataset provides the 2007/08 higher education statistics for all students by level of study, mode of study, subject of study, domicile and gender'),
             ('license_id', u'hesa-withrights'),
-            ('tags', set([u'higher-education', u'education'])),
+            ('tags', set([u'higher-education', u'education'] + \
+                         [u'hesa', u'2007-2008',
+                          u'higher-education-statistics'])),
             ('groups', []),
             ('resources', [OrderedDict([
                 ('url', 'http://www.hesa.ac.uk/dox/dataTables/studentsAndQualifiers/download/subject0708.xls?v=1.0'),
@@ -224,12 +227,12 @@ class TestImport:
                 ('temporal_coverage_to', '2008-07-31'),
                 ('temporal_coverage_from', '2007-08-01'),
                 ('geographic_coverage', '111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
-                ('geographic_granularity', 'national'),
+                ('geographical_granularity', 'national'),
                 ('agency', u'Higher Education Statistics Agency'),
                 ('precision', 'integer to the nearest 5'),
                 ('taxonomy_url', '-'),
                 ('import_source', 'BIS-%s' % os.path.basename(self._filepath)),
-                ('department', u'Department for Business, Innovation & Skills'),
+                ('department', u'Department for Business, Innovation and Skills'),
                 ('update_frequency', 'Never'),
                 ('national_statistic', 'no'),
                 ('categories', '-'),
@@ -257,65 +260,3 @@ class TestImport:
                     assert dict_to_check[key] == value, 'Key \'%s\' should be %r not: %r' % (key, value, dict_to_check[key])
                 else:
                     assert not dict_to_check.get(key), 'Key \'%s\' should have no value, not: %s' % (key, dict_to_check[key])
-
-class TestImporter(TestController):
-
-    @classmethod
-    def setup_class(self):
-        model.repo.rebuild_db()
-        CreateTestData.create()
-        assert model.User.by_name(unicode(DEFAULT_USER))
-
-    @classmethod
-    def teardown_class(self):
-        model.repo.rebuild_db()
-
-    def test_0_index(self):
-        offset = url_for(controller='importer')
-        res = self.app.get(offset)
-        assert 'Importer' in res, res
-
-    def test_1_not_logged_in(self):
-        res = self._submit_file(EXAMPLE_TESTFILE_FILEPATH + XL_EXTENSION, username=None, status=302)
-
-    def test_1_not_logged_in_midway(self):
-        res = self._submit_file(EXAMPLE_TESTFILE_FILEPATH + XL_EXTENSION, status=200)
-        assert 'Import Preview' in res, res_
-        res = self._import(res, 'test', username=None, status=302)
-        pkg = model.Package.by_name(u'wikipedia')
-        assert not pkg
-
-    def test_2_import_example_testfile(self):
-        res = self._submit_file(EXAMPLE_TESTFILE_FILEPATH + XL_EXTENSION, status=200)
-        assert 'Import Preview' in res, res_
-        assert '2 packages read' in res, res_
-        assert 'wikipedia' in res_, res_
-        assert 'tviv' in res_, res_
-        res = self._import(res, 'test', status=200)
-        assert 'Imported 2 packages' in res, self.main_div(res)
-
-    # TODO get working: overwriting existing package
-    def _test_3_import_full_testfile(self):
-        res = self._submit_file(FULL_TESTFILE_FILEPATH + XL_EXTENSION, status=200)
-        assert 'Import Preview' in res, res_
-        assert '2 packages read' in res, res_
-        assert 'name: annakarenina' in res_, res_
-        assert 'name: warandpeace' in res_, res_
-        res = self._import(res, 'test', status=200)
-        assert 'Imported 2 packages' in res, self.main_div(res)
-
-##    def _submit_file(self, filepath, username=DEFAULT_USER, status=None):
-##        assert os.path.exists(filepath)
-        
-##        return res
-        
-##    def _import(self, res, log_message, username=DEFAULT_USER, status=None):
-##        form = res.forms['import']
-##        form['log_message'] = log_message
-##        extra_environ = {'REMOTE_USER':username} if username else {}
-##        res = form.submit('import', extra_environ=extra_environ,
-##                          status=status)
-##        if not status or status == 200:
-##            assert 'Import Result' in res, self.main_div(res)
-##        return res
-
