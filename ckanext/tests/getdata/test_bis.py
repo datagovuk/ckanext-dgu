@@ -21,6 +21,9 @@ class BasicLogger:
     def log(self, msg):
         self._log.append(msg)
 
+    def get_log(self):
+        return self._log
+
 def get_example_data():
     logger = BasicLogger()
     filepath = BIS_1_FILEBASE + XL_EXTENSION
@@ -153,7 +156,14 @@ class TestImport:
         self.importer = BisImporter(filepath=self._filepath)
         self.pkg_dicts = [pkg_dict for pkg_dict in self.importer.pkg_dict()]
 
-    def test_0_row_2_package(self):
+    def test_0_munge(self):
+        def test_munge(name, expected_munge):
+            munge = self.importer.name_munge(name)
+            assert munge == expected_munge, 'Got %s not %s' % (munge, expected_munge)
+        test_munge('hesa-first-year-uk-domiciled-he-students-by-qualification-aim-mode-of-study-gender-and-disability-1994-1995', 'hesa-first-year-uk-domiciled-he-students-disability-1994-1995')
+
+
+    def test_1_row_2_package(self):
         row_dict = OrderedDict([
             (u'Dataset Ref#', u'BIS-000002'),
             (u'Dataset Status', u'Proposed'),
@@ -168,7 +178,7 @@ class TestImport:
             (u'Tags', u'hesa higher-education-statistics 2007-2008'),
             (u'Department', u'Department for Business, Innovation & Skills'),
             (u'Wiki', u'-'),
-            (u'Identifier', u'higher-education-statistics-all-he-students-by-level-of-study-mode-of-study-subject-of-study-domicile-and-gender-2007-2008'),
+            (u'Identifier', u'higher-education-statistics-all-he-students-by-level-of-study-mode-of-study-subject-of-study-meeeeeeeeeeeeeeeeeeeeeeeeeeeega-long-name-2007-2008'),
             (u'Licence', u'Higher Education Statistcs Agency Copyright with data.gov.uk rights'),
             (u'Version', u'-'),
             (u'Geographic Coverage', u'United Kingdom (England, Scotland, Wales, Northern Ireland)'),
@@ -189,7 +199,7 @@ class TestImport:
             (u'Total', 3)
             ])
         expected_pkg_dict = OrderedDict([
-            ('name', u'hesa-all-he-students-by-level-of-study-mode-of-study-subject-of-study-domicile-and-gender-2007-2008'),
+            ('name', u'hesa-all-he-students-by-level-of-study-mode-of-study-subject-of-study-meeeeeeeeeeeeeeeeeee-2007-2008'),
             ('title', u'Higher Education Statistics: All HE students by level of study, mode of study, subject of study, domicile and gender 2007/08'),
             ('version', u'-'),
             ('url', None),
@@ -199,9 +209,8 @@ class TestImport:
             ('maintainer_email', u''),
             ('notes', u'This dataset provides the 2007/08 higher education statistics for all students by level of study, mode of study, subject of study, domicile and gender'),
             ('license_id', u'hesa-withrights'),
-            ('tags', set([u'higher-education', u'education'] + \
-                         [u'hesa', u'2007-2008',
-                          u'higher-education-statistics'])),
+            ('tags', [u'2007-2008', u'education', u'hesa', \
+                      u'higher-education', u'higher-education-statistics']),
             ('groups', []),
             ('resources', [OrderedDict([
                 ('url', 'http://www.hesa.ac.uk/dox/dataTables/studentsAndQualifiers/download/subject0708.xls?v=1.0'),

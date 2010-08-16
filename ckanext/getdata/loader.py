@@ -28,6 +28,18 @@ class PackageLoader(object):
                 raise LoaderError('More than one record matches the unique field: %s=%s' % (self.unique_extra_field, field_value))
             elif res['count'] == 1:
                 existing_pkg_name = res['results'][0]
+            if existing_pkg_name != pkg_dict['name']:
+                # check name is not used by another package
+                original_name = pkg_dict['name']
+                clashing_pkg = self.ckanclient.package_entity_get(pkg_dict['name'])
+                original_clashing_pkg = clashing_pkg
+                while clashing_pkg:
+                    pkg_dict['name'] += '_'
+                    clashing_pkg = self.ckanclient.package_entity_get(pkg_dict['name'])
+                if pkg_dict['name'] != original_name:
+                    clashing_unique_value = original_clashing_pkg['extras'][self.unique_extra_field]
+                    print 'Warning, name %r already exists for package with ref %r so new package renamed to %r with ref %r.' % (original_name, clashing_unique_value, pkg_dict['name'], field_value)
+
         else:
             existing_pkg_name = pkg_dict['name'] if \
                      self.ckanclient.package_entity_get(pkg_dict['name']) else None
@@ -39,3 +51,23 @@ class PackageLoader(object):
             self.ckanclient.package_register_post(pkg_dict)
         if self.ckanclient.last_status != 200:
             raise LoaderError('Error (%s) loading package over API: %s' % (self.ckanclient.last_status, self.ckanclient.last_message))
+
+    def load_packages(self, pkg_dicts):
+        '''Loads multiple packages. Prints results and returns numbers.'''
+        assert isinstance(pkg_dicts, (list, tuple))
+        num_errors = 0
+        num_loaded = 0
+        for pkg_dict in pkg_dicts:
+            try:
+                self.load_package(pkg_dict)
+            except LoaderError, e:
+                print 'Error loading dict "%s": %s' % (pkg_dict['name'], e)
+                num_errors += 1
+            else:
+                num_loaded += 1
+        if num_errors == 0 and num_loaded:
+            print 'SUCCESS'
+        else:
+            print '%i ERRORS' % num_errors
+        print '%i package loaded' % num_loaded
+        return num_loaded, num_errors

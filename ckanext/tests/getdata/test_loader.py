@@ -31,10 +31,36 @@ class TestLoader(TestController):
         assert pkg.name == pkg_dict['name']
         assert pkg.title == pkg_dict['title']
 
-    def test_1_reload(self):
+    def test_1_load_several(self):
+        num_pkgs = count_pkgs()
+        pkg_dicts = [{'name':u'pkgname_a',
+                      'title':u'BorisA'},
+                     {'name':u'pkgname_b',
+                      'title':u'BorisB'},
+                     ]
+        assert not model.Package.by_name(pkg_dicts[0]['name'])
+        CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name'] for pkg_dict in pkg_dicts])
+        num_loaded, num_errors = self.loader.load_packages(pkg_dicts)
+        assert (num_loaded, num_errors) == (2, 0), (num_loaded, num_errors)
+        assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
+
+    def test_1_load_several_with_errors(self):
+        num_pkgs = count_pkgs()
+        pkg_dicts = [{'name':u'pkgnameA', # not allowed uppercase name
+                      'title':u'BorisA'},
+                     {'name':u'pkgnameB',
+                      'title':u'BorisB'},
+                     ]
+        assert not model.Package.by_name(pkg_dicts[0]['name'])
+        CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name'] for pkg_dict in pkg_dicts])
+        num_loaded, num_errors = self.loader.load_packages(pkg_dicts)
+        assert (num_loaded, num_errors) == (0, 2), (num_loaded, num_errors)
+        assert count_pkgs() == num_pkgs, (count_pkgs() - num_pkgs)
+
+    def test_2_reload(self):
         # load the package once
         num_pkgs = count_pkgs()
-        pkg_dict = {'name':u'pkgname1',
+        pkg_dict = {'name':u'pkgname2',
                     'title':u'Boris'}
         assert not model.Package.by_name(pkg_dict['name'])
         CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name']])
@@ -44,7 +70,7 @@ class TestLoader(TestController):
         assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
 
         # load the package again
-        pkg_dict = {'name':u'pkgname1',
+        pkg_dict = {'name':u'pkgname2',
                     'title':u'Boris Becker'}
         self.loader.load_package(pkg_dict)
         pkg = model.Package.by_name(pkg_dict['name'])
@@ -103,11 +129,15 @@ class TestLoaderUsingUniqueFields(TestController):
 
         # load the package with same name, different ref - new package
         other_pkg_dict = pkg_dict
-        pkg_dict = {'name':u'pkgname0',
+        pkg_dict = {'name':u'pkgname0changed',
                     'title':u'Boris 4',
-                    'extras':{u'ref':'boris-changed'}}
+                    'extras':{u'ref':'boris-4'}}
         CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name']])
         self.loader.load_package(pkg_dict)
+        assert pkg_dict['name'] == 'pkgname0changed_'
+        orig_pkg = model.Package.by_name(u'pkgname0changed')
+        assert orig_pkg
+        assert orig_pkg.title == u'Boris 3'
         pkg = model.Package.by_name(pkg_dict['name'])
         assert pkg
         assert pkg.name == pkg_dict['name']

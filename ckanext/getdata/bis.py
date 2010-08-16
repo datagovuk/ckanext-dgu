@@ -45,7 +45,7 @@ class BisImporter(PackageImporter):
         return resource_dict
 
     def row_2_package(self, row_dict):
-        name = row_dict['Identifier'].replace('higher-education-statistics', 'hesa')
+        name = (row_dict.get('Identifier') or u'').replace('higher-education-statistics', 'hesa')
         name = self.name_munge(name)
         title = row_dict['Title']
         if not (name and title):
@@ -117,6 +117,8 @@ class BisImporter(PackageImporter):
 
         tags = schema_gov.TagSuggester.suggest_tags(pkg_dict)
         [tags.add(tag) for tag in schema_gov.tags_parse(row_dict['Tags'])]
+        tags = list(tags)
+        tags.sort()
         pkg_dict['tags'] = tags
 
         # snap to suggestions
@@ -144,3 +146,7 @@ class BisImporter(PackageImporter):
 
         return pkg_dict
         
+    @classmethod
+    def name_munge(self, input_name):
+        input_name = input_name.replace('-by-qualification-aim-mode-of-study-gender-and-', '-')
+        return super(BisImporter, self).name_munge(input_name)
