@@ -199,7 +199,7 @@ class TestImport:
             (u'Total', 3)
             ])
         expected_pkg_dict = OrderedDict([
-            ('name', u'hesa-all-he-students-by-level-of-study-mode-of-study-subject-of-study-meeeeeeeeeeeeeeeeeee-2007-2008'),
+            ('name', u'hesa-all-he-students-by-level-of-study-mode-of-study-subject-of-study-meeeeeeeeeeeeee-2007-2008'),
             ('title', u'Higher Education Statistics: All HE students by level of study, mode of study, subject of study, domicile and gender 2007/08'),
             ('version', u'-'),
             ('url', None),

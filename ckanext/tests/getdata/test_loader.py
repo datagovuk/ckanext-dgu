@@ -144,6 +144,42 @@ class TestLoaderUsingUniqueFields(TestController):
         assert pkg.title == pkg_dict['title']
         assert model.Package.by_name(other_pkg_dict['name'])
         assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
-        
 
+        
+class TestLoaderNoSearch(TestController):
+    '''Cope as best as possible if search indexing is flakey.'''
+    def setup(self):
+        '''NB, no search indexing started'''
+        CreateTestData.create_arbitrary([], extra_user_names=[USER])
+        user = model.User.by_name(USER)
+        assert user
+        self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
+        self.loader = PackageLoader(self.testclient, unique_extra_field='ref')
+
+    def teardown(self):
+        CreateTestData.delete()        
+
+    def test_0_reload(self):
+        # create initial package
+        num_pkgs = count_pkgs()
+        pkg_dict = {'name':u'pkgname0',
+                    'title':u'Boris',
+                    'extras':{u'ref':'boris'}}
+        assert not model.Package.by_name(pkg_dict['name'])
+        CreateTestData.create_arbitrary([pkg_dict])
+        pkg = model.Package.by_name(pkg_dict['name'])
+        assert pkg
+        assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
+
+        # load the package with same name and ref
+        pkg_dict = {'name':u'pkgname0',
+                    'title':u'Boris 2',
+                    'extras':{u'ref':'boris'}}
+        self.loader.load_package(pkg_dict)
+        pkg = model.Package.by_name(pkg_dict['name'])
+        assert pkg
+        assert pkg.name == pkg_dict['name']
+        assert pkg.title == pkg_dict['title']
+        assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
+        # i.e. not tempted to create pkgname0_ alongside pkgname0
         

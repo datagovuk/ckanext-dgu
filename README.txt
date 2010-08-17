@@ -5,7 +5,7 @@ dgu - data.gov.uk extension
 Requirements
 ============
 
-To use this extension you need CKAN and ckanext installed.
+To use this extension you need CKAN installed.
 
 Quickstart
 ==========

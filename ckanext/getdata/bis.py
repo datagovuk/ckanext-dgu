@@ -8,6 +8,7 @@ from ckanclient.loaders.base import CkanLoader
 from ckan.lib.importer import PackageImporter, XlData, DataRecords, RowParseError
 from ckan.lib import schema_gov
 from ckan.lib import field_types
+from ckan import model
 
 pkg_field_mapping = {
     'Title':'title'
@@ -84,7 +85,7 @@ class BisImporter(PackageImporter):
         pkg_dict = OrderedDict([
             ('name', name),
             ('title', title),
-            ('version', row_dict['Version']),
+            ('version', row_dict['Version'][:model.PACKAGE_VERSION_MAX_LENGTH]),
             ('url', None),
             ('author', author),
             ('author_email', author_email),

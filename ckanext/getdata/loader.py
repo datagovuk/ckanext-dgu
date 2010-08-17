@@ -32,13 +32,18 @@ class PackageLoader(object):
                 # check name is not used by another package
                 original_name = pkg_dict['name']
                 clashing_pkg = self.ckanclient.package_entity_get(pkg_dict['name'])
-                original_clashing_pkg = clashing_pkg
-                while clashing_pkg:
-                    pkg_dict['name'] += '_'
-                    clashing_pkg = self.ckanclient.package_entity_get(pkg_dict['name'])
-                if pkg_dict['name'] != original_name:
-                    clashing_unique_value = original_clashing_pkg['extras'][self.unique_extra_field]
-                    print 'Warning, name %r already exists for package with ref %r so new package renamed to %r with ref %r.' % (original_name, clashing_unique_value, pkg_dict['name'], field_value)
+                if clashing_pkg and \
+                   clashing_pkg['extras'][self.unique_extra_field] == field_value:
+                    print 'Warning, search failed to find package %r with ref %r, but luckily the name is what was expected so loader found it anyway.' % (pkg_dict['name'], field_value)
+                    existing_pkg_name = clashing_pkg['name']
+                else:
+                    original_clashing_pkg = clashing_pkg
+                    while clashing_pkg:
+                        pkg_dict['name'] += '_'
+                        clashing_pkg = self.ckanclient.package_entity_get(pkg_dict['name'])
+                    if pkg_dict['name'] != original_name:
+                        clashing_unique_value = original_clashing_pkg['extras'][self.unique_extra_field]
+                        print 'Warning, name %r already exists for package with ref %r so new package renamed to %r with ref %r.' % (original_name, clashing_unique_value, pkg_dict['name'], field_value)
 
         else:
             existing_pkg_name = pkg_dict['name'] if \
@@ -58,6 +63,7 @@ class PackageLoader(object):
         num_errors = 0
         num_loaded = 0
         for pkg_dict in pkg_dicts:
+            print 'Loading %s' % pkg_dict['name']
             try:
                 self.load_package(pkg_dict)
             except LoaderError, e:
