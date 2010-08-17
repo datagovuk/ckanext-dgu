@@ -1,25 +1,53 @@
+import urllib2
+import time
+
 from ckan import model
 from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
+from ckanclient import CkanClient
 from ckanext.getdata.loader import PackageLoader
 
 USER = u'annafan'
 
+# Set to true for quicker tests using wsgi_ckanclient
+# otherwise it uses ckanclient
+WSGI_CLIENT = True
+
 def count_pkgs():
     return model.Session.query(model.Package).count()
 
-class TestLoader(TestController):
+class LoaderBase(TestController):
     def setup(self):
         CreateTestData.create_arbitrary([], extra_user_names=[USER])
         user = model.User.by_name(USER)
         assert user
-        self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
-        self.loader = PackageLoader(self.testclient)
+        if WSGI_CLIENT:
+            self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
+        else:
+            self.sub_proc = self._start_ckan_server('test.ini')
+            self.testclient = CkanClient(base_location='http://localhost:5000/api',
+                                         api_key=user.apikey)
+            self._wait_for_url(url='http://localhost:5000/api')
+
 
     def teardown(self):
-        CreateTestData.delete()        
-    
+        if WSGI_CLIENT:
+            CreateTestData.delete()
+        else:
+            try:
+                self._stop_ckan_server(self.sub_proc)
+            finally:
+                CreateTestData.delete()        
+
+
+class TestLoader(LoaderBase):
+    def setup(self):
+        super(TestLoader, self).setup()
+        self.loader = PackageLoader(self.testclient)
+
+    # teardown is in the base class
+
     def test_0_simple_load(self):
         pkg_dict = {'name':u'pkgname',
                     'title':u'Boris'}
@@ -76,20 +104,16 @@ class TestLoader(TestController):
         pkg = model.Package.by_name(pkg_dict['name'])
         assert pkg
         assert pkg.name == pkg_dict['name']
-        assert pkg.title == pkg_dict['title']
+        assert pkg.title == pkg_dict['title'], pkg.title
         assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
 
-class TestLoaderUsingUniqueFields(TestController):
+class TestLoaderUsingUniqueFields(LoaderBase):
     def setup(self):
         self.tsi = TestSearchIndexer()
-        CreateTestData.create_arbitrary([], extra_user_names=[USER])
-        user = model.User.by_name(USER)
-        assert user
-        self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
+        super(TestLoaderUsingUniqueFields, self).setup()
         self.loader = PackageLoader(self.testclient, unique_extra_field='ref')
 
-    def teardown(self):
-        CreateTestData.delete()        
+    # teardown is in the base class
 
     def test_0_reload(self):
         # create initial package
@@ -146,18 +170,14 @@ class TestLoaderUsingUniqueFields(TestController):
         assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
 
         
-class TestLoaderNoSearch(TestController):
+class TestLoaderNoSearch(LoaderBase):
     '''Cope as best as possible if search indexing is flakey.'''
     def setup(self):
         '''NB, no search indexing started'''
-        CreateTestData.create_arbitrary([], extra_user_names=[USER])
-        user = model.User.by_name(USER)
-        assert user
-        self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
+        super(TestLoaderNoSearch, self).setup()
         self.loader = PackageLoader(self.testclient, unique_extra_field='ref')
 
-    def teardown(self):
-        CreateTestData.delete()        
+    # teardown is in the base class
 
     def test_0_reload(self):
         # create initial package
@@ -183,3 +203,36 @@ class TestLoaderNoSearch(TestController):
         assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
         # i.e. not tempted to create pkgname0_ alongside pkgname0
         
+
+##class TestLoaderCkanClient(LoaderBase):
+##    '''Runs simple test using ckanclient itself'''
+##    def setup(self):
+##        self.sub_proc = self._start_ckan_server('test.ini')
+##        CreateTestData.create_arbitrary([], extra_user_names=[USER])
+##        user = model.User.by_name(USER)
+##        assert user
+##        super(TestLoaderNoSearch, self).setup()
+##        self.testclient = CkanClient(base_location='http://localhost:5000/api',
+##                                     api_key=user.apikey)
+##        self.loader = PackageLoader(self.testclient)
+
+##    def teardown(self):
+##        try:
+##            self._stop_ckan_server(self.sub_proc)
+##        finally:
+##            CreateTestData.delete()        
+    
+##    def test_0_simple_load(self):
+##        pkg_dict = {'name':u'pkgname',
+##                    'title':u'Boris'}
+##        assert not model.Package.by_name(pkg_dict['name'])
+##        self._wait_for_url(url='http://localhost:5000/api')
+##        pkg = self.testclient.package_entity_get(pkg_dict['name'])
+##        assert self.testclient.last_status == 404, self.testclient.last_status
+##        CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name']])
+##        self.loader.load_package(pkg_dict)
+##        pkg = self.testclient.package_entity_get(pkg_dict['name'])
+##        assert self.testclient.last_status == 200
+##        assert pkg
+##        assert pkg['name'] == pkg_dict['name']
+##        assert pkg['title'] == pkg_dict['title']

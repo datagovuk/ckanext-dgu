@@ -24,6 +24,8 @@ class PackageLoader(object):
             field_value = pkg_dict['extras'][self.unique_extra_field]
             search_options = {self.unique_extra_field:field_value}
             res = self.ckanclient.package_search(q='', search_options=search_options)
+            if self.ckanclient.last_status != 200:
+                raise LoaderError('Search request failed (status %s): %s' % (self.ckanclient.last_status, res))
             if res['count'] > 1:
                 raise LoaderError('More than one record matches the unique field: %s=%s' % (self.unique_extra_field, field_value))
             elif res['count'] == 1:
@@ -31,7 +33,7 @@ class PackageLoader(object):
             if existing_pkg_name != pkg_dict['name']:
                 # check name is not used by another package
                 original_name = pkg_dict['name']
-                clashing_pkg = self.ckanclient.package_entity_get(pkg_dict['name'])
+                clashing_pkg = self._get_package(pkg_dict['name'])
                 if clashing_pkg and \
                    clashing_pkg['extras'][self.unique_extra_field] == field_value:
                     print 'Warning, search failed to find package %r with ref %r, but luckily the name is what was expected so loader found it anyway.' % (pkg_dict['name'], field_value)
@@ -46,8 +48,8 @@ class PackageLoader(object):
                         print 'Warning, name %r already exists for package with ref %r so new package renamed to %r with ref %r.' % (original_name, clashing_unique_value, pkg_dict['name'], field_value)
 
         else:
-            existing_pkg_name = pkg_dict['name'] if \
-                     self.ckanclient.package_entity_get(pkg_dict['name']) else None
+            existing_pkg = self._get_package(pkg_dict['name'])
+            existing_pkg_name = pkg_dict['name'] if existing_pkg else None
 
         # load package
         if existing_pkg_name:
@@ -77,3 +79,12 @@ class PackageLoader(object):
             print '%i ERRORS' % num_errors
         print '%i package loaded' % num_loaded
         return num_loaded, num_errors
+
+    def _get_package(self, pkg_name):
+        pkg = self.ckanclient.package_entity_get(pkg_name)
+        if self.ckanclient.last_status == 404:
+            pkg = None
+        elif self.ckanclient.last_status != 200:
+            raise LoaderError('Unexpected status (%s) checking for package under name %r: %r') % (self.ckanclient.last_status, pkg_name, pkg)
+        return pkg
+        
