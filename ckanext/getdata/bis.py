@@ -94,7 +94,7 @@ class BisImporter(PackageImporter):
             ('notes', row_dict['Abstract']),
             ('license_id', license_id),
             ('tags', []), # post-filled
-            ('groups', []),
+            ('groups', ['ukgov']),
             ('resources', resources),
             ('extras', OrderedDict([
                 ('external_reference', ref),

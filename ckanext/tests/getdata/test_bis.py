@@ -211,7 +211,7 @@ class TestImport:
             ('license_id', u'hesa-withrights'),
             ('tags', [u'2007-2008', u'education', u'hesa', \
                       u'higher-education', u'higher-education-statistics']),
-            ('groups', []),
+            ('groups', ['ukgov']),
             ('resources', [OrderedDict([
                 ('url', 'http://www.hesa.ac.uk/dox/dataTables/studentsAndQualifiers/download/subject0708.xls?v=1.0'),
                 ('format', 'XLS'),
