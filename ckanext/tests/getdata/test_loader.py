@@ -6,12 +6,13 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckanclient import CkanClient
-from ckanext.getdata.loader import PackageLoader
+from ckanext.getdata.loader import PackageLoader, LoaderError
 
 USER = u'annafan'
 
 # Set to true for quicker tests using wsgi_ckanclient
 # otherwise it uses ckanclient
+# (some tests still fail with ckanclient currently)
 WSGI_CLIENT = True
 
 def count_pkgs():
@@ -53,8 +54,11 @@ class TestLoader(LoaderBase):
                     'title':u'Boris'}
         assert not model.Package.by_name(pkg_dict['name'])
         CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name']])
-        self.loader.load_package(pkg_dict)
+        res_pkg_dict = self.loader.load_package(pkg_dict)
+        assert res_pkg_dict
         pkg = model.Package.by_name(pkg_dict['name'])
+        assert res_pkg_dict == pkg.as_dict(), \
+               '%r != %r' % (res_pkg_dict.items(), pkg.as_dict().items())
         assert pkg
         assert pkg.name == pkg_dict['name']
         assert pkg.title == pkg_dict['title']
@@ -68,9 +72,15 @@ class TestLoader(LoaderBase):
                      ]
         assert not model.Package.by_name(pkg_dicts[0]['name'])
         CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name'] for pkg_dict in pkg_dicts])
-        num_loaded, num_errors = self.loader.load_packages(pkg_dicts)
-        assert (num_loaded, num_errors) == (2, 0), (num_loaded, num_errors)
+        res = self.loader.load_packages(pkg_dicts)
+        assert (res['num_loaded'], res['num_errors']) == (2, 0), \
+               (res['num_loaded'], res['num_errors'])
         assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
+        for pkg_index, pkg_dict in enumerate(pkg_dicts):
+            pkg_name = pkg_dict['name']
+            pkg = model.Package.by_name(pkg_name)
+            assert pkg.id == res['pkg_ids'][pkg_index], \
+                   '%s != %s' % (pkg.id, res['pkg_ids'][pkg_index])
 
     def test_1_load_several_with_errors(self):
         num_pkgs = count_pkgs()
@@ -81,9 +91,11 @@ class TestLoader(LoaderBase):
                      ]
         assert not model.Package.by_name(pkg_dicts[0]['name'])
         CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name'] for pkg_dict in pkg_dicts])
-        num_loaded, num_errors = self.loader.load_packages(pkg_dicts)
-        assert (num_loaded, num_errors) == (0, 2), (num_loaded, num_errors)
+        res = self.loader.load_packages(pkg_dicts)
+        assert (res['num_loaded'], res['num_errors']) == (0, 2), \
+               (res['num_loaded'], res['num_errors'])               
         assert count_pkgs() == num_pkgs, (count_pkgs() - num_pkgs)
+        assert res['pkg_ids'] == [], res['pkg_ids']
 
     def test_2_reload(self):
         # load the package once
@@ -106,6 +118,7 @@ class TestLoader(LoaderBase):
         assert pkg.name == pkg_dict['name']
         assert pkg.title == pkg_dict['title'], pkg.title
         assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
+
 
 class TestLoaderUsingUniqueFields(LoaderBase):
     def setup(self):
@@ -202,37 +215,77 @@ class TestLoaderNoSearch(LoaderBase):
         assert pkg.title == pkg_dict['title']
         assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
         # i.e. not tempted to create pkgname0_ alongside pkgname0
+
         
+class TestLoaderGroups(LoaderBase):
+    def setup(self):
+        super(TestLoaderGroups, self).setup()
+        self.loader = PackageLoader(self.testclient)
 
-##class TestLoaderCkanClient(LoaderBase):
-##    '''Runs simple test using ckanclient itself'''
-##    def setup(self):
-##        self.sub_proc = self._start_ckan_server('test.ini')
-##        CreateTestData.create_arbitrary([], extra_user_names=[USER])
-##        user = model.User.by_name(USER)
-##        assert user
-##        super(TestLoaderNoSearch, self).setup()
-##        self.testclient = CkanClient(base_location='http://localhost:5000/api',
-##                                     api_key=user.apikey)
-##        self.loader = PackageLoader(self.testclient)
+        assert count_pkgs() == 0, count_pkgs()
+        pkg_dicts = [{'name':u'pkga'},
+                     {'name':u'pkgb'},
+                     {'name':u'pkgc'},
+                     ]
+        CreateTestData.create_arbitrary(pkg_dicts)
+        group_dicts = [
+            {'name':u'g1', 'packages':[u'pkga']},
+            {'name':u'g2'},
+            {'name':u'g3'},
+            ]
+        CreateTestData.create_groups(group_dicts, USER)
+        self.pkgs = [model.Package.by_name(pkg_dict['name']) \
+                     for pkg_dict in pkg_dicts]
+        self.pkg_ids = [pkg.id for pkg in self.pkgs]
+        
+    # teardown is in the base class
 
-##    def teardown(self):
-##        try:
-##            self._stop_ckan_server(self.sub_proc)
-##        finally:
-##            CreateTestData.delete()        
-    
-##    def test_0_simple_load(self):
-##        pkg_dict = {'name':u'pkgname',
-##                    'title':u'Boris'}
-##        assert not model.Package.by_name(pkg_dict['name'])
-##        self._wait_for_url(url='http://localhost:5000/api')
-##        pkg = self.testclient.package_entity_get(pkg_dict['name'])
-##        assert self.testclient.last_status == 404, self.testclient.last_status
-##        CreateTestData.flag_for_deletion(pkg_names=[pkg_dict['name']])
-##        self.loader.load_package(pkg_dict)
-##        pkg = self.testclient.package_entity_get(pkg_dict['name'])
-##        assert self.testclient.last_status == 200
-##        assert pkg
-##        assert pkg['name'] == pkg_dict['name']
-##        assert pkg['title'] == pkg_dict['title']
+    def test_0_add_to_empty_group(self):
+        pkg_name = u'pkga'
+        group_name = u'g2'
+        pkg = model.Package.by_name(pkg_name)
+        group = model.Group.by_name(group_name)
+        assert group
+        assert not group.packages, group.packages
+        self.loader.add_pkg_to_group(pkg.name, group.name)
+        group = model.Group.by_name(group_name)
+        pkg = model.Package.by_name(pkg_name)
+        assert group.packages == [pkg], group.packages
+        
+    def test_1_add_to_non_empty_group(self):
+        pkg_name = u'pkgb'
+        group_name = u'g1'
+        pkg = model.Package.by_name(pkg_name)
+        group = model.Group.by_name(group_name)
+        assert group
+        assert len(group.packages) == 1, group.packages
+        self.loader.add_pkg_to_group(pkg.name, group.name)
+        group = model.Group.by_name(group_name)
+        pkg = model.Package.by_name(pkg_name)
+        assert pkg in group.packages, group.packages
+        assert len(group.packages) == 2, group.packages
+
+    def test_2_add_multiple_packages(self):
+        pkg_names = [u'pkgb', u'pkgc']
+        group_name = u'g2'
+        pkgs = [model.Package.by_name(pkg_name) for pkg_name in pkg_names]
+        group = model.Group.by_name(group_name)
+        assert group
+        num_pkgs_at_start = len(group.packages)
+        assert num_pkgs_at_start in (0, 1), group.packages
+        self.loader.add_pkgs_to_group(pkg_names, group.name)
+        group = model.Group.by_name(group_name)
+        pkgs = [model.Package.by_name(pkg_name) for pkg_name in pkg_names]
+        for pkg in pkgs:
+            assert pkg in group.packages, group.packages
+        assert len(group.packages) == num_pkgs_at_start + 2, group.packages
+
+    def test_3_add_to_missing_group(self):
+        pkg_names = [u'pkgb', u'pkgc']
+        try:
+            self.loader.add_pkgs_to_group(pkg_names, 'random_name')
+        except LoaderError, e:
+            assert e.args[0] == 'Group named \'random_name\' does not exist', e.args
+        else:
+            assert 0, 'Should have raise a LoaderError for the missing group'
+        

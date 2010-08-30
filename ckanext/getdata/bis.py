@@ -5,16 +5,14 @@ from collections import defaultdict
 from sqlalchemy.util import OrderedDict
 
 from ckanclient.loaders.base import CkanLoader
-from ckan.lib.importer import PackageImporter, XlData, DataRecords, RowParseError
+from ckan.lib.importer import RowParseError
+from ckan.lib.spreadsheet_importer import XlData, SpreadsheetDataRecords, SpreadsheetPackageImporter
 from ckan.lib import schema_gov
 from ckan.lib import field_types
 from ckan import model
 
-pkg_field_mapping = {
-    'Title':'title'
-    }
 
-class BisImporter(PackageImporter):
+class BisImporter(SpreadsheetPackageImporter):
     def import_into_package_records(self):
         package_data = XlData(self.log, filepath=self._filepath,
                                       buf=self._buf,
@@ -25,11 +23,11 @@ class BisImporter(PackageImporter):
                                       buf=self._buf,
                                       sheet_index=sheet_names.index('Resources'))
 
-        self._package_data_records = DataRecords(package_data, 'Title')
+        self._package_data_records = SpreadsheetDataRecords(package_data, 'Title')
         self.import_resources(resource_data)
 
     def import_resources(self, resource_data):
-        resource_data_records = DataRecords(resource_data, 'Resource Title')
+        resource_data_records = SpreadsheetDataRecords(resource_data, 'Resource Title')
         self._resources_by_ref = defaultdict(list)
         for resource_record in resource_data_records.records:
             ref = resource_record['Dataset Ref#']

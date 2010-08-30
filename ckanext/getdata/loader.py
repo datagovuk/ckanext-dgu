@@ -58,27 +58,49 @@ class PackageLoader(object):
             self.ckanclient.package_register_post(pkg_dict)
         if self.ckanclient.last_status != 200:
             raise LoaderError('Error (%s) loading package over API: %s' % (self.ckanclient.last_status, self.ckanclient.last_message))
+        pkg_dict = self.ckanclient.last_message
+        return pkg_dict
 
     def load_packages(self, pkg_dicts):
-        '''Loads multiple packages. Prints results and returns numbers.'''
+        '''Loads multiple packages.
+        @return results and resulting package names/ids.'''
         assert isinstance(pkg_dicts, (list, tuple))
         num_errors = 0
         num_loaded = 0
+        pkg_ids = []
+        pkg_names = []
         for pkg_dict in pkg_dicts:
             print 'Loading %s' % pkg_dict['name']
             try:
-                self.load_package(pkg_dict)
+                pkg_dict = self.load_package(pkg_dict)
             except LoaderError, e:
                 print 'Error loading dict "%s": %s' % (pkg_dict['name'], e)
                 num_errors += 1
             else:
+                pkg_ids.append(pkg_dict['id'])
+                pkg_names.append(pkg_dict['name'])
                 num_loaded += 1
-        if num_errors == 0 and num_loaded:
-            print 'SUCCESS'
-        else:
-            print '%i ERRORS' % num_errors
-        print '%i package loaded' % num_loaded
-        return num_loaded, num_errors
+        return {'pkg_names':pkg_names,
+                'pkg_ids':pkg_ids,
+                'num_loaded':num_loaded,
+                'num_errors':num_errors}
+
+    def add_pkg_to_group(self, pkg_name, group_name):
+        return self.add_pkgs_to_group([pkg_name], group_name)
+
+    def add_pkgs_to_group(self, pkg_names, group_name):
+        for pkg_name in pkg_names:
+            assert not self.ckanclient.is_id(pkg_name), pkg_name
+        assert not self.ckanclient.is_id(group_name), group_name
+        group_dict = self.ckanclient.group_entity_get(group_name)
+        if self.ckanclient.last_status == 404:
+            raise LoaderError('Group named %r does not exist' % group_name)
+        elif self.ckanclient.last_status != 200:
+            raise LoaderError('Unexpected status (%s) checking for group name %r: %r') % (self.ckanclient.last_status, group_name, group_dict)
+        group_dict['packages'] = (group_dict['packages'] or []) + pkg_names
+        group_dict = self.ckanclient.group_entity_put(group_dict)
+        if self.ckanclient.last_status != 200:
+            raise LoaderError('Unexpected status (%s) putting group entity: %s' % (self.ckanclient.last_status, group_dict))
 
     def _get_package(self, pkg_name):
         pkg = self.ckanclient.package_entity_get(pkg_name)

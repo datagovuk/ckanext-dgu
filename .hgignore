@@ -1,0 +1,12 @@
+syntax: glob
+# generic
+*.pyc
+.DS_Store
+dgu.egg-info/*
+sandbox/*
+pip-log.txt
+
+# other
+build/*
+tmp/*
+*.ini

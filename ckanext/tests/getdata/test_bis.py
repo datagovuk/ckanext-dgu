@@ -6,7 +6,7 @@ from pylons import config
 
 from ckan.tests import *
 import ckan.model as model
-from ckan.lib import importer
+from ckan.lib import spreadsheet_importer
 from ckanext.getdata.bis import BisImporter
 from ckanclient import wsgi_ckanclient
 
@@ -27,18 +27,18 @@ class BasicLogger:
 def get_example_data():
     logger = BasicLogger()
     filepath = BIS_1_FILEBASE + XL_EXTENSION
-    return importer.XlData(logger.log, filepath=filepath, sheet_index=0)
+    return spreadsheet_importer.XlData(logger.log, filepath=filepath, sheet_index=0)
 
 def get_resource_data():
     logger = BasicLogger()
     filepath = BIS_1_FILEBASE + XL_EXTENSION
-    return importer.XlData(logger.log, filepath=filepath, sheet_index=1)
+    return spreadsheet_importer.XlData(logger.log, filepath=filepath, sheet_index=1)
 
-class TestDataRecords:
+class TestSpreadsheetDataRecords:
     @classmethod
     def setup_class(self):
         self.data = get_example_data()
-        self.data_records = importer.DataRecords(self.data, 'Dataset Ref#')
+        self.data_records = spreadsheet_importer.SpreadsheetDataRecords(self.data, 'Dataset Ref#')
         self.records = [record for record in self.data_records.records]
         
     def test_0_title_row(self):
@@ -108,7 +108,7 @@ class TestResourceRecords:
     @classmethod
     def setup_class(self):
         self.data = get_resource_data()
-        self.data_records = importer.DataRecords(self.data, 'Resource Status')
+        self.data_records = spreadsheet_importer.SpreadsheetDataRecords(self.data, 'Resource Status')
         self.records = [record for record in self.data_records.records]
         
     def test_0_title_row(self):
