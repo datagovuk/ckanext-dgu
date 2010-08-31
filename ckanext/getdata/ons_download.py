@@ -13,42 +13,27 @@ YEAR_ONS_DATA_STARTS = 2004
 class OnsData(object):
     '''Manages download and parse of ONS data.'''
     @classmethod
-    def import_recent(cls, ons_cache_dir=ONS_CACHE_PATH, log=False, days=7):
+    def download_recent(cls, ons_cache_dir=ONS_CACHE_PATH, log=False, days=7):
         ons = cls(ons_cache_dir, log)
         url, url_name = ons._get_url_recent(days=days)
-        return ons._import([(url, url_name, True)])
+        return ons.download(url, url_name, True)
 
     @classmethod
-    def import_all(cls, ons_cache_dir=ONS_CACHE_PATH, log=False):
+    def download_all(cls, ons_cache_dir=ONS_CACHE_PATH, log=False):
         ons = cls(ons_cache_dir, log)
         url_tuples = ons._get_urls_for_all_time()
-        return ons._import(url_tuples)
+        return ons.download_multiple(url_tuples)
 
     def __init__(self, local_cache_dir=ONS_CACHE_PATH, log=False):
         self._local_cache_dir = os.path.expanduser(local_cache_dir)
         self._url_base = ONS_URL_BASE
         self._logging = log
         
-    def _import(self, url_tuples):
-        from pylons import config
-        import ckan.getdata.ons_import as ons_import
-        import ckan.model as model
-
-        num_packages_before = model.Session.query(model.Package).count()
-
-        ons_cache_dir = os.path.join(config.get('here'), 'ons_data')
-        getter = ons_import.Data()
+    def download_multiple(self, url_tuples):
+        filepaths = []
         for url_tuple in url_tuples:
-            url, url_name, force_download = url_tuple
-            ons_filepath = self.download(url, url_name, force_download)
-            getter.load_xml_into_db(ons_filepath, True)
-
-        num_packages_after = model.Session.query(model.Package).count()
-        new_packages = num_packages_after - num_packages_before
-        assert new_packages >= 0, new_packages
-        self.log(logging.info, 'Loaded %i new packages. New total is %i' % (new_packages, num_packages_after))
-        return new_packages, num_packages_after
-
+            filepaths.append(self.download(*url_tuple))
+        return filepaths
 
     def download(self, url, url_name, force_download=False):
         local_filepath = os.path.join(self._local_cache_dir, 'ons_data_%s' % url_name)
