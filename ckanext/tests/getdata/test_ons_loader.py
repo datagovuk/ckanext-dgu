@@ -2,6 +2,7 @@ import os
 
 from ons_data_tester import OnsDataTester
 from ckanext.getdata import ons_download
+from ckanext.getdata import ons_importer
 from ckanext.getdata import ons_loader
 from pylons import config
 
@@ -12,7 +13,7 @@ SAMPLE_FILEPATH_1 = os.path.join(SAMPLE_PATH, 'ons_hub_sample.xml')
 
 class TestOnsData1:
     def setup(self):
-        records_obj = ons_loader.OnsDataRecords(SAMPLE_FILEPATH_1)
+        records_obj = ons_importer.OnsDataRecords(SAMPLE_FILEPATH_1)
         self.records = [record for record in records_obj.records]
     
     def test_records(self):
@@ -61,8 +62,8 @@ class TestOnsImporter:
             (u'hub:keywords', u'reserves;currency;assets;liabilities;gold;reserves;currency;assets;liabilities;gold'),
             (u'hub:altTitle', u'UK Reserves'),
             (u'hub:nscl', u'Economy;Government Receipts and Expenditure;Public Sector Finance;Economy;Government Receipts and Expenditure;Public Sector Finance')])
-        ons_importer = ons_loader.OnsImporter(filepath=SAMPLE_FILEPATH_1)
-        package_dict = ons_importer.record_2_package(record)
+        ons_importer_ = ons_importer.OnsImporter(filepath=SAMPLE_FILEPATH_1)
+        package_dict = ons_importer_.record_2_package(record)
     
         expected_package_dict = [
             ('name', u'uk_official_holdings_of_international_reserves'),

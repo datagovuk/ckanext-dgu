@@ -245,7 +245,7 @@ class PackageLoader(object):
             print 'Warning: uploading package \'%s\' and surprised to see changes in these values:\n%s' % (existing_pkg['name'], '; '.join(warnings))
 
         # copy over all fields but use the existing resources
-        merged_dict = copy.deepcopy(pkg)
+        merged_dict = pkg.copy()
         merged_dict['resources'] = copy.deepcopy(existing_pkg['resources'])
 
         # merge resources

@@ -5,11 +5,18 @@ from collections import defaultdict
 from sqlalchemy.util import OrderedDict
 
 from ckanclient.loaders.base import CkanLoader
+from loader import *
 from ckan.lib.importer import RowParseError
 from ckan.lib.spreadsheet_importer import XlData, SpreadsheetDataRecords, SpreadsheetPackageImporter
 from ckan.lib import schema_gov
 from ckan.lib import field_types
 from ckan import model
+
+
+class BisLoader(PackageLoader):
+    def __init__(self, ckanclient):
+        settings = ReplaceByExtraField('external_reference')
+        super(BisLoader, self).__init__(ckanclient, settings)
 
 
 class BisImporter(SpreadsheetPackageImporter):

@@ -1,6 +1,8 @@
 import urllib2
 import time
 
+from sqlalchemy.util import OrderedDict
+
 from ckan import model
 from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import *
@@ -400,12 +402,15 @@ class TestLoaderInsertingResources(LoaderBase):
         # should just get a warning
         pkg_dict4 = {'name':u'pollution',
                     'title':u'Pollution',
-                    'extras':{u'department':'air',
-                              u'country':'UK and France', #invariant
-                              u'last_updated':'Tuesday', #variant
-                              },
-                    'resources':[{'url':'pollution.com/id/3',
-                                  'description':'Lots of pollution | ons/id/3'}],
+                    'extras':OrderedDict([
+                         (u'department', 'air'),
+                         (u'country', 'UK and France'), #invariant
+                         (u'last_updated', 'Tuesday'), #variant
+                         ]),
+                    'resources':[OrderedDict([
+                         ('url', 'pollution.com/id/3'),
+                         ('description', 'Lots of pollution | ons/id/3'),
+                         ])],
                     }
         self.loader.load_package(pkg_dict4)
         pkg = model.Package.by_name(pkg_dict4['name'])
