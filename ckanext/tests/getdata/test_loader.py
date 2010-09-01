@@ -6,7 +6,7 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckanclient import CkanClient
-from ckanext.getdata.loader import PackageLoader, LoaderError
+from ckanext.getdata.loader import PackageLoader, ReplaceByExtraField, ResourceSeries, LoaderError
 
 USER = u'annafan'
 
@@ -124,7 +124,8 @@ class TestLoaderUsingUniqueFields(LoaderBase):
     def setup(self):
         self.tsi = TestSearchIndexer()
         super(TestLoaderUsingUniqueFields, self).setup()
-        self.loader = PackageLoader(self.testclient, unique_extra_field='ref')
+        settings = ReplaceByExtraField('ref')
+        self.loader = PackageLoader(self.testclient, settings=settings)
 
     # teardown is in the base class
 
@@ -188,7 +189,8 @@ class TestLoaderNoSearch(LoaderBase):
     def setup(self):
         '''NB, no search indexing started'''
         super(TestLoaderNoSearch, self).setup()
-        self.loader = PackageLoader(self.testclient, unique_extra_field='ref')
+        settings = ReplaceByExtraField('ref')
+        self.loader = PackageLoader(self.testclient, settings=settings)
 
     # teardown is in the base class
 
@@ -289,3 +291,133 @@ class TestLoaderGroups(LoaderBase):
         else:
             assert 0, 'Should have raise a LoaderError for the missing group'
         
+
+class TestLoaderInsertingResources(LoaderBase):
+    def setup(self):
+        self.tsi = TestSearchIndexer()
+        super(TestLoaderInsertingResources, self).setup()
+        settings = ResourceSeries(['title', 'department'],
+                                  'ons/id/',
+                                  ['country'])
+        self.loader = PackageLoader(self.testclient, settings)
+
+    # teardown is in the base class
+
+    def test_0_reload(self):
+        # create initial package
+        num_pkgs = count_pkgs()
+        pkg_dict = {'name':u'pollution',
+                    'title':u'Pollution',
+                    'extras':{u'department':'air',
+                              u'country':'UK', #invariant
+                              u'last_updated':'Monday', #variant
+                              },
+                    'resources':[{'url':'pollution.com/1',
+                                  'description':'ons/id/1'}],
+                    }
+        bogus_dict = {'name':u'bogus',
+                      'title':u'Pollution',
+                      'extras':{u'department':'water',
+                              u'country':'UK', 
+                              u'last_updated':'Monday',
+                              },
+                    'resources':[{'url':'pollution.com/2',
+                                  'description':'ons/id/2'}],
+                    }
+        assert not model.Package.by_name(pkg_dict['name'])
+        assert not model.Package.by_name(bogus_dict['name'])
+        CreateTestData.create_arbitrary([pkg_dict, bogus_dict])
+        self.tsi.index()
+        pkg = model.Package.by_name(pkg_dict['name'])
+        assert pkg
+        assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
+        assert len(pkg.resources) == 1, pkg.resources
+
+        # load the same package: same title, department, updated resource
+        pkg_dict = {'name':u'pollution',
+                    'title':u'Pollution',
+                    'extras':{u'department':'air',
+                              u'country':'UK', #invariant
+                              u'last_updated':'Tuesday', #variant
+                              },
+                    'resources':[{'url':'pollution.com/id/1',
+                                  'description':'ons/id/1'}],
+                    }
+        self.loader.load_package(pkg_dict)
+        pkg = model.Package.by_name(pkg_dict['name'])
+        assert pkg
+        assert pkg.name == pkg_dict['name']
+        assert pkg.title == pkg_dict['title']
+        assert pkg.extras['country'] == pkg_dict['extras']['country']
+        assert pkg.extras['last_updated'] == pkg_dict['extras']['last_updated']
+        assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
+        assert len(pkg.resources) == 1, pkg.resources
+        assert pkg.resources[0].url == pkg_dict['resources'][0]['url'], pkg.resources[0].url
+        assert pkg.resources[0].description == pkg_dict['resources'][0]['description'], pkg.resources[0]['description']
+
+        # load the same package: same title, department, new resource
+        pkg_dict2 = {'name':u'pollution',
+                    'title':u'Pollution',
+                    'extras':{u'department':'air',
+                              u'country':'UK', #invariant
+                              u'last_updated':'Tuesday', #variant
+                              },
+                    'resources':[{'url':'pollution.com/id/3',
+                                  'description':'ons/id/3'}],
+                    }
+        self.loader.load_package(pkg_dict2)
+        pkg = model.Package.by_name(pkg_dict2['name'])
+        assert pkg
+        assert pkg.name == pkg_dict2['name']
+        assert pkg.title == pkg_dict2['title']
+        assert pkg.extras['country'] == pkg_dict2['extras']['country']
+        assert pkg.extras['last_updated'] == pkg_dict2['extras']['last_updated']
+        assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
+        assert len(pkg.resources) == 2, pkg.resources
+        assert pkg.resources[0].url == pkg_dict['resources'][0]['url'], pkg.resources[0].url
+        assert pkg.resources[0].description == pkg_dict['resources'][0]['description'], pkg.resources[0]['description']
+        assert pkg.resources[1].url == pkg_dict2['resources'][0]['url'], pkg.resources[1].url
+        assert pkg.resources[1].description == pkg_dict2['resources'][0]['description'], pkg.resources[1]['description']
+
+        # load the different package: because of different department
+        pkg_dict3 = {'name':u'pollution',
+                    'title':u'Pollution',
+                    'extras':{u'department':'river',
+                              u'country':'UK', #invariant
+                              u'last_updated':'Tuesday', #variant
+                              },
+                    'resources':[{'url':'pollution.com/id/3',
+                                  'description':'Lots of pollution | ons/id/3'}],
+                    }
+        self.loader.load_package(pkg_dict3)
+        assert count_pkgs() == num_pkgs + 3, (count_pkgs() - num_pkgs)
+        pkg_names = [pkg.name for pkg in model.Session.query(model.Package).all()]
+        pkg = model.Package.by_name(u'pollution_')
+        assert pkg
+        assert pkg.extras['department'] == pkg_dict3['extras']['department']
+
+        # load the same package: but with different country
+        # should just get a warning
+        pkg_dict4 = {'name':u'pollution',
+                    'title':u'Pollution',
+                    'extras':{u'department':'air',
+                              u'country':'UK and France', #invariant
+                              u'last_updated':'Tuesday', #variant
+                              },
+                    'resources':[{'url':'pollution.com/id/3',
+                                  'description':'Lots of pollution | ons/id/3'}],
+                    }
+        self.loader.load_package(pkg_dict4)
+        pkg = model.Package.by_name(pkg_dict4['name'])
+        assert pkg
+        assert pkg.name == pkg_dict4['name']
+        assert pkg.title == pkg_dict4['title']
+        assert pkg.extras['country'] == pkg_dict4['extras']['country']
+        assert pkg.extras['last_updated'] == pkg_dict4['extras']['last_updated']
+        assert count_pkgs() == num_pkgs + 3, (count_pkgs() - num_pkgs)
+        assert len(pkg.resources) == 2, pkg.resources
+        assert pkg.resources[0].url == pkg_dict['resources'][0]['url'], pkg.resources[0].url
+        assert pkg.resources[0].description == pkg_dict['resources'][0]['description'], pkg.resources[0]['description']
+        assert pkg.resources[1].url == pkg_dict4['resources'][0]['url'], pkg.resources[1].url
+        assert pkg.resources[1].description == pkg_dict4['resources'][0]['description'], pkg.resources[1]['description']
+
