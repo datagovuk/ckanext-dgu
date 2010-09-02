@@ -124,7 +124,9 @@ class OnsImporter(PackageImporter):
         for keyword in item['hub:ipsv'].split(';') + \
                 item['hub:keywords'].split(';') + \
                 item['hub:nscl'].split(';'):
-            tags.add(schema_gov.tag_munge(keyword))
+            tag = schema_gov.tag_munge(keyword)
+            if tag and len(tag) > 1:
+                tags.add(tag)
         tags = list(tags)
         tags.sort()
         pkg_dict['tags'] = tags

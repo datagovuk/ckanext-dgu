@@ -20,7 +20,7 @@ WSGI_CLIENT = True
 def count_pkgs():
     return model.Session.query(model.Package).count()
 
-class LoaderBase(TestController):
+class TestLoaderBase(TestController):
     def setup(self):
         CreateTestData.create_arbitrary([], extra_user_names=[USER])
         user = model.User.by_name(USER)
@@ -44,7 +44,7 @@ class LoaderBase(TestController):
                 CreateTestData.delete()        
 
 
-class TestLoader(LoaderBase):
+class TestLoader(TestLoaderBase):
     def setup(self):
         super(TestLoader, self).setup()
         self.loader = PackageLoader(self.testclient)
@@ -122,7 +122,7 @@ class TestLoader(LoaderBase):
         assert count_pkgs() == num_pkgs + 1, (count_pkgs() - num_pkgs)
 
 
-class TestLoaderUsingUniqueFields(LoaderBase):
+class TestLoaderUsingUniqueFields(TestLoaderBase):
     def setup(self):
         self.tsi = TestSearchIndexer()
         super(TestLoaderUsingUniqueFields, self).setup()
@@ -186,7 +186,7 @@ class TestLoaderUsingUniqueFields(LoaderBase):
         assert count_pkgs() == num_pkgs + 2, (count_pkgs() - num_pkgs)
 
         
-class TestLoaderNoSearch(LoaderBase):
+class TestLoaderNoSearch(TestLoaderBase):
     '''Cope as best as possible if search indexing is flakey.'''
     def setup(self):
         '''NB, no search indexing started'''
@@ -221,7 +221,7 @@ class TestLoaderNoSearch(LoaderBase):
         # i.e. not tempted to create pkgname0_ alongside pkgname0
 
         
-class TestLoaderGroups(LoaderBase):
+class TestLoaderGroups(TestLoaderBase):
     def setup(self):
         super(TestLoaderGroups, self).setup()
         self.loader = PackageLoader(self.testclient)
@@ -294,7 +294,7 @@ class TestLoaderGroups(LoaderBase):
             assert 0, 'Should have raise a LoaderError for the missing group'
         
 
-class TestLoaderInsertingResources(LoaderBase):
+class TestLoaderInsertingResources(TestLoaderBase):
     def setup(self):
         self.tsi = TestSearchIndexer()
         super(TestLoaderInsertingResources, self).setup()

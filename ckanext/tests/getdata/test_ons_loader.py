@@ -1,108 +1,204 @@
 import os
 
-from ons_data_tester import OnsDataTester
-from ckanext.getdata import ons_download
+from pylons import config
+from sqlalchemy.util import OrderedDict
+
 from ckanext.getdata import ons_importer
 from ckanext.getdata import ons_loader
-from pylons import config
+from test_loader import TestLoaderBase
+from ckan import model
+from ckan.tests import *
 
-from sqlalchemy.util import OrderedDict
 
 SAMPLE_PATH = os.path.abspath(os.path.join(config['here'], '..','dgu', 'ckanext', 'tests', 'getdata', 'samples'))
 SAMPLE_FILEPATH_1 = os.path.join(SAMPLE_PATH, 'ons_hub_sample.xml')
+SAMPLE_FILEPATH_2 = os.path.join(SAMPLE_PATH, 'ons_hub_sample2.xml')
+SAMPLE_FILEPATH_3 = os.path.join(SAMPLE_PATH, 'ons_hub_sample3')
+SAMPLE_FILEPATH_4 = os.path.join(SAMPLE_PATH, 'ons_hub_sample4.xml')
+SAMPLE_FILEPATH_4a = os.path.join(SAMPLE_PATH, 'ons_hub_sample4a.xml')
+SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
+TEST_PKG_NAMES = ['uk_official_holdings_of_international_reserves', 'cereals_and_oilseeds_production_harvest', 'end_of_custody_licence_release_and_recalls', 'sentencing_statistics_brief_england_and_wales', 'population_in_custody_england_and_wales', 'probation_statistics_brief']
 
-class TestOnsData1:
+
+class TestOnsLoadBasic(TestLoaderBase):
     def setup(self):
-        records_obj = ons_importer.OnsDataRecords(SAMPLE_FILEPATH_1)
-        self.records = [record for record in records_obj.records]
-    
-    def test_records(self):
-        assert len(self.records) == 8
-        record1 = self.records[0]
-        assert record1.keys() == [u'title', u'link', u'description', u'pubDate', u'guid', u'hub:source-agency', u'hub:theme', u'hub:coverage', u'hub:designation', u'hub:geographic-breakdown', u'hub:language', u'hub:ipsv', u'hub:keywords', u'hub:altTitle', u'hub:nscl'], record1.keys()
-        expected_items = [
-            (u'title', u'UK Official Holdings of International Reserves - December 2009'),
-            (u'link', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
-            (u'description', u"Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities."),
-            (u'pubDate', u'Wed, 06 Jan 2010 09:30:00 GMT'),
-            (u'guid', u'http://www.statistics.gov.uk/hub/id/119-36345'),
-            (u'hub:source-agency', u'HM Treasury'),
-            (u'hub:theme', u'Economy'),
-            (u'hub:coverage', u'UK'),
-            (u'hub:designation', u''),
-            (u'hub:geographic-breakdown', u'UK and GB'),
-            (u'hub:language', u'English'),
-            (u'hub:ipsv', u'Economics and finance'),
-            (u'hub:keywords', u'reserves;currency;assets;liabilities;gold;reserves;currency;assets;liabilities;gold'),
-            (u'hub:altTitle', u'UK Reserves'),
-            (u'hub:nscl', u'Economy;Government Receipts and Expenditure;Public Sector Finance;Economy;Government Receipts and Expenditure;Public Sector Finance')]
-        for key, value in expected_items:
-            assert record1[key] == value, 'Key %s: got %r but should be %r' % (key, record1[key], value)
-        expected_keys = set([key for key, value in expected_items])
-        keys = set(record1.keys())
-        key_difference = expected_keys - keys
-        assert not key_difference, key_difference
+        self.tsi = TestSearchIndexer()
+        super(TestOnsLoadBasic, self).setup()
+        importer = ons_importer.OnsImporter(SAMPLE_FILEPATH_1)
+        self.pkg_dicts = [pkg_dict for pkg_dict in importer.pkg_dict()]
+        loader = ons_loader.OnsLoader(self.testclient)
+        self.tsi.index() # this needs to run during package loading too
+                         # but the test copes...
+        self.res = loader.load_packages(self.pkg_dicts)
+        assert self.res['num_errors'] == 0, self.res
+        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+
+    def test_fields(self):
+        q = model.Session.query(model.Package)
+        names = [pkg.name for pkg in q.all()]
+        pkg1 = model.Package.by_name(u'uk_official_holdings_of_international_reserves')
+        cereals = model.Package.by_name(u'cereals_and_oilseeds_production_harvest')
+        custody = model.Package.by_name(u'end_of_custody_licence_release_and_recalls')
+        probation = model.Package.by_name(u'probation_statistics_brief')
+        assert pkg1, names
+        assert cereals, names
+        assert custody, names
+        assert probation, names
+        assert pkg1.title == 'UK Official Holdings of International Reserves', pkg1.title
+        assert pkg1.notes.startswith("Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities."), pkg1.notes
+        assert len(pkg1.resources) == 1, pkg1.resources
+        assert pkg1.resources[0].url == 'http://www.hm-treasury.gov.uk/national_statistics.htm', pkg1.resources[0]
+        assert pkg1.resources[0].description == 'December 2009 | hub/id/119-36345', pkg1.resources[0].description
+        assert len(custody.resources) == 2, custody.resources
+        assert custody.resources[0].url == 'http://www.justice.gov.uk/publications/endofcustodylicence.htm', custody.resources[0]
+        assert custody.resources[0].description == 'November 2009 | hub/id/119-36836', custody.resources[0].description
+        assert custody.resources[1].url == 'http://www.justice.gov.uk/publications/endofcustodylicence.htm', custody.resources[0]
+        assert custody.resources[1].description == 'December 2009 | hub/id/119-36838', custody.resources[1].description
+        assert pkg1.extras['date_released'] == u'2010-01-06', pkg1.extras['date_released']
+        assert probation.extras['date_released'] == u'2010-01-04', probation.extras['date_released']
+        assert pkg1.extras['department'] == u"Her Majesty's Treasury", pkg1.extras['department']
+        assert cereals.extras['department'] == u"Department for Environment, Food and Rural Affairs", cereals.extras['department']
+        assert custody.extras['department'] == u"Ministry of Justice", custody.extras['department']
+        assert u"Source agency: HM Treasury" in pkg1.notes, pkg1.notes
+        assert pkg1.extras['categories'] == 'Economy', pkg1.extras['category']
+        assert pkg1.extras['geographic_coverage'] == '111100: United Kingdom (England, Scotland, Wales, Northern Ireland)', pkg1.extras['geographic_coverage']
+        assert pkg1.extras['national_statistic'] == 'no', pkg1.extras['national_statistic']
+        assert cereals.extras['national_statistic'] == 'yes', cereals.extras['national_statistic']
+        assert custody.extras['national_statistic'] == 'no', custody.extras['national_statistic']
+        assert 'Designation: Official Statistics not designated as National Statistics' in custody.notes
+        assert pkg1.extras['geographical_granularity'] == 'UK and GB', pkg1.extras['geographical_granularity']
+        assert 'Language: English' in pkg1.notes, pkg1.notes
+        def check_tags(pkg, tags_list):            
+            pkg_tags = [tag.name for tag in pkg.tags]
+            for tag in tags_list:
+                assert tag in pkg_tags, "Couldn't find tag '%s' in tags: %s" % (tag, pkg_tags)
+        check_tags(pkg1, ('economics-and-finance', 'reserves', 'currency', 'assets', 'liabilities', 'gold', 'economy', 'government-receipts-and-expenditure', 'public-sector-finance'))
+        check_tags(cereals, ('environment', 'farming'))
+        check_tags(custody, ('public-order-justice-and-rights', 'justice-system', 'prisons'))
+        assert 'Alternative title: UK Reserves' in pkg1.notes, pkg1.notes
+        
+        assert pkg1.extras['external_reference'] == u'ONSHUB', pkg1.extras['external_reference']
+        assert 'UK Crown Copyright with data.gov.uk rights' in pkg.license.title, pkg.license.title
+        assert pkg1.extras['update_frequency'] == u'monthly', pkg1.extras['update_frequency']
+        assert custody.extras['update_frequency'] == u'monthly', custody.extras['update_frequency']
+        assert pkg1.author == u"Her Majesty's Treasury", pkg1.author
+        assert cereals.author == u'Department for Environment, Food and Rural Affairs', cereals.author
+        assert custody.author == u'Ministry of Justice', custody.author
+
+#        assert model.Group.by_name(u'ukgov') in pkg1.groups
+        for pkg in (pkg1, cereals, custody):
+            assert pkg.extras['import_source'].startswith('ONS'), '%s %s' % (pkg.name, pkg.extras['import_source'])
 
 
-class TestOnsImporter:
-    def test_record_2_package(self):
-        record = OrderedDict([
-            (u'title', u'UK Official Holdings of International Reserves - December 2009'),
-            (u'link', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
-            (u'description', u"Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities."),
-            (u'pubDate', u'Wed, 06 Jan 2010 09:30:00 GMT'),
-            (u'guid', u'http://www.statistics.gov.uk/hub/id/119-36345'),
-            (u'hub:source-agency', u'HM Treasury'),
-            (u'hub:theme', u'Economy'),
-            (u'hub:coverage', u'UK'),
-            (u'hub:designation', u''),
-            (u'hub:geographic-breakdown', u'UK and GB'),
-            (u'hub:language', u'English'),
-            (u'hub:ipsv', u'Economics and finance'),
-            (u'hub:keywords', u'reserves;currency;assets;liabilities;gold;reserves;currency;assets;liabilities;gold'),
-            (u'hub:altTitle', u'UK Reserves'),
-            (u'hub:nscl', u'Economy;Government Receipts and Expenditure;Public Sector Finance;Economy;Government Receipts and Expenditure;Public Sector Finance')])
-        ons_importer_ = ons_importer.OnsImporter(filepath=SAMPLE_FILEPATH_1)
-        package_dict = ons_importer_.record_2_package(record)
-    
-        expected_package_dict = [
-            ('name', u'uk_official_holdings_of_international_reserves'),
-            ('title', u'UK Official Holdings of International Reserves'),
-            ('version', None),
-            ('url', None),
-            ('author', u"Her Majesty's Treasury"),
-            ('author_email', None),
-            ('maintainer', None),
-            ('maintainer_email', None),
-            ('notes', u"Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities.\n\nSource agency: HM Treasury\n\nLanguage: English\n\nAlternative title: UK Reserves"),
-            ('license_id', u'ukcrown-withrights'),
-            ('tags', [u'assets', u'currency', u'economics-and-finance', u'economy', u'gold', u'government-receipts-and-expenditure', u'liabilities', u'public-sector-finance', u'reserves']),
-            ('groups', ['ukgov']),
-            ('resources', [OrderedDict([
-                ('url', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
-                ('description', u'December 2009 | hub/id/119-36345'),
-                ])]),
-            ('extras', OrderedDict([
-                ('geographic_coverage', u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
-                ('geographical_granularity', u'UK and GB'),
-                ('external_reference', u'ONSHUB'),
-                ('temporal_granularity', u''),
-                ('date_updated', u''),
-                ('agency', u''),
-                ('precision', u''),
-                ('temporal_coverage_to', u''),
-                ('temporal_coverage_from', u''),
-                ('national_statistic', 'no'),
-                ('update_frequency', 'monthly'),
-                ('department', u"Her Majesty's Treasury"),
-                ('import_source', 'ONS-ons_hub_sample.xml'),
-                ('date_released', '2010-01-06'),
-                ('categories', u'Economy'),
-                ])),
-            ]
-        for key, value in expected_package_dict:
-            assert package_dict[key] == value, self.records[0][key].items()
-        expected_keys = set([key for key, value in expected_package_dict])
-        keys = set(package_dict.keys())
-        key_difference = expected_keys - keys
-        assert not key_difference, key_difference
+class TestOnsLoadTwice(TestLoaderBase):
+    def setup(self):
+        self.tsi = TestSearchIndexer()
+        super(TestOnsLoadTwice, self).setup()
+        # SAMPLE_FILEPATH_2 has the same packages as 1, but slightly updated
+        for filepath in [SAMPLE_FILEPATH_1, SAMPLE_FILEPATH_2]:
+            importer = ons_importer.OnsImporter(filepath)
+            pkg_dicts = [pkg_dict for pkg_dict in importer.pkg_dict()]
+            loader = ons_loader.OnsLoader(self.testclient)
+            self.tsi.index()
+            res = loader.load_packages(pkg_dicts)
+            assert res['num_errors'] == 0, res
+        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+
+    def test_packages(self):
+        pkg = model.Package.by_name(u'uk_official_holdings_of_international_reserves')
+        assert pkg.title == 'UK Official Holdings of International Reserves', pkg.title
+        assert pkg.notes.startswith('CHANGED'), pkg.notes
+        assert len(pkg.resources) == 1, pkg.resources
+        assert 'CHANGED' in pkg.resources[0].description, pkg.resources
+
+
+class TestOnsLoadClashTitle(TestLoaderBase):
+    # two packages with the same title, both from ONS,
+    # but from different departments, so must be different packages
+    def setup(self):
+        self.tsi = TestSearchIndexer()
+        super(TestOnsLoadClashTitle, self).setup()
+        # ons items have been split into 3 files, because search needs to
+        # do indexing in between
+        for suffix in 'abc':
+            importer = ons_importer.OnsImporter(SAMPLE_FILEPATH_3 + suffix + '.xml')
+            pkg_dicts = [pkg_dict for pkg_dict in importer.pkg_dict()]
+            loader = ons_loader.OnsLoader(self.testclient)
+            self.tsi.index()
+            self.res = loader.load_packages(pkg_dicts)
+            assert self.res['num_errors'] == 0, self.res
+        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+
+    def test_ons_package(self):
+        pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings')
+        assert pkg
+        assert not pkg.extras.get('department'), pkg.extras.get('department')
+        assert 'Office for National Statistics' in pkg.notes, pkg.notes
+        assert len(pkg.resources) == 2, pkg.resources
+        assert '2007 Results Phase 3 Tables' in pkg.resources[0].description, pkg.resources
+        assert '2007 Pensions Results' in pkg.resources[1].description, pkg.resources
+
+    def test_welsh_package(self):
+        pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings_')
+        assert pkg
+        assert pkg.extras['department'] == 'Welsh Assembly Government', pkg.extras['department']
+        assert len(pkg.resources) == 1, pkg.resources
+        assert '2008 Results' in pkg.resources[0].description, pkg.resources
+
+
+class TestOnsLoadClashSource(TestLoaderBase):
+    # two packages with the same title, and department, but one not from ONS,
+    # so must be different packages
+    def setup(self):
+        self.tsi = TestSearchIndexer()
+        super(TestOnsLoadClashSource, self).setup()
+
+        self.clash_name = u'cereals_and_oilseeds_production_harvest'
+        CreateTestData.create_arbitrary([
+            {'name':self.clash_name,
+             'title':'Test clash',
+             'extras':{
+                 'department':'Department for Environment, Food and Rural Affairs',
+                 'import_source':'DECC-Jan-09',
+                 },
+             }
+            ])
+        importer = ons_importer.OnsImporter(SAMPLE_FILEPATH_1)
+        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+        pkg_dicts = [pkg_dict for pkg_dict in importer.pkg_dict()]
+        loader = ons_loader.OnsLoader(self.testclient)
+        self.tsi.index()
+        self.res = loader.load_packages(pkg_dicts)
+        assert self.res['num_errors'] == 0, self.res
+
+    def test_names(self):
+        pkg1 = model.Package.by_name(self.clash_name)
+        assert pkg1.title == u'Test clash', pkg1.title
+
+        pkg2 = model.Package.by_name(self.clash_name + u'_')
+        assert pkg2.title == u'Cereals and Oilseeds Production Harvest', pkg2.title
+
+class TestOnsLoadSeries(TestLoaderBase):
+    def setup(self):
+        self.tsi = TestSearchIndexer()
+        super(TestOnsLoadSeries, self).setup()
+        for filepath in [SAMPLE_FILEPATH_4a, SAMPLE_FILEPATH_4b]:
+            importer = ons_importer.OnsImporter(filepath)
+            pkg_dicts = [pkg_dict for pkg_dict in importer.pkg_dict()]
+            for pkg_dict in pkg_dicts:
+                assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
+                assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
+                assert not pkg_dict['extras']['department'], pkg_dict # but key must exist
+            loader = ons_loader.OnsLoader(self.testclient)
+            self.tsi.index()
+            res = loader.load_packages(pkg_dicts)
+            assert res['num_errors'] == 0, res
+        CreateTestData.flag_for_deletion('regional_labour_market_statistics')
+
+    def test_packages(self):
+        pkg = model.Package.by_name(u'regional_labour_market_statistics')
+        assert pkg
+        assert pkg.title == 'Regional Labour Market Statistics', pkg.title
+        assert pkg.extras['agency'] == 'Office for National Statistics', pkg.extras['agency']
+        assert len(pkg.resources) == 9, pkg.resources
+

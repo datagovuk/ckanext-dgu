@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Mon, 18 Jan 2010 18:54:02 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+
+<item>
+<title>Regional Labour Market Statistics - August 2010 Scotland</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28382</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 East Midlands</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28374</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 West Midlands</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28390</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 South East</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28384</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 London</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28376</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 South West</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28386</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 East</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28372</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 Yorkshire and Humber</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28392</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+<item>
+<title>Regional Labour Market Statistics - August 2010 North West</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=5838</link>
+<description>Provides latest employment; unemployment; economic activity and inactivity; and claimant count data, at regional and sub-regional levels on a monthly basis.</description>
+<pubDate>Wed, 11 Aug 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-28380</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Labour Market</hub:theme>
+<hub:coverage>Sub-National</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Region</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Employment, jobs and careers</hub:ipsv>
+<hub:keywords>employment</hub:keywords>
+<hub:altTitle>Regional labour market statistics</hub:altTitle>
+<hub:nscl>Labour Market;People in Work;Employment;Labour Market;People in Work;Employment</hub:nscl>
+</item>
+
+
+
+</channel></rss>

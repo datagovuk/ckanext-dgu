@@ -9,6 +9,8 @@ import copy
 
 import ckanclient
 
+#TODO change print statements to logs and test these too
+
 class LoaderError(Exception):
     pass
 
@@ -90,11 +92,14 @@ class PackageLoader(object):
 
         # load package
         if existing_pkg_name:
+            if not existing_pkg:
+                existing_pkg = self.ckanclient.package_entity_get(existing_pkg_name)
             if isinstance(self.settings, ResourceSeries):
-                if not existing_pkg:
-                    existing_pkg = self.ckanclient.package_entity_get(existing_pkg_name)
-                    pkg_dict = self._merge_resources(existing_pkg, pkg_dict)
-            self.ckanclient.package_entity_put(pkg_dict, existing_pkg_name)
+                pkg_dict = self._merge_resources(existing_pkg, pkg_dict)
+            if self._pkg_has_changed(existing_pkg, pkg_dict):
+                self.ckanclient.package_entity_put(pkg_dict, existing_pkg_name)
+            else:
+                print '...no change'
         else:
             self.ckanclient.package_register_post(pkg_dict)
         if self.ckanclient.last_status != 200:
@@ -169,7 +174,7 @@ class PackageLoader(object):
             has_a_value = False
             for field_key in field_keys:
                 field_value = pkg_dict.get(field_key) or pkg_dict['extras'].get(field_key)
-                search_options[field_key] = field_value
+                search_options[field_key] = field_value or u''
                 if field_value:
                     has_a_value = True
             if not has_a_value:
@@ -178,31 +183,31 @@ class PackageLoader(object):
             res = self.ckanclient.package_search(q='', search_options=search_options)
             if self.ckanclient.last_status != 200:
                 raise LoaderError('Search request failed (status %s): %s' % (self.ckanclient.last_status, res))
-            if res['count'] > 1:
-                raise LoaderError('More than one record matches the unique field: %s=%s' % (unique_extra_field, field_value))
-            elif res['count'] == 1:
+            # search doesn't do exact match (e.g. sql search searches *in*
+            # a field), so check matches thoroughly
+            exactly_matching_pkg_names = []
+            for pkg_name in res['results']:
+                pkg = self.ckanclient.package_entity_get(pkg_name)
+                if self._pkg_matches_search_options(pkg, search_options):
+                    exactly_matching_pkg_names.append(pkg)
+            if len(exactly_matching_pkg_names) > 1:
+                raise LoaderError('More than one record matches the search options %r: %r' % (search_options, exactly_matching_pkg_names))
+            elif len(exactly_matching_pkg_names) == 1:
                 pkg_name = res['results'][0]
             else:
                 pkg_name = None
+            # Only carry through value for pkg if it was the last one and only
+            # one fetched
+            if res['results'] != [pkg_name]:
+                pkg = None
 
         if pkg_name != pkg_dict['name']:
             # Just in case search is not indexing well, look for the
             # package under its name as well
             pkg = self._get_package(pkg_dict['name'])
-            if pkg:
-                matches = True
-                for key, value in search_options.items():
-                    if hasattr(pkg, key):
-                        if getattr(pkg, key) != value:
-                            matches = False
-                            break
-                    else:
-                        if pkg['extras'].get(key) != value:
-                            matches = False
-                            break
-                if matches:
-                    print 'Warning, search failed to find package %r with ref %r, but luckily the name is what was expected so loader found it anyway.' % (pkg_dict['name'], field_value)
-                    pkg_name = pkg['name']
+            if pkg and self._pkg_matches_search_options(pkg, search_options):
+                print 'Warning, search failed to find package %r with ref %r, but luckily the name is what was expected so loader found it anyway.' % (pkg_dict['name'], field_value)
+                pkg_name = pkg['name']
         return pkg_name, pkg 
 
     def _ensure_pkg_name_is_available(self, pkg_dict):
@@ -264,3 +269,44 @@ class PackageLoader(object):
 
         return merged_dict
                 
+    def _pkg_has_changed(self, existing_value, value):
+        changed = False
+        if isinstance(value, dict):
+            for key, sub_value in value.items():
+                if key in ('groups', 'import_source'):
+                    # loader doesn't setup groups
+                    # import_source changing alone doesn't require an update
+                    continue
+                existing_sub_value = existing_value.get(key)
+                if self._pkg_has_changed(existing_sub_value, sub_value):
+                    changed = True
+                    break
+        elif isinstance(value, list) and \
+               isinstance(existing_value, list):
+            if len(existing_value) != len(value):
+                changed = True
+            else:
+                for i, sub_value in enumerate(value):
+                    if self._pkg_has_changed(existing_value[i], sub_value):
+                        changed = True
+                        break
+        elif (existing_value or None) != (value or None):
+            changed = True
+            
+        if changed:
+            return True
+        return False
+
+    def _pkg_matches_search_options(self, pkg_dict, search_options):
+        matches = True
+        for key, value in search_options.items():
+            if pkg_dict.get(key):
+                if (pkg_dict.get(key) or None) != (value or None):
+                    matches = False
+                    break
+            else:
+                if (pkg_dict['extras'].get(key) or None) != (value or None):
+                    matches = False
+                    break
+        return matches
+        
