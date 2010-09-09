@@ -29,6 +29,7 @@
   <![endif]-->
 
 <link rel="shortcut icon" href="http://data.gov.uk/sites/default/files/datagovuk_favicon.png" type="image/x-icon" />
+  <link type="text/css" rel="stylesheet" media="all" href="http://assets.okfn.org/kforge/css/pagination.css" />
   <link type="text/css" rel="stylesheet" media="all" href="/css/dgu-1.css" />
 <link type="text/css" rel="stylesheet" media="print" href="/css/dgu-2.css" />
   <!--[if IE 7]>
@@ -82,6 +83,15 @@
     #secondary {
       border-top: solid 1px lightGrey;
     }
+
+		#logo-title {
+			margin-left: 20px;
+			font-size: 25px;
+		}
+
+		#logo-title span {
+			margin-left: 10px;
+		}
   </style>
   <py:if test="defined('optional_head')">
     ${optional_head()}
@@ -113,7 +123,16 @@
       </div> <!-- /#search-box -->
                   <div id="logo-title">
 
-                      <div id="logo"><a href="/" title="Home" rel="home"><img src="http://data.gov.uk/sites/all/themes/datagovuk/logo.png" alt="data.gov.uk (Beta)" id="logo-image" /></a></div>
+										<div id="logo">
+        <a href="${h.url_for('home')}">
+          <py:if test="g.site_logo">
+            <img src="${g.site_logo}" alt="${g.site_title} Logo" />
+          </py:if>
+					<span class="logo-title-text">
+            ${g.site_title}
+					</span>
+        </a>
+										</div>
           
       
 
