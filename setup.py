@@ -10,6 +10,7 @@ setup(
     description='CKAN DGU extensions',
     keywords='data packaging component tool server',
     install_requires=[
+        'swiss',
         'ckanclient',
         'xlrd>=0.7.1',
         'xlwt>=0.7.2',
