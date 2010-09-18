@@ -3,29 +3,29 @@ import re
 import os
 import glob
 import logging
-
-import ckan.model as model
-from ckan.lib import schema_gov
-from ckan.lib import field_types
-from ckan.lib.importer import PackageImporter, DataRecords, RowParseError
-
-from sqlalchemy.util import OrderedDict
+from ckanext.dgu import schema
+from swiss import date
 
 guid_prefix = 'http://www.statistics.gov.uk/'
 
-class OnsImporter(PackageImporter):
-    def import_into_package_records(self):
-        xml_filepath = self._filepath
-        self._basic_setup()
+class OnsImporter(object):
+    def __init__(self, filepath):
+        self._filepath = filepath
         self._current_filename = os.path.basename(self._filepath)
-        self._package_data_records = OnsDataRecords(self._filepath)
+        self._item_count = 0
+        self._new_package_count = 0
+        self._crown_license_id = u'ukcrown-withrights'
+
+    def pkg_dict(self):
+        for item in OnsDataRecords(self._filepath):
+            yield self.record_2_package(item)
 
     def record_2_package(self, item):
         assert isinstance(item, dict)
 
         # process item
         title, release = self._split_title(item['title'])
-        munged_title = schema_gov.name_munge(title)
+        munged_title = schema.name_munge(title)
         department = self._source_to_department(item['hub:source-agency'])
 
         # Resources
@@ -57,39 +57,38 @@ class OnsImporter(PackageImporter):
                 notes_list.append('%s: %s' % (name, item[column]))
         notes = '\n\n'.join(notes_list)
 
-        extras = OrderedDict([
-            ('geographic_coverage', u''),
-            ('external_reference', u''),
-            ('temporal_granularity', u''),
-            ('date_updated', u''),
-            ('agency', u''),
-            ('precision', u''),
-            ('geographical_granularity', u''),
-            ('temporal_coverage_from', u''),
-            ('temporal_coverage_to', u''),
-            ('national_statistic', u''),
-            ('department', u''),
-            ('update_frequency', u''),
-            ('date_released', u''),
-            ('categories', u''),
-            ])
+        extras = {
+            'geographic_coverage': u'',
+            'external_reference': u'',
+            'temporal_granularity': u'',
+            'date_updated': u'',
+            'agency': u'',
+            'precision': u'',
+            'geographical_granularity': u'',
+            'temporal_coverage_from': u'',
+            'temporal_coverage_to': u'',
+            'national_statistic': u'',
+            'department': u'',
+            'update_frequency': u'',
+            'date_released': u'',
+            'categories': u'',
+            }
         date_released = u''
         if item['pubDate']:
-            try:
-                iso_date = field_types.DateType.strip_iso_timezone(item['pubDate'])
-                date_released = field_types.DateType.iso_to_db(iso_date, '%a, %d %b %Y %H:%M:%S')
-            except TypeError, e:
-                self.log('Warning: Could not read format of publication (release) date: %r' % e.args)
-        extras['date_released'] = date_released
+            date_released = date.parse(item["pubDate"])
+            if date_released.qualifier:
+                self.log('Warning: Could not read format of publication (release) date: %r' % 
+                         item["pubDate"])
+        extras['date_released'] = date_released.isoformat()
         extras['department'] = self._source_to_department(item['hub:source-agency'])
         extras['agency'] = item['hub:source-agency'] if not extras['department'] else u''
         extras['categories'] = item['hub:theme']
-        geo_coverage_type = schema_gov.GeoCoverageType.get_instance()
+        geo_coverage_type = schema.GeoCoverageType.get_instance()
         extras['geographic_coverage'] = geo_coverage_type.str_to_db(item['hub:coverage'])
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
         extras['geographical_granularity'] = item['hub:geographic-breakdown']
         extras['external_reference'] = u'ONSHUB'
-        for update_frequency_suggestion in schema_gov.update_frequency_suggestions:
+        for update_frequency_suggestion in schema.update_frequency_suggestions:
             item_info = ('%s %s' % (item['title'], item['description'])).lower()
             if update_frequency_suggestion in item_info:
                 extras['update_frequency'] = update_frequency_suggestion
@@ -99,32 +98,34 @@ class OnsImporter(PackageImporter):
         extras['import_source'] = 'ONS-%s' % self._current_filename 
 
         author = extras['department'] if extras['department'] else None
-        resources = [OrderedDict((('url', download_url),
-                                 ('description', description)))]
+        resources = [{
+                'url': download_url,
+                'description': description
+                }]
 
         # update package
-        pkg_dict = OrderedDict([
-            ('name', munged_title),
-            ('title', title),
-            ('version', None),
-            ('url', None),
-            ('author', author),
-            ('author_email', None),
-            ('maintainer', None),
-            ('maintainer_email', None),
-            ('notes', notes),
-            ('license_id', self._crown_license_id),
-            ('tags', []), # post-filled
-            ('groups', ['ukgov']),
-            ('resources', resources),
-            ('extras', extras),
-            ])
+        pkg_dict = {
+            'name': munged_title,
+            'title': title,
+            'version': None,
+            'url': None,
+            'author': author,
+            'author_email': None,
+            'maintainer': None,
+            'maintainer_email': None,
+            'notes': notes,
+            'license_id': self._crown_license_id,
+            'tags': [], # post-filled
+            'groups': ['ukgov'],
+            'resources': resources,
+            'extras': extras,
+            }
 
-        tags = schema_gov.TagSuggester.suggest_tags(pkg_dict)
+        tags = schema.TagSuggester.suggest_tags(pkg_dict)
         for keyword in item['hub:ipsv'].split(';') + \
                 item['hub:keywords'].split(';') + \
                 item['hub:nscl'].split(';'):
-            tag = schema_gov.tag_munge(keyword)
+            tag = schema.tag_munge(keyword)
             if tag and len(tag) > 1:
                 tags.add(tag)
         tags = list(tags)
@@ -134,16 +135,16 @@ class OnsImporter(PackageImporter):
         return pkg_dict
 
     def _source_to_department(self, source):
-        dept_given = schema_gov.expand_abbreviations(source)
+        dept_given = schema.expand_abbreviations(source)
         department = None
         if '(Northern Ireland)' in dept_given:
             department = u'Northern Ireland Executive'
-        for dept in schema_gov.government_depts:
+        for dept in schema.government_depts:
             if dept_given in dept or dept_given.replace('Service', 'Services') in dept or dept_given.replace('Dept', 'Department') in dept:
                 department = unicode(dept)
                 
         if department:
-            assert department in schema_gov.government_depts, department
+            assert department in schema.government_depts, department
             return department
         else:
             if dept_given and dept_given not in ['Office for National Statistics', 'Health Protection Agency', 'Information Centre for Health and Social Care', 'General Register Office for Scotland', 'Northern Ireland Statistics and Research Agency', 'National Health Service in Scotland', 'National Treatment Agency', 'Police Service of Northern Ireland (PSNI)', 'Child Maintenance and Enforcement Commission', 'Health and Safety Executive', 'NHS National Services Scotland', 'ISD Scotland (part of NHS National Services Scotland)']:
@@ -157,20 +158,13 @@ class OnsImporter(PackageImporter):
         if not match:
             'Warning: Could not split title: %s' % xml_title
             return (xml_title, None)
-        return match.groups()
+        return [x for x in match.groups() if x]
 
-    def _basic_setup(self):
-        self._item_count = 0
-        self._new_package_count = 0
-        self._crown_license_id = u'ukcrown-withrights'
-
-
-class OnsDataRecords(DataRecords):
+class OnsDataRecords(object):
     def __init__(self, xml_filepath):
         self._xml_filepath = xml_filepath
-        
-    @property
-    def records(self):
+
+    def __iter__(self):
         ons_xml = OnsXml()
         xml.sax.parse(self._xml_filepath, ons_xml)
         for record in ons_xml.items:
@@ -180,7 +174,7 @@ class OnsDataRecords(DataRecords):
 class OnsXml(xml.sax.handler.ContentHandler):
     def startDocument(self):
         self._level = 0
-        self._item_dict = OrderedDict()
+        self._item_dict = {}
         self.items = []
         
     def startElement(self, name, attrs):
@@ -218,7 +212,7 @@ class OnsXml(xml.sax.handler.ContentHandler):
         if self._level == 3:
             if self._item_dict:
                 self.items.append(self._item_dict)
-            self._item_dict = OrderedDict()
+            self._item_dict = {}
         elif self._level == 4:
             self._item_dict[self._item_element] = self._item_data
             self._item_element = self._item_data = None

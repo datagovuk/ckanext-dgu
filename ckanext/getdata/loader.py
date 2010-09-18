@@ -97,7 +97,8 @@ class PackageLoader(object):
             if isinstance(self.settings, ResourceSeries):
                 pkg_dict = self._merge_resources(existing_pkg, pkg_dict)
             if self._pkg_has_changed(existing_pkg, pkg_dict):
-                self.ckanclient.package_entity_put(pkg_dict, existing_pkg_name)
+                assert existing_pkg_name == pkg_dict["name"], "%s != %s" % (existing_pkg_name, pkg_dict["name"])
+                self.ckanclient.package_entity_put(pkg_dict)
             else:
                 print '...no change'
         else:
@@ -134,10 +135,14 @@ class PackageLoader(object):
     def add_pkg_to_group(self, pkg_name, group_name):
         return self.add_pkgs_to_group([pkg_name], group_name)
 
+    def is_id(self, id_string):
+        '''Tells the client if the string looks like an id or not'''
+        return bool(re.match('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', id_string))
+
     def add_pkgs_to_group(self, pkg_names, group_name):
         for pkg_name in pkg_names:
-            assert not self.ckanclient.is_id(pkg_name), pkg_name
-        assert not self.ckanclient.is_id(group_name), group_name
+            assert not self.is_id(pkg_name), pkg_name
+        assert not self.is_id(group_name), group_name
         group_dict = self.ckanclient.group_entity_get(group_name)
         if self.ckanclient.last_status == 404:
             raise LoaderError('Group named %r does not exist' % group_name)

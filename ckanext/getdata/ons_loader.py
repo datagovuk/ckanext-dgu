@@ -20,3 +20,5 @@ class OnsLoader(PackageLoader):
                 'precision', 'url', 'taxonomy_url', 'agency',
                 'author', 'author_email', 'license_id'])
         super(OnsLoader, self).__init__(ckanclient, settings)
+    def load_package(self, pkg_dict):
+        print pkg_dict["name"]

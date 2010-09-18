@@ -18,6 +18,8 @@ setup(
     include_package_data=True,
     package_data={'ckan': ['i18n/*/LC_MESSAGES/*.mo']},
     entry_points="""
+        [console_scripts]
+        ons_loader = ckanext.dgu.ons:load
     """,
     test_suite = 'nose.collector',
 )
