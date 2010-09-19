@@ -2,11 +2,12 @@ import xml.sax
 import re
 import os
 import glob
-import logging
 from ckanext.dgu import schema
 from swiss import date
 
 guid_prefix = 'http://www.statistics.gov.uk/'
+
+log = __import__("logging").getLogger(__name__)
 
 class OnsImporter(object):
     def __init__(self, filepath):
@@ -77,7 +78,7 @@ class OnsImporter(object):
         if item['pubDate']:
             date_released = date.parse(item["pubDate"])
             if date_released.qualifier:
-                self.log('Warning: Could not read format of publication (release) date: %r' % 
+                log.warn('Could not read format of publication (release) date: %r' % 
                          item["pubDate"])
         extras['date_released'] = date_released.isoformat()
         extras['department'] = self._source_to_department(item['hub:source-agency'])
@@ -148,7 +149,7 @@ class OnsImporter(object):
             return department
         else:
             if dept_given and dept_given not in ['Office for National Statistics', 'Health Protection Agency', 'Information Centre for Health and Social Care', 'General Register Office for Scotland', 'Northern Ireland Statistics and Research Agency', 'National Health Service in Scotland', 'National Treatment Agency', 'Police Service of Northern Ireland (PSNI)', 'Child Maintenance and Enforcement Commission', 'Health and Safety Executive', 'NHS National Services Scotland', 'ISD Scotland (part of NHS National Services Scotland)']:
-                self.log('Warning: Double check this is not a gvt department source: %s' % dept_given)
+                log.warn('Double check this is not a gvt department source: %s' % dept_given)
             return None
         
     def _split_title(self, xml_title):

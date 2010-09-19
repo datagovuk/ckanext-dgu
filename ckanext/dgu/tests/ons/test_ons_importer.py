@@ -3,23 +3,28 @@ import os
 from pylons import config
 from sqlalchemy.util import OrderedDict
 
-from ckanext.getdata import ons_importer
+from ckanext.dgu.ons import importer
 from ckan.tests import *
 
 
-SAMPLE_PATH = os.path.abspath(os.path.join(config['here'], '..','dgu', 'ckanext', 'tests', 'getdata', 'samples'))
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
 SAMPLE_FILEPATH_1 = os.path.join(SAMPLE_PATH, 'ons_hub_sample.xml')
 
 
 class TestOnsData1:
     def setup(self):
-        records_obj = ons_importer.OnsDataRecords(SAMPLE_FILEPATH_1)
-        self.records = [record for record in records_obj.records]
-    
+        records_obj = importer.OnsDataRecords(SAMPLE_FILEPATH_1)
+        self.records = [record for record in records_obj]
+ 
     def test_records(self):
         assert len(self.records) == 8
         record1 = self.records[0]
-        assert record1.keys() == [u'title', u'link', u'description', u'pubDate', u'guid', u'hub:source-agency', u'hub:theme', u'hub:coverage', u'hub:designation', u'hub:geographic-breakdown', u'hub:language', u'hub:ipsv', u'hub:keywords', u'hub:altTitle', u'hub:nscl'], record1.keys()
+        r1_keys = record1.keys()
+        r1_expected_keys = [u'title', u'link', u'description', u'pubDate', u'guid', u'hub:source-agency', u'hub:theme', u'hub:coverage', u'hub:designation', u'hub:geographic-breakdown', u'hub:language', u'hub:ipsv', u'hub:keywords', u'hub:altTitle', u'hub:nscl']
+        r1_keys.sort(), r1_expected_keys.sort()
+        assert r1_keys == r1_expected_keys
+
         expected_items = [
             (u'title', u'UK Official Holdings of International Reserves - December 2009'),
             (u'link', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
@@ -62,7 +67,7 @@ class TestOnsImporter:
             (u'hub:keywords', u'reserves;currency;assets;liabilities;gold;reserves;currency;assets;liabilities;gold'),
             (u'hub:altTitle', u'UK Reserves'),
             (u'hub:nscl', u'Economy;Government Receipts and Expenditure;Public Sector Finance;Economy;Government Receipts and Expenditure;Public Sector Finance')])
-        ons_importer_ = ons_importer.OnsImporter(filepath=SAMPLE_FILEPATH_1)
+        ons_importer_ = importer.OnsImporter(filepath=SAMPLE_FILEPATH_1)
         package_dict = ons_importer_.record_2_package(record)
     
         expected_package_dict = [

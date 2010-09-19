@@ -1,15 +1,15 @@
 import os
 import datetime
 
-from ckanext.getdata import ons_download
+from ckanext.dgu.ons import downloader
 
-class OnsDataTester(ons_download.OnsData):
+class OnsDataTester(downloader.OnsData):
     '''A test version of OnsData, that uses a test harness instead of the
     real internet, to test downloading ONS data.'''
 
-    def __init__(self, local_cache_dir=ons_download.ONS_CACHE_PATH, log=False, files_downloaded=None):
+    def __init__(self, local_cache_dir=downloader.ONS_CACHE_PATH, log=False, files_downloaded=None):
         self.reset(files_downloaded)
-        super(OnsDataTester, self).__init__(local_cache_dir=ons_download.ONS_CACHE_PATH, log=self.test_log_func)
+        super(OnsDataTester, self).__init__(local_cache_dir=downloader.ONS_CACHE_PATH, log=self.test_log_func)
 
     def reset(self, files_downloaded=None):
         # test records

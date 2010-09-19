@@ -1,12 +1,12 @@
 import os
 
 from ons_data_tester import OnsDataTester
-from ckanext.getdata import ons_download
+from ckanext.dgu.ons import downloader
 
 class TestOnsData:
     def __init__(self):
-        self.ons_cache_path = os.path.expanduser(ons_download.ONS_CACHE_PATH)
-        self.ons_url_base = ons_download.ONS_URL_BASE[:ons_download.ONS_URL_BASE.find('?')]
+        self.ons_cache_path = os.path.expanduser(downloader.ONS_CACHE_PATH)
+        self.ons_url_base = downloader.ONS_URL_BASE[:downloader.ONS_URL_BASE.find('?')]
         
     def test_get_url(self):
         ons_data = OnsDataTester()
