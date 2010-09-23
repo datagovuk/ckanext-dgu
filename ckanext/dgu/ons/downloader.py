@@ -16,7 +16,7 @@ class OnsData(object):
     def download_recent(cls, ons_cache_dir=ONS_CACHE_PATH, log=False, days=7):
         ons = cls(ons_cache_dir, log)
         url, url_name = ons._get_url_recent(days=days)
-        return ons.download(url, url_name, True)
+        return ons.download(url, url_name, force_download=True)
 
     @classmethod
     def download_all(cls, ons_cache_dir=ONS_CACHE_PATH, log=False):

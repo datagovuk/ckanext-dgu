@@ -14,6 +14,7 @@ setup(
         'ckanclient',
         'xlrd>=0.7.1',
         'xlwt>=0.7.2',
+        #'ckanext', when it is released
     ],
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
