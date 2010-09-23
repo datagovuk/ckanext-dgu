@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from sqlalchemy.util import OrderedDict
 
-from ckanclient.loaders.base import CkanLoader
 from ckanext.loader import *
 from ckan.lib.importer import RowParseError
 from ckan.lib.spreadsheet_importer import XlData, SpreadsheetDataRecords, SpreadsheetPackageImporter
