@@ -10,6 +10,7 @@ guid_prefix = 'http://www.statistics.gov.uk/'
 log = __import__("logging").getLogger(__name__)
 
 class OnsImporter(object):
+#NB This should derive from ckan/lib/importer:PackageImporter
     def __init__(self, filepath):
         self._filepath = filepath
         self._current_filename = os.path.basename(self._filepath)

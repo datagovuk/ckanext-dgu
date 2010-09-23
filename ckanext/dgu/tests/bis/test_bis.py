@@ -8,7 +8,7 @@ from ckan.tests import *
 import ckan.model as model
 from ckan.lib import spreadsheet_importer
 from ckanext.dgu.bis.bis import BisImporter
-from ckanclient import wsgi_ckanclient
+from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 
 SAMPLES_DIR = '../dgu/ckanext/dgu/tests/bis/samples'
 BIS_1_FILEBASE = os.path.abspath(os.path.join(config['here'], SAMPLES_DIR, 'bis1'))
