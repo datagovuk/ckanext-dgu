@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+			
+			
+					
+							<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Mon, 18 Jan 2010 18:54:02 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+
+<item>
+<title>Measuring Subjective Wellbeing in the UK - 2010</title>
+<link>http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/understanding-wellbeing/index.html</link>
+<description>This report reviews:
+
+What is subjective wellbeing and why should we measure it?
+
+How subjective wellbeing is currently measured in the UK - what subjective wellbeing questions are already being asked on major social surveys in the UK
+
+The potential uses of subjective wellbeing data collected via these surveys
+
+
+It concludes that subjective wellbeing is a valid construct that can be measured reliably. This is the first output of ONS' work on subjective wellbeing.</description>
+<pubDate>Tue, 14 Sep 2010 09:30:00 +0100</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-31166</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>People and Places</hub:theme>
+<hub:coverage>UK</hub:coverage>
+<hub:designation>Supporting material</hub:designation>
+<hub:geographic-breakdown>UK and GB</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Health, well-being and care;Well-being;Health, well-being and care;Well-being</hub:ipsv>
+<hub:keywords>subjective wellbeing, subjective well-being, objective measures, subjective measures,</hub:keywords>
+<hub:altTitle>Working Paper: Measuring Subjective Wellbeing in the UK</hub:altTitle>
+<hub:nscl>People and Places;Communities;Societal Wellbeing;People and Places;Communities;Societal Wellbeing</hub:nscl>
+</item>
+
+
+</channel></rss>

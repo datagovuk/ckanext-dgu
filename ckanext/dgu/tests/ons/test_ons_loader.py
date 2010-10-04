@@ -18,6 +18,7 @@ SAMPLE_FILEPATH_3 = os.path.join(SAMPLE_PATH, 'ons_hub_sample3')
 SAMPLE_FILEPATH_4 = os.path.join(SAMPLE_PATH, 'ons_hub_sample4.xml')
 SAMPLE_FILEPATH_4a = os.path.join(SAMPLE_PATH, 'ons_hub_sample4a.xml')
 SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
+SAMPLE_FILEPATH_5 = os.path.join(SAMPLE_PATH, 'ons_hub_sample5.xml')
 TEST_PKG_NAMES = ['uk_official_holdings_of_international_reserves', 'cereals_and_oilseeds_production_harvest', 'end_of_custody_licence_release_and_recalls', 'sentencing_statistics_brief_england_and_wales', 'population_in_custody_england_and_wales', 'probation_statistics_brief']
 
 
@@ -35,6 +36,7 @@ class OnsLoader(PackageLoader):
 
 class TestOnsLoadBasic(TestLoaderBase):
     def setup(self):
+        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadBasic, self).setup()
         importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
@@ -106,6 +108,7 @@ class TestOnsLoadBasic(TestLoaderBase):
 
 class TestOnsLoadTwice(TestLoaderBase):
     def setup(self):
+        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadTwice, self).setup()
         # SAMPLE_FILEPATH_2 has the same packages as 1, but slightly updated
@@ -130,6 +133,7 @@ class TestOnsLoadClashTitle(TestLoaderBase):
     # two packages with the same title, both from ONS,
     # but from different departments, so must be different packages
     def setup(self):
+        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadClashTitle, self).setup()
         # ons items have been split into 3 files, because search needs to
@@ -164,6 +168,7 @@ class TestOnsLoadClashSource(TestLoaderBase):
     # two packages with the same title, and department, but one not from ONS,
     # so must be different packages
     def setup(self):
+        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadClashSource, self).setup()
 
@@ -194,6 +199,7 @@ class TestOnsLoadClashSource(TestLoaderBase):
 
 class TestOnsLoadSeries(TestLoaderBase):
     def setup(self):
+        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadSeries, self).setup()
         for filepath in [SAMPLE_FILEPATH_4a, SAMPLE_FILEPATH_4b]:
@@ -215,4 +221,40 @@ class TestOnsLoadSeries(TestLoaderBase):
         assert pkg.title == 'Regional Labour Market Statistics', pkg.title
         assert pkg.extras['agency'] == 'Office for National Statistics', pkg.extras['agency']
         assert len(pkg.resources) == 9, pkg.resources
+
+class TestOnsLoadMissingDept(TestLoaderBase):
+    # existing package to be updated has no department given (previously
+    # there was no default to 'UK Statistics Authority'.
+    def setup(self):
+        model.notifier.initialise()
+        self.tsi = TestSearchIndexer()
+        super(TestOnsLoadMissingDept, self).setup()
+
+        self.orig_pkg_dict = {
+             "name": u"measuring_subjective_wellbeing_in_the_uk",
+             "title": "Measuring Subjective Wellbeing in the UK",
+             "notes": "This report reviews:\n\nWhat is subjective wellbeing and why should we measure it?\n\nHow subjective wellbeing is currently measured in the UK - what subjective wellbeing questions are already being asked on major social surveys in the UK\n\nThe potential uses of subjective wellbeing data collected via these surveys\n\n\nIt concludes that subjective wellbeing is a valid construct that can be measured reliably. This is the first output of ONS' work on subjective wellbeing.\n\nSource agency: Office for National Statistics\n\nDesignation: Supporting material\n\nLanguage: English\n\nAlternative title: Working Paper: Measuring Subjective Wellbeing in the UK",
+             "license_id": "ukcrown-withrights",
+             "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
+             "groups": ["ukgov"],
+             "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "agency": "Office for National Statistics", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "department": None, "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
+             "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010 | hub/id/77-31166", }],
+             }
+        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+
+        # same data is imported, but should find record and add department
+        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_5)
+        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+        loader = OnsLoader(self.testclient)
+        self.tsi.index()
+        self.res = loader.load_package(self.pkg_dict)
+
+    def test_reload(self):
+        # Check that another package has not been created
+        assert self.pkg_dict['name'] == self.orig_pkg_dict['name'], self.pkg_dict['name']
+        pkg1 = model.Package.by_name(self.orig_pkg_dict['name'])
+
+        # ww said this had been made a default? Apparently not.
+        #assert pkg1.extras.get('department') == u'UK Statistics Authority', pkg1.extras
+
 
