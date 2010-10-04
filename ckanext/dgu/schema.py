@@ -57,11 +57,6 @@ Water Services Regulation Authority
 Scottish Government
 Welsh Assembly Government
 Northern Ireland Executive
-
-Ordnance Survey
-Lichfield District Council
-Society of Information Technology Management
-Warwickshire County Council
 """
 government_depts = []
 for line in government_depts_raw.split('\n'):
@@ -75,6 +70,8 @@ geographic_granularity_options = ['national', 'regional', 'local authority', 'wa
 temporal_granularity_options = ['years', 'months', 'weeks', 'days', 'hours', 'points']
 
 category_options = ['Agriculture and Environment', 'Business and Energy', 'Children, Education and Skills', 'Crime and Justice', 'Economy', 'Government', 'Health and Social Care', 'Labour Market', 'People and Places', 'Population', 'Travel and Transport', 'Equality and Diversity', 'Migration']
+
+yes_no_not_yet_options = ['yes', 'no', 'not yet reviewed']
 
 region_options = ('England', 'Scotland', 'Wales', 'Northern Ireland', 'Overseas', 'Global')
 

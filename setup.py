@@ -22,6 +22,10 @@ setup(
     entry_points="""
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
+        change_licenses = ckanext.dgu.scripts.change_licenses:command
+
+        [ckan.forms]
+        gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
     """,
     test_suite = 'nose.collector',
 )
