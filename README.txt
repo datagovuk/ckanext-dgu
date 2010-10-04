@@ -2,40 +2,47 @@
 dgu - data.gov.uk extension
 ===========================
 
-Quickstart
-==========
 
-Getting the code installed::
+Setup for loaders only
+======================
 
-    hg clone https://knowledgeforge.net/ckan/dgu
-    hg clone https://knowledgeforge.net/ckan/ckanext
-    virtualenv pyenv-dgu
-    . pyenv-dgu/bin/activate
-    cd dgu
-    python setup.py develop
-    pip -E ../pyenv-dgu install -e ../ckanext
+It is simpler to set-up to run the loaders, because they don't require
+CKAN to be installed::
 
-Now you can run the scripts::
-    ( If you've not already, you need to: . ../pyenv-dgu/bin/activate )
-    ons_loader
+    virtualenv pyenv
+    pip -E pyenv install -e hg+https://knowledgeforge.net/ckan/ckanclient#egg=ckanclient
+    pip -E pyenv install -e hg+https://knowledgeforge.net/ckan/ckanext#egg=ckanext
+    pip -E pyenv install -e hg+https://knowledgeforge.net/ckan/dgu#egg=dgu
+
+(note, for the time being, the ckanclient must be installed before dgu to 
+ensure you get the latest source, not the old release.)
+
+Now you can activate the environment and run the scripts::
+    . pyenv/bin/activate
+    ons_loader --help
+
+
+Setup with CKAN
+===============
+
+The DGU forms work with a CKAN install. In this case, you can install dgu
+into the ckan virtual environment directly::
+
+(for the time being you must delete from the ckan environment the existing 
+ckanclient and put in the latest)
+
+    pip -E ckan/pyenv install -e hg+https://knowledgeforge.net/ckan/dgu#egg=dgu
+
+Now in CKAN you can specify the dgu forms in the config.
 
 
 Tests
 =====
 
-To test this extension you need some modules installed into you dgu
-virtual python environment. Here we install the source (this may not be
-necessary in future, but we need the latest code which isn't released as of
-writing.)
-    
-    hg clone https://knowledgeforge.net/ckan/ckanclient
-    hg clone https://knowledgeforge.net/ckan/hg ckan
-    pip -E ../pyenv-dgu install -e ckanclient
-    pip -E ../pyenv-dgu install -e ckan
+To test the DGU extension you need the setup with CKAN (see above).
 
 To run the tests::
 
-    {pyenv-dgu}/bin/activate
+    {pyenv}/bin/activate
     cd dgu
     nosetests ckanext/dgu/tests/
-    
