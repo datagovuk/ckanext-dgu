@@ -2,7 +2,7 @@ import re
 import time
 import datetime
 
-__all__ = ['government_depts', 'geographic_granularity_options', 'temporal_granularity_options', 'category_options', 'region_options', 'region_groupings', 'update_frequency_suggestions', 'tag_pool', 'tag_words_to_join', 'suggest_tags', 'tags_parse', 'GeoCoverageType', 'expand_abbreviations', 'name_munge', 'tag_munge']
+__all__ = ['government_depts', 'geographic_granularity_options', 'temporal_granularity_options', 'category_options', 'region_options', 'region_groupings', 'update_frequency_options', 'tag_pool', 'tag_words_to_join', 'suggest_tags', 'tags_parse', 'GeoCoverageType', 'expand_abbreviations', 'name_munge', 'tag_munge']
 
 government_depts_raw = """
 Attorney General's Office
@@ -65,9 +65,11 @@ for line in government_depts_raw.split('\n'):
 
 department_agency_abbreviations = {'DCSF':'Department for Children, Schools and Families', 'VLA':'Vetinary Laboratories Agency', 'MFA':'Marine and Fisheries Agency', 'CEFAS':'Centre of Environment, Fisheries and Aquaculture Science', 'FERA':'Food and Environment Research Agency', 'DEFRA':'Department for Environment, Food and Rural Affairs', 'Department for the Environment, Food and Rural Affairs':'Department for Environment, Food and Rural Affairs', 'CRB':'Criminal Records Bureau', 'UKBA':'UK Border Agency', 'IPS':'Identity and Passport Service', 'NPIA':'National Policing Improvement Agency', 'CIB':'Company Investigation Branch', 'IPO':'Intellectual Property Office', 'SFO':'Serious Fraud Office', 'HM Revenue and Customs':"Her Majesty's Revenue and Customs", 'HM Treasury':"Her Majesty's Treasury", 'DfT':'Department for Transport', 'socitm':'Society of Information Technology Management'}
 
+update_frequency_options = ['never', 'discontinued', 'annual', 'quarterly', 'monthly']
+
 geographic_granularity_options = ['national', 'regional', 'local authority', 'ward', 'point']
 
-temporal_granularity_options = ['years', 'months', 'weeks', 'days', 'hours', 'points']
+temporal_granularity_options = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'point']
 
 category_options = ['Agriculture and Environment', 'Business and Energy', 'Children, Education and Skills', 'Crime and Justice', 'Economy', 'Government', 'Health and Social Care', 'Labour Market', 'People and Places', 'Population', 'Travel and Transport', 'Equality and Diversity', 'Migration']
 
@@ -78,8 +80,6 @@ region_options = ('England', 'Scotland', 'Wales', 'Northern Ireland', 'Overseas'
 region_groupings = {'United Kingdom':['England', 'Scotland', 'Wales', 'Northern Ireland'], 'Great Britain':['England', 'Scotland', 'Wales']}
 
 region_abbreviations = {'UK':'United Kingdom', 'N. Ireland':'Northern Ireland', 'GB':'Great Britain'}
-
-update_frequency_suggestions = ('annually', 'quarterly', 'monthly', 'never')
 
 tag_pool = ['accident', 'road', 'traffic', 'health', 'illness', 'disease', 'population', 'school', 'accommodation', 'children', 'married', 'emissions', 'benefit', 'alcohol', 'deaths', 'mortality', 'disability', 'unemployment', 'employment', 'armed forces', 'asylum', 'cancer', 'births', 'burglary', 'child', 'tax credit', 'criminal damage', 'drug', 'earnings', 'education', 'economic', 'fire', 'fraud', 'forgery', 'fuel', 'green', 'greenhouse gas', 'homeless', 'hospital', 'waiting list', 'housing', 'care', 'income', 'census', 'mental health', 'disablement allowance', 'jobseekers allowance', 'national curriculum', 'older people', 'living environment', 'higher education', 'living environment', 'school absence', 'local authority', 'carbon dioxide', 'energy', 'teachers', 'fostering', 'tide', 'gas', 'electricity', 'transport', 'veterinary', 'fishing', 'export', 'fisheries', 'pest', 'recycling', 'waste', 'crime', 'anti-social behaviour', 'police', 'refugee', 'identity card', 'immigration', 'planning', 'communities', 'lettings', 'finance', 'ethnicity', 'trading standards', 'trade', 'business', 'child protection']
 

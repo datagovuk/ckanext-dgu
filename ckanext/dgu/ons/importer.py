@@ -90,7 +90,7 @@ class OnsImporter(object):
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
         extras['geographical_granularity'] = item['hub:geographic-breakdown']
         extras['external_reference'] = u'ONSHUB'
-        for update_frequency_suggestion in schema.update_frequency_suggestions:
+        for update_frequency_suggestion in schema.update_frequency_options:
             item_info = ('%s %s' % (item['title'], item['description'])).lower()
             if update_frequency_suggestion in item_info:
                 extras['update_frequency'] = update_frequency_suggestion
