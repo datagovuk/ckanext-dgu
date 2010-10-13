@@ -4,7 +4,9 @@ import datetime
 import logging
 import datetime
 
-ONS_CACHE_PATH = '~/ons_data'
+ONS_CACHE_PATH = os.path.abspath(os.path.expanduser('~/ons_data'))
+if not os.path.exists(ONS_CACHE_PATH):
+    os.makedirs(ONS_CACHE_PATH)
 ONS_URL_BASE = 'http://www.statistics.gov.uk/hub/release-calendar/rss.xml?lday=%(lday)s&lmonth=%(lmonth)s&lyear=%(lyear)s&uday=%(uday)s&umonth=%(umonth)s&uyear=%(uyear)s'
 
 MONTHS_PER_YEAR = 12

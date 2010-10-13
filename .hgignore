@@ -6,6 +6,9 @@ dgu.egg-info/*
 sandbox/*
 pip-log.txt
 
+# pylons
+data/*
+
 # other
 build/*
 tmp/*
