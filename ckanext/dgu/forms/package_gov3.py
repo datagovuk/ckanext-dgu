@@ -1,5 +1,6 @@
 from sqlalchemy.util import OrderedDict
 from pylons.i18n import _, ungettext, N_, gettext
+from pylons import config
 
 from ckan.forms import common
 from ckan.forms import package
@@ -8,18 +9,22 @@ from ckanext.dgu import schema as schema_gov
 from ckan.lib.helpers import literal
 
 # Setup the fieldset
-def build_package_gov_form_v3(is_admin=False, statistics=False, inventory=False):
+def build_package_gov_form_v3(is_admin=False, user_editable_groups=None, statistics=False, inventory=False):
     assert not (statistics and inventory) # can't be both
-    builder = package.build_package_form()
+
+    # TODO Do we need to restrict fields? Here are two options
+#    restrict = config.get('restrict_package_gov3_form', False) not in ('0', 'no', 'false', False)
+#    restrict = str(restrict).lower() not in ('0', 'no', 'false', False)
+    
+    builder = package.build_package_form(user_editable_groups=user_editable_groups)
 
     # Extra fields
-#    builder.add_field(common.TextExtraField('external_reference'))
-    builder.add_field(common.DateExtraField('date_planned_publication'))
+    builder.add_field(common.TextExtraField('external_reference'))
     builder.add_field(common.DateExtraField('date_released'))
     builder.add_field(common.DateExtraField('date_updated'))
     builder.add_field(common.DateExtraField('date_update_future'))
     builder.add_field(common.SuggestedTextExtraField('update_frequency', options=schema_gov.update_frequency_options))
-    builder.add_field(common.DateExtraField('disposal'))
+    builder.add_field(common.DateExtraField('date_disposal'))
     builder.add_field(common.SuggestedTextExtraField('geographic_granularity', options=schema_gov.geographic_granularity_options))
     builder.add_field(package_gov.GeoCoverageExtraField('geographic_coverage'))
     builder.add_field(common.SuggestedTextExtraField('temporal_granularity', options=schema_gov.temporal_granularity_options))
@@ -38,6 +43,7 @@ def build_package_gov_form_v3(is_admin=False, statistics=False, inventory=False)
     if statistics:
         builder.add_field(common.SuggestedTextExtraField('series'))
     if inventory:
+        builder.add_field(common.DateExtraField('date_planned_publication'))
         builder.add_field(common.SuggestedTextExtraField('permanent_preservation'), options=schema_gov.yes_no_not_yet_options)
         builder.add_field(common.CheckboxExtraField('disclosure_foi'))
         builder.add_field(common.CheckboxExtraField('disclosure_eir'))
@@ -52,7 +58,7 @@ def build_package_gov_form_v3(is_admin=False, statistics=False, inventory=False)
     builder.set_field_text('date_updated', instructions='The date of release of the most recent version of the dataset', further_instructions='This is not necessarily the date when it was updated on data.gov.uk. As with \'Date released\', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.', hints='DD/MM/YYYY')
     builder.set_field_text('date_update_future', 'Date to be published', instructions='When the dataset will be updated in the future, if appropriate', hints='DD/MM/YYYY')
     builder.set_field_text('update_frequency', instructions='How frequently the dataset is updated with new versions', further_instructions='For one-off data, use \'never\'. For those once updated but now discontinued, use \'discontinued\'.')
-    builder.set_field_text('disposal', instructions='Date of removal of the data from the public body\'s systems.', further_instructions='This is a future date when it is intended to remove the data, eventually replaced with the actual date the disposal was implemented (if appropriate).', hints='DD/MM/YYYY')
+    builder.set_field_text('date_disposal', instructions='Date of removal of the data from the public body\'s systems.', further_instructions='This is a future date when it is intended to remove the data, eventually replaced with the actual date the disposal was implemented (if appropriate).', hints='DD/MM/YYYY')
     builder.set_field_text('precision', instructions='Indicate the level of precision in the data, to avoid over-interpretation.', hints="e.g. 'per cent to two decimal places' or 'as supplied by respondents'")
     builder.set_field_text('geographic_granularity', instructions='The lowest level of geographic detail', further_instructions="This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.")
     builder.set_field_text('geographic_coverage', instructions='The geographic coverage of this dataset', further_instructions='Where a dataset covers multiple areas, the system will automatically group these (e.g. \'England\', \'Scotland\' and \'Wales\' all being \'Yes\' would be shown as \'Great Britain\').')
@@ -84,6 +90,10 @@ def build_package_gov_form_v3(is_admin=False, statistics=False, inventory=False)
     builder.set_field_text('tags', instructions='Tags can be thought of as the way that the packages are categorised, so are of primary importance.', further_instructions=literal('One or more tags should be added to give the government department and geographic location the data covers, as well as general descriptive words. The <a href="http://www.esd.org.uk/standards/ipsv_abridged/" target="_blank">Integrated Public Sector Vocabulary</a> may be helpful in forming these.'), hints='Format: Two or more lowercase alphanumeric or dash (-) characters; different tags separated by spaces. As tags cannot contain spaces, use dashes instead. e.g. for a dataset containing statistics on burns to the arms in the UK in 2009: nhs uk arm burns medical-statistics')
     # Options/settings
     builder.set_field_option('tags', 'with_renderer', package_gov.SuggestTagRenderer)
+    # TODO May need to make these fields readonly - see restric above.
+##    if restrict:
+##        for field_name in ('name', 'department', 'national_statistic'):
+##            builder.set_field_option(field_name, 'readonly', True)
     
     # Layout
     field_groups = OrderedDict([
@@ -91,7 +101,7 @@ def build_package_gov_form_v3(is_admin=False, statistics=False, inventory=False)
                                   'notes']),
         (_('Details'), ['date_released', 'date_updated', 'date_update_future',
                         'update_frequency',
-                        'disposal',
+                        'date_disposal',
                         'precision', 
                         'geographic_granularity', 'geographic_coverage',
                         'temporal_granularity', 'temporal_coverage',
@@ -119,18 +129,7 @@ def build_package_gov_form_v3(is_admin=False, statistics=False, inventory=False)
     # Strings for i18n:
     # (none - not translated at the moment)
 
-fieldsets = {} # fieldset cache
-
-def get_gov3_fieldset(is_admin=False):
+def get_gov3_fieldset(is_admin=False, user_editable_groups=None):
     '''Returns the standard fieldset
     '''
-    if not fieldsets:
-        # fill cache
-        fieldsets['package_gov_fs'] = build_package_gov_form_v3().get_fieldset()
-        fieldsets['package_gov_fs_admin'] = build_package_gov_form_v3(is_admin=True).get_fieldset()
-
-    if is_admin:
-        fs = fieldsets['package_gov_fs_admin']
-    else:
-        fs = fieldsets['package_gov_fs']
-    return fs
+    return build_package_gov_form_v3(is_admin=is_admin, user_editable_groups=user_editable_groups).get_fieldset()
