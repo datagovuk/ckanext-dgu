@@ -20,32 +20,12 @@ class TestChangeLicenses(TestController):
         user = model.User.by_name(unicode(username))
         assert user
         self.testclient = WsgiCkanClient(self.app, api_key=user.apikey, base_location='/api/2')
-        print "BASE", self.testclient.base_location
         self.license_name = 'test-license'
         self.change_licenses = ChangeLicenses(self.testclient, self.license_name)
 
     @classmethod
     def teardown_class(self):
         CreateTestData.delete()
-
-    def test_0_change_pkg(self):
-        pkg = model.Package.by_name(u'annakarenina')
-        pkg_dict_before = pkg.as_dict()
-        assert pkg_dict_before['license_id'] == 'other-open', pkg_dict_before['license_id']
-        
-        self.change_licenses.change_package(pkg.id)
-        
-        pkg = model.Package.by_name(u'annakarenina')
-        pkg_dict_after = pkg.as_dict()
-        assert pkg_dict_after['license_id'] == self.license_name, pkg_dict_after['license_id']
-
-        # check no other properties have changed
-        keys = set(pkg_dict_before.keys())
-        assert keys == set(pkg_dict_after.keys()), set(pkg_dict_after.keys()) ^ set(pkg_dict_before.keys())
-        for key in keys:
-            if key not in ['license_id', 'license', 'revision_id']:
-                assert pkg_dict_before[key] == pkg_dict_after[key], \
-                       '%s: %r!=%r' % (key, pkg_dict_before[key], pkg_dict_after[key])
 
     def get_licenses(self):
         q = model.Session.query(model.Package)
