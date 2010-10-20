@@ -3,7 +3,7 @@ from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckan.lib.create_test_data import CreateTestData
 
-from ckanext.dgu.scripts import mass_changer
+from ckanext.dgu.scripts.mass_changer import *
 
 class TestMassChanger(TestController):
     @classmethod
@@ -32,9 +32,10 @@ class TestMassChanger(TestController):
         # do the change
         new_license_id = 'test-license'        
         instructions = [
-            mass_changer.ChangeInstruction('name', 'annakarenina',
-                                           'license_id', new_license_id)]
-        self.mass_changer = mass_changer.MassChanger(self.testclient, instructions)
+            ChangeInstruction(BasicPackageMatcher('name', 'annakarenina'),
+                              BasicPackageChanger('license_id', new_license_id))
+            ]
+        self.mass_changer = MassChanger(self.testclient, instructions)
         self.mass_changer.run()
 
         # check anna has new license
@@ -65,12 +66,12 @@ class TestMassChanger(TestController):
         new_anna_value = 'test-anna' 
         new_value = 'test'
         instructions = [
-            mass_changer.ChangeInstruction('genre', 'romantic novel',
-                                           extra_field, new_anna_value),
-            mass_changer.ChangeInstruction('*', '',
-                                           extra_field, new_value)
+            ChangeInstruction(BasicPackageMatcher(extra_field, 'romantic novel'),
+                              BasicPackageChanger(extra_field, new_anna_value)),
+            ChangeInstruction(AnyPackageMatcher(),
+                              BasicPackageChanger(extra_field, new_value)),
             ]
-        self.mass_changer = mass_changer.MassChanger(self.testclient, instructions)
+        self.mass_changer = MassChanger(self.testclient, instructions)
         self.mass_changer.run()
 
         # check new licenses
@@ -78,5 +79,31 @@ class TestMassChanger(TestController):
         anna_after = self.anna.as_dict()
         war_after = self.war.as_dict()
         self.assert_equal(anna_after['extras'][extra_field], new_anna_value)
+        self.assert_equal(war_after['extras'][extra_field], new_value)
+
+    def test_2_no_change(self):
+        extra_field = 'original media'
+        anna_before = self.anna.as_dict()
+        war_before = self.war.as_dict()
+        self.assert_equal(anna_before['extras'][extra_field], 'book')
+        assert not war_before['extras'].has_key(extra_field)
+
+        # do the change
+        new_anna_value = 'test-anna' 
+        new_value = 'test'
+        instructions = [
+            ChangeInstruction(BasicPackageMatcher('name', 'annakarenina'),
+                              NoopPackageChanger()),
+            ChangeInstruction(AnyPackageMatcher(),
+                              BasicPackageChanger(extra_field, new_value)),
+            ]
+        self.mass_changer = MassChanger(self.testclient, instructions)
+        self.mass_changer.run()
+
+        # check new licenses
+        pkg = model.Package.by_name(u'annakarenina')
+        anna_after = self.anna.as_dict()
+        war_after = self.war.as_dict()
+        self.assert_equal(anna_after['extras'][extra_field], 'book')
         self.assert_equal(war_after['extras'][extra_field], new_value)
 

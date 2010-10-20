@@ -1,15 +1,38 @@
-from mass_changer import MassChanger, ChangeInstruction
+from mass_changer import *
 from common import ScriptError
 
 class ChangeLicenses(object):
-    def __init__(self, ckanclient, license_id, dry_run=False):
+    def __init__(self, ckanclient, dry_run=False):
         '''
         Changes licenses of packages.
         @param ckanclient: instance of ckanclient to make the changes
         @param license_id: id of the license to change packages to
         '''
-        instructions = [ChangeInstruction('*', '', 'license_id', license_id)]
-        self.mass_changer = MassChanger(ckanclient, instructions, dry_run=dry_run)
+        self.ckanclient = ckanclient
+        self.dry_run = dry_run
 
-    def change_all_packages(self):
+    def change_all_packages(self, license_id):
+        instructions = [
+            ChangeInstruction(AnyPackageMatcher(),
+                              BasicPackageChanger('license_id', license_id))
+            ]
+        self.mass_changer = MassChanger(self.ckanclient,
+                                        instructions, dry_run=self.dry_run)
+        self.mass_changer.run()
+
+    def change_oct_2010(self, license_id):
+        instructions = [
+            ChangeInstruction(
+                [
+                    BasicPackageMatcher('license_id', 'localauth-withrights'),
+                    BasicPackageMatcher('name', 'spotlightonspend-transactions-download'),
+                    BasicPackageMatcher('name', 'better-connected-2010-council-website-performance-survey-results'),
+                    ],
+                NoopPackageChanger()),
+            ChangeInstruction(
+                AnyPackageMatcher(),
+                BasicPackageChanger('license_id', self.license_id)),
+            ]
+        self.mass_changer = MassChanger(self.ckanclient,
+                                        instructions, dry_run=self.dry_run)
         self.mass_changer.run()
