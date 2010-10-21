@@ -13,8 +13,11 @@ from ckanext.dgu.tests import *
 def _get_blank_param_dict(pkg=None, fs=None):
     return ckan.forms.get_package_dict(pkg, blank=True, fs=fs)
 
-def get_fieldset():
-    return get_gov3_fieldset(user_editable_groups=[])
+def get_fieldset(**kwargs):
+    if not kwargs.has_key('user_editable_groups'):
+        kwargs['user_editable_groups'] = []
+    return get_gov3_fieldset(**kwargs)
+
 
 class TestFieldset(PylonsTestCase, HtmlCheckMethods):
     @classmethod
@@ -111,7 +114,10 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         assert 'option value="other">' in dept, dept
         assert 'Other:' in dept, dept
         assert 'value=""' in dept, dept
-        assert 'Department for Children, Schools and Families' in fs.department.render_readonly(), fs.department.render_readonly()
+
+        dept_readonly = fs.department.render_readonly()
+        assert 'Department for Children, Schools and Families' in dept_readonly, dept_readonly
+        assert 'Other' not in dept_readonly, dept_readonly
 
     def test_2_field_department_none(self):
         # Create package
@@ -152,9 +158,14 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         assert 'Other:' in dept, dept
         assert 'value="Not on the list"' in dept, dept
         assert 'Not on the list<br/>' == dept_readonly, dept_readonly
+
+    def test_3_restrict(self):
+        fs = get_fieldset(restrict=1)
+        restricted_fields = ('name', 'department', 'national_statistic')
+        for field_name in restricted_fields:
+            assert getattr(fs, field_name)._readonly, getattr(fs, field_name)
         
-        
-    def test_3_sync_new(self):
+    def test_4_sync_new(self):
         newtagname = 'newtagname'
         indict = _get_blank_param_dict(fs=get_fieldset())
         prefix = 'Package--'
@@ -236,7 +247,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                  (reqd_extra_key, reqd_extra_value,
                   outpkg.extras[reqd_extra_key])
 
-    def test_4_sync_update(self):
+    def test_5_sync_update(self):
         # create initial package
         init_data = [{
             'name':'test_sync',
@@ -341,7 +352,58 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                  (reqd_extra_key, reqd_extra_value,
                   outpkg.extras[reqd_extra_key])
 
-    def test_5_validate_bad_date(self):
+    def test_6_sync_update_restrict(self):
+        # create initial package
+        pkg_name = u'test_sync_restrict'
+        init_data = [{
+            'name':pkg_name,
+            'title':'test_title',
+            'extras':{
+              'notes':'Original notes',
+              'national_statistic':'yes',
+              'department':'dosac',
+              },
+            }]
+        CreateTestData.create_arbitrary(init_data)
+        pkg = model.Package.by_name(pkg_name)
+        assert pkg
+
+        # edit it with form parameters
+        indict = _get_blank_param_dict(pkg=pkg, fs=get_fieldset(restrict=1))
+        prefix = 'Package-%s-' % pkg.id
+        indict[prefix + 'notes'] = u'some new notes'
+        # try changing restricted params anyway
+        new_name = u'testname3' 
+        indict[prefix + 'name'] = new_name
+        indict[prefix + 'department'] = u'testdept'
+        # don't supply national_statistic param at all
+        fs = get_fieldset(restrict=1).bind(pkg, data=indict)
+        CreateTestData.flag_for_deletion(new_name)
+        
+        model.repo.new_revision()
+        fs.sync()
+        model.repo.commit_and_remove()
+
+        assert not model.Package.by_name(new_name) # unchanged
+        outpkg = model.Package.by_name(pkg_name) # unchanged
+        assert outpkg
+        # test sync worked
+        assert outpkg.notes == indict[prefix + 'notes']
+
+        # test gov fields
+        extra_keys = outpkg.extras.keys()
+        reqd_extras = {
+            'national_statistic':'yes', # unchanged
+            'department':init_data[0]['extras']['department'], # unchanged
+            }
+        for reqd_extra_key, reqd_extra_value in reqd_extras.items():
+            assert reqd_extra_key in extra_keys, 'Key "%s" not found in extras %r' % (reqd_extra_key, extra_keys)
+            assert outpkg.extras[reqd_extra_key] == reqd_extra_value, \
+                 'Extra %s should equal %s but equals %s' % \
+                 (reqd_extra_key, reqd_extra_value,
+                  outpkg.extras[reqd_extra_key])
+
+    def test_7_validate_bad_date(self):
         # bad dates must be picked up in validation
         indict = _get_blank_param_dict(fs=get_fieldset())
         prefix = 'Package--'

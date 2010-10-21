@@ -9,14 +9,16 @@ from ckanext.dgu import schema as schema_gov
 from ckan.lib.helpers import literal
 
 # Setup the fieldset
-def build_package_gov_form_v3(is_admin=False, user_editable_groups=None, statistics=False, inventory=False):
+def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
+                              statistics=False, inventory=False, **kwargs):
     assert not (statistics and inventory) # can't be both
 
-    # TODO Do we need to restrict fields? Here are two options
-#    restrict = config.get('restrict_package_gov3_form', False) not in ('0', 'no', 'false', False)
-#    restrict = str(restrict).lower() not in ('0', 'no', 'false', False)
+    # Restrict fields
+    restrict = str(kwargs.get('restrict', False)).lower() not in \
+               ('0', 'no', 'false', 0, False)
     
-    builder = package.build_package_form(user_editable_groups=user_editable_groups)
+    builder = package.build_package_form(
+        user_editable_groups=user_editable_groups)
 
     # Extra fields
     builder.add_field(common.TextExtraField('external_reference'))
@@ -90,10 +92,10 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None, statist
     builder.set_field_text('tags', instructions='Tags can be thought of as the way that the packages are categorised, so are of primary importance.', further_instructions=literal('One or more tags should be added to give the government department and geographic location the data covers, as well as general descriptive words. The <a href="http://www.esd.org.uk/standards/ipsv_abridged/" target="_blank">Integrated Public Sector Vocabulary</a> may be helpful in forming these.'), hints='Format: Two or more lowercase alphanumeric or dash (-) characters; different tags separated by spaces. As tags cannot contain spaces, use dashes instead. e.g. for a dataset containing statistics on burns to the arms in the UK in 2009: nhs uk arm burns medical-statistics')
     # Options/settings
     builder.set_field_option('tags', 'with_renderer', package_gov.SuggestTagRenderer)
-    # TODO May need to make these fields readonly - see restric above.
-##    if restrict:
-##        for field_name in ('name', 'department', 'national_statistic'):
-##            builder.set_field_option(field_name, 'readonly', True)
+
+    if restrict:
+        for field_name in ('name', 'department', 'national_statistic'):
+            builder.set_field_option(field_name, 'readonly', True)
     
     # Layout
     field_groups = OrderedDict([
@@ -129,7 +131,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None, statist
     # Strings for i18n:
     # (none - not translated at the moment)
 
-def get_gov3_fieldset(is_admin=False, user_editable_groups=None):
+def get_gov3_fieldset(is_admin=False, user_editable_groups=None, **kwargs):
     '''Returns the standard fieldset
     '''
-    return build_package_gov_form_v3(is_admin=is_admin, user_editable_groups=user_editable_groups).get_fieldset()
+    return build_package_gov_form_v3(is_admin=is_admin, user_editable_groups=user_editable_groups, **kwargs).get_fieldset()

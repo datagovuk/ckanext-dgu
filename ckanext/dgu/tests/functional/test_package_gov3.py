@@ -52,13 +52,34 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id)
+        form = self.get_package_edit_form(package.id, form_schema='gov3')
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_not_formfield(form, prefix + 'external_reference')
         self.assert_not_formfield(form, prefix + 'categories')
-        for key, value in package.extras.items():
-            self.assert_formfield(form, prefix + 'extras-%s' % key, value)
+        expected_values = dict([(key, value) for key, value in package.extras.items()])
+        expected_values['temporal_coverage-to'] = '6/2009'
+        expected_values['temporal_coverage-from'] = '12:30 24/6/2008'
+        expected_values['date_updated'] = '12:30 30/7/2009'
+        expected_values['date_update_future'] = '1/7/2009'
+        expected_values['date_released'] = '30/7/2009'
+        expected_values['date_disposal'] = '1/1/2012'
+        expected_values['national_statistic'] = 'True'
+        del expected_values['geographic_coverage'] # don't test here
+        del expected_values['external_reference']
+        del expected_values['import_source']
+        for key, value in expected_values.items():
+            self.assert_formfield(form, prefix + key, value)
+
+    def test_get_package_edit_form_restrict(self):
+        package = self.get_package_by_name(self.package_name)
+        form = self.get_package_edit_form(package.id, form_schema='gov3', restrict=True)
+        prefix = 'Package-%s-' % package.id
+        self.assert_not_formfield(form, prefix + 'name', package.name)
+        self.assert_formfield(form, prefix + 'notes', package.notes)
+        for key in ('department', 'national_statistic'):
+            value = package.extras[key]
+            self.assert_not_formfield(form, prefix + key, value)
         
 
 class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
