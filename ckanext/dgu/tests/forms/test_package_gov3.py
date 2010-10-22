@@ -423,4 +423,34 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         fs.sync()
         model.repo.commit_and_remove()
 
+    def test_8_geo_coverage(self):
+        # create initial package
+        pkg_name = u'test_coverage'
+        init_data = [{
+            'name':pkg_name,
+            'title':'test_title',
+            'extras':{
+              'geographic_coverage':'001000: England, Scotland, Wales',
+              },
+            }]
+        CreateTestData.create_arbitrary(init_data)
+        pkg = model.Package.by_name(pkg_name)
+        assert pkg
+
+        # edit it with form parameters
+        fs = get_fieldset()
+        indict = ckan.forms.get_package_dict(pkg, fs=fs)
+        prefix = 'Package-%s-' % pkg.id
+        indict[prefix + 'geographic_coverage-england'] = u'True'
+        indict[prefix + 'geographic_coverage-wales'] = u'True'
+        indict[prefix + 'geographic_coverage-scotland'] = u'True'
+        indict[prefix + 'geographic_coverage-global'] = u'True'
+        fs = fs.bind(pkg, data=indict)
+        
+        model.repo.new_revision()
+        fs.sync()
+        model.repo.commit_and_remove()
+
+        outpkg = model.Package.by_name(pkg_name)
+        self.assert_equal(outpkg.extras['geographic_coverage'], '111001: Global, Great Britain (England, Scotland, Wales)')
 
