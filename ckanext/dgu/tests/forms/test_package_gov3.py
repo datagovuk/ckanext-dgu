@@ -135,7 +135,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         dept_readonly = fs.department.render_readonly()
         assert '<select' in dept, dept
         assert '<option selected="selected" value=""></option>' in dept, dept
-        assert '<br/>' == dept_readonly, dept_readonly
+        assert '<p></p>' == dept_readonly, dept_readonly
 
     def test_2_field_department_other(self):
         # Create package
@@ -157,7 +157,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         self.check_tag(dept, 'option', 'value="other"', 'selected')
         assert 'Other:' in dept, dept
         assert 'value="Not on the list"' in dept, dept
-        assert 'Not on the list<br/>' == dept_readonly, dept_readonly
+        assert '<p>Not on the list</p>' == dept_readonly, dept_readonly
 
     def test_3_restrict(self):
         fs = get_fieldset(restrict=1)
