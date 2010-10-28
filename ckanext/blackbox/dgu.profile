@@ -53,9 +53,6 @@
 				}
 			}
 		},
-		"/group/new": {
-			"status": 401
-		},
 		"/group": {
 			"status": 200,
 			"contains": ["ukgov", "Uk Government"],
