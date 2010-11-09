@@ -36,7 +36,6 @@ class OnsLoader(PackageLoader):
 
 class TestOnsLoadBasic(TestLoaderBase):
     def setup(self):
-        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadBasic, self).setup()
         importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
@@ -108,7 +107,6 @@ class TestOnsLoadBasic(TestLoaderBase):
 
 class TestOnsLoadTwice(TestLoaderBase):
     def setup(self):
-        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadTwice, self).setup()
         # SAMPLE_FILEPATH_2 has the same packages as 1, but slightly updated
@@ -133,7 +131,6 @@ class TestOnsLoadClashTitle(TestLoaderBase):
     # two packages with the same title, both from ONS,
     # but from different departments, so must be different packages
     def setup(self):
-        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadClashTitle, self).setup()
         # ons items have been split into 3 files, because search needs to
@@ -168,7 +165,6 @@ class TestOnsLoadClashSource(TestLoaderBase):
     # two packages with the same title, and department, but one not from ONS,
     # so must be different packages
     def setup(self):
-        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadClashSource, self).setup()
 
@@ -199,7 +195,6 @@ class TestOnsLoadClashSource(TestLoaderBase):
 
 class TestOnsLoadSeries(TestLoaderBase):
     def setup(self):
-        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadSeries, self).setup()
         for filepath in [SAMPLE_FILEPATH_4a, SAMPLE_FILEPATH_4b]:
@@ -226,7 +221,6 @@ class TestOnsLoadMissingDept(TestLoaderBase):
     # existing package to be updated has no department given (previously
     # there was no default to 'UK Statistics Authority'.
     def setup(self):
-        model.notifier.initialise()
         self.tsi = TestSearchIndexer()
         super(TestOnsLoadMissingDept, self).setup()
 
