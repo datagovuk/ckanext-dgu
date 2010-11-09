@@ -25,7 +25,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
-        form = self.get_package_create_form(form_schema='gov3')
+        form = self.get_package_create_form(package_form='gov3')
         self.assert_formfield(form, 'Package--name', '')
         self.assert_formfield(form, 'Package--title', '')
         self.assert_not_formfield(form, 'Package--version', '')
@@ -52,7 +52,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, form_schema='gov3')
+        form = self.get_package_edit_form(package.id, package_form='gov3')
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_not_formfield(form, prefix + 'external_reference')
@@ -73,7 +73,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form_restrict(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, form_schema='gov3', restrict=True)
+        form = self.get_package_edit_form(package.id, package_form='gov3', restrict=1)
         prefix = 'Package-%s-' % package.id
         self.assert_not_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'notes', package.notes)
@@ -138,8 +138,8 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
     def test_submit_package_create_form_valid(self):
         package_name = u'new_name'
         assert not self.get_package_by_name(package_name)
-        form = self.get_package_create_form(form_schema='gov3')
-        res = self.post_package_create_form(form=form, form_schema='gov3', name=package_name)
+        form = self.get_package_create_form(package_form='gov3')
+        res = self.post_package_create_form(form=form, package_form='gov3', name=package_name)
         self.assert_header(res, 'Location')
         assert not json.loads(res.body)
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
@@ -150,12 +150,24 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, form_schema='gov3')
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, form_schema='gov3')
+        form = self.get_package_edit_form(pkg.id, package_form='gov3')
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov3')
         # TODO work out if we need the Location header or not
 #        self.assert_header(res, 'Location')
         assert not json.loads(res.body), res.body
 #        self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
+        pkg = self.get_package_by_name(package_name)
+        assert pkg.title == new_title, pkg
+
+    def test_submit_package_edit_form_valid_restrict(self):
+        package_name = self.package_name
+        pkg = self.get_package_by_name(package_name)
+        new_title = u'New Title'
+        form = self.get_package_edit_form(pkg.id, package_form='gov3', restrict=1)
+        prefix = 'Package-%s-' % pkg.id
+        self.assert_not_formfield(form, prefix + 'name', pkg.name)
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov3', restrict=1)
+        assert not json.loads(res.body), res.body
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
 
@@ -189,7 +201,7 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
 
     def test_edit_coverage(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, form_schema='gov3')
+        form = self.get_package_edit_form(package.id, package_form='gov3')
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'geographic_coverage-england', None)
@@ -200,7 +212,7 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
             'geographic_coverage-scotland':True,
             'geographic_coverage-wales':True,
             }
-        res = self.post_package_edit_form(package.id, form=form, form_schema='gov3', **fields)
+        res = self.post_package_edit_form(package.id, form=form, package_form='gov3', **fields)
         assert not json.loads(res.body)
 
         package = self.get_package_by_name(self.package_name)
