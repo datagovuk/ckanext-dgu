@@ -14,14 +14,14 @@ from ckanext.dgu.tests import *
 class FormsApiTestCase(BaseFormsApiCase):
 
     @classmethod
-    def setup_class(self):
+    def setup(self):
         self.fixtures = Gov3Fixtures()
         self.fixtures.create()
         self.pkg_dict = self.fixtures.pkgs[0]
         self.package_name = self.pkg_dict['name']
 
     @classmethod
-    def teardown_class(self):
+    def teardown(self):
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
@@ -90,21 +90,18 @@ class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
 class EmbeddedFormTestCase(BaseFormsApiCase):
     '''Tests the form as it would be used embedded in dgu html.'''
 
-    @classmethod
-    def setup_class(self):
+    def setup(self):
         self.fixtures = Gov3Fixtures()
         self.fixtures.create()
         self.pkg_dict = self.fixtures.pkgs[0]
         self.package_name = self.pkg_dict['name']
         test_user = self.get_user_by_name(unicode(self.fixtures.user_name))
-        self.apikey_header_name = config.get('apikey_header_name', 'X-CKAN-API-Key')
         self.extra_environ = {
-            self.apikey_header_name : str(test_user.apikey)
+            'Authorization' : str(test_user.apikey)
         }
         
 
-    @classmethod
-    def teardown_class(self):
+    def teardown(self):
         self.fixtures.delete()
 
     def _insert_into_field_tag(self, form_html, field_name, tag_name, tag_insertion):
@@ -183,20 +180,19 @@ class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
 
 class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
     @classmethod
-    def setup_class(self):
+    def setup(self):
         self.user_name = u'tester1'
         self.pkg_dict = {"name": u"lichfield-councillors", "title": "Councillors", "version": None, "url": "http://www.lichfielddc.gov.uk/data", "author": "Democratic and Legal", "author_email": None, "maintainer": "Web Team", "maintainer_email": "webmaster@lichfielddc.gov.uk", "notes": "A list of Lichfield District Councillors, together with contact details, political party and committees", "license_id": "localauth-withrights", "license": "OKD Compliant::Local Authority Copyright with data.gov.uk rights", "tags": ["committees", "cool", "councillors", "democracy", "lichfield", "meetings"], "groups": ["ukgov"], "extras": {"temporal_coverage-from": "", "date_updated": "2010-03-29", "temporal_coverage_to": "", "import_source": "COSPREAD-cospread-2010-03-31mk2.csv", "geographical_granularity": "local authority", "temporal_granularity": "", "disposal": "", "agency": "", "geographic_granularity": "", "temporal_coverage-to": "", "department": "", "precision": "", "temporal_coverage_from": "", "taxonomy_url": "", "mandate": "", "categories": "", "geographic_coverage": "010000: Scotland", "external_reference": "", "national_statistic": "no", "date_update_future": "", "update_frequency": "Daily", "date_released": "2009-08-01"}, "resources": [{"id": "4ef0c23f-1ebd-41c6-86a9-0f6ef81450a6", "package_id": "35697166-4600-4995-bb73-4c8ff48d52ef", "url": "http://www.lichfielddc.gov.uk/site/custom_scripts/councillors_xml.php?viewBy=name", "format": "Other XML", "description": "", "hash": "", "position": 0}]}
         CreateTestData.create_arbitrary([self.pkg_dict], extra_user_names=[self.user_name])
         self.package_name = self.pkg_dict['name']
 
         test_user = self.get_user_by_name(unicode(self.user_name))
-        self.apikey_header_name = config.get('apikey_header_name', 'X-CKAN-API-Key')
         self.extra_environ = {
-            self.apikey_header_name : str(test_user.apikey)
+            'Authorization' : str(test_user.apikey)
         }
 
     @classmethod
-    def teardown_class(self):
+    def teardown(self):
         CreateTestData.delete()
 
     def test_edit_coverage(self):

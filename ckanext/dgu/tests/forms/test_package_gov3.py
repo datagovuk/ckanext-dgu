@@ -125,6 +125,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         pkg = model.Package(name=u'test3')
         model.Session.add(pkg)
         model.repo.commit_and_remove()
+        CreateTestData.flag_for_deletion(pkg_names=[u'test3'])
 
         pkg = model.Package.by_name(u'test3')
         fs = get_fieldset()
@@ -144,6 +145,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         model.Session.add(pkg)
         pkg.extras = {u'department':u'Not on the list'}
         model.repo.commit_and_remove()
+        CreateTestData.flag_for_deletion(pkg_names=[u'test2'])
 
         pkg = model.Package.by_name(u'test2')
         fs = get_fieldset()
@@ -194,7 +196,9 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'resources-0-format'] = u'xml'
         indict[prefix + 'resources-0-description'] = u'test desc'
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
-        CreateTestData.flag_for_deletion(u'testname')
+        CreateTestData.flag_for_deletion(pkg_names=[u'testname'],
+                                         tag_names=[u'russian',
+                                                    u'tolstoy'],)
         
         model.repo.new_revision()
         fs.sync()
