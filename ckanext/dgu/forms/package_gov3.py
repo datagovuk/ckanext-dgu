@@ -99,7 +99,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     
     # Layout
     field_groups = OrderedDict([
-        (_('Basic information'), ['name', 'title',
+        (_('Basic information'), ['title', 'name',
                                   'notes']),
         (_('Details'), ['date_released', 'date_updated', 'date_update_future',
                         'update_frequency',
