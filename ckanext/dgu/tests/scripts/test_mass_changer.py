@@ -9,11 +9,7 @@ class TestMassChanger(TestController):
     @classmethod
     def setup_class(self):
         # create test data
-        model.notifier.initialise()
-        self.tsi = TestSearchIndexer()
         CreateTestData.create()
-        self.tsi.index()
-
         username = 'annafan'
         user = model.User.by_name(unicode(username))
         assert user

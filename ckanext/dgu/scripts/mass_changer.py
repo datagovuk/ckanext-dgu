@@ -87,7 +87,7 @@ class MassChanger(object):
         '''
         self.ckanclient = ckanclient
         version = self.ckanclient.api_version_get()
-        assert int(version) >= 2, 'API Version is %i. Script requires at least Version 2.' % version
+        assert int(version) >= 2, 'API Version is %s. Script requires at least Version 2.' % version
         self.instructions = instructions
         self.dry_run = dry_run
         self.force = force

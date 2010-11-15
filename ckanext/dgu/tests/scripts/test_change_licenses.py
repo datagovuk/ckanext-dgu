@@ -11,11 +11,7 @@ class TestChangeLicenses(TestController):
     @classmethod
     def setup_class(self):
         # create test data
-        model.notifier.initialise()
-        self.tsi = TestSearchIndexer()
         CreateTestData.create()
-        self.tsi.index()
-
         username = 'annafan'
         user = model.User.by_name(unicode(username))
         assert user
@@ -38,7 +34,6 @@ class TestChangeLicenses(TestController):
 
         change_in_packages = set(licenses_before.keys()) - set(licenses_after.keys())
         assert not change_in_packages, change_in_packages
-
         for pkg_name in licenses_after.keys():
             assert licenses_after[pkg_name] == self.license_id, licenses_after[pkg_name]
 
