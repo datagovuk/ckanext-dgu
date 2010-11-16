@@ -1,12 +1,13 @@
 import os.path
+import datetime
 
 from collections import defaultdict
 
 from sqlalchemy.util import OrderedDict
 
 from ckanext.loader import *
-from ckan.lib.importer import RowParseError
-from ckan.lib.spreadsheet_importer import CsvData, SpreadsheetDataRecords, SpreadsheetPackageImporter
+from ckan.lib.importer import RowParseError, ImportException
+from ckan.lib.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
 from ckan.lib import schema_gov
 from ckan.lib import field_types
 from ckan import model
@@ -20,10 +21,25 @@ class CospreadLoader(PackageLoader):
 class CospreadDataRecords(SpreadsheetDataRecords):
     def __init__(self, data):
         essential_title = 'Package name'
+        self.column_name_map = {
+            u'Download file format':'File format',
+            u'Maintainer - E-mail address, if needed.':u'Maintainer - E-mail address',
+            u'Maintainer - Blank unless not the author.':u'Maintainer - ',
+            u'CO Reference':u'CO Identifier',
+            u'Author - E-mail address.':'Contact - E-mail address.',
+            u'Author - Permanent contact point for members of the public; not an individual.':'Contact - Permanent contact point',
+            }
+        self.column_name_reverse_map = dict((v, k) for k, v in self.column_name_map.iteritems())
+        self.optional_columns = [u'Temporal Coverage - To\n(if needed)',
+                                 u'Temporal Coverage - From',
+                                 u'Download Description',
+                                 u'National Statistic',
+                                 u'Maintainer - E-mail address',
+                                 u'Maintainer - ',
+                                 u'Categories']
         self.column_spreading_titles = ['Geographical Granularity', 'Geographic coverage', 'Temporal Granularity', 'Temporal Coverage', 'Author', 'Maintainer', 'Contact']
         self.standard_or_other_columns = ['Geographical Granularity', 'Temporal Granularity']
-        self.resource_keys = ['Download URL', 'File format']
-
+        self.resource_keys = ['Download URL', 'File format', 'Download Description']
         super(CospreadDataRecords, self).__init__(data, essential_title)
             
     def find_titles(self, essential_title):
@@ -60,7 +76,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
         current_record = None
         for record in super(CospreadDataRecords, self).records:
             if current_record and current_record['Package name'] == record['Package name']:
-                # this record is another resource the current record.
+                # this record is another resource for the current record.
                 keys_that_should_match = set(current_record.keys()) - set(self.resource_keys + ['resources'] + self.standard_or_other_columns)
                 for key in keys_that_should_match:
                     assert current_record[key] == record[key], 'Multiple resources for package %s, but value does not match: %r!=%r' % (record['Package name'], current_record[key], record[key])
@@ -70,6 +86,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                 if current_record:
                     yield current_record
                 current_record = record.copy()
+                current_record['resources'] = []
                 # Collapse standard/other columns into one
                 for column in self.standard_or_other_columns:
                     standard = current_record['%s - Standard' % column]
@@ -82,14 +99,41 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                     current_record[column] = value
                     del current_record['%s - Standard' % column]
                     del current_record['%s - Other' % column]
-                # Get rid of download_url
-                for key in self.resource_keys:
-                    del current_record[key]
-                current_record['resources'] = []
+                # Rename columns to standard names
+                keys_to_change = set(current_record.keys()) & set(self.column_name_map.keys())
+                for from_key in keys_to_change:
+                    to_key = self.column_name_map[from_key]
+                    current_record[to_key] = current_record[from_key]
+                    del current_record[from_key]
             # Put download_url into resources
-            current_record['resources'].append(OrderedDict((k, record[k]) for k in self.resource_keys))
+            resource = OrderedDict()
+            for key in self.resource_keys:
+                key_used = None
+                if key in record:                
+                    key_used = key
+                else:
+                    alt_key = self.column_name_reverse_map.get(key)
+                    if alt_key and alt_key in record:
+                        key_used = alt_key
+                        value = record[alt_key]
+                if key_used:
+                    value = record[key_used]
+                    resource[key] = value
+                    del record[key_used]
+                else:
+                    if key in self.optional_columns:
+                        record[key] = None
+                    else:
+                        raise KeyError(key)
+            current_record['resources'].append(resource)
         if current_record:
             yield current_record
+
+class MultipleCospreadDataRecords(MultipleSpreadsheetDataRecords):
+    def __init__(self, data):
+        if data.get_num_sheets() > 1:
+            data = data.get_data_by_sheet()
+        super(MultipleCospreadDataRecords, self).__init__(data, [], record_class=CospreadDataRecords)
 
 
 class CospreadImporter(SpreadsheetPackageImporter):
@@ -102,12 +146,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
             u'Local Authority Copyright with data.gov.uk rights':u'uk-ogl',
             u'UK Crown Copyright':u'uk-ogl',
             u'Crown Copyright':u'uk-ogl', }
-        super(CospreadImporter, self).__init__(**kwargs)
-
-    def import_into_package_records(self):
-        package_data = CsvData(self.log, filepath=self._filepath,
-                               buf=self._buf)
-        self._package_data_records = CospreadDataRecords(package_data)
+        super(CospreadImporter, self).__init__(record_params=[], record_class=CospreadDataRecords, **kwargs)
 
     def record_2_package(self, row_dict):
         pkg_dict = OrderedDict()
@@ -132,12 +171,10 @@ class CospreadImporter(SpreadsheetPackageImporter):
                     break
         if not license_id:
             license_id = 'uk-ogl'
-            print 'Warning: license not recognised: "%s". Defaulting to: %s.' % (row_dict['Licence'], license_id)
+            self.log('WARNING: license not recognised: "%s". Defaulting to: %s.' % (row_dict['Licence'], license_id))
         pkg_dict['license_id'] = license_id
         pkg_dict['url'] = self.tidy_url(row_dict['URL'])
         pkg_dict['notes'] = notes
-        if self.include_given_tags:
-            given_tags = schema_gov.tags_parse(row_dict['Tags'])
         pkg_dict['version'] = u''
         pkg_dict['groups'] = [u'ukgov']
 
@@ -149,16 +186,19 @@ class CospreadImporter(SpreadsheetPackageImporter):
         for region in spreadsheet_regions:
             munged_region = region.lower().replace('n. ', 'northern_')
             field = 'Geographic coverage - %s' % region
-            if row_dict[field] == u'Yes':
+            if (row_dict[field] or '').lower() not in (None, '', 'no', 'False'):
                 geo_cover.append(munged_region)
         extras_dict['geographic_coverage'] = geo_coverage_type.form_to_db(geo_cover)
         
         for column in ['Date released', 'Date updated']:
-            try:
-                val = field_types.DateType.form_to_db(row_dict[column])
-            except field_types.DateConvertError, e:
-                print "WARNING: Value for column '%s' of '%s' is not understood as a date format." % (column, row_dict[column])
-                val = row_dict[column]
+            if isinstance(row_dict[column], datetime.date):
+                val = field_types.DateType.date_to_db(row_dict[column])
+            else:
+                try:
+                    val = field_types.DateType.form_to_db(row_dict[column])
+                except field_types.DateConvertError, e:
+                    self.log("WARNING: Value for column '%s' of '%s' is not understood as a date format." % (column, row_dict[column]))
+                    val = row_dict[column]
             extras_dict[column.lower().replace(' ', '_')] = val
             
         field_map = [
@@ -172,6 +212,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
             ['Precision'],
             ['Department', schema_gov.government_depts],
             ]
+        optional_fields = ['Categories']
         for field_mapping in field_map:
             column = field_mapping[0]
             extras_key = column.lower().replace(' ', '_')
@@ -181,8 +222,13 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 if row_dict.has_key('CO Reference'):
                     column = 'CO Reference'
                 extras_key = 'external_reference'
-            val = row_dict[column]
+            if row_dict.has_key(column):
+                val = row_dict[column]
+            else:
+                assert column in optional_fields, column
+                val = None
             if len(field_mapping) > 1:
+                # snap to suggestions
                 suggestions = field_mapping[1]
                 if val and val not in suggestions:
                     suggestions_lower = [sugg.lower() for sugg in suggestions]
@@ -195,7 +241,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
                     elif val.replace('&', 'and').strip() in suggestions:
                         val = val.replace('&', 'and').strip()
                 if val and val not in suggestions:
-                    print "WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions)
+                    self.log("WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions))
             extras_dict[extras_key] = val
         
         extras_dict['national_statistic'] = u'' # Ignored: row_dict['national statistic'].lower()
@@ -208,7 +254,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
             res_dict = OrderedDict([
                 ('url', self.tidy_url(row_resource['Download URL'])),
                 ('format', row_resource.get('File format', u'')),
-                ('description', row_resource.get('Description', u'')),
+                ('description', row_resource.get('Download Description', u'')),
                 ])
             if '\n' in res_dict['url']:
                 # multiple urls
@@ -220,86 +266,11 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 resources.append(res_dict)
         pkg_dict['resources'] = resources
 
-        ##
-
-##        geo_coverage = schema_gov.GeoCoverageType.get_instance().str_to_db(row_dict['Geographic Coverage'])
-
-##        munged_dates = {}
-##        for column in ['Date Released', 'Date Updated',
-##                       'Temporal Coverage To', 'Temporal Coverage From']:
-##            val = '%s' % row_dict[column]
-##            munged_dates[column] = val
-
-##        taxonomy_url = row_dict['Taxonomy url']
-##        if taxonomy_url and taxonomy_url != '-':
-##            taxonomy_url = self.tidy_url(taxonomy_url, self.log)
-            
-##        national_statistic = u'no'
-##        if row_dict['National Statistic'] != national_statistic:
-##            self.log('Warning: Ignoring national statistic for non-ONS data: %s' % row_dict['National Statistic'])
-
-##        pkg_dict = OrderedDict([
-##            ('name', name),
-##            ('title', title),
-##            ('version', row_dict['Version'][:model.PACKAGE_VERSION_MAX_LENGTH]),
-##            ('url', None),
-##            ('author', author),
-##            ('author_email', author_email),
-##            ('maintainer', None),
-##            ('maintainer_email', None),
-##            ('notes', row_dict['Abstract']),
-##            ('license_id', license_id),
-##            ('tags', []), # post-filled
-##            ('groups', ['ukgov']),
-##            ('resources', resources),
-##            ('extras', OrderedDict([
-##                ('external_reference', ref),
-##                ('date_released', munged_dates['Date Released']),
-##                ('date_updated', munged_dates['Date Updated']),
-##                ('temporal_granularity', row_dict['Temporal Granularity']),
-##                ('temporal_coverage_from', munged_dates['Temporal Coverage From']),
-##                ('temporal_coverage_to', munged_dates['Temporal Coverage To']),
-##                ('geographic_coverage', geo_coverage),
-##                ('geographical_granularity', row_dict['Geographic Granularity']),
-##                ('agency', row_dict['Agency']),
-##                ('precision', row_dict['Precision']),
-##                ('taxonomy_url', taxonomy_url),
-##                ('import_source', 'COSPREAD-%s' % os.path.basename(self._filepath)),
-##                ('department', row_dict['Department']),
-##                ('update_frequency', row_dict['Update Frequency']),
-##                ('national_statistic', national_statistic),
-##                ('categories', row_dict['Categories']),
-##                ])),
-##            ])
-
         tags = schema_gov.TagSuggester.suggest_tags(pkg_dict)
-        [tags.add(tag) for tag in schema_gov.tags_parse(row_dict['Tags'])]
         if self.include_given_tags:
+            given_tags = schema_gov.tags_parse(row_dict['Tags'])
             tags = tags | set(given_tags)
         pkg_dict['tags'] = sorted(list(tags))
-
-##        # snap to suggestions
-##        field_suggestions = [
-##            ['temporal_granularity', schema_gov.temporal_granularity_options],
-##            ['geographical_granularity', schema_gov.geographic_granularity_options],
-##            ['categories', schema_gov.category_options],
-##            ['department', schema_gov.government_depts],
-##            ]
-##        for field, suggestions in field_suggestions:
-##            val = pkg_dict['extras'][field]
-##            if val and val != '-' and val not in suggestions:
-##                suggestions_lower = [sugg.lower() for sugg in suggestions]
-##                if val.lower() in suggestions_lower:
-##                    val = suggestions[suggestions_lower.index(val.lower())]
-##                elif schema_gov.expand_abbreviations(val) in suggestions:
-##                    val = schema_gov.expand_abbreviations(val)
-##                elif val.lower() + 's' in suggestions:
-##                    val = val.lower() + 's'
-##                elif val.replace('&', 'and').strip() in suggestions:
-##                    val = val.replace('&', 'and').strip()
-##            if val and val != '-' and val not in suggestions:
-##                self.log("WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions))
-##            pkg_dict['extras'][field] = val
 
         return pkg_dict
         
@@ -313,5 +284,5 @@ class CospreadImporter(SpreadsheetPackageImporter):
             if url.startswith('www.'):
                 url = url.replace('www.', 'http://www.')
             else:
-                print "Warning: URL doesn't start with http: %s" % url
+                self.log("WARNING: URL doesn't start with http: %s" % url)
         return url

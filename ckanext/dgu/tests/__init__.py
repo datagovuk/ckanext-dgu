@@ -146,5 +146,18 @@ class Gov3Fixtures(PackageFixturesBase):
                 ]
         return self._pkgs
 
+class PackageDictUtil(object):
+    @classmethod
+    def check_dict(cls, dict_to_check, expected_dict):
+        for key, value in expected_dict.items():
+            if key == 'extras':
+                cls.check_dict(dict_to_check['extras'], value)
+            else:
+                if value:
+                    assert dict_to_check[key] == value, 'Key \'%s\' should be %r not: %r' % (key, value, dict_to_check[key])
+                else:
+                    assert not dict_to_check.get(key), 'Key \'%s\' should have no value, not: %s' % (key, dict_to_check[key])
+    
+
 def teardown_module():
     assert not CreateTestData.get_all_data(), 'A test in module %r forgot to clean-up its data: %r' % (__name__, CreateTestData.get_all_data())

@@ -8,6 +8,7 @@ from ckan.tests import *
 import ckan.model as model
 from ckan.lib import spreadsheet_importer
 from ckanext.dgu.bis.bis import BisImporter
+from ckanext.dgu.tests import PackageDictUtil
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 
 SAMPLES_DIR = '../dgu/ckanext/dgu/tests/bis/samples'
@@ -253,7 +254,7 @@ class TestImport:
         log = self.importer.get_log()
         assert not log, log
 
-        self.check_dict(pkg_dict, expected_pkg_dict)
+        PackageDictUtil.check_dict(pkg_dict, expected_pkg_dict)
         expected_keys = set([key for key, value in expected_pkg_dict.items()])
         keys = set(pkg_dict.keys())
         key_difference = expected_keys - keys
