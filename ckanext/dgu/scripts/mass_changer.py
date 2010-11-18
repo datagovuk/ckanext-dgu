@@ -114,7 +114,9 @@ class MassChanger(object):
         pkg = self.ckanclient.package_entity_get(pkg_id)
         # get rid of read-only fields if they exist
         for read_only_field in ('id', 'relationships', 'ratings_average',
-                                'ratings_count', 'ckan_url'):
+                                'ratings_count', 'ckan_url',
+                                'metadata_modified',
+                                'metadata_created'):
             if pkg.has_key(read_only_field):
                 del pkg[read_only_field]
         return pkg

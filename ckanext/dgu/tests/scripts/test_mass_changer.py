@@ -47,7 +47,8 @@ class TestMassChanger(TestController):
             keys = set(pkg_dict_before.keys())
             assert keys == set(pkg_dict_after.keys()), set(pkg_dict_after.keys()) ^ set(pkg_dict_before.keys())
             for key in keys:
-                if key not in ['license_id', 'license', 'revision_id']:
+                if key not in ['license_id', 'license', 'revision_id',
+                               'metadata_modified']:
                     assert pkg_dict_before[key] == pkg_dict_after[key], \
                            '%s %s: %r!=%r' % (pkg_dict_before['name'], key, pkg_dict_before[key], pkg_dict_after[key])
 
