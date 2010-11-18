@@ -1,3 +1,6 @@
+import copy
+
+from ckan import model
 from common import ScriptError
 
 log = __import__("logging").getLogger(__name__)
@@ -26,12 +29,51 @@ class AnyPackageMatcher(PackageMatcher):
     def match(self, pkg):
         return True
 
+class ListedPackageMatcher(PackageMatcher):
+    '''Package matcher based on a supplied list of package names.'''
+    def __init__(self, pkg_name_list):
+        assert isinstance(self.pkg_name_list, iterable)
+        assert not isinstance(self.pkg_name_list, basestring)
+        self.pkg_name_list = set(pkg_name_list)
+        
+    def match(self, pkg):
+        return pkg in self.pkg_name_list
+
 class PackageChanger(object):
     def change(self, pkg):
         '''Override this to return a changed package dictionary.
         @param pkg: package dictionary
         '''
         assert NotImplementedError
+
+    def resolve_field_value(self, input_field_value, pkg):
+        '''Resolves the specified field_value to one
+        specific to this package.
+        Examples:
+          "pollution" -> "pollution"
+          "%(name)s" -> "uk-pollution-2008"
+        '''
+        return input_field_value % pkg
+
+    def flatten_pkg(self, pkg_dict):
+        flat_pkg = copy.deepcopy(pkg_dict)
+        for name, value in pkg_dict.items()[:]:
+            if isinstance(value, (list, tuple)):
+                if value and isinstance(value[0], dict) and name == 'resources':
+                    for i, res in enumerate(value):
+                        prefix = 'resource-%i' % i
+                        flat_pkg[prefix + '-url'] = res['url']
+                        flat_pkg[prefix + '-format'] = res['format']
+                        flat_pkg[prefix + '-description'] = res['description']
+                else:
+                    flat_pkg[name] = ' '.join(value)
+            elif isinstance(value, dict):
+                for name_, value_ in value.items():
+                    flat_pkg[name_] = value_
+            else:
+                flat_pkg[name] = value
+        return flat_pkg
+        
 
 class BasicPackageChanger(PackageChanger):
     def __init__(self, change_field, change_field_value):
@@ -40,17 +82,42 @@ class BasicPackageChanger(PackageChanger):
         self.change_field_value = change_field_value
         
     def change(self, pkg):
+        flat_pkg = self.flatten_pkg(pkg)
         if pkg.has_key(self.change_field):
             pkg_field_root = pkg
         else:
             pkg_field_root = pkg['extras']
+        value = self.resolve_field_value(self.change_field_value, flat_pkg)
 
         log.info('%s.%s  Value %r -> %r' % \
                  (pkg['name'], self.change_field,
-                  pkg_field_root.get(self.change_field),
-                  self.change_field_value))
+                  flat_pkg.get(self.change_field),
+                  value))
 
-        pkg_field_root[self.change_field] = self.change_field_value
+        pkg_field_root[self.change_field] = value
+        return pkg
+
+class CreateResource(PackageChanger):
+    def __init__(self, **resource_values):
+        '''Adds new resource with the given values.
+        @param resources_values: resource dictionary. e.g.:
+                {'url'=xyz, 'description'=xyz}
+        '''
+        for key in resource_values.keys():
+            assert key in model.PackageResource.get_columns()
+        self.resource_values = resource_values
+        
+    def change(self, pkg):
+        flat_pkg = self.flatten_pkg(pkg)
+        resource = {}
+        for key, value in self.resource_values.items():
+            resource[key] = self.resolve_field_value(value, flat_pkg)
+        resource_index = len(pkg['resources'])
+        
+        log.info('%s.resources[%i] -> %r' % \
+                 (pkg['name'], resource_index, resource))
+
+        pkg['resources'].append(self.resource_values)
         return pkg
 
 class NoopPackageChanger(PackageChanger):
@@ -136,7 +203,8 @@ class MassChanger(object):
         if not self.dry_run:
             self.ckanclient.package_entity_put(pkg)
             if self.ckanclient.last_status == 200:
-                log.info('...saved %s' % pkg['name'])
+                log.info('...saved %s:' % pkg['name'])
+                log.debug('Package saved: %r' % self.ckanclient.last_message)
             else:
                 raise ScriptError('Post package %s error: %s' % (pkg['name'], self.ckanclient.last_message))
 

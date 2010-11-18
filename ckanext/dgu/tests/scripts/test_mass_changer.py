@@ -104,3 +104,41 @@ class TestMassChanger(TestController):
         self.assert_equal(anna_after['extras'][extra_field], 'book')
         self.assert_equal(war_after['extras'][extra_field], new_value)
 
+    def test_3_copy_field(self):
+        anna_before = self.anna.as_dict()
+        self.assert_equal(anna_before['name'], 'annakarenina')
+        self.assert_equal(anna_before['title'], 'A Novel By Tolstoy')
+
+        # do the change
+        instructions = [
+            ChangeInstruction(BasicPackageMatcher('name', 'annakarenina'),
+                              BasicPackageChanger('title', '%(name)s'))
+            ]
+        self.mass_changer = MassChanger(self.testclient, instructions)
+        self.mass_changer.run()
+
+        # check anna has new license
+        anna_after = self.anna.as_dict()
+        self.assert_equal(anna_after['title'], 'annakarenina')
+
+    def test_4_create_resource(self):
+        pkg_before = self.anna.as_dict()
+        self.assert_equal(len(pkg_before['resources']), 2)
+
+        # do the change
+        instructions = [
+            ChangeInstruction(BasicPackageMatcher('name', 'annakarenina'),
+                              CreateResource(url='http://res.xls',
+                                             format='XLS',
+                                             description='Full text'))
+            ]
+        self.mass_changer = MassChanger(self.testclient, instructions)
+        self.mass_changer.run()
+
+        # check change
+        pkg_after = self.anna.as_dict()
+        new_res = pkg_after['resources'][2]
+        self.assert_equal(new_res['url'], 'http://res.xls')
+        self.assert_equal(new_res['format'], 'XLS')
+        self.assert_equal(new_res['description'], 'Full text')
+

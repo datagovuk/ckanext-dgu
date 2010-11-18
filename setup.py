@@ -22,6 +22,7 @@ setup(
     entry_points="""
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
+        cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.scripts.change_licenses_cmd:command
 
         [ckan.forms]

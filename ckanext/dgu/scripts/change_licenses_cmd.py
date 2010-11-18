@@ -1,47 +1,29 @@
 import sys
 
-from ckanext.command import Command
 from ckanext.loader import ResourceSeries
 from ckanext.dgu.scripts.change_licenses import ChangeLicenses
+from ckanext.dgu.scripts.mass_changer_cmd import MassChangerCommand
 from ckanclient import CkanClient
 
-class ChangeLicensesCommand(Command):
-    commands = ['all', 'oct10']
-    parser = Command.StandardParser(usage=("%%prog [options] {%s}" % '|'.join(commands)))
-    parser.add_option("-H", "--host",
-                      dest="api_url",
-                      default="http://test.ckan.net/api",
-                      help="API URL (default: http://test.ckan.net/api)")
-    parser.add_option("-k", "--key",
-                      dest="api_key",
-                      help="API Key (required)")
-    parser.add_option("-d", "--dry-run",
-                      dest="dry_run",
-                      action="store_true",
-                      default=False,
-                      help="Write no changes")
-    parser.add_option("-f", "--force",
-                      dest="force",
-                      action="store_true",
-                      default=False,
-                      help="Don't abort rest of packages on an error")
-    parser.add_option("--license-id",
-                      dest="license_id",
-                      help="ID of the license to change all packages to")
-
+class ChangeLicensesCommand(MassChangerCommand):
+    def add_additional_options(self):
+        self.parser.add_option("--license-id",
+                               dest="license_id",
+                               help="ID of the license to change all packages to")
+    def assert_args_valid(self):
+        self(ChangeLicensesCommand, self).assert_args_valid()
+        assert self.options.license_id is not None, "Please specify a license ID"
+        assert len(self.args) == 1, "Command is required"
+                
     def command(self):
-        try:
-            assert self.options.api_key is not None, "Please specify an API Key"
-            assert len(self.args) == 1, "Command is required"
-        except AssertionError, e:
-            print 'ERROR', e.args
-            self.parser.print_help()
-            sys.exit(1)
+        super(ChangeLicensesCommand, self).command()
         getattr(self, self.args[0])()
 
     def all(self):
         client = CkanClient(base_location=self.options.api_url,
-                            api_key=self.options.api_key)
+                            api_key=self.options.api_key,
+                            http_user=self.options.username,
+                            http_pass=self.options.password)
         change_licenses = ChangeLicenses(client, dry_run=self.options.dry_run, force=self.options.force)
         change_licenses.change_all_packages(self.options.license_id)
 
