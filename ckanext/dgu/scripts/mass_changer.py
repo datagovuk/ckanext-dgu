@@ -189,8 +189,8 @@ class MassChanger(object):
         if not self._pkg_cache.has_key(pkg_ref):
             pkg = self.ckanclient.package_entity_get(pkg_ref)
             if self.ckanclient.last_status != 200:
-                raise ScriptError('Could not get package ID %s: %r') % \
-                      (pkg_ref, self.ckanclient.last_status)
+                raise ScriptError('Could not get package ID %s: %r' % \
+                      (pkg_ref, self.ckanclient.last_status))
             # get rid of read-only fields if they exist
             for read_only_field in ('id', 'relationships', 'ratings_average',
                                     'ratings_count', 'ckan_url',
@@ -225,3 +225,17 @@ class MassChanger(object):
             else:
                 raise ScriptError('Post package %s error: %s' % (pkg['name'], self.ckanclient.last_message))
 
+
+class MassChangerNamedPackages(MassChanger):
+    def run(self):
+        for pkg_ref in self.pkg_name_list:
+            try:
+                instruction = self._match_instructions(pkg_ref)
+                if instruction:
+                    self._change_package(self._get_pkg(pkg_ref), instruction)
+            except ScriptError, e:
+                err = 'Problem with package %s: %r' % (pkg_ref, e.args)
+                log.error(err)
+                if not self.force:
+                    log.error('Aborting (avoid this with --force)')
+                    raise ScriptError(err)

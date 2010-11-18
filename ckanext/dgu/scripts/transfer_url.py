@@ -7,8 +7,9 @@ For each package:
 from mass_changer import *
 from common import ScriptError
 
-pkg_name_list = '''
-anti-social-behaviour-orders-1999-2007
+log = __import__("logging").getLogger(__name__)
+
+pkg_name_list = '''anti-social-behaviour-orders-1999-2007
 asylum-applications-jan-mar-2009
 control-of-immigration-quarterly-statistical-summary-united-kingdom-2009-october-december
 coroners-statistics-england-and-wales
@@ -91,6 +92,7 @@ uk-glossary-exportcontrol
 uk-ipo-offences
 weekly-fuel-prices
 '''.split()
+pkg_name_list = [name for name in pkg_name_list if name]
 
 class TransferUrl(object):
     def __init__(self, ckanclient, dry_run=False, force=False):
@@ -108,13 +110,27 @@ class TransferUrl(object):
         instructions = [
             ChangeInstruction(
                 [
-                    ListedPackageMatcher(pkg_name_list)
+                    TransferUrlMatcher(),
                     ],
                 CreateResource(url='%(url)s'))
             ]
-        self.mass_changer = MassChanger(self.ckanclient,
+        self.mass_changer = MassChangerNamedPackages(self.ckanclient,
                                         instructions,
                                         dry_run=self.dry_run,
                                         force=self.force)
+        self.mass_changer.pkg_name_list = pkg_name_list
         self.mass_changer.run()
         
+class TransferUrlMatcher(PackageMatcher):
+    def match(self, pkg):
+        if not (pkg['url'] or '').strip():
+            log.warn('Ignoring package with no URL: %r', pkg['name'])
+            return False
+##        if not pkg['url'].lower().endswith('.pdf'):
+##            log.warn('Ignoring package URL not ending in ".PDF": %r %r',
+##                     pkg['name'], pkg['url'])
+##            return False
+        if pkg['resources']:
+            log.warn('Ignoring package with resources already: %r', pkg['name'])
+            return False        
+        return True
