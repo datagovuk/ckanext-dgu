@@ -4,6 +4,7 @@ from pylons import config
 from sqlalchemy.util import OrderedDict
 
 from ckanext.dgu.ons import importer
+from ckanext.dgu.ons.loader import OnsLoader
 from ckanext.loader import PackageLoader, ResourceSeries
 from ckanext.tests.test_loader import TestLoaderBase
 from ckan import model
@@ -19,34 +20,18 @@ SAMPLE_FILEPATH_4 = os.path.join(SAMPLE_PATH, 'ons_hub_sample4.xml')
 SAMPLE_FILEPATH_4a = os.path.join(SAMPLE_PATH, 'ons_hub_sample4a.xml')
 SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
 SAMPLE_FILEPATH_5 = os.path.join(SAMPLE_PATH, 'ons_hub_sample5.xml')
-TEST_PKG_NAMES = ['uk_official_holdings_of_international_reserves', 'cereals_and_oilseeds_production_harvest', 'end_of_custody_licence_release_and_recalls', 'sentencing_statistics_brief_england_and_wales', 'population_in_custody_england_and_wales', 'probation_statistics_brief']
 
-
-class OnsLoader(PackageLoader):
-    def __init__(self, client):
-        settings = ResourceSeries(
-            field_keys_to_find_pkg_by=['title', 'department'],
-            resource_id_prefix='hub/id/',
-            field_keys_to_expect_invariant=[
-                'update_frequency', 'geographical_granularity',
-                'geographic_coverage', 'temporal_granularity',
-                'precision', 'url', 'taxonomy_url', 'agency',
-                'author', 'author_email', 'license_id'])
-        super(OnsLoader, self).__init__(client, settings)
 
 class TestOnsLoadBasic(TestLoaderBase):
     def setup(self):
-        self.tsi = TestSearchIndexer()
         super(TestOnsLoadBasic, self).setup()
         importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
         self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
 
         loader = OnsLoader(self.testclient)
-        self.tsi.index() # this needs to run during package loading too
-                         # but the test copes...
         self.res = loader.load_packages(self.pkg_dicts)
         assert self.res['num_errors'] == 0, self.res
-        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+        CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in self.pkg_dicts])
 
     def test_fields(self):
         q = model.Session.query(model.Package)
@@ -107,17 +92,15 @@ class TestOnsLoadBasic(TestLoaderBase):
 
 class TestOnsLoadTwice(TestLoaderBase):
     def setup(self):
-        self.tsi = TestSearchIndexer()
         super(TestOnsLoadTwice, self).setup()
         # SAMPLE_FILEPATH_2 has the same packages as 1, but slightly updated
         for filepath in [SAMPLE_FILEPATH_1, SAMPLE_FILEPATH_2]:
             importer_ = importer.OnsImporter(filepath)
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
             loader = OnsLoader(self.testclient)
-            self.tsi.index()
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
-        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+        CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in pkg_dicts])
 
     def test_packages(self):
         pkg = model.Package.by_name(u'uk_official_holdings_of_international_reserves')
@@ -131,7 +114,6 @@ class TestOnsLoadClashTitle(TestLoaderBase):
     # two packages with the same title, both from ONS,
     # but from different departments, so must be different packages
     def setup(self):
-        self.tsi = TestSearchIndexer()
         super(TestOnsLoadClashTitle, self).setup()
         # ons items have been split into 3 files, because search needs to
         # do indexing in between
@@ -139,10 +121,9 @@ class TestOnsLoadClashTitle(TestLoaderBase):
             importer_ = importer.OnsImporter(SAMPLE_FILEPATH_3 + suffix + '.xml')
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
             loader = OnsLoader(self.testclient)
-            self.tsi.index()
             self.res = loader.load_packages(pkg_dicts)
             assert self.res['num_errors'] == 0, self.res
-        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+        CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in pkg_dicts])
 
     def test_ons_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings')
@@ -165,7 +146,6 @@ class TestOnsLoadClashSource(TestLoaderBase):
     # two packages with the same title, and department, but one not from ONS,
     # so must be different packages
     def setup(self):
-        self.tsi = TestSearchIndexer()
         super(TestOnsLoadClashSource, self).setup()
 
         self.clash_name = u'cereals_and_oilseeds_production_harvest'
@@ -179,10 +159,9 @@ class TestOnsLoadClashSource(TestLoaderBase):
              }
             ])
         importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
-        CreateTestData.flag_for_deletion(TEST_PKG_NAMES)
+        CreateTestData.flag_for_deletion(self.clash_name)
         pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
         loader = OnsLoader(self.testclient)
-        self.tsi.index()
         self.res = loader.load_packages(pkg_dicts)
         assert self.res['num_errors'] == 0, self.res
 
@@ -195,7 +174,6 @@ class TestOnsLoadClashSource(TestLoaderBase):
 
 class TestOnsLoadSeries(TestLoaderBase):
     def setup(self):
-        self.tsi = TestSearchIndexer()
         super(TestOnsLoadSeries, self).setup()
         for filepath in [SAMPLE_FILEPATH_4a, SAMPLE_FILEPATH_4b]:
             importer_ = importer.OnsImporter(filepath)
@@ -205,7 +183,6 @@ class TestOnsLoadSeries(TestLoaderBase):
                 assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
                 assert not pkg_dict['extras']['department'], pkg_dict # but key must exist
             loader = OnsLoader(self.testclient)
-            self.tsi.index()
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
         CreateTestData.flag_for_deletion('regional_labour_market_statistics')
@@ -221,7 +198,6 @@ class TestOnsLoadMissingDept(TestLoaderBase):
     # existing package to be updated has no department given (previously
     # there was no default to 'UK Statistics Authority'.
     def setup(self):
-        self.tsi = TestSearchIndexer()
         super(TestOnsLoadMissingDept, self).setup()
 
         self.orig_pkg_dict = {
@@ -240,7 +216,6 @@ class TestOnsLoadMissingDept(TestLoaderBase):
         importer_ = importer.OnsImporter(SAMPLE_FILEPATH_5)
         self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
         loader = OnsLoader(self.testclient)
-        self.tsi.index()
         self.res = loader.load_package(self.pkg_dict)
 
     def test_reload(self):
