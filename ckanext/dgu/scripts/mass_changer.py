@@ -6,6 +6,13 @@ from common import ScriptError
 log = __import__("logging").getLogger(__name__)
 
 class PackageMatcher(object):
+    def match_ref(self, pkg_name):
+        '''Override this and return True or False depending on whether
+        the supplied package matches or not. If the matcher requires
+        more package information, then return None and the match method
+        is run.'''
+        pass
+
     def match(self, pkg):
         '''Override this and return True or False depending on whether
         the supplied package matches or not.'''
@@ -32,12 +39,15 @@ class AnyPackageMatcher(PackageMatcher):
 class ListedPackageMatcher(PackageMatcher):
     '''Package matcher based on a supplied list of package names.'''
     def __init__(self, pkg_name_list):
-        assert isinstance(self.pkg_name_list, iterable)
-        assert not isinstance(self.pkg_name_list, basestring)
+        assert iter(pkg_name_list)
+        assert not isinstance(pkg_name_list, basestring)
         self.pkg_name_list = set(pkg_name_list)
         
+    def match_name(self, pkg_name):
+        return pkg_name in self.pkg_name_list
+
     def match(self, pkg):
-        return pkg in self.pkg_name_list
+        return pkg['name'] in self.pkg_name_list
 
 class PackageChanger(object):
     def change(self, pkg):
@@ -117,7 +127,7 @@ class CreateResource(PackageChanger):
         log.info('%s.resources[%i] -> %r' % \
                  (pkg['name'], resource_index, resource))
 
-        pkg['resources'].append(self.resource_values)
+        pkg['resources'].append(resource)
         return pkg
 
 class NoopPackageChanger(PackageChanger):
@@ -158,42 +168,49 @@ class MassChanger(object):
         self.instructions = instructions
         self.dry_run = dry_run
         self.force = force
+        self._pkg_cache = {}
 
     def run(self):
-        pkg_ids = self.ckanclient.package_register_get()
-        for pkg_id in pkg_ids:
+        pkg_refs = self.ckanclient.package_register_get()
+        for pkg_ref in pkg_refs:
             try:
-                pkg = self._get_pkg(pkg_id)
-                if self.ckanclient.last_status != 200:
-                    raise 'Could not get package ID %s: %r' % \
-                          (pkg_id, self.ckanclient.last_status)
-                instruction = self._match_instructions(pkg)
+                pkg = self._get_pkg(pkg_ref)
+                instruction = self._match_instructions(pkg_ref)
                 if instruction:
-                    self._change_package(pkg, instruction)
+                    self._change_package(self._get_pkg(pkg_ref), instruction)
             except ScriptError, e:
-                err = 'Problem with package %s: %r' % (pkg_id, e.args)
+                err = 'Problem with package %s: %r' % (pkg_ref, e.args)
                 log.error(err)
                 if not self.force:
                     log.error('Aborting (avoid this with --force)')
                     raise ScriptError(err)
 
-    def _get_pkg(self, pkg_id):
-        pkg = self.ckanclient.package_entity_get(pkg_id)
-        # get rid of read-only fields if they exist
-        for read_only_field in ('id', 'relationships', 'ratings_average',
-                                'ratings_count', 'ckan_url',
-                                'metadata_modified',
-                                'metadata_created'):
-            if pkg.has_key(read_only_field):
-                del pkg[read_only_field]
-        return pkg
+    def _get_pkg(self, pkg_ref):
+        if not self._pkg_cache.has_key(pkg_ref):
+            pkg = self.ckanclient.package_entity_get(pkg_ref)
+            if self.ckanclient.last_status != 200:
+                raise ScriptError('Could not get package ID %s: %r') % \
+                      (pkg_ref, self.ckanclient.last_status)
+            # get rid of read-only fields if they exist
+            for read_only_field in ('id', 'relationships', 'ratings_average',
+                                    'ratings_count', 'ckan_url',
+                                    'metadata_modified',
+                                    'metadata_created'):
+                if pkg.has_key(read_only_field):
+                    del pkg[read_only_field]
+            self._pkg_cache[pkg_ref] = pkg
+        return self._pkg_cache[pkg_ref]
                            
-    def _match_instructions(self, pkg):
+    def _match_instructions(self, pkg_ref):
         for instruction in self.instructions:
             for matcher in instruction.matchers:
                 assert isinstance(matcher, PackageMatcher), matcher
-                if matcher.match(pkg):
-                    return instruction
+                name_match = None
+#                name_match = matcher.match_name(pkg_ref)
+                if name_match == None:
+                    pkg = self._get_pkg(pkg_ref)
+                    if matcher.match(pkg):
+                        return instruction
 
     def _change_package(self, pkg, instruction):
         for changer in instruction.changers:
