@@ -213,9 +213,13 @@ class MassChanger(object):
                         return instruction
 
     def _change_package(self, pkg, instruction):
+        pkg_before = copy.deepcopy(pkg)
         for changer in instruction.changers:
             pkg = changer.change(pkg)
-        assert pkg
+
+        if pkg == pkg_before:
+            log.info('...not changed')
+            return
         
         if not self.dry_run:
             self.ckanclient.package_entity_put(pkg)

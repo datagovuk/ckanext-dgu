@@ -6,12 +6,16 @@ from ckanext.dgu.scripts.mass_changer_cmd import MassChangerCommand
 from ckanclient import CkanClient
 
 class ChangeLicensesCommand(MassChangerCommand):
+    def __init__(self):
+        commands = ('all', 'oct10')
+        super(ChangeLicensesCommand, self).__init__(commands)
+
     def add_additional_options(self):
         self.parser.add_option("--license-id",
                                dest="license_id",
                                help="ID of the license to change all packages to")
     def assert_args_valid(self):
-        self(ChangeLicensesCommand, self).assert_args_valid()
+        super(ChangeLicensesCommand, self).assert_args_valid()
         assert self.options.license_id is not None, "Please specify a license ID"
         assert len(self.args) == 1, "Command is required"
                 

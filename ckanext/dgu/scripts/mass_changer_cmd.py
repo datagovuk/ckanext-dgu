@@ -37,11 +37,11 @@ class MassChangerCommand(Command):
         super(MassChangerCommand, self).__init__()
 
     def assert_args_valid(self):
-        assert self.dry_run or (self.options.api_key is not None), "Please specify an API Key"
+        assert self.options.dry_run or (self.options.api_key is not None), "Please specify an API Key"
 
     def command(self):
         try:
-            self.assert_args_valid
+            self.assert_args_valid()
         except AssertionError, e:
             print 'ERROR', e.args
             self.parser.print_help()
