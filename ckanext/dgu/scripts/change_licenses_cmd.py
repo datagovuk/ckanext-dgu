@@ -10,17 +10,18 @@ class ChangeLicensesCommand(MassChangerCommand):
         commands = ('all', 'oct10')
         super(ChangeLicensesCommand, self).__init__(commands)
 
-    def add_additional_options(self):
+    def add_options(self):
         self.parser.add_option("--license-id",
                                dest="license_id",
                                help="ID of the license to change all packages to")
-    def assert_args_valid(self):
-        super(ChangeLicensesCommand, self).assert_args_valid()
-        assert self.options.license_id is not None, "Please specify a license ID"
-        assert len(self.args) == 1, "Command is required"
                 
     def command(self):
         super(ChangeLicensesCommand, self).command()
+        if self.options.license_id is None:
+            self.parser.error("Please specify a license ID")
+        if len(self.args) != 1:
+            self.parser.error("Command is required")
+        
         getattr(self, self.args[0])()
 
     def all(self):

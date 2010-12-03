@@ -22,7 +22,8 @@ class Loader(Command):
         days = int(self.options.days)
         api_url = self.options.api_url
         api_key = self.options.api_key
-        assert api_key is not None, "Please specify an API Key"
+        if not api_key:
+            self.parser.error('Please specify an API Key')
 
         data_filepath = OnsData.download_recent(days=days)
         importer = OnsImporter(filepath=data_filepath)
