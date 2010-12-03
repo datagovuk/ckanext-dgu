@@ -157,7 +157,11 @@ class PackageDictUtil(object):
                     assert dict_to_check[key] == value, 'Key \'%s\' should be %r not: %r' % (key, value, dict_to_check[key])
                 else:
                     assert not dict_to_check.get(key), 'Key \'%s\' should have no value, not: %s' % (key, dict_to_check[key])
-    
+        unmatching_keys = set(dict_to_check.keys()) ^ set(expected_dict.keys())
+        missing_keys = set(expected_dict.keys()) - set(dict_to_check.keys())
+        assert not missing_keys, 'Missing keys: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
+        extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
+        assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
 
 def teardown_module():
     assert not CreateTestData.get_all_data(), 'A test in module %r forgot to clean-up its data: %r' % (__name__, CreateTestData.get_all_data())

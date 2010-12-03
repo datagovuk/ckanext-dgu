@@ -1,28 +1,27 @@
 import os.path
 import datetime
+import re
+import logging
 
 from collections import defaultdict
 
 from sqlalchemy.util import OrderedDict
 
-from ckanext.loader import *
 from ckan.lib.importer import RowParseError, ImportException
 from ckan.lib.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
 from ckan.lib import schema_gov
 from ckan.lib import field_types
 from ckan import model
 
-
-class CospreadLoader(PackageLoader):
-    def __init__(self, ckanclient):
-        settings = ReplaceByExtraField('external_reference')
-        super(CospreadLoader, self).__init__(ckanclient, settings)
+log = logging.getLogger(__name__)
 
 class CospreadDataRecords(SpreadsheetDataRecords):
     def __init__(self, data):
         essential_title = 'Package name'
         self.column_name_map = {
+            u'tags':'Tags',
             u'Download file format':'File format',
+            u'Download description':'Download Description',
             u'Maintainer - E-mail address, if needed.':u'Maintainer - E-mail address',
             u'Maintainer - Blank unless not the author.':u'Maintainer - ',
             u'CO Reference':u'CO Identifier',
@@ -79,7 +78,12 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                 # this record is another resource for the current record.
                 keys_that_should_match = set(current_record.keys()) - set(self.resource_keys + ['resources'] + self.standard_or_other_columns)
                 for key in keys_that_should_match:
-                    assert current_record[key] == record[key], 'Multiple resources for package %s, but value does not match: %r!=%r' % (record['Package name'], current_record[key], record[key])
+                    alt_key = self.column_name_reverse_map.get(key)
+                    if alt_key and alt_key in record:
+                        record_key = alt_key
+                    else:
+                        record_key = key
+                    assert current_record[key] == record[record_key], 'Multiple resources for package %s, but value does not match: %r!=%r' % (record['Package name'], current_record[key], record[key])
             else:
                 # this record is new, so yield the old 'current_record' before
                 # making this record 'current_record'.
@@ -91,7 +95,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                 for column in self.standard_or_other_columns:
                     standard = current_record['%s - Standard' % column]
                     other = current_record['%s - Other' % column]
-                    if standard == 'Other (specify)':
+                    if standard == 'Other (specify)' or standard == None:
                         value = other
                     else:
                         assert not other, 'Both "Standard" and "Other" values for column %r in record %r' % (column, current_record)
@@ -148,6 +152,10 @@ class CospreadImporter(SpreadsheetPackageImporter):
             u'Crown Copyright':u'uk-ogl', }
         super(CospreadImporter, self).__init__(record_params=[], record_class=CospreadDataRecords, **kwargs)
 
+    def log(self, msg):
+        super(CospreadImporter, self).log(msg)
+        log.warn(msg)
+
     def record_2_package(self, row_dict):
         pkg_dict = OrderedDict()
         pkg_dict['title'] = row_dict['Title']
@@ -158,8 +166,6 @@ class CospreadImporter(SpreadsheetPackageImporter):
         pkg_dict['author_email'] = row_dict['Contact - E-mail address.']
         pkg_dict['maintainer'] = row_dict['Maintainer - ']
         pkg_dict['maintainer_email'] = row_dict['Maintainer - E-mail address']
-        pkg_dict['geographical_granularity'] = row_dict['Geographical Granularity']
-        pkg_dict['temporal_granularity'] = row_dict['Temporal Granularity']
         notes = row_dict['Notes']
         license_id = self.license_map.get(row_dict['Licence'].strip(), '')
         if not license_id and ';' in row_dict['Licence']:
@@ -189,17 +195,34 @@ class CospreadImporter(SpreadsheetPackageImporter):
             if (row_dict[field] or '').lower() not in (None, '', 'no', 'False'):
                 geo_cover.append(munged_region)
         extras_dict['geographic_coverage'] = geo_coverage_type.form_to_db(geo_cover)
-        
-        for column in ['Date released', 'Date updated']:
-            if isinstance(row_dict[column], datetime.date):
-                val = field_types.DateType.date_to_db(row_dict[column])
+
+        for column, extra_key in [
+            ('Date released', 'date_released'),
+            ('Date updated', 'date_updated'),
+            ('Temporal Coverage - From', 'temporal_coverage_from'),
+            ('Temporal Coverage - To\n(if needed)', 'temporal_coverage_to'),
+            ]:
+            form_value = row_dict.get(column)
+            if isinstance(form_value, datetime.date):
+                val = field_types.DateType.date_to_db(form_value)
             else:
+                if isinstance(form_value, int):
+                    form_value = str(form_value)
+                # Hack for CLG data to allow '2008/09' to mean '2008', or
+                # '2009' if it is a 'To' field.
+                match = re.match('(\d{4})/(\d{2})', form_value or '')
+                if match:
+                    years = [int(year_str) for year_str in match.groups()]
+                    if extra_key.endswith('_to'):
+                        form_value = str(field_types.DateType.add_centurys_to_two_digit_year(year=years[1], near_year=years[0]))
+                    else:
+                        form_value = str(years[0])
                 try:
-                    val = field_types.DateType.form_to_db(row_dict[column])
+                    val = field_types.DateType.form_to_db(form_value)
                 except field_types.DateConvertError, e:
-                    self.log("WARNING: Value for column '%s' of '%s' is not understood as a date format." % (column, row_dict[column]))
-                    val = row_dict[column]
-            extras_dict[column.lower().replace(' ', '_')] = val
+                    self.log("WARNING: Value for column '%s' of %r is not understood as a date format." % (column, form_value))
+                    val = form_value
+            extras_dict[extra_key] = val
             
         field_map = [
             ['CO Identifier'],
@@ -246,8 +269,6 @@ class CospreadImporter(SpreadsheetPackageImporter):
         
         extras_dict['national_statistic'] = u'' # Ignored: row_dict['national statistic'].lower()
         extras_dict['import_source'] = 'COSPREAD-%s' % os.path.basename(self._filepath)
-        for field in ['temporal_coverage_from', 'temporal_coverage_to']:
-            extras_dict[field] = u''
 
         resources = []
         for row_resource in row_dict['resources']:
@@ -274,6 +295,25 @@ class CospreadImporter(SpreadsheetPackageImporter):
 
         return pkg_dict
         
+    @classmethod
+    def munge(self, name):
+        # convert spaces and separating symbols to underscores
+        name = re.sub('[\s:/]', '-', name).lower()        
+        # take out not-allowed characters
+        name = re.sub('[^a-z0-9-_]', '', name)
+        # remove double minuses
+        name = re.sub('--', '-', name)
+        # if longer than max_length, keep last word if a year
+        max_length = model.PACKAGE_NAME_MAX_LENGTH
+        if len(name) > max_length:
+            year_match = re.match('.*?[_-]((?:\d{2,4}[-/])?\d{2,4})$', name)
+            if year_match:
+                year = year_match.groups()[0]
+                name = '%s-%s' % (name[:(max_length-len(year)-1)], year)
+            else:
+                name = name[:max_length]
+        return name
+
     def name_munge(self, input_name):
         '''Munges the name field in case it is not to spec.'''
         input_name = input_name.replace(' ', '').replace('.', '_').replace('&', 'and')

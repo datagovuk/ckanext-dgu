@@ -92,7 +92,7 @@ example_record = OrderedDict([
     ('Precision', 'Numbers rounded to nearest 100 if over 1,000, and to the nearest 10 otherwise.  Percentage to nearest whole number.'),
     ('URL', 'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000873/index.shtml'),
     ('Taxonomy URL', ''),
-    ('Department', 'Department for Children, Schools and Families'),
+    ('Department', 'Department for Education'),
     ('Agency responsible', ''),
     ('Contact - Permanent contact point', 'DCSF Data Services Group'),
     ('Contact - E-mail address.', 'statistics@dcsf.gsi.gov.uk'),
@@ -138,7 +138,7 @@ example_pkg_dict = OrderedDict([
         ('precision', 'Numbers rounded to nearest 100 if over 1,000, and to the nearest 10 otherwise.  Percentage to nearest whole number.'),
         ('taxonomy_url', ''),
         ('import_source', 'COSPREAD-cospread1.csv'),
-        ('department', u'Department for Children, Schools and Families'),
+        ('department', u'Department for Education'),
         ('update_frequency', 'Annually'),
         ('national_statistic', ''),
         ('categories', 'Health, well-being and Care'),
@@ -151,7 +151,7 @@ clg_record = OrderedDict([
     ('Title', 'Total number of dwellings owned by your local authority'),
     ('CO Identifier', ''),
     ('Notes', 'The purpose % Non-Decent Homes.\n\nThe links below provide access to the Local Data Exchange (LDEx) API which can be used to discover data about this indicator.'),
-    ('Date released', ''),
+    ('Date released', datetime.date(2002, 4, 1)),
     ('Date updated', ''),
     ('Update frequency', ''),
     ('Geographical Granularity', 'Local Authority (District)'),
@@ -162,11 +162,15 @@ clg_record = OrderedDict([
     ('Geographic coverage - Overseas', ''),
     ('Geographic coverage - Global', ''),
     ('Temporal Granularity', ''),
-    ('Temporal Coverage - From', datetime.date(2002, 4, 1)),
-    ('Temporal Coverage - To\n(if needed)', datetime.date(2009, 4, 1)),
+    ('Temporal Coverage - From', '2002/03'),
+    ('Temporal Coverage - To\n(if needed)', '2008/09'),
     ('resources', [{'File format': 'RDF',
                     'Download URL': 'http://ldexincubator.communities.gov.uk/service/ldex/housingandplanning/api/housingandplanning-indicator/A_TOAlDW/doc.rdf',
                     'Download Description': 'RDF Description',
+                    },
+                   {'File format': 'RDF',
+                    'Download URL': 'http://doc2.rdf',
+                    'Download Description': 'File 2',
                     }]),
     ('Precision', ''),
     ('URL', 'http://ldexincubator.communities.gov.uk/service/ldex/housingandplanning/doc/housingandplanning-indicator/A_TOAlDW/doc.html'),
@@ -199,14 +203,19 @@ clg_pkg_dict = OrderedDict([
         ('format', 'RDF'),
         ('description', 'RDF Description'),
         ]),
+                   OrderedDict([
+        ('url', 'http://doc2.rdf'),
+        ('format', 'RDF'),
+        ('description', 'File 2')
+                       ]),
                    ]),
     ('extras', OrderedDict([
         ('external_reference', ''),
-        ('date_released', ''),
+        ('date_released', '2002-04-01'),
         ('date_updated', ''),
         ('temporal_granularity', ''),
-        ('temporal_coverage_to', ''),
-        ('temporal_coverage_from', ''),
+        ('temporal_coverage_to', '2009'),
+        ('temporal_coverage_from', '2002'),
         ('geographic_coverage', '100000: England'),
         ('geographical_granularity', 'Local Authority (District)'),
         ('agency', u''),
@@ -301,15 +310,25 @@ class TestImport:
             assert munge == expected_munge, 'Got %s not %s' % (munge, expected_munge)
         test_name_munge('hesa-(1994-1995)', 'hesa-1994-1995')
 
+        # 96 characters should be left alone
+        test_name_munge('ni-198q-children-travelling-to-school-mode-of-transport-usually-used-pupils-aged-5-16-by-cycling', 'ni-198q-children-travelling-to-school-mode-of-transport-usually-used-pupils-aged-5-16-by-cycling')
+        test_name_munge('a'*105, 'a'*100)
+
+    def test_0_munge(self):
+        def test_munge(name, expected_munge):
+            munge = self.importer.munge(name)
+            assert munge == expected_munge, 'Got %s not %s' % (munge, expected_munge)        
+        test_munge('a$b cD:e f-g%  h', 'ab-cd-e-f-g-h')
+
     def test_1_record_2_package(self):
         pkg_dict = self.importer.record_2_package(example_record)
 
         log = self.importer.get_log()
-        assert_equal(len(log), 4)
         assert log[0].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[0]
         assert log[1].startswith("WARNING: URL doesn't start with http: test.html"), log[1]
         assert log[2].startswith("WARNING: URL doesn't start with http: test.json"), log[2]
         assert log[3].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[3]
+        assert_equal(len(log), 4, log)
 
         PackageDictUtil.check_dict(pkg_dict, example_pkg_dict)
         expected_keys = set([key for key, value in example_pkg_dict.items()])
@@ -339,11 +358,11 @@ class TestImportClg():
         pkg_dict = self.importer.record_2_package(clg_record)
 
         log = self.importer.get_log()
-        assert_equal(len(log), 4)
         assert log[0].startswith("WARNING: Value for column 'Geographical Granularity' of 'Local Authority (District)'"), log[0]
         assert log[1].startswith("WARNING: Value for column 'Geographical Granularity' of 'Super Output Area'"), log[1]
         assert log[2].startswith("WARNING: Value for column 'Geographical Granularity' of 'Local Authority District (LAD), County/Unitary Authority, Government Office Region (GOR), National'"), log[2]
         assert log[3].startswith("WARNING: Value for column 'Geographical Granularity' of 'Local Authority (District)' is not in suggestions"), log[3]
+        assert_equal(len(log), 4, log)
 
         PackageDictUtil.check_dict(pkg_dict, clg_pkg_dict)
         expected_keys = set([key for key, value in clg_pkg_dict.items()])

@@ -1,4 +1,4 @@
-from ckanext.loader import PackageLoader, ResourceSeries
+from ckanext.loader import PackageLoader, ReplaceByName
 
 class CospreadLoader(PackageLoader):
     def __init__(self, ckanclient):
