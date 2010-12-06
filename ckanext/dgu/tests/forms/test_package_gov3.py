@@ -38,7 +38,6 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         # check the right fields are rendered
         assert 'Title' in out, out
         assert 'Identifier' in out, out
-#        assert 'External reference' in out, out
         assert 'Mandate' in out, out
         assert 'Revision' not in out, out
         assert 'Extras' not in out
@@ -51,10 +50,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         assert out
         expected_values = [
             (fs.title, 'Private Fostering'),
-#            (fs.external_reference, 'DCSF-DCSF-0024'),
             (fs.date_released, '30/7/2009'),
             (fs.date_updated, '12:30 30/7/2009'),
-            (fs.date_disposal, '1/1/2012'),
             (fs.date_update_future, '1/7/2009'),
             (fs.update_frequency, 'annual'),
             (fs.geographic_granularity, 'regional'),
@@ -176,10 +173,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'notes'] = u'some new notes'
         indict[prefix + 'tags'] = u'russian tolstoy, ' + newtagname,
         indict[prefix + 'license_id'] = u'gpl-3.0'
-#        indict[prefix + 'external_reference'] = u'123'
         indict[prefix + 'date_released'] = u'27/11/2008'
         indict[prefix + 'date_updated'] = u'1/4/2008'
-        indict[prefix + 'date_disposal'] = u'1/2/2012'
         indict[prefix + 'date_update_future'] = u'1/7/2010'
         indict[prefix + 'geographic_granularity'] = u'regional'
         indict[prefix + 'geographic_coverage-england'] = u'True'
@@ -228,10 +223,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         # test gov fields
         extra_keys = outpkg.extras.keys()
         reqd_extras = {
-#            'external_reference':indict[prefix + 'external_reference'],
             'date_released':'2008-11-27',
             'date_updated':'2008-04-01',
-            'date_disposal':u'2012-02-01',
             'date_update_future':u'2010-07-01',
             'geographic_granularity':indict[prefix + 'geographic_granularity'],
             'geographic_coverage':'101000: England, Wales',
@@ -260,7 +253,6 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
               'external_reference':'ref123',
               'date_released':'2008-11-28',
               'date_updated':'2008-04-01',
-              'date_disposal':'1/2/2011',
               'date_update_future':'1/7/2009',
               'geographic_granularity':'testgran',
               'geographic_coverage':'111000: England, Scotland, Wales',
@@ -285,10 +277,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'notes'] = u'some new notes'
         indict[prefix + 'tags'] = u'russian, tolstoy',
         indict[prefix + 'license_id'] = u'gpl-3.0'
-#        indict[prefix + 'external_reference'] = u'123'
         indict[prefix + 'date_released'] = u'27/11/2008'
         indict[prefix + 'date_updated'] = u'1/4/2008'
-        indict[prefix + 'date_disposal'] = u'1/2/2012'
         indict[prefix + 'date_update_future'] = u'1/8/2010'
         indict[prefix + 'geographic_granularity'] = u'regional'
         indict[prefix + 'geographic_coverage-england'] = u'True'
@@ -333,10 +323,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         # test gov fields
         extra_keys = outpkg.extras.keys()
         reqd_extras = {
-#            'external_reference':indict[prefix + 'external_reference'],
             'date_released':'2008-11-27',
             'date_updated':'2008-04-01',
-            'date_disposal':'2012-02-01',
             'date_update_future':'2010-08-01',
             'geographic_granularity':indict[prefix + 'geographic_granularity'],
             'geographic_coverage':'101000: England, Wales',
@@ -412,10 +400,15 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict = _get_blank_param_dict(fs=get_fieldset())
         prefix = 'Package--'
         indict[prefix + 'name'] = u'testname3'
+        indict[prefix + 'title'] = u'Test'
+        indict[prefix + 'department'] = u'abc'
+        indict[prefix + 'notes'] = u'abcd'
+        indict[prefix + 'license_id'] = u'abcde'
         indict[prefix + 'date_released'] = u'27/11/2008'
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
+
         validation = fs.validate()
-        assert validation
+        assert validation, validation
 
         indict[prefix + 'date_released'] = u'27/11/0208'
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)

@@ -103,7 +103,6 @@ class Gov3Fixtures(PackageFixturesBase):
         'date_released':u'2009-07-30',
         'date_updated':u'2009-07-30 12:30',
         'date_update_future':u'2009-07-01',
-        'date_disposal':u'2012-01-01',
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
         'geographic_coverage':u'100000: England',

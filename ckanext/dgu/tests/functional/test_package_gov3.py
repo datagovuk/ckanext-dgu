@@ -63,7 +63,6 @@ class FormsApiTestCase(BaseFormsApiCase):
         expected_values['date_updated'] = '12:30 30/7/2009'
         expected_values['date_update_future'] = '1/7/2009'
         expected_values['date_released'] = '30/7/2009'
-        expected_values['date_disposal'] = '1/1/2012'
         expected_values['national_statistic'] = 'True'
         del expected_values['geographic_coverage'] # don't test here
         del expected_values['external_reference']
@@ -136,7 +135,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         package_name = u'new_name'
         assert not self.get_package_by_name(package_name)
         form = self.get_package_create_form(package_form='gov3')
-        res = self.post_package_create_form(form=form, package_form='gov3', name=package_name)
+        res = self.post_package_create_form(form=form, package_form='gov3', name=package_name, department='Scotland Office', license_id='gfdl', notes='def', title='efg')
         self.assert_header(res, 'Location')
         assert not json.loads(res.body)
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
@@ -182,7 +181,7 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
     @classmethod
     def setup(self):
         self.user_name = u'tester1'
-        self.pkg_dict = {"name": u"lichfield-councillors", "title": "Councillors", "version": None, "url": "http://www.lichfielddc.gov.uk/data", "author": "Democratic and Legal", "author_email": None, "maintainer": "Web Team", "maintainer_email": "webmaster@lichfielddc.gov.uk", "notes": "A list of Lichfield District Councillors, together with contact details, political party and committees", "license_id": "localauth-withrights", "license": "OKD Compliant::Local Authority Copyright with data.gov.uk rights", "tags": ["committees", "cool", "councillors", "democracy", "lichfield", "meetings"], "groups": ["ukgov"], "extras": {"temporal_coverage-from": "", "date_updated": "2010-03-29", "temporal_coverage_to": "", "import_source": "COSPREAD-cospread-2010-03-31mk2.csv", "geographical_granularity": "local authority", "temporal_granularity": "", "disposal": "", "agency": "", "geographic_granularity": "", "temporal_coverage-to": "", "department": "", "precision": "", "temporal_coverage_from": "", "taxonomy_url": "", "mandate": "", "categories": "", "geographic_coverage": "010000: Scotland", "external_reference": "", "national_statistic": "no", "date_update_future": "", "update_frequency": "Daily", "date_released": "2009-08-01"}, "resources": [{"id": "4ef0c23f-1ebd-41c6-86a9-0f6ef81450a6", "package_id": "35697166-4600-4995-bb73-4c8ff48d52ef", "url": "http://www.lichfielddc.gov.uk/site/custom_scripts/councillors_xml.php?viewBy=name", "format": "Other XML", "description": "", "hash": "", "position": 0}]}
+        self.pkg_dict = {"name": u"lichfield-councillors", "title": "Councillors", "version": None, "url": "http://www.lichfielddc.gov.uk/data", "author": "Democratic and Legal", "author_email": None, "maintainer": "Web Team", "maintainer_email": "webmaster@lichfielddc.gov.uk", "notes": "A list of Lichfield District Councillors, together with contact details, political party and committees", "license_id": "localauth-withrights", "license": "OKD Compliant::Local Authority Copyright with data.gov.uk rights", "tags": ["committees", "cool", "councillors", "democracy", "lichfield", "meetings"], "groups": ["ukgov"], "extras": {"temporal_coverage-from": "", "date_updated": "2010-03-29", "temporal_coverage_to": "", "import_source": "COSPREAD-cospread-2010-03-31mk2.csv", "geographical_granularity": "local authority", "temporal_granularity": "", "agency": "", "geographic_granularity": "", "temporal_coverage-to": "", "department": "Scotland Office", "precision": "", "temporal_coverage_from": "", "taxonomy_url": "", "mandate": "", "categories": "", "geographic_coverage": "010000: Scotland", "external_reference": "", "national_statistic": "no", "date_update_future": "", "update_frequency": "Daily", "date_released": "2009-08-01"}, "resources": [{"id": "4ef0c23f-1ebd-41c6-86a9-0f6ef81450a6", "package_id": "35697166-4600-4995-bb73-4c8ff48d52ef", "url": "http://www.lichfielddc.gov.uk/site/custom_scripts/councillors_xml.php?viewBy=name", "format": "Other XML", "description": "", "hash": "", "position": 0}]}
         CreateTestData.create_arbitrary([self.pkg_dict], extra_user_names=[self.user_name])
         self.package_name = self.pkg_dict['name']
 
