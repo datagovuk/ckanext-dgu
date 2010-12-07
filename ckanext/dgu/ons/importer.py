@@ -149,14 +149,15 @@ class OnsImporter(object):
             assert department in schema.government_depts, department
             return department
         else:
-            if dept_given and dept_given not in ['Office for National Statistics', 'Health Protection Agency', 'Information Centre for Health and Social Care', 'General Register Office for Scotland', 'Northern Ireland Statistics and Research Agency', 'National Health Service in Scotland', 'National Treatment Agency', 'Police Service of Northern Ireland (PSNI)', 'Child Maintenance and Enforcement Commission', 'Health and Safety Executive', 'NHS National Services Scotland', 'ISD Scotland (part of NHS National Services Scotland)', 'Passenger Focus']:
+            if dept_given and dept_given not in ['Office for National Statistics', 'Health Protection Agency', 'Information Centre for Health and Social Care', 'General Register Office for Scotland', 'Northern Ireland Statistics and Research Agency', 'National Health Service in Scotland', 'National Treatment Agency', 'Police Service of Northern Ireland (PSNI)', 'Child Maintenance and Enforcement Commission', 'Health and Safety Executive', 'NHS National Services Scotland', 'ISD Scotland (part of NHS National Services Scotland)', 'Passenger Focus', 'Office of the First and Deputy First Minister', 'Office of Qualifications and Examinations Regulation']:
                 log.warn('Double check this is not a gvt department source: %s' % dept_given)
             return None
-        
-    def _split_title(self, xml_title):
-        if not hasattr(self, 'title_re'):
-            self.title_re = re.compile(r'([^-]+)\s-\s(.*)')
-        match = self.title_re.match(xml_title)
+
+    @classmethod
+    def _split_title(cls, xml_title):
+        if not hasattr(cls, 'title_re'):
+            cls.title_re = re.compile(r'(.*?)\s-\s(.*)')
+        match = cls.title_re.match(xml_title)
         if not match:
             'Warning: Could not split title: %s' % xml_title
             return (xml_title, None)

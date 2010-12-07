@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+			
+			<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Tue, 07 Dec 2010 15:58:43 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+<item>
+<title>National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental) - Mid-2008</title>
+<link>http://www.statistics.gov.uk/statbase/Product.asp?vlnk=601</link>
+<description>This publication has been replaced by the following individual releases: National Park Population Estimates (experimental) - Mid-2008 and Mid-2009, Parliamentary Constituency Population Estimates (experimental) - Mid-2008 and Mid-2009 and Ward Level Mid-Year Population Estimates for England and Wales (experimental) - Mid-2008 and Mid-2009.</description>
+<pubDate>Wed, 01 Dec 2010 09:30:00 GMT</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-30733</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Population</hub:theme>
+<hub:coverage>England and Wales</hub:coverage>
+<hub:designation>Experimental Official Statistics</hub:designation>
+<hub:geographic-breakdown>Other area classification</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Life in the community</hub:ipsv>
+<hub:keywords>population</hub:keywords>
+<hub:altTitle>National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)</hub:altTitle>
+<hub:nscl>Population;Population Change;Population Estimates;Population;Population Change;Population Estimates</hub:nscl>
+</item>
+<item>
+<title>National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental) - Revised mid-2002 to mid-2007</title>
+<link>http://www.statistics.gov.uk/StatBase/Product.asp?vlnk=601</link>
+<description>This publication has been replaced by the following individual releases: Naional Park Population Estimates (experimental) - revised Mid-2002 to Mid-2007, Parliamentary Constituency Population Estimates (experimental) - revised Mid-2002 to Mid-2007 and Ward Level mid-year Population Estimates for England and Wales (experimental) - revised Mid-2002 to Mid-2007</description>
+<pubDate>Wed, 01 Dec 2010 09:30:00 GMT</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-30731</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Population</hub:theme>
+<hub:coverage>England and Wales</hub:coverage>
+<hub:designation>Experimental Official Statistics</hub:designation>
+<hub:geographic-breakdown>Other area classification</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Life in the community</hub:ipsv>
+<hub:keywords>population</hub:keywords>
+<hub:altTitle>National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)</hub:altTitle>
+<hub:nscl>Population;Population Change;Population Estimates;Population;Population Change;Population Estimates</hub:nscl>
+</item>
+<item>
+<title>National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental) - Mid-2009</title>
+<link>http://www.statistics.gov.uk/StatBase/Product.asp?vlnk=601</link>
+<description>This publication has been replaced by the following individual releases: National Park Population Estimates (experimental) - Mid-2008 and Mid-2009, Parliamentary Consituency Population Estimates (experimental) - Mid-2008 and Mid-2009 and Ward Level Mid-Year Population Estimates for England and Wales (experimental) - Mid-2008 and Mid-2009.</description>
+<pubDate>Mon, 01 Nov 2010 09:30:00 GMT</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-30753</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Population</hub:theme>
+<hub:coverage>England and Wales</hub:coverage>
+<hub:designation>Experimental Official Statistics</hub:designation>
+<hub:geographic-breakdown>Other area classification</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Life in the community</hub:ipsv>
+<hub:keywords>population</hub:keywords>
+<hub:altTitle>National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)</hub:altTitle>
+<hub:nscl>Population;Population Change;Population Estimates;Population;Population Change;Population Estimates</hub:nscl>
+</item>
+</channel>
+
+				
+		
+		</rss>

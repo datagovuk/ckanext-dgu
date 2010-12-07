@@ -20,6 +20,7 @@ SAMPLE_FILEPATH_4 = os.path.join(SAMPLE_PATH, 'ons_hub_sample4.xml')
 SAMPLE_FILEPATH_4a = os.path.join(SAMPLE_PATH, 'ons_hub_sample4a.xml')
 SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
 SAMPLE_FILEPATH_5 = os.path.join(SAMPLE_PATH, 'ons_hub_sample5.xml')
+SAMPLE_FILEPATH_6 = os.path.join(SAMPLE_PATH, 'ons_hub_sample6.xml')
 
 
 class TestOnsLoadBasic(TestLoaderBase):
@@ -227,3 +228,26 @@ class TestOnsLoadMissingDept(TestLoaderBase):
         #assert pkg1.extras.get('department') == u'UK Statistics Authority', pkg1.extras
 
 
+class TestNationalParkDuplicate(TestLoaderBase):
+    def setup(self):
+        super(TestNationalParkDuplicate, self).setup()
+        filepath = SAMPLE_FILEPATH_6
+        importer_ = importer.OnsImporter(filepath)
+        pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+        self.name = u'national_park_parliamentary_constituency_and_ward_level_mid-year_population_estimates_experimental'
+        for pkg_dict in pkg_dicts:
+            assert pkg_dict['name'] == self.name, pkg_dict['name']
+            assert pkg_dict['title'] == 'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)', pkg_dict
+            assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
+            assert not pkg_dict['extras']['department'], pkg_dict # but key must exist
+        loader = OnsLoader(self.testclient)
+        res = loader.load_packages(pkg_dicts)
+        assert res['num_errors'] == 0, res
+        CreateTestData.flag_for_deletion(self.name)
+
+    def test_packages(self):
+        names = [pkg.name for pkg in model.Session.query(model.Package).all()]
+        assert names == [self.name], names
+        pkg = model.Package.by_name(self.name)
+        assert pkg
+        assert len(pkg.resources) == 3, pkg.resources

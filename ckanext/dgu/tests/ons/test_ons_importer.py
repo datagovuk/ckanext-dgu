@@ -2,6 +2,7 @@ import os
 
 from pylons import config
 from sqlalchemy.util import OrderedDict
+from nose.tools import assert_equal
 
 from ckanext.dgu.ons import importer
 from ckan.tests import *
@@ -50,6 +51,20 @@ class TestOnsData1:
 
 
 class TestOnsImporter:
+    def test_split_title(self):
+        expected_data = [
+            (u'UK Official Holdings of International Reserves - December 2009',
+             u'UK Official Holdings of International Reserves', u'December 2009'),
+            (u'Probation statistics brief - July - September 2009',
+             u'Probation statistics brief', u'July - September 2009'),
+            (u'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental) - Mid-2008',
+             u'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)', u'Mid-2008'),
+            ]
+        for xml_title, title, date in expected_data:
+            res_title, res_date = importer.OnsImporter._split_title(xml_title)
+            assert_equal(title, res_title)
+            assert_equal(date, res_date)
+    
     def test_record_2_package(self):
         record = OrderedDict([
             (u'title', u'UK Official Holdings of International Reserves - December 2009'),
