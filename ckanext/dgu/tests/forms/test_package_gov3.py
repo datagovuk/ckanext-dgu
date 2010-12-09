@@ -1,3 +1,5 @@
+from nose.tools import assert_equal
+
 import ckan.model as model
 import ckan.forms
 from ckan.lib.create_test_data import CreateTestData
@@ -29,7 +31,21 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
     def teardown_class(self):
         self.fixtures.delete()
 
-    def test_0_field_names(self):
+    def test_0_new_fields(self):
+        fs = get_fieldset()
+        fs = fs.bind(session=model.Session)
+        out = fs.render()
+        assert out
+        assert 'Title' in out, out
+        assert 'Identifier' in out, out
+        assert 'Mandate' in out, out
+        assert 'Revision' not in out, out
+        assert 'Extras' not in out
+        # default for license
+        print out
+        self.check_tag(out, 'option', 'value="uk-ogl"', 'selected="selected"')
+
+    def test_0_edit_fields(self):
         fs = get_fieldset()
         pkg = model.Package.by_name(u'private-fostering-england-2009')
         fs = fs.bind(pkg)
@@ -196,6 +212,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                                                     u'tolstoy'],)
         
         model.repo.new_revision()
+        assert fs.validate()
         fs.sync()
         model.repo.commit_and_remove()
 
@@ -210,8 +227,9 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         assert newtagname in taglist
 
         # test licenses
-        assert outpkg.license
-        assert indict[prefix + 'license_id'] == outpkg.license.id, outpkg.license.id
+        assert outpkg.license_id, outpkg
+        assert outpkg.license, outpkg
+        assert_equal(indict[prefix + 'license_id'], outpkg.license.id)
 
         # test resources
         assert len(outpkg.resources) == 1, outpkg.resources
