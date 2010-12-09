@@ -16,7 +16,7 @@ class OnsImporter(object):
         self._current_filename = os.path.basename(self._filepath)
         self._item_count = 0
         self._new_package_count = 0
-        self._crown_license_id = u'ukcrown-withrights'
+        self._crown_license_id = u'uk-ogl'
 
     def pkg_dict(self):
         for item in OnsDataRecords(self._filepath):
@@ -28,7 +28,7 @@ class OnsImporter(object):
         # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
-        department = self._source_to_department(item['hub:source-agency'])
+        department, agency = self._source_to_department(item['hub:source-agency'])
 
         # Resources
         guid = item['guid'] or None
@@ -74,6 +74,7 @@ class OnsImporter(object):
             'update_frequency': u'',
             'date_released': u'',
             'categories': u'',
+            'series':u'',
             }
         date_released = u''
         if item['pubDate']:
@@ -82,14 +83,15 @@ class OnsImporter(object):
                 log.warn('Could not read format of publication (release) date: %r' % 
                          item["pubDate"])
         extras['date_released'] = date_released.isoformat()
-        extras['department'] = self._source_to_department(item['hub:source-agency'])
-        extras['agency'] = item['hub:source-agency'] if not extras['department'] else u''
+        extras['department'] = department or u''
+        extras['agency'] = agency or u''
         extras['categories'] = item['hub:theme']
         geo_coverage_type = schema.GeoCoverageType.get_instance()
         extras['geographic_coverage'] = geo_coverage_type.str_to_db(item['hub:coverage'])
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
         extras['geographical_granularity'] = item['hub:geographic-breakdown']
         extras['external_reference'] = u'ONSHUB'
+        extras['series'] = title if release else u''
         for update_frequency_suggestion in schema.update_frequency_options:
             item_info = ('%s %s' % (item['title'], item['description'])).lower()
             if update_frequency_suggestion in item_info:
@@ -139,19 +141,23 @@ class OnsImporter(object):
     def _source_to_department(self, source):
         dept_given = schema.expand_abbreviations(source)
         department = None
+        agency = None
         if '(Northern Ireland)' in dept_given:
             department = u'Northern Ireland Executive'
+        if dept_given == 'Office for National Statistics':
+            department = 'UK Statistics Authority'
+            agency = dept_given
         for dept in schema.government_depts:
             if dept_given in dept or dept_given.replace('Service', 'Services') in dept or dept_given.replace('Dept', 'Department') in dept:
                 department = unicode(dept)
                 
         if department:
             assert department in schema.government_depts, department
-            return department
         else:
             if dept_given and dept_given not in ['Office for National Statistics', 'Health Protection Agency', 'Information Centre for Health and Social Care', 'General Register Office for Scotland', 'Northern Ireland Statistics and Research Agency', 'National Health Service in Scotland', 'National Treatment Agency', 'Police Service of Northern Ireland (PSNI)', 'Child Maintenance and Enforcement Commission', 'Health and Safety Executive', 'NHS National Services Scotland', 'ISD Scotland (part of NHS National Services Scotland)', 'Passenger Focus', 'Office of the First and Deputy First Minister', 'Office of Qualifications and Examinations Regulation']:
                 log.warn('Double check this is not a gvt department source: %s' % dept_given)
-            return None
+            agency = dept_given
+        return department, agency
 
     @classmethod
     def _split_title(cls, xml_title):

@@ -21,6 +21,7 @@ SAMPLE_FILEPATH_4a = os.path.join(SAMPLE_PATH, 'ons_hub_sample4a.xml')
 SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
 SAMPLE_FILEPATH_5 = os.path.join(SAMPLE_PATH, 'ons_hub_sample5.xml')
 SAMPLE_FILEPATH_6 = os.path.join(SAMPLE_PATH, 'ons_hub_sample6.xml')
+SAMPLE_FILEPATH_7 = os.path.join(SAMPLE_PATH, 'ons_hub_sample7.xml')
 
 
 class TestOnsLoadBasic(TestLoaderBase):
@@ -79,7 +80,7 @@ class TestOnsLoadBasic(TestLoaderBase):
         assert 'Alternative title: UK Reserves' in pkg1.notes, pkg1.notes
         
         assert pkg1.extras['external_reference'] == u'ONSHUB', pkg1.extras['external_reference']
-        assert 'UK Crown Copyright with data.gov.uk rights' in pkg.license.title, pkg.license.title
+        assert 'Open Government Licence' in pkg.license.title, pkg.license.title
         assert pkg1.extras['update_frequency'] == u'monthly', pkg1.extras['update_frequency']
         assert custody.extras['update_frequency'] == u'monthly', custody.extras['update_frequency']
         assert pkg1.author == u"Her Majesty's Treasury", pkg1.author
@@ -129,7 +130,7 @@ class TestOnsLoadClashTitle(TestLoaderBase):
     def test_ons_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings')
         assert pkg
-        assert not pkg.extras.get('department'), pkg.extras.get('department')
+        assert pkg.extras.get('department') == 'UK Statistics Authority', pkg.extras.get('department')
         assert 'Office for National Statistics' in pkg.notes, pkg.notes
         assert len(pkg.resources) == 2, pkg.resources
         assert '2007 Results Phase 3 Tables' in pkg.resources[0].description, pkg.resources
@@ -182,7 +183,7 @@ class TestOnsLoadSeries(TestLoaderBase):
             for pkg_dict in pkg_dicts:
                 assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
                 assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
-                assert not pkg_dict['extras']['department'], pkg_dict # but key must exist
+                assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
@@ -208,7 +209,7 @@ class TestOnsLoadMissingDept(TestLoaderBase):
              "license_id": "ukcrown-withrights",
              "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
              "groups": ["ukgov"],
-             "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "agency": "Office for National Statistics", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "department": None, "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
+             "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "agency": "Office for National Statistics", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "department": 'UK Statistics Authority', "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
              "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010 | hub/id/77-31166", }],
              }
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
@@ -224,8 +225,7 @@ class TestOnsLoadMissingDept(TestLoaderBase):
         assert self.pkg_dict['name'] == self.orig_pkg_dict['name'], self.pkg_dict['name']
         pkg1 = model.Package.by_name(self.orig_pkg_dict['name'])
 
-        # ww said this had been made a default? Apparently not.
-        #assert pkg1.extras.get('department') == u'UK Statistics Authority', pkg1.extras
+        assert pkg1.extras.get('department') == u'UK Statistics Authority', pkg1.extras
 
 
 class TestNationalParkDuplicate(TestLoaderBase):
@@ -239,7 +239,7 @@ class TestNationalParkDuplicate(TestLoaderBase):
             assert pkg_dict['name'] == self.name, pkg_dict['name']
             assert pkg_dict['title'] == 'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)', pkg_dict
             assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
-            assert not pkg_dict['extras']['department'], pkg_dict # but key must exist
+            assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
         loader = OnsLoader(self.testclient)
         res = loader.load_packages(pkg_dicts)
         assert res['num_errors'] == 0, res
@@ -251,3 +251,54 @@ class TestNationalParkDuplicate(TestLoaderBase):
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert len(pkg.resources) == 3, pkg.resources
+
+class TestDeathsOverwrite(TestLoaderBase):
+    def setup(self):
+        super(TestDeathsOverwrite, self).setup()
+        self.orig_pkg_dict = {
+            "name": u"weekly_provisional_figures_on_deaths_registered_in_england_and_wales",
+            "title": "Weekly provisional figures on deaths registered in England and Wales",
+            "version": None, "url": None, "author": "UK Statistics Authority", "author_email": None, "maintainer": None, "maintainer_email": None,
+            "notes": "Weekly death figures provide provisional counts of the number of deaths registered in England and Wales in the latest four weeks for which data are available up to the end of 2009. From week one 2010 the latest eight weeks for which data are available will be published.\n\nSource agency: Office for National Statistics\n\nDesignation: National Statistics\n\nLanguage: English\n\nAlternative title: Weekly deaths",
+            "license_id": "ukcrown-withrights",
+            "tags": ["death", "deaths", "life-events", "life-in-the-community", "mortality-rates", "population", "weekly-deaths"],
+            "groups": ["ukgov"], "extras": {
+                "geographic_coverage": "101000: England, Wales",
+                "geographical_granularity": "Country",
+                "external_reference": "ONSHUB",
+                "temporal_coverage-from": "",
+                "temporal_granularity": "",
+                "date_updated": "",
+                "agency": "",
+                "precision": "",
+                "geographic_granularity": "",
+                "temporal_coverage_to": "",
+                "temporal_coverage_from": "",
+                "taxonomy_url": "",
+                "import_source": "ONS-ons_data_60_days_to_2010-09-22",
+                "date_released": "2010-08-03",
+                "temporal_coverage-to": "",
+                "department": "UK Statistics Authority",
+                "update_frequency": "",
+                "national_statistic": "yes",
+                "categories": "Population"},
+            "resources": [
+                {"url": "http://www.statistics.gov.uk/StatBase/Prep/9684.asp", "format": "", "description": "17/07/2009 | hub/id/77-27942", "hash": "", }],
+            }
+
+        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+
+        # same data is imported, but should find record and add department
+        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_7)
+        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+        loader = OnsLoader(self.testclient)
+        print self.pkg_dict
+        self.res = loader.load_package(self.pkg_dict)
+        self.name = self.orig_pkg_dict['name']
+
+    def test_packages(self):
+        names = [pkg.name for pkg in model.Session.query(model.Package).all()]
+        assert names == [self.name], names
+        pkg = model.Package.by_name(self.name)
+        assert pkg
+        assert len(pkg.resources) == 2, pkg.resources

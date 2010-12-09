@@ -85,7 +85,7 @@ class TestOnsImporter:
         ons_importer_ = importer.OnsImporter(filepath=SAMPLE_FILEPATH_1)
         package_dict = ons_importer_.record_2_package(record)
     
-        expected_package_dict = [
+        expected_package_dict = OrderedDict([
             ('name', u'uk_official_holdings_of_international_reserves'),
             ('title', u'UK Official Holdings of International Reserves'),
             ('version', None),
@@ -95,7 +95,7 @@ class TestOnsImporter:
             ('maintainer', None),
             ('maintainer_email', None),
             ('notes', u"Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities.\n\nSource agency: HM Treasury\n\nLanguage: English\n\nAlternative title: UK Reserves"),
-            ('license_id', u'ukcrown-withrights'),
+            ('license_id', u'uk-ogl'),
             ('tags', [u'assets', u'currency', u'economics-and-finance', u'economy', u'gold', u'government-receipts-and-expenditure', u'liabilities', u'public-sector-finance', u'reserves']),
             ('groups', ['ukgov']),
             ('resources', [OrderedDict([
@@ -118,11 +118,16 @@ class TestOnsImporter:
                 ('import_source', 'ONS-ons_hub_sample.xml'),
                 ('date_released', '2010-01-06'),
                 ('categories', u'Economy'),
+                ('series', u'UK Official Holdings of International Reserves'),
                 ])),
-            ]
-        for key, value in expected_package_dict:
-            assert package_dict[key] == value, self.records[0][key].items()
-        expected_keys = set([key for key, value in expected_package_dict])
+            ])
+        for key, value in expected_package_dict.items():
+            if key != 'extras':
+                assert_equal(package_dict[key], value)
+            else:
+                for key, value in expected_package_dict['extras'].items():
+                    assert_equal(package_dict['extras'][key], value)
+        expected_keys = set(expected_package_dict.keys())
         keys = set(package_dict.keys())
         key_difference = expected_keys - keys
         assert not key_difference, key_difference
