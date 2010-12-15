@@ -25,6 +25,7 @@ setup(
         cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.scripts.change_licenses_cmd:command
         transfer_url = ckanext.dgu.scripts.transfer_url_cmd:command
+        ons_analysis = ckanext.dgu.scripts.ons_analysis_cmd:command
 
         [ckan.forms]
         gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
