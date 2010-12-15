@@ -1,5 +1,4 @@
 from ckanext.command import Command
-from ckanext.loader import ResourceSeries
 from ckanext.dgu.ons.downloader import OnsData
 from ckanext.dgu.ons.importer import OnsImporter
 from ckanext.dgu.ons.loader import OnsLoader

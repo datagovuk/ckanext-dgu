@@ -1,5 +1,4 @@
 from ckanext.api_command import ApiCommand
-from ckanext.loader import ResourceSeries
 from ckanext.dgu.cospread.cospread import CospreadImporter
 from ckanext.dgu.cospread.loader import CospreadLoader
 from ckanclient import CkanClient

@@ -5,7 +5,6 @@ from sqlalchemy.util import OrderedDict
 
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.loader import OnsLoader
-from ckanext.loader import PackageLoader, ResourceSeries
 from ckanext.tests.test_loader import TestLoaderBase
 from ckan import model
 from ckan.tests import *

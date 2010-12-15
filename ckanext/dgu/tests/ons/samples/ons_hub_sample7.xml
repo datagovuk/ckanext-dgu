@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+			
+			<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Tue, 07 Dec 2010 15:58:43 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+
+<item>
+<title>Weekly provisional figures on deaths registered in England and Wales - week ending 26/11/2010</title>
+<link>http://www.statistics.gov.uk/STATBASE/Product.asp?vlnk=9684</link>
+<description>Weekly death figures provide provisional counts of the number of deaths registered in England and Wales in the latest four weeks for which data are available up to the end of 2009. From week one 2010 the latest eight weeks for which data are available will be published.</description>
+<pubDate>Tue, 07 Dec 2010 09:30:00 GMT</pubDate>
+<guid>http://www.statistics.gov.uk/hub/id/77-29669</guid>
+<hub:source-agency>Office for National Statistics</hub:source-agency>
+<hub:theme>Population</hub:theme>
+<hub:coverage>England and Wales</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Country</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Life in the community;Life events;Death;Life in the community;Life events;Death</hub:ipsv>
+<hub:keywords>Weekly deaths;Deaths;Weekly deaths;Deaths</hub:keywords>
+<hub:altTitle>Weekly deaths</hub:altTitle>
+<hub:nscl>Population;Deaths;Mortality Rates;Population;Deaths;Mortality Rates</hub:nscl>
+</item>
+
+
+</channel>
+
+				
+		
+		</rss>

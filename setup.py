@@ -11,7 +11,7 @@ setup(
     keywords='data packaging component tool server',
     install_requires=[
         'swiss',
-        'ckanclient',
+        'ckanclient>=0.5',
         'xlrd>=0.7.1',
         'xlwt>=0.7.2',
         #'ckanext', when it is released
