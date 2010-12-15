@@ -24,8 +24,9 @@ SAMPLE_FILEPATH_7 = os.path.join(SAMPLE_PATH, 'ons_hub_sample7.xml')
 
 
 class TestOnsLoadBasic(TestLoaderBase):
-    def setup(self):
-        super(TestOnsLoadBasic, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadBasic, self).setup_class()
         importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
         self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
 
@@ -92,8 +93,9 @@ class TestOnsLoadBasic(TestLoaderBase):
 
 
 class TestOnsLoadTwice(TestLoaderBase):
-    def setup(self):
-        super(TestOnsLoadTwice, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadTwice, self).setup_class()
         # SAMPLE_FILEPATH_2 has the same packages as 1, but slightly updated
         for filepath in [SAMPLE_FILEPATH_1, SAMPLE_FILEPATH_2]:
             importer_ = importer.OnsImporter(filepath)
@@ -114,8 +116,9 @@ class TestOnsLoadTwice(TestLoaderBase):
 class TestOnsLoadClashTitle(TestLoaderBase):
     # two packages with the same title, both from ONS,
     # but from different departments, so must be different packages
-    def setup(self):
-        super(TestOnsLoadClashTitle, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadClashTitle, self).setup_class()
         # ons items have been split into 3 files, because search needs to
         # do indexing in between
         for suffix in 'abc':
@@ -146,8 +149,9 @@ class TestOnsLoadClashTitle(TestLoaderBase):
 class TestOnsLoadClashSource(TestLoaderBase):
     # two packages with the same title, and department, but one not from ONS,
     # so must be different packages
-    def setup(self):
-        super(TestOnsLoadClashSource, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadClashSource, self).setup_class()
 
         self.clash_name = u'cereals_and_oilseeds_production_harvest'
         CreateTestData.create_arbitrary([
@@ -174,8 +178,9 @@ class TestOnsLoadClashSource(TestLoaderBase):
         assert pkg2.title == u'Cereals and Oilseeds Production Harvest', pkg2.title
 
 class TestOnsLoadSeries(TestLoaderBase):
-    def setup(self):
-        super(TestOnsLoadSeries, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadSeries, self).setup_class()
         for filepath in [SAMPLE_FILEPATH_4a, SAMPLE_FILEPATH_4b]:
             importer_ = importer.OnsImporter(filepath)
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
@@ -198,8 +203,9 @@ class TestOnsLoadSeries(TestLoaderBase):
 class TestOnsLoadMissingDept(TestLoaderBase):
     # existing package to be updated has no department given (previously
     # there was no default to 'UK Statistics Authority'.
-    def setup(self):
-        super(TestOnsLoadMissingDept, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadMissingDept, self).setup_class()
 
         self.orig_pkg_dict = {
              "name": u"measuring_subjective_wellbeing_in_the_uk",
@@ -228,8 +234,9 @@ class TestOnsLoadMissingDept(TestLoaderBase):
 
 
 class TestNationalParkDuplicate(TestLoaderBase):
-    def setup(self):
-        super(TestNationalParkDuplicate, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestNationalParkDuplicate, self).setup_class()
         filepath = SAMPLE_FILEPATH_6
         importer_ = importer.OnsImporter(filepath)
         pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
@@ -252,8 +259,9 @@ class TestNationalParkDuplicate(TestLoaderBase):
         assert len(pkg.resources) == 3, pkg.resources
 
 class TestDeathsOverwrite(TestLoaderBase):
-    def setup(self):
-        super(TestDeathsOverwrite, self).setup()
+    @classmethod
+    def setup_class(self):
+        super(TestDeathsOverwrite, self).setup_class()
         self.orig_pkg_dict = {
             "name": u"weekly_provisional_figures_on_deaths_registered_in_england_and_wales",
             "title": "Weekly provisional figures on deaths registered in England and Wales",
