@@ -21,3 +21,13 @@ class OnsLoader(ResourceSeriesLoader):
             synonyms=synonyms
             )
 
+    def _get_search_options(self, field_keys, pkg_dict):
+        if pkg_dict['extras']['department']:
+            search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
+        else:
+            # if department is blank then search against agency instead
+            # (department may have been filled in manually)
+            field_keys.append('agency')
+            field_keys.remove('department')
+            search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
+        return search_options_list

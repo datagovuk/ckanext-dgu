@@ -1,5 +1,6 @@
 import os
 
+from nose.tools import assert_equal
 from pylons import config
 from sqlalchemy.util import OrderedDict
 
@@ -21,6 +22,7 @@ SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
 SAMPLE_FILEPATH_5 = os.path.join(SAMPLE_PATH, 'ons_hub_sample5.xml')
 SAMPLE_FILEPATH_6 = os.path.join(SAMPLE_PATH, 'ons_hub_sample6.xml')
 SAMPLE_FILEPATH_7 = os.path.join(SAMPLE_PATH, 'ons_hub_sample7.xml')
+SAMPLE_FILEPATH_8 = os.path.join(SAMPLE_PATH, 'ons_hub_sample8.xml')
 
 
 class TestOnsLoadBasic(TestLoaderBase):
@@ -34,6 +36,21 @@ class TestOnsLoadBasic(TestLoaderBase):
         self.res = loader.load_packages(self.pkg_dicts)
         assert self.res['num_errors'] == 0, self.res
         CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in self.pkg_dicts])
+
+    def test_0_search_options(self):
+        loader = OnsLoader(self.testclient)
+        field_keys = ['title', 'department']
+
+        pkg_dict = {'title':'titleA',
+                    'extras':{'department':'Department for Children, Schools and Families'}}
+        opts = loader._get_search_options(field_keys, pkg_dict)
+        assert_equal(opts, [{'department': 'Department for Children, Schools and Families', 'title': 'titleA'}, {'department': 'Department for Education', 'title': 'titleA'}])
+
+        pkg_dict = {'title':'titleA',
+                    'extras':{'department':'',
+                              'agency':'SomeAgency'}}
+        opts = loader._get_search_options(field_keys, pkg_dict)
+        assert_equal(opts, [{'agency':'SomeAgency', 'title': 'titleA'}])
 
     def test_fields(self):
         q = model.Session.query(model.Package)
@@ -309,3 +326,58 @@ class TestDeathsOverwrite(TestLoaderBase):
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert len(pkg.resources) == 2, pkg.resources
+
+class TestAgencyFind(TestLoaderBase):
+    @classmethod
+    def setup_class(self):
+        super(TestAgencyFind, self).setup_class()
+        self.orig_pkg_dict = {
+            "name": u"national_child_measurement_programme",
+            "title": "National Child Measurement Programme",
+            "version": None, "url": None, "author": None, "author_email": None, "maintainer": None, "maintainer_email": None,
+            "notes": "The National Child Measurement Programme weighs and measures primary school children.\r\nThis publication was formerly announced as \"National Child Measurement Programme - Statistics on Child Obesity 2008-09\" but the title has been amended to reflect suggestions from the UKSA Assessments Board.\r\nSource agency: Information Centre for Health and Social Care\r\nDesignation: National Statistics\r\nLanguage: English\r\nAlternative title: National Child Measurement Programme",
+            "license_id": "uk-ogl",
+            "tags": ["health", "health-and-social-care", "health-of-the-population", "lifestyles-and-behaviours", "nhs", "well-being-and-care"],
+            "groups": ["ukgov"],
+            "extras": {
+                "geographic_coverage": "100000: England",
+                "geographical_granularity": "Country",
+                "external_reference": "ONSHUB",
+                "temporal_coverage-from": "",
+                "temporal_granularity": "",
+                "date_updated": "",
+                "agency": "Information Centre for Health and Social Care",
+                "precision": "",
+                "geographic_granularity": "",
+                "temporal_coverage_to": "",
+                "temporal_coverage_from": "",
+                "taxonomy_url": "",
+                "import_source": "ONS-ons_data_2009-12",
+                "date_released": "2009-12-10",
+                "temporal_coverage-to": "",
+                "department": "Department of Health",
+                "update_frequency": "",
+                "national_statistic": "yes",
+                "categories": "Health and Social Care"},
+            "resources": [{"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "England, 2008/09 School Year | hub/id/119-37085"},
+                          {"url": "http://www.dh.gov.uk/en/Publichealth/Healthimprovement/Healthyliving/DH_073787", "format": "", "description": "2008 | hub/id/119-31792"},
+                          {"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "Statistics on child obesity 2007-08 | hub/id/119-31784"}],
+            }
+
+        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+
+        # same data is imported, but should find record and add department
+        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_8)
+        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+        loader = OnsLoader(self.testclient)
+        print self.pkg_dict
+        self.res = loader.load_package(self.pkg_dict)
+        self.name = self.orig_pkg_dict['name']
+        self.num_resources_originally = len(self.orig_pkg_dict['resources'])
+
+    def test_packages(self):
+        names = [pkg.name for pkg in model.Session.query(model.Package).all()]
+        assert names == [self.name], names
+        pkg = model.Package.by_name(self.name)
+        assert pkg
+        assert_equal(len(pkg.resources), self.num_resources_originally + 1)

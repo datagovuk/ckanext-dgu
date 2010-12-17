@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+			
+			<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Tue, 07 Dec 2010 15:58:43 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+
+<item>
+<title>National Child Measurement Programme - England 2009/10 school year</title>
+<link>http://www.ic.nhs.uk/ncmp0910</link>
+<description>The National Child Measurement Programme weighs and measures primary school children.</description>
+<pubDate>Wed, 15 Dec 2010 09:30:00 GMT</pubDate>
+<guid isPermaLink="false">http://www.statistics.gov.uk/hub/id/119-44511</guid>
+<hub:source-agency>Information Centre for Health and Social Care</hub:source-agency>
+<hub:theme>Health and Social Care</hub:theme>
+<hub:coverage>England</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Country</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Health;well-being and care;Health;well-being and care</hub:ipsv>
+<hub:keywords>NHS</hub:keywords>
+<hub:altTitle>National Child Measurement Programme</hub:altTitle>
+<hub:nscl>Health and Social Care;Health of the Population;Lifestyles and Behaviours;Health and Social Care;Health of the Population;Lifestyles and Behaviours</hub:nscl>
+</item>
+
+
+</channel>
+
+				
+		
+		</rss>
