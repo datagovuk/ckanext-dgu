@@ -8,9 +8,7 @@ setup(
     long_description="""\
     """,
     classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
-    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     namespace_packages=['ckanext', 'ckanext.dgu'],
-    include_package_data=True,
     zip_safe=False,
     author='Open Knowledge Foundation',
     author_email='info@okfn.org',
