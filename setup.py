@@ -1,8 +1,17 @@
 from setuptools import setup, find_packages
 
+version = '0.1'
+
 setup(
-    name='dgu',
-    version='0.1',
+    name='ckanext-dgu',
+    version=version,
+    long_description="""\
+    """,
+    classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
+    namespace_packages=['ckanext', 'ckanext.dgu'],
+    include_package_data=True,
+    zip_safe=False,
     author='Open Knowledge Foundation',
     author_email='info@okfn.org',
     license='AGPL',
@@ -20,6 +29,9 @@ setup(
     include_package_data=True,
     package_data={'ckan': ['i18n/*/LC_MESSAGES/*.mo']},
     entry_points="""
+        [ckan.plugins]
+        dgu_routes=ckanext.dgu.forms:FormAPI
+        
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
         cospread_loader = ckanext.dgu.cospread:load

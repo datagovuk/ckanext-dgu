@@ -8,8 +8,9 @@ from ckan.forms import package_gov
 from ckan.forms.builder import FormBuilder
 from ckan.forms.common import ResourcesField, TagField, GroupSelectField, package_name_validator
 from ckan import model
-from ckanext.dgu import schema as schema_gov
+from ckanext.dgu import schema as schema
 from ckan.lib.helpers import literal
+from formalchemy.fields import Field
 
 # Setup the fieldset
 def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
@@ -30,17 +31,20 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.DateExtraField('date_released'))
     builder.add_field(common.DateExtraField('date_updated'))
     builder.add_field(common.DateExtraField('date_update_future'))
-    builder.add_field(common.SuggestedTextExtraField('update_frequency', options=schema_gov.update_frequency_options))
-    builder.add_field(common.SuggestedTextExtraField('geographic_granularity', options=schema_gov.geographic_granularity_options))
+    builder.add_field(common.SuggestedTextExtraField('update_frequency', options=schema.update_frequency_options))
+    builder.add_field(common.SuggestedTextExtraField('geographic_granularity', options=schema.geographic_granularity_options))
     builder.add_field(package_gov.GeoCoverageExtraField('geographic_coverage'))
-    builder.add_field(common.SuggestedTextExtraField('temporal_granularity', options=schema_gov.temporal_granularity_options))
+    builder.add_field(common.SuggestedTextExtraField('temporal_granularity', options=schema.temporal_granularity_options))
     builder.add_field(common.DateRangeExtraField('temporal_coverage'))
     builder.add_field(common.TextExtraField('precision'))
-    builder.add_field(common.SuggestedTextExtraField('department', options=schema_gov.government_depts))
-    builder.add_field(common.TextExtraField('agency'))
+    #builder.add_field(common.TextExtraField('agency'))
     builder.add_field(common.TextExtraField('taxonomy_url'))
     builder.add_field(common.TextExtraField('mandate'))
     builder.add_field(common.TextExtraField('publisher'))
+    #builder.add_field(common.SuggestedTextExtraField('department', options=schema.government_depts))
+    pubs = [(str(name), "%s [%s]"%(name, id)) for id, name in kwargs['publishers'].items()]
+    builder.add_field(Field('published_by'))
+    builder.add_field(Field('published_via'))
     builder.add_field(common.CoreField('license_id', value='uk-ogl'))
 #   TODO Remove National Statistic from core form, when we can choose the
 #   form
@@ -52,7 +56,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     if inventory:
         builder.add_field(common.DateExtraField('date_disposal'))
         builder.add_field(common.DateExtraField('date_planned_publication'))
-        builder.add_field(common.SuggestedTextExtraField('permanent_preservation'), options=schema_gov.yes_no_not_yet_options)
+        builder.add_field(common.SuggestedTextExtraField('permanent_preservation'), options=schema.yes_no_not_yet_options)
         builder.add_field(common.CheckboxExtraField('disclosure_foi'))
         builder.add_field(common.CheckboxExtraField('disclosure_eir'))
         builder.add_field(common.CheckboxExtraField('disclosure_dpa'))
@@ -72,8 +76,8 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_text('temporal_coverage', instructions='The temporal coverage of this dataset.', further_instructions='If available, please indicate the time as well as the date. Where data covers only a single day, the \'To\' sub-element can be left blank.', hints='e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006')
     builder.set_field_text('url', instructions='The Internet link to a web page discussing the dataset.', hints='e.g. http://www.somedept.gov.uk/growth-figures.html')
     builder.set_field_text('taxonomy_url', instructions='An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.', hints='e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html')
-    builder.set_field_text('department', instructions='The Department under which the dataset is collected and published', further_instructions='Note, this department is not necessarily directly undertaking the collection/publication itself - use the Agency element where this applies.')
-    builder.set_field_text('agency', instructions='The agency or arms-length body responsible for the data collection', further_instructions='Please use the full title of the body without any abbreviations, so that all items from it appear together. The data.gov.uk system will automatically capture this where appropriate.', hints='e.g. Environment Agency')
+    #builder.set_field_text('department', instructions='The Department under which the dataset is collected and published', further_instructions='Note, this department is not necessarily directly undertaking the collection/publication itself - use the Agency element where this applies.')
+    #builder.set_field_text('agency', instructions='The agency or arms-length body responsible for the data collection', further_instructions='Please use the full title of the body without any abbreviations, so that all items from it appear together. The data.gov.uk system will automatically capture this where appropriate.', hints='e.g. Environment Agency')
     builder.set_field_text('publisher', instructions='The public body credited with the publication of this data', further_instructions="An 'over-ride' for the system, to determine the correct public body to credit, when it might not be clear if this is the Agency or Department. This could be used where the public branding of the work of an agency is as its parent department.")
     builder.set_field_text('author', 'Contact', instructions='The permanent contact point for the public to enquire about this particular dataset. In addition, the Public Data and Transparency Team will use it for any suggestions for changes, feedback, reports of mistakes in the datasets or metadata.', further_instructions='This should be the name of the section of the agency or Department responsible, and should not be a named person. Particular care should be taken in choosing this element.', hints='Examples: Statistics team, Public consultation unit, FOI contact point')
     builder.set_field_text('author_email', 'Contact email', instructions='A generic official e-mail address for members of the public to contact, to match the \'Contact\' element.', further_instructions='A new e-mail address may need to be created for this function.')
@@ -96,16 +100,18 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     # Options/settings
     builder.set_field_option('name', 'validate', package_name_validator)
     builder.set_field_option('license_id', 'dropdown', {'options':[('', None)] + model.Package.get_license_options()})
+    builder.set_field_option('published_by', 'dropdown', {'options': pubs})
+    builder.set_field_option('published_via', 'dropdown', {'options': [('', None)] + pubs})
     builder.set_field_option('state', 'dropdown', {'options':model.State.all})
     builder.set_field_option('notes', 'textarea', {'size':'60x15'})
     builder.set_field_option('title', 'required')
     builder.set_field_option('notes', 'required')
-    builder.set_field_option('department', 'required')
+    builder.set_field_option('published_by', 'required')
     builder.set_field_option('license_id', 'required')
     builder.set_field_option('tags', 'with_renderer', package_gov.SuggestTagRenderer)
 
     if restrict:
-        for field_name in ('name', 'department', 'national_statistic'):
+        for field_name in ('name',):
             builder.set_field_option(field_name, 'readonly', True)
     
     # Layout
@@ -119,7 +125,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
                         'temporal_granularity', 'temporal_coverage',
                         'url', 'taxonomy_url']),
         (_('Resources'), ['resources']),
-        (_('More details'), ['department', 'agency',
+        (_('More details'), ['published_by', 'published_via',
                              'author', 'author_email',
                              'mandate', 'license_id',
                              'tags']),
