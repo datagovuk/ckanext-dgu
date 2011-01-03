@@ -21,6 +21,15 @@ class OnsData(object):
         return ons.download(url, url_name, force_download=True)
 
     @classmethod
+    def download_flexible(cls, ons_cache_dir=ONS_CACHE_PATH, log=False,
+                          days=None, start_date=None, end_date=None):
+        ons = cls(ons_cache_dir, log)
+        url, url_name = ons._get_url_flexible(days=days,
+                                              start_date=start_date,
+                                              end_date=end_date)
+        return ons.download(url, url_name, force_download=True)
+
+    @classmethod
     def download_all(cls, ons_cache_dir=ONS_CACHE_PATH, log=False):
         ons = cls(ons_cache_dir, log)
         url_tuples = ons._get_urls_for_all_time()
@@ -71,16 +80,47 @@ class OnsData(object):
         return [url, url_id]
     
     def _get_url_recent(self, days=7):
-        from_ = self._get_today() - datetime.timedelta(days=days)
-        to = self._get_today()
-        url = self._url_base % {'lday':from_.strftime('%d'),
-                                'lmonth':from_.strftime('%m'),
-                                'lyear':from_.strftime('%Y'),
-                                'uday':to.strftime('%d'),
-                                'umonth':to.strftime('%m'),
-                                'uyear':to.strftime('%Y'),
+        end_date = self._get_today()
+        return self._get_url_flexible(days=days, end_date=end_date)
+
+    def _get_url_flexible(self, days=None, start_date=None, end_date=None):
+        '''If you specify just days then it defaults end_date to be today.
+        Otherwise you need to specify exactly two parameters.'''
+        if start_date:
+            assert isinstance(start_date, datetime.date)
+        if end_date:
+            assert isinstance(end_date, datetime.date)
+        assert (days and not (start_date or end_date)) or \
+               sum((bool(days), bool(start_date), bool(end_date))) == 2, \
+               (days, start_date, end_date)
+
+        url_id = None
+        if days and not (start_date or end_date):
+            end_date = self._get_today()
+        if not start_date:
+            start_date = end_date - datetime.timedelta(days=days)
+            url_id = end_date.strftime(str(days) + '_days_to_%Y-%m-%d')
+        if not end_date:
+            end_date = start_date + datetime.timedelta(days=days)            
+            url_id = start_date.strftime(str(days) + '_days_from_%Y-%m-%d')
+        url, basic_url_id = self._get_url_days_period(start_date, end_date)
+        return url, url_id or basic_url_id
+        
+    def _get_url_days_period(self, start_date, end_date):
+        assert isinstance(start_date, datetime.date)
+        assert isinstance(end_date, datetime.date)
+        period = end_date - start_date
+        if period > datetime.timedelta(days=31):
+            self.log(logging.warning, 'Period is longer than a month - you may find the ONS Hub truncates the results unexpectedly.')
+        url = self._url_base % {'lday':start_date.strftime('%d'),
+                                'lmonth':start_date.strftime('%m'),
+                                'lyear':start_date.strftime('%Y'),
+                                'uday':end_date.strftime('%d'),
+                                'umonth':end_date.strftime('%m'),
+                                'uyear':end_date.strftime('%Y'),
                                 }
-        url_id = to.strftime(str(days) + '_days_to_%Y-%m-%d')
+        url_id = '%s_to_%s' % (start_date.strftime('%Y-%m-%d'),
+                                end_date.strftime('%Y-%m-%d'))
         return url, url_id
 
     def _get_urls_for_all_time(self):
