@@ -53,6 +53,25 @@ class TestOnsLoadBasic(TestLoaderBase):
         assert_id("April 2009 data: Experimental Statistics | hub/id/119-46440",
                   "119-46440")
 
+    def test_2_date_choose(self):
+        def assert_id(date1, date2, earlier_or_later, expected_date_index):
+            dates = (date1, date2)
+            pkg0 = {'extras':{'date': date1}}
+            result = self.loader._choose_date(pkg0, date2,
+                                              earlier_or_later,
+                                              'date')
+            if not expected_date_index:
+                assert_equal(result, expected_date_index)
+            else:
+                assert_equal(result, dates[expected_date_index - 1])
+        assert_id('2010-12-01', '2010-12-02', 'earlier', 1)
+        assert_id('2010-12-01', '2010-12-02', 'later', 2)
+        assert_id('2010-12-02', '2010-12-01', 'earlier', 2)
+        assert_id('2010-12-02', '2010-12-01', 'later', 1)
+        assert_id('', '2010-12-02', 'earlier', 2)
+        assert_id('2010-12-01', '', 'later', 1)
+        assert_id('', '', 'earlier', None)
+
     def test_fields(self):
         q = model.Session.query(model.Package)
         names = [pkg.name for pkg in q.all()]
@@ -206,6 +225,8 @@ class TestOnsLoadSeries(TestLoaderBase):
                 assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
                 assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
                 assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
+                assert '2010-08-' in pkg_dict['extras']['date_released'], pkg_dict
+                assert pkg_dict['extras']['date_updated'] == None, pkg_dict
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
@@ -217,6 +238,8 @@ class TestOnsLoadSeries(TestLoaderBase):
         assert pkg.title == 'Regional Labour Market Statistics', pkg.title
         assert pkg.extras['agency'] == 'Office for National Statistics', pkg.extras['agency']
         assert len(pkg.resources) == 9, pkg.resources
+        assert_equal(pkg.extras['date_released'], '2010-08-10')
+        assert_equal(pkg.extras['date_updated'], '2010-08-13')
 
 class TestOnsLoadMissingDept(TestLoaderBase):
     # existing package to be updated has no department given (previously

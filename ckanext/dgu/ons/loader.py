@@ -1,5 +1,7 @@
 import re
 
+from swiss import date
+
 from ckanext.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
@@ -45,7 +47,24 @@ class OnsLoader(ResourceSeriesLoader):
             return None
         return id_match.groups()[0]
 
+    def _choose_date(self, pkg1, date2_str, earlier_or_later, extra_field):
+        '''From two packages, look in an extra field and return the value
+        of the one which is earlier (or later).'''
+        assert earlier_or_later in ('earlier', 'later')
+        dates = [pkg1['extras'].get(extra_field), date2_str]
+        parsed_dates = [(date.FlexiDate.from_str(date_str).as_datetime() if date_str else None) for date_str in dates]
+        non_none_parsed_dates = [d for d in parsed_dates if d]
+        if not non_none_parsed_dates:
+            return None
+        cmp_func = min if earlier_or_later == 'earlier' else max
+        picked_parsed_date = cmp_func(non_none_parsed_dates)
+        return dates[parsed_dates.index(picked_parsed_date)]
+    
     def _merge_resources(self, existing_pkg, pkg):
+        # merge date_released and date_updated fields
+        pub_date = pkg['extras']['date_released']
+        pkg['extras']['date_released'] = self._choose_date(existing_pkg, pub_date, 'earlier', 'date_released')
+        pkg['extras']['date_updated'] = self._choose_date(existing_pkg, pub_date, 'later', 'date_updated')        
         merged_dict = super(OnsLoader, self)._merge_resources(existing_pkg, pkg)
         # sort resources by hub_id
         cmp_hub_id = lambda res1, res2: cmp(self._get_hub_id(res1),
