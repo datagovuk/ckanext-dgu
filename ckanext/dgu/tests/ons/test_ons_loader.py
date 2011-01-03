@@ -26,25 +26,32 @@ class TestOnsLoadBasic(TestLoaderBase):
         importer_ = importer.OnsImporter(sample_filepath(''))
         self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
 
-        loader = OnsLoader(self.testclient)
-        self.res = loader.load_packages(self.pkg_dicts)
+        self.loader = OnsLoader(self.testclient)
+        self.res = self.loader.load_packages(self.pkg_dicts)
         assert self.res['num_errors'] == 0, self.res
         CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in self.pkg_dicts])
 
     def test_0_search_options(self):
-        loader = OnsLoader(self.testclient)
         field_keys = ['title', 'department']
 
         pkg_dict = {'title':'titleA',
                     'extras':{'department':'Department for Children, Schools and Families'}}
-        opts = loader._get_search_options(field_keys, pkg_dict)
+        opts = self.loader._get_search_options(field_keys, pkg_dict)
         assert_equal(opts, [{'department': 'Department for Children, Schools and Families', 'title': 'titleA'}, {'department': 'Department for Education', 'title': 'titleA'}])
 
         pkg_dict = {'title':'titleA',
                     'extras':{'department':'',
                               'agency':'SomeAgency'}}
-        opts = loader._get_search_options(field_keys, pkg_dict)
+        opts = self.loader._get_search_options(field_keys, pkg_dict)
         assert_equal(opts, [{'agency':'SomeAgency', 'title': 'titleA'}])
+
+    def test_1_hub_id_extraction(self):
+        def assert_id(description, expected_id):
+            resource = {'description':description}
+            result = self.loader._get_hub_id(resource)
+            assert_equal(result, expected_id)
+        assert_id("April 2009 data: Experimental Statistics | hub/id/119-46440",
+                  "119-46440")
 
     def test_fields(self):
         q = model.Session.query(model.Package)
@@ -146,8 +153,8 @@ class TestOnsLoadClashTitle(TestLoaderBase):
         assert pkg.extras.get('department') == 'UK Statistics Authority', pkg.extras.get('department')
         assert 'Office for National Statistics' in pkg.notes, pkg.notes
         assert len(pkg.resources) == 2, pkg.resources
-        assert '2007 Results Phase 3 Tables' in pkg.resources[0].description, pkg.resources
-        assert '2007 Pensions Results' in pkg.resources[1].description, pkg.resources
+        assert '2007 Results Phase 3 Tables' in pkg.resources[1].description, pkg.resources
+        assert '2007 Pensions Results' in pkg.resources[0].description, pkg.resources
 
     def test_welsh_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings_')
@@ -377,6 +384,11 @@ class TestAgencyFind(TestLoaderBase):
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert_equal(len(pkg.resources), self.num_resources_originally + 1)
+
+    def test_resources_sorted(self):
+        pkg = model.Package.by_name(self.name)
+        hub_ids = [int(res.description.split('-')[-1]) for res in pkg.resources]
+        assert_equal(hub_ids, sorted(hub_ids))
 
 
 class TestDeletedDecoyWhenAdmin(TestLoaderBase):
