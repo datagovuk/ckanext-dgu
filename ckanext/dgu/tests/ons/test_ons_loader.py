@@ -226,7 +226,7 @@ class TestOnsLoadSeries(TestLoaderBase):
                 assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
                 assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
                 assert '2010-08-' in pkg_dict['extras']['date_released'], pkg_dict
-                assert pkg_dict['extras']['date_updated'] == None, pkg_dict
+                assert pkg_dict['extras']['date_updated'] == '', pkg_dict
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
