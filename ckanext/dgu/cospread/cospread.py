@@ -19,6 +19,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
     def __init__(self, data):
         essential_title = 'Package name'
         self.column_name_map = {
+            u'package name':'Package name',
             u'tags':'Tags',
             u'Download file format':'File format',
             u'Download description':'Download Description',
@@ -73,17 +74,22 @@ class CospreadDataRecords(SpreadsheetDataRecords):
         * Collapses 'Standard' / 'Other' column pairs into single value.
         '''
         current_record = None
+        def get_record_key(record_, standard_key):
+            alt_key = self.column_name_reverse_map.get(standard_key)
+            if alt_key and alt_key in record_:
+                return alt_key
+            else:
+                return standard_key
+#            if self.column_name_reverse_map.has_key(property):
+            return record_[self.column_name_reverse_map[property]]
         for record in super(CospreadDataRecords, self).records:
-            if current_record and current_record['Package name'] == record['Package name']:
+            if current_record and current_record['Package name'] == \
+                record[get_record_key(record, 'Package name')]:
                 # this record is another resource for the current record.
                 keys_that_should_match = set(current_record.keys()) - set(self.resource_keys + ['resources'] + self.standard_or_other_columns)
                 for key in keys_that_should_match:
-                    alt_key = self.column_name_reverse_map.get(key)
-                    if alt_key and alt_key in record:
-                        record_key = alt_key
-                    else:
-                        record_key = key
-                    assert current_record[key] == record[record_key], 'Multiple resources for package %s, but value does not match: %r!=%r' % (record['Package name'], current_record[key], record[key])
+                    record_key = get_record_key(record, key)
+                    assert current_record[key] == record[record_key], 'Multiple resources for package %s, but value does not match: %r!=%r' % (record[get_record_key(record, 'Package name')], current_record[key], record[record_key])
             else:
                 # this record is new, so yield the old 'current_record' before
                 # making this record 'current_record'.
