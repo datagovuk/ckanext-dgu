@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-version = '0.1'
+from ckanext.dgu import __version__
 
 setup(
     name='ckanext-dgu',
-    version=version,
+    version=__version__,
     long_description="""\
     """,
     classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -13,7 +13,7 @@ setup(
     author='Open Knowledge Foundation',
     author_email='info@okfn.org',
     license='AGPL',
-    url='http://knowledgeforge.net/ckan/',
+    url='http://ckan.org/',
     description='CKAN DGU extensions',
     keywords='data packaging component tool server',
     install_requires=[
@@ -28,7 +28,7 @@ setup(
     package_data={'ckan': ['i18n/*/LC_MESSAGES/*.mo']},
     entry_points="""
         [ckan.plugins]
-        dgu_routes=ckanext.dgu.forms:FormAPI
+        dgu_form_api = ckanext.dgu.forms.formapi:FormAPI
         
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
@@ -38,7 +38,7 @@ setup(
         ons_analysis = ckanext.dgu.scripts.ons_analysis_cmd:command
 
         [ckan.forms]
-        gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
+        package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
     """,
     test_suite = 'nose.collector',
 )

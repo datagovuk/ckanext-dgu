@@ -5,7 +5,7 @@ from pylons import config
 from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 from ckan.lib.create_test_data import CreateTestData
-from ckan.tests.functional.api.test_form import BaseFormsApiCase, Api1TestCase, Api2TestCase
+from test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
 # until (and including) ckan 1.2e test_form was in a slightly different
 # location, but you need the later version
 

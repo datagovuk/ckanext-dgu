@@ -42,7 +42,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.TextExtraField('mandate'))
     builder.add_field(common.TextExtraField('publisher'))
     #builder.add_field(common.SuggestedTextExtraField('department', options=schema.government_depts))
-    pubs = [(str(name), "%s [%s]"%(name, id)) for id, name in kwargs['publishers'].items()]
+    publishers = [(str(name), "%s [%s]"%(name, id)) for id, name in kwargs.get('publishers', {}).items()]
     builder.add_field(Field('published_by'))
     builder.add_field(Field('published_via'))
     builder.add_field(common.CoreField('license_id', value='uk-ogl'))
@@ -100,8 +100,8 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     # Options/settings
     builder.set_field_option('name', 'validate', package_name_validator)
     builder.set_field_option('license_id', 'dropdown', {'options':[('', None)] + model.Package.get_license_options()})
-    builder.set_field_option('published_by', 'dropdown', {'options': pubs})
-    builder.set_field_option('published_via', 'dropdown', {'options': [('', None)] + pubs})
+    builder.set_field_option('published_by', 'dropdown', {'options': publishers})
+    builder.set_field_option('published_via', 'dropdown', {'options': [('', None)] + publishers})
     builder.set_field_option('state', 'dropdown', {'options':model.State.all})
     builder.set_field_option('notes', 'textarea', {'size':'60x15'})
     builder.set_field_option('title', 'required')
