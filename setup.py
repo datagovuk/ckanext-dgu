@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='dgu',
+    name='ckanext-dgu',
     version='0.1',
     author='Open Knowledge Foundation',
     author_email='info@okfn.org',

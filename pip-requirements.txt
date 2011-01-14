@@ -1,2 +1,2 @@
--e hg+https://knowledgeforge.net/ckan/ckanclient/hg#egg=ckanclient
--e hg+https://knowledgeforge.net/ckan/ckanext#egg=ckanext
+-e hg+http://bitbucket.org/okfn/ckanclient#egg=ckanclient
+-e hg+http://bitbucket.org/okfn/ckanext#egg=ckanext

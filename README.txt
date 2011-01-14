@@ -1,6 +1,6 @@
-===========================
-dgu - data.gov.uk extension
-===========================
+===================================
+ckanext-dgu - data.gov.uk extension
+===================================
 
 
 Setup for loaders only
@@ -10,9 +10,9 @@ It is simpler to set-up to run the loaders, because they don't require
 CKAN to be installed::
 
     virtualenv pyenv
-    pip -E pyenv install -e hg+https://knowledgeforge.net/ckan/ckanclient#egg=ckanclient
-    pip -E pyenv install -e hg+https://knowledgeforge.net/ckan/ckanext#egg=ckanext
-    pip -E pyenv install -e hg+https://knowledgeforge.net/ckan/dgu#egg=dgu
+    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanclient#egg=ckanclient
+    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext#egg=ckanext
+    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckanext-dgu
 
 (note, for the time being, the ckanclient must be installed before dgu to 
 ensure you get the latest source, not the old release.)
@@ -31,7 +31,7 @@ into the ckan virtual environment directly::
 (for the time being you must delete from the ckan environment the existing 
 ckanclient and put in the latest)
 
-    pip -E ckan/pyenv install -e hg+https://knowledgeforge.net/ckan/dgu#egg=dgu
+    pip -E ckan/pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckanext-dgu
 
 Now in CKAN you can specify the dgu forms in the config.
 
