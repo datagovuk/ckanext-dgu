@@ -13,7 +13,8 @@ from ckan.tests.lib.test_spreadsheet_importer import CKAN_SRC_DIR, CSV_EXTENSION
 from ckanext.dgu.tests import PackageDictUtil
 from ckanext.dgu.cospread.cospread import MultipleCospreadDataRecords, CospreadImporter
 
-EXAMPLES_DIR = '../dgu/ckanext/dgu/tests/cospread/samples'
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+EXAMPLES_DIR = os.path.join(TEST_DIR, 'samples')
 EXAMPLE_FILEBASE = 'cospread'
 
 examples = ExampleFiles(EXAMPLES_DIR, EXAMPLE_FILEBASE)
