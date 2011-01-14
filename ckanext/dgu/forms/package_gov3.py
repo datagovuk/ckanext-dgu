@@ -1,22 +1,26 @@
 from sqlalchemy.util import OrderedDict
 from pylons.i18n import _, ungettext, N_, gettext
 from pylons import config
+from formalchemy.fields import Field
 
 from ckan.forms import common
 from ckan.forms import package
-from ckan.forms import package_gov
 from ckan.forms.builder import FormBuilder
 from ckan.forms.common import ResourcesField, TagField, GroupSelectField, package_name_validator
 from ckan import model
-from ckanext.dgu import schema as schema
 from ckan.lib.helpers import literal
-from formalchemy.fields import Field
+
+from ckanext.dgu import schema as schema
+from ckanext.dgu.forms import package_gov_fields
 
 # Setup the fieldset
 def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
-                              statistics=False, inventory=False, **kwargs):
-    assert not (statistics and inventory) # can't be both
-
+                              publishers=None,
+                              statistics=False,
+                              **kwargs):
+    '''Returns a fieldset for the government packages conforming to metadata v3.
+    @param publishers - dictionary of publishers from Drupal: {ID: label}
+    '''
     # Restrict fields
     restrict = str(kwargs.get('restrict', False)).lower() not in \
                ('0', 'no', 'false', 0, False)
@@ -42,9 +46,10 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.TextExtraField('mandate'))
     builder.add_field(common.TextExtraField('publisher'))
     #builder.add_field(common.SuggestedTextExtraField('department', options=schema.government_depts))
-    publishers = [(str(name), "%s [%s]"%(name, id)) for id, name in kwargs.get('publishers', {}).items()]
-    builder.add_field(Field('published_by'))
-    builder.add_field(Field('published_via'))
+    # options are iterators of: (label, value)
+    publishers = [(str(label), "%s [%s]" % (label, value)) for value, label in (publishers or {}).items()]
+    builder.add_field(common.SelectExtraField('published_by', options=publishers))
+    builder.add_field(common.SelectExtraField('published_via', options=publishers))
     builder.add_field(common.CoreField('license_id', value='uk-ogl'))
 #   TODO Remove National Statistic from core form, when we can choose the
 #   form
@@ -53,13 +58,6 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
         builder.add_field(common.CheckboxExtraField('national_statistic'))
     if statistics:
         builder.add_field(common.SuggestedTextExtraField('series'))
-    if inventory:
-        builder.add_field(common.DateExtraField('date_disposal'))
-        builder.add_field(common.DateExtraField('date_planned_publication'))
-        builder.add_field(common.SuggestedTextExtraField('permanent_preservation'), options=schema.yes_no_not_yet_options)
-        builder.add_field(common.CheckboxExtraField('disclosure_foi'))
-        builder.add_field(common.CheckboxExtraField('disclosure_eir'))
-        builder.add_field(common.CheckboxExtraField('disclosure_dpa'))
 
     # Labels and instructions
     builder.set_field_text('title', instructions='The title of the data set.', further_instructions='The main subject of the data should be included with a lay term. For cross-government data requirements, such as spend data specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop.', hints=literal('e.g. Payments to suppliers with a value over &pound;500 from Harlow Council'))
@@ -86,13 +84,6 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
         builder.set_field_text('national_statistic', 'National Statistic', instructions='Indicate if the dataset is a National Statistic', further_instructions='This is so that it can be highlighted.')
     if statistics:
         builder.set_field_text('series', instructions='The name of a series or collection that this data is part of.', further_instructions='This is needed for National Statistics. For example \'Wages Weekly Index\'.')
-    if inventory:
-        builder.set_field_text('date_disposal', instructions='Date of removal of the data from the public body\'s systems.', further_instructions='This is a future date when it is intended to remove the data, eventually replaced with the actual date the disposal was implemented (if appropriate).', hints='DD/MM/YYYY')
-        builder.set_field_text('date_planned_publication', 'Planned publication date', instructions='To be used when adding data intended for future publication to the Inventory', hints='DD/MM/YYYY')
-        builder.set_field_text('permanent_preservation', 'Selected for permanent preservation', instructions='Data, whose sensitivity currently prevents publication, selected by the National Archives as worthy of permanent preservation.  (It is intended that published data will automatically be preserved in the UK Government Web Archive.)')
-        builder.set_field_text('disclosure_foi', instructions='Indicates whether or not data is exempt from publication by virtue of the Freedom of Information Act 2000.')
-        builder.set_field_text('disclosure_eir', instructions='Indicates wheter or not data is exempt from publication by virtue of the Environmental Information Regulations 2004.')
-        builder.set_field_text('disclosure_dpa', instructions='Indicates whether or not data is exempt from publication by virtue of  the Data Protection Act 1998, taking into account that personal data whilst not of itself disclosive, may, if combined with other data in the public domain, become so.')
     builder.set_field_text('mandate', instructions='An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.', further_instructions='This should be taken from The National Archives\' Legislation website, and where possible be a link directly to the relevant section of the Act.', hints='For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2')
     builder.set_field_text('license_id', 'Licence', instructions='The licence under which the dataset is released.', further_instructions=literal('For most situations of central Departments\' and Local Authority data, this should be the \'Open Government Licence\'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.'))
     builder.set_field_text('resources', instructions='The files containing the data or address of the APIs for accessing it', further_instructions=literal('These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different \'resource\' which should be described differently. They will all appear on the dataset page on data.gov.uk together.<br/> <b>URL:</b> This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department<br/> e.g. http://www.somedept.gov.uk/growth-figures-2009.csv<br/><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board\'s principles</a> that require that all data is available in an \'open and standardised format\' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/>'), hints='Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate')
@@ -100,13 +91,11 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     # Options/settings
     builder.set_field_option('name', 'validate', package_name_validator)
     builder.set_field_option('license_id', 'dropdown', {'options':[('', None)] + model.Package.get_license_options()})
-    builder.set_field_option('published_by', 'dropdown', {'options': publishers})
-    builder.set_field_option('published_via', 'dropdown', {'options': [('', None)] + publishers})
     builder.set_field_option('state', 'dropdown', {'options':model.State.all})
     builder.set_field_option('notes', 'textarea', {'size':'60x15'})
     builder.set_field_option('title', 'required')
     builder.set_field_option('notes', 'required')
-    builder.set_field_option('published_by', 'required')
+    builder.set_field_option('published_by', 'required') 
     builder.set_field_option('license_id', 'required')
     builder.set_field_option('tags', 'with_renderer', package_gov.SuggestTagRenderer)
 
@@ -134,13 +123,6 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     field_groups['More details'].append('national_statistic')
     if statistics:
         field_groups['More details'].append('series')
-    if inventory:
-        field_groups['Details'].insert('date_planned_publication', 0)
-        field_groups['Details'].insert('date_disposal', 4)
-        field_groups['Details'].insert('permanent_preservation', 5)
-        field_groups['More details'].insert('disclosure_foi', 6)
-        field_groups['More details'].insert('disclosure_eir', 7)
-        field_groups['More details'].insert('disclosure_dpa', 8)
     if is_admin:
         field_groups['More details'].append('state')
     builder.set_label_prettifier(package.prettify)
@@ -149,7 +131,10 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     # Strings for i18n:
     # (none - not translated at the moment)
 
-def get_gov3_fieldset(is_admin=False, user_editable_groups=None, **kwargs):
+def get_gov3_fieldset(is_admin=False, user_editable_groups=None,
+                      publishers=None, **kwargs):
     '''Returns the standard fieldset
     '''
-    return build_package_gov_form_v3(is_admin=is_admin, user_editable_groups=user_editable_groups, **kwargs).get_fieldset()
+    return build_package_gov_form_v3( \
+        is_admin=is_admin, user_editable_groups=user_editable_groups,
+        publishers=publishers, **kwargs).get_fieldset()

@@ -1,3 +1,6 @@
+import re
+import formalchemy
+
 from nose.tools import assert_equal
 
 import ckan.model as model
@@ -10,7 +13,6 @@ from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.forms.package_gov3 import get_gov3_fieldset
 from ckanext.dgu.tests import *
 
-#from pylons import config
 
 def _get_blank_param_dict(pkg=None, fs=None):
     return ckan.forms.get_package_dict(pkg, blank=True, fs=fs)
@@ -18,6 +20,12 @@ def _get_blank_param_dict(pkg=None, fs=None):
 def get_fieldset(**kwargs):
     if not kwargs.has_key('user_editable_groups'):
         kwargs['user_editable_groups'] = []
+    if not kwargs.has_key('publishers'):
+        kwargs['publishers'] = {'NHS': 'National Health Service',
+                                'EPCT': 'Ealing PCT',
+                                'DfE': 'Department for Education',
+                                'DECC': 'Department of Energy and Climate Change',
+                                }
     return get_gov3_fieldset(**kwargs)
 
 
@@ -42,7 +50,6 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         assert 'Revision' not in out, out
         assert 'Extras' not in out
         # default for license
-        print out
         self.check_tag(out, 'option', 'value="uk-ogl"', 'selected="selected"')
 
     def test_0_edit_fields(self):
@@ -74,17 +81,17 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             (fs.geographic_coverage, None, 'England'),
             (fs.temporal_granularity, 'year'),
             (fs.temporal_coverage, None, '6/2008 - 6/2009'),
-            (fs.national_statistic, 'True', 'yes'),
+            (fs.national_statistic, 'checked', 'yes'),
             (fs.precision, 'Numbers to nearest 10, percentage to nearest whole number'),
             (fs.url, 'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/index.shtml'),
             (fs.taxonomy_url, '', ''),
-            (fs.department, 'Department for Children, Schools and Families'),
-            (fs.agency, '', ''),
+            (fs.published_by, 'Department for Education [DfE]', 'Department for Education'),
+            (fs.published_via, '', ''),
             (fs.author, 'DCSF Data Services Group'),
             (fs.author_email, 'statistics@dcsf.gsi.gov.uk'),
             (fs.maintainer, '', ''),
             (fs.maintainer_email, '', ''),
-            (fs.license_id, u'OKD Compliant::UK Open Government Licence (OGL)'),
+            (fs.license_id, u'uk-ogl', u'OKD Compliant::UK Open Government Licence (OGL)'),
             ]
         for vals in expected_values:
             if len(vals) == 2:
@@ -92,10 +99,12 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                 expected_render_readonly_str = vals[1]
             else:
                 field, expected_render_str, expected_render_readonly_str = vals
-            if isinstance(field.renderer, ckan.forms.common.SuggestedTextExtraField.SelectRenderer):
+            if isinstance(field.renderer, (ckan.forms.common.SuggestedTextExtraField.SelectRenderer, formalchemy.fields.SelectFieldRenderer)):
                 if expected_render_str.startswith('other='):
                     expected_render_str = 'other" type="text" value="' + expected_render_str.strip('other=')
                     expected_render_readonly_str = expected_render_readonly_str.strip('other=')
+                elif not expected_render_str:
+                    expected_render_str = '!selected'
                 else:
                     # multiple choice must have the particular one selected
                     expected_render_str = 'selected" value="' + expected_render_str
@@ -105,6 +114,10 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                 assert 'value=""' in render or 'value' not in render, \
                    'Expected a blank value in render of field %s but got \'%s\'' % \
                    (field.name, render)
+            elif expected_render_str and expected_render_str.startswith('!'):
+                assert expected_render_str[1:] not in render, \
+                       'Expected \'%s\' NOT in render of field %s but got \'%s\'' % \
+                       (expected_render_str, field.name, render)
             elif expected_render_str:
                 assert expected_render_str in render, \
                        'Expected \'%s\' in render of field %s but got \'%s\'' % \
@@ -112,7 +125,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             assert expected_render_readonly_str in render_readonly, \
                    'Expected \'%s\' in render_readonly of field %s but got \'%s\'' % \
                    (expected_render_readonly_str, field.name, render_readonly)
-        self.check_tag(fs.geographic_coverage.render(), 'geographic_coverage-england', 'value="True"')
+        self.check_tag(fs.geographic_coverage.render(), 'geographic_coverage-england', 'checked="checked"')
+        self.check_tag(fs.geographic_coverage.render(), 'geographic_coverage-wales', '!checked="checked"')
         self.check_tag(fs.temporal_coverage.render(), 'temporal_coverage-from', 'value="12:30 24/6/2008"')
         self.check_tag(fs.temporal_coverage.render(), 'temporal_coverage-to', 'value="6/2009"')
 
