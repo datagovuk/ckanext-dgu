@@ -1,0 +1,53 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix void: <http://rdfs.org/ns/void#>.
+@prefix log: <http://www.w3.org/2000/10/swap/log#>.
+@prefix http: <http://www.w3.org/2006/http#>.
+@prefix curl: <http://eris.okfn.org/ww/2010/12/curl#>.
+@prefix curate: <http://eris.okfn.org/ww/2010/12/curate#>.
+
+##
+## For DCat datasets we check the distribution's
+## access URL
+##
+{ ?dataset dcat:distribution ?dist .
+  ?dist dcat:accessURL ?download } =>
+{ ?download curate:curlReq "GET" }.
+
+{ ?dataset dcat:distribution ?dist .
+  ?dist dcat:accessURL ?download .
+  ?download broken ?code } =>
+{ ?dataset curate:report ?download }.
+
+##
+## For voidD datasets we also check their example resources
+##
+{ ?dataset void:exampleResource ?example } =>
+{ ?example curate:curlReq "GET" }.
+
+{ ?dataset void:exampleResource ?example . 
+  ?dist dcat:accessURL ?download .
+  ?example broken ?code } =>
+{ ?dataset curate:report ?example }.
+
+
+##
+## This chains off the result of curate:curlReq to
+## mark the uri as broken
+##
+{ ?req a http:Request . 
+  ?req http:requestURI ?uri .
+  ?req http:resp ?resp .
+  ?resp curl:status curl:Failure } =>
+{ ?uri broken curl:Failure }.
+
+##
+## likewise for this but triples of this form will be seen
+## when the url is not HTTP
+##
+{ ?curl a curl:Curl .
+  ?curl curl:uri ?uri .
+  ?curl curl:status curl:Failure 
+} =>
+{ ?uri broken curl:Failure }.

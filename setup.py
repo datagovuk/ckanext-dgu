@@ -30,6 +30,9 @@ setup(
 
         [ckan.forms]
         gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
+
+        [curate.actions]
+        report=ckanext.dgu.curation:report
     """,
     test_suite = 'nose.collector',
 )
