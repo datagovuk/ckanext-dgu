@@ -37,7 +37,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.DateExtraField('date_update_future'))
     builder.add_field(common.SuggestedTextExtraField('update_frequency', options=schema.update_frequency_options))
     builder.add_field(common.SuggestedTextExtraField('geographic_granularity', options=schema.geographic_granularity_options))
-    builder.add_field(package_gov.GeoCoverageExtraField('geographic_coverage'))
+    builder.add_field(package_gov_fields.GeoCoverageExtraField('geographic_coverage'))
     builder.add_field(common.SuggestedTextExtraField('temporal_granularity', options=schema.temporal_granularity_options))
     builder.add_field(common.DateRangeExtraField('temporal_coverage'))
     builder.add_field(common.TextExtraField('precision'))
@@ -97,10 +97,10 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_option('notes', 'required')
     builder.set_field_option('published_by', 'required') 
     builder.set_field_option('license_id', 'required')
-    builder.set_field_option('tags', 'with_renderer', package_gov.SuggestTagRenderer)
+    builder.set_field_option('tags', 'with_renderer', package_gov_fields.SuggestTagRenderer)
 
     if restrict:
-        for field_name in ('name',):
+        for field_name in ('name', 'national_statistic'):
             builder.set_field_option(field_name, 'readonly', True)
     
     # Layout
