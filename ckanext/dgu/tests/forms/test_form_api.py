@@ -21,6 +21,8 @@ from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
 
 class BaseFormsApiCase(ModelMethods, ApiControllerTestCase):
+    '''Pythonic wrapper for the Forms API, for testing it.'''
+    
     api_version = ''
     def split_form_args(self, kwargs):
         '''Splits form keyword arguments into those for the form url
@@ -197,6 +199,7 @@ class BaseFormsApiCase(ModelMethods, ApiControllerTestCase):
 
     def assert_blank_response(self, response):
         assert (not response.body) or (not json.loads(response.body))
+
 
 class FormsApiTestCase(BaseFormsApiCase):
     def setup(self):

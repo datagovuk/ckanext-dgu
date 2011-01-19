@@ -28,7 +28,8 @@ setup(
     package_data={'ckan': ['i18n/*/LC_MESSAGES/*.mo']},
     entry_points="""
         [ckan.plugins]
-        dgu_form_api = ckanext.dgu.forms.formapi:FormAPI
+        dgu_form_api = ckanext.dgu.forms.formapi:FormApi
+        form_api_tester = ckanext.dgu.tests.functional.form_api_tester:FormApiTester
         
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load

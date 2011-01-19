@@ -147,6 +147,12 @@ class Gov3Fixtures(PackageFixturesBase):
                 ]
         return self._pkgs
 
+test_publishers = {'NHS': 'National Health Service',
+                   'EPCT': 'Ealing PCT',
+                   'DfE': 'Department for Education',
+                   'DECC': 'Department of Energy and Climate Change',
+                   }
+
 class PackageDictUtil(object):
     @classmethod
     def check_dict(cls, dict_to_check, expected_dict):

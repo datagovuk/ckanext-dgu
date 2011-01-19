@@ -16,7 +16,10 @@ from ckan.controllers.rest import BaseApiController, ApiVersion1, ApiVersion2
 
 log = logging.getLogger(__name__)
 
-class FormAPI(SingletonPlugin):
+class DrupalXmlRpcSetupError(Exception): pass
+class UserPropertiesError(Exception): pass
+
+class FormApi(SingletonPlugin):
     """
     Add the Form API used by Drupal into the Routing system
     """
@@ -24,14 +27,11 @@ class FormAPI(SingletonPlugin):
     implements(IRoutes)
 
     def after_map(self, map):
-        map.connect('/api/form/package/create',           controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
-        map.connect('/api/form/package/edit/:id',         controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
-        map.connect('/api/form/harvestsource/create',     controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-        map.connect('/api/form/harvestsource/edit/:id',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
-        map.connect('/api/1/form/package/create',         controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
-        map.connect('/api/1/form/package/edit/:id',       controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
-        map.connect('/api/1/form/harvestsource/create',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-        map.connect('/api/1/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
+        for version in ('', '1/'):
+            map.connect('/api/%sform/package/create' % version,           controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
+            map.connect('/api/%sform/package/edit/:id' % version,         controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
+            map.connect('/api/%sform/harvestsource/create' % version,     controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
+            map.connect('/api/%sform/harvestsource/edit/:id' % version,   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
         map.connect('/api/2/form/harvestsource/create',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
         map.connect('/api/2/form/package/create',         controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
@@ -87,8 +87,7 @@ class BaseFormController(BaseApiController):
                 if value:
                     xmlrpc_property_values.append(value)
                 else:
-                    log.error('Drupal XMLRPC config not setup. Cannot get user info for form.')
-                    return
+                    raise DrupalXmlRpcSetupError('Drupal XMLRPC config not setup.')
             self._xmlrpc_url = 'http://%s:%s@%s/services/xmlrpc' % tuple(xmlrpc_property_values)
             log.info('Setting up XMLRPC proxy to %s', url)
         return self._xmlrpc_url
@@ -96,8 +95,13 @@ class BaseFormController(BaseApiController):
     def _get_drupal_user_properties(self):
         '''Requests dict of properties of the Drupal user in the request.
         If no user is supplied in the request then the request is aborted.
-        If the Drupal server is not configured then it returns None.'''
-        xmlrpc_url = self._get_drupal_xmlrpc_url()
+        If the Drupal server is not configured then it raises.'''
+        try:
+            xmlrpc_url = self._get_drupal_xmlrpc_url()
+        except DrupalXmlRpcSetupError, e:
+            raise UserPropertiesError('Cannot get user properties from Drupal: %r' % e)
+            return
+
         if not xmlrpc_url:
             return
         try:
@@ -115,7 +119,10 @@ class BaseFormController(BaseApiController):
 
     def _get_package_fieldset(self):
         # Get user properties for the fieldset creation
-        user = self._get_drupal_user_properties()
+        try:
+            user = self._get_drupal_user_properties()
+        except UserPropertiesError, e:            
+            log.error('Cannot get user properties (for publishers in the form): %s' % e)
         if user:
             fieldset_params = {
                 'user_name': unicode(user['name']),

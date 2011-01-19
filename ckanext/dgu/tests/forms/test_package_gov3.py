@@ -21,11 +21,7 @@ def get_fieldset(**kwargs):
     if not kwargs.has_key('user_editable_groups'):
         kwargs['user_editable_groups'] = []
     if not kwargs.has_key('publishers'):
-        kwargs['publishers'] = {'NHS': 'National Health Service',
-                                'EPCT': 'Ealing PCT',
-                                'DfE': 'Department for Education',
-                                'DECC': 'Department of Energy and Climate Change',
-                                }
+        kwargs['publishers'] = test_publishers
     return get_gov3_fieldset(**kwargs)
 
 
