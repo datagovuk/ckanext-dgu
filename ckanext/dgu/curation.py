@@ -23,7 +23,7 @@ class report(Action):
             pass
         
         q = """
-        PREFIX rdfs: <http://www.w3.org/2006/http#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
         PREFIX http: <http://www.w3.org/2006/http#>
         PREFIX curl: <http://eris.okfn.org/ww/2010/12/curl#>
         SELECT DISTINCT ?comment WHERE {
