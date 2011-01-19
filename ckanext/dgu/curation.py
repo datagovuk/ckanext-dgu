@@ -48,4 +48,4 @@ class report(Action):
             return s.decode("utf-8")
 
         timestamp = unicode(datetime.utcnow())
-        print u",".join(recode(x) for x  in (timestamp, dataset, resource, code, comment))
+        print u",".join(recode(x) for x  in (timestamp, dataset, resource, code, comment)).encode("utf-8")
