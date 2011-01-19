@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ckanext-dgu',
-    version='0.1',
+    version='0.2',
     author='Open Knowledge Foundation',
     author_email='info@okfn.org',
     license='AGPL',

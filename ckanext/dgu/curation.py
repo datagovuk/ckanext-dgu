@@ -39,5 +39,13 @@ class report(Action):
                 break
         except:
             comment = "Possibly bad URI: %s" % resource.n3()
-        
-        print ",".join(str(x) for x  in (datetime.utcnow(), dataset, resource, code, comment))
+
+        def recode(s):
+            try:
+                s = s.encode("utf-8")
+            except UnicodeEncodeError:
+                s = s.encode("latin1")
+            return s.decode("utf-8")
+
+        timestamp = unicode(datetime.utcnow())
+        print u",".join(recode(x) for x  in (timestamp, dataset, resource, code, comment))
