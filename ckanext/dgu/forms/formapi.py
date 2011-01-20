@@ -53,19 +53,23 @@ class BaseFormController(BaseApiController):
     """Implements the CKAN Forms API."""
 
     error_content_type = 'json'
-    
+
+    @classmethod
     def _abort_bad_request(self, msg=None):
         error_msg = 'Bad request'
         if msg:
             error_msg += ': %s' % msg
         raise ApiError, (400, error_msg)
         
+    @classmethod
     def _abort_not_authorized(self):
         raise ApiError, (403, 'Not authorized')
         
+    @classmethod
     def _abort_not_found(self):
         raise ApiError, (404, 'Not found')
                     
+    @classmethod
     def _assert_is_found(self, entity):
         if entity is None:
             self._abort_not_found()
@@ -76,8 +80,9 @@ class BaseFormController(BaseApiController):
             log.info('User did not supply authorization credentials when required.')
             self._abort_not_authorized()
 
-    def _get_drupal_xmlrpc_url(self):
-        if not hasattr(self, '_xmlrpc_url'):
+    @classmethod
+    def _get_drupal_xmlrpc_url(cls):
+        if not hasattr(cls, '_xmlrpc_url'):
             drupal_xmlrpc_properties = ('dgu.xmlrpc_username',
                                         'dgu.xmlrpc_password',
                                         'dgu.xmlrpc_domain')
@@ -88,16 +93,17 @@ class BaseFormController(BaseApiController):
                     xmlrpc_property_values.append(value)
                 else:
                     raise DrupalXmlRpcSetupError('Drupal XMLRPC config not setup.')
-            self._xmlrpc_url = 'http://%s:%s@%s/services/xmlrpc' % tuple(xmlrpc_property_values)
-            log.info('Setting up XMLRPC proxy to %s', url)
-        return self._xmlrpc_url
-        
-    def _get_drupal_user_properties(self):
+            cls._xmlrpc_url = 'http://%s:%s@%s/services/xmlrpc' % tuple(xmlrpc_property_values)
+            log.info('Setting up XMLRPC proxy to %s', cls._xmlrpc_url)
+        return cls._xmlrpc_url
+
+    @classmethod
+    def _get_drupal_user_properties(cls, user_id):
         '''Requests dict of properties of the Drupal user in the request.
         If no user is supplied in the request then the request is aborted.
         If the Drupal server is not configured then it raises.'''
         try:
-            xmlrpc_url = self._get_drupal_xmlrpc_url()
+            xmlrpc_url = cls._get_drupal_xmlrpc_url()
         except DrupalXmlRpcSetupError, e:
             raise UserPropertiesError('Cannot get user properties from Drupal: %r' % e)
             return
@@ -105,31 +111,31 @@ class BaseFormController(BaseApiController):
         if not xmlrpc_url:
             return
         try:
-            user_id = request.params['user_id']
-        except KeyError, e:
-            self._abort_bad_request('Please supply a user_id parameter')
-        try:
             user_id_int = int(user_id)
         except ValueError, e:
-            self._abort_bad_request('user_id parameter must be an integer')
+            cls._abort_bad_request('user_id parameter must be an integer')
         drupal = ServerProxy(xmlrpc_url)
         user = drupal.user.get(user_id)
         log.info('Obtained Drupal user: %r' % user)
         return user
 
+    @classmethod
     def _get_package_fieldset(self):
         # Get user properties for the fieldset creation
         try:
-            user = self._get_drupal_user_properties()
+            user_id = request.params['user_id']
+        except KeyError, e:
+            cls._abort_bad_request('Please supply a user_id parameter in the reuquest parameters.')
+        try:
+            user = self._get_drupal_user_properties(user_id)
         except UserPropertiesError, e:            
             log.error('Cannot get user properties (for publishers in the form): %s' % e)
-        if user:
+            fieldset_params = {}
+        else:
             fieldset_params = {
                 'user_name': unicode(user['name']),
                 'publishers': [unicode(pub) for pub in user['publishers']]
                 }
-        else:
-            fieldset_params = {}
         return super(BaseFormController, self)._get_package_fieldset(fieldset_params)
 
     def package_create(self):
@@ -201,6 +207,7 @@ class BaseFormController(BaseApiController):
             log.error('Package create - unhandled exception: exception=%r', traceback.format_exc())
             raise
 
+    @classmethod
     def _make_package_201_location(self, package):
         location = '/api'
         location += self._make_version_part()
@@ -208,6 +215,7 @@ class BaseFormController(BaseApiController):
         location += '/rest/package/%s' % package_ref
         return location
 
+    @classmethod
     def _make_harvest_source_201_location(self, harvest_source):
         location = '/api'
         location += self._make_version_part()
@@ -215,6 +223,7 @@ class BaseFormController(BaseApiController):
         location += '/rest/harvestsource/%s' % source_ref
         return location
 
+    @classmethod
     def _make_version_part(self):
         part = ''
         is_version_in_path = False
@@ -293,6 +302,7 @@ class BaseFormController(BaseApiController):
             log.error('Package edit - unhandled exception: exception=%r', traceback.format_exc())
             raise
 
+    @classmethod
     def _create_harvest_source_entity(self, bound_fieldset, user_ref=None, publisher_ref=None):
         bound_fieldset.validate()
         if bound_fieldset.errors:
@@ -300,10 +310,12 @@ class BaseFormController(BaseApiController):
         bound_fieldset.sync()
         model.Session.commit()
 
+    @classmethod
     def _create_permissions(self, package, user):
         model.setup_default_user_roles(package, [user])
         model.repo.commit_and_remove()
 
+    @classmethod
     def _update_harvest_source_entity(self, id, bound_fieldset, user_ref, publisher_ref):
         bound_fieldset.validate()
         if bound_fieldset.errors:
@@ -355,6 +367,7 @@ class BaseFormController(BaseApiController):
         page_html = '<html><head><title>My Package Edit Page</title></head><body><h1>My Package Edit Form</h1>%s</html>' % form_html
         return page_html
 
+    @classmethod
     def _start_ckan_client(self, api_key, base_location='http://127.0.0.1:5000/api'):
         import ckanclient
         return ckanclient.CkanClient(base_location=base_location, api_key=api_key)
