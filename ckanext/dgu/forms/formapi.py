@@ -55,24 +55,24 @@ class BaseFormController(BaseApiController):
     error_content_type = 'json'
 
     @classmethod
-    def _abort_bad_request(self, msg=None):
+    def _abort_bad_request(cls, msg=None):
         error_msg = 'Bad request'
         if msg:
             error_msg += ': %s' % msg
         raise ApiError, (400, error_msg)
         
     @classmethod
-    def _abort_not_authorized(self):
+    def _abort_not_authorized(cls):
         raise ApiError, (403, 'Not authorized')
         
     @classmethod
-    def _abort_not_found(self):
+    def _abort_not_found(cls):
         raise ApiError, (404, 'Not found')
                     
     @classmethod
-    def _assert_is_found(self, entity):
+    def _assert_is_found(cls, entity):
         if entity is None:
-            self._abort_not_found()
+            cls._abort_not_found()
 
     def _assert_authorization_credentials(self, entity=None):
         user = self._get_user_for_apikey()
@@ -120,14 +120,14 @@ class BaseFormController(BaseApiController):
         return user
 
     @classmethod
-    def _get_package_fieldset(self):
+    def _get_package_fieldset(cls):
         # Get user properties for the fieldset creation
         try:
             user_id = request.params['user_id']
         except KeyError, e:
-            cls._abort_bad_request('Please supply a user_id parameter in the reuquest parameters.')
+            cls._abort_bad_request('Please supply a user_id parameter in the request parameters.')
         try:
-            user = self._get_drupal_user_properties(user_id)
+            user = cls._get_drupal_user_properties(user_id)
         except UserPropertiesError, e:            
             log.error('Cannot get user properties (for publishers in the form): %s' % e)
             fieldset_params = {}
@@ -136,7 +136,7 @@ class BaseFormController(BaseApiController):
                 'user_name': unicode(user['name']),
                 'publishers': [unicode(pub) for pub in user['publishers']]
                 }
-        return super(BaseFormController, self)._get_package_fieldset(fieldset_params)
+        return super(BaseFormController, cls)._get_package_fieldset(fieldset_params)
 
     def package_create(self):
         try:
@@ -208,30 +208,30 @@ class BaseFormController(BaseApiController):
             raise
 
     @classmethod
-    def _make_package_201_location(self, package):
+    def _make_package_201_location(cls, package):
         location = '/api'
-        location += self._make_version_part()
-        package_ref = self._ref_package(package)
+        location += cls._make_version_part()
+        package_ref = cls._ref_package(package)
         location += '/rest/package/%s' % package_ref
         return location
 
     @classmethod
-    def _make_harvest_source_201_location(self, harvest_source):
+    def _make_harvest_source_201_location(cls, harvest_source):
         location = '/api'
-        location += self._make_version_part()
-        source_ref = self._ref_harvest_source(harvest_source)
+        location += cls._make_version_part()
+        source_ref = cls._ref_harvest_source(harvest_source)
         location += '/rest/harvestsource/%s' % source_ref
         return location
 
     @classmethod
-    def _make_version_part(self):
+    def _make_version_part(cls):
         part = ''
         is_version_in_path = False
         path_parts = request.path.split('/')
-        if path_parts[2] == self.api_version:
+        if path_parts[2] == cls.api_version:
             is_version_in_path = True
         if is_version_in_path:
-            part = '/%s' % self.api_version
+            part = '/%s' % cls.api_version
         return part
 
     def package_edit(self, id):
@@ -303,7 +303,7 @@ class BaseFormController(BaseApiController):
             raise
 
     @classmethod
-    def _create_harvest_source_entity(self, bound_fieldset, user_ref=None, publisher_ref=None):
+    def _create_harvest_source_entity(cls, bound_fieldset, user_ref=None, publisher_ref=None):
         bound_fieldset.validate()
         if bound_fieldset.errors:
             raise ValidationException(bound_fieldset)
@@ -311,12 +311,12 @@ class BaseFormController(BaseApiController):
         model.Session.commit()
 
     @classmethod
-    def _create_permissions(self, package, user):
+    def _create_permissions(cls, package, user):
         model.setup_default_user_roles(package, [user])
         model.repo.commit_and_remove()
 
     @classmethod
-    def _update_harvest_source_entity(self, id, bound_fieldset, user_ref, publisher_ref):
+    def _update_harvest_source_entity(cls, id, bound_fieldset, user_ref, publisher_ref):
         bound_fieldset.validate()
         if bound_fieldset.errors:
             raise ValidationException(bound_fieldset)
@@ -368,7 +368,7 @@ class BaseFormController(BaseApiController):
         return page_html
 
     @classmethod
-    def _start_ckan_client(self, api_key, base_location='http://127.0.0.1:5000/api'):
+    def _start_ckan_client(cls, api_key, base_location='http://127.0.0.1:5000/api'):
         import ckanclient
         return ckanclient.CkanClient(base_location=base_location, api_key=api_key)
 

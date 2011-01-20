@@ -11,11 +11,24 @@ from ckan.lib.create_test_data import CreateTestData
 class WsgiAppCase(object):
     ckan_config_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(ckan_file)), '..'))
     config = appconfig('config:test.ini', relative_to=ckan_config_dir)
-    local_config = [('ckan.plugins', 'dgu_form_api form_api_tester mock_drupal'),]
+    local_config = [('ckan.plugins', 'dgu_form_api form_api_tester'),]
     config.local_conf.update(local_config)
-    config.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester mock_drupal'
+    config.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester'
     wsgiapp = make_app(config.global_conf, **config.local_conf)
     app = paste.fixture.TestApp(wsgiapp)
+
+class BaseCase(object):
+    @staticmethod
+    def _system(cmd):
+        import commands
+        (status, output) = commands.getstatusoutput(cmd)
+        if status:
+            raise Exception, "Couldn't execute cmd: %s: %s" % (cmd, output)
+
+    @classmethod
+    def _paster(cls, cmd, config_path_rel):
+        cls._system('paster --plugin ckanext-dgu %s' % cmd)
+
 
 class PackageFixturesBase:
     def create(self, **kwargs):
@@ -186,3 +199,43 @@ class PackageDictUtil(object):
         assert not missing_keys, 'Missing keys: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
         extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
         assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
+
+
+class MockDrupalCase(BaseCase):
+    @classmethod
+    def setup_class(cls):
+        cls.process = cls._mock_drupal_start()
+        cls._wait_for_drupal_to_start()
+
+    @classmethod
+    def teardown_class(cls):
+        cls._mock_drupal_stop(cls.process)
+
+    @classmethod
+    def _mock_drupal_start(self):
+        import subprocess
+        process = subprocess.Popen(['paster', 'mock_drupal', 'run'])
+        return process
+
+    @staticmethod
+    def _wait_for_drupal_to_start(url='http://localhost:8000/services/xmlrpc',
+                                  timeout=15):
+        import xmlrpclib
+        import socket
+        import time
+
+        drupal = xmlrpclib.ServerProxy(url)
+        for i in range(int(timeout)*100):
+            try:
+                response = drupal.system.listMethods()
+            except socket.error, e:
+                time.sleep(0.01)
+            else:
+                break
+
+    @classmethod
+    def _mock_drupal_stop(cls, process):
+        pid = process.pid
+        pid = int(pid)
+        if os.system("kill -9 %d" % pid):
+            raise Exception, "Can't kill foreign Mock Drupal instance (pid: %d)." % pid

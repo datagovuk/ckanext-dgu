@@ -8,7 +8,7 @@ from ckan.tests import *
 local_config = [
     ('dgu.xmlrpc_username', 'testuser'),
     ('dgu.xmlrpc_password', 'testpassword'),
-    ('dgu.xmlrpc_domain', 'localhost:5000'),
+    ('dgu.xmlrpc_domain', 'localhost:8000'),
     ]
 config.update(local_config)
 
@@ -30,21 +30,24 @@ from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
 
 from ckanext.dgu.forms.formapi import FormController
-from ckanext.dgu.tests import WsgiAppCase, test_publishers
+from ckanext.dgu.tests import WsgiAppCase, test_publishers, MockDrupalCase
+from ckanext.dgu.tests.functional.mock_drupal import get_mock_drupal_config
 
-class TestDrupalConnection(WsgiAppCase):
+class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
         assert config['dgu.xmlrpc_domain']
         url = FormController._get_drupal_xmlrpc_url()
-        assert_equal(url, 'http://testuser:testpassword@testdomain/services/xmlrpc')
+        assert_equal(url, 'http://testuser:testpassword@localhost:8000/services/xmlrpc')
 
     def test_get_user_properties(self):
-        test_user_id = '669'
+        drupal_config = get_mock_drupal_config()
+        test_user_id = '62'
+        expected_user = drupal_config['test_users'][test_user_id]
         user = FormController._get_drupal_user_properties(test_user_id)
         assert user
         assert isinstance(user, dict)
-        assert_equal(user['name'], 'test_name')
-        assert_equal(user['publishers'], test_publishers)
+        assert_equal(user['name'], expected_user['name'])
+        assert_equal(user['publishers'], expected_user['publishers'])
 
 class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
     '''Utilities and pythonic wrapper for the Forms API for testing it.'''
