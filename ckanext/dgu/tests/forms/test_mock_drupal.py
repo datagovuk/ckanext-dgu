@@ -9,4 +9,4 @@ class TestMockDrupal(MockDrupalCase):
         assert isinstance(user, dict)
         assert user.has_key('name')
         assert user.has_key('publishers')
-        assert isinstance(user['publishers'], dict)
+        assert isinstance(user['publishers'], (list, tuple))

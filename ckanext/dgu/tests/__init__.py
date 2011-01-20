@@ -8,13 +8,23 @@ from ckan import __file__ as ckan_file
 from ckan.config.middleware import make_app
 from ckan.lib.create_test_data import CreateTestData
 
+def apply_fixture_config(config_):
+    local_config = [
+        ('dgu.xmlrpc_username', 'testuser'),
+        ('dgu.xmlrpc_password', 'testpassword'),
+        ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
+        ]
+    config_.update(local_config)    
+
 class WsgiAppCase(object):
     ckan_config_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(ckan_file)), '..'))
-    config = appconfig('config:test.ini', relative_to=ckan_config_dir)
+    config_ = appconfig('config:test.ini', relative_to=ckan_config_dir)
     local_config = [('ckan.plugins', 'dgu_form_api form_api_tester'),]
-    config.local_conf.update(local_config)
-    config.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester'
-    wsgiapp = make_app(config.global_conf, **config.local_conf)
+    config_.local_conf.update(local_config)
+    config_.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester'
+    # set test config for dgu_form_api - it is imported before the test modules
+    apply_fixture_config(config_.local_conf)
+    wsgiapp = make_app(config_.global_conf, **config_.local_conf)
     app = paste.fixture.TestApp(wsgiapp)
 
 class BaseCase(object):
@@ -68,7 +78,7 @@ class GovFixtures(PackageFixturesBase):
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
         'geographic_coverage':u'100000: England',
-        'department':u'Department for Children, Schools and Families',
+        'department':u'Department for Education',
         'agency':u'',
         'temporal_granularity':u'year',
         'temporal_coverage-from':u'2008-6',

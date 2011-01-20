@@ -4,15 +4,12 @@ import re
 from nose.tools import assert_equal
 
 from ckan.tests import *
-# import of ckan.tests changes config, so set for these tests here
-local_config = [
-    ('dgu.xmlrpc_username', 'testuser'),
-    ('dgu.xmlrpc_password', 'testpassword'),
-    ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
-    ]
-config.update(local_config)
-
 from ckan.tests import search_related
+from ckan.tests.functional.api.test_model import ApiTestCase
+from ckan.tests.functional.api.test_model import Api1TestCase
+from ckan.tests.functional.api.test_model import Api2TestCase
+from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
+
 import ckan.model as model
 import ckan.authz as authz
 from ckan.lib.helpers import url_for
@@ -23,14 +20,12 @@ ACCESS_DENIED = [403]
 
 # Todo: Test for access control setup. Just checking an object exists in the model doesn't mean it will be presented through the WebUI.
 
-from ckan.tests.functional.api.test_model import ApiTestCase
-from ckan.tests.functional.api.test_model import Api1TestCase
-from ckan.tests.functional.api.test_model import Api2TestCase
-from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
-
 from ckanext.dgu.forms.formapi import FormController
-from ckanext.dgu.tests import WsgiAppCase, test_publishers, MockDrupalCase
+from ckanext.dgu.tests import WsgiAppCase, test_publishers, MockDrupalCase, apply_fixture_config
 from ckanext.dgu.tests.functional.mock_drupal import get_mock_drupal_config
+
+# import of ckan.tests changes config, so need to reset
+apply_fixture_config(config)
 
 class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
@@ -46,9 +41,10 @@ class TestDrupalConnection(MockDrupalCase):
         assert user
         assert isinstance(user, dict)
         assert_equal(user['name'], expected_user['name'])
-        assert_equal(user['publishers'], expected_user['publishers'])
+        expected_publishers = [[pub_id, pub_name] for pub_id, pub_name in expected_user['publishers']]
+        assert_equal(user['publishers'], expected_publishers)
 
-class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods):
+class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods, MockDrupalCase):
     '''Utilities and pythonic wrapper for the Forms API for testing it.'''
     
     api_version = ''

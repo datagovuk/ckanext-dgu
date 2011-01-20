@@ -38,7 +38,8 @@ class Command(paste.script.command.Command):
 
         # Create server
         server = SimpleXMLRPCServer((config['rpc_host'], config['rpc_port']),
-                                    requestHandler=RequestHandler)
+                                    requestHandler=RequestHandler,
+                                    logRequests=False)
         server.register_introspection_functions()
 
         class MyFuncs:

@@ -7,16 +7,18 @@ import paste.fixture
 from ckan import plugins
 from ckan.lib.create_test_data import CreateTestData
 
-from ckanext.dgu.tests import WsgiAppCase
+from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase
 from ckanext.dgu.tests.functional.form_api_tester import *
 
-class TestFormApiTester(WsgiAppCase):
+class TestFormApiTester(WsgiAppCase, MockDrupalCase):
     @classmethod
     def setup_class(cls):
+        super(TestFormApiTester, cls).setup_class()
         CreateTestData.create()
 
     @classmethod
     def teardown_class(cls):
+        super(TestFormApiTester, cls).teardown_class()
         plugins.reset()
         CreateTestData.delete()
 

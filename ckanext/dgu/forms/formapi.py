@@ -2,8 +2,9 @@ import logging
 import sys
 import traceback
 import socket
-
 from xmlrpclib import ServerProxy
+
+from pylons import config
 
 from ckan.plugins.core import SingletonPlugin, implements
 from ckan.plugins.interfaces import IRoutes

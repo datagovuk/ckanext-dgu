@@ -7,6 +7,7 @@ from ckan.lib.helpers import literal
 import ckan.model as model
 from ckan.lib.create_test_data import CreateTestData
 from test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
+from ckanext.dgu.tests import MockDrupalCase, GovFixtures
 
 # NB: This file tests the original package_gov form, which is moving
 #     to the dgu repo, so this can go there too soon.
@@ -20,78 +21,12 @@ class PackageFixturesBase:
     def delete(self):
         CreateTestData.delete()
 
-class GovFixtures(PackageFixturesBase):
-    user_name = 'tester'
-    
-    @property
-    def pkgs(self):
-        if not hasattr(self, '_pkgs'):
-            self._pkgs = [
-    {
-     'name':u'private-fostering-england-2009',
-     'title':u'Private Fostering',
-     'notes':u'Figures on children cared for and accommodated in private fostering arrangements, England, Year ending 31 March 2009',
-     'resources':[{'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/SFR17_2009_tables.xls',
-                  'format':u'XLS',
-                  'description':u'December 2009 | http://www.statistics.gov.uk/hub/id/119-36345'},
-                  {'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000860/SFR17_2009_key.doc',
-                  'format':u'DOC',
-                  'description':u'http://www.statistics.gov.uk/hub/id/119-34565'}],
-     'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/index.shtml',
-     'author':u'DCSF Data Services Group',
-     'author_email':u'statistics@dcsf.gsi.gov.uk',
-     'license':u'ukcrown',
-     'tags':u'children fostering',
-     'extras':{
-        'external_reference':u'DCSF-DCSF-0024',
-        'date_released':u'2009-07-30',
-        'date_updated':u'2009-07-30',
-        'update_frequency':u'annual',
-        'geographic_granularity':u'regional',
-        'geographic_coverage':u'100000: England',
-        'department':u'Department for Education',
-        'temporal_granularity':u'year',
-        'temporal_coverage-from':u'2008-6',
-        'temporal_coverage-to':u'2009-6',
-        'national_statistic':u'yes',
-        'precision':u'Numbers to nearest 10, percentage to nearest whole number',
-        'taxonomy_url':u'',
-        'agency':u'',
-        'import_source':u'ONS-Jan-09',
-        }
-     },
-    {'name':u'weekly-fuel-prices',
-     'title':u'Weekly fuel prices',
-     'notes':u'Latest price as at start of week of unleaded petrol and diesel.',
-     'resources':[{'url':u'', 'format':u'XLS', 'description':u''}],
-     'url':u'http://www.decc.gov.uk/en/content/cms/statistics/source/prices/prices.aspx',
-     'author':u'DECC Energy Statistics Team',
-     'author_email':u'energy.stats@decc.gsi.gov.uk',
-     'license':u'ukcrown',
-     'tags':u'fuel prices',
-     'extras':{
-        'external_reference':u'DECC-DECC-0001',
-        'date_released':u'2009-11-24',
-        'date_updated':u'2009-11-24',
-        'update_frequency':u'weekly',
-        'geographic_granularity':u'national',
-        'geographic_coverage':u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)',
-        'department':u'Department of Energy and Climate Change',
-        'temporal_granularity':u'weeks',
-        'temporal_coverage-from':u'2008-11-24',
-        'temporal_coverage-to':u'2009-11-24',
-        'national_statistic':u'yes',
-        'import_source':u'DECC-Jan-09',
-        }
-     }
-                ]
-        return self._pkgs
 
-
-class FormsApiTestCase(BaseFormsApiCase):
+class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
 
     @classmethod
     def setup_class(self):
+        super(FormsApiTestCase, self).setup_class()
         self.fixtures = GovFixtures()
         self.fixtures.create()
         self.pkg_dict = self.fixtures.pkgs[0]
@@ -99,6 +34,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     @classmethod
     def teardown_class(self):
+        super(FormsApiTestCase, self).teardown_class()
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
@@ -164,11 +100,12 @@ class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
 class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
 
 
-class EmbeddedFormTestCase(BaseFormsApiCase):
+class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     '''Tests the form as it would be used embedded in dgu html.'''
 
     @classmethod
     def setup_class(self):
+        MockDrupalCase.setup_class()
         model.repo.init_db()
         self.fixtures = GovFixtures()
         self.fixtures.create()
@@ -183,6 +120,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
 
     @classmethod
     def teardown_class(self):
+        MockDrupalCase.teardown_class()
         model.repo.clean_db()
 
     def _insert_into_field_tag(self, form_html, field_name, tag_name, tag_insertion):

@@ -2,13 +2,6 @@ import re
 
 from pylons import config
 
-local_config = [
-    ('dgu.xmlrpc_username', 'testuser'),
-    ('dgu.xmlrpc_password', 'testpassword'),
-    ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
-    ]
-config.update(local_config)
-
 from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 from ckan.lib.create_test_data import CreateTestData
