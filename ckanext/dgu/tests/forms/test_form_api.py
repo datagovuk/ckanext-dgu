@@ -8,14 +8,13 @@ from ckan.tests import *
 local_config = [
     ('dgu.xmlrpc_username', 'testuser'),
     ('dgu.xmlrpc_password', 'testpassword'),
-    ('dgu.xmlrpc_domain', 'localhost:8000'),
+    ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
     ]
 config.update(local_config)
 
 from ckan.tests import search_related
 import ckan.model as model
 import ckan.authz as authz
-from ckan.lib.base import ALLOWED_FIELDSET_PARAMS
 from ckan.lib.helpers import url_for
 from ckan.lib.helpers import json
 from ckan.lib.create_test_data import CreateTestData
@@ -49,7 +48,7 @@ class TestDrupalConnection(MockDrupalCase):
         assert_equal(user['name'], expected_user['name'])
         assert_equal(user['publishers'], expected_user['publishers'])
 
-class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
+class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods):
     '''Utilities and pythonic wrapper for the Forms API for testing it.'''
     
     api_version = ''
@@ -58,8 +57,10 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
         and those for the fields in the form.'''
         form_url_args = {}
         form_values_args = {}
+        # allow user_id in calling fieldset only for tests
+        possible_url_params = ['package_form', 'restrict', 'user_id']
         for k, v, in kwargs.items():
-            if k in ALLOWED_FIELDSET_PARAMS:
+            if k in possible_url_params:
                 form_url_args[k] = v
             else:
                 form_values_args[k] = v
@@ -71,10 +72,12 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
             self.delete_commit(source)
 
     def offset_package_create_form(self, **kwargs):
+        self.set_drupal_user(kwargs)
         url_args, ignore = self.split_form_args(kwargs)
         return self.offset(url_for('/form/package/create', **url_args))
 
     def offset_package_edit_form(self, ref, **kwargs):
+        self.set_drupal_user(kwargs)
         url_args, ignore = self.split_form_args(kwargs)
         return self.offset(url_for('/form/package/edit/%s' % str(ref), **url_args))
 
@@ -84,6 +87,11 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
     def offset_harvest_source_edit_form(self, ref):
         return self.offset('/form/harvestsource/edit/%s' % ref)
 
+    def set_drupal_user(self, form_url_args):
+        if not form_url_args.has_key('user_id'):
+            # not logged into Drupal, so set user_id for testing
+            form_url_args['user_id'] = '62'
+    
     def get_package_create_form(self, status=[200], **form_url_args):
         offset = self.offset_package_create_form(**form_url_args)
         res = self.get(offset, status=status)
@@ -230,7 +238,7 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
         assert (not response.body) or (not json.loads(response.body))
 
 
-class FormsApiTestCase(BaseFormsApiCase, TestCase):
+class FormsApiTestCase(BaseFormsApiCase):
     def setup(self):
         model.repo.init_db(conditional=True)
         CreateTestData.create()

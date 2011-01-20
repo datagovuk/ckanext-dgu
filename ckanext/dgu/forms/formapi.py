@@ -1,6 +1,7 @@
 import logging
 import sys
 import traceback
+import socket
 
 from xmlrpclib import ServerProxy
 
@@ -17,7 +18,7 @@ from ckan.controllers.rest import BaseApiController, ApiVersion1, ApiVersion2
 log = logging.getLogger(__name__)
 
 class DrupalXmlRpcSetupError(Exception): pass
-class UserPropertiesError(Exception): pass
+class DrupalRequestError(Exception): pass
 
 class FormApi(SingletonPlugin):
     """
@@ -83,18 +84,17 @@ class BaseFormController(BaseApiController):
     @classmethod
     def _get_drupal_xmlrpc_url(cls):
         if not hasattr(cls, '_xmlrpc_url'):
-            drupal_xmlrpc_properties = ('dgu.xmlrpc_username',
-                                        'dgu.xmlrpc_password',
-                                        'dgu.xmlrpc_domain')
-            xmlrpc_property_values = []
-            for xmlrpc_property in drupal_xmlrpc_properties:
-                value = config.get(xmlrpc_property)
-                if value:
-                    xmlrpc_property_values.append(value)
-                else:
-                    raise DrupalXmlRpcSetupError('Drupal XMLRPC config not setup.')
-            cls._xmlrpc_url = 'http://%s:%s@%s/services/xmlrpc' % tuple(xmlrpc_property_values)
-            log.info('Setting up XMLRPC proxy to %s', cls._xmlrpc_url)
+            domain = config.get('dgu.xmlrpc_domain')
+            if not domain:
+                raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
+            username = config.get('dgu.xmlrpc_username')
+            password = config.get('dgu.xmlrpc_password')
+            if username or password:
+                server = '%s:%s@%s' % (username, password, domain)
+            else:
+                server = '%s' % domain
+            cls._xmlrpc_url = 'http://%s/services/xmlrpc' % server
+            log.info('XMLRPC connection to %s', cls._xmlrpc_url)
         return cls._xmlrpc_url
 
     @classmethod
@@ -105,17 +105,17 @@ class BaseFormController(BaseApiController):
         try:
             xmlrpc_url = cls._get_drupal_xmlrpc_url()
         except DrupalXmlRpcSetupError, e:
-            raise UserPropertiesError('Cannot get user properties from Drupal: %r' % e)
-            return
+            raise DrupalRequestError('Cannot get user properties from Drupal: %r' % e)
 
-        if not xmlrpc_url:
-            return
         try:
             user_id_int = int(user_id)
         except ValueError, e:
             cls._abort_bad_request('user_id parameter must be an integer')
         drupal = ServerProxy(xmlrpc_url)
-        user = drupal.user.get(user_id)
+        try:
+            user = drupal.user.get(user_id)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (xmlrpc_url, e))
         log.info('Obtained Drupal user: %r' % user)
         return user
 
@@ -128,15 +128,14 @@ class BaseFormController(BaseApiController):
             cls._abort_bad_request('Please supply a user_id parameter in the request parameters.')
         try:
             user = cls._get_drupal_user_properties(user_id)
-        except UserPropertiesError, e:            
-            log.error('Cannot get user properties (for publishers in the form): %s' % e)
-            fieldset_params = {}
+        except DrupalRequestError, e:
+            raise DrupalRequestError('Cannot get user properties (for publishers in the form): %s' % e)
         else:
             fieldset_params = {
                 'user_name': unicode(user['name']),
-                'publishers': [unicode(pub) for pub in user['publishers']]
+                'publishers': dict([(unicode(pub_id), unicode(pub_name)) for pub_id, pub_name in user['publishers']]),
                 }
-        return super(BaseFormController, cls)._get_package_fieldset(fieldset_params)
+        return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
 
     def package_create(self):
         try:

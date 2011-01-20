@@ -32,6 +32,24 @@ Now in CKAN you can specify the dgu forms in the config. e.g. in demo.ckan.net.i
     package_form = package_gov3
 
 
+Configuation
+============
+
+Different parts of the DGU extension require options to be set in the
+CKAN configuration file (.ini) in the [app:main] section
+
+For the form API::
+
+    ckan.plugins = dgu_form_api
+
+For the Drupal RPC connection (for user data etc.) supply the hostname, 
+and credentials for HTTP Basic Authentication (if necessary)::
+
+    dgu.xmlrpc_domain = drupal.libre.gov.fr:80
+    dgu.xmlrpc_username = ckan
+    dgu.xmlrpc_password = letmein
+
+
 Tests
 =====
 

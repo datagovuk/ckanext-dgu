@@ -2,14 +2,22 @@ import re
 
 from pylons import config
 
+local_config = [
+    ('dgu.xmlrpc_username', 'testuser'),
+    ('dgu.xmlrpc_password', 'testpassword'),
+    ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
+    ]
+config.update(local_config)
+
 from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 from ckan.lib.create_test_data import CreateTestData
 from ckanext.dgu.tests.forms.test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
-
 from ckanext.dgu.tests import *
 
-class FormsApiTestCase(BaseFormsApiCase):
+package_form = 'package_gov3'
+
+class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
 
     @classmethod
     def setup(self):
@@ -23,7 +31,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
-        form = self.get_package_create_form(package_form='gov3')
+        form = self.get_package_create_form(package_form=package_form)
         self.assert_formfield(form, 'Package--name', '')
         self.assert_formfield(form, 'Package--title', '')
         self.assert_not_formfield(form, 'Package--version', '')
@@ -50,7 +58,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov3')
+        form = self.get_package_edit_form(package.id, package_form=package_form)
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_not_formfield(form, prefix + 'external_reference')
@@ -70,11 +78,11 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form_restrict(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov3', restrict=1)
+        form = self.get_package_edit_form(package.id, package_form=package_form, restrict=1)
         prefix = 'Package-%s-' % package.id
         self.assert_not_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'notes', package.notes)
-        for key in ('name', 'national_statistic'):
+        for key in ('national_statistic', ):
             value = package.extras[key]
             self.assert_not_formfield(form, prefix + key, value)
         
@@ -84,7 +92,7 @@ class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
 class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
 
 
-class EmbeddedFormTestCase(BaseFormsApiCase):
+class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     '''Tests the form as it would be used embedded in dgu html.'''
 
     def setup(self):
@@ -96,7 +104,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         self.extra_environ = {
             'Authorization' : str(test_user.apikey)
         }
-        
+        self.form = package_form
 
     def teardown(self):
         self.fixtures.delete()
@@ -132,10 +140,10 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
     def test_submit_package_create_form_valid(self):
         package_name = u'new_name'
         assert not self.get_package_by_name(package_name)
-        form = self.get_package_create_form(package_form='gov3')
-        res = self.post_package_create_form(form=form, package_form='gov3', name=package_name, published_by='National Health Service [NHS]', published_via='Department of Energy and Climate Change [DECC]', license_id='gfdl', notes='def', title='efg')
+        form = self.get_package_create_form(package_form=self.form)
+        res = self.post_package_create_form(form=form, package_form=self.form, name=package_name, published_by='National Health Service [NHS]', published_via='Department of Energy and Climate Change [DECC]', license_id='gfdl', notes='def', title='efg')
         self.assert_header(res, 'Location')
-        assert not json.loads(res.body)
+        assert (not res.body) or (not json.loads(res.body))
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
         pkg = self.get_package_by_name(package_name)
         assert pkg
@@ -144,12 +152,9 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, package_form='gov3')
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov3')
-        # TODO work out if we need the Location header or not
-#        self.assert_header(res, 'Location')
-        assert not json.loads(res.body), res.body
-#        self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
+        form = self.get_package_edit_form(pkg.id, package_form=self.form)
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form=self.form)
+        assert (not res.body) or (not json.loads(res.body)), res.body
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
 
@@ -157,11 +162,11 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, package_form='gov3', restrict=1)
+        form = self.get_package_edit_form(pkg.id, package_form=self.form, restrict=1)
         prefix = 'Package-%s-' % pkg.id
         self.assert_not_formfield(form, prefix + 'name', pkg.name)
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov3', restrict=1)
-        assert not json.loads(res.body), res.body
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form=self.form, restrict=1)
+        assert (not res.body) or (not json.loads(res.body)), res.body
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
 
@@ -175,7 +180,7 @@ class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
 
 class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
 
-class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
+class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase, MockDrupalCase):
     @classmethod
     def setup(self):
         self.user_name = u'tester1'
@@ -194,7 +199,7 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
 
     def test_edit_coverage(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov3')
+        form = self.get_package_edit_form(package.id, package_form=package_form)
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'geographic_coverage-england', None)
@@ -205,8 +210,8 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
             'geographic_coverage-scotland':True,
             'geographic_coverage-wales':True,
             }
-        res = self.post_package_edit_form(package.id, form=form, package_form='gov3', **fields)
-        assert not json.loads(res.body)
+        res = self.post_package_edit_form(package.id, form=form, package_form=package_form, **fields)
+        assert (not res.body) or (not json.loads(res.body)), res.body
 
         package = self.get_package_by_name(self.package_name)
         self.assert_equal(package.extras['geographic_coverage'], '111000: Great Britain (England, Scotland, Wales)')

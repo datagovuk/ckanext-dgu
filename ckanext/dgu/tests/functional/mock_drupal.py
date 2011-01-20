@@ -7,7 +7,7 @@ def get_mock_drupal_config():
         'rpc_host': 'localhost',
         'rpc_port': 8000,
         'test_users': {'62': {'name': 'testname',
-                              'publishers': test_publishers}
+                              'publishers': test_publishers.items()}
                        },
         }
 
