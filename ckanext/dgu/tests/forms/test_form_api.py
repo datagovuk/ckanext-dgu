@@ -1,8 +1,17 @@
 from pylons import config
 import webhelpers
 import re
+from nose.tools import assert_equal
 
 from ckan.tests import *
+# import of ckan.tests changes config, so set for these tests here
+local_config = [
+    ('dgu.xmlrpc_username', 'testuser'),
+    ('dgu.xmlrpc_password', 'testpassword'),
+    ('dgu.xmlrpc_domain', 'localhost:5000'),
+    ]
+config.update(local_config)
+
 from ckan.tests import search_related
 import ckan.model as model
 import ckan.authz as authz
@@ -15,13 +24,30 @@ ACCESS_DENIED = [403]
 
 # Todo: Test for access control setup. Just checking an object exists in the model doesn't mean it will be presented through the WebUI.
 
-from ckan.tests.functional.api.test_model import ApiControllerTestCase
+from ckan.tests.functional.api.test_model import ApiTestCase
 from ckan.tests.functional.api.test_model import Api1TestCase
 from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
 
-class BaseFormsApiCase(ModelMethods, ApiControllerTestCase):
-    '''Pythonic wrapper for the Forms API, for testing it.'''
+from ckanext.dgu.forms.formapi import FormController
+from ckanext.dgu.tests import WsgiAppCase, test_publishers
+
+class TestDrupalConnection(WsgiAppCase):
+    def test_get_url(self):
+        assert config['dgu.xmlrpc_domain']
+        url = FormController._get_drupal_xmlrpc_url()
+        assert_equal(url, 'http://testuser:testpassword@testdomain/services/xmlrpc')
+
+    def test_get_user_properties(self):
+        test_user_id = '669'
+        user = FormController._get_drupal_user_properties(test_user_id)
+        assert user
+        assert isinstance(user, dict)
+        assert_equal(user['name'], 'test_name')
+        assert_equal(user['publishers'], test_publishers)
+
+class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase):
+    '''Utilities and pythonic wrapper for the Forms API for testing it.'''
     
     api_version = ''
     def split_form_args(self, kwargs):
@@ -201,7 +227,7 @@ class BaseFormsApiCase(ModelMethods, ApiControllerTestCase):
         assert (not response.body) or (not json.loads(response.body))
 
 
-class FormsApiTestCase(BaseFormsApiCase):
+class FormsApiTestCase(BaseFormsApiCase, TestCase):
     def setup(self):
         model.repo.init_db(conditional=True)
         CreateTestData.create()

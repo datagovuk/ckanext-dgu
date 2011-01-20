@@ -1,4 +1,21 @@
+import os
+
+import paste.fixture
+from paste.deploy import appconfig
+from pylons import config
+
+from ckan import __file__ as ckan_file
+from ckan.config.middleware import make_app
 from ckan.lib.create_test_data import CreateTestData
+
+class WsgiAppCase(object):
+    ckan_config_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(ckan_file)), '..'))
+    config = appconfig('config:test.ini', relative_to=ckan_config_dir)
+    local_config = [('ckan.plugins', 'dgu_form_api form_api_tester mock_drupal'),]
+    config.local_conf.update(local_config)
+    config.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester mock_drupal'
+    wsgiapp = make_app(config.global_conf, **config.local_conf)
+    app = paste.fixture.TestApp(wsgiapp)
 
 class PackageFixturesBase:
     def create(self, **kwargs):

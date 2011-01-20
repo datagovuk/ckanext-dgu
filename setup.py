@@ -30,6 +30,7 @@ setup(
         [ckan.plugins]
         dgu_form_api = ckanext.dgu.forms.formapi:FormApi
         form_api_tester = ckanext.dgu.tests.functional.form_api_tester:FormApiTester
+        mock_drupal = ckanext.dgu.tests.functional.mock_drupal:MockDrupal
         
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load

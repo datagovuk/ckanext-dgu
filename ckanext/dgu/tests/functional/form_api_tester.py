@@ -5,9 +5,10 @@ from webob.multidict import MultiDict
 
 from ckan import model
 from ckan.lib.helpers import literal, select, json
-from ckan.controllers.form import FormController
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
+
+from ckanext.dgu.forms.formapi import FormController
 
 class FormApiTester(SingletonPlugin):
     implements(IRoutes, inherit=True)

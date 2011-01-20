@@ -2,24 +2,17 @@ import os
 
 from pylons import config
 from nose.tools import assert_equal
-from paste.deploy import appconfig
 import paste.fixture
 
 from ckan import plugins
-from ckan import __file__ as ckan_file
 from ckan.lib.create_test_data import CreateTestData
-from ckan.config.middleware import make_app
+
+from ckanext.dgu.tests import WsgiAppCase
 from ckanext.dgu.tests.functional.form_api_tester import *
 
-config_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(ckan_file)), '..'))
-
-class TestFormApiTester:
+class TestFormApiTester(WsgiAppCase):
     @classmethod
     def setup_class(cls):
-        config = appconfig('config:test.ini', relative_to=config_dir)
-        config.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester'
-        wsgiapp = make_app(config.global_conf, **config.local_conf)
-        cls.app = paste.fixture.TestApp(wsgiapp)
         CreateTestData.create()
 
     @classmethod
