@@ -1,3 +1,5 @@
+import logging
+
 import paste.script
 
 def get_mock_drupal_config():
@@ -20,6 +22,7 @@ class Command(paste.script.command.Command):
     default_verbosity = 1
     group_name = 'ckanext-dgu'
     summary = __doc__.split('\n')[0]
+    log = logging.getLogger(__name__)
 
     def command(self):
         cmd = self.args[0]
@@ -51,7 +54,6 @@ class Command(paste.script.command.Command):
         server.register_instance(MyFuncs(), allow_dotted_names=True)
 
         # Run the server's main loop
-        print 'Serving on http://%s:%s%s' % (config['rpc_host'],
-                                             config['rpc_port'],
-                                             config['rpc_path'])
+        self.log.info('Serving on http://%s:%s%s',
+                      (config['rpc_host'], config['rpc_port'], config['rpc_path']))
         server.serve_forever()

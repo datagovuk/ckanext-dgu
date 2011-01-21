@@ -10,7 +10,7 @@ from ckan.plugins.core import SingletonPlugin, implements
 from ckan.plugins.interfaces import IRoutes
 from ckan.lib.base import *
 from ckan.lib.helpers import json
-import ckan.forms
+from ckanext.dgu.forms import harvest_source as harvest_source_form
 import ckan.controllers.package
 from ckan.lib.package_saver import WritePackageFromBoundFieldset
 from ckan.lib.package_saver import ValidationException
@@ -375,7 +375,7 @@ class BaseFormController(BaseApiController):
     def harvest_source_create(self):
         try:
             # Get the fieldset.
-            fieldset = ckan.forms.get_harvest_source_fieldset()
+            fieldset = harvest_source_form.get_harvest_source_fieldset()
             if request.method == 'GET':
                 # Render the fields.
                 fieldset_html = fieldset.render()
@@ -434,7 +434,7 @@ class BaseFormController(BaseApiController):
             entity = self._get_harvest_source(id)
             self._assert_is_found(entity)
             # Get the fieldset.
-            fieldset = ckan.forms.get_harvest_source_fieldset()
+            fieldset = harvest_source_form.get_harvest_source_fieldset()
             if request.method == 'GET':
                 # Bind entity to fieldset.
                 bound_fieldset = fieldset.bind(entity)
