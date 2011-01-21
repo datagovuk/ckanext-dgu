@@ -466,14 +466,14 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
-        assert "Url: Please enter a value" in res.body, res.body
+        assert "Location (required): Please enter a value" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
         source_url = u' ' # Not '^http://'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
-        assert "Url: Harvest source URL is invalid" in res.body, res.body
+        assert "Location (required): Harvest source URL is invalid" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
     def test_get_harvest_source_edit_form(self):
@@ -511,7 +511,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         res = self.post_harvest_source_edit_form(self.harvest_source.id, url=alt_source_url, status=[400])
         assert self.get_harvest_source_by_url(source_url, None)
         self.assert_not_header(res, 'Location')
-        assert "Url: Please enter a value" in res.body, res.body
+        assert "Location (required): Please enter a value" in res.body, res.body
 
 
 class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
