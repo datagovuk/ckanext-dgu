@@ -13,7 +13,8 @@ from ckan.tests.lib.test_spreadsheet_importer import CKAN_SRC_DIR, CSV_EXTENSION
 from ckanext.dgu.tests import PackageDictUtil
 from ckanext.dgu.cospread.cospread import MultipleCospreadDataRecords, CospreadImporter
 
-EXAMPLES_DIR = '../dgu/ckanext/dgu/tests/cospread/samples'
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+EXAMPLES_DIR = os.path.join(TEST_DIR, 'samples')
 EXAMPLE_FILEBASE = 'cospread'
 
 examples = ExampleFiles(EXAMPLES_DIR, EXAMPLE_FILEBASE)
@@ -301,8 +302,10 @@ class TestImport:
     @classmethod
     def setup_class(self):
         self._filepath = examples.get_spreadsheet_filepath('1', CSV_EXTENSION)
+        CospreadImporter.clear_log()
         self.importer = CospreadImporter(include_given_tags=False, filepath=self._filepath)
         self.pkg_dicts = [pkg_dict for pkg_dict in self.importer.pkg_dict()]
+        self.import_log = [log_item for log_item in self.importer.get_log()]
 
     def test_0_name_munge(self):
         def test_name_munge(name, expected_munge):
@@ -314,21 +317,44 @@ class TestImport:
         test_name_munge('ni-198q-children-travelling-to-school-mode-of-transport-usually-used-pupils-aged-5-16-by-cycling', 'ni-198q-children-travelling-to-school-mode-of-transport-usually-used-pupils-aged-5-16-by-cycling')
         test_name_munge('a'*105, 'a'*100)
 
-    def test_0_munge(self):
+    def test_1_munge(self):
         def test_munge(name, expected_munge):
             munge = self.importer.munge(name)
             assert munge == expected_munge, 'Got %s not %s' % (munge, expected_munge)        
         test_munge('a$b cD:e f-g%  h', 'ab-cd-e-f-g-h')
 
-    def test_1_record_2_package(self):
+    def test_2_license(self):
+        for license_str, expected_license_id, expected_notes in [
+            ('UK Open Government Licence (OGL)', 'uk-ogl', None),
+            ('UK Crown Copyright', 'uk-ogl', None),
+            ('UK Crown Copyright with data.gov.uk rights', 'uk-ogl', None),
+            ('Any Rubbish', 'uk-ogl', None),
+            ('Met Office licence', 'met-office-cp', None),
+            ('Met Office UK Climate Projections Licence Agreement', 'met-office-cp', None),
+            ('UK Open Government Licence (OGL); Met Office licence', 'uk-ogl', '\n\nLicence detail: UK Open Government Licence (OGL); Met Office licence')
+            ]:
+            license_id, notes = self.importer.get_license_id(license_str)
+            assert license_id == expected_license_id, \
+                   '%r -> %r but should be -> %r' % \
+                   (license_str, license_id, expected_license_id)
+            assert notes == expected_notes, \
+                   '%r gives notes %r but should be %r' % \
+                   (license_str, notes, expected_notes)
+
+    def test_3_log(self):
+        log = self.import_log
+        assert log[0].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[0]
+        assert log[1].startswith("WARNING: URL doesn't start with http: test.html"), log[1]
+        assert log[2].startswith("WARNING: URL doesn't start with http: test.json"), log[2]
+        assert_equal(len(log), 3, log)
+
+    def test_4_record_2_package(self):
+        self.importer.clear_log()
         pkg_dict = self.importer.record_2_package(example_record)
 
         log = self.importer.get_log()
         assert log[0].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[0]
-        assert log[1].startswith("WARNING: URL doesn't start with http: test.html"), log[1]
-        assert log[2].startswith("WARNING: URL doesn't start with http: test.json"), log[2]
-        assert log[3].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[3]
-        assert_equal(len(log), 4, log)
+        assert_equal(len(log), 1, log)
 
         PackageDictUtil.check_dict(pkg_dict, example_pkg_dict)
         expected_keys = set([key for key, value in example_pkg_dict.items()])
@@ -336,7 +362,7 @@ class TestImport:
         key_difference = expected_keys - keys
         assert not key_difference, key_difference
 
-    def test_2_overall_import(self):
+    def test_5_overall_import(self):
         pkg_dict = self.importer.record_2_package(example_record)
         assert_equal(self.pkg_dicts[0], pkg_dict)
 
@@ -345,24 +371,27 @@ class TestImportClg():
     @classmethod
     def setup_class(self):
         self._filepath = examples.get_spreadsheet_filepath('-clg', XL_EXTENSION)
+        CospreadImporter.clear_log()
         self.importer = CospreadImporter(include_given_tags=True, filepath=self._filepath)
         self.pkg_dicts = [pkg_dict for pkg_dict in self.importer.pkg_dict()]
+        self.import_log = [log_item for log_item in self.importer.get_log()]
 
-    def test_all_sheets_found(self):
+    def test_0_all_sheets_found(self):
         assert len(self.pkg_dicts) == 3
 
-    def test_include_given_tags(self):
+    def test_1_include_given_tags(self):
         assert 'housing-and-planning-view-indicator-places' in self.pkg_dicts[0]['tags'], self.pkg_dicts[0]['tags']
-
-    def test_1_record_2_package(self):
-        pkg_dict = self.importer.record_2_package(clg_record)
-
-        log = self.importer.get_log()
+        
+    def test_3_log(self):
+        log = self.import_log
         assert log[0].startswith("WARNING: Value for column 'Geographical Granularity' of 'Local Authority (District)'"), log[0]
         assert log[1].startswith("WARNING: Value for column 'Geographical Granularity' of 'Super Output Area'"), log[1]
         assert log[2].startswith("WARNING: Value for column 'Geographical Granularity' of 'Local Authority District (LAD), County/Unitary Authority, Government Office Region (GOR), National'"), log[2]
-        assert log[3].startswith("WARNING: Value for column 'Geographical Granularity' of 'Local Authority (District)' is not in suggestions"), log[3]
-        assert_equal(len(log), 4, log)
+        assert_equal(len(log), 3, log)
+
+    def test_4_record_2_package(self):
+        self.importer.clear_log()
+        pkg_dict = self.importer.record_2_package(clg_record)
 
         PackageDictUtil.check_dict(pkg_dict, clg_pkg_dict)
         expected_keys = set([key for key, value in clg_pkg_dict.items()])
@@ -370,6 +399,6 @@ class TestImportClg():
         key_difference = expected_keys - keys
         assert not key_difference, key_difference
 
-    def test_2_overall_import(self):
+    def test_5_overall_import(self):
         pkg_dict = self.importer.record_2_package(clg_record)
         assert_equal(self.pkg_dicts[0]['name'], pkg_dict['name'])

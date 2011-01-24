@@ -1,35 +1,43 @@
-from ckanext.command import Command
+import datetime
+
+from ckanext.api_command import ApiCommand
 from ckanext.dgu.ons.downloader import OnsData
 from ckanext.dgu.ons.importer import OnsImporter
 from ckanext.dgu.ons.loader import OnsLoader
 from ckanclient import CkanClient
 
-class Loader(Command):
-    parser = Command.StandardParser()
-    parser.add_option("-d", "--days",
-                      dest="days",
-                      default="7",
-                      help="Days to fetch data (default: 7)")
-    parser.add_option("-u", "--url",
-                      dest="api_url",
-                      default="http://test.ckan.net/api",
-                      help="API URL (default: http://test.ckan.net/api)")
-    parser.add_option("-k", "--key",
-                      dest="api_key",
-                      help="API Key (required)")
+class OnsLoaderCmd(ApiCommand):
+    def add_options(self):
+        self.parser.add_option("-d", "--days",
+                               dest="days",
+                               help="Days to fetch data (e.g. 7) (period is up to today, unless start-date or end-date specified)")
+        self.parser.add_option("-s", "--start-date",
+                               dest="start_date",
+                               help="Date of start of period to fetch data (e.g. 2008-6-25)")
+        self.parser.add_option("-e", "--end-date",
+                               dest="end_date",
+                               help="Date of end of period to fetch data (e.g. 2008-6-25)")
+        
+    def parse_date(self, date_str):
+        return datetime.date(*[int(date_chunk) for date_chunk in date_str.split('-')])
+    
     def command(self):
-        days = int(self.options.days)
-        api_url = self.options.api_url
-        api_key = self.options.api_key
-        if not api_key:
-            self.parser.error('Please specify an API Key')
+        super(OnsLoaderCmd, self).command()
 
-        data_filepath = OnsData.download_recent(days=days)
+        if self.options.days:
+            self.options.days = int(self.options.days)
+        if self.options.start_date:
+            self.options.start_date = self.parse_date(self.options.start_date)
+        if self.options.end_date:
+            self.options.end_date = self.parse_date(self.options.end_date)
+        data_filepath = OnsData.download_flexible(
+            days=self.options.days,
+            start_date=self.options.start_date,
+            end_date=self.options.end_date)
         importer = OnsImporter(filepath=data_filepath)
-        client = CkanClient(base_location=api_url, api_key=api_key)
-        loader = OnsLoader(client)
+        loader = OnsLoader(self.client)
 
         loader.load_packages(importer.pkg_dict())
 
 def load():
-    Loader().command()
+    OnsLoaderCmd().command()

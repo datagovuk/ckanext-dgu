@@ -6,51 +6,71 @@ from sqlalchemy.util import OrderedDict
 
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.loader import OnsLoader
-from ckanext.tests.test_loader import TestLoaderBase
+from ckanext.tests.test_loader import TestLoaderBase, USER
 from ckan import model
 from ckan.tests import *
+from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
-SAMPLE_FILEPATH_1 = os.path.join(SAMPLE_PATH, 'ons_hub_sample.xml')
-SAMPLE_FILEPATH_2 = os.path.join(SAMPLE_PATH, 'ons_hub_sample2.xml')
-SAMPLE_FILEPATH_3 = os.path.join(SAMPLE_PATH, 'ons_hub_sample3')
-SAMPLE_FILEPATH_4 = os.path.join(SAMPLE_PATH, 'ons_hub_sample4.xml')
-SAMPLE_FILEPATH_4a = os.path.join(SAMPLE_PATH, 'ons_hub_sample4a.xml')
-SAMPLE_FILEPATH_4b = os.path.join(SAMPLE_PATH, 'ons_hub_sample4b.xml')
-SAMPLE_FILEPATH_5 = os.path.join(SAMPLE_PATH, 'ons_hub_sample5.xml')
-SAMPLE_FILEPATH_6 = os.path.join(SAMPLE_PATH, 'ons_hub_sample6.xml')
-SAMPLE_FILEPATH_7 = os.path.join(SAMPLE_PATH, 'ons_hub_sample7.xml')
-SAMPLE_FILEPATH_8 = os.path.join(SAMPLE_PATH, 'ons_hub_sample8.xml')
+SAMPLE_FILEPATH_TEMPLATE = os.path.join(SAMPLE_PATH, 'ons_hub_sample%s.xml')
+def sample_filepath(id):
+    return SAMPLE_FILEPATH_TEMPLATE % id
 
 
 class TestOnsLoadBasic(TestLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadBasic, self).setup_class()
-        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
+        importer_ = importer.OnsImporter(sample_filepath(''))
         self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
 
-        loader = OnsLoader(self.testclient)
-        self.res = loader.load_packages(self.pkg_dicts)
+        self.loader = OnsLoader(self.testclient)
+        self.res = self.loader.load_packages(self.pkg_dicts)
         assert self.res['num_errors'] == 0, self.res
         CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in self.pkg_dicts])
 
     def test_0_search_options(self):
-        loader = OnsLoader(self.testclient)
         field_keys = ['title', 'department']
 
         pkg_dict = {'title':'titleA',
                     'extras':{'department':'Department for Children, Schools and Families'}}
-        opts = loader._get_search_options(field_keys, pkg_dict)
+        opts = self.loader._get_search_options(field_keys, pkg_dict)
         assert_equal(opts, [{'department': 'Department for Children, Schools and Families', 'title': 'titleA'}, {'department': 'Department for Education', 'title': 'titleA'}])
 
         pkg_dict = {'title':'titleA',
                     'extras':{'department':'',
                               'agency':'SomeAgency'}}
-        opts = loader._get_search_options(field_keys, pkg_dict)
+        opts = self.loader._get_search_options(field_keys, pkg_dict)
         assert_equal(opts, [{'agency':'SomeAgency', 'title': 'titleA'}])
+
+    def test_1_hub_id_extraction(self):
+        def assert_id(description, expected_id):
+            resource = {'description':description}
+            result = self.loader._get_hub_id(resource)
+            assert_equal(result, expected_id)
+        assert_id("April 2009 data: Experimental Statistics | hub/id/119-46440",
+                  "119-46440")
+
+    def test_2_date_choose(self):
+        def assert_id(date1, date2, earlier_or_later, expected_date_index):
+            dates = (date1, date2)
+            pkg0 = {'extras':{'date': date1}}
+            result = self.loader._choose_date(pkg0, date2,
+                                              earlier_or_later,
+                                              'date')
+            if not expected_date_index:
+                assert_equal(result, expected_date_index)
+            else:
+                assert_equal(result, dates[expected_date_index - 1])
+        assert_id('2010-12-01', '2010-12-02', 'earlier', 1)
+        assert_id('2010-12-01', '2010-12-02', 'later', 2)
+        assert_id('2010-12-02', '2010-12-01', 'earlier', 2)
+        assert_id('2010-12-02', '2010-12-01', 'later', 1)
+        assert_id('', '2010-12-02', 'earlier', 2)
+        assert_id('2010-12-01', '', 'later', 1)
+        assert_id('', '', 'earlier', None)
 
     def test_fields(self):
         q = model.Session.query(model.Package)
@@ -113,8 +133,8 @@ class TestOnsLoadTwice(TestLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadTwice, self).setup_class()
-        # SAMPLE_FILEPATH_2 has the same packages as 1, but slightly updated
-        for filepath in [SAMPLE_FILEPATH_1, SAMPLE_FILEPATH_2]:
+        # sample_filepath(2 has the same packages as 1, but slightly updated
+        for filepath in [sample_filepath(''), sample_filepath(2)]:
             importer_ = importer.OnsImporter(filepath)
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
             loader = OnsLoader(self.testclient)
@@ -139,7 +159,7 @@ class TestOnsLoadClashTitle(TestLoaderBase):
         # ons items have been split into 3 files, because search needs to
         # do indexing in between
         for suffix in 'abc':
-            importer_ = importer.OnsImporter(SAMPLE_FILEPATH_3 + suffix + '.xml')
+            importer_ = importer.OnsImporter(sample_filepath('3' + suffix))
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
             loader = OnsLoader(self.testclient)
             self.res = loader.load_packages(pkg_dicts)
@@ -152,8 +172,8 @@ class TestOnsLoadClashTitle(TestLoaderBase):
         assert pkg.extras.get('department') == 'UK Statistics Authority', pkg.extras.get('department')
         assert 'Office for National Statistics' in pkg.notes, pkg.notes
         assert len(pkg.resources) == 2, pkg.resources
-        assert '2007 Results Phase 3 Tables' in pkg.resources[0].description, pkg.resources
-        assert '2007 Pensions Results' in pkg.resources[1].description, pkg.resources
+        assert '2007 Results Phase 3 Tables' in pkg.resources[1].description, pkg.resources
+        assert '2007 Pensions Results' in pkg.resources[0].description, pkg.resources
 
     def test_welsh_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings_')
@@ -180,7 +200,7 @@ class TestOnsLoadClashSource(TestLoaderBase):
                  },
              }
             ])
-        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_1)
+        importer_ = importer.OnsImporter(sample_filepath(''))
         CreateTestData.flag_for_deletion(self.clash_name)
         pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
         loader = OnsLoader(self.testclient)
@@ -198,13 +218,15 @@ class TestOnsLoadSeries(TestLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadSeries, self).setup_class()
-        for filepath in [SAMPLE_FILEPATH_4a, SAMPLE_FILEPATH_4b]:
+        for filepath in [sample_filepath('4a'), sample_filepath('4b')]:
             importer_ = importer.OnsImporter(filepath)
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
             for pkg_dict in pkg_dicts:
                 assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
                 assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
                 assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
+                assert '2010-08-' in pkg_dict['extras']['date_released'], pkg_dict
+                assert pkg_dict['extras']['date_updated'] == '', pkg_dict
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
@@ -216,6 +238,8 @@ class TestOnsLoadSeries(TestLoaderBase):
         assert pkg.title == 'Regional Labour Market Statistics', pkg.title
         assert pkg.extras['agency'] == 'Office for National Statistics', pkg.extras['agency']
         assert len(pkg.resources) == 9, pkg.resources
+        assert_equal(pkg.extras['date_released'], '2010-08-10')
+        assert_equal(pkg.extras['date_updated'], '2010-08-13')
 
 class TestOnsLoadMissingDept(TestLoaderBase):
     # existing package to be updated has no department given (previously
@@ -237,7 +261,7 @@ class TestOnsLoadMissingDept(TestLoaderBase):
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
         # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_5)
+        importer_ = importer.OnsImporter(sample_filepath(5))
         self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
         loader = OnsLoader(self.testclient)
         self.res = loader.load_package(self.pkg_dict)
@@ -254,7 +278,7 @@ class TestNationalParkDuplicate(TestLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestNationalParkDuplicate, self).setup_class()
-        filepath = SAMPLE_FILEPATH_6
+        filepath = sample_filepath(6)
         importer_ = importer.OnsImporter(filepath)
         pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
         self.name = u'national_park_parliamentary_constituency_and_ward_level_mid-year_population_estimates_experimental'
@@ -313,7 +337,7 @@ class TestDeathsOverwrite(TestLoaderBase):
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
         # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_7)
+        importer_ = importer.OnsImporter(sample_filepath(7))
         self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
         loader = OnsLoader(self.testclient)
         print self.pkg_dict
@@ -367,10 +391,12 @@ class TestAgencyFind(TestLoaderBase):
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
         # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(SAMPLE_FILEPATH_8)
+        importer_ = importer.OnsImporter(sample_filepath(8))
         self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
         loader = OnsLoader(self.testclient)
         print self.pkg_dict
+        # load package twice, to ensure reload works too
+        self.res = loader.load_package(self.pkg_dict)
         self.res = loader.load_package(self.pkg_dict)
         self.name = self.orig_pkg_dict['name']
         self.num_resources_originally = len(self.orig_pkg_dict['resources'])
@@ -381,3 +407,96 @@ class TestAgencyFind(TestLoaderBase):
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert_equal(len(pkg.resources), self.num_resources_originally + 1)
+
+    def test_resources_sorted(self):
+        pkg = model.Package.by_name(self.name)
+        hub_ids = [int(res.description.split('-')[-1]) for res in pkg.resources]
+        assert_equal(hub_ids, sorted(hub_ids))
+
+
+class TestDeletedDecoyWhenAdmin(TestLoaderBase):
+    @classmethod
+    def setup_class(self):
+        super(TestDeletedDecoyWhenAdmin, self).setup_class()
+        self.tsi = TestSearchIndexer()
+        self.orig_pkg_dict = {
+            "name": u"quarterly_epidemiological_commentary",
+            "title": "Quarterly Epidemiological Commentary",
+            "version": None, "url": None, "author": None, "author_email": None, "maintainer": None, "maintainer_email": None,
+            "notes": "Epidemiological analyses of Mandatory surveillance data on MRSA bacteraemia and C. difficile infection covering at least nine quarters\r\nSource agency: Health Protection Agency\r\nDesignation: Official Statistics not designated as National Statistics\r\nLanguage: English\r\nAlternative title: Quarterly Epi Commentary",
+            "license_id": "uk-ogl",
+            "tags": ["conditions-and-diseases", "health", "health-and-social-care", "health-of-the-population", "nhs-trust-hcai-pct-mrsa-mrsa-bacteraemia-c-difficile-c-diff-clostridium-difficile-healthcare-associa", "well-being-and-care"],
+            "groups": ["ukgov"],
+            "extras": {
+                "geographic_coverage": "100000: England",
+                "geographical_granularity": "Other",
+                "external_reference": "ONSHUB",
+                "temporal_coverage-from": "",
+                "temporal_granularity": "",
+                "date_updated": "",
+                "agency": "Health Protection Agency",
+                "precision": "",
+                "geographic_granularity": "",
+                "temporal_coverage_to": "",
+                "temporal_coverage_from": "",
+                "taxonomy_url": "",
+                "import_source": "ONS-ons_data_7_days_to_2010-06-23",
+                "date_released": "2010-06-18",
+                "temporal_coverage-to": "",
+                "department": "Department of Health",
+                "update_frequency": "quarterly",
+                "national_statistic": "no",
+                "categories": "Health and Social Care"
+                },
+            "resources": []            
+            }
+        self.deleted_decoy_pkg_dict = {
+            "name": u"quarterly_epidemiological_commentary_-_none",
+            "title": "Quarterly Epidemiological Commentary",
+            "extras": {
+                "agency": "Health Protection Agency",
+                "department": "Department of Health",
+                },
+            }
+        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+        CreateTestData.create_arbitrary([self.deleted_decoy_pkg_dict],
+                                        extra_user_names=[u'testsysadmin'])
+
+        # make a sysadmin user
+        rev = model.repo.new_revision()
+        testsysadmin = model.User.by_name(u'testsysadmin')
+        model.add_user_to_role(testsysadmin, model.Role.ADMIN, model.System())
+
+        # delete decoy
+        decoy_pkg = model.Package.by_name(self.deleted_decoy_pkg_dict['name'])
+        assert decoy_pkg
+        decoy_pkg.delete()
+        model.repo.commit_and_remove()
+
+        self.tsi.index()
+
+        # same data is imported, but should find record and add department
+        importer_ = importer.OnsImporter(sample_filepath(9))
+        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+
+    @classmethod
+    def teardown(self):
+        pass
+
+    def test_load(self):
+        user = model.User.by_name(u'testsysadmin')
+        assert user
+        testclient_admin = WsgiCkanClient(self.app, api_key=user.apikey)
+        loader = OnsLoader(testclient_admin)
+        print self.pkg_dict
+        self.res = loader.load_package(self.pkg_dict)
+        self.name = self.orig_pkg_dict['name']
+        self.decoy_name = self.deleted_decoy_pkg_dict['name']
+        self.num_resources_originally = len(self.orig_pkg_dict['resources'])
+
+        names = [pkg.name for pkg in model.Session.query(model.Package).all()]
+        assert_equal(set(names), set((self.name, self.decoy_name)))
+        pkg = model.Package.by_name(self.name)
+        assert pkg
+        assert_equal(len(pkg.resources), self.num_resources_originally + 1)
+

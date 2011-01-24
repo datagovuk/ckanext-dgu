@@ -1,7 +1,7 @@
 import copy
 
 from ckan import model
-from common import ScriptError
+from common import ScriptError, remove_readonly_fields
 
 log = __import__("logging").getLogger(__name__)
 
@@ -191,13 +191,7 @@ class MassChanger(object):
             if self.ckanclient.last_status != 200:
                 raise ScriptError('Could not get package ID %s: %r' % \
                       (pkg_ref, self.ckanclient.last_status))
-            # get rid of read-only fields if they exist
-            for read_only_field in ('id', 'relationships', 'ratings_average',
-                                    'ratings_count', 'ckan_url',
-                                    'metadata_modified',
-                                    'metadata_created'):
-                if pkg.has_key(read_only_field):
-                    del pkg[read_only_field]
+            remove_readonly_fields(pkg)
             self._pkg_cache[pkg_ref] = pkg
         return self._pkg_cache[pkg_ref]
                            

@@ -11,7 +11,8 @@ from ckanext.dgu.bis.bis import BisImporter
 from ckanext.dgu.tests import PackageDictUtil
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 
-SAMPLES_DIR = '../dgu/ckanext/dgu/tests/bis/samples'
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+SAMPLES_DIR = os.path.join(TEST_DIR, 'samples')
 BIS_1_FILEBASE = os.path.abspath(os.path.join(config['here'], SAMPLES_DIR, 'bis1'))
 XL_EXTENSION = '.xls'
 

@@ -147,17 +147,23 @@ class MultipleCospreadDataRecords(MultipleSpreadsheetDataRecords):
 
 
 class CospreadImporter(SpreadsheetPackageImporter):
-    def __init__(self, include_given_tags=False, **kwargs):
-        self.include_given_tags = include_given_tags
-        self.license_map = {
+    license_map = {
             u'UK Crown Copyright with data.gov.uk rights':u'uk-ogl',
             u'\xa9 HESA. Not core Crown Copyright.':u'uk-ogl',
             u'Local Authority copyright with data.gov.uk rights':u'uk-ogl',
             u'Local Authority Copyright with data.gov.uk rights':u'uk-ogl',
             u'UK Crown Copyright':u'uk-ogl',
-            u'Crown Copyright':u'uk-ogl', }
+            u'Crown Copyright':u'uk-ogl',
+            u'UK Open Government Licence (OGL)':u'uk-ogl',
+            u'Met Office licence':u'met-office-cp',
+            u'Met Office UK Climate Projections Licence Agreement':u'met-office-cp',
+        }
+    
+    def __init__(self, include_given_tags=False, **kwargs):
+        self.include_given_tags = include_given_tags
         super(CospreadImporter, self).__init__(record_params=[], record_class=CospreadDataRecords, **kwargs)
 
+    @classmethod
     def log(self, msg):
         super(CospreadImporter, self).log(msg)
         log.warn(msg)
@@ -173,17 +179,9 @@ class CospreadImporter(SpreadsheetPackageImporter):
         pkg_dict['maintainer'] = row_dict['Maintainer - ']
         pkg_dict['maintainer_email'] = row_dict['Maintainer - E-mail address']
         notes = row_dict['Notes']
-        license_id = self.license_map.get(row_dict['Licence'].strip(), '')
-        if not license_id and ';' in row_dict['Licence']:
-            license_parts = row_dict['Licence'].split(';')
-            for i, license_part in enumerate(license_parts):
-                license_id = license_map.get(license_part.strip(), '')
-                if license_id:
-                    notes += '\n\nLicence detail: %s' % row_dict['Licence']
-                    break
-        if not license_id:
-            license_id = 'uk-ogl'
-            self.log('WARNING: license not recognised: "%s". Defaulting to: %s.' % (row_dict['Licence'], license_id))
+        license_id, additional_notes = self.get_license_id(row_dict['Licence'])
+        if additional_notes:
+            notes += additional_notes
         pkg_dict['license_id'] = license_id
         pkg_dict['url'] = self.tidy_url(row_dict['URL'])
         pkg_dict['notes'] = notes
@@ -226,7 +224,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 try:
                     val = field_types.DateType.form_to_db(form_value)
                 except field_types.DateConvertError, e:
-                    self.log("WARNING: Value for column '%s' of %r is not understood as a date format." % (column, form_value))
+                    cls.log("WARNING: Value for column '%s' of %r is not understood as a date format." % (column, form_value))
                     val = form_value
             extras_dict[extra_key] = val
             
@@ -300,6 +298,22 @@ class CospreadImporter(SpreadsheetPackageImporter):
         pkg_dict['tags'] = sorted(list(tags))
 
         return pkg_dict
+
+    @classmethod
+    def get_license_id(cls, license_name):
+        additional_notes = None
+        license_id = cls.license_map.get(license_name.strip(), '')
+        if not license_id and ';' in license_name:
+            license_parts = license_name.split(';')
+            for i, license_part in enumerate(license_parts):
+                license_id = cls.license_map.get(license_part.strip(), '')
+                if license_id:
+                    additional_notes = '\n\nLicence detail: %s' % license_name
+                    break
+        if not license_id:
+            license_id = 'uk-ogl'
+            cls.log('WARNING: license not recognised: "%s". Defaulting to: %s.' % (license_name, license_id))
+        return license_id, additional_notes
         
     @classmethod
     def munge(self, name):
@@ -320,15 +334,17 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 name = name[:max_length]
         return name
 
+    @classmethod
     def name_munge(self, input_name):
         '''Munges the name field in case it is not to spec.'''
         input_name = input_name.replace(' ', '').replace('.', '_').replace('&', 'and')
         return super(CospreadImporter, self).name_munge(input_name)
 
-    def tidy_url(self, url):
+    @classmethod
+    def tidy_url(cls, url):
         if url and not url.startswith('http') and not url.startswith('webcal:'):
             if url.startswith('www.'):
                 url = url.replace('www.', 'http://www.')
             else:
-                self.log("WARNING: URL doesn't start with http: %s" % url)
+                cls.log("WARNING: URL doesn't start with http: %s" % url)
         return url

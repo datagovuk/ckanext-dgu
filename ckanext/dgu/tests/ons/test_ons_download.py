@@ -1,4 +1,7 @@
 import os
+import datetime
+
+from nose.tools import assert_equal
 
 from ons_data_tester import OnsDataTester
 from ckanext.dgu.ons import downloader
@@ -25,6 +28,34 @@ class TestOnsData:
         res = ons_data._get_url_recent(days=7)
         assert res[0] == self.ons_url_base + '?lday=14&lmonth=06&lyear=2005&uday=21&umonth=06&uyear=2005', res[0]
         assert res[1] == '7_days_to_2005-06-21', res[1]
+
+    def test_get_url_recent_via_flexible(self):
+        ons_data = OnsDataTester()
+        res = ons_data._get_url_flexible(days=7)
+        assert res[0] == self.ons_url_base + '?lday=14&lmonth=06&lyear=2005&uday=21&umonth=06&uyear=2005', res[0]
+        assert res[1] == '7_days_to_2005-06-21', res[1]
+
+    def test_get_url_end_date(self):
+        ons_data = OnsDataTester()
+        res = ons_data._get_url_flexible(
+            days=7, end_date=datetime.date(2005, 6, 15))
+        assert_equal(res[0], self.ons_url_base + '?lday=08&lmonth=06&lyear=2005&uday=15&umonth=06&uyear=2005')
+        assert_equal(res[1], '7_days_to_2005-06-15')
+
+    def test_get_url_start_date(self):
+        ons_data = OnsDataTester()
+        res = ons_data._get_url_flexible(
+            days=7, start_date=datetime.date(2005, 6, 7))
+        assert_equal(res[0], self.ons_url_base + '?lday=07&lmonth=06&lyear=2005&uday=14&umonth=06&uyear=2005')
+        assert_equal(res[1], '7_days_from_2005-06-07')
+
+    def test_get_url_period(self):
+        ons_data = OnsDataTester()
+        res = ons_data._get_url_flexible(
+            start_date=datetime.date(2005, 6, 7),
+            end_date=datetime.date(2005, 6, 9))
+        assert_equal(res[0], self.ons_url_base + '?lday=07&lmonth=06&lyear=2005&uday=09&umonth=06&uyear=2005')
+        assert_equal(res[1], '2005-06-07_to_2005-06-09')
 
     def test_get_urls_for_all_time(self):
         ons_data = OnsDataTester()

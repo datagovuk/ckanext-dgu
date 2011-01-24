@@ -37,10 +37,14 @@ setup(
         change_licenses = ckanext.dgu.scripts.change_licenses_cmd:command
         transfer_url = ckanext.dgu.scripts.transfer_url_cmd:command
         ons_analysis = ckanext.dgu.scripts.ons_analysis_cmd:command
+        ofsted_fix = ckanext.dgu.scripts.ofsted_fix_cmd:command        
         publisher_migration = ckanext.dgu.scripts.publisher_migration:command
 
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
+
+        [curate.actions]
+        report=ckanext.dgu.curation:report
 
         [paste.paster_command]
         mock_drupal = ckanext.dgu.tests.functional.mock_drupal:Command

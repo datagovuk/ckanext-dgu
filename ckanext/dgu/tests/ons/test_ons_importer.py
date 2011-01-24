@@ -64,7 +64,70 @@ class TestOnsImporter:
             res_title, res_date = importer.OnsImporter._split_title(xml_title)
             assert_equal(title, res_title)
             assert_equal(date, res_date)
-    
+
+    def test_geo_coverage(self):
+        coverage_tests = [
+            ('UK', '111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
+            ('GB', '111000: Great Britain (England, Scotland, Wales)'),
+            ('England and Wales', '101000: England, Wales'),
+            ('England', '100000: England'),
+            ('Wales', '001000: Wales'),
+            ('Scotland', '010000: Scotland'),
+            ('Northern Ireland', '000100: Northern Ireland'),
+            ('International', '000001: Global'),
+            ]
+        for coverage_str, expected_coverage_db in coverage_tests:
+            coverage_db = importer.OnsImporter._parse_geographic_coverage(coverage_str)
+            assert_equal(coverage_db, expected_coverage_db)
+
+    def test_department_agency(self):
+        expected_results = [
+            # (hub:source-agency value, department, agency)
+            ('Information Centre for Health and Social Care', '', 'Information Centre for Health and Social Care'),
+            ('Business, Innovation and Skills', 'Department for Business, Innovation and Skills', ''),
+            ('Communities and Local Government', 'Department for Communities and Local Government', ''),
+            ('Culture, Arts and Leisure (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Defence', 'Ministry of Defence', ''),
+            ('Education', 'Department for Education', ''),
+            ('Employment and Learning (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Energy and Climate Change', 'Department of Energy and Climate Change', ''),
+            ('Enterprise, Trade and Investment (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Environment, Food and Rural Affairs', 'Department for Environment, Food and Rural Affairs', ''),
+            ('Environment (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Finance and Personnel (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Food Standards Agency', 'Food Standards Agency', ''),
+            ('Forestry Commission', 'Forestry Commission', ''),
+            ('General Register Office for Scotland', '', 'General Register Office for Scotland'),
+            ('Health, Social Service and Public Safety (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Health', 'Department of Health', ''),
+            ('Health and Safety Executive', '', 'Health and Safety Executive'),
+            ('Health Protection Agency', '', 'Health Protection Agency'),
+            ('HM Revenue and Customs', 'Her Majesty\'s Revenue and Customs', ''),
+            ('HM Treasury', 'Her Majesty\'s Treasury', ''),
+            ('Home Office', 'Home Office', ''),
+            ('Information Centre for Health and Social Care', '', 'Information Centre for Health and Social Care'),
+            ('International Development', 'Department for International Development', ''),
+            ('ISD Scotland (part of NHS National Services Scotland)', '', 'ISD Scotland (part of NHS National Services Scotland)'),
+            ('Justice', 'Ministry of Justice', ''),
+            ('National Treatment Agency', '', 'National Treatment Agency'),
+            ('NHS National Services Scotland', '', 'NHS National Services Scotland'),
+            ('Northern Ireland Statistics and Research Agency', '', 'Northern Ireland Statistics and Research Agency'),
+            ('Office for National Statistics', 'UK Statistics Authority', 'Office for National Statistics'),
+            ('Office of Qualifications and Examinations Regulation', '', 'Office of Qualifications and Examinations Regulation'),
+            ('Office of the First and Deputy First Minister', 'Northern Ireland Executive', ''),
+            ('Passenger Focus', '', 'Passenger Focus'),
+            ('Regional Development (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Scottish Government', 'Scottish Government', ''),
+            ('Social Development (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Transport', 'Department for Transport', ''),
+            ('Welsh Assembly Government', 'Welsh Assembly Government', ''),
+            ('Work and Pensions', 'Department for Work and Pensions', ''),
+            ]
+        for source_agency, expected_department, expected_agency in expected_results:
+            department, agency = importer.OnsImporter._source_to_department(source_agency)
+            assert_equal(department, expected_department or None)
+            assert_equal(agency, expected_agency or None)
+        
     def test_record_2_package(self):
         record = OrderedDict([
             (u'title', u'UK Official Holdings of International Reserves - December 2009'),

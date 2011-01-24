@@ -86,8 +86,7 @@ class OnsImporter(object):
         extras['department'] = department or u''
         extras['agency'] = agency or u''
         extras['categories'] = item['hub:theme']
-        geo_coverage_type = schema.GeoCoverageType.get_instance()
-        extras['geographic_coverage'] = geo_coverage_type.str_to_db(item['hub:coverage'])
+        extras['geographic_coverage'] = self._parse_geographic_coverage(item['hub:coverage'])
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
         extras['geographical_granularity'] = item['hub:geographic-breakdown']
         extras['external_reference'] = u'ONSHUB'
@@ -138,18 +137,33 @@ class OnsImporter(object):
 
         return pkg_dict
 
-    def _source_to_department(self, source):
+    @staticmethod
+    def _parse_geographic_coverage(coverage_str):
+        geo_coverage_type = schema.GeoCoverageType.get_instance()
+        coverage_str = coverage_str.replace('International', 'Global')
+        geographic_coverage_db = geo_coverage_type.str_to_db(coverage_str)
+        return geographic_coverage_db
+
+    @staticmethod
+    def _source_to_department(source):
         dept_given = schema.expand_abbreviations(source)
         department = None
         agency = None
-        if '(Northern Ireland)' in dept_given:
+
+        # special cases
+        if '(Northern Ireland)' in dept_given or dept_given == 'Office of the First and Deputy First Minister':
             department = u'Northern Ireland Executive'
         if dept_given == 'Office for National Statistics':
             department = 'UK Statistics Authority'
             agency = dept_given
-        for dept in schema.government_depts:
-            if dept_given in dept or dept_given.replace('Service', 'Services') in dept or dept_given.replace('Dept', 'Department') in dept:
-                department = unicode(dept)
+        if dept_given == 'Education':
+            department = 'Department for Education'
+
+        # search for department
+        if not department:
+            for dept in schema.government_depts:
+                if dept_given in dept or dept_given.replace('Service', 'Services') in dept or dept_given.replace('Dept', 'Department') in dept:
+                    department = unicode(dept)
                 
         if department:
             assert department in schema.government_depts, department
