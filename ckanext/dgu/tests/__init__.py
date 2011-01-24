@@ -147,7 +147,7 @@ class Gov3Fixtures(PackageFixturesBase):
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
         'geographic_coverage':u'100000: England',
-        'published_by':u'Department for Education [DfE]',
+        'published_by':u'Department for Education [3]',
         'published_via':u'',
         'temporal_granularity':u'year',
         'temporal_coverage-from':u'2008-6-24 12:30',
@@ -175,7 +175,7 @@ class Gov3Fixtures(PackageFixturesBase):
         'update_frequency':u'weekly',
         'geographic_granularity':u'national',
         'geographic_coverage':u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)',
-        'published_by':u'Department of Energy and Climate Change [DECC]',
+        'published_by':u'Department of Energy and Climate Change [4]',
         'published_via':u'',
         'temporal_granularity':u'weeks',
         'temporal_coverage-from':u'2008-11-24',
@@ -187,10 +187,10 @@ class Gov3Fixtures(PackageFixturesBase):
                 ]
         return self._pkgs
 
-test_publishers = {'NHS': 'National Health Service',
-                   'EPCT': 'Ealing PCT',
-                   'DfE': 'Department for Education',
-                   'DECC': 'Department of Energy and Climate Change',
+test_publishers = {'1': 'National Health Service',
+                   '2': 'Ealing PCT',
+                   '3': 'Department for Education',
+                   '4': 'Department of Energy and Climate Change',
                    }
 
 class PackageDictUtil(object):

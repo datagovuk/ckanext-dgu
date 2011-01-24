@@ -134,7 +134,7 @@ class BaseFormController(BaseApiController):
         else:
             fieldset_params = {
                 'user_name': unicode(user['name']),
-                'publishers': dict([(unicode(pub_id), unicode(pub_name)) for pub_id, pub_name in user['publishers']]),
+                'publishers': user['publishers'],
                 }
         return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
 

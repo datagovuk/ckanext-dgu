@@ -134,7 +134,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         package_name = u'new_name'
         assert not self.get_package_by_name(package_name)
         form = self.get_package_create_form(package_form=self.form)
-        res = self.post_package_create_form(form=form, package_form=self.form, name=package_name, published_by='National Health Service [NHS]', published_via='Department of Energy and Climate Change [DECC]', license_id='gfdl', notes='def', title='efg')
+        res = self.post_package_create_form(form=form, package_form=self.form, name=package_name, published_by='National Health Service [1]', published_via='Department of Energy and Climate Change [4]', license_id='gfdl', notes='def', title='efg')
         self.assert_header(res, 'Location')
         assert (not res.body) or (not json.loads(res.body))
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))

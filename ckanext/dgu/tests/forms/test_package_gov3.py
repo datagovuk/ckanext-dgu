@@ -81,7 +81,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             (fs.precision, 'Numbers to nearest 10, percentage to nearest whole number'),
             (fs.url, 'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/index.shtml'),
             (fs.taxonomy_url, '', ''),
-            (fs.published_by, 'Department for Education [DfE]', 'Department for Education'),
+            (fs.published_by, 'Department for Education [3]', 'Department for Education'),
             (fs.published_via, '', ''),
             (fs.author, 'DCSF Data Services Group'),
             (fs.author_email, 'statistics@dcsf.gsi.gov.uk'),
@@ -177,8 +177,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'national_statistic'] = u'True'
         indict[prefix + 'precision'] = u'Nearest 1000'
         indict[prefix + 'taxonomy_url'] = u'http:/somewhere/about.html'
-        indict[prefix + 'published_by'] = 'Ealing PCT [EPCT]'
-        indict[prefix + 'published_via'] = 'Department for Education [DfE]'
+        indict[prefix + 'published_by'] = 'Ealing PCT [2]'
+        indict[prefix + 'published_via'] = 'Department for Education [3]'
         indict[prefix + 'agency'] = u'Quango 1'
         indict[prefix + 'resources-0-url'] = u'http:/1'
         indict[prefix + 'resources-0-format'] = u'xml'
@@ -257,8 +257,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
               'national_statistic':'yes',
               'precision':'testprec',
               'taxonomy_url':'testtaxurl',
-              'published_by':'Ealing PCT [EPCT]',
-              'published_via':'Department for Education [DfE]',
+              'published_by':'Ealing PCT [2]',
+              'published_via':'Department for Education [3]',
               },
             }]
         CreateTestData.create_arbitrary(init_data)
@@ -284,8 +284,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'national_statistic'] = u'True'
         indict[prefix + 'precision'] = u'Nearest 1000'
         indict[prefix + 'taxonomy_url'] = u'http:/somewhere/about.html'
-        indict[prefix + 'published_by'] = u'Department of Energy and Climate Change [DECC]'
-        indict[prefix + 'published_via'] = u'National Health Service [NHS]'
+        indict[prefix + 'published_by'] = u'Department of Energy and Climate Change [4]'
+        indict[prefix + 'published_via'] = u'National Health Service [1]'
         indict[prefix + 'resources-0-url'] = u'http:/1'
         indict[prefix + 'resources-0-format'] = u'xml'
         indict[prefix + 'resources-0-description'] = u'test desc'
@@ -394,7 +394,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         prefix = 'Package--'
         indict[prefix + 'name'] = u'testname3'
         indict[prefix + 'title'] = u'Test'
-        indict[prefix + 'published_by'] = u'National Health Service [NHS]'
+        indict[prefix + 'published_by'] = u'National Health Service [1]'
         indict[prefix + 'notes'] = u'abcd'
         indict[prefix + 'license_id'] = u'abcde'
         indict[prefix + 'date_released'] = u'27/11/2008'

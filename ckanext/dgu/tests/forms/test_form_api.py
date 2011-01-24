@@ -41,7 +41,7 @@ class TestDrupalConnection(MockDrupalCase):
         assert user
         assert isinstance(user, dict)
         assert_equal(user['name'], expected_user['name'])
-        expected_publishers = [[pub_id, pub_name] for pub_id, pub_name in expected_user['publishers']]
+        expected_publishers = expected_user['publishers']
         assert_equal(user['publishers'], expected_publishers)
 
 class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods, MockDrupalCase):
