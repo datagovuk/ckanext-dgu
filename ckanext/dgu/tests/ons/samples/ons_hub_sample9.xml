@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+			
+			<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Tue, 07 Dec 2010 15:58:43 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+
+<item>
+<title>Quarterly Epidemiological Commentary - Mandatory MRSA bacteraemia and C. difficile infection data up to July-September 2010</title>
+<link>http://www.hpa.org.uk/web/HPAweb&amp;HPAwebStandard/HPAweb_C/1244763936373</link>
+<description>Epidemiological analyses of Mandatory surveillance data on MRSA bacteraemia and C. difficile infection</description>
+<pubDate>Fri, 17 Dec 2010 09:30:00 GMT</pubDate>
+<guid isPermaLink="false">http://www.statistics.gov.uk/hub/id/119-47211</guid>
+<hub:source-agency>Health Protection Agency</hub:source-agency>
+<hub:theme>Health and Social Care</hub:theme>
+<hub:coverage>England</hub:coverage>
+<hub:designation>Official Statistics not designated as National Statistics</hub:designation>
+<hub:geographic-breakdown>Other</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Health;well-being and care;Health;well-being and care</hub:ipsv>
+<hub:keywords>NHS, Trust, HCAI, PCT, MRSA, MRSA bacteraemia, C. difficile, C diff, Clostridium difficile, healthcare associated infections</hub:keywords>
+<hub:altTitle>Quarterly Epi Commentary</hub:altTitle>
+<hub:nscl>Health and Social Care;Health of the Population;Conditions and Diseases;Health and Social Care;Health of the Population;Conditions and Diseases</hub:nscl>
+</item>
+
+</channel>
+
+				
+		
+		</rss>
