@@ -1,10 +1,13 @@
 import re
 
+from nose.tools import assert_raises
+
 from pylons import config
 
 from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 from ckan.lib.create_test_data import CreateTestData
+from ckanext.dgu.forms.formapi import DrupalRequestError
 from ckanext.dgu.tests.forms.test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
 from ckanext.dgu.tests import *
 
@@ -113,10 +116,6 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
 
     def form_from_res(self, res):
         assert not "<html>" in str(res.body), "The response is an HTML doc, not just a form: %s" % str(res.body)
-
-##        res.body = self._insert_into_field_tag(res.body, 'name', 'input', 'class="disabled" readonly')
-##        res.body = self._insert_into_field_tag(res.body, 'department', 'select', 'disabled="disabled" readonly')
-##        res.body = self._insert_into_field_tag(res.body, 'national_statistic', 'input', 'disabled="disabled" readonly')
         res.body = '''
 <html>
   </body>
@@ -140,7 +139,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
         pkg = self.get_package_by_name(package_name)
         assert pkg
-        
+
     def test_submit_package_edit_form_valid(self):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
@@ -162,6 +161,18 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         assert (not res.body) or (not json.loads(res.body)), res.body
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
+
+    def test_package_create_form_invalid(self):
+        # user 99 doesn't exist
+        assert_raises(DrupalRequestError, self.get_package_create_form, \
+                      package_form=self.form, user_id='99')
+
+    def test_package_edit_form_invalid(self):
+        package_name = self.package_name
+        pkg = self.get_package_by_name(package_name)
+        # user 99 doesn't exist
+        assert_raises(DrupalRequestError, self.get_package_edit_form, \
+                      pkg.id, package_form=self.form, user_id='99')
 
     def test_create_package(self):
         res = self.get_package_create_form()

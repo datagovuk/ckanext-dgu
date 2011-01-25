@@ -2,7 +2,7 @@ import logging
 import sys
 import traceback
 import socket
-from xmlrpclib import ServerProxy
+from xmlrpclib import ServerProxy, Fault
 
 from pylons import config
 
@@ -117,6 +117,8 @@ class BaseFormController(BaseApiController):
             user = drupal.user.get(user_id)
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (xmlrpc_url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (user_id, e))
         log.info('Obtained Drupal user: %r' % user)
         return user
 

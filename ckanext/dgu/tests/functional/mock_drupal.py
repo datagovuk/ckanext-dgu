@@ -32,6 +32,7 @@ class Command(paste.script.command.Command):
     def run_mock_drupal(self):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
         from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
+        from xmlrpclib import Fault
         from ckanext.dgu.tests import test_publishers
 
         config = get_mock_drupal_config()
@@ -78,7 +79,10 @@ class Command(paste.script.command.Command):
                     # 'signature': '', 
                     # 'timezone_name': 'Europe/London',
                     # 'login': '1286...'}
-                    return config['test_users'][user_id]
+                    try:
+                        return config['test_users'][user_id]
+                    except KeyError:
+                        raise Fault(404, 'There is no user with such ID.')
 
             class organisation:
                 @classmethod

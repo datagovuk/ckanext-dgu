@@ -6,6 +6,8 @@ from common import ScriptError, remove_readonly_fields
 
 from ckanclient import CkanApiError
 
+log = __import__("logging").getLogger(__name__)
+
 class PublisherMigration:
     '''Changes department/agency fields to published_by/_via'''
     def __init__(self, ckanclient,
@@ -29,7 +31,7 @@ class PublisherMigration:
                 else:
                     server = '%s' % domain
                 xmlrpc_url = 'http://%s/services/xmlrpc' % server
-                print 'XMLRPC connection to %s' % xmlrpc_url
+                log.info('XMLRPC connection to %s', xmlrpc_url)
                 self.drupal = ServerProxy(xmlrpc_url)
             try:
                 org_id = self.drupal.organisation.match(dept_or_agency)
@@ -37,14 +39,20 @@ class PublisherMigration:
                 raise ScriptError('Socket error connecting to %s', xmlrpc_url)
             except ProtocolError, e:
                 raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
-            try:
-                org_name = self.drupal.organisation.one(org_id)
-            except socket.error, e:
-                raise ScriptError('Socket error connecting to %s', xmlrpc_url)
-            except ProtocolError, e:
-                raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
-            organisation = u'%s [%s]' % (org_name, org_id)
-            print organisation
+            except ResponseError, e:
+                raise ScriptError('XMLRPC response error connecting to %s for department: %r', xmlrpc_url, dept_or_agency)
+            if org_id:
+                try:
+                    org_name = self.drupal.organisation.one(org_id)
+                except socket.error, e:
+                    raise ScriptError('Socket error connecting to %s', xmlrpc_url)
+                except ProtocolError, e:
+                    raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
+                organisation = u'%s [%s]' % (org_name, org_id)
+                log.info('Found organisation: %r', organisation)
+            else:
+                log.error('Could not find organisation: %s', dept_or_agency)
+                organisation = ''
             self.organisations[dept_or_agency] = organisation
         return self.organisations[dept_or_agency]
         
@@ -52,52 +60,66 @@ class PublisherMigration:
         pkgs_done = []
         pkgs_rejected = defaultdict(list) # reason: [pkgs]
         all_pkgs = self.ckanclient.package_register_get()
-        print 'Working on %i packages' % len(all_pkgs)
+        log.info('Working on %i packages', len(all_pkgs))
         for pkg_ref in all_pkgs:
+            logs.info('Package: %s', pkg_ref)
             try:
-                pkg = self.ckanclient.package_entity_get(pkg_ref)
-            except ckanclient.CkanApiError, e:
-                pkgs_rejected['Could not get package: %r' % e].append(pkg_ref)
-                continue
-            if not('department' in pkg['extras'] or 'agency' in pkg['extras'] or \
-                   'published_by' not in pkg['extras'] or \
-                   'published_via' not in pkg['extras']):
-                pkgs_rejected['Already migrated'].append(pkg)
-                continue
+                try:
+                    pkg = self.ckanclient.package_entity_get(pkg_ref)
+                except ckanclient.CkanApiError, e:
+                    logs.error('Could not get: %r' % e)
+                    pkgs_rejected['Could not get package: %r' % e].append(pkg_ref)
+                    continue
+                if ('published_by' in pkg['extras'] and \
+                    'published_via' in pkg['extras']):
+                    logs.error('...already migrated')
+                    pkgs_rejected['Already migrated'].append(pkg)
+                    continue
 
-            dept = pkg['extras'].get('department')
-            agency = pkg['extras'].get('agency')
-            if dept:
-                pub_by = self.get_organisation(dept)                
-                pub_via = self.get_organisation(agency) if agency else None
-            else:
-                pub_by = self.get_organisation(agency) if agency else None
-                pub_via = None
-                if not pub_by or pub_via:
-                    print 'Warning: No publisher for package: %s' % pkg['name']
-            print '%r/%r -> %r/%r' % (dept, agency,
-                                      pub_by, pub_via)
-            if not self.dry_run:
-                pkg['extras']['published_by'] = pub_by
-                pkg['extras']['published_via'] = pub_via
-                if pkg['extras'].has_key('department'):
-                    del pkg['extras']['department']
-                if pkg['extras'].has_key('agency'):
-                    del pkg['extras']['agency']
-                remove_readonly_fields(pkg)
-                self.ckanclient.package_entity_put(pkg)
-                print '...done'
-            pkgs_done.append(pkg)
-        print 'Processed %i packages' % len(pkgs_done)
-        print 'Rejected packages:'
+                dept = pkg['extras'].get('department')
+                agency = pkg['extras'].get('agency')
+                if dept:
+                    pub_by = self.get_organisation(dept)                
+                    pub_via = self.get_organisation(agency) if agency else ''
+                else:
+                    pub_by = self.get_organisation(agency) if agency else ''
+                    pub_via = ''
+                    if not pub_by or pub_via:
+                        log.warn('No publisher for package: %s', pkg['name'])
+                log.info('%s:\n  %r/%r ->\n  %r/%r', \
+                         pkg['name'], dept, agency, pub_by, pub_via)
+                if not self.dry_run:
+                    pkg['extras']['published_by'] = pub_by
+                    pkg['extras']['published_via'] = pub_via
+                    if pkg['extras'].has_key('department'):
+                        pkg['extras']['department'] = None
+                    if pkg['extras'].has_key('agency'):
+                        pkg['extras']['agency'] = None
+                    remove_readonly_fields(pkg)
+                    self.ckanclient.package_entity_put(pkg)
+                    log.info('...done')
+                pkgs_done.append(pkg)
+            except ScriptError, e:
+                log.error('Error during processing package %r: %r', \
+                          pkg_ref, e)
+                pkgs_rejected['Error: %r' % e].append(pkg_ref)
+                continue
+            except Exception, e:
+                log.error('Exception during processing package %r: %r', \
+                          pkg_ref, e)
+                pkgs_rejected['Exception: %r' % e].append(pkg_ref)
+                continue
+        log.info('-- Finished --')
+        log.info('Processed %i packages', len(pkgs_done))
+        rejected_pkgs = []
         for reason, pkgs in pkgs_rejected.items():
-            print '  %i: %s' % (len(pkgs), reason)
+            rejected_pkgs.append('\n  %i: %s' % (len(pkgs), reason))
+        log.info('Rejected packages: %s', rejected_pkgs)
 
 import sys
 
 #from ckanext.api_command import ApiCommand
 from mass_changer_cmd import MassChangerCommand
-from ofsted_fix import OfstedFix
 
 class Command(MassChangerCommand):
     def add_options(self):

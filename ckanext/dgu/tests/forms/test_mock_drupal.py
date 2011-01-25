@@ -1,6 +1,6 @@
 import xmlrpclib
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_raises
 
 from ckanext.dgu.tests import MockDrupalCase
         
@@ -17,6 +17,9 @@ class TestMockDrupal(MockDrupalCase):
         assert isinstance(publisher[0], str)
         assert_equal(publisher[0], '1')
         assert_equal(publisher[1], 'National Health Service')
+
+    def test_user_get_error(self):
+        assert_raises(xmlrpclib.Fault, self.s.user.get, 'unknown')
 
     def test_organisation_one(self):
         # return org name by id
