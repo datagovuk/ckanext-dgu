@@ -62,17 +62,17 @@ class PublisherMigration:
         all_pkgs = self.ckanclient.package_register_get()
         log.info('Working on %i packages', len(all_pkgs))
         for pkg_ref in all_pkgs:
-            logs.info('Package: %s', pkg_ref)
+            log.info('Package: %s', pkg_ref)
             try:
                 try:
                     pkg = self.ckanclient.package_entity_get(pkg_ref)
                 except ckanclient.CkanApiError, e:
-                    logs.error('Could not get: %r' % e)
+                    log.error('Could not get: %r' % e)
                     pkgs_rejected['Could not get package: %r' % e].append(pkg_ref)
                     continue
                 if ('published_by' in pkg['extras'] and \
                     'published_via' in pkg['extras']):
-                    logs.error('...already migrated')
+                    log.error('...already migrated')
                     pkgs_rejected['Already migrated'].append(pkg)
                     continue
 
