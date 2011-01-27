@@ -290,6 +290,11 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.assert_header(res, 'Location')
         self.assert_blank_response(res)
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
+        pkg = self.get_package_by_name(package_name)
+        assert pkg
+        rev = pkg.revision
+        assert_equal(rev.message, 'Unit-testing the Forms API...')
+        assert_equal(rev.author, 'automated test suite')
 
     def test_submit_package_create_form_invalid(self):
         package_name = self.package_name_alt
@@ -310,7 +315,11 @@ class FormsApiTestCase(BaseFormsApiCase):
         res = self.post_package_edit_form(package.id, name=self.package_name_alt)
         self.assert_blank_response(res)
         assert not self.get_package_by_name(self.package_name)
-        assert self.get_package_by_name(self.package_name_alt)
+        pkg = self.get_package_by_name(self.package_name_alt)
+        assert pkg
+        rev = pkg.revision
+        assert_equal(rev.message, 'Unit-testing the Forms API...')
+        assert_equal(rev.author, 'automated test suite')
 
     def test_submit_full_package_edit_form_valid(self):
         package = self.get_package_by_name(self.package_name)

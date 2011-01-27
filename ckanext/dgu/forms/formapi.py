@@ -173,7 +173,11 @@ class BaseFormController(BaseApiController):
                 # Validate and save form data.
                 log_message = request_data.get('log_message', 'Form API')
                 user = self._get_user_for_apikey()
-                author = user.name
+                author = request_data.get('author', '')
+                if not author:
+                    user = self._get_user_for_apikey()
+                    if user:
+                        author = user.name
                 try:
                     WritePackageFromBoundFieldset(
                         fieldset=bound_fieldset,
