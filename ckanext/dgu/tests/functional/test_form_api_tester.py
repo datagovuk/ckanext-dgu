@@ -30,6 +30,7 @@ class TestFormApiTester(WsgiAppCase, MockDrupalCase):
         test_name = 'test-name'
         form['Package--name'] = test_name
         res = form.submit()
+        CreateTestData.flag_for_deletion(test_name)
         pkg = model.Package.by_name(unicode(test_name))
         assert pkg
         assert '201 Created' in res, res.body

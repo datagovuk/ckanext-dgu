@@ -131,6 +131,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
 
     def test_submit_package_create_form_valid(self):
         package_name = u'new_name'
+        CreateTestData.flag_for_deletion(package_name)
         assert not self.get_package_by_name(package_name)
         form = self.get_package_create_form(package_form=self.form)
         res = self.post_package_create_form(form=form, package_form=self.form, name=package_name, published_by='National Health Service [1]', published_via='Department of Energy and Climate Change [4]', license_id='gfdl', notes='def', title='efg')
