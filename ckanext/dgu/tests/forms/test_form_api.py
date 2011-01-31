@@ -5,7 +5,7 @@ from nose.tools import assert_equal
 
 from ckan.tests import *
 from ckan.tests import search_related
-from ckan.tests.functional.api.test_model import ApiTestCase
+from ckan.tests.functional.api.base import ApiTestCase
 from ckan.tests.functional.api.test_model import Api1TestCase
 from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase

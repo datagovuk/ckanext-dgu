@@ -172,10 +172,9 @@ class BaseFormController(BaseApiController):
                     self._abort_bad_request('Form data incomplete')
                 # Validate and save form data.
                 log_message = request_data.get('log_message', 'Form API')
-                user = self._get_user_for_apikey()
                 author = request_data.get('author', '')
+                user = self._get_user_for_apikey()
                 if not author:
-                    user = self._get_user_for_apikey()
                     if user:
                         author = user.name
                 try:
@@ -190,19 +189,20 @@ class BaseFormController(BaseApiController):
                     errorful_fieldset = exception.args[0]
                     # Render the fields.
                     fieldset_html = errorful_fieldset.render()
-                    log.info('Package create - data did not validate. user=%r data=%r error=%r', user.name, form_data, errorful_fieldset.errors)
+                    log.info('Package create - data did not validate. api_user=%r author=%r data=%r error=%r', user.name, author, form_data, errorful_fieldset.errors)
                     return self._finish(400, fieldset_html, content_type='html')
                 else:
                     # Retrieve created pacakge.
                     package = bound_fieldset.model
                     # Construct access control entities.
                     self._create_permissions(package, user)
-                    log.info('Package create successful. user=%r data=%r', author, form_data)
+                    log.info('Package create successful. user=%r author=%r data=%r', user.name, author, form_data)
                     location = self._make_package_201_location(package)
                     return self._finish_ok(\
                         newly_created_resource_location=location)
         except ApiError, api_error:
-            log.info('Package create - ApiError. user=%r data=%r error=%r',
+            log.info('Package create - ApiError. user=%r author=%r data=%r error=%r',
+                     user.name if 'user' in dir() else None,
                      author if 'author' in dir() else None,
                      form_data if 'form_data' in dir() else None,
                      api_error)
@@ -275,8 +275,8 @@ class BaseFormController(BaseApiController):
                 # Validate and save form data.
                 log_message = request_data.get('log_message', 'Form API')
                 author = request_data.get('author', '')
+                user = self._get_user_for_apikey()
                 if not author:
-                    user = self._get_user_for_apikey()
                     if user:
                         author = user.name
                 try:
@@ -291,13 +291,14 @@ class BaseFormController(BaseApiController):
                     errorful_fieldset = exception.args[0]
                     # Render the fields.
                     fieldset_html = errorful_fieldset.render()
-                    log.info('Package edit - data did not validate. user=%r data=%r error=%r', author, form_data, errorful_fieldset.errors)
+                    log.info('Package edit - data did not validate. user=%r author=%r data=%r error=%r', user.name, author, form_data, errorful_fieldset.errors)
                     return self._finish(400, fieldset_html, content_type='html')
                 else:
-                    log.info('Package edit successful. user=%r data=%r', author, form_data)
+                    log.info('Package edit successful. user=%r author=%r data=%r', user.name, author, form_data)
                     return self._finish_ok()
         except ApiError, api_error:
-            log.info('Package edit - ApiError. user=%r data=%r error=%r',
+            log.info('Package edit - ApiError. user=%r author=%r data=%r error=%r',
+                     user.name if 'user' in dir() else None,
                      author if 'author' in dir() else None,
                      form_data if 'form_data' in dir() else None,
                      api_error)
