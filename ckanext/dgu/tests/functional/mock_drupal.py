@@ -16,13 +16,16 @@ def get_mock_drupal_config():
 class Command(paste.script.command.Command):
     '''Dgu commands
 
-    run
+    mock_drupal run
     '''
     parser = paste.script.command.Command.standard_parser(verbose=True)
     default_verbosity = 1
     group_name = 'ckanext-dgu'
     summary = __doc__.split('\n')[0]
+    usage = __doc__
     log = logging.getLogger(__name__)
+    min_args = 1
+    max_args = None
 
     def command(self):
         cmd = self.args[0]
