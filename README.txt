@@ -15,6 +15,7 @@ CKAN to be installed::
     pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckanext-dgu
 
 Now you can activate the environment and run the scripts::
+
     . pyenv/bin/activate
     ons_loader --help
 
@@ -60,3 +61,19 @@ To run the tests::
     ckan/pyenv/bin/activate
     cd ckan/pyenv/src/dgu
     nosetests ckanext/dgu/tests/
+
+
+Documentation
+=============
+
+DGU is an extension for CKAN: http://ckan.org
+
+This README file is part of the DGU Developer Documentation, viewable at:
+http://knowledgeforge.net/ckan/doc/ckanext-dgu/index.html and stored in the
+ckanext-dgu repo at ``ckanext-dgu/doc``. 
+
+The Developer Docs are built using `Sphinx <http://sphinx.pocoo.org/>`_::
+
+      python setup.py build_sphinx
+
+The docs are uploaded to packages.python.org/ckan/ via dav.

@@ -1,3 +1,7 @@
+======
+curate
+======
+
 This describes the process that ultimately results in package resource links being checked and potentially tagged. 
 
 The checking rules are written in N3 and operate on a combination of the API and the RDF descriptions of the packages. A digression into how the RDF descriptions come to be is in order here.
