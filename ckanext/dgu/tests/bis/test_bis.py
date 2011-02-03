@@ -6,7 +6,7 @@ from pylons import config
 
 from ckan.tests import *
 import ckan.model as model
-from ckan.lib import spreadsheet_importer
+from ckanext.importer import spreadsheet_importer
 from ckanext.dgu.bis.bis import BisImporter
 from ckanext.dgu.tests import PackageDictUtil
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient

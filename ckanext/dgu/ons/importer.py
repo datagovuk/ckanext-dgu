@@ -2,6 +2,8 @@ import xml.sax
 import re
 import os
 import glob
+
+from ckanext.importer.importer import PackageImporter
 from ckanext.dgu import schema
 from swiss import date
 
@@ -9,14 +11,17 @@ guid_prefix = 'http://www.statistics.gov.uk/'
 
 log = __import__("logging").getLogger(__name__)
 
-class OnsImporter(object):
-#NB This should derive from ckan/lib/importer:PackageImporter
+class OnsImporter(PackageImporter):
     def __init__(self, filepath):
-        self._filepath = filepath
-        self._current_filename = os.path.basename(self._filepath)
+        self._current_filename = os.path.basename(filepath)
         self._item_count = 0
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
+        super(OnsImporter, self).__init__(filepath=filepath)
+
+    def import_into_package_records(self):
+        # all work is done in pkg_dict
+        pass
 
     def pkg_dict(self):
         for item in OnsDataRecords(self._filepath):

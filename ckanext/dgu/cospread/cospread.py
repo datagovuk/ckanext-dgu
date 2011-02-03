@@ -7,11 +7,11 @@ from collections import defaultdict
 
 from sqlalchemy.util import OrderedDict
 
-from ckan.lib.importer import RowParseError, ImportException
-from ckan.lib.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
+from ckan import model
 from ckan.lib import schema_gov
 from ckan.lib import field_types
-from ckan import model
+from ckanext.importer.importer import PackageImporter, RowParseError, ImportException
+from ckanext.importer.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
 
 log = logging.getLogger(__name__)
 
