@@ -33,8 +33,8 @@ Now in CKAN you can specify the dgu forms in the config. e.g. in demo.ckan.net.i
     package_form = package_gov3
 
 
-Configuation
-============
+Configuration
+=============
 
 Different parts of the DGU extension require options to be set in the
 CKAN configuration file (.ini) in the [app:main] section

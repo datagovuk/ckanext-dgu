@@ -1,0 +1,24 @@
+CKANEXT-DGU CHANGELOG
++++++++++++++++++++++
+
+v0.2 TBA
+===============
+
+Updates:
+  * Package form v3 now with publisher fields
+    * Gov-specific form fields moved here from ckan repo
+  * Form API moved here from ckan repo
+  * Publisher Migration script
+  * Sphinx documentation
+ 
+
+v0.1 2011-01-24
+===============
+
+First release includes:
+  * Initial version of package form v3
+  * Metadata importers: bis, ons, cospread
+  * Mass change scripts
+  * Blackbox testing script
+  * DGU theming
+  * Curation script to check broken links
