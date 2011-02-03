@@ -70,11 +70,11 @@ class PublisherMigration:
                     log.error('Could not get: %r' % e)
                     pkgs_rejected['Could not get package: %r' % e].append(pkg_ref)
                     continue
-                if ('published_by' in pkg['extras'] and \
-                    'published_via' in pkg['extras']):
-                    log.error('...already migrated')
-                    pkgs_rejected['Already migrated'].append(pkg)
-                    continue
+##                if ('published_by' in pkg['extras'] and \
+##                    'published_via' in pkg['extras']):
+##                    log.error('...already migrated')
+##                    pkgs_rejected['Already migrated'].append(pkg)
+##                    continue
 
                 dept = pkg['extras'].get('department')
                 agency = pkg['extras'].get('agency')
@@ -91,10 +91,10 @@ class PublisherMigration:
                 if not self.dry_run:
                     pkg['extras']['published_by'] = pub_by
                     pkg['extras']['published_via'] = pub_via
-                    if pkg['extras'].has_key('department'):
-                        pkg['extras']['department'] = None
-                    if pkg['extras'].has_key('agency'):
-                        pkg['extras']['agency'] = None
+##                    if pkg['extras'].has_key('department'):
+##                        pkg['extras']['department'] = None
+##                    if pkg['extras'].has_key('agency'):
+##                        pkg['extras']['agency'] = None
                     remove_readonly_fields(pkg)
                     self.ckanclient.package_entity_put(pkg)
                     log.info('...done')
