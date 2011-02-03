@@ -1,4 +1,44 @@
+import os
+
+import paste.fixture
+from paste.deploy import appconfig
+from pylons import config
+
+from ckan import __file__ as ckan_file
+from ckan.config.middleware import make_app
 from ckan.lib.create_test_data import CreateTestData
+
+def apply_fixture_config(config_):
+    local_config = [
+        ('dgu.xmlrpc_username', 'testuser'),
+        ('dgu.xmlrpc_password', 'testpassword'),
+        ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
+        ]
+    config_.update(local_config)    
+
+class WsgiAppCase(object):
+    ckan_config_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(ckan_file)), '..'))
+    config_ = appconfig('config:test.ini', relative_to=ckan_config_dir)
+    local_config = [('ckan.plugins', 'dgu_form_api form_api_tester'),]
+    config_.local_conf.update(local_config)
+    config_.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester'
+    # set test config for dgu_form_api - it is imported before the test modules
+    apply_fixture_config(config_.local_conf)
+    wsgiapp = make_app(config_.global_conf, **config_.local_conf)
+    app = paste.fixture.TestApp(wsgiapp)
+
+class BaseCase(object):
+    @staticmethod
+    def _system(cmd):
+        import commands
+        (status, output) = commands.getstatusoutput(cmd)
+        if status:
+            raise Exception, "Couldn't execute cmd: %s: %s" % (cmd, output)
+
+    @classmethod
+    def _paster(cls, cmd, config_path_rel):
+        cls._system('paster --plugin ckanext-dgu %s' % cmd)
+
 
 class PackageFixturesBase:
     def create(self, **kwargs):
@@ -38,14 +78,14 @@ class GovFixtures(PackageFixturesBase):
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
         'geographic_coverage':u'100000: England',
-        'department':u'Department for Children, Schools and Families',
+        'department':u'Department for Education',
+        'agency':u'',
         'temporal_granularity':u'year',
         'temporal_coverage-from':u'2008-6',
         'temporal_coverage-to':u'2009-6',
         'national_statistic':u'yes',
         'precision':u'Numbers to nearest 10, percentage to nearest whole number',
         'taxonomy_url':u'',
-        'agency':u'',
         'import_source':u'ONS-Jan-09',
         }
      },
@@ -63,9 +103,10 @@ class GovFixtures(PackageFixturesBase):
         'date_released':u'2009-11-24',
         'date_updated':u'2009-11-24',
         'update_frequency':u'weekly',
+        'department':u'Department of Energy and Climate Change',
+        'agency':u'',
         'geographic_granularity':u'national',
         'geographic_coverage':u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)',
-        'department':u'Department of Energy and Climate Change',
         'temporal_granularity':u'weeks',
         'temporal_coverage-from':u'2008-11-24',
         'temporal_coverage-to':u'2009-11-24',
@@ -106,7 +147,8 @@ class Gov3Fixtures(PackageFixturesBase):
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
         'geographic_coverage':u'100000: England',
-        'department':u'Department for Children, Schools and Families',
+        'published_by':u'Department for Education [3]',
+        'published_via':u'',
         'temporal_granularity':u'year',
         'temporal_coverage-from':u'2008-6-24 12:30',
         'temporal_coverage-to':u'2009-6',
@@ -114,7 +156,6 @@ class Gov3Fixtures(PackageFixturesBase):
         'precision':u'Numbers to nearest 10, percentage to nearest whole number',
         'mandate':u'http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2',                
                 'taxonomy_url':u'',
-        'agency':u'',
         'import_source':u'ONS-Jan-09',
         }
      },
@@ -134,7 +175,8 @@ class Gov3Fixtures(PackageFixturesBase):
         'update_frequency':u'weekly',
         'geographic_granularity':u'national',
         'geographic_coverage':u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)',
-        'department':u'Department of Energy and Climate Change',
+        'published_by':u'Department of Energy and Climate Change [4]',
+        'published_via':u'',
         'temporal_granularity':u'weeks',
         'temporal_coverage-from':u'2008-11-24',
         'temporal_coverage-to':u'2009-11-24',
@@ -144,6 +186,12 @@ class Gov3Fixtures(PackageFixturesBase):
      }
                 ]
         return self._pkgs
+
+test_publishers = {'1': 'National Health Service',
+                   '2': 'Ealing PCT',
+                   '3': 'Department for Education',
+                   '4': 'Department of Energy and Climate Change',
+                   }
 
 class PackageDictUtil(object):
     @classmethod
@@ -162,5 +210,42 @@ class PackageDictUtil(object):
         extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
         assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
 
-def teardown_module():
-    assert not CreateTestData.get_all_data(), 'A test in module %r forgot to clean-up its data: %r' % (__name__, CreateTestData.get_all_data())
+
+class MockDrupalCase(BaseCase):
+    @classmethod
+    def setup_class(cls):
+        cls.process = cls._mock_drupal_start()
+        cls._wait_for_drupal_to_start()
+
+    @classmethod
+    def teardown_class(cls):
+        cls._mock_drupal_stop(cls.process)
+
+    @classmethod
+    def _mock_drupal_start(self):
+        import subprocess
+        process = subprocess.Popen(['paster', 'mock_drupal', 'run'])
+        return process
+
+    @staticmethod
+    def _wait_for_drupal_to_start(url='http://localhost:8000/services/xmlrpc',
+                                  timeout=15):
+        import xmlrpclib
+        import socket
+        import time
+
+        drupal = xmlrpclib.ServerProxy(url)
+        for i in range(int(timeout)*100):
+            try:
+                response = drupal.system.listMethods()
+            except socket.error, e:
+                time.sleep(0.01)
+            else:
+                break
+
+    @classmethod
+    def _mock_drupal_stop(cls, process):
+        pid = process.pid
+        pid = int(pid)
+        if os.system("kill -9 %d" % pid):
+            raise Exception, "Can't kill foreign Mock Drupal instance (pid: %d)." % pid

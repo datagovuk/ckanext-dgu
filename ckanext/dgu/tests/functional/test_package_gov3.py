@@ -1,17 +1,19 @@
 import re
 
+from nose.tools import assert_raises
+
 from pylons import config
 
 from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 from ckan.lib.create_test_data import CreateTestData
-from ckan.tests.functional.api.test_form import BaseFormsApiCase, Api1TestCase, Api2TestCase
-# until (and including) ckan 1.2e test_form was in a slightly different
-# location, but you need the later version
-
+from ckanext.dgu.forms.formapi import DrupalRequestError
+from ckanext.dgu.tests.forms.test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
 from ckanext.dgu.tests import *
 
-class FormsApiTestCase(BaseFormsApiCase):
+package_form = 'package_gov3'
+
+class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
 
     @classmethod
     def setup(self):
@@ -25,7 +27,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
-        form = self.get_package_create_form(package_form='gov3')
+        form = self.get_package_create_form(package_form=package_form)
         self.assert_formfield(form, 'Package--name', '')
         self.assert_formfield(form, 'Package--title', '')
         self.assert_not_formfield(form, 'Package--version', '')
@@ -52,7 +54,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov3')
+        form = self.get_package_edit_form(package.id, package_form=package_form)
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_not_formfield(form, prefix + 'external_reference')
@@ -72,11 +74,11 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form_restrict(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov3', restrict=1)
+        form = self.get_package_edit_form(package.id, package_form=package_form, restrict=1)
         prefix = 'Package-%s-' % package.id
         self.assert_not_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'notes', package.notes)
-        for key in ('department', 'national_statistic'):
+        for key in ('national_statistic', ):
             value = package.extras[key]
             self.assert_not_formfield(form, prefix + key, value)
         
@@ -86,7 +88,7 @@ class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
 class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
 
 
-class EmbeddedFormTestCase(BaseFormsApiCase):
+class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     '''Tests the form as it would be used embedded in dgu html.'''
 
     def setup(self):
@@ -98,7 +100,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         self.extra_environ = {
             'Authorization' : str(test_user.apikey)
         }
-        
+        self.form = package_form
 
     def teardown(self):
         self.fixtures.delete()
@@ -114,10 +116,6 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
 
     def form_from_res(self, res):
         assert not "<html>" in str(res.body), "The response is an HTML doc, not just a form: %s" % str(res.body)
-
-##        res.body = self._insert_into_field_tag(res.body, 'name', 'input', 'class="disabled" readonly')
-##        res.body = self._insert_into_field_tag(res.body, 'department', 'select', 'disabled="disabled" readonly')
-##        res.body = self._insert_into_field_tag(res.body, 'national_statistic', 'input', 'disabled="disabled" readonly')
         res.body = '''
 <html>
   </body>
@@ -133,25 +131,23 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
 
     def test_submit_package_create_form_valid(self):
         package_name = u'new_name'
+        CreateTestData.flag_for_deletion(package_name)
         assert not self.get_package_by_name(package_name)
-        form = self.get_package_create_form(package_form='gov3')
-        res = self.post_package_create_form(form=form, package_form='gov3', name=package_name, department='Scotland Office', license_id='gfdl', notes='def', title='efg')
+        form = self.get_package_create_form(package_form=self.form)
+        res = self.post_package_create_form(form=form, package_form=self.form, name=package_name, published_by='National Health Service [1]', published_via='Department of Energy and Climate Change [4]', license_id='gfdl', notes='def', title='efg')
         self.assert_header(res, 'Location')
-        assert not json.loads(res.body)
+        assert (not res.body) or (not json.loads(res.body))
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
         pkg = self.get_package_by_name(package_name)
         assert pkg
-        
+
     def test_submit_package_edit_form_valid(self):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, package_form='gov3')
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov3')
-        # TODO work out if we need the Location header or not
-#        self.assert_header(res, 'Location')
-        assert not json.loads(res.body), res.body
-#        self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
+        form = self.get_package_edit_form(pkg.id, package_form=self.form)
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form=self.form)
+        assert (not res.body) or (not json.loads(res.body)), res.body
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
 
@@ -159,13 +155,25 @@ class EmbeddedFormTestCase(BaseFormsApiCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, package_form='gov3', restrict=1)
+        form = self.get_package_edit_form(pkg.id, package_form=self.form, restrict=1)
         prefix = 'Package-%s-' % pkg.id
         self.assert_not_formfield(form, prefix + 'name', pkg.name)
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov3', restrict=1)
-        assert not json.loads(res.body), res.body
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form=self.form, restrict=1)
+        assert (not res.body) or (not json.loads(res.body)), res.body
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
+
+    def test_package_create_form_invalid(self):
+        # user 99 doesn't exist
+        assert_raises(DrupalRequestError, self.get_package_create_form, \
+                      package_form=self.form, user_id='99')
+
+    def test_package_edit_form_invalid(self):
+        package_name = self.package_name
+        pkg = self.get_package_by_name(package_name)
+        # user 99 doesn't exist
+        assert_raises(DrupalRequestError, self.get_package_edit_form, \
+                      pkg.id, package_form=self.form, user_id='99')
 
     def test_create_package(self):
         res = self.get_package_create_form()
@@ -177,11 +185,11 @@ class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
 
 class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
 
-class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
+class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase, MockDrupalCase):
     @classmethod
     def setup(self):
         self.user_name = u'tester1'
-        self.pkg_dict = {"name": u"lichfield-councillors", "title": "Councillors", "version": None, "url": "http://www.lichfielddc.gov.uk/data", "author": "Democratic and Legal", "author_email": None, "maintainer": "Web Team", "maintainer_email": "webmaster@lichfielddc.gov.uk", "notes": "A list of Lichfield District Councillors, together with contact details, political party and committees", "license_id": "localauth-withrights", "license": "OKD Compliant::Local Authority Copyright with data.gov.uk rights", "tags": ["committees", "cool", "councillors", "democracy", "lichfield", "meetings"], "groups": ["ukgov"], "extras": {"temporal_coverage-from": "", "date_updated": "2010-03-29", "temporal_coverage_to": "", "import_source": "COSPREAD-cospread-2010-03-31mk2.csv", "geographical_granularity": "local authority", "temporal_granularity": "", "agency": "", "geographic_granularity": "", "temporal_coverage-to": "", "department": "Scotland Office", "precision": "", "temporal_coverage_from": "", "taxonomy_url": "", "mandate": "", "categories": "", "geographic_coverage": "010000: Scotland", "external_reference": "", "national_statistic": "no", "date_update_future": "", "update_frequency": "Daily", "date_released": "2009-08-01"}, "resources": [{"id": "4ef0c23f-1ebd-41c6-86a9-0f6ef81450a6", "package_id": "35697166-4600-4995-bb73-4c8ff48d52ef", "url": "http://www.lichfielddc.gov.uk/site/custom_scripts/councillors_xml.php?viewBy=name", "format": "Other XML", "description": "", "hash": "", "position": 0}]}
+        self.pkg_dict = {"name": u"lichfield-councillors", "title": "Councillors", "version": None, "url": "http://www.lichfielddc.gov.uk/data", "author": "Democratic and Legal", "author_email": None, "maintainer": "Web Team", "maintainer_email": "webmaster@lichfielddc.gov.uk", "notes": "A list of Lichfield District Councillors, together with contact details, political party and committees", "license_id": "localauth-withrights", "license": "OKD Compliant::Local Authority Copyright with data.gov.uk rights", "tags": ["committees", "cool", "councillors", "democracy", "lichfield", "meetings"], "groups": ["ukgov"], "extras": {"temporal_coverage-from": "", "date_updated": "2010-03-29", "temporal_coverage_to": "", "import_source": "COSPREAD-cospread-2010-03-31mk2.csv", "geographical_granularity": "local authority", "temporal_granularity": "", "agency": "", "geographic_granularity": "", "temporal_coverage-to": "", "published_by": "Scotland Office", "precision": "", "temporal_coverage_from": "", "taxonomy_url": "", "mandate": "", "categories": "", "geographic_coverage": "010000: Scotland", "external_reference": "", "national_statistic": "no", "date_update_future": "", "update_frequency": "Daily", "date_released": "2009-08-01"}, "resources": [{"id": "4ef0c23f-1ebd-41c6-86a9-0f6ef81450a6", "package_id": "35697166-4600-4995-bb73-4c8ff48d52ef", "url": "http://www.lichfielddc.gov.uk/site/custom_scripts/councillors_xml.php?viewBy=name", "format": "Other XML", "description": "", "hash": "", "position": 0}]}
         CreateTestData.create_arbitrary([self.pkg_dict], extra_user_names=[self.user_name])
         self.package_name = self.pkg_dict['name']
 
@@ -196,7 +204,7 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
 
     def test_edit_coverage(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov3')
+        form = self.get_package_edit_form(package.id, package_form=package_form)
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'geographic_coverage-england', None)
@@ -207,8 +215,8 @@ class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase):
             'geographic_coverage-scotland':True,
             'geographic_coverage-wales':True,
             }
-        res = self.post_package_edit_form(package.id, form=form, package_form='gov3', **fields)
-        assert not json.loads(res.body)
+        res = self.post_package_edit_form(package.id, form=form, package_form=package_form, **fields)
+        assert (not res.body) or (not json.loads(res.body)), res.body
 
         package = self.get_package_by_name(self.package_name)
         self.assert_equal(package.extras['geographic_coverage'], '111000: Great Britain (England, Scotland, Wales)')
