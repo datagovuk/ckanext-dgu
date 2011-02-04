@@ -1,3 +1,6 @@
+import re
+import formalchemy
+
 from nose.tools import assert_equal
 
 import ckan.model as model
@@ -10,7 +13,6 @@ from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.forms.package_gov3 import get_gov3_fieldset
 from ckanext.dgu.tests import *
 
-#from pylons import config
 
 def _get_blank_param_dict(pkg=None, fs=None):
     return ckan.forms.get_package_dict(pkg, blank=True, fs=fs)
@@ -18,6 +20,8 @@ def _get_blank_param_dict(pkg=None, fs=None):
 def get_fieldset(**kwargs):
     if not kwargs.has_key('user_editable_groups'):
         kwargs['user_editable_groups'] = []
+    if not kwargs.has_key('publishers'):
+        kwargs['publishers'] = test_publishers
     return get_gov3_fieldset(**kwargs)
 
 
@@ -42,7 +46,6 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         assert 'Revision' not in out, out
         assert 'Extras' not in out
         # default for license
-        print out
         self.check_tag(out, 'option', 'value="uk-ogl"', 'selected="selected"')
 
     def test_0_edit_fields(self):
@@ -74,17 +77,17 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             (fs.geographic_coverage, None, 'England'),
             (fs.temporal_granularity, 'year'),
             (fs.temporal_coverage, None, '6/2008 - 6/2009'),
-            (fs.national_statistic, 'True', 'yes'),
+            (fs.national_statistic, 'checked', 'yes'),
             (fs.precision, 'Numbers to nearest 10, percentage to nearest whole number'),
             (fs.url, 'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/index.shtml'),
             (fs.taxonomy_url, '', ''),
-            (fs.department, 'Department for Children, Schools and Families'),
-            (fs.agency, '', ''),
+            (fs.published_by, 'Department for Education [3]', 'Department for Education'),
+            (fs.published_via, '', ''),
             (fs.author, 'DCSF Data Services Group'),
             (fs.author_email, 'statistics@dcsf.gsi.gov.uk'),
             (fs.maintainer, '', ''),
             (fs.maintainer_email, '', ''),
-            (fs.license_id, u'OKD Compliant::UK Open Government Licence (OGL)'),
+            (fs.license_id, u'uk-ogl', u'OKD Compliant::UK Open Government Licence (OGL)'),
             ]
         for vals in expected_values:
             if len(vals) == 2:
@@ -92,10 +95,12 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                 expected_render_readonly_str = vals[1]
             else:
                 field, expected_render_str, expected_render_readonly_str = vals
-            if isinstance(field.renderer, ckan.forms.common.SuggestedTextExtraField.SelectRenderer):
+            if isinstance(field.renderer, (ckan.forms.common.SuggestedTextExtraField.SelectRenderer, formalchemy.fields.SelectFieldRenderer)):
                 if expected_render_str.startswith('other='):
                     expected_render_str = 'other" type="text" value="' + expected_render_str.strip('other=')
                     expected_render_readonly_str = expected_render_readonly_str.strip('other=')
+                elif not expected_render_str:
+                    expected_render_str = 'selected="selected" value="">(None)'
                 else:
                     # multiple choice must have the particular one selected
                     expected_render_str = 'selected" value="' + expected_render_str
@@ -105,6 +110,10 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                 assert 'value=""' in render or 'value' not in render, \
                    'Expected a blank value in render of field %s but got \'%s\'' % \
                    (field.name, render)
+            elif expected_render_str and expected_render_str.startswith('!'):
+                assert expected_render_str[1:] not in render, \
+                       'Expected \'%s\' NOT in render of field %s but got \'%s\'' % \
+                       (expected_render_str, field.name, render)
             elif expected_render_str:
                 assert expected_render_str in render, \
                        'Expected \'%s\' in render of field %s but got \'%s\'' % \
@@ -112,27 +121,12 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             assert expected_render_readonly_str in render_readonly, \
                    'Expected \'%s\' in render_readonly of field %s but got \'%s\'' % \
                    (expected_render_readonly_str, field.name, render_readonly)
-        self.check_tag(fs.geographic_coverage.render(), 'geographic_coverage-england', 'value="True"')
+        self.check_tag(fs.geographic_coverage.render(), 'geographic_coverage-england', 'checked="checked"')
+        self.check_tag(fs.geographic_coverage.render(), 'geographic_coverage-wales', '!checked="checked"')
         self.check_tag(fs.temporal_coverage.render(), 'temporal_coverage-from', 'value="12:30 24/6/2008"')
         self.check_tag(fs.temporal_coverage.render(), 'temporal_coverage-to', 'value="6/2009"')
 
-    def test_2_field_department_selected(self):
-        fs = get_fieldset()
-        pkg = model.Package.by_name(u'private-fostering-england-2009')
-        fs = fs.bind(pkg)
-
-        dept = fs.department.render()
-        assert '<select' in dept, dept
-        self.check_tag(dept, 'option', 'value="Department for Children, Schools and Families"', 'selected')
-        assert 'option value="other">' in dept, dept
-        assert 'Other:' in dept, dept
-        assert 'value=""' in dept, dept
-
-        dept_readonly = fs.department.render_readonly()
-        assert 'Department for Children, Schools and Families' in dept_readonly, dept_readonly
-        assert 'Other' not in dept_readonly, dept_readonly
-
-    def test_2_field_department_none(self):
+    def test_2_field_publisher_none(self):
         # Create package
         model.repo.new_revision()
         pkg = model.Package(name=u'test3')
@@ -145,38 +139,20 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         fs = fs.bind(pkg)
         out = fs.render()
         assert out
-        dept = fs.department.render()
-        dept_readonly = fs.department.render_readonly()
-        assert '<select' in dept, dept
-        assert '<option selected="selected" value=""></option>' in dept, dept
-        assert '<p></p>' == dept_readonly, dept_readonly
 
-    def test_2_field_department_other(self):
-        # Create package
-        model.repo.new_revision()
-        pkg = model.Package(name=u'test2')
-        model.Session.add(pkg)
-        pkg.extras = {u'department':u'Not on the list'}
-        model.repo.commit_and_remove()
-        CreateTestData.flag_for_deletion(pkg_names=[u'test2'])
-
-        pkg = model.Package.by_name(u'test2')
-        fs = get_fieldset()
-        fs = fs.bind(pkg)
-        out = fs.render()
-        assert out
-        dept = fs.department.render()
-        dept_readonly = fs.department.render_readonly()
-        assert '<select' in dept, dept
-        self.check_tag(dept, 'option', 'value="Department for Children, Schools and Families"', '!selected')
-        self.check_tag(dept, 'option', 'value="other"', 'selected')
-        assert 'Other:' in dept, dept
-        assert 'value="Not on the list"' in dept, dept
-        assert '<p>Not on the list</p>' == dept_readonly, dept_readonly
+        for field, should_have_null_value in [(fs.published_by, False),
+                                              (fs.published_via, True)]:
+            pub_options = field.render()
+            pub_options_readonly = field.render_readonly()
+            assert '<select' in pub_options, pub_options
+            assert_equal(('<option selected="selected" value="">(None)</option>' in pub_options), should_have_null_value, '%s %r' % (field, pub_options))
+            if should_have_null_value:
+                # published_by field is blank anyway because no value set.
+                assert_equal('<p></p>', pub_options_readonly, '%s %r' % (field, pub_options_readonly))
 
     def test_3_restrict(self):
         fs = get_fieldset(restrict=1)
-        restricted_fields = ('name', 'department', 'national_statistic')
+        restricted_fields = ('national_statistic', )
         for field_name in restricted_fields:
             assert getattr(fs, field_name)._readonly, getattr(fs, field_name)
         
@@ -201,7 +177,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'national_statistic'] = u'True'
         indict[prefix + 'precision'] = u'Nearest 1000'
         indict[prefix + 'taxonomy_url'] = u'http:/somewhere/about.html'
-        indict[prefix + 'department'] = u'testdept'
+        indict[prefix + 'published_by'] = 'Ealing PCT [2]'
+        indict[prefix + 'published_via'] = 'Department for Education [3]'
         indict[prefix + 'agency'] = u'Quango 1'
         indict[prefix + 'resources-0-url'] = u'http:/1'
         indict[prefix + 'resources-0-format'] = u'xml'
@@ -252,8 +229,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             'national_statistic':'yes',
             'precision':indict[prefix + 'precision'],
             'taxonomy_url':indict[prefix + 'taxonomy_url'],
-            'department':indict[prefix + 'department'],
-            'agency':indict[prefix + 'agency'],
+            'published_by':indict[prefix + 'published_by'],
+            'published_via':indict[prefix + 'published_via'],
             }
         for reqd_extra_key, reqd_extra_value in reqd_extras.items():
             assert reqd_extra_key in extra_keys, 'Key "%s" not found in extras %r' % (reqd_extra_key, extra_keys)
@@ -280,8 +257,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
               'national_statistic':'yes',
               'precision':'testprec',
               'taxonomy_url':'testtaxurl',
-              'department':'dosac',
-              'agency':'testagency',
+              'published_by':'Ealing PCT [2]',
+              'published_via':'Department for Education [3]',
               },
             }]
         CreateTestData.create_arbitrary(init_data)
@@ -307,8 +284,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         indict[prefix + 'national_statistic'] = u'True'
         indict[prefix + 'precision'] = u'Nearest 1000'
         indict[prefix + 'taxonomy_url'] = u'http:/somewhere/about.html'
-        indict[prefix + 'department'] = u'testdept'
-        indict[prefix + 'agency'] = u'Quango 1'
+        indict[prefix + 'published_by'] = u'Department of Energy and Climate Change [4]'
+        indict[prefix + 'published_via'] = u'National Health Service [1]'
         indict[prefix + 'resources-0-url'] = u'http:/1'
         indict[prefix + 'resources-0-format'] = u'xml'
         indict[prefix + 'resources-0-description'] = u'test desc'
@@ -352,8 +329,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             'national_statistic':'yes',
             'precision':indict[prefix + 'precision'],
             'taxonomy_url':indict[prefix + 'taxonomy_url'],
-            'department':indict[prefix + 'department'],
-            'agency':indict[prefix + 'agency'],            
+            'published_by':indict[prefix + 'published_by'],
+            'published_via':indict[prefix + 'published_via'],            
             }
         for reqd_extra_key, reqd_extra_value in reqd_extras.items():
             assert reqd_extra_key in extra_keys, 'Key "%s" not found in extras %r' % (reqd_extra_key, extra_keys)
@@ -371,7 +348,6 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             'extras':{
               'notes':'Original notes',
               'national_statistic':'yes',
-              'department':'dosac',
               },
             }]
         CreateTestData.create_arbitrary(init_data)
@@ -385,7 +361,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         # try changing restricted params anyway
         new_name = u'testname3' 
         indict[prefix + 'name'] = new_name
-        indict[prefix + 'department'] = u'testdept'
+        indict[prefix + 'national_statistic'] = u'no'
         # don't supply national_statistic param at all
         fs = get_fieldset(restrict=1).bind(pkg, data=indict)
         CreateTestData.flag_for_deletion(new_name)
@@ -394,8 +370,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         fs.sync()
         model.repo.commit_and_remove()
 
-        assert not model.Package.by_name(new_name) # unchanged
-        outpkg = model.Package.by_name(pkg_name) # unchanged
+        assert not model.Package.by_name(pkg_name)
+        outpkg = model.Package.by_name(new_name)
         assert outpkg
         # test sync worked
         assert outpkg.notes == indict[prefix + 'notes']
@@ -404,7 +380,6 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         extra_keys = outpkg.extras.keys()
         reqd_extras = {
             'national_statistic':'yes', # unchanged
-            'department':init_data[0]['extras']['department'], # unchanged
             }
         for reqd_extra_key, reqd_extra_value in reqd_extras.items():
             assert reqd_extra_key in extra_keys, 'Key "%s" not found in extras %r' % (reqd_extra_key, extra_keys)
@@ -413,27 +388,42 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
                  (reqd_extra_key, reqd_extra_value,
                   outpkg.extras[reqd_extra_key])
 
-    def test_7_validate_bad_date(self):
+    def test_7_validate(self):
         # bad dates must be picked up in validation
         indict = _get_blank_param_dict(fs=get_fieldset())
         prefix = 'Package--'
-        indict[prefix + 'name'] = u'testname3'
+        pkg_name = u'test_name7'
+        indict[prefix + 'name'] = pkg_name
         indict[prefix + 'title'] = u'Test'
-        indict[prefix + 'department'] = u'abc'
+        indict[prefix + 'published_by'] = u'National Health Service [1]'
         indict[prefix + 'notes'] = u'abcd'
         indict[prefix + 'license_id'] = u'abcde'
         indict[prefix + 'date_released'] = u'27/11/2008'
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
 
+        # initially validates ok
         validation = fs.validate()
         assert validation, validation
 
-        indict[prefix + 'date_released'] = u'27/11/0208'
+        # now add all problems
+        bad_validating_data = [('date_released', u'27/11/0208', 'out of range'),
+                               ('published_by', u'', 'Please enter a value'),
+                               ('published_via', u'NHS', 'not one of the options'),
+                               ]
+        for field_name, bad_data, error_txt in bad_validating_data:
+            indict[prefix + field_name] = bad_data
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
         validation = fs.validate()
+
+        # validation fails
         assert not validation
+        for field_name, bad_data, error_txt in bad_validating_data:
+            field = getattr(fs, field_name)
+            err = fs.errors[field]
+            assert error_txt in str(err), '%r should be in error %r' % (error_txt, err)
 
         # make sure it syncs without exception (this is req'd for a preview)
+        CreateTestData.flag_for_deletion(pkg_name)
         model.repo.new_revision()
         fs.sync()
         model.repo.commit_and_remove()

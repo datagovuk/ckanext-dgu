@@ -2,7 +2,7 @@ syntax: glob
 # generic
 *.pyc
 .DS_Store
-dgu.egg-info/*
+ckanext_dgu.egg-info/*
 sandbox/*
 pip-log.txt
 

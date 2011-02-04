@@ -294,7 +294,7 @@ class TestNationalParkDuplicate(TestLoaderBase):
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
-        assert names == [self.name], names
+        assert_equal(names, [self.name])
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert len(pkg.resources) == 3, pkg.resources
@@ -346,7 +346,7 @@ class TestDeathsOverwrite(TestLoaderBase):
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
-        assert names == [self.name], names
+        assert_equal(names, [self.name])
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert len(pkg.resources) == 2, pkg.resources
@@ -403,7 +403,7 @@ class TestAgencyFind(TestLoaderBase):
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
-        assert names == [self.name], names
+        assert_equal(names, [self.name])
         pkg = model.Package.by_name(self.name)
         assert pkg
         assert_equal(len(pkg.resources), self.num_resources_originally + 1)
