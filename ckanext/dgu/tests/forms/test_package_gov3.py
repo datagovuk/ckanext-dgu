@@ -152,7 +152,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
 
     def test_3_restrict(self):
         fs = get_fieldset(restrict=1)
-        restricted_fields = ('name', 'national_statistic')
+        restricted_fields = ('national_statistic', )
         for field_name in restricted_fields:
             assert getattr(fs, field_name)._readonly, getattr(fs, field_name)
         
@@ -370,8 +370,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         fs.sync()
         model.repo.commit_and_remove()
 
-        assert not model.Package.by_name(new_name) # unchanged
-        outpkg = model.Package.by_name(pkg_name) # unchanged
+        assert not model.Package.by_name(pkg_name)
+        outpkg = model.Package.by_name(new_name)
         assert outpkg
         # test sync worked
         assert outpkg.notes == indict[prefix + 'notes']
@@ -392,7 +392,8 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         # bad dates must be picked up in validation
         indict = _get_blank_param_dict(fs=get_fieldset())
         prefix = 'Package--'
-        indict[prefix + 'name'] = u'testname3'
+        pkg_name = u'test_name7'
+        indict[prefix + 'name'] = pkg_name
         indict[prefix + 'title'] = u'Test'
         indict[prefix + 'published_by'] = u'National Health Service [1]'
         indict[prefix + 'notes'] = u'abcd'
@@ -422,6 +423,7 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
             assert error_txt in str(err), '%r should be in error %r' % (error_txt, err)
 
         # make sure it syncs without exception (this is req'd for a preview)
+        CreateTestData.flag_for_deletion(pkg_name)
         model.repo.new_revision()
         fs.sync()
         model.repo.commit_and_remove()

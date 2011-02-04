@@ -65,7 +65,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         expected_values['date_updated'] = '12:30 30/7/2009'
         expected_values['date_update_future'] = '1/7/2009'
         expected_values['date_released'] = '30/7/2009'
-        expected_values['national_statistic'] = 'True'
+        del expected_values['national_statistic']
         del expected_values['geographic_coverage'] # don't test here
         del expected_values['external_reference']
         del expected_values['import_source']
@@ -76,7 +76,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         package = self.get_package_by_name(self.package_name)
         form = self.get_package_edit_form(package.id, package_form=package_form, restrict=1)
         prefix = 'Package-%s-' % package.id
-        self.assert_not_formfield(form, prefix + 'name', package.name)
+        self.assert_not_formfield(form, prefix + 'national_statistic', package.name)
         self.assert_formfield(form, prefix + 'notes', package.notes)
         for key in ('national_statistic', ):
             value = package.extras[key]
@@ -157,7 +157,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         new_title = u'New Title'
         form = self.get_package_edit_form(pkg.id, package_form=self.form, restrict=1)
         prefix = 'Package-%s-' % pkg.id
-        self.assert_not_formfield(form, prefix + 'name', pkg.name)
+        self.assert_not_formfield(form, prefix + 'national_statistic', pkg.name)
         res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form=self.form, restrict=1)
         assert (not res.body) or (not json.loads(res.body)), res.body
         pkg = self.get_package_by_name(package_name)

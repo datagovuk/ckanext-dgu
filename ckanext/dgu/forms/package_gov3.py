@@ -51,13 +51,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.SelectExtraField('published_by', options=publishers))
     builder.add_field(common.SelectExtraField('published_via', options=publishers))
     builder.add_field(common.CoreField('license_id', value='uk-ogl'))
-#   TODO Remove National Statistic from core form, when we can choose the
-#   form
-#    if statistics:
-    if True:
-        builder.add_field(common.CheckboxExtraField('national_statistic'))
-    if statistics:
-        builder.add_field(common.SuggestedTextExtraField('series'))
+    builder.add_field(common.CheckboxExtraField('national_statistic'))
 
     # Labels and instructions
     builder.set_field_text('title', instructions='The title of the data set.', further_instructions='The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop.', hints=literal('e.g. Payments to suppliers with a value over &pound;500 from Harlow Council'))
@@ -79,11 +73,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_text('publisher', instructions='The public body credited with the publication of this data', further_instructions="An 'over-ride' for the system, to determine the correct public body to credit, when it might not be clear if this is the Agency or Department. This could be used where the public branding of the work of an agency is as its parent department.")
     builder.set_field_text('author', 'Contact', instructions='The permanent contact point for the public to enquire about this particular dataset. In addition, the Public Data and Transparency Team will use it for any suggestions for changes, feedback, reports of mistakes in the datasets or metadata.', further_instructions='This should be the name of the section of the agency or Department responsible, and should not be a named person. Particular care should be taken in choosing this element.', hints='Examples: Statistics team, Public consultation unit, FOI contact point')
     builder.set_field_text('author_email', 'Contact email', instructions='A generic official e-mail address for members of the public to contact, to match the \'Contact\' element.', further_instructions='A new e-mail address may need to be created for this function.')
-#    if statistics:
-    if True:
-        builder.set_field_text('national_statistic', 'National Statistic', instructions='Indicate if the dataset is a National Statistic', further_instructions='This is so that it can be highlighted.')
-    if statistics:
-        builder.set_field_text('series', instructions='The name of a series or collection that this data is part of.', further_instructions='This is needed for National Statistics. For example \'Wages Weekly Index\'.')
+    builder.set_field_text('national_statistic', 'National Statistic', instructions='Indicate if the dataset is a National Statistic', further_instructions='This is so that it can be highlighted.')
     builder.set_field_text('mandate', instructions='An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.', further_instructions='This should be taken from The National Archives\' Legislation website, and where possible be a link directly to the relevant section of the Act.', hints='For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2')
     builder.set_field_text('license_id', 'Licence', instructions='The licence under which the dataset is released.', further_instructions=literal('For most situations of central Departments\' and Local Authority data, this should be the \'Open Government Licence\'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.'))
     builder.set_field_text('resources', instructions='The files containing the data or address of the APIs for accessing it', further_instructions=literal('These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different \'resource\' which should be described differently. They will all appear on the dataset page on data.gov.uk together.<br/> <b>URL:</b> This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department<br/> e.g. http://www.somedept.gov.uk/growth-figures-2009.csv<br/><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board\'s principles</a> that require that all data is available in an \'open and standardised format\' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/>'), hints='Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate')
@@ -98,10 +88,9 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_option('published_by', 'required') 
     builder.set_field_option('license_id', 'required')
     builder.set_field_option('tags', 'with_renderer', package_gov_fields.SuggestTagRenderer)
-
+    
     if restrict:
-        for field_name in ('name', 'national_statistic'):
-            builder.set_field_option(field_name, 'readonly', True)
+        builder.set_field_option('national_statistic', 'readonly', True)
     
     # Layout
     field_groups = OrderedDict([
@@ -119,10 +108,7 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
                              'mandate', 'license_id',
                              'tags']),
         ])
-#    if statistics:
     field_groups['More details'].append('national_statistic')
-    if statistics:
-        field_groups['More details'].append('series')
     if is_admin:
         field_groups['More details'].append('state')
     builder.set_label_prettifier(package.prettify)
