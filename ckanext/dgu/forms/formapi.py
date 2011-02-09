@@ -28,19 +28,18 @@ class FormApi(SingletonPlugin):
 
     implements(IRoutes)
 
-    def after_map(self, map):
+    def before_map(self, map):
         for version in ('', '1/'):
             map.connect('/api/%sform/package/create' % version,           controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
             map.connect('/api/%sform/package/edit/:id' % version,         controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
-            map.connect('/api/%sform/harvestsource/create' % version,     controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-            map.connect('/api/%sform/harvestsource/edit/:id' % version,   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
+        map.connect('/api/2/rest/harvestsource/:id',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         map.connect('/api/2/form/harvestsource/create',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
         map.connect('/api/2/form/package/create',         controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
         map.connect('/api/2/form/package/edit/:id',       controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
         return map
 
-    def before_map(self, map):
+    def after_map(self, map):
         return map
 
 class ApiError(Exception):
@@ -381,6 +380,33 @@ class BaseFormController(BaseApiController):
     def _start_ckan_client(cls, api_key, base_location='http://127.0.0.1:5000/api'):
         import ckanclient
         return ckanclient.CkanClient(base_location=base_location, api_key=api_key)
+
+    def _get_harvest_source(self, id):
+        obj = model.HarvestSource.get(id, default=None)
+        return obj
+    
+    def harvest_source_view(self, id):
+        obj = self._get_harvest_source(id)
+        if obj is None:
+            response.status_int = 404
+            return ''            
+        response_data = obj.as_dict()
+        last_harvest_status = 'Not yet harvested'
+        overall_status = 'Not yet harvested'
+        jobs = obj.jobs
+        if len(jobs):
+            last_harvest_status = jobs[-1].status+' ('+'%s package(s) added, 0 deleted, %s errors)'%(
+                len(jobs[-1].report['added']),
+                len(jobs[-1].report['errors']),
+            )
+            added = 0
+            errors = 0
+            for job in jobs:
+                added += len(job.report['added'])
+                errors += len(job.report['errors'])
+            overall_status = '%s package(s) added, 0 deleted'%added
+        response_data['status'] =  'Last harvest status: %s. Overall for this source: %s' % (last_harvest_status, overall_status)
+        return self._finish_ok(response_data)
 
     def harvest_source_create(self):
         try:
