@@ -1,6 +1,7 @@
 import os
 
 from nose.tools import assert_equal
+from nose.plugins.skip import SkipTest
 from pylons import config
 from sqlalchemy.util import OrderedDict
 
@@ -8,9 +9,8 @@ from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.loader import OnsLoader
 from ckanext.tests.test_loader import TestLoaderBase, USER
 from ckan import model
-from ckan.tests import *
+from ckan.tests import CreateTestData, TestSearchIndexer, is_search_supported
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
-
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
@@ -18,6 +18,8 @@ SAMPLE_FILEPATH_TEMPLATE = os.path.join(SAMPLE_PATH, 'ons_hub_sample%s.xml')
 def sample_filepath(id):
     return SAMPLE_FILEPATH_TEMPLATE % id
 
+if not is_search_supported():
+    raise SkipTest("Search not supported")
 
 class TestOnsLoadBasic(TestLoaderBase):
     @classmethod

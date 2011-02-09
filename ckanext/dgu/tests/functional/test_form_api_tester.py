@@ -8,7 +8,7 @@ from ckan import plugins
 from ckan.lib.create_test_data import CreateTestData
 
 from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase
-from ckanext.dgu.tests.functional.form_api_tester import *
+from ckanext.dgu.testtools.form_api_tester import *
 
 class TestFormApiTester(WsgiAppCase, MockDrupalCase):
     @classmethod

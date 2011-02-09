@@ -1,31 +1,15 @@
 import os
 
-import paste.fixture
-from paste.deploy import appconfig
+from paste.script.appinstall import SetupCommand
 from pylons import config
 
-from ckan import __file__ as ckan_file
-from ckan.config.middleware import make_app
 from ckan.lib.create_test_data import CreateTestData
+from ckan.tests import WsgiAppCase
 
-def apply_fixture_config(config_):
-    local_config = [
-        ('dgu.xmlrpc_username', 'testuser'),
-        ('dgu.xmlrpc_password', 'testpassword'),
-        ('dgu.xmlrpc_domain', 'localhost:8000'), # must match MockDrupal
-        ]
-    config_.update(local_config)    
 
-class WsgiAppCase(object):
-    ckan_config_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(ckan_file)), '..'))
-    config_ = appconfig('config:test.ini', relative_to=ckan_config_dir)
-    local_config = [('ckan.plugins', 'dgu_form_api form_api_tester'),]
-    config_.local_conf.update(local_config)
-    config_.local_conf['ckan.plugins'] = 'dgu_form_api form_api_tester'
-    # set test config for dgu_form_api - it is imported before the test modules
-    apply_fixture_config(config_.local_conf)
-    wsgiapp = make_app(config_.global_conf, **config_.local_conf)
-    app = paste.fixture.TestApp(wsgiapp)
+# Invoke websetup with the current config file
+SetupCommand('setup-app').run([config['__file__']])
+
 
 class BaseCase(object):
     @staticmethod
@@ -187,11 +171,6 @@ class Gov3Fixtures(PackageFixturesBase):
                 ]
         return self._pkgs
 
-test_publishers = {'1': 'National Health Service',
-                   '2': 'Ealing PCT',
-                   '3': 'Department for Education',
-                   '4': 'Department of Energy and Climate Change',
-                   }
 
 class PackageDictUtil(object):
     @classmethod

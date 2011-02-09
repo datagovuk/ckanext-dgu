@@ -21,11 +21,10 @@ ACCESS_DENIED = [403]
 # Todo: Test for access control setup. Just checking an object exists in the model doesn't mean it will be presented through the WebUI.
 
 from ckanext.dgu.forms.formapi import FormController
-from ckanext.dgu.tests import WsgiAppCase, test_publishers, MockDrupalCase, apply_fixture_config
-from ckanext.dgu.tests.functional.mock_drupal import get_mock_drupal_config
+from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase
+from ckanext.dgu.testtools import test_publishers
+from ckanext.dgu.testtools.mock_drupal import get_mock_drupal_config
 
-# import of ckan.tests changes config, so need to reset
-apply_fixture_config(config)
 
 class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
@@ -236,7 +235,7 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
 class FormsApiTestCase(BaseFormsApiCase):
     def setup(self):
-        model.repo.init_db(conditional=True)
+        model.repo.init_db()
         CreateTestData.create()
         self.package_name = u'formsapi'
         self.package_name_alt = u'formsapialt'
@@ -253,7 +252,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.harvest_source = None
 
     def teardown(self):
-        model.repo.clean_db()
+        model.repo.rebuild_db()
         model.Session.connection().invalidate()
         
     def get_field_names(self, form):
@@ -475,14 +474,14 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
-        assert "Location (required): Please enter a value" in res.body, res.body
+        assert "URL for source of metadata: Please enter a value" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
         source_url = u' ' # Not '^http://'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
-        assert "Location (required): Harvest source URL is invalid" in res.body, res.body
+        assert "URL for source of metadata: Harvest source URL is invalid" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
     def test_get_harvest_source_edit_form(self):
@@ -520,7 +519,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         res = self.post_harvest_source_edit_form(self.harvest_source.id, url=alt_source_url, status=[400])
         assert self.get_harvest_source_by_url(source_url, None)
         self.assert_not_header(res, 'Location')
-        assert "Location (required): Please enter a value" in res.body, res.body
+        assert "URL for source of metadata: Please enter a value" in res.body, res.body
 
 
 class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass

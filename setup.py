@@ -29,7 +29,7 @@ setup(
     entry_points="""
         [ckan.plugins]
         dgu_form_api = ckanext.dgu.forms.formapi:FormApi
-        form_api_tester = ckanext.dgu.tests.functional.form_api_tester:FormApiTester
+        form_api_tester = ckanext.dgu.testtools.form_api_tester:FormApiTester
         
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
@@ -47,7 +47,7 @@ setup(
         report=ckanext.dgu.curation:report
 
         [paste.paster_command]
-        mock_drupal = ckanext.dgu.tests.functional.mock_drupal:Command
+        mock_drupal = ckanext.dgu.testtools.mock_drupal:Command
     """,
     test_suite = 'nose.collector',
 )

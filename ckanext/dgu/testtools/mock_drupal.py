@@ -2,8 +2,9 @@ import logging
 
 import paste.script
 
+from ckanext.dgu.testtools import test_publishers
+
 def get_mock_drupal_config():
-    from ckanext.dgu.tests import test_publishers
     return {
         'rpc_path': '/services/xmlrpc',
         'rpc_host': 'localhost',
@@ -36,7 +37,6 @@ class Command(paste.script.command.Command):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
         from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
         from xmlrpclib import Fault
-        from ckanext.dgu.tests import test_publishers
 
         config = get_mock_drupal_config()
         

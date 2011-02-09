@@ -12,6 +12,7 @@ from ckan.tests.html_check import HtmlCheckMethods
 
 from ckanext.dgu.forms.package_gov3 import get_gov3_fieldset
 from ckanext.dgu.tests import *
+from ckanext.dgu.testtools import test_publishers
 
 
 def _get_blank_param_dict(pkg=None, fs=None):
@@ -25,7 +26,7 @@ def get_fieldset(**kwargs):
     return get_gov3_fieldset(**kwargs)
 
 
-class TestFieldset(PylonsTestCase, HtmlCheckMethods):
+class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
     @classmethod
     def setup_class(self):
         self.fixtures = Gov3Fixtures()
@@ -457,5 +458,5 @@ class TestFieldset(PylonsTestCase, HtmlCheckMethods):
         model.repo.commit_and_remove()
 
         outpkg = model.Package.by_name(pkg_name)
-        self.assert_equal(outpkg.extras['geographic_coverage'], '111001: Global, Great Britain (England, Scotland, Wales)')
+        assert_equal(outpkg.extras['geographic_coverage'], '111001: Global, Great Britain (England, Scotland, Wales)')
 

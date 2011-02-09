@@ -27,8 +27,7 @@ def build_harvest_source_form():
         """
     ))
     builder.set_field_option('url', 'validate', harvest_source_url_validator)
-    builder.set_field_option('url', 'with_html', {'size':'60'})
-
+    builder.set_field_option('url', 'with_html', {'size':'80'})
     builder.set_field_option('description', 'textarea', {'size':'60x5'})
     builder.set_field_text('description', 'Description', literal('''
         You can add your own notes here about what the URL above represents to remind you later.

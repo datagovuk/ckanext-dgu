@@ -13,7 +13,7 @@ from ckanext.dgu.forms.formapi import FormController
 class FormApiTester(SingletonPlugin):
     implements(IRoutes, inherit=True)
 
-    test_controller = 'ckanext.dgu.tests.functional.form_api_tester:FormApiTestController'
+    test_controller = 'ckanext.dgu.testtools.form_api_tester:FormApiTestController'
     
     def after_map(self, map):
         ''' Create test i/f over existing api by adding to routes
