@@ -203,7 +203,7 @@ class MockDrupalCase(BaseCase):
     @classmethod
     def _mock_drupal_start(self):
         import subprocess
-        process = subprocess.Popen(['paster', 'mock_drupal', 'run'])
+        process = subprocess.Popen(['paster', '--plugin=ckanext-dgu', 'mock_drupal', 'run'])
         return process
 
     @staticmethod
