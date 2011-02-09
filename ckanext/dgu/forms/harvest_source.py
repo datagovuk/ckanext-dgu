@@ -16,9 +16,25 @@ def harvest_source_url_validator(val, field=None):
 
 def build_harvest_source_form():
     builder = FormBuilder(model.HarvestSource)
-    builder.set_field_text('url', 'Location (required)', literal("<br/><strong>URL</strong> for source of metadata.<br/>"))
+    builder.set_field_text('url', 'URL for source of metadata', literal('''
+        <br/>This should include the <tt>http://</tt> part of the URL and can point to either:
+        <ul>
+            <li>A server's CSW interface</li>
+            <li>A Web Accessible Folder (WAF) displaying a list of GEMINI 2.1 documents</li>
+            <li>A single GEMINI 2.1 document</li>
+        </ul>
+        <br />
+        '''
+    ))
     builder.set_field_option('url', 'validate', harvest_source_url_validator)
-    builder.set_field_option('description', 'textarea', {'size':'60x15'})
+    # XXX How on earth do you set the size attribute of a text field!
+    #builder.set_field_option('url', 'text', {'size':'60'})
+
+    builder.set_field_option('description', 'textarea', {'size':'60x5'})
+    builder.set_field_text('description', 'Description', literal('''
+        You can add your own notes here about what the URL above represents to remind you later.
+        '''
+    ))
     displayed_fields = ['url', 'description']
     builder.set_displayed_fields(OrderedDict([('Details', displayed_fields)]))
     builder.set_label_prettifier(common.prettify)
