@@ -35,6 +35,7 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/rest/harvestsource/:id',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         map.connect('/api/2/form/harvestsource/create',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
+        map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
         map.connect('/api/2/form/package/create',         controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
         map.connect('/api/2/form/package/edit/:id',       controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
         return map
@@ -391,21 +392,38 @@ class BaseFormController(BaseApiController):
             response.status_int = 404
             return ''            
         response_data = obj.as_dict()
-        last_harvest_status = 'Not yet harvested'
-        overall_status = 'Not yet harvested'
         jobs = obj.jobs
+        last_harvest_request = 'None'
+        last_harvest_status = 'Not yet harvested'
+        last_harvest_request = str(jobs[-1].created)[:10]
+        last_harvest_statistics = 'None'
+        overall_statistics = {'added': 0, 'errors': 0}
+        next_harvest = 'Not scheduled'
         if len(jobs):
-            last_harvest_status = jobs[-1].status+' ('+'%s package(s) added, 0 deleted, %s errors)'%(
-                len(jobs[-1].report['added']),
-                len(jobs[-1].report['errors']),
-            )
-            added = 0
-            errors = 0
+            if len(jobs) < 2:
+                last_harvest_request = 'None'
+            if jobs[-1].status == u'New':
+                # We need the details for the previous one
+                if len(jobs) < 2:
+                    last_harvest_status = 'Not yet harvested'
+                else:
+                    last_harvest_statistics = {'added': len(jobs[-2].report['added']), 'errors': len(jobs[-2].report['errors'])}
+                    last_harvest_status = jobs[-2].status
+            else:
+                last_harvest_status = jobs[-1].status
+                last_harvest_statistics = {'added': len(jobs[-1].report['added']), 'errors': len(jobs[-1].report['errors'])}
             for job in jobs:
-                added += len(job.report['added'])
-                errors += len(job.report['errors'])
-            overall_status = '%s package(s) added, 0 deleted'%added
-        response_data['status'] =  'Last harvest status: %s. Overall for this source: %s' % (last_harvest_status, overall_status)
+                if job.status == u'New':
+                    next_harvest = 'Within 15 minutes'
+                overall_statistics['added'] += len(job.report['added'])
+                overall_statistics['errors'] += len(job.report['errors'])
+        response_data['status'] = dict(
+            last_harvest_status = last_harvest_status,
+            last_harvest_request = last_harvest_request,
+            last_harvest_statistics = last_harvest_statistics,
+            overall_statistics = overall_statistics,
+            next_harvest = next_harvest,
+        )
         return self._finish_ok(response_data)
 
     def harvest_source_create(self):
@@ -452,6 +470,10 @@ class BaseFormController(BaseApiController):
                     source.user_ref = user_ref
                     source.publisher_ref = publisher_ref
                     model.Session.add(source)
+                    # Also create a job
+                    job = model.HarvestingJob(source=source, user_ref=source.user_ref, status=u'New')
+                    model.Session.add(job)
+                    # Save changes
                     model.Session.commit()
                     # Set the response's Location header.
                     location = self._make_harvest_source_201_location(source)
@@ -464,6 +486,16 @@ class BaseFormController(BaseApiController):
             log.error("Couldn't run create harvest source form method: %s" % traceback.format_exc())
             raise
         
+    def harvest_source_delete(self, id):
+        self._assert_authorization_credentials()
+        source = model.HarvestSource.get(id, default=None)
+        jobs = model.HarvestingJob.filter(source=source)
+        for job in jobs:
+            job.delete()
+        source.delete()
+        model.repo.commit()        
+        return self._finish_ok()
+
     def harvest_source_edit(self, id):
         try:
             # Find the entity.
