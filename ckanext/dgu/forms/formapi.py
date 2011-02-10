@@ -400,6 +400,8 @@ class BaseFormController(BaseApiController):
         last_harvest_status = 'Not yet harvested'
         last_harvest_request = str(jobs[-1].created)[:10]
         last_harvest_statistics = 'None'
+        last_harvest_errors = 'Not yet harvested'
+        last_harvest_job = 'None'
         overall_statistics = {'added': 0, 'errors': 0}
         next_harvest = 'Not scheduled'
         if len(jobs):
@@ -412,8 +414,12 @@ class BaseFormController(BaseApiController):
                 else:
                     last_harvest_statistics = {'added': len(jobs[-2].report['added']), 'errors': len(jobs[-2].report['errors'])}
                     last_harvest_status = jobs[-2].status
+                    last_harvest_errors = jobs[-2].report['errors']
+                    last_harvest_job = jobs[-2].id
             else:
                 last_harvest_status = jobs[-1].status
+                last_harvest_errors = jobs[-1].report['errors']
+                last_harvest_job = jobs[-1].id
                 last_harvest_statistics = {'added': len(jobs[-1].report['added']), 'errors': len(jobs[-1].report['errors'])}
             for job in jobs:
                 if job.status == u'New':
@@ -426,6 +432,8 @@ class BaseFormController(BaseApiController):
             last_harvest_statistics = last_harvest_statistics,
             overall_statistics = overall_statistics,
             next_harvest = next_harvest,
+            last_harvest_errors = last_harvest_errors,
+            last_harvest_job = last_harvest_job,
         )
         return self._finish_ok(response_data)
 
