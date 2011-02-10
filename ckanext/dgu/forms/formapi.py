@@ -30,13 +30,16 @@ class FormApi(SingletonPlugin):
 
     def before_map(self, map):
         for version in ('', '1/'):
-            map.connect('/api/%sform/package/create' % version,           controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
-            map.connect('/api/%sform/package/edit/:id' % version,         controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
-        map.connect('/api/2/rest/harvestsource/:id',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
-        map.connect('/api/2/form/harvestsource/create',   controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
+            map.connect('/api/%sform/package/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
+            map.connect('/api/%sform/package/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
+            map.connect('/api/%sform/harvestsource/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
+            map.connect('/api/%sform/harvestsource/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
+            map.connect('/api/%srest/harvestsource/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
+        map.connect('/api/2/form/package/create', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
+        map.connect('/api/2/form/package/edit/:id', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
+        map.connect('/api/2/form/harvestsource/create', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
-        map.connect('/api/2/form/package/create',         controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
-        map.connect('/api/2/form/package/edit/:id',       controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
+        map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         return map
 
     def after_map(self, map):
