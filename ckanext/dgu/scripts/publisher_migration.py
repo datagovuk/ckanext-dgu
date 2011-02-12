@@ -1,10 +1,12 @@
 from collections import defaultdict
 import socket
 from xmlrpclib import ServerProxy, ProtocolError
+from nose.tools import assert_equal
 
 from common import ScriptError, remove_readonly_fields
-
 from ckanclient import CkanApiError
+
+from ckanext.importer.spreadsheet_importer import CsvData
 
 log = __import__("logging").getLogger(__name__)
 
@@ -12,16 +14,43 @@ class PublisherMigration:
     '''Changes department/agency fields to published_by/_via'''
     def __init__(self, ckanclient,
                  xmlrpc_domain, xmlrpc_username, xmlrpc_password,
+                 publisher_map_filepath,
                  dry_run=False):
         self.ckanclient = ckanclient
         self.dry_run = dry_run
         self.xmlrpc = {'username':xmlrpc_username,
                        'password':xmlrpc_password,
                        'domain':xmlrpc_domain}
+        self.publisher_map = self.read_publisher_map(publisher_map_filepath) \
+                             if publisher_map_filepath else {}
         self.organisations = {}
 
+    def read_publisher_map(self, publisher_map_filepath):
+        logger = None
+        publisher_map = {}
+        data = CsvData(logger, filepath=publisher_map_filepath)
+        header = data.get_row(0)
+        assert_equal(header[:2], ['Agency text', 'Corrected name'])
+        for row_index in range(data.get_num_rows())[1:]:
+            row = data.get_row(row_index)
+            if len(row) < 2:
+                continue
+            agency, publisher = row[:2]
+            agency = agency.strip()
+            publisher = publisher.strip()
+            if agency and publisher:
+                publisher_map[agency] = publisher
+        return publisher_map
+        
     def get_organisation(self, dept_or_agency):
         if not self.organisations.has_key(dept_or_agency):
+            # check for name mapping
+            mapped_publisher = self.publisher_map.get(dept_or_agency.strip())
+            if mapped_publisher:
+                log.info('Mapping %r to %r', dept_or_agency, mapped_publisher)
+                dept_or_agency = mapped_publisher
+
+            # look up with Drupal
             if not hasattr(self, 'drupal'):
                 domain = self.xmlrpc['domain']
                 username = self.xmlrpc['username']
@@ -108,7 +137,7 @@ class PublisherMigration:
                 log.error('Exception during processing package %r: %r', \
                           pkg_ref, e)
                 pkgs_rejected['Exception: %r' % e].append(pkg_ref)
-                continue
+                raise
         log.info('-- Finished --')
         log.info('Processed %i packages', len(pkgs_done))
         rejected_pkgs = []
@@ -133,6 +162,9 @@ class Command(MassChangerCommand):
         self.parser.add_option("-P", "--xmlrpc-password",
                                dest="xmlrpc_password",
                                )
+        self.parser.add_option("-m", "--publisher-map",
+                               dest="publisher_map_csv",
+                               )
 
     def command(self):
         super(Command, self).command()
@@ -142,6 +174,7 @@ class Command(MassChangerCommand):
                                  self.options.xmlrpc_domain,
                                  self.options.xmlrpc_username,
                                  self.options.xmlrpc_password,
+                                 self.options.publisher_map_csv,
                                  dry_run=self.options.dry_run)
         cmd.run()
 
