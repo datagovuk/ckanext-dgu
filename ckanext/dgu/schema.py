@@ -74,8 +74,6 @@ temporal_granularity_options = ['year', 'quarter', 'month', 'week', 'day', 'hour
 
 category_options = ['Agriculture and Environment', 'Business and Energy', 'Children, Education and Skills', 'Crime and Justice', 'Economy', 'Government', 'Health and Social Care', 'Labour Market', 'People and Places', 'Population', 'Travel and Transport', 'Equality and Diversity', 'Migration']
 
-yes_no_not_yet_options = ['yes', 'no', 'not yet reviewed']
-
 region_options = ('England', 'Scotland', 'Wales', 'Northern Ireland', 'Overseas', 'Global')
 
 region_groupings = {'United Kingdom':['England', 'Scotland', 'Wales', 'Northern Ireland'], 'Great Britain':['England', 'Scotland', 'Wales']}

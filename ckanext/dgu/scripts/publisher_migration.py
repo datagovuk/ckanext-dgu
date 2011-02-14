@@ -1,5 +1,7 @@
 from collections import defaultdict
 import socket
+import copy
+
 from xmlrpclib import ServerProxy, ProtocolError
 from nose.tools import assert_equal
 
@@ -95,15 +97,11 @@ class PublisherMigration:
             try:
                 try:
                     pkg = self.ckanclient.package_entity_get(pkg_ref)
-                except ckanclient.CkanApiError, e:
+                except CkanApiError, e:
                     log.error('Could not get: %r' % e)
                     pkgs_rejected['Could not get package: %r' % e].append(pkg_ref)
                     continue
-##                if ('published_by' in pkg['extras'] and \
-##                    'published_via' in pkg['extras']):
-##                    log.error('...already migrated')
-##                    pkgs_rejected['Already migrated'].append(pkg)
-##                    continue
+                pkg_before_changes = copy.deepcopy(pkg)
 
                 dept = pkg['extras'].get('department')
                 agency = pkg['extras'].get('agency')
@@ -117,15 +115,20 @@ class PublisherMigration:
                         log.warn('No publisher for package: %s', pkg['name'])
                 log.info('%s:\n  %r/%r ->\n  %r/%r', \
                          pkg['name'], dept, agency, pub_by, pub_via)
+                pkg['extras']['published_by'] = pub_by
+                pkg['extras']['published_via'] = pub_via
+                if pkg == pkg_before_changes:
+                    log.info('...package unchanged: %r' % pkg['name'])
+                    pkgs_rejected['Package unchanged: %r' % pkg['name']].append(pkg)
+                    continue                    
                 if not self.dry_run:
-                    pkg['extras']['published_by'] = pub_by
-                    pkg['extras']['published_via'] = pub_via
-##                    if pkg['extras'].has_key('department'):
-##                        pkg['extras']['department'] = None
-##                    if pkg['extras'].has_key('agency'):
-##                        pkg['extras']['agency'] = None
                     remove_readonly_fields(pkg)
-                    self.ckanclient.package_entity_put(pkg)
+                    try:
+                        self.ckanclient.package_entity_put(pkg)
+                    except CkanApiError, e:
+                        log.error('Could not put: %r' % e)
+                        pkgs_rejected['Could not put package: %r' % e].append(pkg_ref)
+                        continue
                     log.info('...done')
                 pkgs_done.append(pkg)
             except ScriptError, e:
@@ -134,7 +137,7 @@ class PublisherMigration:
                 pkgs_rejected['Error: %r' % e].append(pkg_ref)
                 continue
             except Exception, e:
-                log.error('Exception during processing package %r: %r', \
+                log.error('Uncaught exception during processing package %r: %r', \
                           pkg_ref, e)
                 pkgs_rejected['Exception: %r' % e].append(pkg_ref)
                 raise
