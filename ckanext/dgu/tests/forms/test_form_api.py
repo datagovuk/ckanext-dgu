@@ -29,7 +29,8 @@ from ckanext.dgu.testtools.mock_drupal import get_mock_drupal_config
 class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
         assert config['dgu.xmlrpc_domain']
-        url = FormController._get_drupal_xmlrpc_url()
+        from ckanext.dgu.forms.formapi import _get_drupal_xmlrpc_url
+        url = _get_drupal_xmlrpc_url(FormController)
         assert_equal(url, 'http://testuser:testpassword@localhost:8000/services/xmlrpc')
 
     def test_get_user_properties(self):

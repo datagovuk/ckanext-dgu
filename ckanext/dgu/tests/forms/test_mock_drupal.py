@@ -30,3 +30,9 @@ class TestMockDrupal(MockDrupalCase):
         # return org id by name
         org_id = self.s.organisation.match('National Health Service')
         assert_equal(org_id, '1')
+
+    def test_department_lookup(self):
+        # return org id by name
+        org = self.s.organisation.department('2')
+        assert_equal(org, {'1': 'Department'})
+

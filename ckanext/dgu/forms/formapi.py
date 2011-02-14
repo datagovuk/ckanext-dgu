@@ -41,6 +41,7 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/form/harvestsource/create', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
+        map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
         return map
 
     def after_map(self, map):
@@ -53,6 +54,21 @@ class ApiError(Exception):
         self.status_int = status_int
 
 # Todo: Refactor package form logic (to have more common functionality package_create and package_edit)
+
+def _get_drupal_xmlrpc_url(cls):
+    if not hasattr(cls, '_xmlrpc_url'):
+        domain = config.get('dgu.xmlrpc_domain')
+        if not domain:
+            raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
+        username = config.get('dgu.xmlrpc_username')
+        password = config.get('dgu.xmlrpc_password')
+        if username or password:
+            server = '%s:%s@%s' % (username, password, domain)
+        else:
+            server = '%s' % domain
+        cls._xmlrpc_url = 'http://%s/services/xmlrpc' % server
+        log.info('XMLRPC connection to %s', cls._xmlrpc_url)
+    return cls._xmlrpc_url
 
 class BaseFormController(BaseApiController):
     """Implements the CKAN Forms API."""
@@ -86,28 +102,12 @@ class BaseFormController(BaseApiController):
             self._abort_not_authorized()
 
     @classmethod
-    def _get_drupal_xmlrpc_url(cls):
-        if not hasattr(cls, '_xmlrpc_url'):
-            domain = config.get('dgu.xmlrpc_domain')
-            if not domain:
-                raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
-            username = config.get('dgu.xmlrpc_username')
-            password = config.get('dgu.xmlrpc_password')
-            if username or password:
-                server = '%s:%s@%s' % (username, password, domain)
-            else:
-                server = '%s' % domain
-            cls._xmlrpc_url = 'http://%s/services/xmlrpc' % server
-            log.info('XMLRPC connection to %s', cls._xmlrpc_url)
-        return cls._xmlrpc_url
-
-    @classmethod
     def _get_drupal_user_properties(cls, user_id):
         '''Requests dict of properties of the Drupal user in the request.
         If no user is supplied in the request then the request is aborted.
         If the Drupal server is not configured then it raises.'''
         try:
-            xmlrpc_url = cls._get_drupal_xmlrpc_url()
+            xmlrpc_url = _get_drupal_xmlrpc_url(cls)
         except DrupalXmlRpcSetupError, e:
             raise DrupalRequestError('Cannot get user properties from Drupal: %r' % e)
 
@@ -218,6 +218,22 @@ class BaseFormController(BaseApiController):
             # Log error.
             log.error('Package create - unhandled exception: exception=%r', traceback.format_exc())
             raise
+
+    def get_department_from_publisher(self, id):
+        try:
+            xmlrpc_url = _get_drupal_xmlrpc_url(BaseFormController)
+        except DrupalXmlRpcSetupError, e:
+            raise DrupalRequestError('Cannot get user properties from Drupal: %r' % e)
+        drupal = ServerProxy(xmlrpc_url)
+        try:
+            department = drupal.organisation.department(id)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (xmlrpc_url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (id, e))
+        log.info('Obtained Drupal department %r from publisher %r', department, id)
+        response_data = department
+        return self._finish_ok(response_data)
 
     @classmethod
     def _make_package_201_location(cls, package):

@@ -103,7 +103,7 @@ class Command(paste.script.command.Command):
                 def department(cls, org_id): 
                     # return top level parent ord id by org id
                     if org_id == '2':
-                        return '1'
+                        return {'1': 'Department'}
                     else:
                         return org_id
 

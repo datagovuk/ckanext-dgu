@@ -1,2 +1,2 @@
--e hg+http://bitbucket.org/okfn/ckanclient#egg=ckanclient
--e hg+http://bitbucket.org/okfn/ckanext#egg=ckanext
+-e hg+https://bitbucket.org/okfn/ckanclient#egg=ckanclient
+-e hg+https://bitbucket.org/okfn/ckanext#egg=ckanext
