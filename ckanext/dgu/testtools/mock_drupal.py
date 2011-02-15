@@ -1,4 +1,5 @@
 import logging
+from xmlrpclib import Fault
 
 import paste.script
 
@@ -103,9 +104,12 @@ class Command(paste.script.command.Command):
                 def department(cls, org_id): 
                     # return top level parent ord id by org id
                     if org_id == '2':
-                        return {'1': 'Department'}
+                        return {'1': 'National Health Service'}
+                    elif org_id in test_publishers:
+                        return {org_id: test_publishers[org_id]}
                     else:
-                        return org_id
+                        raise Fault(404)
+
 
 
         server.register_instance(MyFuncs(), allow_dotted_names=True)

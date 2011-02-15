@@ -26,13 +26,22 @@ class TestMockDrupal(MockDrupalCase):
         org_name = self.s.organisation.one('1')
         assert_equal(org_name, 'National Health Service')
 
+    def test_organisation_one_error(self):
+        assert_raises(xmlrpclib.Fault, self.s.organisation.one, '9999')
+
     def test_organisation_match(self):
         # return org id by name
         org_id = self.s.organisation.match('National Health Service')
         assert_equal(org_id, '1')
 
+    def test_organisation_match_error(self):
+        assert_raises(xmlrpclib.Fault, self.s.organisation.match, 'Wrong org name')
+
     def test_department_lookup(self):
         # return org id by name
         org = self.s.organisation.department('2')
-        assert_equal(org, {'1': 'Department'})
+        assert_equal(org, {'1': 'National Health Service'})
+
+    def test_department_lookup_error(self):
+        assert_raises(xmlrpclib.Fault, self.s.organisation.department, '9999')
 
