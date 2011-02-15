@@ -12,6 +12,14 @@ from ckanext.importer.spreadsheet_importer import CsvData
 
 log = __import__("logging").getLogger(__name__)
 
+mapped_attributes = {
+    'temporal_granularity': dict(zip(['years', 'quarters', 'months', 'weeks', 'days', 'hours', 'points'],
+                                     ['year', 'quarter', 'month', 'week', 'day', 'hour', 'point'])),
+
+    'update_frequency': dict(zip(('annually', 'quarterly', 'monthly', 'never'),
+                                 ('annual', 'quarterly', 'monthly', 'never'))), #'discontinued'
+    }
+
 class PublisherMigration:
     '''Changes department/agency fields to published_by/_via'''
     def __init__(self, ckanclient,
@@ -61,24 +69,24 @@ class PublisherMigration:
                     server = '%s:%s@%s' % (username, password, domain)
                 else:
                     server = '%s' % domain
-                xmlrpc_url = 'http://%s/services/xmlrpc' % server
-                log.info('XMLRPC connection to %s', xmlrpc_url)
-                self.drupal = ServerProxy(xmlrpc_url)
+                self.xmlrpc_url = 'http://%s/services/xmlrpc' % server
+                log.info('XMLRPC connection to %s', self.xmlrpc_url)
+                self.drupal = ServerProxy(self.xmlrpc_url)
             try:
                 org_id = self.drupal.organisation.match(dept_or_agency)
             except socket.error, e:
-                raise ScriptError('Socket error connecting to %s', xmlrpc_url)
+                raise ScriptError('Socket error connecting to %s', self.xmlrpc_url)
             except ProtocolError, e:
-                raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
+                raise ScriptError('XMLRPC error connecting to %s', self.xmlrpc_url)
             except ResponseError, e:
-                raise ScriptError('XMLRPC response error connecting to %s for department: %r', xmlrpc_url, dept_or_agency)
+                raise ScriptError('XMLRPC response error connecting to %s for department: %r', self.xmlrpc_url, dept_or_agency)
             if org_id:
                 try:
                     org_name = self.drupal.organisation.one(org_id)
                 except socket.error, e:
-                    raise ScriptError('Socket error connecting to %s', xmlrpc_url)
+                    raise ScriptError('Socket error connecting to %s', self.xmlrpc_url)
                 except ProtocolError, e:
-                    raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
+                    raise ScriptError('XMLRPC error connecting to %s', self.xmlrpc_url)
                 organisation = u'%s [%s]' % (org_name, org_id)
                 log.info('Found organisation: %r', organisation)
             else:
@@ -103,6 +111,23 @@ class PublisherMigration:
                     continue
                 pkg_before_changes = copy.deepcopy(pkg)
 
+                # mapped attributes
+                for attribute in mapped_attributes:
+                    orig_value = pkg['extras'].get(attribute)
+                    if not orig_value:
+                        continue
+                    mapped_value = mapped_attributes[attribute].get(orig_value)
+                    if not mapped_value:
+                        mapped_value = mapped_attributes[attribute].get(orig_value.lower().strip())
+                    if mapped_value:
+                        pkg['extras'][attribute] = mapped_value
+                        log.info('%s: %r -> %r', \
+                                 attribute, orig_value, mapped_value)
+                    else:
+                        log.warn('Invalid value for %r: %r', \
+                                 attribute, orig_value)
+
+                # create publisher fields
                 dept = pkg['extras'].get('department')
                 agency = pkg['extras'].get('agency')
                 if dept:
@@ -117,10 +142,11 @@ class PublisherMigration:
                          pkg['name'], dept, agency, pub_by, pub_via)
                 pkg['extras']['published_by'] = pub_by
                 pkg['extras']['published_via'] = pub_via
+                
                 if pkg == pkg_before_changes:
                     log.info('...package unchanged: %r' % pkg['name'])
                     pkgs_rejected['Package unchanged: %r' % pkg['name']].append(pkg)
-                    continue                    
+                    continue             
                 if not self.dry_run:
                     remove_readonly_fields(pkg)
                     try:
