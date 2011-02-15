@@ -1,8 +1,6 @@
 import logging
 import sys
 import traceback
-import socket
-from xmlrpclib import ServerProxy, Fault
 
 from pylons import config
 
@@ -10,16 +8,16 @@ from ckan.plugins.core import SingletonPlugin, implements
 from ckan.plugins.interfaces import IRoutes
 from ckan.lib.base import *
 from ckan.lib.helpers import json
-from ckanext.dgu.forms import harvest_source as harvest_source_form
 import ckan.controllers.package
 from ckan.lib.package_saver import WritePackageFromBoundFieldset
 from ckan.lib.package_saver import ValidationException
 from ckan.controllers.rest import BaseApiController, ApiVersion1, ApiVersion2
 
-log = logging.getLogger(__name__)
+from ckanext.dgu.forms import harvest_source as harvest_source_form
+from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
+     DrupalRequestError
 
-class DrupalXmlRpcSetupError(Exception): pass
-class DrupalRequestError(Exception): pass
+log = logging.getLogger(__name__)
 
 class FormApi(SingletonPlugin):
     """
@@ -53,23 +51,6 @@ class ApiError(Exception):
         self.msg = msg
         self.status_int = status_int
 
-# Todo: Refactor package form logic (to have more common functionality package_create and package_edit)
-
-def _get_drupal_xmlrpc_url(cls):
-    if not hasattr(cls, '_xmlrpc_url'):
-        domain = config.get('dgu.xmlrpc_domain')
-        if not domain:
-            raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
-        username = config.get('dgu.xmlrpc_username')
-        password = config.get('dgu.xmlrpc_password')
-        if username or password:
-            server = '%s:%s@%s' % (username, password, domain)
-        else:
-            server = '%s' % domain
-        cls._xmlrpc_url = 'http://%s/services/xmlrpc' % server
-        log.info('XMLRPC connection to %s', cls._xmlrpc_url)
-    return cls._xmlrpc_url
-
 class BaseFormController(BaseApiController):
     """Implements the CKAN Forms API."""
 
@@ -102,28 +83,10 @@ class BaseFormController(BaseApiController):
             self._abort_not_authorized()
 
     @classmethod
-    def _get_drupal_user_properties(cls, user_id):
-        '''Requests dict of properties of the Drupal user in the request.
-        If no user is supplied in the request then the request is aborted.
-        If the Drupal server is not configured then it raises.'''
-        try:
-            xmlrpc_url = _get_drupal_xmlrpc_url(cls)
-        except DrupalXmlRpcSetupError, e:
-            raise DrupalRequestError('Cannot get user properties from Drupal: %r' % e)
-
-        try:
-            user_id_int = int(user_id)
-        except ValueError, e:
-            cls._abort_bad_request('user_id parameter must be an integer')
-        drupal = ServerProxy(xmlrpc_url)
-        try:
-            user = drupal.user.get(user_id)
-        except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (xmlrpc_url, e))
-        except Fault, e:
-            raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (user_id, e))
-        log.info('Obtained Drupal user: %r' % user)
-        return user
+    def _drupal_client(cls):
+        if not hasattr(cls, '_drupal_client_cache'):
+            cls._drupal_client_cache = DrupalClient()
+        return cls._drupal_client_cache
 
     @classmethod
     def _get_package_fieldset(cls):
@@ -133,7 +96,7 @@ class BaseFormController(BaseApiController):
         except KeyError, e:
             cls._abort_bad_request('Please supply a user_id parameter in the request parameters.')
         try:
-            user = cls._get_drupal_user_properties(user_id)
+            user = cls._drupal_client().get_user_properties(user_id)
         except DrupalRequestError, e:
             raise DrupalRequestError('Cannot get user properties (for publishers in the form): %s' % e)
         else:
@@ -146,6 +109,8 @@ class BaseFormController(BaseApiController):
                 }
         return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
 
+    # Todo: Refactor package form logic (to have more common functionality
+    # between package_create and package_edit)
     def package_create(self):
         try:
             api_url = config.get('ckan.api_url', '/').rstrip('/')
@@ -218,22 +183,6 @@ class BaseFormController(BaseApiController):
             # Log error.
             log.error('Package create - unhandled exception: exception=%r', traceback.format_exc())
             raise
-
-    def get_department_from_publisher(self, id):
-        try:
-            xmlrpc_url = _get_drupal_xmlrpc_url(BaseFormController)
-        except DrupalXmlRpcSetupError, e:
-            raise DrupalRequestError('Cannot get user properties from Drupal: %r' % e)
-        drupal = ServerProxy(xmlrpc_url)
-        try:
-            department = drupal.organisation.department(id)
-        except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (xmlrpc_url, e))
-        except Fault, e:
-            raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (id, e))
-        log.info('Obtained Drupal department %r from publisher %r', department, id)
-        response_data = department
-        return self._finish_ok(response_data)
 
     @classmethod
     def _make_package_201_location(cls, package):
@@ -586,6 +535,14 @@ class BaseFormController(BaseApiController):
             # Log error.
             log.error("Couldn't update harvest source: %s" % traceback.format_exc())
             raise
+
+    def get_department_from_publisher(self, id):
+        try:
+            department = BaseFormController._drupal_client().get_department_from_publisher(id)
+        except DrupalRequestError, e:
+            abort(500, 'Error making internal request: %r' % e)
+        return self._finish_ok(department)
+
 
 class FormController(ApiVersion1, BaseFormController):
     pass
