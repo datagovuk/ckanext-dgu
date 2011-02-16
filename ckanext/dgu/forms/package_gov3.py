@@ -89,7 +89,6 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_option('notes', 'required')
     builder.set_field_option('published_by', 'required') 
     builder.set_field_option('license_id', 'required')
-    builder.set_field_option('tags', 'with_renderer', package_gov_fields.SuggestTagRenderer)
     
     if restrict:
         builder.set_field_option('national_statistic', 'readonly', True)
