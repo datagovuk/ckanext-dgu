@@ -18,7 +18,7 @@ def get_mock_drupal_config():
 class Command(paste.script.command.Command):
     '''Dgu commands
 
-    mock_drupal run
+    mock_drupal run OPTIONS
     '''
     parser = paste.script.command.Command.standard_parser(verbose=True)
     default_verbosity = 1
@@ -28,10 +28,21 @@ class Command(paste.script.command.Command):
     log = logging.getLogger(__name__)
     min_args = 1
     max_args = None
+    parser.add_option('-q', '--quiet',
+                      dest='is_quiet',
+                      action='store_true',
+                      default=False,
+                      help='Quiet mode')
 
     def command(self):
         cmd = self.args[0]
         if cmd == 'run':
+            if not self.options.is_quiet:
+                self.log.setLevel(logging.DEBUG)
+                formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+                handler = logging.StreamHandler()
+                handler.setFormatter(formatter)
+                self.log.addHandler(handler)
             self.run_mock_drupal()
 
     def run_mock_drupal(self):
@@ -115,6 +126,13 @@ class Command(paste.script.command.Command):
         server.register_instance(MyFuncs(), allow_dotted_names=True)
 
         # Run the server's main loop
-        self.log.info('Serving on http://%s:%s%s',
-                      (config['rpc_host'], config['rpc_port'], config['rpc_path']))
+        self.log.debug('Serving on http://%s:%s%s',
+                      config['rpc_host'], config['rpc_port'], config['rpc_path'])
+        ckan_opts = '''
+dgu.xmlrpc_username = 
+dgu.xmlrpc_password = 
+dgu.xmlrpc_domain = %(rpc_host)s:%(rpc_port)s
+''' % config
+        self.log.debug('CKAN options: %s',
+                      ckan_opts)
         server.serve_forever()
