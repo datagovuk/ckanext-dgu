@@ -119,6 +119,9 @@ class PublisherMigration:
                     mapped_value = mapped_attributes[attribute].get(orig_value)
                     if not mapped_value:
                         mapped_value = mapped_attributes[attribute].get(orig_value.lower().strip())
+                        if not mapped_value:
+                            if orig_value.lower() in mapped_attributes[attribute].values():
+                                mapped_value = orig_value.lower()
                     if mapped_value:
                         pkg['extras'][attribute] = mapped_value
                         log.info('%s: %r -> %r', \
