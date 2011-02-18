@@ -201,9 +201,12 @@ class MockDrupalCase(BaseCase):
         cls._mock_drupal_stop(cls.process)
 
     @classmethod
-    def _mock_drupal_start(self):
+    def _mock_drupal_start(cls):
         import subprocess
-        process = subprocess.Popen(['paster', '--plugin=ckanext-dgu', 'mock_drupal', 'run', '-q'])
+        options = ['-q']
+        if hasattr(cls, 'lots_of_publishers') and cls.lots_of_publishers:
+            options.append('-l')
+        process = subprocess.Popen(['paster', '--plugin=ckanext-dgu', 'mock_drupal', 'run'] + options)
         return process
 
     @staticmethod

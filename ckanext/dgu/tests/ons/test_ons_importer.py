@@ -1,12 +1,14 @@
 import os
+import re
 
 from pylons import config
 from sqlalchemy.util import OrderedDict
 from nose.tools import assert_equal
 
 from ckanext.dgu.ons import importer
+from ckanext.dgu.ons.producers import get_ons_producers
 from ckan.tests import *
-
+from ckanext.dgu.tests import MockDrupalCase
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
@@ -50,7 +52,9 @@ class TestOnsData1:
         assert not key_difference, key_difference
 
 
-class TestOnsImporter:
+class TestOnsImporter(MockDrupalCase):
+    lots_of_publishers = True
+    
     def test_split_title(self):
         expected_data = [
             (u'UK Official Holdings of International Reserves - December 2009',
@@ -83,50 +87,73 @@ class TestOnsImporter:
     def test_department_agency(self):
         expected_results = [
             # (hub:source-agency value, department, agency)
-            ('Information Centre for Health and Social Care', '', 'Information Centre for Health and Social Care'),
+            ('Information Centre for Health and Social Care', '', 'NHS Information Centre for Health and Social Care'),
             ('Business, Innovation and Skills', 'Department for Business, Innovation and Skills', ''),
             ('Communities and Local Government', 'Department for Communities and Local Government', ''),
-            ('Culture, Arts and Leisure (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Culture, Arts and Leisure (Northern Ireland)', 'Northern Ireland Executive', 'Department of Culture, Arts and Leisure'),
             ('Defence', 'Ministry of Defence', ''),
             ('Education', 'Department for Education', ''),
-            ('Employment and Learning (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Employment and Learning (Northern Ireland)', 'Northern Ireland Executive', 'Department for Employment and Learning'),
             ('Energy and Climate Change', 'Department of Energy and Climate Change', ''),
-            ('Enterprise, Trade and Investment (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Enterprise, Trade and Investment (Northern Ireland)', 'Northern Ireland Executive', 'Department of Enterprise Trade and Investment'),
             ('Environment, Food and Rural Affairs', 'Department for Environment, Food and Rural Affairs', ''),
-            ('Environment (Northern Ireland)', 'Northern Ireland Executive', ''),
-            ('Finance and Personnel (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Environment (Northern Ireland)', 'Northern Ireland Executive', 'Department of the Environment'),
+            ('Finance and Personnel (Northern Ireland)', 'Northern Ireland Executive', 'Department of Finance and Personnel'),
             ('Food Standards Agency', 'Food Standards Agency', ''),
             ('Forestry Commission', 'Forestry Commission', ''),
             ('General Register Office for Scotland', '', 'General Register Office for Scotland'),
-            ('Health, Social Service and Public Safety (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Health, Social Services and Public Safety (Northern Ireland)', 'Northern Ireland Executive', 'Department of Health, Social Services and Public Safety'),
             ('Health', 'Department of Health', ''),
             ('Health and Safety Executive', '', 'Health and Safety Executive'),
             ('Health Protection Agency', '', 'Health Protection Agency'),
             ('HM Revenue and Customs', 'Her Majesty\'s Revenue and Customs', ''),
             ('HM Treasury', 'Her Majesty\'s Treasury', ''),
             ('Home Office', 'Home Office', ''),
-            ('Information Centre for Health and Social Care', '', 'Information Centre for Health and Social Care'),
+            ('Information Centre for Health and Social Care', '', 'NHS Information Centre for Health and Social Care'),
             ('International Development', 'Department for International Development', ''),
-            ('ISD Scotland (part of NHS National Services Scotland)', '', 'ISD Scotland (part of NHS National Services Scotland)'),
+            ('ISD Scotland (part of NHS National Services Scotland)', '', 'ISD Scotland'),
             ('Justice', 'Ministry of Justice', ''),
-            ('National Treatment Agency', '', 'National Treatment Agency'),
+            ('National Treatment Agency', '', 'National Treatment Agency for Substance Misuse'),
             ('NHS National Services Scotland', '', 'NHS National Services Scotland'),
             ('Northern Ireland Statistics and Research Agency', '', 'Northern Ireland Statistics and Research Agency'),
             ('Office for National Statistics', 'UK Statistics Authority', 'Office for National Statistics'),
             ('Office of Qualifications and Examinations Regulation', '', 'Office of Qualifications and Examinations Regulation'),
-            ('Office of the First and Deputy First Minister', 'Northern Ireland Executive', ''),
+            ('Office of the First and Deputy First Minister', 'Northern Ireland Executive', 'Office of the First and Deputy First Minister'),
             ('Passenger Focus', '', 'Passenger Focus'),
-            ('Regional Development (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Regional Development (Northern Ireland)', 'Northern Ireland Executive', 'Department for Regional Development'),
             ('Scottish Government', 'Scottish Government', ''),
-            ('Social Development (Northern Ireland)', 'Northern Ireland Executive', ''),
+            ('Social Development (Northern Ireland)', 'Northern Ireland Executive', 'Department for Social Development'),
             ('Transport', 'Department for Transport', ''),
             ('Welsh Assembly Government', 'Welsh Assembly Government', ''),
             ('Work and Pensions', 'Department for Work and Pensions', ''),
             ]
         for source_agency, expected_department, expected_agency in expected_results:
-            department, agency = importer.OnsImporter._source_to_department(source_agency)
+            department, agency, published_by, published_via = importer.OnsImporter._source_to_organisations(source_agency)
             assert_equal(department, expected_department or None)
             assert_equal(agency, expected_agency or None)
+
+    def test_dept_to_organisation(self):
+        for source_agency in get_ons_producers():
+            publisher = importer.OnsImporter._department_or_agency_to_organisation(source_agency)
+            assert publisher, source_agency
+            publisher = re.sub('\[\d+\]', '[some_number]', publisher)
+            assert '[some_number]' in publisher, publisher
+
+    def test_publishers(self):
+        expected_results = [
+            # (hub:source-agency value, published_by, published_via)
+            ('HM Treasury', 'Her Majesty\'s Treasury [some_number]', ''),
+            ('Information Centre for Health and Social Care', 'NHS Information Centre for Health and Social Care [some_number]', ''),
+            ('Environment (Northern Ireland)', 'Northern Ireland Executive [some_number]', 'Department of the Environment [some_number]'),
+            ]
+        for source_agency, expected_published_by, expected_published_via in expected_results:
+            department, agency, published_by, published_via = importer.OnsImporter._source_to_organisations(source_agency)
+            assert published_by is not None, source_agency
+            assert published_via is not None, source_agency
+            published_by = re.sub('\[\d+\]', '[some_number]', published_by)
+            published_via = re.sub('\[\d+\]', '[some_number]', published_via)
+            assert_equal(published_by, expected_published_by or u'')
+            assert_equal(published_via, expected_published_via or u'')
         
     def test_record_2_package(self):
         record = OrderedDict([
@@ -182,14 +209,18 @@ class TestOnsImporter:
                 ('date_released', '2010-01-06'),
                 ('categories', u'Economy'),
                 ('series', u'UK Official Holdings of International Reserves'),
+                ('published_by', u"Her Majesty's Treasury [some_number]"),
+                ('published_via', u''),
                 ])),
             ])
         for key, value in expected_package_dict.items():
             if key != 'extras':
                 assert_equal(package_dict[key], value)
             else:
-                for key, value in expected_package_dict['extras'].items():
-                    assert_equal(package_dict['extras'][key], value)
+                for key, expected_value in expected_package_dict['extras'].items():
+                    # take out any ids
+                    value = re.sub('\[\d+\]', '[some_number]', package_dict['extras'][key])
+                    assert_equal(value, expected_value)
         expected_keys = set(expected_package_dict.keys())
         keys = set(package_dict.keys())
         key_difference = expected_keys - keys

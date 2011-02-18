@@ -36,9 +36,9 @@ class TestGeoCoverageType:
             result_form = GeoCoverageType.get_instance().db_to_form(db)
             assert_equal(result_form, form)
 
-class TestAbbreviations:
+class TestCanonicalOrganisationNames:
     def test_basic(self):
-        res = expand_abbreviations('MFA')
+        res = canonise_organisation_name('MFA')
         assert_equal(res, 'Marine and Fisheries Agency')
 
 class TestTags:

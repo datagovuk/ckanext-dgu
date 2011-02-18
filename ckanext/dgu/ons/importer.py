@@ -5,13 +5,18 @@ import glob
 
 from ckanext.importer.importer import PackageImporter
 from ckanext.dgu import schema
+from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
+from ckanext.dgu.ons.producers import get_ons_producers
 from swiss import date
 
 guid_prefix = 'http://www.statistics.gov.uk/'
 
 log = __import__("logging").getLogger(__name__)
 
+
 class OnsImporter(PackageImporter):
+    _organisation_cache = {} # {dept_or_agency:('name', 'id')}
+    
     def __init__(self, filepath):
         self._current_filename = os.path.basename(filepath)
         self._item_count = 0
@@ -33,7 +38,7 @@ class OnsImporter(PackageImporter):
         # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
-        department, agency = self._source_to_department(item['hub:source-agency'])
+        department, agency, published_by, published_via = self._source_to_organisations(item['hub:source-agency'])
 
         # Resources
         guid = item['guid'] or None
@@ -80,6 +85,8 @@ class OnsImporter(PackageImporter):
             'date_released': u'',
             'categories': u'',
             'series':u'',
+            'published_by':u'',
+            'published_via':u'',
             }
         date_released = u''
         if item['pubDate']:
@@ -90,6 +97,8 @@ class OnsImporter(PackageImporter):
         extras['date_released'] = date_released.isoformat()
         extras['department'] = department or u''
         extras['agency'] = agency or u''
+        extras['published_by'] = published_by or u''
+        extras['published_via'] = published_via or u''
         extras['categories'] = item['hub:theme']
         extras['geographic_coverage'] = self._parse_geographic_coverage(item['hub:coverage'])
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
@@ -149,15 +158,23 @@ class OnsImporter(PackageImporter):
         geographic_coverage_db = geo_coverage_type.str_to_db(coverage_str)
         return geographic_coverage_db
 
-    @staticmethod
-    def _source_to_department(source):
-        dept_given = schema.expand_abbreviations(source)
+    @classmethod
+    def _source_to_organisations(cls, source):
+        dept_given = schema.canonise_organisation_name(source)
         department = None
         agency = None
 
+        if not hasattr(cls, '_ons_producers'):
+            cls._ons_producers = get_ons_producers()
+
         # special cases
-        if '(Northern Ireland)' in dept_given or dept_given == 'Office of the First and Deputy First Minister':
+        if '(Northern Ireland)' in source or dept_given == 'Office of the First and Deputy First Minister':
             department = u'Northern Ireland Executive'
+            agency = cls._department_or_agency_to_organisation(dept_given, include_id=False)
+            if not agency:
+                log.warn('Could not find NI department: %s' % dept_given)
+                agency = dept_given
+
         if dept_given == 'Office for National Statistics':
             department = 'UK Statistics Authority'
             agency = dept_given
@@ -166,17 +183,55 @@ class OnsImporter(PackageImporter):
 
         # search for department
         if not department:
-            for dept in schema.government_depts:
-                if dept_given in dept or dept_given.replace('Service', 'Services') in dept or dept_given.replace('Dept', 'Department') in dept:
-                    department = unicode(dept)
+            org = cls._department_or_agency_to_organisation(dept_given, include_id=False)
+            if org in schema.government_depts:
+                department = org
+            elif org:
+                agency = org
                 
-        if department:
-            assert department in schema.government_depts, department
-        else:
-            if dept_given and dept_given not in ['Office for National Statistics', 'Health Protection Agency', 'Information Centre for Health and Social Care', 'General Register Office for Scotland', 'Northern Ireland Statistics and Research Agency', 'National Health Service in Scotland', 'National Treatment Agency', 'Police Service of Northern Ireland (PSNI)', 'Child Maintenance and Enforcement Commission', 'Health and Safety Executive', 'NHS National Services Scotland', 'ISD Scotland (part of NHS National Services Scotland)', 'Passenger Focus', 'Office of the First and Deputy First Minister', 'Office of Qualifications and Examinations Regulation']:
-                log.warn('Double check this is not a gvt department source: %s' % dept_given)
+        if not (department or agency) and dept_given: 
+            log.warn('Could not find organisation: %s' % dept_given)
             agency = dept_given
-        return department, agency
+
+        # publishers
+        orgs = [cls._department_or_agency_to_organisation(org) \
+                for org in [department, agency] if org]
+        orgs += [u''] * (2 - len(orgs))
+        published_by, published_via = orgs
+
+        return department, agency, published_by, published_via
+
+    @classmethod
+    def _drupal_client(cls):
+        if not hasattr(cls, '_drupal_client_cache'):
+            cls._drupal_client_cache = DrupalClient()
+        return cls._drupal_client_cache
+
+    @classmethod
+    def _department_or_agency_to_organisation(cls, dept_or_agency, include_id=True):
+        '''Returns None if not found.'''
+        if dept_or_agency not in cls._organisation_cache:
+            try:
+                organisation_id = cls._drupal_client().match_organisation(dept_or_agency)
+            except DrupalKeyError:
+                name = schema.canonise_organisation_name(dept_or_agency)
+                try:
+                    organisation_id = cls._drupal_client().match_organisation(name)
+                except DrupalKeyError:
+                    organisation_id = None
+            if organisation_id:
+                organisation_name = cls._drupal_client().get_organisation_name(organisation_id)
+                cls._organisation_cache[dept_or_agency] = (organisation_name, organisation_id)
+            else:
+                cls._organisation_cache[dept_or_agency] = None
+        if not cls._organisation_cache[dept_or_agency]:
+            return None
+        if include_id:
+            return '%s [%s]' % cls._organisation_cache[dept_or_agency]
+        else:
+            return '%s' % cls._organisation_cache[dept_or_agency][0]
+            
+        
 
     @classmethod
     def _split_title(cls, xml_title):

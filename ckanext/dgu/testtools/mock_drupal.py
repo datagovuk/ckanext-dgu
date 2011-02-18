@@ -3,7 +3,8 @@ from xmlrpclib import Fault
 
 import paste.script
 
-from ckanext.dgu.testtools import test_publishers
+from ckanext.dgu.testtools.organisations import test_organisations, \
+     LotsOfOrganisations
 
 def get_mock_drupal_config():
     return {
@@ -11,7 +12,7 @@ def get_mock_drupal_config():
         'rpc_host': 'localhost',
         'rpc_port': 8000,
         'test_users': {'62': {'name': 'testname',
-                              'publishers': test_publishers}
+                              'publishers': test_organisations}
                        },
         }
 
@@ -25,7 +26,6 @@ class Command(paste.script.command.Command):
     group_name = 'ckanext-dgu'
     summary = __doc__.split('\n')[0]
     usage = __doc__
-    log = logging.getLogger(__name__)
     min_args = 1
     max_args = None
     parser.add_option('-q', '--quiet',
@@ -33,19 +33,33 @@ class Command(paste.script.command.Command):
                       action='store_true',
                       default=False,
                       help='Quiet mode')
+    parser.add_option('-l', '--lots-of-organisations',
+                      dest='lots_of_organisations',
+                      action='store_true',
+                      default=False,
+                      help='Use a lot of organisations instead of a handful.')
 
     def command(self):
         cmd = self.args[0]
         if cmd == 'run':
+            drupal = MockDrupal(self.options.lots_of_organisations)
             if not self.options.is_quiet:
-                self.log.setLevel(logging.DEBUG)
+                drupal.log.setLevel(logging.DEBUG)
                 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
                 handler = logging.StreamHandler()
                 handler.setFormatter(formatter)
-                self.log.addHandler(handler)
-            self.run_mock_drupal()
+                drupal.log.addHandler(handler)
+            drupal.run()
 
-    def run_mock_drupal(self):
+class MockDrupal(object):
+    def __init__(self, lots_of_organisations=False):
+        self.log = logging.getLogger(__name__)
+        if lots_of_organisations:
+            self.organisations = LotsOfOrganisations.get()
+        else:
+            self.organisations = test_organisations
+        
+    def run(self):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
         from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
         from xmlrpclib import Fault
@@ -103,25 +117,29 @@ class Command(paste.script.command.Command):
                 @classmethod
                 def one(cls, org_id):
                     # return org name by id
-                    return test_publishers[org_id]
+                    try:
+                        return self.organisations[org_id]
+                    except KeyError:
+                        raise Fault(404, 'There is no organisation with such ID.')
+                    
 
                 @classmethod
                 def match(cls, org_name):
                     # return org id by name
-                    for id, name in test_publishers.items():
+                    for id, name in self.organisations.items():
                         if name == org_name:
                             return id
+                    raise Fault(404, 'Cannot find organisation %r.' % org_name)
+                
                 @classmethod
                 def department(cls, org_id): 
                     # return top level parent ord id by org id
                     if org_id == '2':
                         return {'1': 'National Health Service'}
-                    elif org_id in test_publishers:
-                        return {org_id: test_publishers[org_id]}
+                    elif org_id in self.organisations:
+                        return {org_id: self.organisations[org_id]}
                     else:
-                        raise Fault(404)
-
-
+                        raise Fault(404, 'No department for organisation ID %r' % org_id)
 
         server.register_instance(MyFuncs(), allow_dotted_names=True)
 
@@ -135,4 +153,5 @@ dgu.xmlrpc_domain = %(rpc_host)s:%(rpc_port)s
 ''' % config
         self.log.debug('CKAN options: %s',
                       ckan_opts)
+        self.log.debug('%i organisations' % len(self.organisations))
         server.serve_forever()

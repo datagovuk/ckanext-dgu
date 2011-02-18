@@ -40,7 +40,8 @@ setup(
         ofsted_fix = ckanext.dgu.scripts.ofsted_fix_cmd:command        
         publisher_migration = ckanext.dgu.scripts.publisher_migration:command
         metadata_v3_migration = ckanext.dgu.scripts.metadata_v3_migration:command
-
+        generate_test_organisations = ckanext.dgu.testtools.organisations:command
+        
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
 

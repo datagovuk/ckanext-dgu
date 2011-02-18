@@ -2,8 +2,6 @@ import re
 import time
 import datetime
 
-__all__ = ['government_depts', 'geographic_granularity_options', 'temporal_granularity_options', 'category_options', 'region_options', 'region_groupings', 'update_frequency_options', 'tag_pool', 'tag_words_to_join', 'suggest_tags', 'tags_parse', 'GeoCoverageType', 'expand_abbreviations', 'name_munge', 'tag_munge']
-
 government_depts_raw = """
 Attorney General's Office
 Cabinet Office
@@ -64,7 +62,59 @@ for line in government_depts_raw.split('\n'):
     if line:
         government_depts.append(unicode(line.strip()))
 
-department_agency_abbreviations = {'DCSF':'Department for Children, Schools and Families', 'VLA':'Vetinary Laboratories Agency', 'MFA':'Marine and Fisheries Agency', 'CEFAS':'Centre of Environment, Fisheries and Aquaculture Science', 'FERA':'Food and Environment Research Agency', 'DEFRA':'Department for Environment, Food and Rural Affairs', 'Department for the Environment, Food and Rural Affairs':'Department for Environment, Food and Rural Affairs', 'CRB':'Criminal Records Bureau', 'UKBA':'UK Border Agency', 'IPS':'Identity and Passport Service', 'NPIA':'National Policing Improvement Agency', 'CIB':'Company Investigation Branch', 'IPO':'Intellectual Property Office', 'SFO':'Serious Fraud Office', 'HM Revenue and Customs':"Her Majesty's Revenue and Customs", 'HM Treasury':"Her Majesty's Treasury", 'DfT':'Department for Transport', 'socitm':'Society of Information Technology Management', 'Communities and Local government':'Department for Communities and Local Government', 'Department of Communities and Local Government':'Department for Communities and Local Government', 'Department for Education (DfE)':'Department for Education', 'HM Customs and Revenue':"Her Majesty's Revenue and Customs"}
+organisation_name_mapping = {
+    'DCSF':'Department for Children, Schools and Families',
+    'VLA':'Vetinary Laboratories Agency',
+    'MFA':'Marine and Fisheries Agency',
+    'CEFAS':'Centre of Environment, Fisheries and Aquaculture Science',
+    'FERA':'Food and Environment Research Agency',
+    'DEFRA':'Department for Environment, Food and Rural Affairs',
+    'Department for the Environment, Food and Rural Affairs':'Department for Environment, Food and Rural Affairs',
+    'CRB':'Criminal Records Bureau',
+    'UKBA':'UK Border Agency',
+    'IPS':'Identity and Passport Service',
+    'NPIA':'National Policing Improvement Agency',
+    'CIB':'Company Investigation Branch',
+    'IPO':'Intellectual Property Office',
+    'SFO':'Serious Fraud Office',
+    'HM Revenue and Customs':"Her Majesty's Revenue and Customs",
+    'HM Treasury':"Her Majesty's Treasury",
+    'DfT':'Department for Transport',
+    'socitm':'Society of Information Technology Management',
+    'Communities and Local government':'Department for Communities and Local Government',
+    'Department of Communities and Local Government':'Department for Communities and Local Government',
+    'Department for Education (DfE)':'Department for Education',
+    'HM Customs and Revenue':"Her Majesty's Revenue and Customs",
+    'Business, Innovation and Skills':'Department for Business, Innovation and Skills',
+    'Communities and Local Government':'Department for Communities and Local Government',
+    'Culture, Media and Sport':'Department for Culture, Media and Sport',
+    'Defence':'Ministry of Defence',
+    'Education':'Department for Education',
+    'Energy and Climate Change':'Department of Energy and Climate Change',
+    'Enterprise, Trade and Investment (Northern Ireland)':'Department of Enterprise Trade and Investment',
+    'Environment, Food and Rural Affairs':'Department for Environment, Food and Rural Affairs',
+    'Health':'Department of Health',
+    'ISD Scotland (part of NHS National Services Scotland)':'ISD Scotland',
+    'Information Centre for Health and Social Care':'NHS Information Centre for Health and Social Care',
+    'International Development':'Department for International Development',
+    'Justice':'Ministry of Justice',
+    'National Treatment Agency':'National Treatment Agency for Substance Misuse',
+    'Transport':'Department for Transport',
+    'Work and Pensions':'Department for Work and Pensions',
+    'Culture, Arts and Leisure (Northern Ireland)':'Department of Culture, Arts and Leisure',
+    'Employment and Learning (Northern Ireland)':'Department for Employment and Learning',
+    'Office of the First Minister and deputy First Minister (Northern Ireland)':'Office of the First Minister and deputy First Minister',
+    'Finance and Personnel (Northern Ireland)':'Department of Finance and Personnel',
+    'Regional Development (Northern Ireland)':'Department for Regional Development',
+    'Education (Northern Ireland)':'Department of Education',
+    'Environment (Northern Ireland)':'Department of the Environment',
+    'Health, Social Services and Public Safety (Northern Ireland)':'Department of Health, Social Services and Public Safety',
+    'Agriculture and Rural Development (Northern Ireland)':'Department of Agriculture and Rural Development',
+    'Social Development (Northern Ireland)':'Department for Social Development',
+    'Department of Justice (Northern Ireland)':'Department of Justice',
+    'National Health Service in Scotland':'NHS Scotland',
+    'Police Service of Northern Ireland (PSNI)':'Police Service of Northern Ireland',
+    }
 
 update_frequency_options = ['never', 'discontinued', 'annual', 'quarterly', 'monthly']
 
@@ -204,9 +254,10 @@ class GeoCoverageType(object):
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
-def expand_abbreviations(dept):
-    for brief_form in department_agency_abbreviations.keys():
-        if brief_form in dept:
-            dept = dept.replace(brief_form,
-                                department_agency_abbreviations[brief_form])
-    return dept
+def canonise_organisation_name(org_name):
+    '''Takes a variant on an organisation name and returns the canonical
+    name, which should match what is on DGU.'''
+    if not org_name:
+        return org_name
+    canonised_name = organisation_name_mapping.get(org_name.strip()) or org_name
+    return canonised_name
