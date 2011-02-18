@@ -17,11 +17,12 @@ log = __import__("logging").getLogger(__name__)
 class OnsImporter(PackageImporter):
     _organisation_cache = {} # {dept_or_agency:('name', 'id')}
     
-    def __init__(self, filepath):
+    def __init__(self, filepath, xmlrpc_settings=None):
         self._current_filename = os.path.basename(filepath)
         self._item_count = 0
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
+        OnsImporter._drupal_client(xmlrpc_settings)
         super(OnsImporter, self).__init__(filepath=filepath)
 
     def import_into_package_records(self):
@@ -202,9 +203,9 @@ class OnsImporter(PackageImporter):
         return department, agency, published_by, published_via
 
     @classmethod
-    def _drupal_client(cls):
+    def _drupal_client(cls, xmlrpc_settings=None):
         if not hasattr(cls, '_drupal_client_cache'):
-            cls._drupal_client_cache = DrupalClient()
+            cls._drupal_client_cache = DrupalClient(xmlrpc_settings)
         return cls._drupal_client_cache
 
     @classmethod

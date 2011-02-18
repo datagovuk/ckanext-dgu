@@ -2,7 +2,7 @@ import os.path
 import logging
 import sys
 
-from ckanext.command import Command
+from ckanext.dgu.command import XmlRpcCommand
 
 from ckan.lib.helpers import json
 
@@ -61,37 +61,14 @@ class LotsOfOrganisations(object):
         else:
             print 'Finished with SUCCESS'
 
-class OrgCommand(Command):
+class OrgCommand(XmlRpcCommand):
     '''Generates a list of organisations for test purposes.
     Checks all organisations to be tested against a real Drupal.
     '''
     summary = 'Generates a list of organisations for test purposes.'
     
-    def __init__(self, usage=None):
-        self.parser = Command.StandardParser(usage=usage)
-        self.parser.add_option("-X", "--xmlrpc-url",
-                               dest="xmlrpc_url",
-                               )
-        self.parser.add_option("-D", "--xmlrpc-domain",
-                               dest="xmlrpc_domain",
-                               )
-        self.parser.add_option("-U", "--xmlrpc-username",
-                               dest="xmlrpc_username",
-                               )
-        self.parser.add_option("-P", "--xmlrpc-password",
-                               dest="xmlrpc_password",
-                               )
-        super(OrgCommand, self).__init__()
-
     def command(self):
-        if not (self.options.xmlrpc_domain or self.options.xmlrpc_url):
-            self.parser.error('Please specify an XML RPC domain or URL')
-
-        xmlrpc_settings = {
-            'xmlrpc_url':self.options.xmlrpc_url,
-            'xmlrpc_domain':self.options.xmlrpc_domain,
-            'xmlrpc_username':self.options.xmlrpc_username,
-            'xmlrpc_password':self.options.xmlrpc_password}
+        super(OrgCommand, self).command()
 
         cmd = LotsOfOrganisations.generate(xmlrpc_settings)
 

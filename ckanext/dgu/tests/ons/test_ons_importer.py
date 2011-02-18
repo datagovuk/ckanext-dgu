@@ -102,7 +102,7 @@ class TestOnsImporter(MockDrupalCase):
             ('Food Standards Agency', 'Food Standards Agency', ''),
             ('Forestry Commission', 'Forestry Commission', ''),
             ('General Register Office for Scotland', '', 'General Register Office for Scotland'),
-            ('Health, Social Services and Public Safety (Northern Ireland)', 'Northern Ireland Executive', 'Department of Health, Social Services and Public Safety'),
+            ('Health, Social Service and Public Safety (Northern Ireland)', 'Northern Ireland Executive', 'Department of Health, Social Services and Public Safety'),
             ('Health', 'Department of Health', ''),
             ('Health and Safety Executive', '', 'Health and Safety Executive'),
             ('Health Protection Agency', '', 'Health Protection Agency'),

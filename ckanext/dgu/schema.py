@@ -108,6 +108,7 @@ organisation_name_mapping = {
     'Regional Development (Northern Ireland)':'Department for Regional Development',
     'Education (Northern Ireland)':'Department of Education',
     'Environment (Northern Ireland)':'Department of the Environment',
+    'Health, Social Service and Public Safety (Northern Ireland)':'Department of Health, Social Services and Public Safety',
     'Health, Social Services and Public Safety (Northern Ireland)':'Department of Health, Social Services and Public Safety',
     'Agriculture and Rural Development (Northern Ireland)':'Department of Agriculture and Rural Development',
     'Social Development (Northern Ireland)':'Department for Social Development',

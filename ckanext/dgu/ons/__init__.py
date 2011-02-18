@@ -1,13 +1,15 @@
 import datetime
 
 from ckanext.api_command import ApiCommand
+from ckanext.dgu.command import XmlRpcCommand
 from ckanext.dgu.ons.downloader import OnsData
 from ckanext.dgu.ons.importer import OnsImporter
 from ckanext.dgu.ons.loader import OnsLoader
 from ckanclient import CkanClient
 
-class OnsLoaderCmd(ApiCommand):
+class OnsLoaderCmd(ApiCommand, XmlRpcCommand):
     def add_options(self):
+        super(OnsLoaderCmd, self).add_options()
         self.parser.add_option("-d", "--days",
                                dest="days",
                                help="Days to fetch data (e.g. 7) (period is up to today, unless start-date or end-date specified)")
@@ -34,7 +36,8 @@ class OnsLoaderCmd(ApiCommand):
             days=self.options.days,
             start_date=self.options.start_date,
             end_date=self.options.end_date)
-        importer = OnsImporter(filepath=data_filepath)
+        importer = OnsImporter(filepath=data_filepath,
+                               xmlrpc_settings=self.xmlrpc_settings)
         loader = OnsLoader(self.client)
 
         loader.load_packages(importer.pkg_dict())
