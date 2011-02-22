@@ -117,15 +117,18 @@ class MockDrupal(object):
                 @classmethod
                 def one(cls, org_id):
                     # return org name by id
+                    # Example response:
+                    #   "Arts Council England"
                     try:
                         return self.organisations[org_id]
                     except KeyError:
-                        raise Fault(404, 'There is no organisation with such ID.')
-                    
+                        raise Fault(404, 'There is no organisation with such ID.')                    
 
                 @classmethod
                 def match(cls, org_name):
                     # return org id by name
+                    # Example response:
+                    #   "12022"
                     for id, name in self.organisations.items():
                         if name == org_name:
                             return id
@@ -134,6 +137,8 @@ class MockDrupal(object):
                 @classmethod
                 def department(cls, org_id): 
                     # return top level parent ord id by org id
+                    # Example response:
+                    #   {'11419': 'Department for Culture, Media and Sport'}
                     if org_id == '2':
                         return {'1': 'National Health Service'}
                     elif org_id in self.organisations:
