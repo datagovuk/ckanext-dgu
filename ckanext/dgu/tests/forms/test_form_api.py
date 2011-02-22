@@ -180,7 +180,7 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
         headers = self.get_headers(res)
         assert name in headers, "Couldn't find header '%s' in response: %s" % (name, res)
         if value != None:
-            self.assert_equal(headers[name], value)
+            assert_equal(headers[name], value)
 
     def get_header_keys(self, res):
         return [h[0] for h in res.headers]
@@ -201,7 +201,7 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
                (name, '\n'.join(sorted(form.fields)))
         field = form[name]
         value = field.value
-        self.assert_equal(value, expected)
+        assert_equal(value, expected)
 
     def assert_not_formfield(self, form, name, expected=None):
         '''
@@ -448,8 +448,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         # Todo: Check the Location looks promising (extract and check given ID).
         self.assert_blank_response(res)
         source = self.get_harvest_source_by_url(source_url) # Todo: Use extracted ID.
-        self.assert_equal(source.user_ref, 'example publisher user')
-        self.assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source.user_ref, 'example publisher user')
+        assert_equal(source.publisher_ref, 'example publisher')
 
     def test_submit_harvest_source_create_form_invalid(self):
         source_url = u'' # Blank URL.
@@ -489,8 +489,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
         source = self.get_harvest_source_by_url(alt_source_url) # Todo: Use extracted ID.
         assert source
-        self.assert_equal(source.user_ref, 'example publisher user')
-        self.assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source.user_ref, 'example publisher user')
+        assert_equal(source.publisher_ref, 'example publisher')
 
     def test_submit_harvest_source_edit_form_invalid(self):
         source_url = u'http://'

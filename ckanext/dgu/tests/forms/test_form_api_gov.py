@@ -77,7 +77,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         expected_values['temporal_granularity-other'] = 'year'
         expected_values['date_updated'] = '30/7/2009'
         expected_values['date_released'] = '30/7/2009'
-        expected_values['national_statistic'] = 'True'
+        expected_values['national_statistic'] = 'yes'
         del expected_values['geographic_coverage'] # don't test here
 #        del expected_values['external_reference']
         del expected_values['import_source']
