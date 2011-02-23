@@ -17,6 +17,7 @@ test_organisations = {'1': 'National Health Service',
                       '3': 'Department for Education',
                       '4': 'Department of Energy and Climate Change',
                       '5': 'Department for Business, Innovation and Skills',
+                      '6': 'Department for Communities and Local Government',
                       }
 
 class LotsOfOrganisations(object):

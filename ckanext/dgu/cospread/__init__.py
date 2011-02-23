@@ -9,6 +9,7 @@ class CospreadCommand(ApiCommand):
         super(CospreadCommand, self).__init__(usage=usage)
 
     def add_options(self):
+        super(CospreadCommand, self).add_options()
         self.parser.add_option("-t", "--include-given-tags",
                                dest="include_given_tags",
                                action="store_true",

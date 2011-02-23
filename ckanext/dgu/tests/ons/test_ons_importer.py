@@ -1,14 +1,14 @@
 import os
-import re
 
 from pylons import config
 from sqlalchemy.util import OrderedDict
 from nose.tools import assert_equal
 
+from ckan.tests import *
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.producers import get_ons_producers
-from ckan.tests import *
-from ckanext.dgu.tests import MockDrupalCase
+from ckanext.dgu.schema import DrupalHelper
+from ckanext.dgu.tests import MockDrupalCase, strip_organisation_id
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
@@ -134,9 +134,9 @@ class TestOnsImporter(MockDrupalCase):
 
     def test_dept_to_organisation(self):
         for source_agency in get_ons_producers():
-            publisher = importer.OnsImporter._department_or_agency_to_organisation(source_agency)
+            publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
             assert publisher, source_agency
-            publisher = re.sub('\[\d+\]', '[some_number]', publisher)
+            publisher = strip_organisation_id(publisher)
             assert '[some_number]' in publisher, publisher
 
     def test_publishers(self):
@@ -150,8 +150,8 @@ class TestOnsImporter(MockDrupalCase):
             department, agency, published_by, published_via = importer.OnsImporter._source_to_organisations(source_agency)
             assert published_by is not None, source_agency
             assert published_via is not None, source_agency
-            published_by = re.sub('\[\d+\]', '[some_number]', published_by)
-            published_via = re.sub('\[\d+\]', '[some_number]', published_via)
+            published_by = strip_organisation_id(published_by)
+            published_via = strip_organisation_id(published_via)
             assert_equal(published_by, expected_published_by or u'')
             assert_equal(published_via, expected_published_via or u'')
         
@@ -219,7 +219,7 @@ class TestOnsImporter(MockDrupalCase):
             else:
                 for key, expected_value in expected_package_dict['extras'].items():
                     # take out any ids
-                    value = re.sub('\[\d+\]', '[some_number]', package_dict['extras'][key])
+                    value = strip_organisation_id(package_dict['extras'][key])
                     assert_equal(value, expected_value)
         expected_keys = set(expected_package_dict.keys())
         keys = set(package_dict.keys())

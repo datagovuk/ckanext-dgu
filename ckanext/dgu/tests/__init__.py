@@ -1,4 +1,5 @@
 import os
+import re
 
 from paste.script.appinstall import SetupCommand
 from pylons import config
@@ -185,7 +186,7 @@ class PackageDictUtil(object):
                     assert not dict_to_check.get(key), 'Key \'%s\' should have no value, not: %s' % (key, dict_to_check[key])
         unmatching_keys = set(dict_to_check.keys()) ^ set(expected_dict.keys())
         missing_keys = set(expected_dict.keys()) - set(dict_to_check.keys())
-        assert not missing_keys, 'Missing keys: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
+        assert not missing_keys, 'Missing keys: %r. All unmatching keys: %r' % (missing_keys, unmatching_keys)
         extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
         assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
 
@@ -231,3 +232,7 @@ class MockDrupalCase(BaseCase):
         pid = int(pid)
         if os.system("kill -9 %d" % pid):
             raise Exception, "Can't kill foreign Mock Drupal instance (pid: %d)." % pid
+
+def strip_organisation_id(org_name_with_id):
+    # e.g. 'NHS [54]' becomes 'NHS [some_number]'
+    return re.sub('\[\d+\]', '[some_number]', org_name_with_id)

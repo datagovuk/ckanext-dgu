@@ -10,7 +10,8 @@ import ckan.model as model
 from ckanext.importer import spreadsheet_importer
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckanext.tests.importer.test_spreadsheet_importer import CSV_EXTENSION, XL_EXTENSION, SPREADSHEET_DATA_MAP, ExampleFiles
-from ckanext.dgu.tests import PackageDictUtil
+from ckanext.dgu.tests import PackageDictUtil, MockDrupalCase
+from ckanext.dgu.tests import strip_organisation_id
 from ckanext.dgu.cospread.cospread import MultipleCospreadDataRecords, CospreadImporter
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -130,7 +131,7 @@ example_pkg_dict = OrderedDict([
         ('external_reference', 'DCSF-DCSF-0017'),
         ('date_released', '2009-09-17'),
         ('date_updated', '2009-09-17'),
-        ('temporal_granularity', 'years'),
+        ('temporal_granularity', 'year'),
         ('temporal_coverage_to', ''),
         ('temporal_coverage_from', ''),
         ('geographic_coverage', '100000: England'),
@@ -142,7 +143,9 @@ example_pkg_dict = OrderedDict([
         ('department', u'Department for Education'),
         ('update_frequency', 'Annually'),
         ('national_statistic', ''),
-        ('categories', 'Health, well-being and Care'),
+        ('mandate', ''),
+        ('published_by', u'Department for Education [some_number]'),
+        ('published_via', ''),
         ])
      ),
     ])
@@ -226,7 +229,9 @@ clg_pkg_dict = OrderedDict([
         ('department', u'Department for Communities and Local Government'),
         ('update_frequency', ''),
         ('national_statistic', ''),
-        ('categories', ''),
+        ('mandate', ''),
+        ('published_by', u'Department for Communities and Local Government [some_number]'),
+        ('published_via', ''),
         ])
      ),
     ])
@@ -298,14 +303,15 @@ class TestCospreadDataRecordsClg:
         assert not key_difference, key_difference
 
 
-class TestImport:
+class TestImport(MockDrupalCase):
     @classmethod
-    def setup_class(self):
-        self._filepath = examples.get_spreadsheet_filepath('1', CSV_EXTENSION)
+    def setup_class(cls):
+        super(TestImport, cls).setup_class()
+        cls._filepath = examples.get_spreadsheet_filepath('1', CSV_EXTENSION)
         CospreadImporter.clear_log()
-        self.importer = CospreadImporter(include_given_tags=False, filepath=self._filepath)
-        self.pkg_dicts = [pkg_dict for pkg_dict in self.importer.pkg_dict()]
-        self.import_log = [log_item for log_item in self.importer.get_log()]
+        cls.importer = CospreadImporter(include_given_tags=False, filepath=cls._filepath)
+        cls.pkg_dicts = [pkg_dict for pkg_dict in cls.importer.pkg_dict()]
+        cls.import_log = [log_item for log_item in cls.importer.get_log()]
 
     def test_0_name_munge(self):
         def test_name_munge(name, expected_munge):
@@ -343,18 +349,19 @@ class TestImport:
 
     def test_3_log(self):
         log = self.import_log
-        assert log[0].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[0]
-        assert log[1].startswith("WARNING: URL doesn't start with http: test.html"), log[1]
-        assert log[2].startswith("WARNING: URL doesn't start with http: test.json"), log[2]
-        assert_equal(len(log), 3, log)
+        assert log[0].startswith("WARNING: URL doesn't start with http: test.html"), log[0]
+        assert log[1].startswith("WARNING: URL doesn't start with http: test.json"), log[1]
+        assert_equal(len(log), 2, log)
 
     def test_4_record_2_package(self):
         self.importer.clear_log()
         pkg_dict = self.importer.record_2_package(example_record)
 
         log = self.importer.get_log()
-        assert log[0].startswith("WARNING: Value for column 'Categories' of 'Health, well-being and Care' is not in suggestions '["), log[0]
-        assert_equal(len(log), 1, log)
+        assert_equal(len(log), 0, log)
+
+        for key in ('published_by', 'published_via'):
+            pkg_dict['extras'][key] = strip_organisation_id(pkg_dict['extras'][key])
 
         PackageDictUtil.check_dict(pkg_dict, example_pkg_dict)
         expected_keys = set([key for key, value in example_pkg_dict.items()])
@@ -367,14 +374,15 @@ class TestImport:
         assert_equal(self.pkg_dicts[0], pkg_dict)
 
 
-class TestImportClg():
+class TestImportClg(MockDrupalCase):
     @classmethod
-    def setup_class(self):
-        self._filepath = examples.get_spreadsheet_filepath('-clg', XL_EXTENSION)
+    def setup_class(cls):
+        super(TestImportClg, cls).setup_class()
+        cls._filepath = examples.get_spreadsheet_filepath('-clg', XL_EXTENSION)
         CospreadImporter.clear_log()
-        self.importer = CospreadImporter(include_given_tags=True, filepath=self._filepath)
-        self.pkg_dicts = [pkg_dict for pkg_dict in self.importer.pkg_dict()]
-        self.import_log = [log_item for log_item in self.importer.get_log()]
+        cls.importer = CospreadImporter(include_given_tags=True, filepath=cls._filepath)
+        cls.pkg_dicts = [pkg_dict for pkg_dict in cls.importer.pkg_dict()]
+        cls.import_log = [log_item for log_item in cls.importer.get_log()]
 
     def test_0_all_sheets_found(self):
         assert len(self.pkg_dicts) == 3
@@ -392,6 +400,9 @@ class TestImportClg():
     def test_4_record_2_package(self):
         self.importer.clear_log()
         pkg_dict = self.importer.record_2_package(clg_record)
+
+        for key in ('published_by', 'published_via'):
+            pkg_dict['extras'][key] = strip_organisation_id(pkg_dict['extras'][key])
 
         PackageDictUtil.check_dict(pkg_dict, clg_pkg_dict)
         expected_keys = set([key for key, value in clg_pkg_dict.items()])

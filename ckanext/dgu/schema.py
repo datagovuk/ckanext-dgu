@@ -2,6 +2,8 @@ import re
 import time
 import datetime
 
+from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
+
 government_depts_raw = """
 Attorney General's Office
 Cabinet Office
@@ -262,3 +264,45 @@ def canonise_organisation_name(org_name):
         return org_name
     canonised_name = organisation_name_mapping.get(org_name.strip()) or org_name
     return canonised_name
+
+
+class DrupalHelper(object):
+    '''A wrapper around the DrupalClient, providing organisation lookup caching
+    and handy utility functions related to the schema.
+    Note: for test purposes, the functions must be classmethods.
+          But if you run __init__ then you can use them as normal methods 
+          and caching takes place.'''
+    def __init__(self, xmlrpc_settings=None):
+        self._drupal_client_cache = DrupalClient(xmlrpc_settings)
+        self._organisation_cache = {} # {dept_or_agency:('name', 'id')}
+
+    @classmethod
+    def department_or_agency_to_organisation(cls, dept_or_agency, include_id=True):
+        '''Returns None if not found.'''
+        organisation_cache = cls._organisation_cache \
+                             if hasattr(cls, '_organisation_cache') \
+                             else {}
+                           
+        drupal_client_cache = cls._drupal_client_cache \
+                              if hasattr(cls, '_drupal_client_cache') \
+                              else DrupalClient() 
+        if dept_or_agency not in organisation_cache:
+            try:
+                organisation_id = drupal_client_cache.match_organisation(dept_or_agency)
+            except DrupalKeyError:
+                name = canonise_organisation_name(dept_or_agency)
+                try:
+                    organisation_id = drupal_client_cache.match_organisation(name)
+                except DrupalKeyError:
+                    organisation_id = None
+            if organisation_id:
+                organisation_name = drupal_client_cache.get_organisation_name(organisation_id)
+                organisation_cache[dept_or_agency] = (organisation_name, organisation_id)
+            else:
+                organisation_cache[dept_or_agency] = None
+        if not organisation_cache[dept_or_agency]:
+            return None
+        if include_id:
+            return '%s [%s]' % organisation_cache[dept_or_agency]
+        else:
+            return '%s' % organisation_cache[dept_or_agency][0]

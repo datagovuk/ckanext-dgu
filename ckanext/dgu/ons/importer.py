@@ -5,7 +5,6 @@ import glob
 
 from ckanext.importer.importer import PackageImporter
 from ckanext.dgu import schema
-from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 from ckanext.dgu.ons.producers import get_ons_producers
 from swiss import date
 
@@ -15,14 +14,12 @@ log = __import__("logging").getLogger(__name__)
 
 
 class OnsImporter(PackageImporter):
-    _organisation_cache = {} # {dept_or_agency:('name', 'id')}
-    
     def __init__(self, filepath, xmlrpc_settings=None):
         self._current_filename = os.path.basename(filepath)
         self._item_count = 0
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
-        OnsImporter._drupal_client(xmlrpc_settings)
+        self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
         super(OnsImporter, self).__init__(filepath=filepath)
 
     def import_into_package_records(self):
@@ -165,13 +162,18 @@ class OnsImporter(PackageImporter):
         department = None
         agency = None
 
-        if not hasattr(cls, '_ons_producers'):
-            cls._ons_producers = get_ons_producers()
+        if hasattr(cls, '_drupal_helper'):
+            drupal_helper = cls._drupal_helper
+        else:
+            drupal_helper = schema.DrupalHelper()
+        
+##        if not hasattr(cls, '_ons_producers'):
+##            cls._ons_producers = get_ons_producers()
 
         # special cases
         if '(Northern Ireland)' in source or dept_given == 'Office of the First and Deputy First Minister':
             department = u'Northern Ireland Executive'
-            agency = cls._department_or_agency_to_organisation(dept_given, include_id=False)
+            agency = drupal_helper.department_or_agency_to_organisation(dept_given, include_id=False)
             if not agency:
                 log.warn('Could not find NI department: %s' % dept_given)
                 agency = dept_given
@@ -184,7 +186,7 @@ class OnsImporter(PackageImporter):
 
         # search for department
         if not department:
-            org = cls._department_or_agency_to_organisation(dept_given, include_id=False)
+            org = drupal_helper.department_or_agency_to_organisation(dept_given, include_id=False)
             if org in schema.government_depts:
                 department = org
             elif org:
@@ -195,42 +197,14 @@ class OnsImporter(PackageImporter):
             agency = dept_given
 
         # publishers
-        orgs = [cls._department_or_agency_to_organisation(org) \
+        orgs = [drupal_helper.department_or_agency_to_organisation(org) \
                 for org in [department, agency] if org]
         orgs += [u''] * (2 - len(orgs))
         published_by, published_via = orgs
 
         return department, agency, published_by, published_via
 
-    @classmethod
-    def _drupal_client(cls, xmlrpc_settings=None):
-        if not hasattr(cls, '_drupal_client_cache'):
-            cls._drupal_client_cache = DrupalClient(xmlrpc_settings)
-        return cls._drupal_client_cache
 
-    @classmethod
-    def _department_or_agency_to_organisation(cls, dept_or_agency, include_id=True):
-        '''Returns None if not found.'''
-        if dept_or_agency not in cls._organisation_cache:
-            try:
-                organisation_id = cls._drupal_client().match_organisation(dept_or_agency)
-            except DrupalKeyError:
-                name = schema.canonise_organisation_name(dept_or_agency)
-                try:
-                    organisation_id = cls._drupal_client().match_organisation(name)
-                except DrupalKeyError:
-                    organisation_id = None
-            if organisation_id:
-                organisation_name = cls._drupal_client().get_organisation_name(organisation_id)
-                cls._organisation_cache[dept_or_agency] = (organisation_name, organisation_id)
-            else:
-                cls._organisation_cache[dept_or_agency] = None
-        if not cls._organisation_cache[dept_or_agency]:
-            return None
-        if include_id:
-            return '%s [%s]' % cls._organisation_cache[dept_or_agency]
-        else:
-            return '%s' % cls._organisation_cache[dept_or_agency][0]
             
         
 

@@ -41,11 +41,10 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.SuggestedTextExtraField('temporal_granularity', options=schema.temporal_granularity_options))
     builder.add_field(common.DateRangeExtraField('temporal_coverage'))
     builder.add_field(common.TextExtraField('precision'))
-    #builder.add_field(common.TextExtraField('agency'))
     builder.add_field(common.TextExtraField('taxonomy_url'))
     builder.add_field(common.TextExtraField('mandate'))
-    builder.add_field(common.TextExtraField('publisher'))
     #builder.add_field(common.SuggestedTextExtraField('department', options=schema.government_depts))
+    #builder.add_field(common.TextExtraField('agency'))
     # options are iterators of: (label, value)
     publishers = [(str(label), "%s [%s]" % (label, value)) for value, label in (publishers or {}).items()]
     publishers.sort()
