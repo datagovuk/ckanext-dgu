@@ -270,22 +270,29 @@ class DrupalHelper(object):
     '''A wrapper around the DrupalClient, providing organisation lookup caching
     and handy utility functions related to the schema.
     Note: for test purposes, the functions must be classmethods.
-          But if you run __init__ then you can use them as normal methods 
-          and caching takes place.'''
+          But if you run __init__ then you can use the cached versions.'''
     def __init__(self, xmlrpc_settings=None):
         self._drupal_client_cache = DrupalClient(xmlrpc_settings)
         self._organisation_cache = {} # {dept_or_agency:('name', 'id')}
 
+    def cached_department_or_agency_to_organisation(self, dept_or_agency, include_id=True):
+        return self.department_or_agency_to_organisation(
+            dept_or_agency,
+            include_id=include_id,
+            organisation_cache=self._organisation_cache,
+            drupal_client_cache=self._drupal_client_cache,
+            )
+        
     @classmethod
-    def department_or_agency_to_organisation(cls, dept_or_agency, include_id=True):
+    def department_or_agency_to_organisation(cls, dept_or_agency,
+                                             include_id=True,
+                                             organisation_cache=None,
+                                             drupal_client_cache=None,
+                                             ):
         '''Returns None if not found.'''
-        organisation_cache = cls._organisation_cache \
-                             if hasattr(cls, '_organisation_cache') \
-                             else {}
-                           
-        drupal_client_cache = cls._drupal_client_cache \
-                              if hasattr(cls, '_drupal_client_cache') \
-                              else DrupalClient() 
+        organisation_cache = organisation_cache or {}
+        drupal_client_cache = drupal_client_cache or DrupalClient()
+        
         if dept_or_agency not in organisation_cache:
             try:
                 organisation_id = drupal_client_cache.match_organisation(dept_or_agency)

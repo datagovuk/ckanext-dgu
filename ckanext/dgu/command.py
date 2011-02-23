@@ -4,11 +4,11 @@ class XmlRpcCommand(Command):
     '''Derive from this to use the xmlrpc setting options.
     '''
     def __init__(self, usage=None):
-        self.parser = Command.StandardParser(usage=usage)
         self.add_options()
         super(XmlRpcCommand, self).__init__()
 
     def add_options(self):
+        super(XmlRpcCommand, self).add_options()
         self.parser.add_option("-X", "--xmlrpc-url",
                                dest="xmlrpc_url",
                                )

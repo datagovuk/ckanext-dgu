@@ -162,7 +162,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
     def __init__(self, include_given_tags=False, xmlrpc_settings=None,
                  **kwargs):
         self.include_given_tags = include_given_tags
-        CospreadImporter._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
+        self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
         super(CospreadImporter, self).__init__(record_params=[], record_class=CospreadDataRecords, **kwargs)
 
     @classmethod
@@ -274,13 +274,10 @@ class CospreadImporter(SpreadsheetPackageImporter):
                     self.log("WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions))
             extras_dict[extras_key] = val
 
-        if not hasattr(CospreadImporter, '_drupal_helper'):
-            CospreadImporter._drupal_helper = schema.DrupalHelper()
-
         orgs = []
         for key in ['department', 'agency']:
             dept_or_agency = extras_dict[key]
-            org = CospreadImporter._drupal_helper.department_or_agency_to_organisation(dept_or_agency)
+            org = self._drupal_helper.cached_department_or_agency_to_organisation(dept_or_agency)
             if org:
                 orgs.append(org)
         orgs += [u''] * (2 - len(orgs))

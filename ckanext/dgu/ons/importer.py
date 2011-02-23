@@ -36,7 +36,7 @@ class OnsImporter(PackageImporter):
         # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
-        department, agency, published_by, published_via = self._source_to_organisations(item['hub:source-agency'])
+        department, agency, published_by, published_via = self._cached_source_to_organisations(item['hub:source-agency'])
 
         # Resources
         guid = item['guid'] or None
@@ -156,24 +156,22 @@ class OnsImporter(PackageImporter):
         geographic_coverage_db = geo_coverage_type.str_to_db(coverage_str)
         return geographic_coverage_db
 
+    def _cached_source_to_organisations(self, source):
+        return self._source_to_organisations(source, drupal_helper=self._drupal_helper)
+    
     @classmethod
-    def _source_to_organisations(cls, source):
+    def _source_to_organisations(cls, source, drupal_helper=None):
         dept_given = schema.canonise_organisation_name(source)
         department = None
         agency = None
 
-        if hasattr(cls, '_drupal_helper'):
-            drupal_helper = cls._drupal_helper
-        else:
+        if not drupal_helper:
             drupal_helper = schema.DrupalHelper()
         
-##        if not hasattr(cls, '_ons_producers'):
-##            cls._ons_producers = get_ons_producers()
-
         # special cases
         if '(Northern Ireland)' in source or dept_given == 'Office of the First and Deputy First Minister':
             department = u'Northern Ireland Executive'
-            agency = drupal_helper.department_or_agency_to_organisation(dept_given, include_id=False)
+            agency = drupal_helper.cached_department_or_agency_to_organisation(dept_given, include_id=False)
             if not agency:
                 log.warn('Could not find NI department: %s' % dept_given)
                 agency = dept_given
@@ -186,7 +184,7 @@ class OnsImporter(PackageImporter):
 
         # search for department
         if not department:
-            org = drupal_helper.department_or_agency_to_organisation(dept_given, include_id=False)
+            org = drupal_helper.cached_department_or_agency_to_organisation(dept_given, include_id=False)
             if org in schema.government_depts:
                 department = org
             elif org:
@@ -197,7 +195,7 @@ class OnsImporter(PackageImporter):
             agency = dept_given
 
         # publishers
-        orgs = [drupal_helper.department_or_agency_to_organisation(org) \
+        orgs = [drupal_helper.cached_department_or_agency_to_organisation(org) \
                 for org in [department, agency] if org]
         orgs += [u''] * (2 - len(orgs))
         published_by, published_via = orgs
