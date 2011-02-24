@@ -9,7 +9,7 @@ class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
         assert config['dgu.xmlrpc_domain']
         url = DrupalClient.get_xmlrpc_url()
-        assert_equal(url, 'http://testuser:testpassword@localhost:8000/services/xmlrpc')
+        assert_equal(url, 'http://localhost:8000/services/xmlrpc')
 
     def test_get_user_properties(self):
         drupal_config = get_mock_drupal_config()
