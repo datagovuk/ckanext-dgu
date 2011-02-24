@@ -309,7 +309,10 @@ class TestImport(MockDrupalCase):
         super(TestImport, cls).setup_class()
         cls._filepath = examples.get_spreadsheet_filepath('1', CSV_EXTENSION)
         CospreadImporter.clear_log()
-        cls.importer = CospreadImporter(include_given_tags=False, filepath=cls._filepath)
+        cls.importer = CospreadImporter(
+            include_given_tags=False,
+            filepath=cls._filepath,
+            xmlrpc_settings=MockDrupalCase.xmlrpc_settings)
         cls.pkg_dicts = [pkg_dict for pkg_dict in cls.importer.pkg_dict()]
         cls.import_log = [log_item for log_item in cls.importer.get_log()]
 
@@ -380,7 +383,9 @@ class TestImportClg(MockDrupalCase):
         super(TestImportClg, cls).setup_class()
         cls._filepath = examples.get_spreadsheet_filepath('-clg', XL_EXTENSION)
         CospreadImporter.clear_log()
-        cls.importer = CospreadImporter(include_given_tags=True, filepath=cls._filepath)
+        cls.importer = CospreadImporter(include_given_tags=True,
+                                        filepath=cls._filepath,
+                                        xmlrpc_settings=MockDrupalCase.xmlrpc_settings)
         cls.pkg_dicts = [pkg_dict for pkg_dict in cls.importer.pkg_dict()]
         cls.import_log = [log_item for log_item in cls.importer.get_log()]
 

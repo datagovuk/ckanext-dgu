@@ -192,6 +192,9 @@ class PackageDictUtil(object):
 
 
 class MockDrupalCase(BaseCase):
+    xmlrpc_url = 'http://localhost:8000/services/xmlrpc'
+    xmlrpc_settings = {'xmlrpc_url': xmlrpc_url}
+    
     @classmethod
     def setup_class(cls):
         cls.process = cls._mock_drupal_start()
@@ -210,13 +213,15 @@ class MockDrupalCase(BaseCase):
         process = subprocess.Popen(['paster', '--plugin=ckanext-dgu', 'mock_drupal', 'run'] + options)
         return process
 
-    @staticmethod
-    def _wait_for_drupal_to_start(url='http://localhost:8000/services/xmlrpc',
+    @classmethod
+    def _wait_for_drupal_to_start(cls,
+                                  url=None,
                                   timeout=15):
         import xmlrpclib
         import socket
         import time
-
+        
+        url = url or cls.xmlrpc_url
         drupal = xmlrpclib.ServerProxy(url)
         for i in range(int(timeout)*100):
             try:
