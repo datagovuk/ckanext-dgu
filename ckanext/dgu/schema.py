@@ -290,8 +290,10 @@ class DrupalHelper(object):
                                              drupal_client_cache=None,
                                              ):
         '''Returns None if not found.'''
-        organisation_cache = organisation_cache or {}
-        drupal_client_cache = drupal_client_cache or DrupalClient()
+        if organisation_cache is None:
+            organisation_cache = {}
+        if not drupal_client_cache:
+            drupal_client_cache = DrupalClient()
         
         if dept_or_agency not in organisation_cache:
             try:
