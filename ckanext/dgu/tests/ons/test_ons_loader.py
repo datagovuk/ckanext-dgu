@@ -11,6 +11,7 @@ from ckanext.tests.test_loader import TestLoaderBase, USER
 from ckan import model
 from ckan.tests import CreateTestData, TestSearchIndexer, is_search_supported
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
+from ckanext.dgu.tests import MockDrupalCase
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
@@ -21,7 +22,18 @@ def sample_filepath(id):
 if not is_search_supported():
     raise SkipTest("Search not supported")
 
-class TestOnsLoadBasic(TestLoaderBase):
+class OnsLoaderBase(TestLoaderBase, MockDrupalCase):
+    @classmethod
+    def setup_class(self):
+        super(OnsLoaderBase, self).setup_class()
+
+    @classmethod
+    def teardown_class(self):
+        super(OnsLoaderBase, self).teardown_class()
+
+class TestOnsLoadBasic(OnsLoaderBase):
+    lots_of_publishers = True
+    
     @classmethod
     def setup_class(self):
         super(TestOnsLoadBasic, self).setup_class()
@@ -39,7 +51,7 @@ class TestOnsLoadBasic(TestLoaderBase):
         pkg_dict = {'title':'titleA',
                     'extras':{'department':'Department for Children, Schools and Families'}}
         opts = self.loader._get_search_options(field_keys, pkg_dict)
-        assert_equal(opts, [{'department': 'Department for Children, Schools and Families', 'title': 'titleA'}, {'department': 'Department for Education', 'title': 'titleA'}])
+        assert_equal(opts, [{'department': 'Department for Children, Schools and Families', 'title': 'titleA'}])
 
         pkg_dict = {'title':'titleA',
                     'extras':{'department':'',
@@ -131,7 +143,7 @@ class TestOnsLoadBasic(TestLoaderBase):
             assert pkg.extras['import_source'].startswith('ONS'), '%s %s' % (pkg.name, pkg.extras['import_source'])
 
 
-class TestOnsLoadTwice(TestLoaderBase):
+class TestOnsLoadTwice(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadTwice, self).setup_class()
@@ -152,9 +164,12 @@ class TestOnsLoadTwice(TestLoaderBase):
         assert 'CHANGED' in pkg.resources[0].description, pkg.resources
 
 
-class TestOnsLoadClashTitle(TestLoaderBase):
+class TestOnsLoadClashTitle(OnsLoaderBase):
     # two packages with the same title, both from ONS,
     # but from different departments, so must be different packages
+
+    lots_of_publishers = True
+    
     @classmethod
     def setup_class(self):
         super(TestOnsLoadClashTitle, self).setup_class()
@@ -185,7 +200,7 @@ class TestOnsLoadClashTitle(TestLoaderBase):
         assert '2008 Results' in pkg.resources[0].description, pkg.resources
 
 
-class TestOnsLoadClashSource(TestLoaderBase):
+class TestOnsLoadClashSource(OnsLoaderBase):
     # two packages with the same title, and department, but one not from ONS,
     # so must be different packages
     @classmethod
@@ -216,7 +231,7 @@ class TestOnsLoadClashSource(TestLoaderBase):
         pkg2 = model.Package.by_name(self.clash_name + u'_')
         assert pkg2.title == u'Cereals and Oilseeds Production Harvest', pkg2.title
 
-class TestOnsLoadSeries(TestLoaderBase):
+class TestOnsLoadSeries(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadSeries, self).setup_class()
@@ -243,7 +258,7 @@ class TestOnsLoadSeries(TestLoaderBase):
         assert_equal(pkg.extras['date_released'], '2010-08-10')
         assert_equal(pkg.extras['date_updated'], '2010-08-13')
 
-class TestOnsLoadMissingDept(TestLoaderBase):
+class TestOnsLoadMissingDept(OnsLoaderBase):
     # existing package to be updated has no department given (previously
     # there was no default to 'UK Statistics Authority'.
     @classmethod
@@ -276,7 +291,7 @@ class TestOnsLoadMissingDept(TestLoaderBase):
         assert pkg1.extras.get('department') == u'UK Statistics Authority', pkg1.extras
 
 
-class TestNationalParkDuplicate(TestLoaderBase):
+class TestNationalParkDuplicate(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestNationalParkDuplicate, self).setup_class()
@@ -301,7 +316,7 @@ class TestNationalParkDuplicate(TestLoaderBase):
         assert pkg
         assert len(pkg.resources) == 3, pkg.resources
 
-class TestDeathsOverwrite(TestLoaderBase):
+class TestDeathsOverwrite(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestDeathsOverwrite, self).setup_class()
@@ -353,7 +368,9 @@ class TestDeathsOverwrite(TestLoaderBase):
         assert pkg
         assert len(pkg.resources) == 2, pkg.resources
 
-class TestAgencyFind(TestLoaderBase):
+class TestAgencyFind(OnsLoaderBase):
+    lots_of_publishers = True
+    
     @classmethod
     def setup_class(self):
         super(TestAgencyFind, self).setup_class()
@@ -372,7 +389,7 @@ class TestAgencyFind(TestLoaderBase):
                 "temporal_coverage-from": "",
                 "temporal_granularity": "",
                 "date_updated": "",
-                "agency": "Information Centre for Health and Social Care",
+                "agency": "NHS Information Centre for Health and Social Care",
                 "precision": "",
                 "geographic_granularity": "",
                 "temporal_coverage_to": "",
@@ -395,6 +412,8 @@ class TestAgencyFind(TestLoaderBase):
         # same data is imported, but should find record and add department
         importer_ = importer.OnsImporter(sample_filepath(8))
         self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+        assert self.pkg_dict['extras']['department'] == ''
+        assert self.pkg_dict['extras']['agency'] == 'NHS Information Centre for Health and Social Care'
         loader = OnsLoader(self.testclient)
         print self.pkg_dict
         # load package twice, to ensure reload works too
@@ -416,7 +435,7 @@ class TestAgencyFind(TestLoaderBase):
         assert_equal(hub_ids, sorted(hub_ids))
 
 
-class TestDeletedDecoyWhenAdmin(TestLoaderBase):
+class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestDeletedDecoyWhenAdmin, self).setup_class()
