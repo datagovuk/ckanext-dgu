@@ -51,6 +51,7 @@ class OnsData(object):
         if force_download and os.path.exists(local_filepath):
             os.remove(local_filepath)
         if not os.path.exists(local_filepath):
+            self.log(logging.info, 'Downloading: %s' % url_name)
             urllib.urlretrieve(url, local_filepath)
         else:
             self.log(logging.info, 'ONS Data already downloaded: %s' % url_name)

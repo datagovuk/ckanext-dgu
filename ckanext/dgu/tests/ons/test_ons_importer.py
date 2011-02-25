@@ -172,7 +172,7 @@ class TestOnsImporter(MockDrupalCase):
             (u'hub:keywords', u'reserves;currency;assets;liabilities;gold;reserves;currency;assets;liabilities;gold'),
             (u'hub:altTitle', u'UK Reserves'),
             (u'hub:nscl', u'Economy;Government Receipts and Expenditure;Public Sector Finance;Economy;Government Receipts and Expenditure;Public Sector Finance')])
-        ons_importer_ = importer.OnsImporter(filepath=SAMPLE_FILEPATH_1)
+        ons_importer_ = importer.OnsImporter(filepaths=SAMPLE_FILEPATH_1)
         package_dict = ons_importer_.record_2_package(record)
     
         expected_package_dict = OrderedDict([

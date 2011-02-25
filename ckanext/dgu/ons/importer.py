@@ -14,21 +14,25 @@ log = __import__("logging").getLogger(__name__)
 
 
 class OnsImporter(PackageImporter):
-    def __init__(self, filepath, xmlrpc_settings=None):
-        self._current_filename = os.path.basename(filepath)
+    def __init__(self, filepaths, xmlrpc_settings=None):
+        if not isinstance(filepaths, (list, tuple)):
+            filepaths = [filepaths]
+        self._current_filename = os.path.basename(filepaths[0])
         self._item_count = 0
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
         self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
-        super(OnsImporter, self).__init__(filepath=filepath)
+        super(OnsImporter, self).__init__(filepath=filepaths)
 
     def import_into_package_records(self):
         # all work is done in pkg_dict
         pass
 
     def pkg_dict(self):
-        for item in OnsDataRecords(self._filepath):
-            yield self.record_2_package(item)
+        for filepath in self._filepath:
+            self._current_filename = os.path.basename(filepath)
+            for item in OnsDataRecords(filepath):
+                yield self.record_2_package(item)
 
     def record_2_package(self, item):
         assert isinstance(item, dict)
