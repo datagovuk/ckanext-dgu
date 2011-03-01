@@ -3,6 +3,10 @@ ckanext-dgu - data.gov.uk extension
 ===================================
 
 
+Dependencies
+============
+
+
 Setup for loaders only
 ======================
 
@@ -10,9 +14,8 @@ It is simpler to set-up to run the loaders, because they don't require
 CKAN to be installed::
 
     virtualenv pyenv
-    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanclient#egg=ckanclient
-    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext#egg=ckanext
-    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckanext-dgu
+    pip -E pyenv install -e .
+    pip -E pyenv install -r pip-requirements.txt
 
 Now you can activate the environment and run the scripts::
 
@@ -23,14 +26,10 @@ Now you can activate the environment and run the scripts::
 Setup with CKAN
 ===============
 
-The DGU forms and form API work with a CKAN install. In this case, you can 
-install dgu into the ckan virtual environment directly::
+The DGU forms and Form API require ckan installed in your python environment
+as well. So having followed the instructions above, add in ckan like this::
 
-    pip -E ckan/pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckanext-dgu
-
-Now in CKAN you can specify the dgu forms in the config. e.g. in demo.ckan.net.ini specify::
-
-    package_form = package_gov3
+    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckan#egg=ckan
 
 
 Configuration
@@ -39,7 +38,11 @@ Configuration
 Different parts of the DGU extension require options to be set in the
 CKAN configuration file (.ini) in the [app:main] section
 
-For the form API::
+To use the DGU form specify::
+
+    package_form = package_gov3
+
+To enable the Form API::
 
     ckan.plugins = dgu_form_api
 
@@ -76,4 +79,4 @@ The Developer Docs are built using `Sphinx <http://sphinx.pocoo.org/>`_::
 
       python setup.py build_sphinx
 
-The docs are uploaded to packages.python.org/ckan/ via dav.
+The docs are uploaded via dav.

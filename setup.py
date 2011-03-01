@@ -17,10 +17,10 @@ setup(
     description='CKAN DGU extensions',
     keywords='data packaging component tool server',
     install_requires=[
-        'swiss',
-        'ckanclient>=0.5',
-        'xlrd>=0.7.1',
-        'xlwt>=0.7.2',
+        # List of dependencies is moved to pip-requirements.txt
+        # to avoid conflicts with Debian packaging.
+        #'swiss',
+        #'ckanclient>=0.5',
         #'ckanext', when it is released
     ],
     packages=find_packages(exclude=['ez_setup']),
