@@ -65,6 +65,8 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         expected_values['date_updated'] = '12:30 30/7/2009'
         expected_values['date_update_future'] = '1/7/2009'
         expected_values['date_released'] = '30/7/2009'
+        expected_values['published_by'] = strip_organisation_id(expected_values['published_by'])
+        expected_values['published_via'] = strip_organisation_id(expected_values['published_via'])
         del expected_values['national_statistic']
         del expected_values['geographic_coverage'] # don't test here
         del expected_values['external_reference']

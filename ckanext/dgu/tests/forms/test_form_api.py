@@ -16,13 +16,14 @@ from ckan.lib.helpers import url_for
 from ckan.lib.helpers import json
 from ckan.lib.create_test_data import CreateTestData
 
+from ckanext.dgu.forms.formapi import FormController
+from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase, strip_organisation_id
+from ckanext.dgu.testtools import test_publishers
+
+
 ACCESS_DENIED = [403]
 
 # Todo: Test for access control setup. Just checking an object exists in the model doesn't mean it will be presented through the WebUI.
-
-from ckanext.dgu.forms.formapi import FormController
-from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase
-from ckanext.dgu.testtools import test_publishers
 
 
 class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods, MockDrupalCase):
@@ -195,13 +196,17 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
     def assert_formfield(self, form, name, expected):
         '''
-        Checks the value of a specified form field.
+        Checks a specified form field exists, and if you
+        give a non-None expected value, then it checks that too.
         '''
         assert name in form.fields, 'No field named %r out of:\n%s' % \
                (name, '\n'.join(sorted(form.fields)))
-        field = form[name]
-        value = field.value
-        assert_equal(value, expected)
+        if expected is not None:
+            field = form[name]
+            value = field.value
+            value = strip_organisation_id(value)
+            assert value == expected, 'Field %r: %r != %r' % \
+                   (field.name, value, expected)
 
     def assert_not_formfield(self, form, name, expected=None):
         '''

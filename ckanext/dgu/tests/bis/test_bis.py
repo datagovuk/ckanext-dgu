@@ -7,6 +7,10 @@ from pylons import config
 from ckan.tests import *
 import ckan.model as model
 from ckanext.importer import spreadsheet_importer
+
+from nose.plugins.skip import SkipTest
+raise SkipTest('BIS importer deprecated pending use of v3 schema.')
+
 from ckanext.dgu.bis.bis import BisImporter
 from ckanext.dgu.tests import PackageDictUtil
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
