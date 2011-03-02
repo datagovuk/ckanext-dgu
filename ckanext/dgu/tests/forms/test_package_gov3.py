@@ -129,13 +129,14 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
 
     def test_2_field_publisher_none(self):
         # Create package
-        model.repo.new_revision()
-        pkg = model.Package(name=u'test3')
-        model.Session.add(pkg)
-        model.repo.commit_and_remove()
-        CreateTestData.flag_for_deletion(pkg_names=[u'test3'])
+        CreateTestData.create_arbitrary({
+            'name': u'test2',
+            'title': u'Test2',
+            'license': u'odc-pddl',
+            'notes': u'some',
+            })
 
-        pkg = model.Package.by_name(u'test3')
+        pkg = model.Package.by_name(u'test2')
         fs = get_fieldset()
         fs = fs.bind(pkg)
         out = fs.render()
@@ -150,6 +151,46 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
             if should_have_null_value:
                 # published_by field is blank anyway because no value set.
                 assert_equal('<p></p>', pub_options_readonly, '%s %r' % (field, pub_options_readonly))
+
+        indict = ckan.forms.get_package_dict(pkg, fs=fs)
+        fs = get_fieldset().bind(pkg, data=indict)
+        assert not fs.validate()
+        assert len(fs.errors) == 1, fs.errors
+        assert fs.errors.has_key(fs.published_by), fs.errors.keys()
+        
+    def test_2_field_publisher_not_listed(self):
+        # Create package
+        CreateTestData.create_arbitrary({
+            'name': u'test3',
+            'title': u'Test3',
+            'license': u'odc-pddl',
+            'notes': u'some',
+            'extras':{
+                'published_by': u'Unheard-of Department [56]',
+                'published_via': u'Another Unheard-of Department [57]',
+                }
+            })
+
+        pkg = model.Package.by_name(u'test3')
+        fs = get_fieldset()
+        fs = fs.bind(pkg)
+        out = fs.render()
+        assert out
+
+        for field, numbered_publisher, publisher in [
+            (fs.published_by, u'Unheard-of Department [56]', u'Unheard-of Department *'),
+            (fs.published_via, u'Another Unheard-of Department [57]', u'Another Unheard-of Department *')
+            ]:
+            pub_options = field.render()
+            pub_options_readonly = field.render_readonly()
+            assert '<select' in pub_options, pub_options
+            expected_selected_field = '<option selected="selected" value="%s">%s</option>' % (numbered_publisher, publisher)
+            assert expected_selected_field in pub_options, 'In field %s could not find %r:\n%r' % (field, expected_selected_field, pub_options)
+
+        indict = ckan.forms.get_package_dict(pkg, fs=fs)
+        fs = get_fieldset().bind(pkg, data=indict)
+        assert fs.validate(), fs.errors
+
 
     def test_3_restrict(self):
         fs = get_fieldset(restrict=1)
@@ -403,21 +444,18 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
 
         # initially validates ok
-        validation = fs.validate()
-        assert validation, validation
+        assert fs.validate(), fs.errors
 
         # now add all problems
         bad_validating_data = [('date_released', u'27/11/0208', 'out of range'),
                                ('published_by', u'', 'Please enter a value'),
-                               ('published_via', u'NHS', 'not one of the options'),
+                               ('published_via', u'Unheard of publisher', 'not one of the options'),
                                ]
         for field_name, bad_data, error_txt in bad_validating_data:
             indict[prefix + field_name] = bad_data
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
-        validation = fs.validate()
-
         # validation fails
-        assert not validation
+        assert not fs.validate()
         for field_name, bad_data, error_txt in bad_validating_data:
             field = getattr(fs, field_name)
             err = fs.errors[field]

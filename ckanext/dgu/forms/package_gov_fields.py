@@ -1,3 +1,5 @@
+import re
+
 import formalchemy
 from formalchemy import helpers as h
 from sqlalchemy.util import OrderedDict
@@ -75,3 +77,37 @@ class SuggestTagRenderer(common.TagField.TagEditRenderer):
         html += common.TagField.TagEditRenderer.render(self, **kwargs)
         return html
         
+class PublisherField(common.SelectExtraField):
+    '''Select from a list of publishers, but always include the existing
+    publisher, as you are always allowed to not change the publisher.
+    '''
+    
+    def validate(self, value, field=None):
+        if not value:
+            # if value is required then this is checked by 'required' validator
+            return
+        if value not in [id_ for label, id_ in self.options] and \
+               value != field.model_value:
+            raise formalchemy.ValidationError('Value %r is not one of the options.' % id_)
+
+    class SelectRenderer(common.SelectExtraField.SelectRenderer):
+        def render(self, options, **kwargs):
+            # @param options - an iterable of (label, value)
+            is_option_pairs = options and isinstance(options[0], (tuple, list))
+            option_values = [value for label, value in options] \
+                            if is_option_pairs else options
+            # ensure the existing self.value is listed
+            if self.value and self.value not in option_values:
+                if is_option_pairs or not options:
+                    label = re.sub(' \[\d+\]', ' *', self.value)
+                    options.append((label, self.value))
+                else:
+                    options.append(self.value)
+            if not self.field.is_required():
+                options = list(options)
+                if is_option_pairs:
+                    null_option = self.field._null_option
+                else:
+                    null_option = self.field._null_option[1]
+                options.insert(0, self.field._null_option)
+            return formalchemy.fields.SelectFieldRenderer.render(self, options, **kwargs)
