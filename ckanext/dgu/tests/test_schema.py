@@ -98,3 +98,17 @@ class TestDrupalHelper(MockDrupalCase):
         source_agency = 'Ealing PCT'
         publisher = DrupalHelper.department_or_agency_to_organisation(source_agency, include_id=False)
         assert publisher == 'Ealing PCT'
+
+class TestGovTags(object):
+    def test_tags_parse(self):
+        def test_parse(tag_str, expected_tags):
+            tags = tags_parse(tag_str)
+            assert tags == expected_tags, 'Got %s not %s' % (tags, expected_tags)
+        test_parse('one two three', ['one', 'two', 'three'])
+        test_parse('one, two, three', ['one', 'two', 'three'])
+        test_parse('one,two,three', ['one', 'two', 'three'])
+        test_parse('one-two,three', ['one-two', 'three'])
+        test_parse('One, two&three', ['one', 'twothree'])
+        test_parse('One, two_three', ['one', 'two-three'])
+        test_parse('ordnance survey stuff', ['ordnance-survey', 'stuff'])
+        test_parse('ordnance stuff survey', ['ordnance', 'stuff', 'survey'])
