@@ -426,6 +426,10 @@ class BaseFormController(BaseApiController):
                     next_harvest = 'Within 15 minutes'
                 overall_statistics['added'] += len(job.report['added'])
                 overall_statistics['errors'] += len(job.report['errors'])
+        packages = []
+        for document in obj.documents:
+            if not document.package.name in packages:
+                packages.append(document.package.name)
         response_data['status'] = dict(
             last_harvest_status = last_harvest_status,
             last_harvest_request = last_harvest_request,
@@ -434,6 +438,7 @@ class BaseFormController(BaseApiController):
             next_harvest = next_harvest,
             last_harvest_errors = last_harvest_errors,
             last_harvest_job = last_harvest_job,
+            packages = packages,
         )
         return self._finish_ok(response_data)
 
