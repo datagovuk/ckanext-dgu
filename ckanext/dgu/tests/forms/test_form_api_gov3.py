@@ -7,10 +7,8 @@ from ckan.lib.helpers import literal
 import ckan.model as model
 from ckan.lib.create_test_data import CreateTestData
 from test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
-from ckanext.dgu.tests import MockDrupalCase, GovFixtures
+from ckanext.dgu.tests import MockDrupalCase, Gov3Fixtures, strip_organisation_id
 
-# NB: This file tests the original package_gov form, which is moving
-#     to the dgu repo, so this can go there too soon.
 
 class PackageFixturesBase:
     def create(self, **kwargs):
@@ -27,7 +25,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
     @classmethod
     def setup_class(self):
         super(FormsApiTestCase, self).setup_class()
-        self.fixtures = GovFixtures()
+        self.fixtures = Gov3Fixtures()
         self.fixtures.create()
         self.pkg_dict = self.fixtures.pkgs[0]
         self.package_name = self.pkg_dict['name']
@@ -38,7 +36,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
-        form = self.get_package_create_form(package_form='gov')
+        form = self.get_package_create_form(package_form='package_gov3')
         self.assert_formfield(form, 'Package--name', '')
         self.assert_formfield(form, 'Package--title', '')
         self.assert_not_formfield(form, 'Package--version', '')
@@ -51,9 +49,13 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         self.assert_formfield(form, 'Package--resources-0-id', '')
         self.assert_formfield(form, 'Package--author', '')
         self.assert_formfield(form, 'Package--author_email', '')
-        self.assert_formfield(form, 'Package--maintainer', '')
-        self.assert_formfield(form, 'Package--maintainer_email', '')
         self.assert_formfield(form, 'Package--license_id', '')
+        self.assert_formfield(form, 'Package--published_by', None)
+        self.assert_formfield(form, 'Package--published_via', '')
+        self.assert_formfield(form, 'Package--mandate', '')
+        self.assert_not_formfield(form, 'Package--categories', '')
+        self.assert_not_formfield(form, 'Package--maintainer', '')
+        self.assert_not_formfield(form, 'Package--maintainer_email', '')
         self.assert_not_formfield(form, 'Package--newfield0-key', '')
         self.assert_not_formfield(form, 'Package--newfield0-value', '')
         self.assert_not_formfield(form, 'Package--newfield1-key', '')
@@ -65,32 +67,31 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov')
+        form = self.get_package_edit_form(package.id, package_form='package_gov3')
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
-        self.assert_formfield(form, prefix + 'external_reference', package.extras.get('external_reference'))
-        self.assert_formfield(form, prefix + 'categories', package.extras.get('categories', ''))
         expected_values = dict([(key, value) for key, value in package.extras.items()])
         expected_values['temporal_coverage-to'] = '6/2009'
-        expected_values['temporal_coverage-from'] = '6/2008'
-        expected_values['temporal_granularity'] = 'other'
-        expected_values['temporal_granularity-other'] = 'year'
-        expected_values['date_updated'] = '30/7/2009'
+        expected_values['temporal_coverage-from'] = '12:30 24/6/2008'
+        expected_values['date_updated'] = '12:30 30/7/2009'
         expected_values['date_released'] = '30/7/2009'
-        expected_values['national_statistic'] = 'True'
+        expected_values['date_update_future'] = '1/7/2009'
+        expected_values['national_statistic'] = 'yes'
+        expected_values['published_by'] = strip_organisation_id(expected_values['published_by'])
+        expected_values['published_via'] = strip_organisation_id(expected_values['published_via'])
         del expected_values['geographic_coverage'] # don't test here
-#        del expected_values['external_reference']
+        del expected_values['external_reference']
         del expected_values['import_source']
         for key, value in expected_values.items():
             self.assert_formfield(form, prefix + key, value)
 
     def test_get_package_edit_form_restrict(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='gov', restrict=True)
+        form = self.get_package_edit_form(package.id, package_form='package_gov3', restrict=True)
         prefix = 'Package-%s-' % package.id
-        self.assert_not_formfield(form, prefix + 'name', package.name)
+        self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'notes', package.notes)
-        for key in ('department', 'national_statistic'):
+        for key in ('national_statistic',):
             value = package.extras[key]
             self.assert_not_formfield(form, prefix + key, value)
         
@@ -107,7 +108,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     def setup_class(self):
         MockDrupalCase.setup_class()
         model.repo.init_db()
-        self.fixtures = GovFixtures()
+        self.fixtures = Gov3Fixtures()
         self.fixtures.create()
         self.pkg_dict = self.fixtures.pkgs[0]
         self.package_name = self.pkg_dict['name']
@@ -154,8 +155,14 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     def test_submit_package_create_form_valid(self):
         package_name = u'new_name'
         assert not self.get_package_by_name(package_name)
-        form = self.get_package_create_form(package_form='gov')
-        res = self.post_package_create_form(form=form, package_form='gov', name=package_name)
+        form = self.get_package_create_form(package_form='package_gov3')
+        res = self.post_package_create_form(
+            form=form, package_form='package_gov3',
+            name=package_name,
+            title=u'New name',
+            notes=u'Notes',
+            license_id=u'cc-zero',
+            )
         self.assert_header(res, 'Location')
         self.assert_blank_response(res)
         self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
@@ -166,8 +173,8 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, package_form='gov')
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov')
+        form = self.get_package_edit_form(pkg.id, package_form='package_gov3')
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='package_gov3')
         self.assert_blank_response(res)
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
@@ -176,8 +183,8 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title 2'
-        form = self.get_package_edit_form(pkg.id, package_form='gov', restrict=True)
-        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='gov', restrict=True)
+        form = self.get_package_edit_form(pkg.id, package_form='package_gov3', restrict=True)
+        res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='package_gov3', restrict=True)
         self.assert_blank_response(res)
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg

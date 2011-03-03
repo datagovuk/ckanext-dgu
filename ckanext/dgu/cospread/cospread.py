@@ -8,7 +8,7 @@ from collections import defaultdict
 from sqlalchemy.util import OrderedDict
 
 from ckan import model
-from ckan.lib import schema_gov
+from ckanext.dgu import schema
 from ckan.lib import field_types
 from ckanext.importer.importer import PackageImporter, RowParseError, ImportException
 from ckanext.importer.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
@@ -89,7 +89,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                 keys_that_should_match = set(current_record.keys()) - set(self.resource_keys + ['resources'] + self.standard_or_other_columns)
                 for key in keys_that_should_match:
                     record_key = get_record_key(record, key)
-                    assert current_record[key] == record[record_key], 'Multiple resources for package %s, but value does not match: %r!=%r' % (record[get_record_key(record, 'Package name')], current_record[key], record[record_key])
+                    assert current_record[key] == record[record_key], 'Multiple resources for package %s, but value for key %r does not match: %r!=%r' % (record[get_record_key(record, 'Package name')], key, current_record[key], record[record_key])
             else:
                 # this record is new, so yield the old 'current_record' before
                 # making this record 'current_record'.
@@ -159,8 +159,10 @@ class CospreadImporter(SpreadsheetPackageImporter):
             u'Met Office UK Climate Projections Licence Agreement':u'met-office-cp',
         }
     
-    def __init__(self, include_given_tags=False, **kwargs):
+    def __init__(self, include_given_tags=False, xmlrpc_settings=None,
+                 **kwargs):
         self.include_given_tags = include_given_tags
+        self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
         super(CospreadImporter, self).__init__(record_params=[], record_class=CospreadDataRecords, **kwargs)
 
     @classmethod
@@ -187,11 +189,11 @@ class CospreadImporter(SpreadsheetPackageImporter):
         pkg_dict['notes'] = notes
         pkg_dict['version'] = u''
         pkg_dict['groups'] = [u'ukgov']
-
+        
         pkg_dict['extras'] = OrderedDict()
         extras_dict = pkg_dict['extras']
         geo_cover = []
-        geo_coverage_type = schema_gov.GeoCoverageType.get_instance()
+        geo_coverage_type = schema.GeoCoverageType.get_instance()
         spreadsheet_regions = ('England', 'N. Ireland', 'Scotland', 'Wales', 'Overseas', 'Global')
         for region in spreadsheet_regions:
             munged_region = region.lower().replace('n. ', 'northern_')
@@ -224,20 +226,19 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 try:
                     val = field_types.DateType.form_to_db(form_value)
                 except field_types.DateConvertError, e:
-                    cls.log("WARNING: Value for column '%s' of %r is not understood as a date format." % (column, form_value))
+                    self.log("WARNING: Value for column '%s' of %r is not understood as a date format." % (column, form_value))
                     val = form_value
             extras_dict[extra_key] = val
             
         field_map = [
             ['CO Identifier'],
             ['Update frequency'],
-            ['Temporal Granularity', schema_gov.temporal_granularity_options],
-            ['Geographical Granularity', schema_gov.geographic_granularity_options],
-            ['Categories', schema_gov.category_options],
+            ['Temporal Granularity', schema.temporal_granularity_options],
+            ['Geographical Granularity', schema.geographic_granularity_options],
             ['Taxonomy URL'],
             ['Agency responsible'],
             ['Precision'],
-            ['Department', schema_gov.government_depts],
+            ['Department', schema.government_depts],
             ]
         optional_fields = ['Categories']
         for field_mapping in field_map:
@@ -261,17 +262,30 @@ class CospreadImporter(SpreadsheetPackageImporter):
                     suggestions_lower = [sugg.lower() for sugg in suggestions]
                     if val.lower() in suggestions_lower:
                         val = suggestions[suggestions_lower.index(val.lower())]
-                    elif schema_gov.expand_abbreviations(val) in suggestions:
-                        val = schema_gov.expand_abbreviations(val)
+                    elif schema.canonise_organisation_name(val) in suggestions:
+                        val = schema.canonise_organisation_name(val)
                     elif val.lower() + 's' in suggestions:
                         val = val.lower() + 's'
+                    elif val.lower().rstrip('s') in suggestions:
+                        val = val.lower().rstrip('s')
                     elif val.replace('&', 'and').strip() in suggestions:
                         val = val.replace('&', 'and').strip()
                 if val and val not in suggestions:
                     self.log("WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions))
             extras_dict[extras_key] = val
-        
+
+        orgs = []
+        for key in ['department', 'agency']:
+            dept_or_agency = extras_dict[key]
+            org = self._drupal_helper.cached_department_or_agency_to_organisation(dept_or_agency)
+            if org:
+                orgs.append(org)
+        orgs += [u''] * (2 - len(orgs))
+        extras_dict['published_by'], extras_dict['published_via'] = orgs
+
+
         extras_dict['national_statistic'] = u'' # Ignored: row_dict['national statistic'].lower()
+        extras_dict['mandate'] = u'' # blank
         extras_dict['import_source'] = 'COSPREAD-%s' % os.path.basename(self._filepath)
 
         resources = []
@@ -291,13 +305,19 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 resources.append(res_dict)
         pkg_dict['resources'] = resources
 
-        tags = schema_gov.TagSuggester.suggest_tags(pkg_dict)
+        tags = schema.TagSuggester.suggest_tags(pkg_dict)
         if self.include_given_tags:
-            given_tags = schema_gov.tags_parse(row_dict['Tags'])
+            given_tags = schema.tags_parse(row_dict['Tags'])
             tags = tags | set(given_tags)
         pkg_dict['tags'] = sorted(list(tags))
 
         return pkg_dict
+
+    @classmethod
+    def _drupal_client(cls, xmlrpc_settings=None):
+        if not hasattr(cls, '_drupal_client_cache'):
+            cls._drupal_client_cache = DrupalClient(xmlrpc_settings)
+        return cls._drupal_client_cache
 
     @classmethod
     def get_license_id(cls, license_name):

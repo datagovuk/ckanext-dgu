@@ -41,15 +41,15 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.add_field(common.SuggestedTextExtraField('temporal_granularity', options=schema.temporal_granularity_options))
     builder.add_field(common.DateRangeExtraField('temporal_coverage'))
     builder.add_field(common.TextExtraField('precision'))
-    #builder.add_field(common.TextExtraField('agency'))
     builder.add_field(common.TextExtraField('taxonomy_url'))
     builder.add_field(common.TextExtraField('mandate'))
-    builder.add_field(common.TextExtraField('publisher'))
     #builder.add_field(common.SuggestedTextExtraField('department', options=schema.government_depts))
+    #builder.add_field(common.TextExtraField('agency'))
     # options are iterators of: (label, value)
-    publishers = [(str(label), "%s [%s]" % (label, value)) for value, label in (publishers or {}).items()]
-    builder.add_field(common.SelectExtraField('published_by', options=publishers))
-    builder.add_field(common.SelectExtraField('published_via', options=publishers))
+    publisher_options = [(str(label), "%s [%s]" % (label, value)) for value, label in (publishers or {}).items()]
+    publisher_options.sort()
+    builder.add_field(package_gov_fields.PublisherField('published_by', options=publisher_options))
+    builder.add_field(package_gov_fields.PublisherField('published_via', options=publisher_options))
     builder.add_field(common.CoreField('license_id', value='uk-ogl'))
     builder.add_field(common.CheckboxExtraField('national_statistic'))
 
@@ -63,14 +63,15 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_text('update_frequency', instructions='How frequently the dataset is updated with new versions', further_instructions='For one-off data, use \'never\'. For those once updated but now discontinued, use \'discontinued\'.')
     builder.set_field_text('precision', instructions='Indicate the level of precision in the data, to avoid over-interpretation.', hints="e.g. 'per cent to two decimal places' or 'as supplied by respondents'")
     builder.set_field_text('geographic_granularity', instructions='The lowest level of geographic detail', further_instructions="This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.")
-    builder.set_field_text('geographic_coverage', instructions='The geographic coverage of this dataset', further_instructions='Where a dataset covers multiple areas, the system will automatically group these (e.g. \'England\', \'Scotland\' and \'Wales\' all being \'Yes\' would be shown as \'Great Britain\').')
+    builder.set_field_text('geographic_coverage', instructions='The geographic coverage of this dataset.', further_instructions='Where a dataset covers multiple areas, the system will automatically group these (e.g. \'England\', \'Scotland\' and \'Wales\' all being selected would be shown as \'Great Britain\').')
     builder.set_field_text('temporal_granularity', instructions='The lowest level of temporal detail granularity', further_instructions="This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.")
     builder.set_field_text('temporal_coverage', instructions='The temporal coverage of this dataset.', further_instructions='If available, please indicate the time as well as the date. Where data covers only a single day, the \'To\' sub-element can be left blank.', hints='e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006')
     builder.set_field_text('url', instructions='The Internet link to a web page discussing the dataset.', hints='e.g. http://www.somedept.gov.uk/growth-figures.html')
     builder.set_field_text('taxonomy_url', instructions='An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.', hints='e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html')
     #builder.set_field_text('department', instructions='The Department under which the dataset is collected and published', further_instructions='Note, this department is not necessarily directly undertaking the collection/publication itself - use the Agency element where this applies.')
     #builder.set_field_text('agency', instructions='The agency or arms-length body responsible for the data collection', further_instructions='Please use the full title of the body without any abbreviations, so that all items from it appear together. The data.gov.uk system will automatically capture this where appropriate.', hints='e.g. Environment Agency')
-    builder.set_field_text('publisher', instructions='The public body credited with the publication of this data', further_instructions="An 'over-ride' for the system, to determine the correct public body to credit, when it might not be clear if this is the Agency or Department. This could be used where the public branding of the work of an agency is as its parent department.")
+    builder.set_field_text('published_by', instructions='The organisation (usually a public body) credited with or associated with the publication of this data.', further_instructions='Often datasets are associated with both a government department and an outside agency, in which case this field should store the department and "Published via" should store the agency. When an organisation is not listed, please request it using the form found in your data.gov.uk user page under the "Publishers" tab. An asterisk (*) denotes an pre-existing value for this field, which is allowed, but the current user\'s permissions would not be able to change a package\s publisher to this value.')
+    builder.set_field_text('published_via', instructions='A second organisation that is credited with or associated with the publication of this data.', further_instructions='Often datasets are associated with both a government department and an outside agency, in which case the "Published by" field should store the department and this field should store the agency. When an organisation is not listed, please request it using the form found in your data.gov.uk user page under the "Publishers" tab. An asterisk (*) denotes an pre-existing value for this field, which is allowed, but the current user\'s permissions would not be able to change a package\s publisher to this value.')
     builder.set_field_text('author', 'Contact', instructions='The permanent contact point for the public to enquire about this particular dataset. In addition, the Public Data and Transparency Team will use it for any suggestions for changes, feedback, reports of mistakes in the datasets or metadata.', further_instructions='This should be the name of the section of the agency or Department responsible, and should not be a named person. Particular care should be taken in choosing this element.', hints='Examples: Statistics team, Public consultation unit, FOI contact point')
     builder.set_field_text('author_email', 'Contact email', instructions='A generic official e-mail address for members of the public to contact, to match the \'Contact\' element.', further_instructions='A new e-mail address may need to be created for this function.')
     builder.set_field_text('national_statistic', 'National Statistic', instructions='Indicate if the dataset is a National Statistic', further_instructions='This is so that it can be highlighted.')
@@ -87,23 +88,22 @@ def build_package_gov_form_v3(is_admin=False, user_editable_groups=None,
     builder.set_field_option('notes', 'required')
     builder.set_field_option('published_by', 'required') 
     builder.set_field_option('license_id', 'required')
-    builder.set_field_option('tags', 'with_renderer', package_gov_fields.SuggestTagRenderer)
     
     if restrict:
         builder.set_field_option('national_statistic', 'readonly', True)
     
     # Layout
     field_groups = OrderedDict([
-        (_('Basic information'), ['title', 'name',
+        ('Basic information', ['title', 'name',
                                   'notes']),
-        (_('Details'), ['date_released', 'date_updated', 'date_update_future',
+        ('Details', ['date_released', 'date_updated', 'date_update_future',
                         'update_frequency',
                         'precision', 
                         'geographic_granularity', 'geographic_coverage',
                         'temporal_granularity', 'temporal_coverage',
                         'url', 'taxonomy_url']),
-        (_('Resources'), ['resources']),
-        (_('More details'), ['published_by', 'published_via',
+        ('Resources', ['resources']),
+        ('More details', ['published_by', 'published_via',
                              'author', 'author_email',
                              'mandate', 'license_id',
                              'tags']),
@@ -124,3 +124,4 @@ def get_gov3_fieldset(is_admin=False, user_editable_groups=None,
     return build_package_gov_form_v3( \
         is_admin=is_admin, user_editable_groups=user_editable_groups,
         publishers=publishers, **kwargs).get_fieldset()
+

@@ -1,4 +1,5 @@
 import os
+import re
 
 from paste.script.appinstall import SetupCommand
 from pylons import config
@@ -185,12 +186,15 @@ class PackageDictUtil(object):
                     assert not dict_to_check.get(key), 'Key \'%s\' should have no value, not: %s' % (key, dict_to_check[key])
         unmatching_keys = set(dict_to_check.keys()) ^ set(expected_dict.keys())
         missing_keys = set(expected_dict.keys()) - set(dict_to_check.keys())
-        assert not missing_keys, 'Missing keys: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
+        assert not missing_keys, 'Missing keys: %r. All unmatching keys: %r' % (missing_keys, unmatching_keys)
         extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
         assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
 
 
 class MockDrupalCase(BaseCase):
+    xmlrpc_url = 'http://localhost:8000/services/xmlrpc'
+    xmlrpc_settings = {'xmlrpc_url': xmlrpc_url}
+    
     @classmethod
     def setup_class(cls):
         cls.process = cls._mock_drupal_start()
@@ -201,18 +205,23 @@ class MockDrupalCase(BaseCase):
         cls._mock_drupal_stop(cls.process)
 
     @classmethod
-    def _mock_drupal_start(self):
+    def _mock_drupal_start(cls):
         import subprocess
-        process = subprocess.Popen(['paster', '--plugin=ckanext-dgu', 'mock_drupal', 'run'])
+        options = ['-q']
+        if hasattr(cls, 'lots_of_publishers') and cls.lots_of_publishers:
+            options.append('-l')
+        process = subprocess.Popen(['paster', '--plugin=ckanext-dgu', 'mock_drupal', 'run'] + options)
         return process
 
-    @staticmethod
-    def _wait_for_drupal_to_start(url='http://localhost:8000/services/xmlrpc',
+    @classmethod
+    def _wait_for_drupal_to_start(cls,
+                                  url=None,
                                   timeout=15):
         import xmlrpclib
         import socket
         import time
-
+        
+        url = url or cls.xmlrpc_url
         drupal = xmlrpclib.ServerProxy(url)
         for i in range(int(timeout)*100):
             try:
@@ -228,3 +237,7 @@ class MockDrupalCase(BaseCase):
         pid = int(pid)
         if os.system("kill -9 %d" % pid):
             raise Exception, "Can't kill foreign Mock Drupal instance (pid: %d)." % pid
+
+def strip_organisation_id(org_name_with_id):
+    # e.g. 'NHS [54]' becomes 'NHS [some_number]'
+    return re.sub('\[\d+\]', '[some_number]', org_name_with_id)

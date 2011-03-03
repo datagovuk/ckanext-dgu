@@ -16,32 +16,15 @@ from ckan.lib.helpers import url_for
 from ckan.lib.helpers import json
 from ckan.lib.create_test_data import CreateTestData
 
+from ckanext.dgu.forms.formapi import FormController
+from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase, strip_organisation_id
+from ckanext.dgu.testtools import test_publishers
+
+
 ACCESS_DENIED = [403]
 
 # Todo: Test for access control setup. Just checking an object exists in the model doesn't mean it will be presented through the WebUI.
 
-from ckanext.dgu.forms.formapi import FormController
-from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase
-from ckanext.dgu.testtools import test_publishers
-from ckanext.dgu.testtools.mock_drupal import get_mock_drupal_config
-
-
-class TestDrupalConnection(MockDrupalCase):
-    def test_get_url(self):
-        assert config['dgu.xmlrpc_domain']
-        url = FormController._get_drupal_xmlrpc_url()
-        assert_equal(url, 'http://testuser:testpassword@localhost:8000/services/xmlrpc')
-
-    def test_get_user_properties(self):
-        drupal_config = get_mock_drupal_config()
-        test_user_id = '62'
-        expected_user = drupal_config['test_users'][test_user_id]
-        user = FormController._get_drupal_user_properties(test_user_id)
-        assert user
-        assert isinstance(user, dict)
-        assert_equal(user['name'], expected_user['name'])
-        expected_publishers = expected_user['publishers']
-        assert_equal(user['publishers'], expected_publishers)
 
 class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods, MockDrupalCase):
     '''Utilities and pythonic wrapper for the Forms API for testing it.'''
@@ -198,7 +181,7 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
         headers = self.get_headers(res)
         assert name in headers, "Couldn't find header '%s' in response: %s" % (name, res)
         if value != None:
-            self.assert_equal(headers[name], value)
+            assert_equal(headers[name], value)
 
     def get_header_keys(self, res):
         return [h[0] for h in res.headers]
@@ -213,13 +196,17 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
     def assert_formfield(self, form, name, expected):
         '''
-        Checks the value of a specified form field.
+        Checks a specified form field exists, and if you
+        give a non-None expected value, then it checks that too.
         '''
         assert name in form.fields, 'No field named %r out of:\n%s' % \
                (name, '\n'.join(sorted(form.fields)))
-        field = form[name]
-        value = field.value
-        self.assert_equal(value, expected)
+        if expected is not None:
+            field = form[name]
+            value = field.value
+            value = strip_organisation_id(value)
+            assert value == expected, 'Field %r: %r != %r' % \
+                   (field.name, value, expected)
 
     def assert_not_formfield(self, form, name, expected=None):
         '''
@@ -466,8 +453,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         # Todo: Check the Location looks promising (extract and check given ID).
         self.assert_blank_response(res)
         source = self.get_harvest_source_by_url(source_url) # Todo: Use extracted ID.
-        self.assert_equal(source.user_ref, 'example publisher user')
-        self.assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source.user_ref, 'example publisher user')
+        assert_equal(source.publisher_ref, 'example publisher')
 
     def test_submit_harvest_source_create_form_invalid(self):
         source_url = u'' # Blank URL.
@@ -507,8 +494,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
         source = self.get_harvest_source_by_url(alt_source_url) # Todo: Use extracted ID.
         assert source
-        self.assert_equal(source.user_ref, 'example publisher user')
-        self.assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source.user_ref, 'example publisher user')
+        assert_equal(source.publisher_ref, 'example publisher')
 
     def test_submit_harvest_source_edit_form_invalid(self):
         source_url = u'http://'

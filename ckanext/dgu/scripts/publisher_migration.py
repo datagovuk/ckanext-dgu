@@ -1,27 +1,66 @@
 from collections import defaultdict
 import socket
+import copy
+
 from xmlrpclib import ServerProxy, ProtocolError
+from nose.tools import assert_equal
 
 from common import ScriptError, remove_readonly_fields
-
 from ckanclient import CkanApiError
 
+from ckanext.importer.spreadsheet_importer import CsvData
+
 log = __import__("logging").getLogger(__name__)
+
+mapped_attributes = {
+    'temporal_granularity': dict(zip(['years', 'quarters', 'months', 'weeks', 'days', 'hours', 'points'],
+                                     ['year', 'quarter', 'month', 'week', 'day', 'hour', 'point'])),
+
+    'update_frequency': dict(zip(('annually', 'quarterly', 'monthly', 'never'),
+                                 ('annual', 'quarterly', 'monthly', 'never'))), #'discontinued'
+    }
 
 class PublisherMigration:
     '''Changes department/agency fields to published_by/_via'''
     def __init__(self, ckanclient,
                  xmlrpc_domain, xmlrpc_username, xmlrpc_password,
+                 publisher_map_filepath,
                  dry_run=False):
         self.ckanclient = ckanclient
         self.dry_run = dry_run
         self.xmlrpc = {'username':xmlrpc_username,
                        'password':xmlrpc_password,
                        'domain':xmlrpc_domain}
+        self.publisher_map = self.read_publisher_map(publisher_map_filepath) \
+                             if publisher_map_filepath else {}
         self.organisations = {}
 
+    def read_publisher_map(self, publisher_map_filepath):
+        logger = None
+        publisher_map = {}
+        data = CsvData(logger, filepath=publisher_map_filepath)
+        header = data.get_row(0)
+        assert_equal(header[:2], ['Agency text', 'Corrected name'])
+        for row_index in range(data.get_num_rows())[1:]:
+            row = data.get_row(row_index)
+            if len(row) < 2:
+                continue
+            agency, publisher = row[:2]
+            agency = agency.strip()
+            publisher = publisher.strip()
+            if agency and publisher:
+                publisher_map[agency] = publisher
+        return publisher_map
+        
     def get_organisation(self, dept_or_agency):
         if not self.organisations.has_key(dept_or_agency):
+            # check for name mapping
+            mapped_publisher = self.publisher_map.get(dept_or_agency.strip())
+            if mapped_publisher:
+                log.info('Mapping %r to %r', dept_or_agency, mapped_publisher)
+                dept_or_agency = mapped_publisher
+
+            # look up with Drupal
             if not hasattr(self, 'drupal'):
                 domain = self.xmlrpc['domain']
                 username = self.xmlrpc['username']
@@ -30,24 +69,24 @@ class PublisherMigration:
                     server = '%s:%s@%s' % (username, password, domain)
                 else:
                     server = '%s' % domain
-                xmlrpc_url = 'http://%s/services/xmlrpc' % server
-                log.info('XMLRPC connection to %s', xmlrpc_url)
-                self.drupal = ServerProxy(xmlrpc_url)
+                self.xmlrpc_url = 'http://%s/services/xmlrpc' % server
+                log.info('XMLRPC connection to %s', self.xmlrpc_url)
+                self.drupal = ServerProxy(self.xmlrpc_url)
             try:
                 org_id = self.drupal.organisation.match(dept_or_agency)
             except socket.error, e:
-                raise ScriptError('Socket error connecting to %s', xmlrpc_url)
+                raise ScriptError('Socket error connecting to %s', self.xmlrpc_url)
             except ProtocolError, e:
-                raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
+                raise ScriptError('XMLRPC error connecting to %s', self.xmlrpc_url)
             except ResponseError, e:
-                raise ScriptError('XMLRPC response error connecting to %s for department: %r', xmlrpc_url, dept_or_agency)
+                raise ScriptError('XMLRPC response error connecting to %s for department: %r', self.xmlrpc_url, dept_or_agency)
             if org_id:
                 try:
                     org_name = self.drupal.organisation.one(org_id)
                 except socket.error, e:
-                    raise ScriptError('Socket error connecting to %s', xmlrpc_url)
+                    raise ScriptError('Socket error connecting to %s', self.xmlrpc_url)
                 except ProtocolError, e:
-                    raise ScriptError('XMLRPC error connecting to %s', xmlrpc_url)
+                    raise ScriptError('XMLRPC error connecting to %s', self.xmlrpc_url)
                 organisation = u'%s [%s]' % (org_name, org_id)
                 log.info('Found organisation: %r', organisation)
             else:
@@ -66,16 +105,32 @@ class PublisherMigration:
             try:
                 try:
                     pkg = self.ckanclient.package_entity_get(pkg_ref)
-                except ckanclient.CkanApiError, e:
+                except CkanApiError, e:
                     log.error('Could not get: %r' % e)
                     pkgs_rejected['Could not get package: %r' % e].append(pkg_ref)
                     continue
-##                if ('published_by' in pkg['extras'] and \
-##                    'published_via' in pkg['extras']):
-##                    log.error('...already migrated')
-##                    pkgs_rejected['Already migrated'].append(pkg)
-##                    continue
+                pkg_before_changes = copy.deepcopy(pkg)
 
+                # mapped attributes
+                for attribute in mapped_attributes:
+                    orig_value = pkg['extras'].get(attribute)
+                    if not orig_value:
+                        continue
+                    mapped_value = mapped_attributes[attribute].get(orig_value)
+                    if not mapped_value:
+                        mapped_value = mapped_attributes[attribute].get(orig_value.lower().strip())
+                        if not mapped_value:
+                            if orig_value.lower() in mapped_attributes[attribute].values():
+                                mapped_value = orig_value.lower()
+                    if mapped_value:
+                        pkg['extras'][attribute] = mapped_value
+                        log.info('%s: %r -> %r', \
+                                 attribute, orig_value, mapped_value)
+                    else:
+                        log.warn('Invalid value for %r: %r', \
+                                 attribute, orig_value)
+
+                # create publisher fields
                 dept = pkg['extras'].get('department')
                 agency = pkg['extras'].get('agency')
                 if dept:
@@ -88,15 +143,21 @@ class PublisherMigration:
                         log.warn('No publisher for package: %s', pkg['name'])
                 log.info('%s:\n  %r/%r ->\n  %r/%r', \
                          pkg['name'], dept, agency, pub_by, pub_via)
+                pkg['extras']['published_by'] = pub_by
+                pkg['extras']['published_via'] = pub_via
+                
+                if pkg == pkg_before_changes:
+                    log.info('...package unchanged: %r' % pkg['name'])
+                    pkgs_rejected['Package unchanged: %r' % pkg['name']].append(pkg)
+                    continue             
                 if not self.dry_run:
-                    pkg['extras']['published_by'] = pub_by
-                    pkg['extras']['published_via'] = pub_via
-##                    if pkg['extras'].has_key('department'):
-##                        pkg['extras']['department'] = None
-##                    if pkg['extras'].has_key('agency'):
-##                        pkg['extras']['agency'] = None
                     remove_readonly_fields(pkg)
-                    self.ckanclient.package_entity_put(pkg)
+                    try:
+                        self.ckanclient.package_entity_put(pkg)
+                    except CkanApiError, e:
+                        log.error('Could not put: %r' % e)
+                        pkgs_rejected['Could not put package: %r' % e].append(pkg_ref)
+                        continue
                     log.info('...done')
                 pkgs_done.append(pkg)
             except ScriptError, e:
@@ -105,10 +166,10 @@ class PublisherMigration:
                 pkgs_rejected['Error: %r' % e].append(pkg_ref)
                 continue
             except Exception, e:
-                log.error('Exception during processing package %r: %r', \
+                log.error('Uncaught exception during processing package %r: %r', \
                           pkg_ref, e)
                 pkgs_rejected['Exception: %r' % e].append(pkg_ref)
-                continue
+                raise
         log.info('-- Finished --')
         log.info('Processed %i packages', len(pkgs_done))
         rejected_pkgs = []
@@ -133,6 +194,9 @@ class Command(MassChangerCommand):
         self.parser.add_option("-P", "--xmlrpc-password",
                                dest="xmlrpc_password",
                                )
+        self.parser.add_option("-m", "--publisher-map",
+                               dest="publisher_map_csv",
+                               )
 
     def command(self):
         super(Command, self).command()
@@ -142,6 +206,7 @@ class Command(MassChangerCommand):
                                  self.options.xmlrpc_domain,
                                  self.options.xmlrpc_username,
                                  self.options.xmlrpc_password,
+                                 self.options.publisher_map_csv,
                                  dry_run=self.options.dry_run)
         cmd.run()
 

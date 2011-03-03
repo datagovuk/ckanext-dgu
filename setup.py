@@ -17,10 +17,10 @@ setup(
     description='CKAN DGU extensions',
     keywords='data packaging component tool server',
     install_requires=[
-        'swiss',
-        'ckanclient>=0.5',
-        'xlrd>=0.7.1',
-        'xlwt>=0.7.2',
+        # List of dependencies is moved to pip-requirements.txt
+        # to avoid conflicts with Debian packaging.
+        #'swiss',
+        #'ckanclient>=0.5',
         #'ckanext', when it is released
     ],
     packages=find_packages(exclude=['ez_setup']),
@@ -39,7 +39,9 @@ setup(
         ons_analysis = ckanext.dgu.scripts.ons_analysis_cmd:command
         ofsted_fix = ckanext.dgu.scripts.ofsted_fix_cmd:command        
         publisher_migration = ckanext.dgu.scripts.publisher_migration:command
-
+        metadata_v3_migration = ckanext.dgu.scripts.metadata_v3_migration:command
+        generate_test_organisations = ckanext.dgu.testtools.organisations:command
+        
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
 

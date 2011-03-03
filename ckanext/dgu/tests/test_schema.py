@@ -1,5 +1,6 @@
 from ckanext.dgu.schema import *
 from nose.tools import assert_equal
+from ckanext.dgu.tests import MockDrupalCase
 
 class TestGeoCoverageType:
     @classmethod
@@ -36,9 +37,9 @@ class TestGeoCoverageType:
             result_form = GeoCoverageType.get_instance().db_to_form(db)
             assert_equal(result_form, form)
 
-class TestAbbreviations:
+class TestCanonicalOrganisationNames:
     def test_basic(self):
-        res = expand_abbreviations('MFA')
+        res = canonise_organisation_name('MFA')
         assert_equal(res, 'Marine and Fisheries Agency')
 
 class TestTags:
@@ -87,3 +88,27 @@ class TestName:
             result_name = name_munge(str_)
             assert_equal(result_name, name)
     
+class TestDrupalHelper(MockDrupalCase):
+    def test_dept_to_organisation(self):
+        source_agency = 'Ealing PCT'
+        publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
+        assert publisher == 'Ealing PCT [2]'
+
+    def test_dept_to_organisation_no_id(self):
+        source_agency = 'Ealing PCT'
+        publisher = DrupalHelper.department_or_agency_to_organisation(source_agency, include_id=False)
+        assert publisher == 'Ealing PCT'
+
+class TestGovTags(object):
+    def test_tags_parse(self):
+        def test_parse(tag_str, expected_tags):
+            tags = tags_parse(tag_str)
+            assert tags == expected_tags, 'Got %s not %s' % (tags, expected_tags)
+        test_parse('one two three', ['one', 'two', 'three'])
+        test_parse('one, two, three', ['one', 'two', 'three'])
+        test_parse('one,two,three', ['one', 'two', 'three'])
+        test_parse('one-two,three', ['one-two', 'three'])
+        test_parse('One, two&three', ['one', 'twothree'])
+        test_parse('One, two_three', ['one', 'two-three'])
+        test_parse('ordnance survey stuff', ['ordnance-survey', 'stuff'])
+        test_parse('ordnance stuff survey', ['ordnance', 'stuff', 'survey'])
