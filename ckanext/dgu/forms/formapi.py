@@ -103,9 +103,8 @@ class BaseFormController(BaseApiController):
             fieldset_params = {
                 'user_name': unicode(user['name']),
                 'publishers': user['publishers'],
-                # At some point we can hard code restrict, but not until
-                # we are fully onto gov3 form.
-                #'restrict': True,
+                # restrict national_statistic field - only for edit on ckan
+                'restrict': True,                                  
                 }
         return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
 

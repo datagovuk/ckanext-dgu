@@ -204,3 +204,16 @@ def suggest_tags(suggest_tags):
                 if keyword in text:
                     tags.add(tag_munge(keyword))
     return tags
+
+def national_statistic_validator(value, field=None):
+    if value != 'yes':
+        return
+    fs = field.parent
+    for publisher_field in ('published_by', 'published_via'):
+        pub = fs[publisher_field].value
+        if pub and 'Office for National Statistics' in pub:
+            return
+    raise formalchemy.ValidationError(
+        "'National Statistic' should only be checked if the package is "
+        "'published by' or 'published via' the Office for National Statistics.")
+

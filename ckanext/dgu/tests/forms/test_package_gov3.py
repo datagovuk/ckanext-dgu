@@ -447,10 +447,15 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
         assert fs.validate(), fs.errors
 
         # now add all problems
-        bad_validating_data = [('date_released', u'27/11/0208', 'out of range'),
-                               ('published_by', u'', 'Please enter a value'),
-                               ('published_via', u'Unheard of publisher', 'not one of the options'),
-                               ]
+        bad_validating_data = [
+            ('date_released', u'27/11/0208', 'out of range'),
+            ('published_by', u'', 'Please enter a value'),
+            ('published_via', u'Unheard of publisher', 'not one of the options'),
+            ('national_statistic', u'yes',
+             "'National Statistic' should only be checked if the package is "
+             "'published by' or 'published via' the Office for National "
+             "Statistics."),
+            ]
         for field_name, bad_data, error_txt in bad_validating_data:
             indict[prefix + field_name] = bad_data
         fs = get_fieldset().bind(model.Package, data=indict, session=model.Session)
@@ -466,6 +471,13 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
         model.repo.new_revision()
         fs.sync()
         model.repo.commit_and_remove()
+
+        # now fix publisher for national_statistics validation to pass
+        indict[prefix + 'published_via'] = 'Office for National Statistics [345]'
+        fs = get_fieldset().bind(model.Package, data=indict)
+        fs.validate()
+        error_field_names = [field.name for field in fs.errors.keys()]
+        assert 'national_statistic' not in error_field_names, fs.errors
 
     def test_8_geo_coverage(self):
         # create initial package
