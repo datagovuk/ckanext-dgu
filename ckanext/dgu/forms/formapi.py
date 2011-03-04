@@ -360,7 +360,10 @@ class BaseFormController(BaseApiController):
             response.status_int = 404
             return ''            
         response_data = obj.as_dict()
-        jobs = obj.jobs
+        jobs = [job for job in obj.jobs]
+        if not len(jobs):
+            response_data['status'] = dict(msg='No jobs yet')
+            return self._finish_ok(response_data)
         last_harvest_request = 'None'
         last_harvest_status = 'Not yet harvested'
         last_harvest_request = str(jobs[-1].created)[:10]
