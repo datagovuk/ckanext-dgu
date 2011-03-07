@@ -433,6 +433,7 @@ class BaseFormController(BaseApiController):
                     self._abort_bad_request()
                 # Bind form data to fieldset.
                 try:
+                    form_data['HarvestSource--url'] = form_data.get('HarvestSource--url', '').strip()
                     bound_fieldset = fieldset.bind(model.HarvestSource, data=form_data, session=model.Session)
                 except Exception, error:
                     # Todo: Replace 'Exception' with bind error.
@@ -508,6 +509,7 @@ class BaseFormController(BaseApiController):
                     self._abort_bad_request()
                 # Bind form data to fieldset.
                 try:
+                    form_data['HarvestSource--url'] = form_data.get('HarvestSource--url', '').strip()
                     bound_fieldset = fieldset.bind(entity, data=form_data)
                     # Todo: Replace 'Exception' with bind error.
                 except Exception, error:
