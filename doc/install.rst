@@ -106,30 +106,27 @@ You'll need PostgreSQL too:
 Now you can create your configuration, set up the database and serve your CKAN instance. No virtual environments required!
 
     
-    sudo -u postgres createuser -S -D -R -P ckan-dgu
+    sudo -u postgres createuser -S -D -R -P dgu
     # Enter password `pass' or you'll need to edit your config with the new settings
-    sudo -u postgres createdb -O ckan-dgu ckan-dgu
+    sudo -u postgres createdb -O dgu dgu
 
 Now set up the ckan server:
 
 ::
-
-    $ mkdir -p /etc/ckan /var/lib/ckan/data /var/lib/ckan/sstore 
-    $ mkdir -p /var/lib/ckan/static/dump /var/backup/ckan
-    $ mkdir -p /var/backup/ckan
-    $ paster make-config ckan /etc/ckan/ckan-dgu.ini
+    (see nils for mkdir cmds)
+    $ paster make-config ckan /etc/ckan/dgu/dgu.ini
     Distribution already installed:
       ckan 1.4a from /usr/lib/pymodules/python2.6
-    Creating /etc/ckan/ckan-dgu.ini
+    Creating /etc/ckan/dgu/dgu.ini
     Now you should edit the config files
-      /etc/ckan/ckan-dgu.ini
+      /etc/ckan/dgu/dgu.ini
 
-Now edit ``/etc/ckan/ckan-dgu.ini`` as follows:
+Now edit ``/etc/ckan/dgu/dgu.ini`` as follows:
 
 ::
 
     email_to = ckan-sysadmin@okfn.org
-    error_email_from = no-reply@dev-hmg.ckan.net
+    error_email_from = no-reply@dgu-dev.ckan.net
 
 
 Add to the ``[app:main]`` section the following:
@@ -139,7 +136,11 @@ Add to the ``[app:main]`` section the following:
     ckan.plugins = dgu_form_api
     dgu.xmlrpc_username = CKAN_API
     dgu.xmlrpc_password = XXXX
-    dgu.xmlrpc_domain = uat.dataco.coi.gov.uk
+    dgu.xmlrpc_domain = 212.110.177.166
+    ckan.log_dir = /var/log/ckan/dgu
+    ckan.dump_dir = /var/lib/ckan/dgu/static/dump
+    ckan.backup_dir = /var/backup/ckan/dgu
+
 
 and change these lines:
 
@@ -147,63 +148,59 @@ and change these lines:
 
     package_form = package_gov3
     sqlalchemy.url = postgresql://ckantest:pass@localhost/ckantest
-    cache_dir = /var/lib/ckan/data
-
+    cache_dir = /var/lib/ckan/dgu/data
+    ckan.site_title = DGU dev
 
 You also need the who.ini:
 
 ::
 
-    curl -o /etc/ckan/who.ini https://bitbucket.org/okfn/ckan/raw/dc64fe524be5/who.ini 
+    curl -o /etc/ckan/dgu/who.ini https://bitbucket.org/okfn/ckan/raw/dc64fe524be5/who.ini 
 
 Edit the who.ini:
 
 ::
 
-    store_file_path = /var/lib/ckan/sstore
+    store_file_path = /var/lib/ckan/dgu/sstore
 
 Now set file permissions:
 
 ::
-    chown okfn:okfn -R /etc/ckan/*
-    chown www-data:www-data -R /var/lib/ckan/data /var/lib/ckan/sstore
-    chown www-data:okfn -R /var/log/ckan 
-    chown okfn:www-data -R /var/lib/ckan/static/dump
-    chmod g+w -R /var/log/ckan/
+    (see nils)
 
 Now you can create either a new database:
 
 ::
 
-    paster --plugin=ckan db init --config=/etc/ckan/ckan-dgu.ini
+    paster --plugin=ckan db init --config=/etc/ckan/dgu/dgu.ini
 
 Or restore a database dump:
 
 ::
 
-    psql -W -U ckan-dgu -d ckan-dgu -h localhost -f hmg.ckan.net.current.2011-03-02.pg_dump
+    psql -W -U dgu -d dgu -h localhost -f hmg.ckan.net.current.2011-03-02.pg_dump
     # it will prompt for the db user password ('pass' was the default)
-    paster --plugin=ckan db upgrade --config /etc/ckan/ckan-dgu.ini
+    paster --plugin=ckan db upgrade --config /etc/ckan/dgu/dgu.ini
 
 Now try serving the app:
 
 ::
 
-    sudo -u www-data paster serve /etc/ckan/ckan-dgu.ini
+    sudo -u www-data paster serve /etc/ckan/dgu/dgu.ini
 
 In another shell on the machine:
 
 ::
     curl http://127.0.0.1:5000
 
-Now create the /etc/ckan/ckan-dgu.py:
+Now create the /etc/ckan/dgu.py:
 
 ::
 
   import os
   from apachemiddleware import MaintenanceResponse
 
-  config_filepath = '/etc/ckan/ckan-dgu.ini'
+  config_filepath = '/etc/ckan/dgu/dgu.ini'
 
   # logging
   from paste.script.util.logging_config import fileConfig
@@ -213,13 +210,13 @@ Now create the /etc/ckan/ckan-dgu.py:
   application = loadapp('config:%s' % config_filepath)
   application = MaintenanceResponse(application)
 
-And create the apache config /etc/apache2/sites-available/ckan-dgu:
+And create the apache config /etc/apache2/sites-available/dgu:
 
 ::
 
   <VirtualHost *:80>
     DocumentRoot /var/lib/ckan/static
-    ServerName ckan-dgu
+    ServerName dgu
 
     <Directory /var/lib/ckan/static>
         allow from all
@@ -234,7 +231,7 @@ And create the apache config /etc/apache2/sites-available/ckan-dgu:
     </Location>
 
     # this is our app
-    WSGIScriptAlias / /etc/ckan/ckan-dgu.py
+    WSGIScriptAlias / /etc/ckan/dgu.py
 
     # pass authorization info on (needed for rest api)
     WSGIPassAuthorization On
@@ -262,8 +259,8 @@ And create the apache config /etc/apache2/sites-available/ckan-dgu:
         ## END - Allow unauthenticated local access.
    # </Location>
 
-        ErrorLog /var/log/apache2/ckan-dgu.error.log
-        CustomLog /var/log/apache2/ckan-dgu.custom.log combined
+        ErrorLog /var/log/apache2/dgu.error.log
+        CustomLog /var/log/apache2/dgu.custom.log combined
   </VirtualHost>
 
 Now restart apache:
@@ -276,11 +273,7 @@ Now restart apache:
 Cron jobs
 =========
 
-As okfn user, get the daily script:
-
-::
-
-    curl -o /home/okfn/gov-daily.py https://bitbucket.org/okfn/ckan/raw/default/bin/gov-daily.py
+Install the gov-daily.py and ONS crons (TODO)
 
 
 Building debian package
@@ -296,7 +289,7 @@ Then set up the API key:
 
 ::
 
-    paster --plugin=ckan shell --config=/etc/ckan/ckan-dgu.ini
+    paster --plugin=ckan shell --config=/etc/ckan/dgu/dgu.ini
 
 Then paste in this and press Ctrl+D:
 
