@@ -7,29 +7,21 @@ Dependencies
 ============
 
 
-Setup for loaders only
-======================
+Setup
+=====
 
-It is simpler to set-up to run the loaders, because they don't require
-CKAN to be installed::
+You need ckan installed as well as various other dependencies listed in
+pip-requirements.txt::
 
     virtualenv pyenv
     pip -E pyenv install -e .
+    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckan#egg=ckan
     pip -E pyenv install -r pip-requirements.txt
 
 Now you can activate the environment and run the scripts::
 
     . pyenv/bin/activate
     ons_loader --help
-
-
-Setup with CKAN
-===============
-
-The DGU forms and Form API require ckan installed in your python environment
-as well. So having followed the instructions above, add in ckan like this::
-
-    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckan#egg=ckan
 
 
 Configuration
