@@ -210,13 +210,14 @@ Now create the apache config /etc/apache2/sites-available/dgu:
 
   <VirtualHost *:80>
     DocumentRoot /var/lib/ckan/static
-    ServerName dgu
+    ServerName dgu-dev.okfn.org
+    ServerAlias *
 
     <Directory /var/lib/ckan/static>
         allow from all
     </Directory>
 
-    Alias /dump /var/lib/ckan/static/dump
+    Alias /dump /var/lib/ckan/dgu/static/dump
 
     # Disable the mod_python handler for static files
     <Location /dump>
@@ -256,6 +257,13 @@ Now create the apache config /etc/apache2/sites-available/dgu:
         ErrorLog /var/log/apache2/dgu.error.log
         CustomLog /var/log/apache2/dgu.custom.log combined
   </VirtualHost>
+
+Enable right apache config:
+
+::
+
+    sudo a2dissite 000-default
+    sudo a2ensite dgu
 
 Now restart apache:
 
