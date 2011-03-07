@@ -193,24 +193,18 @@ In another shell on the machine:
 ::
     curl http://127.0.0.1:5000
 
-Now create the /etc/ckan/dgu.py:
+Now create the link to the wsgi script
 
-::
+Find this script's installed path::
 
-  import os
-  from apachemiddleware import MaintenanceResponse
+    $ python -c 'from ckanext.dgu import bin; print bin.__path__'
+    ['/usr/lib/pymodules/python2.6/ckanext/dgu/bin']
+  
+Create symlink::
 
-  config_filepath = '/etc/ckan/dgu/dgu.ini'
+    ln -s /usr/lib/pymodules/python2.6/ckanext/dgu/bin/wsgi.py /etc/ckan/dgu.py
 
-  # logging
-  from paste.script.util.logging_config import fileConfig
-  fileConfig(config_filepath)
-
-  from paste.deploy import loadapp
-  application = loadapp('config:%s' % config_filepath)
-  application = MaintenanceResponse(application)
-
-And create the apache config /etc/apache2/sites-available/dgu:
+Now create the apache config /etc/apache2/sites-available/dgu:
 
 ::
 
@@ -231,7 +225,7 @@ And create the apache config /etc/apache2/sites-available/dgu:
     </Location>
 
     # this is our app
-    WSGIScriptAlias / /etc/ckan/dgu.py
+    WSGIScriptAlias / /etc/ckan/dgu/dgu.py
 
     # pass authorization info on (needed for rest api)
     WSGIPassAuthorization On
@@ -297,5 +291,5 @@ Then paste in this and press Ctrl+D:
 
     from ckan import model
     from ckan.model.meta import Session
-    Session.add(model.User(name='frontend2', apikey='26ee09f5-fc47-4359-92b4-b48fd6ba78b3', about='Drupal Dev Instance'))
+    Session.add(model.User(name='frontend2', apikey=XXX, about='Drupal Dev Instance'))
     Session.commit()
