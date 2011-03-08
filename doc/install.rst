@@ -150,6 +150,10 @@ and change these lines:
     sqlalchemy.url = postgresql://ckantest:pass@localhost/ckantest
     cache_dir = /var/lib/ckan/dgu/data
     ckan.site_title = DGU dev
+    ckan.default_roles.Package = 
+    ckan.default_roles.Group = 
+    ckan.default_roles.System = 
+    ckan.default_roles.AuthorizationGroup = 
 
 You also need the who.ini:
 
@@ -275,13 +279,14 @@ Now restart apache:
 Cron jobs
 =========
 
-Install the gov-daily.py (dump and backup) and ONS (TODO) crons:
+Install the harvester, gov-daily.py (dump and backup) and ONS (TODO) cron jobs:
 
 ::
 
     $ sudo -u ckan crontab -e
 
     # m h  dom mon dow   command
+    */10 *   * * * paster --plugin=ckan harvester run --config=/etc/ckan/dgu/dgu.ini
     30 23    * * *  python /usr/lib/pymodules/python2.6/ckanext/dgu/bin/gov-daily.py /etc/ckan/dgu/dgu.ini
 
 
