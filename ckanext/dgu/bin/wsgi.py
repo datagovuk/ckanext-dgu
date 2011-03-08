@@ -32,6 +32,10 @@ if os.path.basename(symlink_filepath) == 'wsgi.py':
 config_filepath = symlink_filepath.replace('.py', '.ini')
 assert os.path.exists(config_filepath), 'Cannot find file %r (from symlink %r)' % (config_filepath, __file__)
 
+# enable logging
+from paste.script.util.logging_config import fileConfig
+fileConfig(config_filepath)
+
 from paste.deploy import loadapp
 application = loadapp('config:%s' % config_filepath)
 application = MaintenanceResponse(application)
