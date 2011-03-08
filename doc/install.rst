@@ -275,7 +275,15 @@ Now restart apache:
 Cron jobs
 =========
 
-Install the gov-daily.py and ONS crons (TODO)
+Install the gov-daily.py (dump and backup) and ONS (TODO) crons:
+
+::
+
+    $ sudo -u ckan crontab -e
+
+    # m h  dom mon dow   command
+    30 23    * * *  python /usr/lib/pymodules/python2.6/ckanext/dgu/bin/gov-daily.py /etc/ckan/dgu/dgu.ini
+
 
 
 Building debian package

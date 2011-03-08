@@ -40,7 +40,7 @@ log_filepath = os.path.join(os.path.expanduser(config.get('ckan.log_dir', '~')),
                'gov-daily.log')
 dump_dir = os.path.expanduser(config.get('ckan.dump_dir', '~/dump'))
 ckan_instance_name = re.sub(r'[^\w.-]|https?', '', 
-                            config.get('ckan.site_url', 'ckan-hmg'))
+                            config.get('ckan.site_url', 'dgu'))
 dump_filebase = ckan_instance_name + '-%Y-%m-%d'
 tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
 backup_dir = os.path.expanduser(config.get('ckan.backup_dir', '~/backup'))
@@ -110,7 +110,6 @@ if ret == 0:
     logging.info('Backup successful: %s' % pg_dump_filepath)
 else:
     logging.error('Backup error: %s' % ret)
-
 
 # Log footer
 report_time_taken()
