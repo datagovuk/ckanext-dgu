@@ -23,7 +23,9 @@ class TestFormApiTester(WsgiAppCase, MockDrupalCase):
         CreateTestData.delete()
 
     def test_create_package(self):
-        create_page = self.app.get('/apitest/form/package/create?user_id=62')
+        user = model.User.by_name(u'annafan')
+        create_page = self.app.get('/apitest/form/package/create?user_id=62',
+                                   extra_environ={'Authorization' : str(user.apikey)})
         create_page.mustcontain('User:')
         create_page.mustcontain('Package--name')
         form = create_page.forms['test']
@@ -36,8 +38,10 @@ class TestFormApiTester(WsgiAppCase, MockDrupalCase):
         assert '201 Created' in res, res.body
 
     def test_edit_package(self):
+        user = model.User.by_name(u'annafan')
         pkg_id = model.Package.by_name(u'annakarenina').id
-        create_page = self.app.get('/apitest/form/package/edit/%s?user_id=62' % pkg_id)
+        create_page = self.app.get('/apitest/form/package/edit/%s?user_id=62' % pkg_id,
+                                   extra_environ={'Authorization' : str(user.apikey)})
         create_page.mustcontain('User:')
         create_page.mustcontain('Package-%s-name' % pkg_id)
         create_page.mustcontain('annakarenina')

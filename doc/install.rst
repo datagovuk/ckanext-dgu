@@ -206,18 +206,18 @@ Find this script's installed path::
   
 Create symlink::
 
-    ln -s /usr/lib/pymodules/python2.6/ckanext/dgu/bin/wsgi.py /etc/ckan/dgu.py
+    ln -s /usr/lib/pymodules/python2.6/ckanext/dgu/bin/wsgi.py /etc/ckan/dgu/dgu.py
 
 Now create the apache config /etc/apache2/sites-available/dgu:
 
 ::
 
   <VirtualHost *:80>
-    DocumentRoot /var/lib/ckan/static
+    DocumentRoot /var/lib/ckan/dgu/static
     ServerName dgu-dev.okfn.org
     ServerAlias *
 
-    <Directory /var/lib/ckan/static>
+    <Directory /var/lib/ckan/dgu/static>
         allow from all
     </Directory>
 
@@ -239,8 +239,8 @@ Now create the apache config /etc/apache2/sites-available/dgu:
    #<Location />
    #     AuthType Basic
    #     AuthName "data.gov.uk CKAN Replica"
-   #     AuthUserFile /etc/ckan/hmg.ckan.net.passwd
-   #     AuthGroupFile /etc/ckan/hmg.ckan.net.groups
+   #     AuthUserFile /etc/ckan/dgu/dgu.passwd
+   #     AuthGroupFile /etc/ckan/dgu/dgu.groups
    #     Require group okfn
         ## START - Allow unauthenticated local access.
    #     Order allow,deny

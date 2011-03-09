@@ -1,6 +1,8 @@
+import re
+import random
+
 from pylons import config
 import webhelpers
-import re
 from nose.tools import assert_equal
 
 from ckan.tests import *
@@ -73,12 +75,12 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
     def get_package_create_form(self, status=[200], **form_url_args):
         offset = self.offset_package_create_form(**form_url_args)
         res = self.get(offset, status=status)
-        return self.form_from_res(res)
+        return self.form_from_res(res), res.status
 
     def get_package_edit_form(self, package_ref, status=[200], **kwargs):
         offset = self.offset_package_edit_form(package_ref, **kwargs)
         res = self.get(offset, status=status)
-        return self.form_from_res(res)
+        return self.form_from_res(res), res.status
 
     def get_harvest_source_create_form(self, status=[200]):
         offset = self.offset_harvest_source_create_form()
@@ -101,7 +103,12 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
     def post_package_create_form(self, form=None, status=[201], **kwargs):
         form_url_args, form_field_args = self.split_form_args(kwargs)
         if form == None:
-            form = self.get_package_create_form(**form_url_args)
+            if not isinstance(status, list):
+                status = [status]
+            get_status = status + [200]
+            form, return_status = self.get_package_create_form(status=get_status, **form_url_args)
+            if return_status != 200:
+                return
         for key, field_value in form_field_args.items():
             field_name = 'Package--%s' % key
             form[field_name] = field_value
@@ -141,7 +148,12 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
     def post_package_edit_form(self, package_ref, form=None, status=[200], **offset_and_field_args):
         offset_kwargs, field_args = self.split_form_args(offset_and_field_args)
         if form == None:
-            form = self.get_package_edit_form(package_ref, **offset_kwargs)
+            if not isinstance(status, list):
+                status = [status]
+            get_status = status + [200]
+            form, return_status = self.get_package_edit_form(package_ref, status=get_status, **offset_kwargs)
+            if return_status != 200:
+                return
         package_id = self.package_id_from_ref(package_ref)
         for key,field_value in field_args.items():
             field_name = 'Package-%s-%s' % (package_id, key)
@@ -246,7 +258,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         return form.fields.keys()
 
     def test_get_package_create_form(self):
-        form = self.get_package_create_form()
+        form, return_status = self.get_package_create_form()
         self.assert_formfield(form, 'Package--name', '')
         self.assert_formfield(form, 'Package--title', '')
         self.assert_formfield(form, 'Package--version', '')
@@ -292,7 +304,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id)
+        form, return_status = self.get_package_edit_form(package.id)
         field_name = 'Package-%s-name' % (package.id)
         self.assert_formfield(form, field_name, package.name)
 
@@ -509,6 +521,83 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert "URL for source of metadata: Please enter a value" in res.body, res.body
 
 
+class FormsApiAuthzTestCase(BaseFormsApiCase):
+    def setup(self):
+        # need to do this for every test since we mess with System rights
+        CreateTestData.create()
+        model.repo.new_revision()
+        model.Session.add(model.User(name=u'testadmin'))
+        model.Session.add(model.User(name=u'testsysadmin'))
+        model.Session.add(model.User(name=u'notadmin'))
+        model.repo.commit_and_remove()
+
+        pkg = model.Package.by_name(u'annakarenina')
+        admin = model.User.by_name(u'testadmin')
+        sysadmin = model.User.by_name(u'testsysadmin')
+        model.add_user_to_role(admin, model.Role.ADMIN, pkg)
+        model.add_user_to_role(sysadmin, model.Role.ADMIN, model.System())
+        model.repo.commit_and_remove()
+
+        self.pkg = model.Package.by_name(u'annakarenina')
+        self.admin = model.User.by_name(u'testadmin')
+        self.sysadmin = model.User.by_name(u'testsysadmin')
+        self.notadmin = model.User.by_name(u'notadmin')
+
+    def teardown(self):
+        model.Session.remove()
+        model.repo.rebuild_db()
+        model.Session.remove()
+
+    def check_create_package(self, username, expect_success=True):
+        user = model.User.by_name(username)
+        self.extra_environ={'Authorization' : str(user.apikey)}
+        package_name = 'testpkg%i' % int(random.random()*100000000)
+        assert not self.get_package_by_name(package_name)
+        expect_status = 201 if expect_success else 403
+        res = self.post_package_create_form(name=package_name,
+                                            status=expect_status)
+
+    def check_edit_package(self, username, expect_success=True):
+        user = model.User.by_name(username)
+        self.extra_environ={'Authorization' : str(user.apikey)}
+        package_name = u'annakarenina'
+        pkg = self.get_package_by_name(package_name)
+        assert pkg
+        expect_status = 200 if expect_success else 403
+        res = self.post_package_edit_form(pkg.id,
+                                          name=package_name,
+                                          status=expect_status)
+
+    def remove_default_rights(self):
+        roles = []
+        system_role_query = model.Session.query(model.SystemRole)
+        package_role_query = model.Session.query(model.PackageRole)
+        for pseudo_user in (u'logged_in', u'visitor'):
+            roles.extend(system_role_query.join('user').filter_by(name=pseudo_user).all())
+            roles.extend(package_role_query.join('package').filter_by(name='annakarenina').\
+                         join('user').filter_by(name=pseudo_user).all())
+        for role in roles:
+            role.delete()
+        model.repo.commit_and_remove()
+        
+    def test_package_create(self):
+        self.check_create_package('testsysadmin', expect_success=True)
+        self.check_create_package('testadmin', expect_success=True)
+        self.check_create_package('notadmin', expect_success=True)
+        self.remove_default_rights()
+        self.check_create_package('testsysadmin', expect_success=True)
+        self.check_create_package('testadmin', expect_success=False)
+        self.check_create_package('notadmin', expect_success=False)
+
+    def test_package_edit(self):
+        self.check_edit_package('testsysadmin', expect_success=True)
+        self.check_edit_package('testadmin', expect_success=True)
+        self.check_edit_package('notadmin', expect_success=True)
+        self.remove_default_rights()
+        self.check_edit_package('testsysadmin', expect_success=True)
+        self.check_edit_package('testadmin', expect_success=True)
+        self.check_edit_package('notadmin', expect_success=False)
+    
 class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
 
 class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
@@ -524,3 +613,8 @@ class TestFormsApi2WithOrigKeyHeader(WithOrigKeyHeader, TestFormsApi2): pass
 
 class TestFormsApiUnversionedWithOrigKeyHeader(TestFormsApiUnversioned): pass
 
+class TestFormsApiAuthz1(Api1TestCase, FormsApiAuthzTestCase): pass
+
+class TestFormsApiAuthz2(Api2TestCase, FormsApiAuthzTestCase): pass
+
+class TestFormsApiAuthzUnversioned(ApiUnversionedTestCase, FormsApiAuthzTestCase): pass

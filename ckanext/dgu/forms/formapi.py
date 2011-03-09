@@ -32,14 +32,16 @@ class FormApi(SingletonPlugin):
             map.connect('/api/%sform/package/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
             map.connect('/api/%sform/harvestsource/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
             map.connect('/api/%sform/harvestsource/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
+            map.connect('/api/%sform/harvestsource/delete/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
             map.connect('/api/%srest/harvestsource/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
-        map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
         map.connect('/api/2/form/package/create', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
         map.connect('/api/2/form/package/edit/:id', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
         map.connect('/api/2/form/harvestsource/create', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
+        map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
+#        map.connect('/api', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         return map
 
     def after_map(self, map):
@@ -55,6 +57,7 @@ class BaseFormController(BaseApiController):
     """Implements the CKAN Forms API."""
 
     error_content_type = 'json'
+    authorizer = ckan.authz.Authorizer()
 
     @classmethod
     def _abort_bad_request(cls, msg=None):
@@ -64,8 +67,11 @@ class BaseFormController(BaseApiController):
         raise ApiError, (400, error_msg)
         
     @classmethod
-    def _abort_not_authorized(cls):
-        raise ApiError, (403, 'Not authorized')
+    def _abort_not_authorized(cls, msg=None):
+        error_msg = 'Not authorized'
+        if msg:
+            error_msg += ': %s' % msg
+        raise ApiError, (403, error_msg)
         
     @classmethod
     def _abort_not_found(cls):
@@ -76,11 +82,12 @@ class BaseFormController(BaseApiController):
         if entity is None:
             cls._abort_not_found()
 
-    def _assert_authorization_credentials(self, entity=None):
+    def _get_required_authorization_credentials(self, entity=None):
         user = self._get_user_for_apikey()
         if not user:
             log.info('User did not supply authorization credentials when required.')
             self._abort_not_authorized()
+        return user
 
     @classmethod
     def _drupal_client(cls):
@@ -112,6 +119,12 @@ class BaseFormController(BaseApiController):
     # between package_create and package_edit)
     def package_create(self):
         try:
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_authorized(user.name, model.Action.PACKAGE_CREATE, model.System())
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized to create packages' % user.name)
+
             api_url = config.get('ckan.api_url', '/').rstrip('/')
             c.package_create_slug_api_url = \
                    api_url + h.url_for(controller='apiv2/package',
@@ -123,8 +136,6 @@ class BaseFormController(BaseApiController):
                 fieldset_html = fieldset.render()
                 return self._finish_ok(fieldset_html, content_type='html')
             if request.method == 'POST':
-                # Check user authorization.
-                self._assert_authorization_credentials()
                 # Read request.
                 try:
                     request_data = self._get_request_data()
@@ -215,6 +226,13 @@ class BaseFormController(BaseApiController):
             # Find the entity.
             pkg = self._get_pkg(id)
             self._assert_is_found(pkg)
+
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_authorized(user.name, model.Action.EDIT, pkg)
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized to edit %r' % (user.name, pkg.name))
+
             # Get the fieldset.
             fieldset = self._get_package_fieldset()
             if request.method == 'GET':
@@ -224,8 +242,6 @@ class BaseFormController(BaseApiController):
                 fieldset_html = bound_fieldset.render()
                 return self._finish_ok(fieldset_html, content_type='html')
             if request.method == 'POST':
-                # Check user authorization.
-                self._assert_authorization_credentials()
                 # Read request.
                 try:
                     request_data = self._get_request_data()
@@ -419,7 +435,7 @@ class BaseFormController(BaseApiController):
                 return self._finish_ok(fieldset_html, content_type='html')
             if request.method == 'POST':
                 # Check user authorization.
-                self._assert_authorization_credentials()
+                self._get_required_authorization_credentials()
                 # Read request.
                 try:
                     request_data = self._get_request_data()
@@ -471,7 +487,7 @@ class BaseFormController(BaseApiController):
             raise
         
     def harvest_source_delete(self, id):
-        self._assert_authorization_credentials()
+        self._get_required_authorization_credentials()
         source = model.HarvestSource.get(id, default=None)
         jobs = model.HarvestingJob.filter(source=source)
         for job in jobs:
@@ -495,7 +511,7 @@ class BaseFormController(BaseApiController):
                 return self._finish_ok(fieldset_html, content_type='html')
             if request.method == 'POST':
                 # Check user authorization.
-                self._assert_authorization_credentials()
+                self._get_required_authorization_credentials()
                 # Read request.
                 try:
                     request_data = self._get_request_data()

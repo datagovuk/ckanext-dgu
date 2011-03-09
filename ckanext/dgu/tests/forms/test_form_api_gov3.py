@@ -29,6 +29,10 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         self.fixtures.create()
         self.pkg_dict = self.fixtures.pkgs[0]
         self.package_name = self.pkg_dict['name']
+        test_user = self.get_user_by_name(unicode(self.fixtures.user_name))
+        self.extra_environ = {
+            'Authorization' : str(test_user.apikey)
+        }
 
     @classmethod
     def teardown_class(self):
@@ -36,7 +40,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         self.fixtures.delete()
 
     def test_get_package_create_form(self):
-        form = self.get_package_create_form(package_form='package_gov3')
+        form, ret_status = self.get_package_create_form(package_form='package_gov3')
         self.assert_formfield(form, 'Package--name', '')
         self.assert_formfield(form, 'Package--title', '')
         self.assert_not_formfield(form, 'Package--version', '')
@@ -67,7 +71,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='package_gov3')
+        form, ret_status = self.get_package_edit_form(package.id, package_form='package_gov3')
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         expected_values = dict([(key, value) for key, value in package.extras.items()])
@@ -87,7 +91,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
 
     def test_get_package_edit_form_restrict(self):
         package = self.get_package_by_name(self.package_name)
-        form = self.get_package_edit_form(package.id, package_form='package_gov3', restrict=True)
+        form, ret_status = self.get_package_edit_form(package.id, package_form='package_gov3', restrict=True)
         prefix = 'Package-%s-' % package.id
         self.assert_formfield(form, prefix + 'name', package.name)
         self.assert_formfield(form, prefix + 'notes', package.notes)
@@ -155,7 +159,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     def test_submit_package_create_form_valid(self):
         package_name = u'new_name'
         assert not self.get_package_by_name(package_name)
-        form = self.get_package_create_form(package_form='package_gov3')
+        form, ret_status = self.get_package_create_form(package_form='package_gov3')
         res = self.post_package_create_form(
             form=form, package_form='package_gov3',
             name=package_name,
@@ -173,7 +177,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title'
-        form = self.get_package_edit_form(pkg.id, package_form='package_gov3')
+        form, ret_status = self.get_package_edit_form(pkg.id, package_form='package_gov3')
         res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='package_gov3')
         self.assert_blank_response(res)
         pkg = self.get_package_by_name(package_name)
@@ -183,14 +187,14 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
         package_name = self.package_name
         pkg = self.get_package_by_name(package_name)
         new_title = u'New Title 2'
-        form = self.get_package_edit_form(pkg.id, package_form='package_gov3', restrict=True)
+        form, ret_status = self.get_package_edit_form(pkg.id, package_form='package_gov3', restrict=True)
         res = self.post_package_edit_form(pkg.id, form=form, title=new_title, package_form='package_gov3', restrict=True)
         self.assert_blank_response(res)
         pkg = self.get_package_by_name(package_name)
         assert pkg.title == new_title, pkg
 
     def test_create_package(self):
-        res = self.get_package_create_form()
+        res, ret_status = self.get_package_create_form()
         # TODO finish this test
 
     # TODO add other tests in from test_form.py
