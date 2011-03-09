@@ -5,7 +5,8 @@ import traceback
 from pylons import config
 
 from ckan.plugins.core import SingletonPlugin, implements
-from ckan.plugins.interfaces import IRoutes
+from ckan.plugins import IRoutes
+from ckan.plugins import IConfigurer
 from ckan.lib.base import *
 from ckan.lib.helpers import json
 import ckan.controllers.package
@@ -13,6 +14,7 @@ from ckan.lib.package_saver import WritePackageFromBoundFieldset
 from ckan.lib.package_saver import ValidationException
 from ckan.controllers.rest import BaseApiController, ApiVersion1, ApiVersion2
 
+import ckanext.dgu
 from ckanext.dgu.forms import harvest_source as harvest_source_form
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
      DrupalRequestError
@@ -25,6 +27,7 @@ class FormApi(SingletonPlugin):
     """
 
     implements(IRoutes)
+    implements(IConfigurer)
 
     def before_map(self, map):
         for version in ('', '1/'):
@@ -41,11 +44,23 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
-#        map.connect('/api', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
+        map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
+        map.connect('home', '/ckan/', controller='home', action='index')
         return map
 
     def after_map(self, map):
         return map
+
+    def update_config(self, config):
+        rootdir = os.path.dirname(ckanext.dgu.__file__)
+
+        template_dir = os.path.join(rootdir, 'templates')
+        public_dir = os.path.join(rootdir, 'public')
+        
+        config['extra_template_paths'] = ','.join([template_dir,
+                config.get('extra_template_paths', '')])
+        config['extra_public_paths'] = ','.join([public_dir,
+                config.get('extra_public_paths', '')])
 
 class ApiError(Exception):
     def __init__(self, status_int, msg):
