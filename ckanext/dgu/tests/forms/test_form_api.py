@@ -244,6 +244,9 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.user = self.get_user_by_name(u'tester')
         if not self.user:
             self.user = self.create_user(name=u'tester')
+        self.user = self.get_user_by_name(u'tester')
+        model.add_user_to_role(self.user, model.Role.ADMIN, model.System())
+        model.repo.commit_and_remove()
         self.extra_environ = {
             self.apikey_header_name : str(self.user.apikey)
         }
@@ -520,7 +523,6 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.assert_not_header(res, 'Location')
         assert "URL for source of metadata: Please enter a value" in res.body, res.body
 
-
 class FormsApiAuthzTestCase(BaseFormsApiCase):
     def setup(self):
         # need to do this for every test since we mess with System rights
@@ -568,6 +570,31 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
                                           name=package_name,
                                           status=expect_status)
 
+    def check_create_harvest_source(self, username, expect_success=True):
+        user = model.User.by_name(username)
+        self.extra_environ={'Authorization' : str(user.apikey)}
+        expect_status = 200 if expect_success else 403
+        
+        form = self.get_harvest_source_create_form(status=expect_status)
+
+    def check_edit_harvest_source(self, username, expect_success=True):
+        # create a harvest source
+        source_url = u'http://localhost/'
+        source_description = u'My harvest source.'
+        sysadmin = model.User.by_name(u'testsysadmin')
+        self.extra_environ={'Authorization' : str(sysadmin.apikey)}
+        if not self.get_harvest_source_by_url(source_url, None):
+            res = self.post_harvest_source_create_form(url=source_url, description=source_description)
+        harvest_source = self.get_harvest_source_by_url(source_url, None)
+        assert harvest_source
+
+        user = model.User.by_name(username)
+        self.extra_environ={'Authorization' : str(user.apikey)}
+        expect_status = 200 if expect_success else 403
+        
+        form = self.get_harvest_source_edit_form(harvest_source.id, status=expect_status)
+
+
     def remove_default_rights(self):
         roles = []
         system_role_query = model.Session.query(model.SystemRole)
@@ -597,7 +624,25 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.check_edit_package('testsysadmin', expect_success=True)
         self.check_edit_package('testadmin', expect_success=True)
         self.check_edit_package('notadmin', expect_success=False)
-    
+
+    def test_harvest_source_create(self):
+        self.check_create_harvest_source('testsysadmin', expect_success=True)
+        self.check_create_harvest_source('testadmin', expect_success=False)
+        self.check_create_harvest_source('notadmin', expect_success=False)
+        self.remove_default_rights()
+        self.check_create_harvest_source('testsysadmin', expect_success=True)
+        self.check_create_harvest_source('testadmin', expect_success=False)
+        self.check_create_harvest_source('notadmin', expect_success=False)
+
+    def test_harvest_source_edit(self):
+        self.check_edit_harvest_source('testsysadmin', expect_success=True)
+        self.check_edit_harvest_source('testadmin', expect_success=False)
+        self.check_edit_harvest_source('notadmin', expect_success=False)
+        self.remove_default_rights()
+        self.check_edit_harvest_source('testsysadmin', expect_success=True)
+        self.check_edit_harvest_source('testadmin', expect_success=False)
+        self.check_edit_harvest_source('notadmin', expect_success=False)
+
 class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
 
 class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass

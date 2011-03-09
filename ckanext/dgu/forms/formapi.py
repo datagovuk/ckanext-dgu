@@ -370,6 +370,12 @@ class BaseFormController(BaseApiController):
         return obj
     
     def harvest_source_view(self, id):
+        # Check user authorization.
+        user = self._get_required_authorization_credentials()
+        am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+        if not am_authz:
+            self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+
         obj = self._get_harvest_source(id)
         if obj is None:
             response.status_int = 404
@@ -427,6 +433,12 @@ class BaseFormController(BaseApiController):
 
     def harvest_source_create(self):
         try:
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+
             # Get the fieldset.
             fieldset = harvest_source_form.get_harvest_source_fieldset()
             if request.method == 'GET':
@@ -434,8 +446,6 @@ class BaseFormController(BaseApiController):
                 fieldset_html = fieldset.render()
                 return self._finish_ok(fieldset_html, content_type='html')
             if request.method == 'POST':
-                # Check user authorization.
-                self._get_required_authorization_credentials()
                 # Read request.
                 try:
                     request_data = self._get_request_data()
@@ -447,6 +457,8 @@ class BaseFormController(BaseApiController):
                     publisher_ref = request_data['publisher_ref']
                 except KeyError, error:
                     self._abort_bad_request()
+                if isinstance(form_data, list):
+                    form_data = dict(form_data)
                 # Bind form data to fieldset.
                 try:
                     form_data['HarvestSource--url'] = form_data.get('HarvestSource--url', '').strip()
@@ -487,7 +499,12 @@ class BaseFormController(BaseApiController):
             raise
         
     def harvest_source_delete(self, id):
-        self._get_required_authorization_credentials()
+        # Check user authorization.
+        user = self._get_required_authorization_credentials()
+        am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+        if not am_authz:
+            self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+
         source = model.HarvestSource.get(id, default=None)
         jobs = model.HarvestingJob.filter(source=source)
         for job in jobs:
@@ -501,6 +518,13 @@ class BaseFormController(BaseApiController):
             # Find the entity.
             entity = self._get_harvest_source(id)
             self._assert_is_found(entity)
+
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+
             # Get the fieldset.
             fieldset = harvest_source_form.get_harvest_source_fieldset()
             if request.method == 'GET':
@@ -510,8 +534,6 @@ class BaseFormController(BaseApiController):
                 fieldset_html = bound_fieldset.render()
                 return self._finish_ok(fieldset_html, content_type='html')
             if request.method == 'POST':
-                # Check user authorization.
-                self._get_required_authorization_credentials()
                 # Read request.
                 try:
                     request_data = self._get_request_data()
@@ -523,6 +545,8 @@ class BaseFormController(BaseApiController):
                     publisher_ref = request_data['publisher_ref']
                 except KeyError, error:
                     self._abort_bad_request()
+                if isinstance(form_data, list):
+                    form_data = dict(form_data)
                 # Bind form data to fieldset.
                 try:
                     form_data['HarvestSource--url'] = form_data.get('HarvestSource--url', '').strip()
