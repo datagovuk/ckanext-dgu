@@ -141,7 +141,6 @@ Add to the ``[app:main]`` section the following:
     ckan.dump_dir = /var/lib/ckan/dgu/static/dump
     ckan.backup_dir = /var/backup/ckan/dgu
 
-
 and change these lines:
 
 ::
@@ -150,10 +149,32 @@ and change these lines:
     sqlalchemy.url = postgresql://ckantest:pass@localhost/ckantest
     cache_dir = /var/lib/ckan/dgu/data
     ckan.site_title = DGU dev
-    ckan.default_roles.Package = 
-    ckan.default_roles.Group = 
-    ckan.default_roles.System = 
-    ckan.default_roles.AuthorizationGroup = 
+    ckan.site_url = http://dgu-dev.okfn.org
+    ckan.default_roles.Package = {"visitor": ["reader"], "logged_in": ["reader"]}
+    ckan.default_roles.Group = {"visitor": ["reader"], "logged_in": ["reader"]}
+    ckan.default_roles.System = {"visitor": ["reader"], "logged_in": ["reader"]}
+    ckan.default_roles.AuthorizationGroup = {"visitor": ["reader"], "logged_in": ["reader"]}
+    licenses_group_url = http://licenses.opendefinition.org/2.0/ukgov
+
+Also, in the loggers section:
+
+::
+
+    [loggers]
+    keys = root, ckan
+
+    [handlers]
+    keys = console, file
+
+    ...
+
+    [logger_root]
+    level = WARNING
+    handlers = file
+
+    ...
+
+    args = ('/var/log/ckan/dgu/dgu.log', 'a', 2000000, 9)
 
 You also need the who.ini:
 
@@ -289,6 +310,28 @@ Install the harvester, gov-daily.py (dump and backup) and ONS (TODO) cron jobs:
     */10 *   * * * paster --plugin=ckan harvester run --config=/etc/ckan/dgu/dgu.ini
     30 23    * * *  python /usr/lib/pymodules/python2.6/ckanext/dgu/bin/gov-daily.py /etc/ckan/dgu/dgu.ini
 
+
+
+Locking down a database
+======================
+
+When taking the database from hmg.ckan.net, because the new servers are open, the permissions of the packages and the system need to be tightened up to prevent editing unless you are a sysadmin:
+
+::
+
+    paster --plugin=ckan rights remove logged_in editor package:all --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights remove visitor editor package:all --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights make logged_in reader package:all --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights make visitor reader package:all --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights remove logged_in editor system --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights make logged_in reader system --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights remove visitor reader system --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add okfn --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add hmg --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add team --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add tna --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add autoload --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add frontend3 --config=/etc/ckan/dgu/dgu.ini
 
 
 Building debian package
