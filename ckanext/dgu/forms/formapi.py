@@ -43,6 +43,9 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
         map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
+        map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
+                action='harvesting_job_create', 
+                conditions=dict(method=['POST']))
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
         map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         map.connect('home', '/ckan/', controller='home', action='index')
@@ -512,7 +515,50 @@ class BaseFormController(BaseApiController):
             # Log error.
             log.error("Couldn't run create harvest source form method: %s" % traceback.format_exc())
             raise
-        
+
+    def harvesting_job_create(self):
+        try:
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+
+            # Read request.
+            try:
+                request_data = self._get_request_data()
+            except ValueError, error:
+                self._abort_bad_request('Extracting request data: %r' % error.args)                                    
+            try:
+                source_id = request_data['source_id']
+                user_ref = request_data['user_ref']
+            except KeyError, error:
+                self._abort_bad_request()
+            
+            source = model.HarvestSource.get(source_id, default=None)
+            if not source:
+                opts_err = gettext('Harvest source %s does not exist.') % source_id
+
+            """ 
+            if opts_err:
+                self.log.debug(opts_err)
+                response.status_int = 400
+                response.headers['Content-Type'] = self.content_type_json
+                return json.dumps(opts_err)
+            """
+
+            # Create job.
+            job = model.HarvestingJob(source_id=source_id, user_ref=user_ref)
+            model.Session.add(job)
+            model.Session.commit()
+            ret_dict = job.as_dict()
+            return self._finish_ok(ret_dict)
+            
+        except Exception:
+            # Log error.
+            log.error("Couldn't run create harvest source form method: %s" % traceback.format_exc())
+            raise
+
     def harvest_source_delete(self, id):
         # Check user authorization.
         user = self._get_required_authorization_credentials()
