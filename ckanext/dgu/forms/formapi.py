@@ -536,16 +536,21 @@ class BaseFormController(BaseApiController):
                 self._abort_bad_request()
             
             source = model.HarvestSource.get(source_id, default=None)
-            if not source:
-                opts_err = gettext('Harvest source %s does not exist.') % source_id
 
-            """ 
-            if opts_err:
-                self.log.debug(opts_err)
+            err_msg = None
+            if not source:
+                err_msg = 'Harvest source %s does not exist.' % source_id
+            
+            # Check if there is an already scheduled job for this source
+            existing_job = model.HarvestingJob.filter(source_id=source_id,status=u'New').first()
+            if existing_job:
+                err_msg = 'There is an already scheduled job for this source'
+
+            if err_msg:
+                self.log.debug(err_msg)
                 response.status_int = 400
                 response.headers['Content-Type'] = self.content_type_json
-                return json.dumps(opts_err)
-            """
+                return json.dumps(err_msg)
 
             # Create job.
             job = model.HarvestingJob(source_id=source_id, user_ref=user_ref)
