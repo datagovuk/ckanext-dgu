@@ -565,6 +565,7 @@ class BaseFormController(BaseApiController):
             raise
 
     def harvest_source_delete(self, id):
+        model.repo.new_revision()
         # Check user authorization.
         user = self._get_required_authorization_credentials()
         am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
