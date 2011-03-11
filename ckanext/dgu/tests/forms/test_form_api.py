@@ -479,7 +479,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert "URL for source of metadata: Please enter a value" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
-        source_url = u' ' # Not '^http://'
+        source_url = u'something' # Not '^http://'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
