@@ -3,6 +3,7 @@ import socket
 from xmlrpclib import ServerProxy, Fault
 
 from pylons import config
+from webhelpers.text import truncate
 
 log = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ class DrupalClient(object):
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
         except Fault, e:
             raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (user_id, e))
-        log.info('Obtained Drupal user: %r' % user)
+        log.info('Obtained Drupal user: %r', truncate(unicode(user), 200))
         return user
 
     def get_department_from_publisher(self, id):
