@@ -161,7 +161,7 @@ Also, in the loggers section:
 ::
 
     [loggers]
-    keys = root, ckan
+    keys = root, ckan, ckanext
 
     [handlers]
     keys = console, file
@@ -326,13 +326,15 @@ When taking the database from hmg.ckan.net, because the new servers are open, th
     paster --plugin=ckan rights remove logged_in editor system --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan rights make logged_in reader system --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan rights remove visitor reader system --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan rights remove frontend2 admin package:all --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan sysadmin add okfn --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan sysadmin add hmg --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan sysadmin add team --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan sysadmin add tna --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan sysadmin add autoload --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan sysadmin add frontend3 --config=/etc/ckan/dgu/dgu.ini
-
+    paster --plugin ckan roles --config /etc/ckan/dgu/dgu.ini deny reader create
+    paster --plugin ckan roles --config /etc/ckan/dgu/dgu.ini deny reader create-package
 
 Building debian package
 =======================
