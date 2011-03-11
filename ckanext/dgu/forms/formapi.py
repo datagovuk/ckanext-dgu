@@ -42,6 +42,7 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/form/harvestsource/create', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
         map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
         map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
+        map.connect('/api/2/rest/harvestsource', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
                 action='harvesting_job_create', 
@@ -386,7 +387,12 @@ class BaseFormController(BaseApiController):
     def _get_harvest_source(self, id):
         obj = model.HarvestSource.get(id, default=None)
         return obj
-    
+
+    def harvest_source_list(self):
+        objects = model.Session.query(model.HarvestSource).all()
+        response_data = [o.id for o in objects]
+        return self._finish_ok(response_data)
+
     def harvest_source_view(self, id):
         # Check user authorization.
         user = self._get_required_authorization_credentials()
