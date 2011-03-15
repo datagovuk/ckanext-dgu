@@ -19,6 +19,7 @@ from ckanext.dgu.forms import harvest_source as harvest_source_form
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
      DrupalRequestError
 
+from ckanext.harvest.model import HarvestSource, HarvestingJob,HarvestedDocument
 log = logging.getLogger(__name__)
 
 class FormApi(SingletonPlugin):
@@ -137,6 +138,10 @@ class BaseFormController(BaseApiController):
                 'restrict': True,                                  
                 }
         return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
+
+    @classmethod
+    def _ref_harvest_source(cls, harvest_source):
+        return getattr(harvest_source, 'id')
 
     # Todo: Refactor package form logic (to have more common functionality
     # between package_create and package_edit)
@@ -389,11 +394,11 @@ class BaseFormController(BaseApiController):
         return ckanclient.CkanClient(base_location=base_location, api_key=api_key)
 
     def _get_harvest_source(self, id):
-        obj = model.HarvestSource.get(id, default=None)
+        obj = HarvestSource.get(id, default=None)
         return obj
 
     def harvest_source_list(self):
-        objects = model.Session.query(model.HarvestSource).all()
+        objects = model.Session.query(HarvestSource).all()
         response_data = [o.id for o in objects]
         return self._finish_ok(response_data)
 
@@ -490,7 +495,7 @@ class BaseFormController(BaseApiController):
                 # Bind form data to fieldset.
                 try:
                     form_data['HarvestSource--url'] = form_data.get('HarvestSource--url', '').strip()
-                    bound_fieldset = fieldset.bind(model.HarvestSource, data=form_data, session=model.Session)
+                    bound_fieldset = fieldset.bind(HarvestSource, data=form_data, session=model.Session)
                 except Exception, error:
                     # Todo: Replace 'Exception' with bind error.
                     self._abort_bad_request()
@@ -511,7 +516,7 @@ class BaseFormController(BaseApiController):
                     source.publisher_ref = publisher_ref
                     model.Session.add(source)
                     # Also create a job
-                    job = model.HarvestingJob(source=source, user_ref=source.user_ref, status=u'New')
+                    job = HarvestingJob(source=source, user_ref=source.user_ref, status=u'New')
                     model.Session.add(job)
                     # Save changes
                     model.Session.commit()
@@ -545,14 +550,14 @@ class BaseFormController(BaseApiController):
             except KeyError, error:
                 self._abort_bad_request()
             
-            source = model.HarvestSource.get(source_id, default=None)
+            source = HarvestSource.get(source_id, default=None)
 
             err_msg = None
             if not source:
                 err_msg = 'Harvest source %s does not exist.' % source_id
             
             # Check if there is an already scheduled job for this source
-            existing_job = model.HarvestingJob.filter(source_id=source_id,status=u'New').first()
+            existing_job = HarvestingJob.filter(source_id=source_id,status=u'New').first()
             if existing_job:
                 err_msg = 'There is an already scheduled job for this source'
 
@@ -563,7 +568,7 @@ class BaseFormController(BaseApiController):
                 return json.dumps(err_msg)
 
             # Create job.
-            job = model.HarvestingJob(source_id=source_id, user_ref=user_ref)
+            job = HarvestingJob(source_id=source_id, user_ref=user_ref)
             model.Session.add(job)
             model.Session.commit()
             ret_dict = job.as_dict()
@@ -582,8 +587,8 @@ class BaseFormController(BaseApiController):
         if not am_authz:
             self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
 
-        source = model.HarvestSource.get(id, default=None)
-        jobs = model.HarvestingJob.filter(source=source)
+        source = HarvestSource.get(id, default=None)
+        jobs = HarvestingJob.filter(source=source)
         for job in jobs:
             job.delete()
         source.delete()

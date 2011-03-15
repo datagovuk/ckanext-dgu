@@ -4,6 +4,9 @@ import ckan.lib.helpers as h
 
 from ckan.forms.builder import FormBuilder
 from sqlalchemy.util import OrderedDict
+
+from ckanext.harvest.model import HarvestSource
+
 import ckan.model as model
 from ckan.forms import common
 from ckan.lib.helpers import literal
@@ -15,7 +18,7 @@ def harvest_source_url_validator(val, field=None):
         raise formalchemy.ValidationError('Harvest source URL is invalid (must start with "http://").')
 
 def build_harvest_source_form():
-    builder = FormBuilder(model.HarvestSource)
+    builder = FormBuilder(HarvestSource)
     builder.set_field_text('url', 'URL for source of metadata', literal("""
         <br/>This should include the <tt>http://</tt> part of the URL and can point to either:
         <ul>

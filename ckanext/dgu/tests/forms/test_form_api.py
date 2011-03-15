@@ -12,6 +12,8 @@ from ckan.tests.functional.api.test_model import Api1TestCase
 from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
 
+from ckanext.harvest.model import HarvestSource
+
 import ckan.model as model
 import ckan.authz as authz
 from ckan.lib.helpers import url_for
@@ -45,7 +47,16 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
             else:
                 form_values_args[k] = v
         return form_url_args, form_values_args
-    
+
+    @staticmethod
+    def get_harvest_source_by_url(source_url, default=Exception):
+        return HarvestSource.get(source_url, default, 'url')
+
+    def create_harvest_source(self, **kwds):
+        source = HarvestSource(**kwds)
+        source.save()
+        return source
+   
     def delete_harvest_source(self, url):
         source = self.get_harvest_source_by_url(url, None)
         if source:
