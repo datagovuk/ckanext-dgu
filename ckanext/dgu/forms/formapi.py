@@ -7,6 +7,8 @@ from pylons import config
 from ckan.plugins.core import SingletonPlugin, implements
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
+from ckan.plugins import IGenshiStreamFilter
+
 from ckan.lib.base import *
 from ckan.lib.helpers import json
 import ckan.controllers.package
@@ -29,6 +31,7 @@ class FormApi(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
+    implements(IGenshiStreamFilter)
 
     def before_map(self, map):
         for version in ('', '1/'):
@@ -48,10 +51,13 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
                 action='harvesting_job_create', 
                 conditions=dict(method=['POST']))
+        """
+        These routes are implemented in ckanext-csw
         map.connect('/api/2/rest/harvesteddocument/:id/xml/:id2.xml', controller='ckanext.dgu.forms.formapi:FormController', 
                 action='harvested_document_view_format',format='xml')
         map.connect('/api/rest/harvesteddocument/:id/html', controller='ckanext.dgu.forms.formapi:FormController', 
                 action='harvested_document_view_format', format='html')
+        """
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
         map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         map.connect('home', '/ckan/', controller='home', action='index')
@@ -74,6 +80,8 @@ class FormApi(SingletonPlugin):
             config['extra_public_paths'] += ','+public_dir
         else:
             config['extra_public_paths'] = public_dir
+
+    def filter(self,stream):
 
 class ApiError(Exception):
     def __init__(self, status_int, msg):
@@ -676,46 +684,6 @@ class BaseFormController(BaseApiController):
             # Log error.
             log.error("Couldn't update harvest source: %s" % traceback.format_exc())
             raise
-
-    def harvested_document_view_format(self,id,format):
-            objs = model.Session.query(HarvestedDocument).filter(HarvestedDocument.guid==id)
-            if not objs or objs.count() == 0:
-                response.status_int = 404
-                return ''
-            obj = objs[0]
-            if not format:
-                response_data = obj.as_dict()
-                return self._finish_ok(response_data)
-            elif format == 'xml':
-                response_data = obj.as_dict()['content']
-                response.headers['Content-Type'] = 'text/xml'
-                response.status_int = 200
-                response.charset = 'utf-8'
-                return response_data
-            elif format == 'html':
-                d = obj.as_dict()
-                content = {
-                    'html': d['content'].replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;\n'),
-                    'title': d['id'],
-                }
-                response_data = '''
-                <html>
-                <head>
-                <title>Harvested Document %(title)s</title>
-                </head>
-                <body>
-                <h1>Harvested Document %(title)s</h1>
-                <pre style="background: #ffc">%(html)s</pre>
-                </body>
-                </html>
-                ''' % content
-                response.headers['Content-Type'] = 'text/html'
-                response.status_int = 200
-                response.charset = 'utf-8'
-                return response_data
-            else:
-                response.status_int = 404
-                return ''
 
     def get_department_from_publisher(self, id):
         try:
