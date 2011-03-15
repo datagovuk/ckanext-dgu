@@ -53,9 +53,40 @@ To test the DGU extension you need the setup with CKAN (see above).
 
 To run the tests::
 
-    ckan/pyenv/bin/activate
-    cd ckan/pyenv/src/dgu
-    nosetests ckanext/dgu/tests/
+    {pyenv}/bin/activate
+    cd {pyenv}/ckanext-dgu
+    nosetests --ckan ckanext/dgu/tests/
+
+or run them from another directory by specifying the test.ini::
+
+    nosetests {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/ --ckan --with-pylons={pyenv}/src/ckanext-dgu/test.ini {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/
+
+You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see the CKAN README.txt. 
+
+Test issues
+-----------
+
+Connection errors
++++++++++++++++++
+
+* ``socket.error: [Errno 98] Address already in use``
+* ``error: [Errno 111] Connection refused``
+
+These errors usually means a previous run of the tests has not cleaned up the Mock Drupal process. You can verify that::
+
+    $ ps a | grep mock_drupal
+    4748 pts/8    S      0:00 /home/dread/hgroot/pyenv-dgu/bin/python /home/dread/hgroot/pyenv-dgu/bin/paster --plugin=ckanext-dgu mock_drupal run -q
+
+Now kill it before running the tests again::
+
+    $ kill 4748
+
+Config errors
++++++++++++++
+
+* ``DrupalXmlRpcSetupError: Drupal XMLRPC not configured.``
+
+The missing settings that result in this error are to be found in {pyenv}/src/ckanext-dgu/test-core.ini which is also imported into {pyenv}/src/ckanext-dgu/test.ini, so make sure you are specifying either of these config files in your nosetests ``--with-pylons`` parameter.
 
 
 Documentation
