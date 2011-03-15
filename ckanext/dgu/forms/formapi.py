@@ -7,7 +7,6 @@ from pylons import config
 from ckan.plugins.core import SingletonPlugin, implements
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
-from ckan.plugins import IGenshiStreamFilter
 
 from ckan.lib.base import *
 from ckan.lib.helpers import json
@@ -31,7 +30,6 @@ class FormApi(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
-    implements(IGenshiStreamFilter)
 
     def before_map(self, map):
         for version in ('', '1/'):
@@ -80,8 +78,6 @@ class FormApi(SingletonPlugin):
             config['extra_public_paths'] += ','+public_dir
         else:
             config['extra_public_paths'] = public_dir
-
-    def filter(self,stream):
 
 class ApiError(Exception):
     def __init__(self, status_int, msg):
