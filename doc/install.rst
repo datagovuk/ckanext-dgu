@@ -110,6 +110,10 @@ Now you can create your configuration, set up the database and serve your CKAN i
     # Enter password `pass' or you'll need to edit your config with the new settings
     sudo -u postgres createdb -O dgu dgu
 
+You need to enable apache `rewrite`::
+
+    $ sudo a2enmod rewrite
+
 Now set up the ckan server:
 
 ::
@@ -175,6 +179,21 @@ Also, in the loggers section:
     ...
 
     args = ('/var/log/ckan/dgu/dgu.log', 'a', 2000000, 9)
+
+Now copy the config to a maintenance mode version::
+
+    $ sudo cp /etc/apache2/sites-available/dgu /etc/apache2/sites-available/dgu.maintenance
+
+and insert these lines just before the WSGIScriptAlias line::
+
+    RewriteEngine On
+    RewriteRule ^(.*)/new /return_503 [PT,L]
+    RewriteRule ^(.*)/create /return_503 [PT,L]      
+    RewriteRule ^(.*)/authz /return_503 [PT,L]
+    RewriteRule ^(.*)/edit /return_503 [PT,L]
+    RewriteCond %{REQUEST_METHOD} !^GET$ [NC]
+    RewriteRule (.*) /return_503 [PT,L]
+
 
 You also need the who.ini:
 
