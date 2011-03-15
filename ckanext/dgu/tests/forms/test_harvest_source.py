@@ -1,8 +1,6 @@
 from ckan.tests import *
 
 from ckanext.harvest.model import HarvestSource
-from ckanext.harvest.model import HarvestingJob
-from ckanext.harvest.model import HarvestedDocument
 
 import ckan.model as model
 from ckan.tests.pylons_controller import PylonsTestCase
