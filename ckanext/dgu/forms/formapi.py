@@ -7,6 +7,7 @@ from pylons import config
 from ckan.plugins.core import SingletonPlugin, implements
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
+from ckan.plugins import IGenshiStreamFilter
 
 from ckan.lib.base import *
 from ckan.lib.helpers import json
@@ -21,6 +22,11 @@ from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
      DrupalRequestError
 
 from ckanext.harvest.model import HarvestSource, HarvestingJob,HarvestedDocument
+
+import html
+from genshi.input import HTML
+from genshi.filters import Transformer
+
 log = logging.getLogger(__name__)
 
 class FormApi(SingletonPlugin):
@@ -30,6 +36,7 @@ class FormApi(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
+    implements(IGenshiStreamFilter)
 
     def before_map(self, map):
         for version in ('', '1/'):
@@ -78,6 +85,28 @@ class FormApi(SingletonPlugin):
             config['extra_public_paths'] += ','+public_dir
         else:
             config['extra_public_paths'] = public_dir
+
+    def filter(self,stream):
+        
+        from pylons import request, tmpl_context as c
+        routes = request.environ.get('pylons.routes_dict')
+        
+        if routes.get('controller') == 'package' and \
+            routes.get('action') == 'read' and c.pkg.id:
+
+            is_inspire = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'INSPIRE']
+            if is_inspire and is_inspire[0] == 'True':
+                # We need the guid from HarvestedDocument!
+                doc = model.Session.query(HarvestedDocument
+                                    ).filter(HarvestedDocument.package_id==c.pkg.id
+                                             ).order_by(HarvestedDocument.created.desc()
+                                                        ).limit(1).first()
+                if doc:
+                    data = {'guid': doc.guid}
+                    stream = stream | Transformer('body//div[@class="resources subsection"]/table')\
+                        .append(HTML(html.GEMINI_CODE % data))
+            
+        return stream
 
 class ApiError(Exception):
     def __init__(self, status_int, msg):
