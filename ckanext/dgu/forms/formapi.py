@@ -209,6 +209,9 @@ class BaseFormController(BaseApiController):
                     location = self._make_package_201_location(package)
                     return self._finish_ok(\
                         newly_created_resource_location=location)
+        except DrupalRequestError, e:
+            log.error('Package create - DrupalRequestError: exception=%r', traceback.format_exc())
+            raise
         except ApiError, api_error:
             log.info('Package create - ApiError. user=%r author=%r data=%r error=%r',
                      user.name if 'user' in dir() else None,
@@ -310,6 +313,9 @@ class BaseFormController(BaseApiController):
                 else:
                     log.info('Package edit successful. user=%r author=%r data=%r', user.name, author, form_data)
                     return self._finish_ok()
+        except DrupalRequestError, e:
+            log.error('Package edit - DrupalRequestError: exception=%r', traceback.format_exc())
+            raise
         except ApiError, api_error:
             log.info('Package edit - ApiError. user=%r author=%r data=%r error=%r',
                      user.name if 'user' in dir() else None,
