@@ -54,13 +54,13 @@ class FormApi(SingletonPlugin):
         map.connect('/api/2/rest/harvestsource', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
         map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvesting_job_create', 
+                action='harvesting_job_create',
                 conditions=dict(method=['POST']))
         """
         These routes are implemented in ckanext-csw
-        map.connect('/api/2/rest/harvesteddocument/:id/xml/:id2.xml', controller='ckanext.dgu.forms.formapi:FormController', 
+        map.connect('/api/2/rest/harvesteddocument/:id/xml/:id2.xml', controller='ckanext.dgu.forms.formapi:FormController',
                 action='harvested_document_view_format',format='xml')
-        map.connect('/api/rest/harvesteddocument/:id/html', controller='ckanext.dgu.forms.formapi:FormController', 
+        map.connect('/api/rest/harvesteddocument/:id/html', controller='ckanext.dgu.forms.formapi:FormController',
                 action='harvested_document_view_format', format='html')
         """
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
@@ -76,7 +76,7 @@ class FormApi(SingletonPlugin):
 
         template_dir = os.path.join(rootdir, 'templates')
         public_dir = os.path.join(rootdir, 'public')
-        
+
         if config.get('extra_template_paths'):
             config['extra_template_paths'] += ','+template_dir
         else:
@@ -87,10 +87,10 @@ class FormApi(SingletonPlugin):
             config['extra_public_paths'] = public_dir
 
     def filter(self,stream):
-        
+
         from pylons import request, tmpl_context as c
         routes = request.environ.get('pylons.routes_dict')
-        
+
         if routes.get('controller') == 'package' and \
             routes.get('action') == 'read' and c.pkg.id:
 
@@ -105,7 +105,7 @@ class FormApi(SingletonPlugin):
                     data = {'guid': doc.guid}
                     stream = stream | Transformer('body//div[@class="resources subsection"]/table')\
                         .append(HTML(html.GEMINI_CODE % data))
-            
+
         return stream
 
 class ApiError(Exception):
@@ -126,18 +126,18 @@ class BaseFormController(BaseApiController):
         if msg:
             error_msg += ': %s' % msg
         raise ApiError, (400, error_msg)
-        
+
     @classmethod
     def _abort_not_authorized(cls, msg=None):
         error_msg = 'Not authorized'
         if msg:
             error_msg += ': %s' % msg
         raise ApiError, (403, error_msg)
-        
+
     @classmethod
     def _abort_not_found(cls):
         raise ApiError, (404, 'Not found')
-                    
+
     @classmethod
     def _assert_is_found(cls, entity):
         if entity is None:
@@ -172,7 +172,7 @@ class BaseFormController(BaseApiController):
                 'user_name': unicode(user['name']),
                 'publishers': user['publishers'],
                 # restrict national_statistic field - only for edit on ckan
-                'restrict': True,                                  
+                'restrict': True,
                 }
         return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
 
@@ -205,7 +205,7 @@ class BaseFormController(BaseApiController):
                 try:
                     request_data = self._get_request_data()
                 except ValueError, error:
-                    self._abort_bad_request('Extracting request data: %r' % error.args)                
+                    self._abort_bad_request('Extracting request data: %r' % error.args)
                 try:
                     form_data = request_data['form_data']
                 except KeyError, error:
@@ -226,9 +226,9 @@ class BaseFormController(BaseApiController):
                 try:
                     WritePackageFromBoundFieldset(
                         fieldset=bound_fieldset,
-                        log_message=log_message, 
+                        log_message=log_message,
                         author=author,
-                        client=c, 
+                        client=c,
                     )
                 except ValidationException, exception:
                     # Get the errorful fieldset.
@@ -336,7 +336,7 @@ class BaseFormController(BaseApiController):
                 try:
                     WritePackageFromBoundFieldset(
                         fieldset=bound_fieldset,
-                        log_message=log_message, 
+                        log_message=log_message,
                         author=author,
                         client=c,
                     )
@@ -441,71 +441,91 @@ class BaseFormController(BaseApiController):
         return obj
 
     def harvest_source_list(self):
-        objects = model.Session.query(HarvestSource).all()
-        response_data = [o.id for o in objects]
-        return self._finish_ok(response_data)
+        try:
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+
+            objects = model.Session.query(HarvestSource).all()
+            response_data = [o.id for o in objects]
+            return self._finish_ok(response_data)
+        except ApiError, api_error:
+            return self._finish(api_error.status_int, str(api_error.msg))
+        except Exception:
+            # Log error.
+            log.error("Couldn't run list harvest source form method: %s" % traceback.format_exc())
+            raise
 
     def harvest_source_view(self, id):
-        # Check user authorization.
-        user = self._get_required_authorization_credentials()
-        am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
-        if not am_authz:
-            self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+        try:
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
 
-        obj = self._get_harvest_source(id)
-        if obj is None:
-            response.status_int = 404
-            return ''            
-        response_data = obj.as_dict()
-        jobs = [job for job in obj.jobs]
-        if not len(jobs):
-            response_data['status'] = dict(msg='No jobs yet')
-            return self._finish_ok(response_data)
-        last_harvest_request = 'None'
-        last_harvest_status = 'Not yet harvested'
-        last_harvest_request = str(jobs[-1].created)[:10]
-        last_harvest_statistics = 'None'
-        last_harvest_errors = 'Not yet harvested'
-        last_harvest_job = 'None'
-        overall_statistics = {'added': 0, 'errors': 0}
-        next_harvest = 'Not scheduled'
-        if len(jobs):
-            if len(jobs) < 2:
-                last_harvest_request = 'None'
-            if jobs[-1].status == u'New':
-                # We need the details for the previous one
+            obj = self._get_harvest_source(id)
+            if obj is None:
+                response.status_int = 404
+                return ''
+            response_data = obj.as_dict()
+            jobs = [job for job in obj.jobs]
+            if not len(jobs):
+                response_data['status'] = dict(msg='No jobs yet')
+                return self._finish_ok(response_data)
+            last_harvest_request = 'None'
+            last_harvest_status = 'Not yet harvested'
+            last_harvest_request = str(jobs[-1].created)[:10]
+            last_harvest_statistics = 'None'
+            last_harvest_errors = 'Not yet harvested'
+            last_harvest_job = 'None'
+            overall_statistics = {'added': 0, 'errors': 0}
+            next_harvest = 'Not scheduled'
+            if len(jobs):
                 if len(jobs) < 2:
-                    last_harvest_status = 'Not yet harvested'
+                    last_harvest_request = 'None'
+                if jobs[-1].status == u'New':
+                    # We need the details for the previous one
+                    if len(jobs) < 2:
+                        last_harvest_status = 'Not yet harvested'
+                    else:
+                        last_harvest_statistics = {'added': len(jobs[-2].report['added']), 'errors': len(jobs[-2].report['errors'])}
+                        last_harvest_status = jobs[-2].status
+                        last_harvest_errors = jobs[-2].report['errors']
+                        last_harvest_job = jobs[-2].id
                 else:
-                    last_harvest_statistics = {'added': len(jobs[-2].report['added']), 'errors': len(jobs[-2].report['errors'])}
-                    last_harvest_status = jobs[-2].status
-                    last_harvest_errors = jobs[-2].report['errors']
-                    last_harvest_job = jobs[-2].id
-            else:
-                last_harvest_status = jobs[-1].status
-                last_harvest_errors = jobs[-1].report['errors']
-                last_harvest_job = jobs[-1].id
-                last_harvest_statistics = {'added': len(jobs[-1].report['added']), 'errors': len(jobs[-1].report['errors'])}
-            for job in jobs:
-                if job.status == u'New':
-                    next_harvest = 'Within 15 minutes'
-                overall_statistics['added'] += len(job.report['added'])
-                overall_statistics['errors'] += len(job.report['errors'])
-        packages = []
-        for document in obj.documents:
-            if not document.package.name in packages:
-                packages.append(document.package.name)
-        response_data['status'] = dict(
-            last_harvest_status = last_harvest_status,
-            last_harvest_request = last_harvest_request,
-            last_harvest_statistics = last_harvest_statistics,
-            overall_statistics = overall_statistics,
-            next_harvest = next_harvest,
-            last_harvest_errors = last_harvest_errors,
-            last_harvest_job = last_harvest_job,
-            packages = packages,
-        )
-        return self._finish_ok(response_data)
+                    last_harvest_status = jobs[-1].status
+                    last_harvest_errors = jobs[-1].report['errors']
+                    last_harvest_job = jobs[-1].id
+                    last_harvest_statistics = {'added': len(jobs[-1].report['added']), 'errors': len(jobs[-1].report['errors'])}
+                for job in jobs:
+                    if job.status == u'New':
+                        next_harvest = 'Within 15 minutes'
+                    overall_statistics['added'] += len(job.report['added'])
+                    overall_statistics['errors'] += len(job.report['errors'])
+            packages = []
+            for document in obj.documents:
+                if not document.package.name in packages:
+                    packages.append(document.package.name)
+            response_data['status'] = dict(
+                last_harvest_status = last_harvest_status,
+                last_harvest_request = last_harvest_request,
+                last_harvest_statistics = last_harvest_statistics,
+                overall_statistics = overall_statistics,
+                next_harvest = next_harvest,
+                last_harvest_errors = last_harvest_errors,
+                last_harvest_job = last_harvest_job,
+                packages = packages,
+            )
+            return self._finish_ok(response_data)
+        except ApiError, api_error:
+            return self._finish(api_error.status_int, str(api_error.msg))
+        except Exception:
+            # Log error.
+            log.error("Couldn't run view harvest source form method: %s" % traceback.format_exc())
+            raise
 
     def harvest_source_create(self):
         try:
@@ -526,7 +546,7 @@ class BaseFormController(BaseApiController):
                 try:
                     request_data = self._get_request_data()
                 except ValueError, error:
-                    self._abort_bad_request('Extracting request data: %r' % error.args)                                    
+                    self._abort_bad_request('Extracting request data: %r' % error.args)
                 try:
                     form_data = request_data['form_data']
                     user_ref = request_data['user_ref']
@@ -586,19 +606,19 @@ class BaseFormController(BaseApiController):
             try:
                 request_data = self._get_request_data()
             except ValueError, error:
-                self._abort_bad_request('Extracting request data: %r' % error.args)                                    
+                self._abort_bad_request('Extracting request data: %r' % error.args)
             try:
                 source_id = request_data['source_id']
                 user_ref = request_data['user_ref']
             except KeyError, error:
                 self._abort_bad_request()
-            
+
             source = HarvestSource.get(source_id, default=None)
 
             err_msg = None
             if not source:
                 err_msg = 'Harvest source %s does not exist.' % source_id
-            
+
             # Check if there is an already scheduled job for this source
             existing_job = HarvestingJob.filter(source_id=source_id,status=u'New').first()
             if existing_job:
@@ -616,27 +636,35 @@ class BaseFormController(BaseApiController):
             model.Session.commit()
             ret_dict = job.as_dict()
             return self._finish_ok(ret_dict)
-            
+        except ApiError, api_error:
+            return self._finish(api_error.status_int, str(api_error.msg))
         except Exception:
             # Log error.
-            log.error("Couldn't run create harvest source form method: %s" % traceback.format_exc())
+            log.error("Couldn't run create harvesting job form method: %s" % traceback.format_exc())
             raise
 
     def harvest_source_delete(self, id):
-        model.repo.new_revision()
-        # Check user authorization.
-        user = self._get_required_authorization_credentials()
-        am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
-        if not am_authz:
-            self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
+        try:
+            model.repo.new_revision()
+            # Check user authorization.
+            user = self._get_required_authorization_credentials()
+            am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
+            if not am_authz:
+                self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
 
-        source = HarvestSource.get(id, default=None)
-        jobs = HarvestingJob.filter(source=source)
-        for job in jobs:
-            job.delete()
-        source.delete()
-        model.repo.commit()        
-        return self._finish_ok()
+            source = HarvestSource.get(id, default=None)
+            jobs = HarvestingJob.filter(source=source)
+            for job in jobs:
+                job.delete()
+            source.delete()
+            model.repo.commit()
+            return self._finish_ok()
+        except ApiError, api_error:
+            return self._finish(api_error.status_int, str(api_error.msg))
+        except Exception:
+            # Log error.
+            log.error("Couldn't run delete harvest source form method: %s" % traceback.format_exc())
+            raise
 
     def harvest_source_edit(self, id):
         try:
@@ -663,7 +691,7 @@ class BaseFormController(BaseApiController):
                 try:
                     request_data = self._get_request_data()
                 except ValueError, error:
-                    self._abort_bad_request('Extracting request data: %r' % error.args)                                    
+                    self._abort_bad_request('Extracting request data: %r' % error.args)
                 try:
                     form_data = request_data['form_data']
                     user_ref = request_data['user_ref']
