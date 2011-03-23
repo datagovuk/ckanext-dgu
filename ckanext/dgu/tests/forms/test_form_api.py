@@ -611,8 +611,10 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         system_role_query = model.Session.query(model.SystemRole)
         package_role_query = model.Session.query(model.PackageRole)
         for pseudo_user in (u'logged_in', u'visitor'):
-            roles.extend(system_role_query.join('user').filter_by(name=pseudo_user).all())
-            roles.extend(package_role_query.join('package').filter_by(name='annakarenina').\
+            roles.extend(system_role_query.join('user').\
+                         filter_by(name=pseudo_user).all())
+            roles.extend(package_role_query.join('package').\
+                         filter_by(name='annakarenina').\
                          join('user').filter_by(name=pseudo_user).all())
         for role in roles:
             role.delete()
@@ -633,7 +635,7 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.check_edit_package('notadmin', expect_success=True)
         self.remove_default_rights()
         self.check_edit_package('testsysadmin', expect_success=True)
-        self.check_edit_package('testadmin', expect_success=True)
+        self.check_edit_package('testadmin', expect_success=False)
         self.check_edit_package('notadmin', expect_success=False)
 
     def test_harvest_source_create(self):
