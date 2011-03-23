@@ -1,3 +1,4 @@
 -e hg+https://bitbucket.org/okfn/ckanclient#egg=ckanclient
 -e hg+https://bitbucket.org/okfn/ckanext-importlib#egg=ckanext-importlib
+-e hg+https://bitbucket.org/okfn/ckanext-harvest#egg=ckanext-importlib
 swiss
