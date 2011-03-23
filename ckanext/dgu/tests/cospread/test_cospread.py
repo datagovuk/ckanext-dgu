@@ -7,9 +7,9 @@ from nose.tools import assert_equal
 
 from ckan.tests import *
 import ckan.model as model
-from ckanext.importer import spreadsheet_importer
+from ckanext.importlib import spreadsheet_importer
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
-from ckanext.tests.importer.test_spreadsheet_importer import CSV_EXTENSION, XL_EXTENSION, SPREADSHEET_DATA_MAP, ExampleFiles
+from ckanext.importlib.tests.test_spreadsheet_importer import CSV_EXTENSION, XL_EXTENSION, SPREADSHEET_DATA_MAP, ExampleFiles
 from ckanext.dgu.tests import PackageDictUtil, MockDrupalCase
 from ckanext.dgu.tests import strip_organisation_id
 from ckanext.dgu.cospread.cospread import MultipleCospreadDataRecords, CospreadImporter

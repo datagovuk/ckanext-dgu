@@ -6,7 +6,7 @@ from pylons import config
 
 from ckan.tests import *
 import ckan.model as model
-from ckanext.importer import spreadsheet_importer
+from ckanext.importlib import spreadsheet_importer
 
 from nose.plugins.skip import SkipTest
 raise SkipTest('BIS importer deprecated pending use of v3 schema.')

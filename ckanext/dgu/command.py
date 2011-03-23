@@ -1,4 +1,4 @@
-from ckanext.command import Command
+from ckanext.importlib.command import Command
 
 class XmlRpcCommand(Command):
     '''Derive from this to use the xmlrpc setting options.
