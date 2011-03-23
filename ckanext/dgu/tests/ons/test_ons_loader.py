@@ -7,7 +7,7 @@ from sqlalchemy.util import OrderedDict
 
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.loader import OnsLoader
-from ckanext.tests.test_loader import TestLoaderBase, USER
+from ckanext.importlib.tests.test_loader import TestLoaderBase, USER
 from ckan import model
 from ckan.tests import CreateTestData, TestSearchIndexer, is_search_supported
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient

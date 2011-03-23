@@ -1,6 +1,6 @@
 import sys
 
-from ckanext.api_command import ApiCommand
+from ckanext.importlib.api_command import ApiCommand
 
 class MassChangerCommand(ApiCommand):
     def __init__(self, commands=None):

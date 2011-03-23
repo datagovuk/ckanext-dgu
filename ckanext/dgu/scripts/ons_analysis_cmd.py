@@ -1,7 +1,7 @@
 import sys
 
 from ckanclient import CkanClient
-from ckanext.api_command import ApiCommand
+from ckanext.importlib.api_command import ApiCommand
 from ons_analysis import OnsAnalysis
 
 class OnsAnalysisCommand(ApiCommand):

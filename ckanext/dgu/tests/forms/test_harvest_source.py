@@ -13,7 +13,7 @@ class TestHarvestSource(PylonsTestCase):
         model.repo.init_db()
 
     def teardown(self):
-        model.repo.clean_db()
+        model.repo.rebuild_db()
 
     def test_form_raw(self):
         fs = form.get_harvest_source_fieldset()

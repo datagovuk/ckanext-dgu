@@ -126,7 +126,7 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     @classmethod
     def teardown_class(self):
         MockDrupalCase.teardown_class()
-        model.repo.clean_db()
+        model.repo.rebuild_db()
 
     def _insert_into_field_tag(self, form_html, field_name, tag_name, tag_insertion):
         '''Finds the tag for a package field and inserts some html into it.'''
