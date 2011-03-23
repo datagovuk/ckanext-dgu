@@ -10,8 +10,8 @@ from sqlalchemy.util import OrderedDict
 from ckan import model
 from ckanext.dgu import schema
 from ckan.lib import field_types
-from ckanext.importer.importer import PackageImporter, RowParseError, ImportException
-from ckanext.importer.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
+from ckanext.importlib.importer import PackageImporter, RowParseError, ImportException
+from ckanext.importlib.spreadsheet_importer import CsvData, XlData, SpreadsheetDataRecords, MultipleSpreadsheetDataRecords, SpreadsheetPackageImporter
 
 log = logging.getLogger(__name__)
 

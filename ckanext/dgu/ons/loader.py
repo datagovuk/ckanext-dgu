@@ -2,7 +2,7 @@ import re
 
 from swiss import date
 
-from ckanext.loader import ResourceSeriesLoader
+from ckanext.importlib.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):

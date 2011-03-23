@@ -7,7 +7,7 @@ from nose.tools import assert_equal
 from common import ScriptError, remove_readonly_fields
 from ckanclient import CkanApiError
 
-from ckanext.importer.spreadsheet_importer import CsvData
+from ckanext.importlib.spreadsheet_importer import CsvData
 
 log = __import__("logging").getLogger(__name__)
 

@@ -1,6 +1,6 @@
 import sys
 
-from ckanext.loader import ResourceSeries
+from ckanext.importlib.loader import ResourceSeries
 from ckanext.dgu.scripts.change_licenses import ChangeLicenses
 from ckanext.dgu.scripts.mass_changer_cmd import MassChangerCommand
 from ckanclient import CkanClient

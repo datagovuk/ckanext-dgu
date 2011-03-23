@@ -1,4 +1,4 @@
-from ckanext.loader import ReplaceByNameLoader
+from ckanext.importlib.loader import ReplaceByNameLoader
 
 class CospreadLoader(ReplaceByNameLoader):
     pass

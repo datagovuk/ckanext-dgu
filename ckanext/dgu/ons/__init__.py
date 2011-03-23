@@ -1,6 +1,6 @@
 import datetime
 
-from ckanext.api_command import ApiCommand
+from ckanext.importlib.api_command import ApiCommand
 from ckanext.dgu.command import XmlRpcCommand
 from ckanext.dgu.ons.downloader import OnsData
 from ckanext.dgu.ons.importer import OnsImporter
