@@ -387,55 +387,6 @@ class BaseFormController(BaseApiController):
         bound_fieldset.sync()
         model.Session.commit()
 
-    def package_create_example(self):
-        client_user = self._get_user(u'tester')
-        api_key = client_user.apikey
-        self.ckan_client = self._start_ckan_client(api_key=api_key)
-        if request.method == 'GET':
-            fieldset_html = self.ckan_client.package_create_form_get()
-            if fieldset_html == None:
-                raise Exception, "Can't read package create form??"
-            form_html = '<form action="" method="post">' + fieldset_html + '<input type="submit"></form>'
-        else:
-            form_data = request.params.items()
-            request_data = {
-                'form_data': form_data,
-                'log_message': 'Package create example...',
-                'author': 'automated test suite',
-            }
-            form_html = self.ckan_client.package_create_form_post(request_data)
-            if form_html == '""':
-                form_html = "Submitted OK"
-        page_html = '<html><head><title>My Package Create Page</title></head><body><h1>My Package Create Form</h1>%s</html>' % form_html
-        return page_html
-
-    def package_edit_example(self, id):
-        client_user = self._get_user(u'tester')
-        api_key = client_user.apikey
-        self.ckan_client = self._start_ckan_client(api_key=api_key)
-        if request.method == 'GET':
-            fieldset_html = self.ckan_client.package_edit_form_get(id)
-            if fieldset_html == None:
-                raise Exception, "Can't read package edit form??"
-            form_html = '<form action="" method="post">' + fieldset_html + '<input type="submit"></form>'
-        else:
-            form_data = request.params.items()
-            request_data = {
-                'form_data': form_data,
-                'log_message': 'Package edit example...',
-                'author': 'automated test suite',
-            }
-            form_html = self.ckan_client.package_edit_form_post(id, request_data)
-            if form_html == '""':
-                form_html = "Submitted OK"
-        page_html = '<html><head><title>My Package Edit Page</title></head><body><h1>My Package Edit Form</h1>%s</html>' % form_html
-        return page_html
-
-    @classmethod
-    def _start_ckan_client(cls, api_key, base_location='http://127.0.0.1:5000/api'):
-        import ckanclient
-        return ckanclient.CkanClient(base_location=base_location, api_key=api_key)
-
     def _get_harvest_source(self, id):
         obj = HarvestSource.get(id, default=None)
         return obj

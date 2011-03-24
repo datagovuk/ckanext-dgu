@@ -423,48 +423,6 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_package_by_name(self.package_name)
         assert self.get_package_by_name(self.package_name_alt)
 
-    @search_related
-    def test_package_create_example_page(self):
-        self.ckan_server = self._start_ckan_server()
-        try:
-            self._wait_for_url('http://127.0.0.1:5000')
-            package = self.get_package_by_name(self.package_name)
-            package_id = package.id
-            res = self.get(url_for(controller='form', action='package_create_example', id=package_id))
-            form = res.forms[0]
-            self.assert_formfield(form, 'Package--name', '')
-            self.set_formfield(form, 'Package--name', self.package_name_alt2)
-            form_data = form.submit_fields()
-            import urllib
-            params = urllib.urlencode(form_data)
-            offset = url_for(controller='form', action='package_create_example', id=package_id)
-            res = self.app.post(offset, params=params, status=[200], extra_environ=self.extra_environ)
-            body = res.body
-            assert '<html' in body, "The result does NOT have an HTML doc tag: %s" % body
-            assert "Submitted OK" in body, body
-        finally:
-            self._stop_ckan_server(self.ckan_server)
-
-    @search_related
-    def test_package_edit_example_page(self):
-        self.ckan_server = self._start_ckan_server()
-        try:
-            self._wait_for_url('http://127.0.0.1:5000')
-            package = self.get_package_by_name(self.package_name)
-            package_id = package.id
-            res = self.get(url_for(controller='form', action='package_edit_example', id=package_id))
-            form = res.forms[0]
-            form_data = form.submit_fields()
-            import urllib
-            params = urllib.urlencode(form_data)
-            offset = url_for(controller='form', action='package_edit_example', id=package_id)
-            res = self.app.post(offset, params=params, status=[200], extra_environ=self.extra_environ)
-            body = res.body
-            assert '<html' in body, "The result does NOT have an HTML doc tag: %s" % body
-            assert "Submitted OK" in body, body
-        finally:
-            self._stop_ckan_server(self.ckan_server)
-
     def test_get_harvest_source_create_form(self):
         form = self.get_harvest_source_create_form()
         self.assert_formfield(form, 'HarvestSource--url', '')
