@@ -355,6 +355,14 @@ When taking the database from hmg.ckan.net, because the new servers are open, th
     paster --plugin ckan roles --config /etc/ckan/dgu/dgu.ini deny reader create
     paster --plugin ckan roles --config /etc/ckan/dgu/dgu.ini deny reader create-package
 
+And after upgrate of migration 36::
+
+    paster --plugin=ckan rights make visitor reader system: --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan roles deny reader create-package --config=/etc/ckan/dgu/dgu.ini
+okfn_maintenance
+    paster --plugin=ckan user add okfn_maintenance --config=/etc/ckan/dgu/dgu.ini
+    paster --plugin=ckan sysadmin add okfn_maintenance --config=/etc/ckan/dgu/dgu.ini
+
 Building debian package
 =======================
 
