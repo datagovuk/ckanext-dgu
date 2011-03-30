@@ -141,7 +141,7 @@ example_pkg_dict = OrderedDict([
         ('taxonomy_url', ''),
         ('import_source', 'COSPREAD-cospread1.csv'),
         ('department', u'Department for Education'),
-        ('update_frequency', 'Annually'),
+        ('update_frequency', 'annual'),
         ('national_statistic', ''),
         ('mandate', ''),
         ('published_by', u'Department for Education [some_number]'),
@@ -352,9 +352,10 @@ class TestImport(MockDrupalCase):
 
     def test_3_log(self):
         log = self.import_log
-        assert log[0].startswith("WARNING: URL doesn't start with http: test.html"), log[0]
-        assert log[1].startswith("WARNING: URL doesn't start with http: test.json"), log[1]
-        assert_equal(len(log), 2, log)
+        assert log[0].startswith("WARNING: Value for column 'Update frequency' of 'ad hoc' is not in suggestions"), log[0]
+        assert log[1].startswith("WARNING: URL doesn't start with http: test.html"), log[1]
+        assert log[2].startswith("WARNING: URL doesn't start with http: test.json"), log[2]
+        assert_equal(len(log), 3, log)
 
     def test_4_record_2_package(self):
         self.importer.clear_log()

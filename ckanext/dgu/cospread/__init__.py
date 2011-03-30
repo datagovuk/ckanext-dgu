@@ -14,6 +14,11 @@ class CospreadCommand(ApiCommand, XmlRpcCommand):
                                action="store_true",
                                default=False,
                                help="Uses source's tags (in addition to just common keywords found.)")
+        self.parser.add_option("-g", "--generate-names",
+                               dest="generate_names",
+                               action="store_true",
+                               default=False,
+                               help="Generate names from title. Also key multiple resources off the package title.")
 
     def command(self):
         super(CospreadCommand, self).command()
@@ -26,6 +31,7 @@ class CospreadCommand(ApiCommand, XmlRpcCommand):
             filepath=data_filepath,
             xmlrpc_settings=self.xmlrpc_settings,
             include_given_tags=self.options.include_given_tags,
+            generate_names=self.options.generate_names,
             )
         
         loader = CospreadLoader(self.client)

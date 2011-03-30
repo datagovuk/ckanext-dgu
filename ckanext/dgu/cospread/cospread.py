@@ -16,7 +16,8 @@ from ckanext.importlib.spreadsheet_importer import CsvData, XlData, SpreadsheetD
 log = logging.getLogger(__name__)
 
 class CospreadDataRecords(SpreadsheetDataRecords):
-    def __init__(self, data):
+    def __init__(self, data, generate_names=False):
+        self.generate_names = generate_names
         essential_title = 'Package name'
         self.column_name_map = {
             u'package name':'Package name',
@@ -74,68 +75,73 @@ class CospreadDataRecords(SpreadsheetDataRecords):
         * Collapses 'Standard' / 'Other' column pairs into single value.
         '''
         current_record = None
-        def get_record_key(record_, standard_key):
-            alt_key = self.column_name_reverse_map.get(standard_key)
-            if alt_key and alt_key in record_:
-                return alt_key
-            else:
-                return standard_key
-#            if self.column_name_reverse_map.has_key(property):
-            return record_[self.column_name_reverse_map[property]]
-        for record in super(CospreadDataRecords, self).records:
-            if current_record and current_record['Package name'] == \
-                record[get_record_key(record, 'Package name')]:
-                # this record is another resource for the current record.
-                keys_that_should_match = set(current_record.keys()) - set(self.resource_keys + ['resources'] + self.standard_or_other_columns)
-                for key in keys_that_should_match:
-                    record_key = get_record_key(record, key)
-                    assert current_record[key] == record[record_key], 'Multiple resources for package %s, but value for key %r does not match: %r!=%r' % (record[get_record_key(record, 'Package name')], key, current_record[key], record[record_key])
-            else:
-                # this record is new, so yield the old 'current_record' before
-                # making this record 'current_record'.
-                if current_record:
-                    yield current_record
-                current_record = record.copy()
-                current_record['resources'] = []
-                # Collapse standard/other columns into one
-                for column in self.standard_or_other_columns:
-                    standard = current_record['%s - Standard' % column]
-                    other = current_record['%s - Other' % column]
-                    if standard == 'Other (specify)' or standard == None:
-                        value = other
-                    else:
-                        assert not other, 'Both "Standard" and "Other" values for column %r in record %r' % (column, current_record)
-                        value = standard
-                    current_record[column] = value
-                    del current_record['%s - Standard' % column]
-                    del current_record['%s - Other' % column]
-                # Rename columns to standard names
-                keys_to_change = set(current_record.keys()) & set(self.column_name_map.keys())
-                for from_key in keys_to_change:
-                    to_key = self.column_name_map[from_key]
-                    current_record[to_key] = current_record[from_key]
-                    del current_record[from_key]
-            # Put download_url into resources
-            resource = OrderedDict()
-            for key in self.resource_keys:
-                key_used = None
-                if key in record:                
-                    key_used = key
+        package_identity_column = 'Package name' if not self.generate_names else 'Title'
+        try:
+            def get_record_key(record_, standard_key):
+                alt_key = self.column_name_reverse_map.get(standard_key)
+                if alt_key and alt_key in record_:
+                    return alt_key
                 else:
-                    alt_key = self.column_name_reverse_map.get(key)
-                    if alt_key and alt_key in record:
-                        key_used = alt_key
-                        value = record[alt_key]
-                if key_used:
-                    value = record[key_used]
-                    resource[key] = value
-                    del record[key_used]
+                    return standard_key
+                return record_[self.column_name_reverse_map[property]]
+            for record in super(CospreadDataRecords, self).records:
+                if current_record and \
+                       current_record[package_identity_column] == \
+                       record[get_record_key(record, package_identity_column)]:
+                    # this record is another resource for the current record.
+                    keys_that_should_match = set(current_record.keys()) - set(self.resource_keys + ['resources'] + self.standard_or_other_columns)
+                    for key in keys_that_should_match:
+                        record_key = get_record_key(record, key)
+                        assert current_record[key] == record[record_key], 'Multiple resources for package %r, but value for key %r does not match: %r!=%r' % (record[get_record_key(record, package_identity_column)], key, current_record[key], record[record_key])
                 else:
-                    if key in self.optional_columns:
-                        record[key] = None
+                    # this record is new, so yield the old 'current_record' before
+                    # making this record 'current_record'.
+                    if current_record:
+                        yield current_record
+                    current_record = record.copy()
+                    current_record['resources'] = []
+                    # Collapse standard/other columns into one
+                    for column in self.standard_or_other_columns:
+                        standard = current_record['%s - Standard' % column]
+                        other = current_record['%s - Other' % column]
+                        if standard == 'Other (specify)' or standard == None:
+                            value = other
+                        else:
+                            assert not other, 'Both "Standard" and "Other" values for column %r in record %r' % (column, current_record)
+                            value = standard
+                        current_record[column] = value
+                        del current_record['%s - Standard' % column]
+                        del current_record['%s - Other' % column]
+                    # Rename columns to standard names
+                    keys_to_change = set(current_record.keys()) & set(self.column_name_map.keys())
+                    for from_key in keys_to_change:
+                        to_key = self.column_name_map[from_key]
+                        current_record[to_key] = current_record[from_key]
+                        del current_record[from_key]
+                # Put download_url into resources
+                resource = OrderedDict()
+                for key in self.resource_keys:
+                    key_used = None
+                    if key in record:                
+                        key_used = key
                     else:
-                        raise KeyError(key)
-            current_record['resources'].append(resource)
+                        alt_key = self.column_name_reverse_map.get(key)
+                        if alt_key and alt_key in record:
+                            key_used = alt_key
+                            value = record[alt_key]
+                    if key_used:
+                        value = record[key_used]
+                        resource[key] = value
+                        del record[key_used]
+                    else:
+                        if key in self.optional_columns:
+                            record[key] = None
+                        else:
+                            raise KeyError(key)
+                current_record['resources'].append(resource)
+        except KeyError, e:
+            print 'Could not find spreadsheet title %r.\nrecord keys: %r.\ncurrent_record keys: %r' % (e.message, record.keys(), current_record.keys())
+            raise
         if current_record:
             yield current_record
 
@@ -160,10 +166,11 @@ class CospreadImporter(SpreadsheetPackageImporter):
         }
     
     def __init__(self, include_given_tags=False, xmlrpc_settings=None,
+                 generate_names=False,
                  **kwargs):
         self.include_given_tags = include_given_tags
         self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
-        super(CospreadImporter, self).__init__(record_params=[], record_class=CospreadDataRecords, **kwargs)
+        super(CospreadImporter, self).__init__(record_params=[generate_names], record_class=CospreadDataRecords, **kwargs)
 
     @classmethod
     def log(self, msg):
@@ -232,7 +239,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
             
         field_map = [
             ['CO Identifier'],
-            ['Update frequency'],
+            ['Update frequency', schema.update_frequency_options],
             ['Temporal Granularity', schema.temporal_granularity_options],
             ['Geographical Granularity', schema.geographic_granularity_options],
             ['Taxonomy URL'],
@@ -259,6 +266,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 # snap to suggestions
                 suggestions = field_mapping[1]
                 if val and val not in suggestions:
+                    val = val.strip()
                     suggestions_lower = [sugg.lower() for sugg in suggestions]
                     if val.lower() in suggestions_lower:
                         val = suggestions[suggestions_lower.index(val.lower())]
@@ -268,8 +276,10 @@ class CospreadImporter(SpreadsheetPackageImporter):
                         val = val.lower() + 's'
                     elif val.lower().rstrip('s') in suggestions:
                         val = val.lower().rstrip('s')
-                    elif val.replace('&', 'and').strip() in suggestions:
-                        val = val.replace('&', 'and').strip()
+                    elif val.replace('&', 'and') in suggestions:
+                        val = val.replace('&', 'and')
+                    elif val.lower() == 'annually' and 'annual' in suggestions:
+                        val = 'annual'
                 if val and val not in suggestions:
                     self.log("WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions))
             extras_dict[extras_key] = val
