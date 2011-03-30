@@ -41,6 +41,8 @@ setup(
         publisher_migration = ckanext.dgu.scripts.publisher_migration:command
         metadata_v3_migration = ckanext.dgu.scripts.metadata_v3_migration:command
         generate_test_organisations = ckanext.dgu.testtools.organisations:command
+        ons_remove_resources = ckanext.dgu.scripts.ons_remove_resources:command
+        ons_delete_resourceless_packages = ckanext.dgu.scripts.ons_delete_resourceless_packages:command
         
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset

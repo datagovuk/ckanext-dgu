@@ -10,6 +10,7 @@ class MassChangerCommand(ApiCommand):
         super(MassChangerCommand, self).__init__(usage=usage)
 
     def add_options(self):
+        super(MassChangerCommand, self).add_options()
         self.parser.add_option("-d", "--dry-run",
                           dest="dry_run",
                           action="store_true",
