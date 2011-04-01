@@ -2,13 +2,14 @@ from collections import defaultdict
 import socket
 import copy
 
-from xmlrpclib import ServerProxy, ProtocolError
+from xmlrpclib import ServerProxy, ProtocolError, ResponseError
 from nose.tools import assert_equal
 
 from common import ScriptError, remove_readonly_fields
 from ckanclient import CkanApiError
 
 from ckanext.importlib.spreadsheet_importer import CsvData
+from ckanext.dgu import schema
 
 log = __import__("logging").getLogger(__name__)
 
@@ -25,6 +26,7 @@ class PublisherMigration:
     def __init__(self, ckanclient,
                  xmlrpc_domain, xmlrpc_username, xmlrpc_password,
                  publisher_map_filepath,
+                 update_all,
                  dry_run=False):
         self.ckanclient = ckanclient
         self.dry_run = dry_run
@@ -33,6 +35,7 @@ class PublisherMigration:
                        'domain':xmlrpc_domain}
         self.publisher_map = self.read_publisher_map(publisher_map_filepath) \
                              if publisher_map_filepath else {}
+        self.update_all = update_all
         self.organisations = {}
 
     def read_publisher_map(self, publisher_map_filepath):
@@ -59,6 +62,9 @@ class PublisherMigration:
             if mapped_publisher:
                 log.info('Mapping %r to %r', dept_or_agency, mapped_publisher)
                 dept_or_agency = mapped_publisher
+
+            # try canonical name
+            dept_or_agency = schema.canonise_organisation_name(dept_or_agency)
 
             # look up with Drupal
             if not hasattr(self, 'drupal'):
@@ -122,7 +128,7 @@ class PublisherMigration:
                         if not mapped_value:
                             if orig_value.lower() in mapped_attributes[attribute].values():
                                 mapped_value = orig_value.lower()
-                    if mapped_value:
+                    if mapped_value and orig_value != mapped_value:
                         pkg['extras'][attribute] = mapped_value
                         log.info('%s: %r -> %r', \
                                  attribute, orig_value, mapped_value)
@@ -131,24 +137,25 @@ class PublisherMigration:
                                  attribute, orig_value)
 
                 # create publisher fields
-                dept = pkg['extras'].get('department')
-                agency = pkg['extras'].get('agency')
-                if dept:
-                    pub_by = self.get_organisation(dept)                
-                    pub_via = self.get_organisation(agency) if agency else ''
-                else:
-                    pub_by = self.get_organisation(agency) if agency else ''
-                    pub_via = ''
-                    if not pub_by or pub_via:
-                        log.warn('No publisher for package: %s', pkg['name'])
-                log.info('%s:\n  %r/%r ->\n  %r/%r', \
-                         pkg['name'], dept, agency, pub_by, pub_via)
-                pkg['extras']['published_by'] = pub_by
-                pkg['extras']['published_via'] = pub_via
+                if self.update_all or not pkg['extras'].get('published_by'):
+                    dept = pkg['extras'].get('department')
+                    agency = pkg['extras'].get('agency')
+                    if dept:
+                        pub_by = self.get_organisation(dept)                
+                        pub_via = self.get_organisation(agency) if agency else ''
+                    else:
+                        pub_by = self.get_organisation(agency) if agency else ''
+                        pub_via = ''
+                        if not pub_by or pub_via:
+                            log.warn('No publisher for package: %s', pkg['name'])
+                    log.info('%s:\n  %r/%r ->\n  %r/%r', \
+                             pkg['name'], dept, agency, pub_by, pub_via)
+                    pkg['extras']['published_by'] = pub_by
+                    pkg['extras']['published_via'] = pub_via
                 
                 if pkg == pkg_before_changes:
                     log.info('...package unchanged: %r' % pkg['name'])
-                    pkgs_rejected['Package unchanged: %r' % pkg['name']].append(pkg)
+                    pkgs_rejected['Package unchanged'].append(pkg)
                     continue             
                 if not self.dry_run:
                     remove_readonly_fields(pkg)
@@ -197,6 +204,9 @@ class Command(MassChangerCommand):
         self.parser.add_option("-m", "--publisher-map",
                                dest="publisher_map_csv",
                                )
+        self.parser.add_option("--update-all",
+                               dest="update_all",
+                               )
 
     def command(self):
         super(Command, self).command()
@@ -207,6 +217,7 @@ class Command(MassChangerCommand):
                                  self.options.xmlrpc_username,
                                  self.options.xmlrpc_password,
                                  self.options.publisher_map_csv,
+                                 self.options.update_all,
                                  dry_run=self.options.dry_run)
         cmd.run()
 
