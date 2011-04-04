@@ -280,6 +280,8 @@ class CospreadImporter(SpreadsheetPackageImporter):
                         val = val.replace('&', 'and')
                     elif val.lower() == 'annually' and 'annual' in suggestions:
                         val = 'annual'
+                    elif val.lower() == 'year' and 'annual' in suggestions:
+                        val = 'annual'
                 if val and val not in suggestions:
                     self.log("WARNING: Value for column '%s' of '%s' is not in suggestions '%s'" % (column, val, suggestions))
             extras_dict[extras_key] = val
