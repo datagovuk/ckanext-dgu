@@ -8,8 +8,11 @@ import ckanext.dgu.forms.harvest_source as form
 
 class TestHarvestSource(PylonsTestCase):
 
+    @classmethod
+    def setup_class(cls):
+        super(TestHarvestSource, cls).setup_class()
+
     def setup(self):
-        super(TestHarvestSource, self).setup()
         model.repo.init_db()
 
     def teardown(self):
