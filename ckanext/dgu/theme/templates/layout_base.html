@@ -102,7 +102,8 @@
 <body class="not-front not-logged-in node-type-page one-sidebar sidebar-right page-data section-data">
       
       
-  <div id="page"><div id="page-inner">
+  <div id="page">
+   <div id="page-inner">
 
     <a name="navigation-top" id="navigation-top"></a>
     <div id="skip-to-nav"><a href="#navigation">Skip to Navigation</a></div>
@@ -125,14 +126,11 @@
         </form>
       </div> <!-- /#search-box -->
       <div id="logo-title">
-        <a href="${h.url_for('home')}">
-          <py:if test="g.site_logo">
-            <img src="${g.site_logo}" alt="${g.site_title} Logo" />
-          </py:if>
-            <span class="logo-title-text">
-            ${g.site_title}
-            </span>
+        <div id="logo">
+        <a href="http://data.gov.uk/">
+            <img src="/images/logo.png" alt="data.gov.uk Logo" />
         </a>
+        </div>
       </div> <!-- /#logo-title -->
       
       
@@ -143,6 +141,11 @@
         <div id="navbar">
          <div id="navbar-inner" class="clear-block region region-navbar">
           <a name="navigation" id="navigation"></a>
+          <div id="primary" class="clear-block">
+            <ul class="links">
+              <li><a class="active" href="http://data.gov.uk/">Home</a></li>
+            </ul>
+          </div>
           <div id="primary" class="clear-block">
             <ul class="links">
               <li>${h.nav_link(c, _('Home'), controller='home', action='index', id=None)}</li>
@@ -225,135 +228,19 @@
         <li class="menu-2123"><a href="http://data.gov.uk/privacy" title="Privacy">Privacy</a></li>
         <li class="menu-2786 last"><a href="http://data.gov.uk/sitemap" title="">Sitemap</a></li>
       </ul>
+      <ul class="links">
+        <li class="menu-371 first">Page served by <a href="http://ckan.org/" title="CKAN" rel="generator">CKAN</a></li>
+        <li class="menu-371">${h.link_to(_('API'), h.url_for(controller='rest', action='get_api', id=None))}</li>
+        <li>${h.link_to(_('API Documentation'), 'http://ckan.org/wiki/API')}</li>
+        <li class="last">${g.site_title} 
+               <span i18n:msg="version">
+                  v${c.__version__}
+                 </span>
+        </li>
+      </ul>
     </div> <!-- /#secondary -->
-  </div> <!-- /#page-inner -->
-</div> <!-- /#page -->
-  
-<div id="footer" role="contentinfo"> 
-  <div id="colophon">
-    <div id="footer-widget-area" role="complementary">
-
-      <div id="first" class="widget-area">
-        <ul class="xoxo">
-          <li class="widget-container widget_text">
-          <h3 class="widget-title">Packages</h3>
-          <div class="textwidget">
-            <ul>
-                <li>${h.nav_link(c, _('Search'), controller='package', action='search', id=None)}</li>                
-                <li py:if="h.am_authorized(c, actions.PACKAGE_CREATE)">${h.nav_link(c, _('Register a new Package'), controller='package', action='new', id=None)}</li>
-                <li>${h.nav_link(c, _('Revision History'), controller='revision', action='index', id=None)}</li>
-                <li>${h.link_to(_('API'), h.url_for(controller='rest', action='get_api', id=None))}</li>
-                <li>${h.link_to(_('API Docs'), 'http://ckan.org/wiki/API')}</li>
-            </ul>
-          </div>
-          </li>
-        </ul>
-        <ul class="xoxo">
-          <li class="widget-container widget_text">
-          <h3 class="widget-title">Groups &amp; Tags</h3>
-          <div class="textwidget">
-            <ul>
-              <li>${h.nav_link(c, _('Tags'), controller='tag', action='index', id=None)}</li>
-              <li>${h.nav_link(c, _('Groups'), controller='group', action='index', id=None)}</li>
-              <li py:if="h.am_authorized(c, actions.GROUP_CREATE)">${h.nav_link(c, _('Create a new Group'), controller='group', action='new', id=None)}</li>
-              <li>${h.nav_link(c, _('Authorization Groups'), controller='authorization_group', action='index', id=None)}</li>
-              <li class="page_item" py:if="h.am_authorized(c, actions.AUTHZ_GROUP_CREATE)">${h.nav_link(c, _('Create a new Authorization Group'), controller='authorization_group', action='new', id=None)}</li>
-            </ul>
-          </div>
-          </li>
-        </ul>
-        <ul class="xoxo">
-          <li class="widget-container widget_text">
-          <h3 class="widget-title">About</h3>
-          <div class="textwidget">
-            <ul>
-              <li>
-                <a href="http://ckan.org/">Project Home Page</a>
-              </li>
-              <li>
-                <a href="http://www.okfn.org/contact/">Contact Us</a>
-              </li>
-              <li>
-                <a href="http://www.okfn.org/privacy-policy/">Privacy Policy</a>
-              </li>
-            </ul>
-          </div>
-          </li>
-        </ul>
-        <ul class="xoxo">
-          <li class="widget-container widget_text">
-          <h3 class="widget-title">Language</h3>
-          <div class="textwidget">
-            <ul>
-<?python
-  import ckan.lib.hash
-  current_url = url.current().encode('utf-8')
-  current_url_hash = ckan.lib.hash.get_message_hash(current_url)
-?>
-              <li py:for="locale in h.get_available_locales()">
-              <a href="${url(controller='home', action='locale', 
-                             locale=str(locale), 
-                             return_to=current_url,
-                             hash=current_url_hash)}">
-                  ${locale.display_name}
-                </a>
-              </li>
-            </ul>
-          </div>
-          </li>
-        </ul>
-      </div><!-- #first .widget-area -->
-
-      <div id="fourth" class="widget-area">
-        <ul class="xoxo">
-          <li class="widget-container widget_text">
-          <h3 class="widget-title">Credits</h3>
-          <div class="textwidget">
-            <ul>
-              <li i18n:msg="">
-                <img src="http://assets.okfn.org/images/logo/okf_logo_white_and_green_tiny.png" id="footer-okf-logo" />
-                An
-                <a href="http://www.okfn.org/">Open Knowledge Foundation</a> Project
-              </li>
-              <li>
-                &copy; <a href="http://www.okfn.org/">Open Knowledge Foundation</a>
-              </li>
-              <li>
-                <a href="http://www.opendefinition.org/okd/">
-                <img alt="This Content and Data is Open" src="http://assets.okfn.org/images/ok_buttons/oc_80x15_blue.png" style="border: none ; margin-bottom: -4px;"/>
-                </a>
-              </li>
-              <li>
-                <a href="http://www.opendefinition.org/okd/">
-                <img alt="This Content and Data is Open" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" style="border: none ; margin-bottom: -4px;"/>
-                </a>
-              </li>
-            </ul>
-          </div>
-          </li>
-        </ul>
-      </div><!-- #fourth .widget-area -->
-
-    </div><!-- #footer-widget-area -->
-
-    <div id="site-info">
-      <a href="${url('/')}" title="${g.site_title}" rel="home">
-        ${g.site_title}</a>
-    </div><!-- #site-info -->
-
-    <div id="site-generator">
-      <a href="http://ckan.org/"
-        title="CKAN" rel="generator">
-        Powered by CKAN
-        <span i18n:msg="version">
-          v${c.__version__}
-        </span>
-      </a>
-    </div><!-- #site-generator -->
-  </div><!-- #colophon -->
-</div><!-- #footer --> 
-
-</div><!-- #wrapper -->
+   </div> <!-- /#page-inner -->
+ </div> <!-- /#page -->
 
 ${h.literal(getattr(g, 'template_footer_end', ''))}
 </body>
