@@ -30,7 +30,8 @@ setup(
         [ckan.plugins]
         dgu_form_api = ckanext.dgu.plugin:FormApiPlugin
         form_api_tester = ckanext.dgu.testtools.form_api_tester:FormApiTester
-        dgu_theme = ckanext.dgu.plugin:ThemePlugin
+        dgu_theme_embedded = ckanext.dgu.plugin:EmbeddedThemePlugin
+        dgu_theme_independent = ckanext.dgu.plugin:IndependentThemePlugin
         
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load

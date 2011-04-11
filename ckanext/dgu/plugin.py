@@ -23,8 +23,8 @@ def configure_served_directory(config, relative_path, config_var):
             config[config_var] = absolute_path
 
 
-class ThemePlugin(SingletonPlugin):
-    '''DGU Visual Theme
+class EmbeddedThemePlugin(SingletonPlugin):
+    '''DGU Visual Theme for an install embedded in dgu.
 
     '''
     implements(IConfigurer)
@@ -34,7 +34,20 @@ class ThemePlugin(SingletonPlugin):
         configure_served_directory(config, 'public', 'extra_public_paths')
         configure_served_directory(config, 'theme/templates', 'extra_template_paths')
         configure_served_directory(config, 'theme/public', 'extra_public_paths')
-        print 'TEMPLATES', config['extra_template_paths']
+
+        config['package_form'] = 'package_gov3'
+
+class IndependentThemePlugin(SingletonPlugin):
+    '''DGU Visual Theme for an install independent of dgu.
+
+    '''
+    implements(IConfigurer)
+
+    def update_config(self, config):
+        configure_served_directory(config, 'templates', 'extra_template_paths')
+        configure_served_directory(config, 'public', 'extra_public_paths')
+        configure_served_directory(config, 'theme_indy/templates', 'extra_template_paths')
+        configure_served_directory(config, 'theme_indy/public', 'extra_public_paths')
 
         config['package_form'] = 'package_gov3'
 
