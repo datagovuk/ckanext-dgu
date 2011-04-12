@@ -12,7 +12,7 @@ from ckan.tests.functional.api.test_model import Api1TestCase
 from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
 
-from ckanext.harvest.model import HarvestSource
+from ckanext.harvest.lib import get_harvest_source, create_harvest_source
 
 import ckan.model as model
 import ckan.authz as authz
@@ -50,11 +50,10 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
     @staticmethod
     def get_harvest_source_by_url(source_url, default=Exception):
-        return HarvestSource.get(source_url, default, 'url')
+        return get_harvest_source(source_url,attr='url',default=default)
 
     def create_harvest_source(self, **kwds):
-        source = HarvestSource(**kwds)
-        source.save()
+        source = create_harvest_source(kwds)
         return source
    
     def delete_harvest_source(self, url):
@@ -141,8 +140,8 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
         form_data = form.submit_fields()
         data = {
             'form_data': form_data,
-            'user_ref': 'example publisher user',
-            'publisher_ref': 'example publisher',
+            'user_id': 'example publisher user',
+            'publisher_id': 'example publisher',
         }
         offset = self.offset_harvest_source_create_form()
         return self.post(offset, data, status=status)
@@ -187,8 +186,8 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
         form_data = form.submit_fields()
         data = {
             'form_data': form_data,
-            'user_ref': 'example publisher user',
-            'publisher_ref': 'example publisher',
+            'user_id': 'example publisher user',
+            'publisher_id': 'example publisher',
         }
         offset = self.offset_harvest_source_edit_form(harvest_source_id)
         return self.post(offset, data, status=status)
@@ -426,22 +425,25 @@ class FormsApiTestCase(BaseFormsApiCase):
     def test_get_harvest_source_create_form(self):
         form = self.get_harvest_source_create_form()
         self.assert_formfield(form, 'HarvestSource--url', '')
+        self.assert_formfield(form, 'HarvestSource--type', '')
         self.assert_formfield(form, 'HarvestSource--description', '')
 
     def test_submit_harvest_source_create_form_valid(self):
         source_url = u'http://localhost/'
+        source_type= u'Gemini'
         source_description = u'My harvest source.'
         assert not self.get_harvest_source_by_url(source_url, None)
-        res = self.post_harvest_source_create_form(url=source_url, description=source_description)
+        res = self.post_harvest_source_create_form(url=source_url,type=source_type,description=source_description)
         self.assert_header(res, 'Location')
         # Todo: Check the Location looks promising (extract and check given ID).
         self.assert_blank_response(res)
         source = self.get_harvest_source_by_url(source_url) # Todo: Use extracted ID.
-        assert_equal(source.user_ref, 'example publisher user')
-        assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source['user_id'], 'example publisher user')
+        assert_equal(source['publisher_id'], 'example publisher')
 
     def test_submit_harvest_source_create_form_invalid(self):
         source_url = u'' # Blank URL.
+        source_type= u'Gemini'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
@@ -449,45 +451,61 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
 
         source_url = u'something' # Not '^http://'
+        source_type= u'Gemini'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
         assert "URL for source of metadata: Harvest source URL is invalid" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
+        source_url = u'http://localhost' # Good URL but no type
+        source_type = u''
+        assert not self.get_harvest_source_by_url(source_url, None)
+        res = self.post_harvest_source_create_form(url=source_url, type=source_type,status=[400])
+        self.assert_not_header(res, 'Location')
+        assert "Source Type: Please enter a value" in res.body, res.body
+        assert not self.get_harvest_source_by_url(source_url, None)
+
+
+
     def test_get_harvest_source_edit_form(self):
         source_url = u'http://'
+        source_type = u'Gemini'
         source_description = u'An example harvest source.'
-        self.harvest_source = self.create_harvest_source(url=source_url, description=source_description)
-        form = self.get_harvest_source_edit_form(self.harvest_source.id)
-        self.assert_formfield(form, 'HarvestSource-%s-url' % self.harvest_source.id, source_url)
-        self.assert_formfield(form, 'HarvestSource-%s-description' % self.harvest_source.id, source_description)
+        self.harvest_source = self.create_harvest_source(url=source_url,type=source_type,description=source_description)
+        form = self.get_harvest_source_edit_form(self.harvest_source['id'])
+        self.assert_formfield(form, 'HarvestSource-%s-url' % self.harvest_source['id'], source_url)
+        self.assert_formfield(form, 'HarvestSource-%s-type' % self.harvest_source['id'], source_type)
+        self.assert_formfield(form, 'HarvestSource-%s-description' % self.harvest_source['id'], source_description)
  
     def test_submit_harvest_source_edit_form_valid(self):
         source_url = u'http://'
+        source_type = u'Gemini'
         source_description = u'An example harvest source.'
         alt_source_url = u'http://a'
+        alt_source_type = u'GeminiWaf'
         alt_source_description = u'An old example harvest source.'
-        self.harvest_source = self.create_harvest_source(url=source_url, description=source_description)
+        self.harvest_source = self.create_harvest_source(url=source_url, type=source_type,description=source_description)
         assert self.get_harvest_source_by_url(source_url, None)
         assert not self.get_harvest_source_by_url(alt_source_url, None)
-        res = self.post_harvest_source_edit_form(self.harvest_source.id, url=alt_source_url, description=alt_source_description)
+        res = self.post_harvest_source_edit_form(self.harvest_source['id'], url=alt_source_url, type=alt_source_type,description=alt_source_description)
         self.assert_not_header(res, 'Location')
         # Todo: Check the Location looks promising (extract and check given ID).
         self.assert_blank_response(res)
         assert not self.get_harvest_source_by_url(source_url, None)
         source = self.get_harvest_source_by_url(alt_source_url) # Todo: Use extracted ID.
         assert source
-        assert_equal(source.user_ref, 'example publisher user')
-        assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source['user_id'], 'example publisher user')
+        assert_equal(source['publisher_id'], 'example publisher')
 
     def test_submit_harvest_source_edit_form_invalid(self):
         source_url = u'http://'
+        source_type = u'Gemini'
         source_description = u'An example harvest source.'
         alt_source_url = u''
-        self.harvest_source = self.create_harvest_source(url=source_url, description=source_description)
+        self.harvest_source = self.create_harvest_source(url=source_url, type=source_type,description=source_description)
         assert self.get_harvest_source_by_url(source_url, None)
-        res = self.post_harvest_source_edit_form(self.harvest_source.id, url=alt_source_url, status=[400])
+        res = self.post_harvest_source_edit_form(self.harvest_source['id'], url=alt_source_url, status=[400])
         assert self.get_harvest_source_by_url(source_url, None)
         self.assert_not_header(res, 'Location')
         assert "URL for source of metadata: Please enter a value" in res.body, res.body
@@ -549,11 +567,12 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
     def check_edit_harvest_source(self, username, expect_success=True):
         # create a harvest source
         source_url = u'http://localhost/'
+        source_type = u'Gemini'
         source_description = u'My harvest source.'
         sysadmin = model.User.by_name(u'testsysadmin')
         self.extra_environ={'Authorization' : str(sysadmin.apikey)}
         if not self.get_harvest_source_by_url(source_url, None):
-            res = self.post_harvest_source_create_form(url=source_url, description=source_description)
+            res = self.post_harvest_source_create_form(url=source_url, type=source_type,description=source_description)
         harvest_source = self.get_harvest_source_by_url(source_url, None)
         assert harvest_source
 
@@ -561,7 +580,7 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.extra_environ={'Authorization' : str(user.apikey)}
         expect_status = 200 if expect_success else 403
         
-        form = self.get_harvest_source_edit_form(harvest_source.id, status=expect_status)
+        form = self.get_harvest_source_edit_form(harvest_source['id'], status=expect_status)
 
 
     def remove_default_rights(self):
