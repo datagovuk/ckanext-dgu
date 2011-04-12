@@ -17,14 +17,18 @@ def harvest_source_url_validator(val, field=None):
     if not val.strip().startswith('http://'):
         raise formalchemy.ValidationError('Harvest source URL is invalid (must start with "http://").')
 
+def harvest_source_type_validator(val, field=None):
+    if not val.strip().lower() in ['gemini','geminiwaf','geminidoc']:
+        raise formalchemy.ValidationError('Unknown Harvest Source Type: %s. Please choose between Gemini, GeminiWaf, GeminiDoc' % val)
+
 def build_harvest_source_form():
     builder = FormBuilder(HarvestSource)
     builder.set_field_text('url', 'URL for source of metadata', literal("""
         <br/>This should include the <tt>http://</tt> part of the URL and can point to either:
         <ul>
-            <li>A server's CSW interface</li>
-            <li>A Web Accessible Folder (WAF) displaying a list of GEMINI 2.1 documents</li>
-            <li>A single GEMINI 2.1 document</li>
+            <li>A server's CSW interface (Type: Gemini)</li>
+            <li>A Web Accessible Folder (WAF) displaying a list of GEMINI 2.1 documents (Type: GeminiWaf)</li>
+            <li>A single GEMINI 2.1 document (Type: GeminiDoc)</li>
         </ul>
         <br />
         """
@@ -36,7 +40,13 @@ def build_harvest_source_form():
         You can add your own notes here about what the URL above represents to remind you later.
         '''
     ))
-    displayed_fields = ['url', 'description']
+    builder.set_field_text('type', 'Source Type', literal('''
+        Please provide the source type according to the types described above.
+        '''
+    ))
+    builder.set_field_option('type', 'validate', harvest_source_type_validator)
+#    displayed_fields = ['url','type','active','description']
+    displayed_fields = ['url','type','description']
     builder.set_displayed_fields(OrderedDict([('Details', displayed_fields)]))
     builder.set_label_prettifier(common.prettify)
     return builder  
