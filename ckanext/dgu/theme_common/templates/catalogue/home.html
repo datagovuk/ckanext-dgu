@@ -9,7 +9,7 @@
   <![endif]-->
 <link rel="shortcut icon" href="/images/datagovuk_favicon.png" type="image/x-icon" />
   <link type="text/css" rel="stylesheet" media="all" href="/css/dgu-1.css" />
-<link type="text/css" rel="stylesheet" media="print" href="/css/dgu-2.css" />
+  <link type="text/css" rel="stylesheet" media="print" href="/css/dgu-2.css" />
   <link type="text/css" rel="stylesheet" media="all" href="/css/pagination.css" />
         <!--
   <link type="text/css" rel="stylesheet" media="all" href="http://assets.okfn.org/kforge/css/forms.css" />
@@ -48,9 +48,6 @@
       margin-bottom: 15px;
       padding: 0;
     }
-    #block-block-30 {
-      border: none;
-    }
     /* block witdth is 287px */
     div#block-block-30 p {
       padding: 15px;
@@ -60,13 +57,6 @@
     #secondary {
       border-top: solid 1px lightGrey;
     }
-                #logo-title {
-                        margin-left: 20px;
-                        font-size: 25px;
-                }
-                #logo-title span {
-                        margin-left: 10px;
-                }
                 .pager a, .pager strong.pager-current {
                         display: inline;
                 }
@@ -100,12 +90,18 @@
   </style>
 </head>
 <body class="not-front not-logged-in node-type-page one-sidebar sidebar-right page-data section-data">
-  <div id="page"><div id="page-inner">
-    <a name="navigation-top" id="navigation-top"></a>
-          <div id="skip-to-nav"><a href="#navigation">Skip to Navigation</a></div>
-    <div id="header"><div id="header-inner">
-          <div id="search-box">
-        <!--<form action="/package/search" accept-charset="UTF-8" method="post" id="search-theme-form">
+  <div id="page">
+    <ul id="accesslinks"> 
+      <li id="skip-to-nav"><a href="#navigation_primary">Skip to Navigation</a></li> 
+      <li id="skip-to-content"><a href="#content" accesskey="s">Skip to Content</a></li> 
+    </ul>
+    <div id="header">
+      <div id="login"> 
+        <img src="/images/1x1.gif" alt="HM Government logo" id="logo_hm-government" class="sprite" />
+      </div> <!-- /#login -->
+      <div class="inner"> 
+        <!--<div id="search-box">
+          <form action="/package/search" accept-charset="UTF-8" method="post" id="search-theme-form">
           <div>
             <div id="search" class="container-inline">
   <div class="form-item" id="edit-search-theme-form-1-wrapper">
@@ -116,28 +112,44 @@
 <input name="form_build_id" id="form-3dd791e4fe41e37f7aba644b37ae2b7d" value="form-3dd791e4fe41e37f7aba644b37ae2b7d" type="hidden">
 <input name="form_id" id="edit-search-theme-form" value="search_theme_form" type="hidden">
 </div>
-</div></form>-->
-      </div> 
-<!-- /#search-box -->
-      <div id="logo-title">
-        <div id="logo">
-        <a href="http://data.gov.uk/">
-            <img src="/images/logo.png" alt="data.gov.uk Logo" />
-        </a>
-        </div>
-      </div> <!-- /#logo-title -->
-    </div></div> <!-- /#header-inner, /#header -->
-    <div id="main"><div id="main-inner" class="clear-block with-navbar">
-              <div id="navbar"><div id="navbar-inner" class="clear-block region region-navbar">
+</div></form>
+        </div>--> <!-- /#search-box -->
+
+        <form action="/data" accept-charset="UTF-8" method="post" id="search-theme-form" class="search" role="search" accesskey="4">
+          <div>
+            <div id="search" class="container-inline">
+              <div class="form-item" id="edit-search-theme-form-1-wrapper">
+                <label for="edit-search-theme-form-1">Search this site: </label>
+                <div class="form-text">
+                  <input type="text" maxlength="128" name="search_theme_form" id="edit-search-theme-form-1" size="15" value="" title="Enter the terms you wish to search for." class="form-text  apachesolr-autocomplete unprocessed  form-autocomplete" accesskey="4" autocomplete="off" />
+                </div>
+            </div>
+            <input type="submit" name="op" id="edit-submit-1" value="Search" class="form-submit" />
+            <input type="hidden" name="form_build_id" id="form-b93b79506b40bdfc9e82b0ca85f79fea" value="form-b93b79506b40bdfc9e82b0ca85f79fea" />
+            <input type="hidden" name="form_id" id="edit-search-theme-form" value="search_theme_form" />
+          </div>
+
+        </div></form>
+
+        <div id="logo-title">
+          <div id="logo">
+            <a href="http://data.gov.uk/" id="logo_datagovuk" class="sprite" accesskey="1" title="Back to homepage"><span>Back to homepage</span></a>
+          </div>
+        </div> <!-- /#logo-title -->
+        <span id="slogan" class="sprite"><span>Opening up government data</span></span>
+      </div> <!-- /#inner -->
+      <div id="navbar"><div id="navbar-inner" class="clear-block region region-navbar">
           <a name="navigation" id="navigation"></a>
                       <div id="primary" class="clear-block">
-                        <ul class="links">
+                        <ul id="navigation_primary" class="clear-block">
       <li><a class="active" href="http://data.gov.uk/">Home</a></li>
 </ul>            </div> <!-- /#primary -->
           <div id="block-block-39" class="block block-block region-odd odd region-count-1 count-3"><div class="block-inner">
 
-    </div></div> <!-- /block-inner, /block -->
-  </div></div> <!-- /#navbar-inner, /#navbar -->
+          </div></div> <!-- /block-inner, /block -->
+      </div></div> <!-- /#navbar-inner, /#navbar -->
+    </div> <!-- /#header -->
+    <div id="main">
             <div id="content"><div id="content-inner">
                 <div id="content-header">
                 </div> <!-- /#content-header -->
@@ -165,7 +177,7 @@
     </div>
 </div></div> <!-- /block-inner, /block -->
         </div></div> <!-- /#sidebar-right-inner, /#sidebar-right -->
-    </div></div> <!-- /#main-inner, /#main -->
+    </div> <!-- /#main -->
     <div id="secondary" class="clear-block">
               <ul class="links"><li class="menu-371 first"><a href="http://data.gov.uk/terms-and-conditions" title="Terms / Privacy">Terms and conditions</a></li>
 <li class="menu-416"><a href="http://data.gov.uk/code-conduct" title="Code of conduct">Code of conduct</a></li>
@@ -177,5 +189,5 @@
 <li class="menu-2123"><a href="http://data.gov.uk/privacy" title="Privacy">Privacy</a></li>
 <li class="menu-2786 last"><a href="http://data.gov.uk/sitemap" title="">Sitemap</a></li>
 </ul>            </div> <!-- /#secondary -->
-            </div></div> <!-- /#page-inner, /#page -->
+            </div> <!-- /#page -->
 </body></html>

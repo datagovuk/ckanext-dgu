@@ -10,6 +10,12 @@ import ckanext.dgu
 
 log = getLogger(__name__)
 
+def configure_template_directory(config, relative_path):
+    configure_served_directory(config, relative_path, 'extra_template_paths')
+    print "TEMPLATES", config['extra_template_paths']
+
+def configure_public_directory(config, relative_path):
+    configure_served_directory(config, relative_path, 'extra_public_paths')
 
 def configure_served_directory(config, relative_path, config_var):
     'Configure serving of public/template directories.'
@@ -30,10 +36,10 @@ class EmbeddedThemePlugin(SingletonPlugin):
     implements(IConfigurer)
 
     def update_config(self, config):
-        configure_served_directory(config, 'templates', 'extra_template_paths')
-        configure_served_directory(config, 'public', 'extra_public_paths')
-        configure_served_directory(config, 'theme/templates', 'extra_template_paths')
-        configure_served_directory(config, 'theme/public', 'extra_public_paths')
+        configure_template_directory(config, 'theme_common/templates')
+        configure_public_directory(config, 'theme_common/public')
+        configure_template_directory(config, 'theme_embedded/templates')
+        configure_public_directory(config, 'theme_embedded/public')
 
         config['package_form'] = 'package_gov3'
 
@@ -44,10 +50,10 @@ class IndependentThemePlugin(SingletonPlugin):
     implements(IConfigurer)
 
     def update_config(self, config):
-        configure_served_directory(config, 'templates', 'extra_template_paths')
-        configure_served_directory(config, 'public', 'extra_public_paths')
-        configure_served_directory(config, 'theme_indy/templates', 'extra_template_paths')
-        configure_served_directory(config, 'theme_indy/public', 'extra_public_paths')
+        configure_template_directory(config, 'theme_common/templates')
+        configure_public_directory(config, 'theme_common/public')
+        configure_template_directory(config, 'theme_independent/templates')
+        configure_public_directory(config, 'theme_independent/public')
 
         config['package_form'] = 'package_gov3'
 
@@ -95,8 +101,8 @@ class FormApiPlugin(SingletonPlugin):
         return map
 
     def update_config(self, config):
-        configure_served_directory(config, 'templates', 'extra_template_paths')
-        configure_served_directory(config, 'public', 'extra_public_paths')
+        configure_template_directory(config, 'theme_common/templates')
+        configure_public_directory(config, 'theme_common/public')
 
         # set the customised package form (see ``setup.py`` for entry point)
         config['package_form'] = 'package_gov3'
