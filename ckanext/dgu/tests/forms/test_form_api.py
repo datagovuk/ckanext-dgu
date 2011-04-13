@@ -425,7 +425,7 @@ class FormsApiTestCase(BaseFormsApiCase):
     def test_get_harvest_source_create_form(self):
         form = self.get_harvest_source_create_form()
         self.assert_formfield(form, 'HarvestSource--url', '')
-        self.assert_formfield(form, 'HarvestSource--type', '')
+        self.assert_formfield(form, 'HarvestSource--type', 'Gemini')
         self.assert_formfield(form, 'HarvestSource--description', '')
 
     def test_submit_harvest_source_create_form_valid(self):
@@ -457,15 +457,6 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.assert_not_header(res, 'Location')
         assert "URL for source of metadata: Harvest source URL is invalid" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
-
-        source_url = u'http://localhost' # Good URL but no type
-        source_type = u''
-        assert not self.get_harvest_source_by_url(source_url, None)
-        res = self.post_harvest_source_create_form(url=source_url, type=source_type,status=[400])
-        self.assert_not_header(res, 'Location')
-        assert "Source Type: Please enter a value" in res.body, res.body
-        assert not self.get_harvest_source_by_url(source_url, None)
-
 
 
     def test_get_harvest_source_edit_form(self):

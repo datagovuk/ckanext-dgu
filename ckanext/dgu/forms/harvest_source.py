@@ -45,6 +45,7 @@ def build_harvest_source_form():
         '''
     ))
     builder.set_field_option('type', 'validate', harvest_source_type_validator)
+    builder.set_field_option('type', 'dropdown', {'options':['Gemini','GeminiWaf','GeminiDoc']})
 #    displayed_fields = ['url','type','active','description']
     displayed_fields = ['url','type','description']
     builder.set_displayed_fields(OrderedDict([('Details', displayed_fields)]))
