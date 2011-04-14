@@ -2,14 +2,14 @@ from pylons import config
 from nose.tools import assert_equal, assert_raises
 
 from ckanext.dgu.tests import MockDrupalCase
-from ckanext.dgu.testtools.mock_drupal import get_mock_drupal_config
+from ckanext.dgu.testtools.mock_drupal import get_mock_drupal_config, MOCK_DRUPAL_URL
 from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 
 class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
         assert config['dgu.xmlrpc_domain']
         url = DrupalClient.get_xmlrpc_url()
-        assert_equal(url, 'http://localhost:8000/services/xmlrpc')
+        assert_equal(url, MOCK_DRUPAL_URL)
 
     def test_get_user_properties(self):
         drupal_config = get_mock_drupal_config()

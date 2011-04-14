@@ -3,9 +3,10 @@ import xmlrpclib
 from nose.tools import assert_equal, assert_raises
 
 from ckanext.dgu.tests import MockDrupalCase
+from ckanext.dgu.testtools.mock_drupal import MOCK_DRUPAL_URL
         
 class TestMockDrupal(MockDrupalCase):
-    s = xmlrpclib.ServerProxy('http://localhost:8000/services/xmlrpc')
+    s = xmlrpclib.ServerProxy(MOCK_DRUPAL_URL)
 
     def test_user_get(self):
         user = self.s.user.get('62')

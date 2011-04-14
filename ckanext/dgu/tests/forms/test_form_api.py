@@ -245,6 +245,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     @classmethod
     def setup_class(cls):
+        super(FormsApiTestCase, cls).setup_class()
 	from ckanext.harvest.model import setup as harvest_setup
 	harvest_setup()
 
@@ -271,7 +272,11 @@ class FormsApiTestCase(BaseFormsApiCase):
     def teardown(self):
         model.repo.rebuild_db()
         model.Session.connection().invalidate()
-        
+
+    @classmethod
+    def teardown_class(cls):
+        super(FormsApiTestCase, cls).teardown_class()        
+
     def get_field_names(self, form):
         return form.fields.keys()
 
