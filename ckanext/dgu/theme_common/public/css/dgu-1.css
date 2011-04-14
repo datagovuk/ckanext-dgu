@@ -245,7 +245,7 @@ padding: 0;
 div#sidebar-right li.widget-container { 
   list-style-type: none;
 }
-div.node-inner h2, div#sidebar-right h2, div#block-data_gov_uk_custom-blogslist h2, div.view-blog-posts h2, h2#comments-title, body.section-search div#main h2 {
+div.node-inner h2, div#sidebar-right h2, div#block-data_gov_uk_custom-blogslist h2, div.view-blog-posts h2, h2#comments-title, body.section-search div#main h2, #content h2, #content h3 {
   background: #3B393F;
 }
 #content h1, #content h2, #content h3, #content h4, #content h5, #content h6 {
@@ -297,4 +297,53 @@ select, input, button, textarea, button {
 }
 #navbar #primary {
   padding-top: 0px;
+}
+p.atom-feed-link a {
+  background: url('../images/icons/atom_feed.png') no-repeat;
+  padding-left: 20px;
+}
+p.atom-feed-link {
+  font-size: 14px;
+}
+#content .subsection h3, #content #comments h3, #content #comments h4 {
+  background-color: #444;
+  padding: 10px;
+  color: white;
+}
+#content h3 {
+  color: white;
+  font-size: 1em;
+  padding: 8px 15px;
+  margin: 0 0 15px 0;
+}
+table th, table td {
+  border: 1px solid #CCC;
+  border-top-color: #EEE;
+  border-left-color: #EEE;
+  padding: 0.3em;
+}
+#content tr td {
+  border-top: 1px solid #E7E7E7;
+  padding: 6px 24px;
+}
+#content tr td {
+  padding: 6px 10px;
+}
+.package .details td {
+  background: transparent;
+  border: none;
+}
+.package .details table tr {
+  border: none;
+  border-bottom: solid 1px #888;
+}
+#content table {
+  border: 1px solid #E7E7E7;
+  text-align: left;
+  margin: 0 -1px 24px 0;
+  width: 100%;
+}
+#sidebar-right .widget-container {
+  padding: 10px;
+  border: 1px solid white;
 }
