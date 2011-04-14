@@ -8,6 +8,13 @@ from ckan.plugins import IConfigurer
 from ckan.plugins import IGenshiStreamFilter
 import ckanext.dgu
 
+from ckan.model import Session
+from ckanext.harvest.model import HarvestObject
+
+import ckanext.dgu.forms.html as html
+from genshi.input import HTML
+from genshi.filters import Transformer
+
 log = getLogger(__name__)
 
 def configure_template_directory(config, relative_path):
@@ -117,10 +124,10 @@ class FormApiPlugin(SingletonPlugin):
 
             is_inspire = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'INSPIRE']
             if is_inspire and is_inspire[0] == 'True':
-                # We need the guid from HarvestedDocument!
-                doc = model.Session.query(HarvestedDocument). \
-                      filter(HarvestedDocument.package_id==c.pkg.id). \
-                      order_by(HarvestedDocument.created.desc()). \
+                # We need the guid from the HarvestedObject!
+                doc = Session.query(HarvestObject). \
+                      filter(HarvestObject.package_id==c.pkg.id). \
+                      order_by(HarvestObject.created.desc()). \
                       limit(1).first()
                 if doc:
                     data = {'guid': doc.guid}
