@@ -347,3 +347,8 @@ table th, table td {
   padding: 10px;
   border: 1px solid white;
 }
+#navigation_primary li.home-icon a {
+  background: url("/images/icon_home_white.png") 50% 50% no-repeat;
+  text-indent: -50000px;
+  outline: none;
+}
