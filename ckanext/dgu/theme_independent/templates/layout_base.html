@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  >
+
+<xi:include href="_util.html" />
+
+<head>
+  <title>${page_title()} - ${g.site_title}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link rel="shortcut icon" href="${g.favicon}" type="image/x-icon" />
+  <py:choose>
+  <py:when test="defined('optional_feed')">
+    ${optional_feed()}
+  </py:when>
+  <py:otherwise>
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History" href="${h.url_for(controller='revision', action='list', id=None, format='atom', days=1)}" />
+  </py:otherwise>
+  </py:choose>
+
+<!--  <link rel="stylesheet" href="${g.site_url}/css/style.css" type="text/css" media="screen, print" /> -->
+
+  <!--[if IE]>
+  <link rel="stylesheet" href="${g.site_url}/css/ie.css" type="text/css" media="screen, print" />
+  <![endif]-->
+  
+  <link rel="shortcut icon" href="http://data.gov.uk/sites/default/files/datagovuk_favicon.png" type="image/x-icon" />
+  <link type="text/css" rel="stylesheet" media="all" href="http://assets.okfn.org/kforge/css/pagination.css" />
+  <link type="text/css" rel="stylesheet" media="all" href="/css/dgu-1.css" />
+  <link type="text/css" rel="stylesheet" media="print" href="/css/dgu-2.css" />
+  <!--[if IE 7]>
+    <link type="text/css" rel="stylesheet" media="all" href="http://data.gov.uk/sites/all/themes/datagovuk/css/ie7.css" />
+  <![endif]-->   
+  <!--[if IE 6]>
+    <link type="text/css" rel="stylesheet" media="all" href="http://data.gov.uk/sites/all/themes/datagovuk/css/ie6.css" />
+  <![endif]-->
+
+  <script type="text/javascript" src="${g.site_url}/language.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+  <script src="http://assets.okfn.org/ext/jquery.cookie/jquery.cookie.min.js"></script>
+  <script src="http://assets.okfn.org/ext/jquery.placeholder/jquery.placeholder.js"></script>
+  <script type="text/javascript" src="${g.site_url}/scripts/application.js"></script>
+  
+  <script type="text/javascript">
+    $(document).ready(function() {
+        var ckan_user = $.cookie("ckan_display_name");
+        if (ckan_user) {
+            $(".ckan-logged-out").hide();
+            $(".ckan-logged-in").show();
+        }
+        $('input[placeholder], textarea[placeholder]').placeholder();
+    });
+  </script>
+  <style type="text/css">
+    /* ckan page headings are h2 */
+    #content h2 {
+      color: black;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 30px;
+      font-style: normal;
+      font-variant: normal;
+      font-weight: bold;
+      background: transparent;
+      margin: 0;
+      margin-bottom: 15px;
+      padding: 0;
+    }
+
+    #block-block-30 {
+      border: none;
+    }
+
+    /* block witdth is 287px */
+    div#block-block-30 p {
+      padding: 15px;
+      padding-bottom: 0px;
+      width: 257px;
+    }
+
+    #secondary {
+      border-top: solid 1px lightGrey;
+    }
+
+    #logo-title {
+    	margin-left: 20px;
+    	font-size: 25px;
+        height: 50px;
+    }
+
+    #logo-title span {
+    	margin-left: 10px;
+    }
+  </style>
+  <py:if test="defined('optional_head')">
+    ${optional_head()}
+  </py:if>
+</head>
+
+<body class="not-front not-logged-in node-type-page one-sidebar sidebar-right page-data section-data">
+            
+  <div id="page">
+    <ul id="accesslinks"> 
+      <li id="skip-to-nav"><a href="#navigation_primary">Skip to Navigation</a></li> 
+      <li id="skip-to-content"><a href="#content" accesskey="s">Skip to Content</a></li> 
+    </ul>
+
+    <div id="header" role="banner"> 
+      <div id="login"> 
+        <img src="/images/1x1.gif" alt="HM Government logo" id="logo_hm-government" class="sprite" /> 
+                  <span class="ckan_logged_in" style="display: none;">
+                    Logged in as <strong>${h.icon('openid')} <span id="ckan_user_name">username</span></strong>
+                    &middot; <a href="${h.url_for(controller='user',action=None,id=None)}">My account</a>
+          	    &middot; <a href="${h.url_for('/logout_openid')}">Logout</a>
+                  </span>
+                  <span class="ckan_logged_out">
+                    <a href="${h.url_for(controller='user',action='login', id=None)}">Login with ${h.icon('openid')} OpenID</a>
+                  </span>
+
+<!--        <a href="/user">Log in</a> or <a href="/user/register">sign up</a>    -->
+      </div>
+      <div class="inner">
+       <div id="search-box">
+        <form action="${h.url_for(controller='package', action='search', id=None)}" accept-charset="UTF-8" method="post" id="search-theme-form" class="search">
+          <div>
+            <div id="search" class="container-inline">
+              <div class="form-item" id="edit-search-theme-form-1-wrapper">
+                <input type="text" class="form-text" name="q" value="" autocomplete="off" results="5" title="Search..."/>
+<!--                <input type="text" maxlength="128" name="q" id="edit-search-theme-form-1" size="15" value="" title="Enter the terms you wish to search for." class="form-text" />-->
+              </div>
+              <input type="submit" name="op" id="edit-submit-1" value="Search"  class="form-submit" />
+              <input type="hidden" name="form_build_id" id="form-3dd791e4fe41e37f7aba644b37ae2b7d" value="form-3dd791e4fe41e37f7aba644b37ae2b7d"  />
+              <input type="hidden" name="form_id" id="edit-search-theme-form" value="search_theme_form"  />
+            </div>
+
+          </div>
+        </form>
+       </div> <!-- /#search-box -->
+       <div id="logo-title">
+        <a href="${h.url_for('home')}">
+          <py:if test="g.site_logo">
+            <img src="${g.site_logo}" alt="${g.site_title} Logo" />
+          </py:if>
+            <span class="logo-title-text">
+            ${g.site_title}
+            </span>
+        </a>
+        <div id="site-description">${g.site_description}</div>
+       </div> <!-- /#logo-title -->
+      
+      
+      </div> <!-- /#inner -->
+      <div id="navbar" class="clearfix">
+         <div id="navbar-inner" class="clear-block region region-navbar">
+          <a name="navigation" id="navigation"></a>
+          <div id="primary" class="clear-block">
+            <ul id="navigation_primary" class="links clearfix">
+              <li class="first">${h.nav_link(c, _('Home'), controller='home', action='index', id=None)}</li>
+              <li>${h.nav_link(c, _('Search'), controller='package', action='index', id=None, highlight_actions = 'search index')}</li>
+              <li py:if="h.am_authorized(c, actions.PACKAGE_CREATE)">${h.nav_link(c, _('Add a package'), controller='package', action='new', id=None)}</li>
+              <li>${h.nav_link(c, _('Tags'), controller='tag', action='index', id=None)}</li>
+              <li class="last">${h.nav_link(c, _('Groups'), controller='group', action='index', id=None, highlight_actions = 'new index')}</li>
+            </ul>
+
+          </div> <!-- /#primary -->
+         </div> <!-- /#navbar-inner -->
+      </div> <!-- /#navbar -->
+    </div> <!-- /#header -->
+
+    <div id="main">
+      <div id="main-inner" class="clear-block with-navbar">
+        <div id="content">
+          <div id="content-inner">
+            <div id="content-header">
+            </div> <!-- /#content-header -->
+            <div id="content-area">
+              <div id="node-3" class="node node-type-page">
+                <div class="node-inner">
+
+                  <div class="content">
+                    <content>
+                    </content>
+                  </div>
+
+                </div> <!-- /node-inner -->
+              </div> <!-- /node -->
+            </div> <!-- /content-area -->
+
+          </div> <!-- /#content-inner -->
+        </div> <!-- /#content -->
+
+      
+        <div id="sidebar-right">
+          <div id="sidebar-right-inner" class="region region-right">
+            <div id="block-block-30" class="block block-block region-odd odd region-count-1 count-1">
+              <div class="block-inner">
+
+                <primarysidebar>
+                  <!-- Primary Side Bar Goes Here -->
+                </primarysidebar>
+  
+              </div> <!-- /block-inner -->
+            </div> <!-- /block -->
+          </div> <!-- /#sidebar-right-inner -->
+        </div> <!-- /#sidebar-right -->
+            
+      </div> <!-- /#main-inner -->
+    </div> <!-- /#main -->
+
+    <div id="secondary" class="clear-block">
+      <ul class="links">
+        <li class="first">${h.nav_link(c, _('About'), controller='home', action='about', id=None)}</li>
+        <li class=""><a href="http://ckan.org/" title="CKAN" rel="generator">CKAN project</a></li>
+        <li class=""><a href="http://www.okfn.org/contact/">Contact Us</a></li>
+        <li class="">${h.link_to(_('API'), h.url_for(controller='rest', action='get_api', id=None))}</li>
+        <li>${h.link_to(_('API Documentation'), 'http://ckan.org/wiki/API')}</li>
+        <li class="last">${g.site_title} 
+               <span i18n:msg="version">
+                  v${c.__version__}
+               </span>
+        </li>
+      </ul>
+    </div> <!-- /#secondary -->
+  </div> <!-- /#page -->
+
+${h.literal(getattr(g, 'template_footer_end', ''))}
+</body>
+</html>

@@ -17,6 +17,54 @@ from genshi.filters import Transformer
 
 log = getLogger(__name__)
 
+def configure_template_directory(config, relative_path):
+    configure_served_directory(config, relative_path, 'extra_template_paths')
+    print "TEMPLATES", config['extra_template_paths']
+
+def configure_public_directory(config, relative_path):
+    configure_served_directory(config, relative_path, 'extra_public_paths')
+
+def configure_served_directory(config, relative_path, config_var):
+    'Configure serving of public/template directories.'
+    assert config_var in ('extra_template_paths', 'extra_public_paths')
+    this_dir = os.path.dirname(ckanext.dgu.__file__)
+    absolute_path = os.path.join(this_dir, relative_path)
+    if absolute_path not in config.get(config_var, ''):
+        if config.get(config_var):
+            config[config_var] += ',' + absolute_path
+        else:
+            config[config_var] = absolute_path
+
+
+class EmbeddedThemePlugin(SingletonPlugin):
+    '''DGU Visual Theme for an install embedded in dgu.
+
+    '''
+    implements(IConfigurer)
+
+    def update_config(self, config):
+        configure_template_directory(config, 'theme_common/templates')
+        configure_public_directory(config, 'theme_common/public')
+        configure_template_directory(config, 'theme_embedded/templates')
+        configure_public_directory(config, 'theme_embedded/public')
+
+        config['package_form'] = 'package_gov3'
+
+class IndependentThemePlugin(SingletonPlugin):
+    '''DGU Visual Theme for an install independent of dgu.
+
+    '''
+    implements(IConfigurer)
+
+    def update_config(self, config):
+        configure_template_directory(config, 'theme_common/templates')
+        configure_public_directory(config, 'theme_common/public')
+        configure_template_directory(config, 'theme_independent/templates')
+        configure_public_directory(config, 'theme_independent/public')
+
+        config['package_form'] = 'package_gov3'
+
+
 class FormApiPlugin(SingletonPlugin):
     """
     Configures the Form API and harvesting used by Drupal.
@@ -60,19 +108,11 @@ class FormApiPlugin(SingletonPlugin):
         return map
 
     def update_config(self, config):
-        rootdir = os.path.dirname(ckanext.dgu.__file__)
+        configure_template_directory(config, 'theme_common/templates')
+        configure_public_directory(config, 'theme_common/public')
 
-        template_dir = os.path.join(rootdir, 'templates')
-        public_dir = os.path.join(rootdir, 'public')
-
-        if config.get('extra_template_paths'):
-            config['extra_template_paths'] += ',' + template_dir
-        else:
-            config['extra_template_paths'] = template_dir
-        if config.get('extra_public_paths'):
-            config['extra_public_paths'] += ',' + public_dir
-        else:
-            config['extra_public_paths'] = public_dir
+        # set the customised package form (see ``setup.py`` for entry point)
+        config['package_form'] = 'package_gov3'
 
     def filter(self, stream):
 
