@@ -242,6 +242,12 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
 
 class FormsApiTestCase(BaseFormsApiCase):
+
+    @classmethod
+    def setup_class(cls):
+	from ckanext.harvest.model import setup as harvest_setup
+	harvest_setup()
+
     def setup(self):
         model.repo.init_db()
         CreateTestData.create()
