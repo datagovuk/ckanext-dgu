@@ -36,6 +36,7 @@ class FormController(ApiController):
     """Implements the CKAN Forms API."""
 
     api_version = "1"
+    _ref_package = "name"
     error_content_type = 'json'
     authorizer = ckan.authz.Authorizer()
 
@@ -185,7 +186,7 @@ class FormController(ApiController):
     def _make_package_201_location(cls, package):
         location = '/api'
         location += cls._make_version_part()
-        package_ref = cls._ref_package(package)
+        package_ref = getattr(package, cls._ref_package)
         location += '/rest/package/%s' % package_ref
         return location
 
@@ -569,5 +570,5 @@ class FormController(ApiController):
 
 class Form2Controller(FormController):
     api_version = "2"
-
+    _ref_package = "id"
 

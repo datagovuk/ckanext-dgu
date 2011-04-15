@@ -246,8 +246,8 @@ class FormsApiTestCase(BaseFormsApiCase):
     @classmethod
     def setup_class(cls):
         super(FormsApiTestCase, cls).setup_class()
-	from ckanext.harvest.model import setup as harvest_setup
-	harvest_setup()
+        from ckanext.harvest.model import setup as harvest_setup
+        harvest_setup()
 
     def setup(self):
         model.repo.init_db()
