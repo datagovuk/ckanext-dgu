@@ -9,7 +9,7 @@ from ckan.lib.helpers import json
 import ckan.controllers.package
 from ckan.lib.package_saver import WritePackageFromBoundFieldset
 from ckan.lib.package_saver import ValidationException
-from ckan.controllers.rest import BaseApiController, ApiVersion1, ApiVersion2
+from ckan.controllers.api import ApiController
 
 from ckanext.dgu.forms import harvest_source as harvest_source_form
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
@@ -32,9 +32,10 @@ class ApiError(Exception):
         self.msg = msg
         self.status_int = status_int
 
-class BaseFormController(BaseApiController):
+class FormController(ApiController):
     """Implements the CKAN Forms API."""
 
+    api_version = "1"
     error_content_type = 'json'
     authorizer = ckan.authz.Authorizer()
 
@@ -92,7 +93,7 @@ class BaseFormController(BaseApiController):
                 # restrict national_statistic field - only for edit on ckan
                 'restrict': True,
                 }
-        return super(BaseFormController, cls)._get_package_fieldset(**fieldset_params)
+        return super(ApiController, cls)._get_package_fieldset(**fieldset_params)
 
     @classmethod
     def _ref_harvest_source(cls, harvest_source):
@@ -163,7 +164,7 @@ class BaseFormController(BaseApiController):
                     log.info('Package create successful. user=%r author=%r data=%r', user.name, author, form_data)
                     location = self._make_package_201_location(package)
                     return self._finish_ok(\
-                        newly_created_resource_location=location)
+                        resource_location=location)
         except DrupalRequestError, e:
             log.error('Package create - DrupalRequestError: exception=%r', traceback.format_exc())
             raise
@@ -408,7 +409,7 @@ class BaseFormController(BaseApiController):
                     # Set the response's Location header.
                     location = self._make_harvest_source_201_location(source)
                     return self._finish_ok(\
-                        newly_created_resource_location=location)
+                        resource_location=location)
         except ApiError, api_error:
             return self._finish(api_error.status_int, str(api_error.msg))
         except Exception:
@@ -561,15 +562,12 @@ class BaseFormController(BaseApiController):
 
     def get_department_from_publisher(self, id):
         try:
-            department = BaseFormController._drupal_client().get_department_from_publisher(id)
+            department = self.__class__._drupal_client().get_department_from_publisher(id)
         except DrupalRequestError, e:
             abort(500, 'Error making internal request: %r' % e)
         return self._finish_ok(department)
 
+class Form2Controller(FormController):
+    api_version = "2"
 
-class FormController(ApiVersion1, BaseFormController):
-    pass
-
-class Form2Controller(ApiVersion2, BaseFormController):
-    pass
 
