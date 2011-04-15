@@ -6,7 +6,7 @@ from pylons import config
 
 from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import WsgiAppCase
-
+from ckanext.dgu.testtools.mock_drupal import MOCK_DRUPAL_URL
 
 # Invoke websetup with the current config file
 SetupCommand('setup-app').run([config['__file__']])
@@ -192,7 +192,7 @@ class PackageDictUtil(object):
 
 
 class MockDrupalCase(BaseCase):
-    xmlrpc_url = 'http://localhost:8000/services/xmlrpc'
+    xmlrpc_url = MOCK_DRUPAL_URL
     xmlrpc_settings = {'xmlrpc_url': xmlrpc_url}
     
     @classmethod
