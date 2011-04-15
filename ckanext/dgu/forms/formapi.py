@@ -311,15 +311,17 @@ class FormController(ApiController):
         obj = HarvestSource.get(id, default=None)
         return obj
 
-    def harvest_source_list(self):
+    def harvest_source_list(self, id=None):
         try:
             # Check user authorization.
             user = self._get_required_authorization_credentials()
             am_authz = self.authorizer.is_sysadmin(user.name) # simple for now
             if not am_authz:
                 self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
-            
-            objects = get_harvest_sources()
+            if id == None: 
+                objects = get_harvest_sources()
+            else:
+                objects = get_harvest_sources(publisher_id=id)
             response_data = [o['id'] for o in objects]
             return self._finish_ok(response_data)
         except ApiError, api_error:
