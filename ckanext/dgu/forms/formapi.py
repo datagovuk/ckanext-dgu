@@ -17,6 +17,7 @@ from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
 
 from ckanext.harvest.model import HarvestSource
 from ckanext.harvest.lib import get_harvest_sources, get_harvest_source, \
+                                create_harvest_source, edit_harvest_source, \
                                 remove_harvest_source,create_harvest_job
 
 import html
@@ -96,7 +97,7 @@ class BaseFormController(BaseApiController):
 
     @classmethod
     def _ref_harvest_source(cls, harvest_source):
-        return getattr(harvest_source, 'id')
+        return harvest_source['id']
 
     # Todo: Refactor package form logic (to have more common functionality
     # between package_create and package_edit)
@@ -385,7 +386,14 @@ class BaseFormController(BaseApiController):
                     self._abort_bad_request()
                 # Validate and save form data.
                 try:
-                    self._create_harvest_source_entity(bound_fieldset, user_id=user_id, publisher_id=publisher_id)
+                    source = create_harvest_source({
+                        'url':form_data['HarvestSource--url'],
+                        'type':form_data['HarvestSource--type'],
+                        'description':form_data['HarvestSource--description'],
+                        'user_id':user_id,
+                        'publisher_id':publisher_id,
+                            })  
+                    #self._create_harvest_source_entity(bound_fieldset, user_id=user_id, publisher_id=publisher_id)
                 except ValidationException, exception:
                     # Get the errorful fieldset.
                     errorful_fieldset = exception.args[0]
@@ -393,18 +401,9 @@ class BaseFormController(BaseApiController):
                     fieldset_html = errorful_fieldset.render()
                     return self._finish(400, fieldset_html)
                 else:
-                    # Retrieve created harvest source entity.
-                    source = bound_fieldset.model
-                    # Set and store the non-form object attributes.
-                    source.user_id = user_id
-                    source.publisher_id = publisher_id
-                    model.Session.add(source)
-
                     # Also create a job
-                    job = create_harvest_job(source.id)
+                    job = create_harvest_job(source['id'])
 
-                    # Save changes
-                    model.Session.commit()
                     # Set the response's Location header.
                     location = self._make_harvest_source_201_location(source)
                     return self._finish_ok(\
@@ -525,6 +524,7 @@ class BaseFormController(BaseApiController):
                 try:
                     form_data['HarvestSource--url'] = form_data.get('HarvestSource--url', '').strip()
                     form_data['HarvestSource--type'] = form_data.get('HarvestSource--type', '').strip()
+                    form_data['HarvestSource--description'] = form_data.get('HarvestSource--description', '').strip()
                     bound_fieldset = fieldset.bind(entity, data=form_data)
                     # Todo: Replace 'Exception' with bind error.
                 except Exception, error:
@@ -537,7 +537,15 @@ class BaseFormController(BaseApiController):
                     if user:
                         author = user.name
                 try:
-                    self._update_harvest_source_entity(id, bound_fieldset, user_id=user_id, publisher_id=publisher_id)
+                    #self._update_harvest_source_entity(id, bound_fieldset, user_id=user_id, publisher_id=publisher_id)
+
+                    edit_harvest_source(id,{
+                        'url':form_data['HarvestSource-%s-url' % id],
+                        'type':form_data['HarvestSource-%s-type' % id ],
+                        'description':form_data['HarvestSource-%s-description' % id ],
+                        'user_id':user_id,
+                        'publisher_id':publisher_id,
+                            })
                 except ValidationException, exception:
                     # Get the errorful fieldset.
                     errorful_fieldset = exception.args[0]
@@ -545,12 +553,6 @@ class BaseFormController(BaseApiController):
                     fieldset_html = errorful_fieldset.render()
                     return self._finish(400, fieldset_html)
                 else:
-                    # Retrieve created harvest source entity.
-                    source = bound_fieldset.model
-                    # Set and store the non-form object attributes.
-                    source.user_id = user_id
-                    source.publisher_id = publisher_id
-                    source.save()
                     return self._finish_ok()
         except ApiError, api_error:
             return self._finish(api_error.status_int, str(api_error.msg))
