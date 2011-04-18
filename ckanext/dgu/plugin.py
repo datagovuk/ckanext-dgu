@@ -6,6 +6,8 @@ from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
 from ckan.plugins import IGenshiStreamFilter
+from ckan.plugins import IMiddleware
+from ckanext.dgu.middleware import AuthAPIMiddleware
 import ckanext.dgu
 
 log = getLogger(__name__)
@@ -27,6 +29,12 @@ def configure_served_directory(config, relative_path, config_var):
             config[config_var] += ',' + absolute_path
         else:
             config[config_var] = absolute_path
+
+class AuthApiPlugin(SingletonPlugin):
+    implements(IMiddleware, inherit=True)
+
+    def make_middleware(self, app, config):
+        return AuthAPIMiddleware(app, config)
 
 
 class EmbeddedThemePlugin(SingletonPlugin):

@@ -63,6 +63,16 @@ class DrupalClient(object):
         log.info('Obtained Drupal user: %r', truncate(unicode(user), 200))
         return user
 
+    def get_user_id_from_session_id(self, session_id):
+        try:
+            session = self.drupal.session.get(session_id)
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal returned error for session_id %r: %r' % (session_id, e))
+        log.info('Obtained Drupal sessino for session ID %r', session_id)
+        return session
+
     def get_department_from_publisher(self, id):
         try:
             department = self.drupal.organisation.department(str(id))
