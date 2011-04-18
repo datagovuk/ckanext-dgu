@@ -10,6 +10,13 @@ from ckan.plugins import IMiddleware
 from ckanext.dgu.middleware import AuthAPIMiddleware
 import ckanext.dgu
 
+from ckan.model import Session
+from ckanext.harvest.model import HarvestObject
+
+import ckanext.dgu.forms.html as html
+from genshi.input import HTML
+from genshi.filters import Transformer
+
 log = getLogger(__name__)
 
 def configure_template_directory(config, relative_path):
@@ -90,6 +97,8 @@ class FormApiPlugin(SingletonPlugin):
         map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
         map.connect('/api/2/rest/harvestsource', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
         map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
+        # I had to add this line!!!!
+        map.connect('/api/2/rest/harvestsource/publisher/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
         map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
                 action='harvesting_job_create',
                 conditions=dict(method=['POST']))
@@ -125,10 +134,10 @@ class FormApiPlugin(SingletonPlugin):
 
             is_inspire = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'INSPIRE']
             if is_inspire and is_inspire[0] == 'True':
-                # We need the guid from HarvestedDocument!
-                doc = model.Session.query(HarvestedDocument). \
-                      filter(HarvestedDocument.package_id==c.pkg.id). \
-                      order_by(HarvestedDocument.created.desc()). \
+                # We need the guid from the HarvestedObject!
+                doc = Session.query(HarvestObject). \
+                      filter(HarvestObject.package_id==c.pkg.id). \
+                      order_by(HarvestObject.created.desc()). \
                       limit(1).first()
                 if doc:
                     data = {'guid': doc.guid}

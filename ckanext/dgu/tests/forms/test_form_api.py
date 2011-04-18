@@ -1,5 +1,4 @@
 import re
-import random
 
 from pylons import config
 import webhelpers
@@ -12,7 +11,7 @@ from ckan.tests.functional.api.test_model import Api1TestCase
 from ckan.tests.functional.api.test_model import Api2TestCase
 from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
 
-from ckanext.harvest.model import HarvestSource
+from ckanext.harvest.lib import get_harvest_source, create_harvest_source
 
 import ckan.model as model
 import ckan.authz as authz
@@ -50,11 +49,10 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
     @staticmethod
     def get_harvest_source_by_url(source_url, default=Exception):
-        return HarvestSource.get(source_url, default, 'url')
+        return get_harvest_source(source_url,attr='url',default=default)
 
     def create_harvest_source(self, **kwds):
-        source = HarvestSource(**kwds)
-        source.save()
+        source = create_harvest_source(kwds)
         return source
    
     def delete_harvest_source(self, url):
@@ -141,8 +139,8 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
         form_data = form.submit_fields()
         data = {
             'form_data': form_data,
-            'user_ref': 'example publisher user',
-            'publisher_ref': 'example publisher',
+            'user_id': 'example publisher user',
+            'publisher_id': 'example publisher',
         }
         offset = self.offset_harvest_source_create_form()
         return self.post(offset, data, status=status)
@@ -187,8 +185,8 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
         form_data = form.submit_fields()
         data = {
             'form_data': form_data,
-            'user_ref': 'example publisher user',
-            'publisher_ref': 'example publisher',
+            'user_id': 'example publisher user',
+            'publisher_id': 'example publisher',
         }
         offset = self.offset_harvest_source_edit_form(harvest_source_id)
         return self.post(offset, data, status=status)
@@ -244,6 +242,13 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
 
 
 class FormsApiTestCase(BaseFormsApiCase):
+
+    @classmethod
+    def setup_class(cls):
+        super(FormsApiTestCase, cls).setup_class()
+        from ckanext.harvest.model import setup as harvest_setup
+        harvest_setup()
+
     def setup(self):
         model.repo.init_db()
         CreateTestData.create()
@@ -267,54 +272,13 @@ class FormsApiTestCase(BaseFormsApiCase):
     def teardown(self):
         model.repo.rebuild_db()
         model.Session.connection().invalidate()
-        
+
+    @classmethod
+    def teardown_class(cls):
+        super(FormsApiTestCase, cls).teardown_class()        
+
     def get_field_names(self, form):
         return form.fields.keys()
-
-    def test_get_package_create_form(self):
-        form, return_status = self.get_package_create_form()
-        self.assert_formfield(form, 'Package--name', '')
-        self.assert_formfield(form, 'Package--title', '')
-        self.assert_formfield(form, 'Package--version', '')
-        self.assert_formfield(form, 'Package--url', '')
-        self.assert_formfield(form, 'Package--notes', '')
-        self.assert_formfield(form, 'Package--resources-0-url', '')
-        self.assert_formfield(form, 'Package--resources-0-format', '')
-        self.assert_formfield(form, 'Package--resources-0-description', '')
-        self.assert_formfield(form, 'Package--resources-0-hash', '')
-        self.assert_formfield(form, 'Package--resources-0-id', '')
-        self.assert_formfield(form, 'Package--author', '')
-        self.assert_formfield(form, 'Package--author_email', '')
-        self.assert_formfield(form, 'Package--maintainer', '')
-        self.assert_formfield(form, 'Package--maintainer_email', '')
-        self.assert_formfield(form, 'Package--license_id', '')
-        self.assert_formfield(form, 'Package--extras-newfield0-key', '')
-        self.assert_formfield(form, 'Package--extras-newfield0-value', '')
-        self.assert_formfield(form, 'Package--extras-newfield1-key', '')
-        self.assert_formfield(form, 'Package--extras-newfield1-value', '')
-        self.assert_formfield(form, 'Package--extras-newfield2-key', '')
-        self.assert_formfield(form, 'Package--extras-newfield2-value', '')
-
-    def test_submit_package_create_form_valid(self):
-        package_name = self.package_name_alt
-        assert not self.get_package_by_name(package_name)
-        res = self.post_package_create_form(name=package_name)
-        self.assert_header(res, 'Location')
-        self.assert_blank_response(res)
-        self.assert_header(res, 'Location', 'http://localhost'+self.package_offset(package_name))
-        pkg = self.get_package_by_name(package_name)
-        assert pkg
-        rev = pkg.revision
-        assert_equal(rev.message, 'Unit-testing the Forms API...')
-        assert_equal(rev.author, 'automated test suite')
-
-    def test_submit_package_create_form_invalid(self):
-        package_name = self.package_name_alt
-        assert not self.get_package_by_name(package_name)
-        res = self.post_package_create_form(name='', status=[400])
-        self.assert_not_header(res, 'Location')
-        assert "Name: Please enter a value" in res.body
-        assert not self.get_package_by_name(package_name)
 
     def test_get_package_edit_form(self):
         package = self.get_package_by_name(self.package_name)
@@ -322,126 +286,28 @@ class FormsApiTestCase(BaseFormsApiCase):
         field_name = 'Package-%s-name' % (package.id)
         self.assert_formfield(form, field_name, package.name)
 
-    def test_submit_package_edit_form_valid(self):
-        package = self.get_package_by_name(self.package_name)
-        res = self.post_package_edit_form(package.id, name=self.package_name_alt)
-        self.assert_blank_response(res)
-        assert not self.get_package_by_name(self.package_name)
-        pkg = self.get_package_by_name(self.package_name_alt)
-        assert pkg
-        rev = pkg.revision
-        assert_equal(rev.message, 'Unit-testing the Forms API...')
-        assert_equal(rev.author, 'automated test suite')
-
-    def test_submit_full_package_edit_form_valid(self):
-        package = self.get_package_by_name(self.package_name)
-        data = {
-            'name':self.package_name_alt,
-            'title':'test title',
-            'version':'1.2',
-            'url':'http://someurl.com/',
-            'notes':'test notes',
-            'tags':'sheep goat fish',
-            'resources-0-url':'http://someurl.com/download.csv',
-            'resources-0-format':'CSV',
-            'resources-0-description':'A csv file',
-            'author':'Brian',
-            'author_email':'brian@company.com',
-            'maintainer':'Jim',
-            'maintainer_email':'jim@company.com',
-            'license_id':'cc-zero',
-            'extras-newfield0-key':'genre',
-            'extras-newfield0-value':'romance',
-            'extras-newfield1-key':'quality',
-            'extras-newfield1-value':'high',
-            }
-        res = self.post_package_edit_form(package.id, **data)
-        self.assert_blank_response(res)
-        assert not self.get_package_by_name(self.package_name)
-        pkg = self.get_package_by_name(self.package_name_alt)
-        assert pkg
-        for key in data.keys():
-            if key.startswith('resources'):
-                subkey = key.split('-')[-1]
-                pkg_value = getattr(pkg.resources[0], subkey)
-            elif key.startswith('extras'):
-                ignore, field_name, subkey = key.split('-')
-                extra_index = int(field_name[-1])
-                if subkey == 'key':
-                    continue
-                extra_key_subkey = '-'.join(('extras', field_name, 'key'))
-                extra_key = data[extra_key_subkey]
-                pkg_value = pkg.extras[extra_key]
-            elif key == 'tags':
-                pkg_value = set([tag.name for tag in pkg.tags])
-                data[key] = set(data[key].split())
-            else:
-                pkg_value = getattr(pkg, key)
-            assert pkg_value == data[key], '%r should be %r but is %r' % (key, data[key], pkg_value)
-
-    def test_submit_package_edit_form_errors(self):
-        package = self.get_package_by_name(self.package_name)
-        package_id = package.id
-        # Nothing in name.
-        invalid_name = ''
-        maintainer_email = "foo@baz.com"
-        res = self.post_package_edit_form(package_id,
-                                          name=invalid_name,
-                                          maintainer_email=maintainer_email,
-                                          status=[400])
-        # Check package is unchanged.
-        assert self.get_package_by_name(self.package_name)
-        # Check response is an error form.
-        assert "class=\"field_error\"" in res
-        form = self.form_from_res(res)
-        name_field_name = 'Package-%s-name' % (package_id)
-        maintainer_field_name = 'Package-%s-maintainer_email' % (package_id)
-        # this test used to be 
-        #   self.assert_formfield(form, field_name, invalid_name)
-        # but since the formalchemy upgrade, we no longer sync data to
-        # the model if the validation fails (as this would cause an
-        # IntegrityError at the database level).
-        # and formalchemy.fields.FieldRenderer.value renders the model
-        # value if the passed in value is an empty string
-        self.assert_formfield(form, name_field_name, package.name)
-        # however, other fields which aren't blank should be preserved
-        self.assert_formfield(form, maintainer_field_name, maintainer_email)
-
-        # Whitespace in name.
-        invalid_name = ' '
-        res = self.post_package_edit_form(package_id, name=invalid_name, status=[400])
-        # Check package is unchanged.
-        assert self.get_package_by_name(self.package_name)
-        # Check response is an error form.
-        assert "class=\"field_error\"" in res
-        form = self.form_from_res(res)
-        field_name = 'Package-%s-name' % (package_id)
-        self.assert_formfield(form, field_name, invalid_name)
-        # Check submitting error form with corrected values is OK.
-        res = self.post_package_edit_form(package_id, form=form, name=self.package_name_alt)
-        self.assert_blank_response(res)
-        assert not self.get_package_by_name(self.package_name)
-        assert self.get_package_by_name(self.package_name_alt)
-
     def test_get_harvest_source_create_form(self):
         form = self.get_harvest_source_create_form()
         self.assert_formfield(form, 'HarvestSource--url', '')
+        self.assert_formfield(form, 'HarvestSource--type', 'CSW Server')
         self.assert_formfield(form, 'HarvestSource--description', '')
 
     def test_submit_harvest_source_create_form_valid(self):
         source_url = u'http://localhost/'
+        source_type= u'CSW Server'
         source_description = u'My harvest source.'
         assert not self.get_harvest_source_by_url(source_url, None)
-        res = self.post_harvest_source_create_form(url=source_url, description=source_description)
+        res = self.post_harvest_source_create_form(url=source_url,type=source_type,description=source_description)
         self.assert_header(res, 'Location')
         # Todo: Check the Location looks promising (extract and check given ID).
         self.assert_blank_response(res)
         source = self.get_harvest_source_by_url(source_url) # Todo: Use extracted ID.
-        assert_equal(source.user_ref, 'example publisher user')
-        assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source['user_id'], 'example publisher user')
+        assert_equal(source['publisher_id'], 'example publisher')
 
     def test_submit_harvest_source_create_form_invalid(self):
         source_url = u'' # Blank URL.
+        source_type= u'CSW Server'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
@@ -449,45 +315,52 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
 
         source_url = u'something' # Not '^http://'
+        source_type= u'CSW Server'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
         assert "URL for source of metadata: Harvest source URL is invalid" in res.body, res.body
         assert not self.get_harvest_source_by_url(source_url, None)
 
+
     def test_get_harvest_source_edit_form(self):
         source_url = u'http://'
+        source_type = u'CSW Server'
         source_description = u'An example harvest source.'
-        self.harvest_source = self.create_harvest_source(url=source_url, description=source_description)
-        form = self.get_harvest_source_edit_form(self.harvest_source.id)
-        self.assert_formfield(form, 'HarvestSource-%s-url' % self.harvest_source.id, source_url)
-        self.assert_formfield(form, 'HarvestSource-%s-description' % self.harvest_source.id, source_description)
+        self.harvest_source = self.create_harvest_source(url=source_url,type=source_type,description=source_description)
+        form = self.get_harvest_source_edit_form(self.harvest_source['id'])
+        self.assert_formfield(form, 'HarvestSource-%s-url' % self.harvest_source['id'], source_url)
+        self.assert_formfield(form, 'HarvestSource-%s-type' % self.harvest_source['id'], source_type)
+        self.assert_formfield(form, 'HarvestSource-%s-description' % self.harvest_source['id'], source_description)
  
     def test_submit_harvest_source_edit_form_valid(self):
         source_url = u'http://'
+        source_type = u'CSW Server'
         source_description = u'An example harvest source.'
         alt_source_url = u'http://a'
+        alt_source_type = u'Web Accessible Folder (WAF)'
         alt_source_description = u'An old example harvest source.'
-        self.harvest_source = self.create_harvest_source(url=source_url, description=source_description)
+        self.harvest_source = self.create_harvest_source(url=source_url, type=source_type,description=source_description)
         assert self.get_harvest_source_by_url(source_url, None)
         assert not self.get_harvest_source_by_url(alt_source_url, None)
-        res = self.post_harvest_source_edit_form(self.harvest_source.id, url=alt_source_url, description=alt_source_description)
+        res = self.post_harvest_source_edit_form(self.harvest_source['id'], url=alt_source_url, type=alt_source_type,description=alt_source_description)
         self.assert_not_header(res, 'Location')
         # Todo: Check the Location looks promising (extract and check given ID).
         self.assert_blank_response(res)
         assert not self.get_harvest_source_by_url(source_url, None)
         source = self.get_harvest_source_by_url(alt_source_url) # Todo: Use extracted ID.
         assert source
-        assert_equal(source.user_ref, 'example publisher user')
-        assert_equal(source.publisher_ref, 'example publisher')
+        assert_equal(source['user_id'], 'example publisher user')
+        assert_equal(source['publisher_id'], 'example publisher')
 
     def test_submit_harvest_source_edit_form_invalid(self):
         source_url = u'http://'
+        source_type = u'CSW Server'
         source_description = u'An example harvest source.'
         alt_source_url = u''
-        self.harvest_source = self.create_harvest_source(url=source_url, description=source_description)
+        self.harvest_source = self.create_harvest_source(url=source_url, type=source_type,description=source_description)
         assert self.get_harvest_source_by_url(source_url, None)
-        res = self.post_harvest_source_edit_form(self.harvest_source.id, url=alt_source_url, status=[400])
+        res = self.post_harvest_source_edit_form(self.harvest_source['id'], url=alt_source_url, status=[400])
         assert self.get_harvest_source_by_url(source_url, None)
         self.assert_not_header(res, 'Location')
         assert "URL for source of metadata: Please enter a value" in res.body, res.body
@@ -519,26 +392,6 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         model.repo.rebuild_db()
         model.Session.remove()
 
-    def check_create_package(self, username, expect_success=True):
-        user = model.User.by_name(username)
-        self.extra_environ={'Authorization' : str(user.apikey)}
-        package_name = 'testpkg%i' % int(random.random()*100000000)
-        assert not self.get_package_by_name(package_name)
-        expect_status = 201 if expect_success else 403
-        res = self.post_package_create_form(name=package_name,
-                                            status=expect_status)
-
-    def check_edit_package(self, username, expect_success=True):
-        user = model.User.by_name(username)
-        self.extra_environ={'Authorization' : str(user.apikey)}
-        package_name = u'annakarenina'
-        pkg = self.get_package_by_name(package_name)
-        assert pkg
-        expect_status = 200 if expect_success else 403
-        res = self.post_package_edit_form(pkg.id,
-                                          name=package_name,
-                                          status=expect_status)
-
     def check_create_harvest_source(self, username, expect_success=True):
         user = model.User.by_name(username)
         self.extra_environ={'Authorization' : str(user.apikey)}
@@ -549,11 +402,12 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
     def check_edit_harvest_source(self, username, expect_success=True):
         # create a harvest source
         source_url = u'http://localhost/'
+        source_type = u'CSW Server'
         source_description = u'My harvest source.'
         sysadmin = model.User.by_name(u'testsysadmin')
         self.extra_environ={'Authorization' : str(sysadmin.apikey)}
         if not self.get_harvest_source_by_url(source_url, None):
-            res = self.post_harvest_source_create_form(url=source_url, description=source_description)
+            res = self.post_harvest_source_create_form(url=source_url, type=source_type,description=source_description)
         harvest_source = self.get_harvest_source_by_url(source_url, None)
         assert harvest_source
 
@@ -561,8 +415,7 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.extra_environ={'Authorization' : str(user.apikey)}
         expect_status = 200 if expect_success else 403
         
-        form = self.get_harvest_source_edit_form(harvest_source.id, status=expect_status)
-
+        form = self.get_harvest_source_edit_form(harvest_source['id'], status=expect_status)
 
     def remove_default_rights(self):
         roles = []
@@ -578,24 +431,6 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
             role.delete()
         model.repo.commit_and_remove()
         
-    def test_package_create(self):
-        self.check_create_package('testsysadmin', expect_success=True)
-        self.check_create_package('testadmin', expect_success=True)
-        self.check_create_package('notadmin', expect_success=True)
-        self.remove_default_rights()
-        self.check_create_package('testsysadmin', expect_success=True)
-        self.check_create_package('testadmin', expect_success=False)
-        self.check_create_package('notadmin', expect_success=False)
-
-    def test_package_edit(self):
-        self.check_edit_package('testsysadmin', expect_success=True)
-        self.check_edit_package('testadmin', expect_success=True)
-        self.check_edit_package('notadmin', expect_success=True)
-        self.remove_default_rights()
-        self.check_edit_package('testsysadmin', expect_success=True)
-        self.check_edit_package('testadmin', expect_success=False)
-        self.check_edit_package('notadmin', expect_success=False)
-
     def test_harvest_source_create(self):
         self.check_create_harvest_source('testsysadmin', expect_success=True)
         self.check_create_harvest_source('testadmin', expect_success=False)

@@ -31,6 +31,9 @@ class TestFormApiTester(WsgiAppCase, MockDrupalCase):
         form = create_page.forms['test']
         test_name = 'test-name'
         form['Package--name'] = test_name
+        form['Package--title'] = 'test title'
+        form['Package--notes'] = 'test notes'
+        form['Package--license_id'] = 'mit-license'
         res = form.submit()
         CreateTestData.flag_for_deletion(test_name)
         pkg = model.Package.by_name(unicode(test_name))

@@ -22,10 +22,11 @@ class TestHarvestSource(PylonsTestCase):
         fs = form.get_harvest_source_fieldset()
         text = fs.render()
         assert 'url' in text
+        assert 'type' in text
         assert 'description' in text
 
     def test_form_bound_to_existing_object(self):
-        source = HarvestSource(url=u'http://localhost/', description=u'My source')
+        source = HarvestSource(url=u'http://localhost/', description=u'My source', type=u'Gemini')
         model.Session.add(source)
         model.Session.commit()
         model.Session.remove()
@@ -38,7 +39,7 @@ class TestHarvestSource(PylonsTestCase):
         assert 'My source' in text
 
     def test_form_bound_to_new_object(self):
-        source = HarvestSource(url=u'http://localhost/', description=u'My source')
+        source = HarvestSource(url=u'http://localhost/', description=u'My source', type=u'Gemini')
         fs = form.get_harvest_source_fieldset()
         fs = fs.bind(source)
         text = fs.render()
@@ -53,6 +54,7 @@ class TestHarvestSource(PylonsTestCase):
         register = HarvestSource
         data = {
             'HarvestSource--url': u'http://localhost/', 
+            'HarvestSource--type': u'Gemini',
             'HarvestSource--description': u'My source'
         }
         fs = fs.bind(register, data=data, session=model.Session)
@@ -70,6 +72,7 @@ class TestHarvestSource(PylonsTestCase):
         register = HarvestSource
         data = {
             'HarvestSource--url': u'', 
+            'HarvestSource--type': u'Gemini',
             'HarvestSource--description': u'My source'
         }
         fs = fs.bind(register, data=data)
@@ -82,6 +85,20 @@ class TestHarvestSource(PylonsTestCase):
         register = HarvestSource
         data = {
             'HarvestSource--url': u'htp:', 
+            'HarvestSource--type': u'Gemini',
+            'HarvestSource--description': u'My source'
+        }
+        fs = fs.bind(register, data=data)
+        # Test bound_fields.validate().
+        fs.validate()
+        assert fs.errors
+
+    def test_form_invalidate_new_object_no_type(self):
+        fs = form.get_harvest_source_fieldset()
+        register = HarvestSource
+        data = {
+            'HarvestSource--url': u'htp:', 
+            'HarvestSource--type': u'',
             'HarvestSource--description': u'My source'
         }
         fs = fs.bind(register, data=data)

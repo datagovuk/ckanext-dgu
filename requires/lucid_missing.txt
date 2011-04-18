@@ -1,0 +1,3 @@
+# Note you have to use a patched version of owslib.etree to force the use of lxml
+-e svn+http://svn.gispython.org/svn/gispy/OWSLib/trunk@1707#egg=owslib
+

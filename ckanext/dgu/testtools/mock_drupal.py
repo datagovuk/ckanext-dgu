@@ -6,11 +6,17 @@ import paste.script
 from ckanext.dgu.testtools.organisations import test_organisations, \
      LotsOfOrganisations
 
+# NB Mock drupal details must match those in ckanext-dgu/test-core.ini
+MOCK_DRUPAL_PATH = '/services/xmlrpc'
+MOCK_DRUPAL_PORT = 8051
+MOCK_DRUPAL_URL = 'http://localhost:%s%s' % \
+                  (MOCK_DRUPAL_PORT, MOCK_DRUPAL_PATH)
+
 def get_mock_drupal_config():
     return {
-        'rpc_path': '/services/xmlrpc',
+        'rpc_path': MOCK_DRUPAL_PATH,
         'rpc_host': 'localhost',
-        'rpc_port': 8000,
+        'rpc_port': MOCK_DRUPAL_PORT,
         'test_users': {'62': {'name': 'testname',
                               'publishers': test_organisations}
                        },
