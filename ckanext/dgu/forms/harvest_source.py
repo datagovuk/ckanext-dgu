@@ -18,7 +18,7 @@ def harvest_source_url_validator(val, field=None):
         raise formalchemy.ValidationError('Harvest source URL is invalid (must start with "http://").')
 
 def harvest_source_type_validator(val, field=None):
-    if not val.strip().lower() in ['gemini','geminiwaf','geminidoc']:
+    if not val.strip().lower() in ['csw server','web accessible folder (waf)','single document']:
         raise formalchemy.ValidationError('Unknown Harvest Source Type: %s. Please choose between CSW Server, Web Accessible Folder (WAF), Single Document' % val)
 
 def build_harvest_source_form():
