@@ -21,7 +21,6 @@ log = getLogger(__name__)
 
 def configure_template_directory(config, relative_path):
     configure_served_directory(config, relative_path, 'extra_template_paths')
-    print "TEMPLATES", config['extra_template_paths']
 
 def configure_public_directory(config, relative_path):
     configure_served_directory(config, relative_path, 'extra_public_paths')
