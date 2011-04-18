@@ -289,12 +289,12 @@ class FormsApiTestCase(BaseFormsApiCase):
     def test_get_harvest_source_create_form(self):
         form = self.get_harvest_source_create_form()
         self.assert_formfield(form, 'HarvestSource--url', '')
-        self.assert_formfield(form, 'HarvestSource--type', 'Gemini')
+        self.assert_formfield(form, 'HarvestSource--type', 'CSW Server')
         self.assert_formfield(form, 'HarvestSource--description', '')
 
     def test_submit_harvest_source_create_form_valid(self):
         source_url = u'http://localhost/'
-        source_type= u'Gemini'
+        source_type= u'CSW Server'
         source_description = u'My harvest source.'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url,type=source_type,description=source_description)
@@ -307,7 +307,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_submit_harvest_source_create_form_invalid(self):
         source_url = u'' # Blank URL.
-        source_type= u'Gemini'
+        source_type= u'CSW Server'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
@@ -315,7 +315,7 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert not self.get_harvest_source_by_url(source_url, None)
 
         source_url = u'something' # Not '^http://'
-        source_type= u'Gemini'
+        source_type= u'CSW Server'
         assert not self.get_harvest_source_by_url(source_url, None)
         res = self.post_harvest_source_create_form(url=source_url, status=[400])
         self.assert_not_header(res, 'Location')
@@ -325,7 +325,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_get_harvest_source_edit_form(self):
         source_url = u'http://'
-        source_type = u'Gemini'
+        source_type = u'CSW Server'
         source_description = u'An example harvest source.'
         self.harvest_source = self.create_harvest_source(url=source_url,type=source_type,description=source_description)
         form = self.get_harvest_source_edit_form(self.harvest_source['id'])
@@ -335,10 +335,10 @@ class FormsApiTestCase(BaseFormsApiCase):
  
     def test_submit_harvest_source_edit_form_valid(self):
         source_url = u'http://'
-        source_type = u'Gemini'
+        source_type = u'CSW Server'
         source_description = u'An example harvest source.'
         alt_source_url = u'http://a'
-        alt_source_type = u'GeminiWaf'
+        alt_source_type = u'Web Accessible Folder (WAF)'
         alt_source_description = u'An old example harvest source.'
         self.harvest_source = self.create_harvest_source(url=source_url, type=source_type,description=source_description)
         assert self.get_harvest_source_by_url(source_url, None)
@@ -355,7 +355,7 @@ class FormsApiTestCase(BaseFormsApiCase):
 
     def test_submit_harvest_source_edit_form_invalid(self):
         source_url = u'http://'
-        source_type = u'Gemini'
+        source_type = u'CSW Server'
         source_description = u'An example harvest source.'
         alt_source_url = u''
         self.harvest_source = self.create_harvest_source(url=source_url, type=source_type,description=source_description)
@@ -402,7 +402,7 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
     def check_edit_harvest_source(self, username, expect_success=True):
         # create a harvest source
         source_url = u'http://localhost/'
-        source_type = u'Gemini'
+        source_type = u'CSW Server'
         source_description = u'My harvest source.'
         sysadmin = model.User.by_name(u'testsysadmin')
         self.extra_environ={'Authorization' : str(sysadmin.apikey)}
