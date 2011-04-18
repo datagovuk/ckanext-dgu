@@ -404,6 +404,8 @@ class FormController(ApiController):
                     # Render the fields.
                     fieldset_html = errorful_fieldset.render()
                     return self._finish(400, fieldset_html)
+                except Exception,e:
+                    return self._finish(400, str(e)) 
                 else:
                     # Also create a job
                     job = create_harvest_job(source['id'])
