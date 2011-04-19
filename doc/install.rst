@@ -362,9 +362,9 @@ Ensure you have an okfn_maintenance user::
 
 And after upgrate of migration 36::
 
+    paster --plugin=ckan rights remove visitor anon_editor system --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan rights make visitor reader system: --config=/etc/ckan/dgu/dgu.ini
     paster --plugin=ckan roles deny reader create-package --config=/etc/ckan/dgu/dgu.ini
-
 
 Building debian package
 =======================
