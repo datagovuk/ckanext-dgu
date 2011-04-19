@@ -145,7 +145,7 @@ body.sidebar-right #content {
   padding-right: 30px;
   float: left;
 }
-body.page-data #content, body.page-apps #content, body.page-ideas #content {
+body.one-sidebar #content {
   width: 573px;
   padding-right: 20px;
 }
