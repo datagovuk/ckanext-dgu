@@ -145,9 +145,12 @@ body.sidebar-right #content {
   padding-right: 30px;
   float: left;
 }
-body.page-data #content, body.page-apps #content, body.page-ideas #content {
+body #content {
   width: 573px;
   padding-right: 20px;
+}
+body.hide-sidebar #content {
+  width: 857px;
 }
 body.front div#content, body.front div#sidebar-right, body.page-apps div#content, body.page-apps div#sidebar-right, body.page-data div#content, body.page-data div#sidebar-right, body.page-ideas div#content, body.page-ideas div#sidebar-right {
   margin-bottom: 0;
@@ -171,14 +174,6 @@ div#content {
 h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
   clear: both;
-}
-.clearfix::after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
 }
 ul.links {
   margin: 1em 0;
@@ -295,15 +290,8 @@ input.form-autocomplete {
 select, input, button, textarea, button {
   font: 99% arial,helvetica,clean,sans-serif;
 }
-#navbar #primary {
+#navbar {
   padding-top: 0px;
-}
-p.atom-feed-link a {
-  background: url('../images/icons/atom_feed.png') no-repeat;
-  padding-left: 20px;
-}
-p.atom-feed-link {
-  font-size: 14px;
 }
 #content .subsection h3, #content #comments h3, #content #comments h4 {
   background-color: #444;
@@ -316,26 +304,9 @@ p.atom-feed-link {
   padding: 8px 15px;
   margin: 0 0 15px 0;
 }
-table th, table td {
-  border: 1px solid #CCC;
-  border-top-color: #EEE;
-  border-left-color: #EEE;
-  padding: 0.3em;
-}
 #content tr td {
   border-top: 1px solid #E7E7E7;
   padding: 6px 24px;
-}
-#content tr td {
-  padding: 6px 10px;
-}
-.package .details td {
-  background: transparent;
-  border: none;
-}
-.package .details table tr {
-  border: none;
-  border-bottom: solid 1px #888;
 }
 #content table {
   border: 1px solid #E7E7E7;
@@ -351,4 +322,13 @@ table th, table td {
   background: url("/images/icon_home_white.png") 50% 50% no-repeat;
   text-indent: -50000px;
   outline: none;
+}
+.clearfix { 
+  display: block;
+}
+#package-edit input.short {
+  width: 8em;
+}
+#package-edit input.medium-width {
+  width: 20em;
 }

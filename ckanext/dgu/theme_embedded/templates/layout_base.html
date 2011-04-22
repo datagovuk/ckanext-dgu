@@ -22,7 +22,7 @@
   </py:otherwise>
   </py:choose>
 
-<!--  <link rel="stylesheet" href="${g.site_url}/css/style.css" type="text/css" media="screen, print" /> -->
+  <link rel="stylesheet" href="/css/style.css" type="text/css" media="screen, print" />
 
   <!--[if IE]>
   <link rel="stylesheet" href="${g.site_url}/css/ie.css" type="text/css" media="screen, print" />
@@ -100,7 +100,7 @@
   </py:if>
 </head>
 
-<body class="not-front not-logged-in node-type-page one-sidebar sidebar-right page-data section-data">
+<body class="${value_of('body_class', default=lambda: c.body_class)()} sidebar-right page-data">
             
   <div id="page">
     <ul id="accesslinks"> 
@@ -132,7 +132,6 @@
       <div id="navbar" class="clearfix">
          <div id="navbar-inner" class="clear-block region region-navbar">
           <a name="navigation" id="navigation"></a>
-          <div id="primary" class="clear-block">
             <ul id="navigation_primary" role="navigation" class="clearfix"><li class="menu-361 first home-icon"><a href="http://data.gov.uk/" title="Home">Home</a></li>
               <li class="menu-364"><a href="http://data.gov.uk/data" title="">Data</a></li>
               <li class="menu-366"><a href="http://data.gov.uk/apps" title="">Apps</a></li>
@@ -154,7 +153,6 @@
             </ul>
 -->
 
-          </div> <!-- /#primary -->
          </div> <!-- /#navbar-inner -->
       </div> <!-- /#navbar -->
     </div> <!-- /#header -->
@@ -201,18 +199,18 @@
 
     <div id="secondary" class="clear-block">
       <ul class="links">
-        <li class="menu-371 first"><a href="http://data.gov.uk/terms-and-conditions" title="Terms / Privacy" accesskey="8">Terms and conditions</a></li>
-        <li class="menu-416"><a href="http://data.gov.uk/code-conduct" title="Code of conduct">Code of conduct</a></li>
-        <li class="menu-374"><a href="http://data.gov.uk/project" title="">Project Info</a></li>
-        <li class="menu-373"><a href="http://data.gov.uk/faq" title="FAQ" accesskey="5">FAQ</a></li>
-        <li class="menu-372"><a href="http://data.gov.uk/contact" title="Contact Us" accesskey="9">Contact us</a></li>
-        <li class="menu-2483"><a href="http://data.gov.uk/accessibility-statement" title="Accessibility Statement" accesskey="0">Accessibility</a></li>
-        <li class="menu-2810"><a href="http://data.gov.uk/moderation-policy" title="Moderation policy">Moderation policy</a></li>
-        <li class="menu-2123"><a href="http://data.gov.uk/privacy" title="Privacy">Privacy</a></li>
-        <li class="menu-2786 last"><a href="http://data.gov.uk/sitemap" title="" accesskey="3">Sitemap</a></li>
+        <li class="first"><a href="http://data.gov.uk/terms-and-conditions" title="Terms / Privacy" accesskey="8">Terms and conditions</a></li>
+        <li><a href="http://data.gov.uk/code-conduct" title="Code of conduct">Code of conduct</a></li>
+        <li><a href="http://data.gov.uk/project" title="">Project Info</a></li>
+        <li><a href="http://data.gov.uk/faq" title="FAQ" accesskey="5">FAQ</a></li>
+        <li><a href="http://data.gov.uk/contact" title="Contact Us" accesskey="9">Contact us</a></li>
+        <li><a href="http://data.gov.uk/accessibility-statement" title="Accessibility Statement" accesskey="0">Accessibility</a></li>
+        <li><a href="http://data.gov.uk/moderation-policy" title="Moderation policy">Moderation policy</a></li>
+        <li><a href="http://data.gov.uk/privacy" title="Privacy">Privacy</a></li>
+        <li><a href="http://data.gov.uk/sitemap" title="" accesskey="3">Sitemap</a></li>
         <li class="last">CKAN
                <span i18n:msg="version">
-                  v${c.__version__}
+                  ${c.__version__}
                </span>
         </li>
       </ul>

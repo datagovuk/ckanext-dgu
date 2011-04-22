@@ -22,7 +22,7 @@
   </py:otherwise>
   </py:choose>
 
-<!--  <link rel="stylesheet" href="${g.site_url}/css/style.css" type="text/css" media="screen, print" /> -->
+  <link rel="stylesheet" href="/css/style.css" type="text/css" media="screen, print" />
 
   <!--[if IE]>
   <link rel="stylesheet" href="${g.site_url}/css/ie.css" type="text/css" media="screen, print" />
@@ -100,7 +100,7 @@
   </py:if>
 </head>
 
-<body class="not-front not-logged-in node-type-page one-sidebar sidebar-right page-data section-data">
+<body class="${value_of('body_class', default=lambda: c.body_class)()} sidebar-right page-data">
             
   <div id="page">
     <ul id="accesslinks"> 
@@ -156,7 +156,6 @@
       <div id="navbar" class="clearfix">
          <div id="navbar-inner" class="clear-block region region-navbar">
           <a name="navigation" id="navigation"></a>
-          <div id="primary" class="clear-block">
             <ul id="navigation_primary" class="links clearfix">
               <li class="first">${h.nav_link(c, _('Home'), controller='home', action='index', id=None)}</li>
               <li>${h.nav_link(c, _('Search'), controller='package', action='index', id=None, highlight_actions = 'search index')}</li>
@@ -165,7 +164,6 @@
               <li class="last">${h.nav_link(c, _('Groups'), controller='group', action='index', id=None, highlight_actions = 'new index')}</li>
             </ul>
 
-          </div> <!-- /#primary -->
          </div> <!-- /#navbar-inner -->
       </div> <!-- /#navbar -->
     </div> <!-- /#header -->
