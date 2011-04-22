@@ -322,7 +322,7 @@ class FormController(ApiController):
             if id == None: 
                 objects = get_harvest_sources()
             else:
-                objects = get_harvest_sources(publisher_id=id)
+                objects = get_harvest_sources(publisher_id=id, active=True)
             response_data = [o['id'] for o in objects]
             return self._finish_ok(response_data)
         except ApiError, api_error:
