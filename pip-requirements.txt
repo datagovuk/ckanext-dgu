@@ -4,4 +4,5 @@
 -e hg+https://bitbucket.org/okfn/ckanext-csw#egg=ckanext-csw
 -e hg+https://bitbucket.org/okfn/ckanext-inspire#egg=ckanext-inspire
 -e hg+https://bitbucket.org/okfn/ckanext-spatial#egg=ckanext-spatial
-swiss
+-e hg+https://bitbucket.org/okfn/datautil#egg=datautil
+

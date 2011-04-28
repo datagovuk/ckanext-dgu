@@ -6,7 +6,7 @@ import glob
 from ckanext.importlib.importer import PackageImporter
 from ckanext.dgu import schema
 from ckanext.dgu.ons.producers import get_ons_producers
-from swiss import date
+from datautil import date
 
 guid_prefix = 'http://www.statistics.gov.uk/'
 
