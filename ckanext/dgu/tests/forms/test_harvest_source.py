@@ -6,6 +6,9 @@ import ckan.model as model
 from ckan.tests.pylons_controller import PylonsTestCase
 import ckanext.dgu.forms.harvest_source as form
 
+from nose.plugins.skip import SkipTest;
+raise SkipTest('These tests should be moved to ckanext-harvest.')
+
 class TestHarvestSource(PylonsTestCase):
 
     @classmethod

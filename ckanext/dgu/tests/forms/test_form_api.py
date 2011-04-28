@@ -3,6 +3,7 @@ import re
 from pylons import config
 import webhelpers
 from nose.tools import assert_equal
+from nose.plugins.skip import SkipTest;
 
 from ckan.tests import *
 from ckan.tests import search_related
@@ -287,12 +288,16 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.assert_formfield(form, field_name, package.name)
 
     def test_get_harvest_source_create_form(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         form = self.get_harvest_source_create_form()
         self.assert_formfield(form, 'HarvestSource--url', '')
         self.assert_formfield(form, 'HarvestSource--type', 'CSW Server')
         self.assert_formfield(form, 'HarvestSource--description', '')
 
     def test_submit_harvest_source_create_form_valid(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         source_url = u'http://localhost/'
         source_type= u'CSW Server'
         source_description = u'My harvest source.'
@@ -306,6 +311,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert_equal(source['publisher_id'], 'example publisher')
 
     def test_submit_harvest_source_create_form_invalid(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         source_url = u'' # Blank URL.
         source_type= u'CSW Server'
         assert not self.get_harvest_source_by_url(source_url, None)
@@ -324,6 +331,8 @@ class FormsApiTestCase(BaseFormsApiCase):
 
 
     def test_get_harvest_source_edit_form(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         source_url = u'http://'
         source_type = u'CSW Server'
         source_description = u'An example harvest source.'
@@ -334,6 +343,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         self.assert_formfield(form, 'HarvestSource-%s-description' % self.harvest_source['id'], source_description)
  
     def test_submit_harvest_source_edit_form_valid(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         source_url = u'http://'
         source_type = u'CSW Server'
         source_description = u'An example harvest source.'
@@ -354,6 +365,8 @@ class FormsApiTestCase(BaseFormsApiCase):
         assert_equal(source['publisher_id'], 'example publisher')
 
     def test_submit_harvest_source_edit_form_invalid(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         source_url = u'http://'
         source_type = u'CSW Server'
         source_description = u'An example harvest source.'
@@ -432,6 +445,8 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         model.repo.commit_and_remove()
         
     def test_harvest_source_create(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         self.check_create_harvest_source('testsysadmin', expect_success=True)
         self.check_create_harvest_source('testadmin', expect_success=False)
         self.check_create_harvest_source('notadmin', expect_success=False)
@@ -441,6 +456,8 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.check_create_harvest_source('notadmin', expect_success=False)
 
     def test_harvest_source_edit(self):
+        raise SkipTest('These tests should be moved to ckanext-harvest.')
+
         self.check_edit_harvest_source('testsysadmin', expect_success=True)
         self.check_edit_harvest_source('testadmin', expect_success=False)
         self.check_edit_harvest_source('notadmin', expect_success=False)
