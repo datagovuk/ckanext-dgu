@@ -28,13 +28,14 @@ def get_fieldset(**kwargs):
 
 class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
     @classmethod
-    def setup_class(self):
-        self.fixtures = Gov3Fixtures()
-        self.fixtures.create()
+    def setup_class(cls):
+        PylonsTestCase.setup_class()
+        cls.fixtures = Gov3Fixtures()
+        cls.fixtures.create()
 
     @classmethod
-    def teardown_class(self):
-        self.fixtures.delete()
+    def teardown_class(cls):
+        cls.fixtures.delete()
 
     def test_0_new_fields(self):
         fs = get_fieldset()
