@@ -70,6 +70,37 @@ expected_titles_2 = set((
     "Maintainer - Blank unless not the author.", "Maintainer - E-mail address, if needed.",
     "Licence", "Tags"
     ))
+expected_titles_3 = set((
+    [u'Title',
+     u'Identifier',
+     u'Abstract',
+     u'Date released',
+     u'Date updated',
+     u'Date to be published',
+     u'Update frequency',
+     u'Precision',
+     u'Geographical Granularity - Standard',
+     u'Geographical Granularity - Other',
+     u'Geographic coverage - England',
+     u'Geographic coverage - N. Ireland',
+     u'Geographic coverage - Scotland',
+     u'Geographic coverage - Wales',
+     u'Geographic coverage - Overseas',
+     u'Geographic coverage - Global',
+     u'Temporal Granularity - Standard',
+     u'Temporal Granularity - Other',
+     u'Temporal Coverage - From',
+     u'Temporal Coverage - To',
+     u'URL',
+     u'Taxonomy URL',
+     u'Resources - URL', u'Resources - File format', u'Resources - Description',
+     u'Published by', u'Published via',
+     u'Contact - Permanent contact point for members of the public; not an individual.', u'Contact - E-mail address.',
+     u'Mandate',
+     u'Licence',
+     u'Tags',
+     u'National Statistic']
+    ))
     
 example_record = OrderedDict([
     ('Package name', 'child-protection-plan-england-2009'),
@@ -131,16 +162,17 @@ example_pkg_dict = OrderedDict([
         ('external_reference', 'DCSF-DCSF-0017'),
         ('date_released', '2009-09-17'),
         ('date_updated', '2009-09-17'),
+        ('date_update_future', ''),
         ('temporal_granularity', 'year'),
         ('temporal_coverage_to', ''),
         ('temporal_coverage_from', ''),
         ('geographic_coverage', '100000: England'),
         ('geographical_granularity', 'local authority'),
-        ('agency', u''),
+#        ('agency', u''),
         ('precision', 'Numbers rounded to nearest 100 if over 1,000, and to the nearest 10 otherwise.  Percentage to nearest whole number.'),
         ('taxonomy_url', ''),
         ('import_source', 'COSPREAD-cospread1.csv'),
-        ('department', u'Department for Education'),
+#        ('department', u'Department for Education'),
         ('update_frequency', 'annual'),
         ('national_statistic', ''),
         ('mandate', ''),
@@ -167,7 +199,7 @@ clg_record = OrderedDict([
     ('Geographic coverage - Global', ''),
     ('Temporal Granularity', ''),
     ('Temporal Coverage - From', '2002/03'),
-    ('Temporal Coverage - To\n(if needed)', '2008/09'),
+    ('Temporal Coverage - To', '2008/09'),
     ('resources', [{'File format': 'RDF',
                     'Download URL': 'http://ldexincubator.communities.gov.uk/service/ldex/housingandplanning/api/housingandplanning-indicator/A_TOAlDW/doc.rdf',
                     'Download Description': 'RDF Description',
@@ -188,7 +220,42 @@ clg_record = OrderedDict([
     ('Licence', 'UK Crown Copyright with data.gov.uk rights'),
     ('Tags', 'Housing-and-Planning-View-Indicator-Places LDEx LDEX Local-Data-Exchange Department-for-Communities-and-Local-Government Communities Local-Government Housing-and-Planning-Indicator housing planning'),
     ])
-
+cps_record = OrderedDict([
+    ('Package name', 'cps-case-outcomes-by-principal-offence-category-october-2010'),
+    ('Title', 'Crown Prosecution Service case outcomes by principal offence category - October 2010'),
+    ('Notes', "Monthly publication of criminal case outcomes in the magistrates' courts and in the Crown Court by principal offence category and by CPS Area"),
+    ('Date released', datetime.date(2011, 2, 24)),
+    ('Date updated', datetime.date(2011, 3, 24)),
+    ('Date update future', datetime.date(2011, 4, 24)),
+    ('Update frequency', 'Monthly'),
+    ('Geographical Granularity', 'CPS Area'),
+    ('Geographic coverage - England', 'Yes'),
+    ('Geographic coverage - N. Ireland', 'No'),
+    ('Geographic coverage - Scotland', 'No'),
+    ('Geographic coverage - Wales', 'Yes'),
+    ('Geographic coverage - Overseas', 'No'),
+    ('Geographic coverage - Global', 'No'),
+    ('Temporal Granularity', 'Months'),
+    ('Temporal Coverage - From', 'Months'),
+    ('Temporal Coverage - To', ''),
+    ('resources', [{'File format': 'CSV',
+                    'Download URL': 'http://www.cps.gov.uk/data/case_outcomes/october_2010/principal_offence_cat_42_areas.csv',
+                    'Download Description': 'Principal Offence Cat 42 Areas',
+                    },
+                   ]),
+    ('Precision', 'to one percentage point'),
+    ('URL', 'http://www.cps.gov.uk/data/case_outcomes/october_2010.html'),
+    ('Taxonomy URL', ''),
+    ('Published by', 'Department for Education'),
+    ('Published via', 'Ealing PCT'),    
+    ('Contact - Permanent contact point', 'Performance Management Unit, Operations Directorate'),
+    ('Contact - E-mail address.', 'enquiries@cps.gsi.gov.uk'),
+    ('Mandate', '(mandate)'),
+    ('Licence', 'UK Open Government License (OGL)'),
+    ('Tags', 'crown-prosecution-service case-outcomes offence criminal courts'),
+    ('National Statistic', 'No'),
+    ])
+    
 clg_pkg_dict = OrderedDict([
     ('name', u'total-number-of-dwellings-owned-by-your-local-authority'),
     ('title', u'Total number of dwellings owned by your local authority'),
@@ -217,16 +284,17 @@ clg_pkg_dict = OrderedDict([
         ('external_reference', ''),
         ('date_released', '2002-04-01'),
         ('date_updated', ''),
+        ('date_update_future', ''),
         ('temporal_granularity', ''),
         ('temporal_coverage_to', '2009'),
         ('temporal_coverage_from', '2002'),
         ('geographic_coverage', '100000: England'),
         ('geographical_granularity', 'Local Authority (District)'),
-        ('agency', u''),
+#        ('agency', u''),
         ('precision', ''),
         ('taxonomy_url', ''),
         ('import_source', 'COSPREAD-cospread-clg.xls'),
-        ('department', u'Department for Communities and Local Government'),
+#        ('department', u'Department for Communities and Local Government'),
         ('update_frequency', ''),
         ('national_statistic', ''),
         ('mandate', ''),
@@ -234,6 +302,45 @@ clg_pkg_dict = OrderedDict([
         ('published_via', ''),
         ])
      ),
+    ])
+cps_pkg_dict = OrderedDict([
+    ('name', 'cps-case-outcomes-by-principal-offence-category-october-2010'),
+    ('title', 'Crown Prosecution Service case outcomes by principal offence category - October 2010'),
+    ('notes', "Monthly publication of criminal case outcomes in the magistrates' courts and in the Crown Court by principal offence category and by CPS Area"),
+    ('extras', OrderedDict([
+        ('date_released', '2011-02-24'),
+        ('date_updated', '2011-03-24'),
+        ('date_update_future', '2011-04-24'),
+        ('external_reference', ''),
+        ('update_frequency', 'monthly'),
+        ('precision', 'to one percentage point'),
+        ('geographical_granularity', 'CPS Area'),
+        ('geographic_coverage', u'101000: England, Wales'),
+        ('temporal_granularity', 'month'),
+        ('temporal_coverage_from', 'Months'),         
+        ('temporal_coverage_to', u''),
+        ('published_by', u'Department for Education [some_number]'),
+        ('published_via', u'Ealing PCT [some_number]'),
+        ('taxonomy_url', ''),
+        ('mandate', u'(mandate)'),
+        ('national_statistic', u''),
+        ('import_source', 'COSPREAD-cospread-cps.xls'),
+        ])),
+    ('url', 'http://www.cps.gov.uk/data/case_outcomes/october_2010.html'),
+    ('resources', [OrderedDict([
+        ('url', 'http://www.cps.gov.uk/data/case_outcomes/october_2010/principal_offence_cat_42_areas.csv'),
+        ('format', 'CSV'),
+        ('description', 'Principal Offence Cat 42 Areas'),
+        ]),
+                   ]),
+    ('author', 'Performance Management Unit, Operations Directorate'),
+    ('author_email', 'enquiries@cps.gsi.gov.uk'),
+    ('maintainer', None),
+    ('maintainer_email', None),
+    ('license_id', u'uk-ogl'),
+    ('tags', ['case-outcomes', 'courts', 'criminal', 'crown-prosecution-service', 'offence']),
+    ('groups', ['ukgov']),
+    ('version', None),
     ])
 
 class TestCospreadDataRecords:
@@ -298,6 +405,43 @@ class TestCospreadDataRecordsClg:
             assert self.records[0].has_key(key), 'Expected key %r in record: %r' % (key, self.records[0].keys())
             assert_equal(self.records[0][key] or None, value or None)
         expected_keys = set([key for key, value in clg_record.items()])
+        keys = set(self.records[0].keys())
+        key_difference = expected_keys - keys
+        assert not key_difference, key_difference
+
+class TestCospreadDataRecordsCps:
+    @classmethod
+    def setup_class(self):
+        self.data = examples.get_data('-cps', XL_EXTENSION)
+        self.data_records = MultipleCospreadDataRecords(self.data)
+        
+    def test_0_title_row(self):
+        assert self.data_records.records_list[0].titles[0] == u'Title', \
+               self.data_records.records_list[0].titles
+
+    def test_1_titles(self):
+        titles = set(self.data_records.records_list[0].titles)
+        title_difference = expected_titles_3 ^ titles
+        if title_difference:
+            msg = 'Titles should not have: %r' % (title_difference & titles)
+            msg += '\nTitles expected but not received: %r' % (title_difference & expected_titles_3)
+        assert not title_difference, msg
+
+    def test_1_multiple_sheets(self):
+        assert len(self.data_records.records_list) == 1, self.data_records.records_list
+
+    def test_2_records(self):
+        self.records = [record for record in self.data_records.records]
+        assert len(self.records) == 1, '%i, %r' % (len(self.records),
+                                                   self.records)
+        # check record titles
+        assert_equal(self.records[0]['Title'], u'Crown Prosecution Service case outcomes by principal offence category - October 2010')
+        
+        # check first record thoroughly
+        for key, value in cps_record.items():
+            assert self.records[0].has_key(key), 'Expected key %r in record: %r' % (key, self.records[0].keys())
+            assert_equal(self.records[0][key] or None, value or None)
+        expected_keys = set([key for key, value in cps_record.items()])
         keys = set(self.records[0].keys())
         key_difference = expected_keys - keys
         assert not key_difference, key_difference
@@ -418,4 +562,42 @@ class TestImportClg(MockDrupalCase):
 
     def test_5_overall_import(self):
         pkg_dict = self.importer.record_2_package(clg_record)
+        assert_equal(self.pkg_dicts[0]['name'], pkg_dict['name'])
+
+class TestImportCps(MockDrupalCase):
+    @classmethod
+    def setup_class(cls):
+        super(TestImportCps, cls).setup_class()
+        cls._filepath = examples.get_spreadsheet_filepath('-cps', XL_EXTENSION)
+        CospreadImporter.clear_log()
+        cls.importer = CospreadImporter(include_given_tags=True,
+                                        filepath=cls._filepath,
+                                        xmlrpc_settings=MockDrupalCase.xmlrpc_settings)
+        cls.pkg_dicts = [pkg_dict for pkg_dict in cls.importer.pkg_dict()]
+        cls.import_log = [log_item for log_item in cls.importer.get_log()]
+
+    def test_0_basic(self):
+        assert len(self.pkg_dicts) == 1
+
+    def test_3_log(self):
+        log = self.import_log
+        assert log[0].startswith("WARNING: Value for column 'Temporal Coverage - From' of u'Months' is not understood as a date format."), log[0]
+        assert log[1].startswith("WARNING: Value for column 'Geographical Granularity' of 'CPS Area' is not in suggestions '['national', 'regional', 'local authority', 'ward', 'point']"), log[1]
+        assert_equal(len(log), 2, log)
+
+    def test_4_record_2_package(self):
+        self.importer.clear_log()
+        pkg_dict = self.importer.record_2_package(cps_record)
+
+        for key in ('published_by', 'published_via'):
+            pkg_dict['extras'][key] = strip_organisation_id(pkg_dict['extras'][key])
+        print(pkg_dict)
+        PackageDictUtil.check_dict(pkg_dict, cps_pkg_dict)
+        expected_keys = set([key for key, value in cps_pkg_dict.items()])
+        keys = set(pkg_dict.keys())
+        key_difference = expected_keys - keys
+        assert not key_difference, key_difference
+
+    def test_5_overall_import(self):
+        pkg_dict = self.importer.record_2_package(cps_record)
         assert_equal(self.pkg_dicts[0]['name'], pkg_dict['name'])
