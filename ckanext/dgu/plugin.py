@@ -43,35 +43,6 @@ class AuthApiPlugin(SingletonPlugin):
         return AuthAPIMiddleware(app, config)
 
 
-class EmbeddedThemePlugin(SingletonPlugin):
-    '''DGU Visual Theme for an install embedded in dgu.
-
-    '''
-    implements(IConfigurer)
-
-    def update_config(self, config):
-        configure_template_directory(config, 'theme_common/templates')
-        configure_public_directory(config, 'theme_common/public')
-        configure_template_directory(config, 'theme_embedded/templates')
-        configure_public_directory(config, 'theme_embedded/public')
-
-        config['package_form'] = 'package_gov3'
-
-class IndependentThemePlugin(SingletonPlugin):
-    '''DGU Visual Theme for an install independent of dgu.
-
-    '''
-    implements(IConfigurer)
-
-    def update_config(self, config):
-        configure_template_directory(config, 'theme_common/templates')
-        configure_public_directory(config, 'theme_common/public')
-        configure_template_directory(config, 'theme_independent/templates')
-        configure_public_directory(config, 'theme_independent/public')
-
-        config['package_form'] = 'package_gov3'
-
-
 class FormApiPlugin(SingletonPlugin):
     """
     Configures the Form API and harvesting used by Drupal.
