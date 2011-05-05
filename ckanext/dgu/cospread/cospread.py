@@ -18,20 +18,56 @@ log = logging.getLogger(__name__)
 class CospreadDataRecords(SpreadsheetDataRecords):
     def __init__(self, data, generate_names=False):
         self.generate_names = generate_names
-        essential_title = 'Package name'
-        self.column_name_map = {
-            u'package name':'Package name',
-            u'tags':'Tags',
-            u'Download file format':'File format',
-            u'Download description':'Download Description',
-            u'Maintainer - E-mail address, if needed.':u'Maintainer - E-mail address',
-            u'Maintainer - Blank unless not the author.':u'Maintainer - ',
-            u'CO Reference':u'CO Identifier',
-            u'Author - E-mail address.':'Contact - E-mail address.',
-            u'Author - Permanent contact point for members of the public; not an individual.':'Contact - Permanent contact point',
-            }
-        self.column_name_reverse_map = dict((v, k) for k, v in self.column_name_map.iteritems())
-        self.optional_columns = [u'Temporal Coverage - To\n(if needed)',
+        # cospread uses a list of alternative essential_titles
+        essential_titles = ['Package name', 'Abstract']
+        self.title_normaliser = (
+            #('Normalised title', 'regex of variations'),
+            ('Package name', '(Package name|Identifier)$'),
+            ('Title', 'Title$'),
+            ('CO Identifier', 'CO (Identifier|Reference)$'),
+            ('Notes', 'Notes|Abstract$'),
+            ('Date released', 'Date released$'),
+            ('Date updated', 'Date updated$'),
+            ('Date update future', 'Date to be published$'),
+            ('Update frequency', 'Update frequency$'),
+            ('Geographical Granularity - Standard', 'Geographical Granularity - Standard$'),
+            ('Geographical Granularity - Other', 'Geographical Granularity - Other$'),
+            ('Geographic coverage - England', 'Geographic coverage - England$'),
+            ('Geographic coverage - N. Ireland', 'Geographic coverage - N. Ireland$'),
+            ('Geographic coverage - Scotland', 'Geographic coverage - Scotland$'),
+            ('Geographic coverage - Wales', 'Geographic coverage - Wales$'),
+            ('Geographic coverage - Overseas', 'Geographic coverage - Overseas$'),
+            ('Geographic coverage - Global', 'Geographic coverage - Global$'),
+            ('Temporal Granularity - Standard', 'Temporal Granularity - Standard$'),
+            ('Temporal Granularity - Other', 'Temporal Granularity - Other$'),
+            ('Temporal Coverage - To', 'Temporal Coverage - To'),
+            ('Temporal Coverage - From', 'Temporal Coverage - From$'),
+            ('Categories', 'Categories$'),
+            ('National Statistic', 'National Statistic$'),
+            ('Precision', 'Precision$'),
+            ('URL', 'URL$'),
+            ('Download URL', '(Download URL|Resources - URL)$'),
+            ('File format', '(Download |Resources - )?file format$'),
+            ('Download Description', '(Resources -|Download) Description$'),
+            ('Taxonomy URL', 'Taxonomy URL$'),
+            ('Department', 'Department$'),
+            ('Agency responsible', 'Agency responsible$'),
+            ('Published by', 'Published by$'),
+            ('Published via', 'Published via$'),
+            ('Contact - Permanent contact point', '(Contact|Author) - Permanent contact point'),
+            ('Contact - E-mail address.', '(Contact|Author) - E-mail address.$'),
+            ('Maintainer - ', 'Maintainer - (Blank unless not the author\.)?$'),
+            ('Maintainer - E-mail address', 'Maintainer - E-mail address'),
+            ('Licence', 'Licence$'),
+            ('Tags', 'Tags$'),
+            ('Mandate', 'Mandate$'),
+            )
+        # compile regexes
+        self.title_normaliser = [
+            (norm_title, re.compile(regex, re.I)) \
+            for norm_title, regex in self.title_normaliser
+            ]
+        self.optional_columns = [u'Temporal Coverage - To',
                                  u'Temporal Coverage - From',
                                  u'Download Description',
                                  u'National Statistic',
@@ -41,17 +77,19 @@ class CospreadDataRecords(SpreadsheetDataRecords):
         self.column_spreading_titles = ['Geographical Granularity', 'Geographic coverage', 'Temporal Granularity', 'Temporal Coverage', 'Author', 'Maintainer', 'Contact']
         self.standard_or_other_columns = ['Geographical Granularity', 'Temporal Granularity']
         self.resource_keys = ['Download URL', 'File format', 'Download Description']
-        super(CospreadDataRecords, self).__init__(data, essential_title)
+        super(CospreadDataRecords, self).__init__(data, essential_titles)
             
-    def find_titles(self, essential_title):
+    def find_titles(self, essential_titles):
         row_index = 0
         titles = []
-        essential_title_lower = essential_title.lower()
+        assert isinstance(essential_titles, (list, tuple))
+        essential_title_set = set(essential_titles + \
+                                  [title.lower() for title in essential_titles])
         while True:
             if row_index >= self._data.get_num_rows():
                 raise ImportException('Could not find title row')
             row = self._data.get_row(row_index)
-            if essential_title in row or essential_title_lower in row:
+            if essential_title_set & set(row):
                 next_row = self._data.get_row(row_index + 1)
                 last_title = None
                 for col_index, row_val in enumerate(row):
@@ -68,22 +106,48 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                 return (titles, row_index + 1)
             row_index += 1
 
+    def create_title_mapping(self):
+        '''Creates a mapping between the spreadsheet\'s actual column
+        titles and the normalised versions.
+
+        Results in self.title_map and self.title_reverse_map which are
+        comprehensive for this spreadsheet.
+
+        '''
+        self.title_map = OrderedDict()
+        for title in self.titles:
+            for norm_title, regex in self.title_normaliser:
+                if regex.match(title):
+                    self.title_map[title] = norm_title
+                    break
+            else:
+                raise AssertionError('Did not recognise title: %r' % title)
+        self.title_reverse_map = dict((v, k) for k, v in self.title_map.iteritems())
+        # check all keys map both ways
+        unmatched_keys = set(self.title_map.keys()) - set(self.title_reverse_map.values())
+        if unmatched_keys:
+            msg = 'Columns not identified by REs: %r' % (set(self.title_map.keys()) - set(self.title_reverse_map.values()))
+            msg += '\nColumns over identified by REs: %r' % (set(self.title_reverse_map.keys()) - set(self.title_map.values()))
+            raise AssertionError(msg)
+            
     @property
     def records(self):
         '''Returns package records.
         * Collates packages with download_url in multiple rows in resources.
         * Collapses 'Standard' / 'Other' column pairs into single value.
+        * Renames columns to standard names.
         '''
         current_record = None
         package_identity_column = 'Package name' if not self.generate_names else 'Title'
+        self.create_title_mapping()
         try:
             def get_record_key(record_, standard_key):
-                alt_key = self.column_name_reverse_map.get(standard_key)
+                alt_key = self.title_reverse_map.get(standard_key)
                 if alt_key and alt_key in record_:
                     return alt_key
                 else:
                     return standard_key
-                return record_[self.column_name_reverse_map[property]]
+                return record_[self.title_reverse_map[property]]
             for record in super(CospreadDataRecords, self).records:
                 if current_record and \
                        current_record[package_identity_column] == \
@@ -100,7 +164,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                         yield current_record
                     current_record = record.copy()
                     current_record['resources'] = []
-                    # Collapse standard/other columns into one
+                    # Collapse 'standard/other' columns into one
                     for column in self.standard_or_other_columns:
                         standard = current_record['%s - Standard' % column]
                         other = current_record['%s - Other' % column]
@@ -112,12 +176,12 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                         current_record[column] = value
                         del current_record['%s - Standard' % column]
                         del current_record['%s - Other' % column]
-                    # Rename columns to standard names
-                    keys_to_change = set(current_record.keys()) & set(self.column_name_map.keys())
-                    for from_key in keys_to_change:
-                        to_key = self.column_name_map[from_key]
-                        current_record[to_key] = current_record[from_key]
-                        del current_record[from_key]
+                    # Rename column titles to normalised ones
+                    for title in self.title_map.keys():
+                        norm_title = self.title_map[title]
+                        if norm_title != title:
+                            current_record[norm_title] = current_record[title]
+                            del current_record[title]
                 # Put download_url into resources
                 resource = OrderedDict()
                 for key in self.resource_keys:
@@ -125,7 +189,7 @@ class CospreadDataRecords(SpreadsheetDataRecords):
                     if key in record:                
                         key_used = key
                     else:
-                        alt_key = self.column_name_reverse_map.get(key)
+                        alt_key = self.title_reverse_map.get(key)
                         if alt_key and alt_key in record:
                             key_used = alt_key
                             value = record[alt_key]
@@ -161,6 +225,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
             u'UK Crown Copyright':u'uk-ogl',
             u'Crown Copyright':u'uk-ogl',
             u'UK Open Government Licence (OGL)':u'uk-ogl',
+            u'UK Open Government License (OGL)':u'uk-ogl',
             u'Met Office licence':u'met-office-cp',
             u'Met Office UK Climate Projections Licence Agreement':u'met-office-cp',
         }
@@ -183,10 +248,12 @@ class CospreadImporter(SpreadsheetPackageImporter):
         pkg_dict['name'] = self.name_munge(row_dict.get('Package name') or u'') or self.munge(pkg_dict['title'])
         if not (pkg_dict['name'] and pkg_dict['title']):
             raise RowParseError('Both Name and Title fields must be filled: name=%r title=%r' % (pkg_dict['name'], pkg_dict['title']))
+        log.info('Package: %s' % pkg_dict['name'])
         pkg_dict['author'] = row_dict['Contact - Permanent contact point']
         pkg_dict['author_email'] = row_dict['Contact - E-mail address.']
-        pkg_dict['maintainer'] = row_dict['Maintainer - ']
-        pkg_dict['maintainer_email'] = row_dict['Maintainer - E-mail address']
+        is_maintainer = bool('maintainer' in ' '.join(row_dict.keys()).lower())
+        pkg_dict['maintainer'] = row_dict['Maintainer - '] if is_maintainer else None
+        pkg_dict['maintainer_email'] = row_dict['Maintainer - E-mail address'] if is_maintainer else None
         notes = row_dict['Notes']
         license_id, additional_notes = self.get_license_id(row_dict['Licence'])
         if additional_notes:
@@ -208,12 +275,12 @@ class CospreadImporter(SpreadsheetPackageImporter):
             if (row_dict[field] or '').lower() not in (None, '', 'no', 'False'):
                 geo_cover.append(munged_region)
         extras_dict['geographic_coverage'] = geo_coverage_type.form_to_db(geo_cover)
-
         for column, extra_key in [
             ('Date released', 'date_released'),
             ('Date updated', 'date_updated'),
+            ('Date update future', 'date_update_future'),
             ('Temporal Coverage - From', 'temporal_coverage_from'),
-            ('Temporal Coverage - To\n(if needed)', 'temporal_coverage_to'),
+            ('Temporal Coverage - To', 'temporal_coverage_to'),
             ]:
             form_value = row_dict.get(column)
             if isinstance(form_value, datetime.date):
@@ -246,8 +313,13 @@ class CospreadImporter(SpreadsheetPackageImporter):
             ['Agency responsible'],
             ['Precision'],
             ['Department', schema.government_depts],
+            ['Published by'],
+            ['Published via'],
+            ['Mandate'],
             ]
-        optional_fields = ['Categories']
+        optional_fields = ['Categories', 'CO Identifier', 'Agency responsible',
+                           'Department', 'Published by', 'Published via',
+                           'Mandate',]
         for field_mapping in field_map:
             column = field_mapping[0]
             extras_key = column.lower().replace(' ', '_')
@@ -287,17 +359,20 @@ class CospreadImporter(SpreadsheetPackageImporter):
             extras_dict[extras_key] = val
 
         orgs = []
-        for key in ['department', 'agency']:
-            dept_or_agency = extras_dict[key]
-            org = self._drupal_helper.cached_department_or_agency_to_organisation(dept_or_agency)
-            if org:
-                orgs.append(org)
-        orgs += [u''] * (2 - len(orgs))
+        for key in ['published_by', 'published_via', 'department', 'agency']:
+            org_name = extras_dict.get(key)
+            if org_name:
+                org = self._drupal_helper.cached_department_or_agency_to_organisation(org_name)
+                if org:
+                    orgs.append(org)
+        # limit/pad number of orgs to be 2
+        orgs = (orgs + [u''] * 4)[:2]
         extras_dict['published_by'], extras_dict['published_via'] = orgs
-
+        # do not have department/agency fields any more
+        del extras_dict['department']
+        del extras_dict['agency']
 
         extras_dict['national_statistic'] = u'' # Ignored: row_dict['national statistic'].lower()
-        extras_dict['mandate'] = u'' # blank
         extras_dict['import_source'] = 'COSPREAD-%s' % os.path.basename(self._filepath)
 
         resources = []

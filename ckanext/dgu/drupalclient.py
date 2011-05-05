@@ -1,6 +1,6 @@
 import logging
 import socket
-from xmlrpclib import ServerProxy, Fault
+from xmlrpclib import ServerProxy, Fault, ProtocolError
 
 from pylons import config
 from webhelpers.text import truncate
@@ -60,6 +60,8 @@ class DrupalClient(object):
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
         except Fault, e:
             raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (user_id, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal returned protocol error for user_id %r: %r' % (user_id, e))
         log.info('Obtained Drupal user: %r', truncate(unicode(user), 200))
         return user
 
@@ -70,7 +72,9 @@ class DrupalClient(object):
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
         except Fault, e:
             raise DrupalRequestError('Drupal returned error for session_id %r: %r' % (session_id, e))
-        log.info('Obtained Drupal sessino for session ID %r', session_id)
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal returned protocol error for session_id %r: %r' % (session_id, e))
+        log.info('Obtained Drupal session for session ID %r', session_id)
         return session
 
     def get_department_from_publisher(self, id):
@@ -79,8 +83,10 @@ class DrupalClient(object):
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
         except Fault, e:
-            raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (id, e))
-        log.info('Obtained Drupal department %r from publisher %r', department, id)
+            raise DrupalRequestError('Drupal returned error for organisation_id %r: %r' % (id, e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal returned protocol error for organisation_id %r: %r' % (id, e))
+        log.info('Obtained Drupal parent department %r from publisher %r', department, id)
         return department
 
     def get_organisation_name(self, id):
@@ -92,7 +98,12 @@ class DrupalClient(object):
             if e.faultCode == 404:
                 raise DrupalKeyError(id)
             else:
-                raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (id, e))
+                raise DrupalRequestError('Drupal returned error for organisation_id %r: %r' % (id, e))
+        except ProtocolError, e:
+            if e.errcode == 404:
+                raise DrupalKeyError(id)
+            else:
+                raise DrupalRequestError('Drupal returned protocol error for organisation_id %r: %r' % (id, e))
         log.info('Obtained Drupal department %r from id %r', organisation_name, id)
         return organisation_name
 
@@ -103,8 +114,13 @@ class DrupalClient(object):
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
         except Fault, e:
             if e.faultCode == 404:
-                raise DrupalKeyError(id)
+                raise DrupalKeyError(organisation_name)
             else:
-                raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (id, e))
+                raise DrupalRequestError('Drupal returned error for organisation_name %r: %r' % (organisation_name, e))
+        except ProtocolError, e:
+            if e.errcode == 404:
+                raise DrupalKeyError(organisation_name)
+            else:
+                raise DrupalRequestError('Drupal returned protocol error for organisation_name %r: %r' % (organisation_name, e))
         log.info('Obtained organisation id %r from name %r', organisation_id, organisation_name)
         return organisation_id

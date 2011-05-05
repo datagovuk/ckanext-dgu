@@ -30,6 +30,7 @@ class OnsImporter(PackageImporter):
 
     def pkg_dict(self):
         for filepath in self._filepath:
+            log.info('Importing from file: %s' % filepath)
             self._current_filename = os.path.basename(filepath)
             for item in OnsDataRecords(filepath):
                 yield self.record_2_package(item)
