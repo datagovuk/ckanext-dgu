@@ -74,7 +74,7 @@ class DrupalClient(object):
             raise DrupalRequestError('Drupal returned error for session_id %r: %r' % (session_id, e))
         except ProtocolError, e:
             raise DrupalRequestError('Drupal returned protocol error for session_id %r: %r' % (session_id, e))
-        log.info('Obtained Drupal session for session ID %r', session_id)
+        log.info('Obtained Drupal session for session ID %r: %r', session_id, session)
         return session
 
     def get_department_from_publisher(self, id):
