@@ -8,7 +8,7 @@ from ckan.tests import *
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.producers import get_ons_producers
 from ckanext.dgu.schema import DrupalHelper
-from ckanext.dgu.tests import MockDrupalCase, strip_organisation_id
+from ckanext.dgu.tests import MockDrupalCase, strip_organisation_id, PackageDictUtil
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
@@ -200,8 +200,8 @@ class TestOnsImporter(MockDrupalCase):
                 ('date_updated', u''),
                 ('agency', u''),
                 ('precision', u''),
-                ('temporal_coverage_to', u''),
-                ('temporal_coverage_from', u''),
+                ('temporal_coverage-to', u''),
+                ('temporal_coverage-from', u''),
                 ('national_statistic', 'no'),
                 ('update_frequency', 'monthly'),
                 ('department', u"Her Majesty's Treasury"),
@@ -213,16 +213,7 @@ class TestOnsImporter(MockDrupalCase):
                 ('published_via', u''),
                 ])),
             ])
-        for key, value in expected_package_dict.items():
-            if key != 'extras':
-                assert_equal(package_dict[key], value)
-            else:
-                for key, expected_value in expected_package_dict['extras'].items():
-                    # take out any ids
-                    value = strip_organisation_id(package_dict['extras'][key])
-                    assert_equal(value, expected_value)
-        expected_keys = set(expected_package_dict.keys())
-        keys = set(package_dict.keys())
-        key_difference = expected_keys - keys
-        assert not key_difference, key_difference
+        for extra_key in ('published_by', 'published_via'):
+            package_dict['extras'][extra_key] = strip_organisation_id(package_dict['extras'][extra_key])
+        PackageDictUtil.check_dict(package_dict, expected_package_dict)
 

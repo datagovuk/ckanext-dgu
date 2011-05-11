@@ -279,8 +279,8 @@ class CospreadImporter(SpreadsheetPackageImporter):
             ('Date released', 'date_released'),
             ('Date updated', 'date_updated'),
             ('Date update future', 'date_update_future'),
-            ('Temporal Coverage - From', 'temporal_coverage_from'),
-            ('Temporal Coverage - To', 'temporal_coverage_to'),
+            ('Temporal Coverage - From', 'temporal_coverage-from'),
+            ('Temporal Coverage - To', 'temporal_coverage-to'),
             ]:
             form_value = row_dict.get(column)
             if isinstance(form_value, datetime.date):
@@ -293,7 +293,7 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 match = re.match('(\d{4})/(\d{2})', form_value or '')
                 if match:
                     years = [int(year_str) for year_str in match.groups()]
-                    if extra_key.endswith('_to'):
+                    if extra_key.endswith('-to'):
                         form_value = str(field_types.DateType.add_centurys_to_two_digit_year(year=years[1], near_year=years[0]))
                     else:
                         form_value = str(years[0])
