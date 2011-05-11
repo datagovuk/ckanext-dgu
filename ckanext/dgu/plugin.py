@@ -107,7 +107,8 @@ class FormApiPlugin(SingletonPlugin):
                 # We need the guid from the HarvestedObject!
                 doc = Session.query(HarvestObject). \
                       filter(HarvestObject.package_id==c.pkg.id). \
-                      order_by(HarvestObject.created.desc()). \
+                      order_by(HarvestObject.metadata_modified_date.desc()). \
+                      order_by(HarvestObject.gathered.desc()). \
                       limit(1).first()
                 if doc:
                     data = {'guid': doc.guid}
