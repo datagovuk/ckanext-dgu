@@ -42,6 +42,22 @@ class AuthApiPlugin(SingletonPlugin):
     def make_middleware(self, app, config):
         return AuthAPIMiddleware(app, config)
 
+class DguForm(SingletonPlugin):
+
+    implements(IRoutes)
+    implements(IConfigurer)
+
+    def before_map(self, map):
+        map.connect('/package/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
+        map.connect('/package/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
+        return map
+
+    def after_map(self, map):
+        return map
+
+    def update_config(self, config):
+        configure_template_directory(config, 'templates')
+
 
 class FormApiPlugin(SingletonPlugin):
     """
@@ -53,6 +69,10 @@ class FormApiPlugin(SingletonPlugin):
     implements(IGenshiStreamFilter)
 
     def before_map(self, map):
+
+        map.connect('/package/new', controller='package_formalchemy', action='new')
+        map.connect('/package/edit/{id}', controller='package_formalchemy', action='edit')
+
         for version in ('', '1/'):
             map.connect('/api/%sform/package/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
             map.connect('/api/%sform/package/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
