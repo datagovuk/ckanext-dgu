@@ -1,0 +1,296 @@
+<form id="package-edit" class="package_create_form ckan" method="post" 
+  py:attrs="{'class':'has-errors'} if errors else {}"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<div class="error-explanation" py:if="error_summary">
+<h2>Errors in form</h2>
+<p>The form contains invalid entries:</p>
+<ul>
+  <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+</ul>
+</div>
+
+<fieldset>
+  <legend> Basic information</legend>
+  <dl>
+    <dt><label class="field_req" for="title">Title *</label></dt>
+    <dd><input id="title" name="title" type="text" value="${data.get('title', '')}"/></dd>
+    <dd class="instructions basic">The title of the data set.</dd>
+    <dd class="instructions further">The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop.</dd>
+    <dd class="hints">e.g. Payments to suppliers with a value over &pound;500 from Harlow Council</dd>
+    <dd class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</dd>
+
+    <dt><label class="field_req" for="name">Identifier *</label></dt>
+    <dd><input id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" /></dd>
+    <dd class="instructions basic">A public unique identifier for the dataset</dd>
+    <dd class="instructions further">It should be roughly readable, with dashes separating words.</dd>
+    <dd class="hints">Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow</dd>
+    <dd class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</dd>
+
+    <dt><label class="field_req" for="notes">Abstract *</label></dt>
+    <dd><textarea cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea></dd>
+    <dd class="instructions basic">The main description of the dataset</dd>
+    <dd class="instructions further">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</dd>
+    <dd class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</dd>
+  </dl>
+</fieldset>
+
+<fieldset>
+  <legend>Details</legend>
+  <dl>
+    <dt><label class="field_opt" for="date_released">Date released</label></dt>
+    <dd><input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" /></dd>
+    <dd class="instructions basic">The date of the official release of the initial version of the dataset</dd>
+    <dd class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</dd>
+    <dd class="hints">DD/MM/YYYY</dd>
+    <dd class="field_error" py:if="errors.get('date_released', '')">${errors.get('date_released', '')}</dd>
+
+    <dt><label class="field_opt" for="date_updated">Date updated</label></dt>
+    <dd><input id="date_updated" name="date_updated" size="40" type="text" value="${data.get('date_updated', '')}"/></dd>
+    <dd class="instructions basic">The date of release of the most recent version of the dataset</dd>
+    <dd class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</dd>
+    <dd class="hints">DD/MM/YYYY</dd>
+    <dd class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</dd>
+
+    <dt><label class="field_opt" for="date_update_future">Date to be published</label></dt>
+    <dd><input id="date_update_future" name="date_update_future" size="40" type="text" value="${data.get('date_update_future', '')}"/></dd>
+    <dd class="instructions basic">When the dataset will be updated in the future, if appropriate</dd>
+    <dd class="hints">DD/MM/YYYY</dd>
+    <dd class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</dd>
+
+    <dt><label class="field_opt" for="update_frequency">Update frequency</label></dt>
+    <dd>
+      <select class="short" id="update_frequency" name="update_frequency">
+        <py:for each="freq_name, freq_desc in c.update_frequency">
+          <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
+            ${freq_desc}
+          </option>
+        </py:for>
+      </select>
+      <label class="inline" for="update_frequency-other">Other: 
+        <input class="medium-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
+      </label>
+    </dd>
+    <dd class="instructions basic">How frequently the dataset is updated with new versions</dd>
+    <dd class="instructions further">For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.</dd>
+    <dd class="field_error" py:if="errors.get('update_frequency', '')">${errors.get('update_frequency', '')}</dd>
+
+    <dt><label class="field_opt" for="precision">Precision</label></dt>
+    <dd><input id="precision" name="precision" size="40" type="text" value="${data.get('precision', '')}"/></dd>
+    <dd class="instructions basic">Indicate the level of precision in the data, to avoid over-interpretation.</dd>
+    <dd class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</dd>
+
+    <dt><label class="field_opt" for="geographic_granularity">Geographic granularity</label></dt>
+    <dd>
+      <select class="short" id="geographic_granularity" name="geographic_granularity">
+        <py:for each="geog_name, geog_desc in c.geographic_granularity">
+          <option value="${geog_name}" py:attrs="{'selected': 'selected' if data.get('geographic_granularity', '') == geog_name else None}" >
+            ${geog_desc}
+          </option>
+        </py:for>
+      </select>
+      <label class="inline" for="geographic_granularity-other">Other: 
+        <input class="medium-width" id="geographic_granularity-other" 
+        name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
+      </label>
+    </dd>
+    <dd class="instructions basic">The lowest level of geographic detail</dd>
+    <dd class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</dd>
+    <dd class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</dd>
+
+    <dt><label class="field_opt" for="geographic_coverage">Geographic coverage</label></dt>
+    <dd py:with="geographic_coverage=data.get('geographic_coverage', [])">
+      <label for="england">
+        <input id="england" name="geographic_coverage" size="40" type="checkbox" 
+        value="england" py:attrs="{'checked': 'checked' if 'england' in geographic_coverage else None}"/> England</label>
+      <label for="scotland">
+        <input id="scotland" name="geographic_coverage" size="40" type="checkbox" 
+        value="scotland" py:attrs="{'checked': 'checked' if 'scotland' in geographic_coverage else None}"/> Scotland</label>
+      <label for="wales">
+        <input id="wales" name="geographic_coverage" size="40" type="checkbox" 
+        value="wales" py:attrs="{'checked': 'checked' if 'wales' in geographic_coverage else None}"/> Wales</label>
+      <label for="northern_ireland">
+        <input id="northern_ireland" name="geographic_coverage" size="40" type="checkbox" 
+        value="northern_ireland" py:attrs="{'checked': 'checked' if 'northern_ireland' in geographic_coverage else None}"/> Northern Ireland</label>
+      <label for="overseas">
+        <input id="overseas" name="geographic_coverage" size="40" type="checkbox" 
+        value="overseas" py:attrs="{'checked': 'checked' if 'overseas' in geographic_coverage else None}"/> Overseas</label>
+      <label for="global">
+        <input id="global" name="geographic_coverage" size="40" type="checkbox" 
+        value="global" py:attrs="{'checked': 'checked' if 'global' in geographic_coverage else None}"/> Global</label>
+    </dd>
+    <dd class="instructions basic">The geographic coverage of this dataset.</dd>
+    <dd class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</dd>
+
+    <dt><label class="field_opt" for="temporal_granularity">Temporal granularity</label></dt>
+    <dd>
+      <select class="short" id="temporal_granularity" name="temporal_granularity">
+        <py:for each="temporal_name, temporal_desc in c.temporal_granularity">
+          <option value="${temporal_name}" py:attrs="{'selected': 'selected' if data.get('temporal_granularity', '') == temporal_name else None}" >
+            ${temporal_name}
+          </option>
+        </py:for>
+      </select>
+      <label class="inline" for="temporal_granularity-other">Other: 
+        <input class="medium-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
+      </label>
+    </dd>
+    <dd class="instructions basic">The lowest level of temporal detail granularity</dd>
+    <dd class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</dd>
+
+    <dt><label class="field_opt" for="temporal_coverage">Temporal coverage</label></dt>
+    <dd>
+      <input class="medium-width" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
+      <input class="medium-width" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
+    </dd>
+    <dd class="instructions basic">The temporal coverage of this dataset.</dd>
+    <dd class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the 'To' sub-element can be left blank.</dd>
+    <dd class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</dd>
+
+    <dt><label class="field_opt" for="url">URL</label></dt>
+    <dd><input id="url" name="url" type="text" value="${data.get('url', '')}"/></dd>
+    <dd class="instructions basic">The Internet link to a web page discussing the dataset.</dd>
+    <dd class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</dd>
+    <dd class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</dd>
+
+    <dt><label class="field_opt" for="taxonomy_url">Taxonomy URL</label></dt>
+    <dd><input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/></dd>
+    <dd class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</dd>
+    <dd class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</dd>
+    <dd class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</dd>
+  </dl>
+  </fieldset>
+<fieldset>
+  <legend>Resources</legend>
+  <table class="flexitable">
+    <thead>
+      <tr>
+        <th class="field_req resource-url">URL*</th>
+        <th class="field_opt resource-format">Format</th>
+        <th class="field_opt resource-description">Description</th>
+        <th class="field_opt resource-hash">Hash</th>
+      </tr>
+    </thead>
+    <tbody>
+      <py:for each="num, res in enumerate(data.get('resources', []) + [{}])">
+      <tr>
+        <py:for each="col in c.resource_columns">
+        <td class="resource-${col}">
+          <input name="resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
+        </td>
+        </py:for>
+        <td class="resource-id"><input name="resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
+      </tr>
+      </py:for>
+    </tbody>
+  </table>
+  <div class="instructions basic">The files containing the data or address of the APIs for accessing it</div>
+  <div class="instructions further">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.<br/> <b>URL:</b> This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department<br/> e.g. http://www.somedept.gov.uk/growth-figures-2009.csv<br/><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></div>
+  <div class="hints">Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</div>
+  <div class="field_error" py:if="errors.get('resources', '')">Package resource(s) incomplete.</div>
+</fieldset>
+
+<fieldset>
+  <legend>More details</legend>
+  <dl>
+    <dt><label class="field_req" for="published_by">Published by *</label></dt>
+    <dd>
+      <select id="published_by" name="published_by">
+        <py:for each="published_name, published_desc in c.publishers">
+          <option value="${published_name}" py:attrs="{'selected': 'selected' if data.get('published_by', '') == published_name else None}" >
+            ${published_desc}
+          </option>
+        </py:for>
+      </select>
+    </dd>
+    <dd class="instructions basic">The organisation (usually a public body) credited with or associated with the publication of this data.</dd>
+    <dd class="instructions further">Often datasets are associated with both a government department and an outside agency, in which case this field should store the department and "Published via" should store the agency. When an organisation is not listed, please request it using the form found in your data.gov.uk user page under the "Publishers" tab. An asterisk (*) denotes an pre-existing value for this field, which is allowed, but the current user's permissions would not be able to change a package\s publisher to this value.</dd>
+
+    <dt><label class="field_opt" for="published_via">Published via</label></dt>
+    <dd>
+      <select id="published_via" name="published_via">
+        <py:for each="published_name, published_desc in c.publishers">
+          <option value="${published_name}" py:attrs="{'selected': 'selected' if data.get('published_via', '') == published_name else None}" >
+            ${published_desc}
+          </option>
+        </py:for>
+      </select>
+    </dd>
+    <dd class="instructions basic">A second organisation that is credited with or associated with the publication of this data.</dd>
+    <dd class="instructions further">Often datasets are associated with both a government department and an outside agency, in which case the "Published by" field should store the department and this field should store the agency. When an organisation is not listed, please request it using the form found in your data.gov.uk user page under the "Publishers" tab. An asterisk (*) denotes an pre-existing value for this field, which is allowed, but the current user's permissions would not be able to change a package\s publisher to this value.</dd>
+
+    <dt><label class="field_opt" for="author">Contact</label></dt>
+    <dd><input id="author" name="author" type="text" value="${data.get('author', '')}"/></dd>
+    <dd class="instructions basic">The permanent contact point for the public to enquire about this particular dataset. In addition, the Public Data and Transparency Team will use it for any suggestions for changes, feedback, reports of mistakes in the datasets or metadata.</dd>
+    <dd class="instructions further">This should be the name of the section of the agency or Department responsible, and should not be a named person. Particular care should be taken in choosing this element.</dd>
+    <dd class="hints">Examples: Statistics team, Public consultation unit, FOI contact point</dd>
+
+    <dt><label class="field_opt" for="author_email">Contact email</label></dt>
+    <dd><input id="author_email" name="author_email" type="text" value="${data.get('author_email', '')}"/></dd>
+    <dd class="instructions basic">A generic official e-mail address for members of the public to contact, to match the 'Contact' element.</dd>
+    <dd class="instructions further">A new e-mail address may need to be created for this function.</dd>
+
+    <dt><label class="field_opt" for="mandate">Mandate</label></dt>
+    <dd><input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/></dd>
+    <dd class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</dd>
+    <dd class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</dd>
+    <dd class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</dd>
+
+    <dt><label class="field_opt" for="license_id">Licence *</label></dt>
+    <dd>
+      <select id="license_id" name="license_id">
+        <py:for each="licence_desc, licence_id in c.licences">
+          <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
+        </py:for>
+      </select>
+    </dd>
+    <dd class="instructions basic">The licence under which the dataset is released.</dd>
+    <dd class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</dd>
+
+    <dt><label class="field_opt" for="tags">Tags</label></dt>
+    <dd>
+      <input class="long tagComplete" data-tagcomplete-queryparam="incomplete" 
+               data-tagcomplete-url="/api/2/util/tag/autocomplete" id="tag_string" name="tag_string" size="60" type="text" 
+               value="${data.get('tag_string') or ' '.join([tag['name'] for tag in data.get('tags', [])])}" />
+    </dd>
+    <dd class="instructions basic">Tags can be thought of as the way that the packages are categorised, so are of primary importance.</dd>
+    <dd class="instructions further">One or more tags should be added to give the government department and geographic location the data covers, as well as general descriptive words. The <a href="http://www.esd.org.uk/standards/ipsv_abridged/" target="_blank">Integrated Public Sector Vocabulary</a> may be helpful in forming these.</dd>
+    <dd class="hints">Format: Two or more lowercase alphanumeric or dash (-) characters; different tags separated by spaces. As tags cannot contain spaces, use dashes instead. e.g. for a dataset containing statistics on burns to the arms in the UK in 2009: nhs uk arm burns medical-statistics</dd>
+    <dd class="field_error" py:if="errors.get('tag_string', '')">${errors.get('tag_string', '')}</dd>
+
+    <dt><label class="field_opt" for="national_statistic">National Statistic</label></dt>
+    <dd><input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
+         py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" /></dd>
+    <dd class="instructions basic">Indicate if the dataset is a National Statistic</dd>
+    <dd class="instructions further">This is so that it can be highlighted.</dd>
+
+  </dl>
+</fieldset>
+
+<hr />
+<label for="log_message">Edit summary (briefly describe the changes you have made)</label>
+<textarea id="log_message" name="log_message" class="short wide"></textarea>
+
+<div class="ckan-logged-in" style="display: none;">
+  <p>Author: ${c.author}</p>
+</div>
+<div class="ckan-logged-out">
+  <label>Author: ${c.author}</label>
+  <p class="hints">
+  Since you have not signed in this will just be your IP address.
+  <a href="${h.url_for(controller='user', action='login', id=None)}" target="_blank">Click here to sign in</a> before saving (opens in new window).
+  </p>
+</div>
+
+<div class="submit">
+  <input name="preview" type="submit" value="Preview" />
+  <input id="save" name="save" type="submit" value="Save" />
+</div>
+<p class="hints">
+<strong>Important:</strong> By submitting content, you agree to release your contributions
+  under the open license specified on the <a href="/license">license page</a>. Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
+</p>
+
+</form>
