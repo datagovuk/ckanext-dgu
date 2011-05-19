@@ -9,7 +9,7 @@ from xmlrpclib import ServerProxy
 
 def drupal_extract_cookie(cookie_string):
     cookies = Cookie.SimpleCookie()
-    cookies.load(cookie_string)
+    cookies.load(str(cookie_string))
     for cookie in cookies:
         if cookie.startswith('SESS'):
             return cookies[cookie].value
@@ -17,7 +17,7 @@ def drupal_extract_cookie(cookie_string):
 
 def is_ckan_signed_in(cookie_string):
     cookies = Cookie.SimpleCookie()
-    cookies.load(cookie_string)
+    cookies.load(str(cookie_string))
     if not 'auth_tkt' in cookies:
         return False
     return True
