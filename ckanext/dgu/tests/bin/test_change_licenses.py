@@ -1,6 +1,6 @@
 from sqlalchemy.util import OrderedDict
 
-from ckanext.dgu.scripts.change_licenses import ChangeLicenses
+from ckanext.dgu.bin.change_licenses import ChangeLicenses
 from ckan import model
 from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient

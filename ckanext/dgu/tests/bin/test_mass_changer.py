@@ -5,7 +5,7 @@ from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckan.lib.create_test_data import CreateTestData
 
-from ckanext.dgu.scripts.mass_changer import *
+from ckanext.dgu.bin.mass_changer import *
 
 raise SkipTest('MassChanger deprecated')
 
