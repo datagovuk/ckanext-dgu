@@ -1,6 +1,6 @@
 from ckanext.importlib.loader import ResourceSeries
-from ckanext.dgu.scripts.transfer_url import TransferUrl
-from ckanext.dgu.scripts.mass_changer_cmd import MassChangerCommand
+from ckanext.dgu.bin.transfer_url import TransferUrl
+from ckanext.dgu.bin.mass_changer_cmd import MassChangerCommand
 from ckanclient import CkanClient
 
 class TransferUrlCommand(MassChangerCommand):

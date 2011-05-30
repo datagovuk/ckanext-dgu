@@ -1,8 +1,8 @@
 import sys
 
 from ckanext.importlib.loader import ResourceSeries
-from ckanext.dgu.scripts.change_licenses import ChangeLicenses
-from ckanext.dgu.scripts.mass_changer_cmd import MassChangerCommand
+from ckanext.dgu.bin.change_licenses import ChangeLicenses
+from ckanext.dgu.bin.mass_changer_cmd import MassChangerCommand
 from ckanclient import CkanClient
 
 class ChangeLicensesCommand(MassChangerCommand):

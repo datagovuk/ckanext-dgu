@@ -162,6 +162,10 @@ class TestImport:
         self.importer = BisImporter(filepath=self._filepath)
         self.pkg_dicts = [pkg_dict for pkg_dict in self.importer.pkg_dict()]
 
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+        
     def test_0_munge(self):
         def test_munge(name, expected_munge):
             munge = self.importer.name_munge(name)

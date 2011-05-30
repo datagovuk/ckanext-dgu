@@ -18,8 +18,9 @@ class TestChangeLicenses(TestController):
         self.testclient = WsgiCkanClient(self.app, api_key=user.apikey, base_location='/api/2')
 
     @classmethod
-    def teardown_class(self):
-        CreateTestData.delete()
+    def teardown_class(cls):
+        model.Session.remove()
+        model.repo.rebuild_db()
 
     def get_licenses(self):
         q = model.Session.query(model.Package)

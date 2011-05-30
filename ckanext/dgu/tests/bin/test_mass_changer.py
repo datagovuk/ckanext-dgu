@@ -21,7 +21,7 @@ class TestMassChanger(TestController):
 
     @classmethod
     def teardown_class(self):
-        CreateTestData.delete()
+        model.repo.rebuild_db()
 
     def test_0_change_pkg(self):
         anna_before = self.anna.as_dict()
