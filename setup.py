@@ -36,16 +36,17 @@ setup(
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
         cospread_loader = ckanext.dgu.cospread:load
-        change_licenses = ckanext.dgu.scripts.change_licenses_cmd:command
-        transfer_url = ckanext.dgu.scripts.transfer_url_cmd:command
-        ons_analysis = ckanext.dgu.scripts.ons_analysis_cmd:command
-        ofsted_fix = ckanext.dgu.scripts.ofsted_fix_cmd:command        
-        publisher_migration = ckanext.dgu.scripts.publisher_migration:command
-        metadata_v3_migration = ckanext.dgu.scripts.metadata_v3_migration:command
+        change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
+        transfer_url = ckanext.dgu.bin.transfer_url_cmd:command
+        ons_analysis = ckanext.dgu.bin.ons_analysis_cmd:command
+        ofsted_fix = ckanext.dgu.bin.ofsted_fix_cmd:command        
+        publisher_migration = ckanext.dgu.bin.publisher_migration:command
+        metadata_v3_migration = ckanext.dgu.bin.metadata_v3_migration:command
         generate_test_organisations = ckanext.dgu.testtools.organisations:command
-        ons_remove_resources = ckanext.dgu.scripts.ons_remove_resources:command
-        ons_delete_resourceless_packages = ckanext.dgu.scripts.ons_delete_resourceless_packages:command
-        dump_analysis = ckanext.dgu.scripts.dump_analysis:command
+        ons_remove_resources = ckanext.dgu.bin.ons_remove_resources:command
+        ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
+        dump_analysis = ckanext.dgu.bin.dump_analysis:command
+        gov_daily = ckanext.dgu.bin.gov_daily:command
         
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset

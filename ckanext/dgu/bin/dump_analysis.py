@@ -12,18 +12,35 @@ import glob
 from datautil.tabular import TabularData, CsvReader, CsvWriter
 from sqlalchemy.util import OrderedDict
 
-log = logging.getLogger(__file__)
+from ckanext.dgu import command
 
+log = logging.getLogger('dump_analysis')
+
+manual_creation = 'Manual creation using web form'
 import_source_prefixes = {
     'ONS': 'ONS feed',
     'COSPREAD': 'Spreadsheet upload',
-    'Manual': 'Spreadsheet upload',
+    'Manual': manual_creation, # originally inputted manually, but reloaded using a spreadsheet
+
     'DATA4NR': 'Data for Neighbourhoods and Regeneration import',
     }
 date_converters = (
     (re.compile('(\d{4})(\d{2})(\d{2})'), '%Y%m%d'),
     (re.compile('(\d{4})-(\d{2})-(\d{2})'), '%Y-%m-%d'),
     )
+
+class DumpAnalysisOptions(dict):
+    '''If calling DumpAnalysis not from the command-line, use this
+    class for the options'''
+    def __init__(self, **initial_options):
+        self['examples'] = '1'
+        self.update(**initial_options)
+        
+    def __getattr__(self, key):
+        if self.has_key(key):
+            return self[key]
+        else:
+            return None
 
 def parse_date(date_str, search=False):
     assert isinstance(date_str, basestring)
@@ -35,9 +52,13 @@ def parse_date(date_str, search=False):
             return date.date()
     raise ValueError('Cannot parse date: %r' % date_str)
 
+def format_date(date):
+    assert isinstance(date, datetime.date)
+    return date.strftime('%Y-%m-%d')
+
 def get_run_info():
     run_info  = 'This analysis is produced by an OKF script\n'
-    run_info += 'Date last updated: %r\n' % datetime.date.today().strftime('%Y-%m-%d')
+    run_info += 'Date last updated: %r\n' % format_date(datetime.date.today())
     run_info += 'Script filename: %r\n' % os.path.basename(__file__)
     run_info += 'Script repository: http://bitbucket.org/okfn/ckanext-dgu\n'
     run_info += 'Dump files for analysis: http://data.gov.uk/data/dumps\n'
@@ -63,15 +84,17 @@ class AnalysisFile(object):
         '''Save self.data_by_date to analysis file'''
         raise NotImplementedError
 
-    def format_date(self, date):
-        assert isinstance(date, datetime.date)
-        return date.strftime('%Y-%m-%d')
-
     def add_analysis(self, date, analysis_dict):
         '''Takes an analysis and updates self.data_by_date.'''
         assert isinstance(date, datetime.date)
         assert isinstance(analysis_dict, dict)
         self.data_by_date[date] = analysis_dict
+
+    def get_data_by_date_sorted(self):
+        '''Returns the data as a list of tuples (date, analysis),
+        sorted by date.'''
+        return sorted(self.data_by_date.items(),
+                      key=lambda (date, analysis): date)
 
 class TabularAnalysisFile(AnalysisFile):
     def load(self):
@@ -105,8 +128,8 @@ class TabularAnalysisFile(AnalysisFile):
         else:
             header = []
         data_rows = []
-        for date, analysis in sorted(self.data_by_date.items(), key=lambda (date, analysis): date):
-            data_row = [self.format_date(date)]
+        for date, analysis in self.get_data_by_date_sorted():
+            data_row = [format_date(date)]
             for title in header[1:]:
                 data_row.append(analysis.get(title))
             data_rows.append(data_row)
@@ -162,17 +185,20 @@ class TxtAnalysisFile(AnalysisFile):
         fileobj = open(self.analysis_filepath, 'w')
         try:
             fileobj.write(self.run_info + '\n')
-            for date, analysis in self.data_by_date.items():
-                line = '%s : %s\n' % (self.format_date(date), repr(analysis))
+            for date, analysis in self.get_data_by_date_sorted():
+                analysis_str = analysis if isinstance(analysis, basestring) \
+                               else repr(analysis)
+                line = '%s : %s\n' % (format_date(date), analysis_str)
                 fileobj.write(line)
         finally:
             fileobj.close()
         
 
 class DumpAnalysis(object):
-    def __init__(self, dump_filepath):
+    def __init__(self, dump_filepath, options):
         log.info('Analysing %s' % dump_filepath)
         self.dump_filepath = dump_filepath
+        self.options = options
         self.run()
         
     def run(self):
@@ -182,14 +208,27 @@ class DumpAnalysis(object):
         self.analysis_dict['Total active and deleted packages'] = len(packages)
         packages = self.filter_out_deleted_packages(packages)
         self.analysis_dict['Total active packages'] = len(packages)
-        pkg_bins = self.analyse_by_source(packages)
-        for bin, pkgs in pkg_bins.items():
-            self.analysis_dict['Packages by source: %s' % bin] = len(pkgs)
+
+        if self.options.analyse_by_source:
+            pkg_bins = self.analyse_by_source(packages)
+            for bin, pkgs in pkg_bins.items():
+                self.analysis_dict['Packages by source: %s' % bin] = len(pkgs)
+        if self.options.analyse_ons_by_published_by:
+            ons_packages = self.filter_by_ons_packages(packages)
+            pkg_bins = self.analyse_by_published_by(ons_packages)
+            for bin, pkgs in pkg_bins.items():
+                self.analysis_dict['ONS packages by published_by: %s' % bin] = len(pkgs)
+                
         self.print_analysis(pkg_bins)
 
     def save_date(self):
-        self.date = parse_date(self.dump_filepath, search=True)
-        log.info('Date of dumpfile: %r', self.date.strftime('%Y %m %d'))
+        try:
+            self.date = parse_date(self.dump_filepath, search=True)
+        except ValueError:
+            # only worry about this later on if we save to a file.
+            self.date = None
+        datestr = format_date(self.date) if self.date else None
+        log.info('Date of dumpfile: %r', datestr)
 
     def get_packages(self):
         if zipfile.is_zipfile(self.dump_filepath):
@@ -221,6 +260,16 @@ class DumpAnalysis(object):
         log.info('Number of active packages: %i', (len(filtered_pkgs)))
         return filtered_pkgs
 
+    def filter_by_ons_packages(self, packages):
+        filtered_pkgs = []
+        ons_prefix = 'ONS'
+        for pkg in packages:
+            import_source = pkg['extras'].get('import_source')
+            if import_source and import_source.startswith(ons_prefix):
+                filtered_pkgs.append(pkg)
+        log.info('Number of ONS packages: %i', (len(filtered_pkgs)))
+        return filtered_pkgs
+
     def analyse_by_source(self, packages):
         pkg_bins = defaultdict(list)
         for pkg in packages:
@@ -235,47 +284,93 @@ class DumpAnalysis(object):
             if pkg['extras'].get('INSPIRE') == 'True':
                 pkg_bins['INSPIRE'].append(pkg['name'])
                 continue
-            pkg_bins['Manual creation using web form'].append(pkg['name'])
+            if (pkg.get('url') or '').startswith('http://www.data4nr.net/resources/'):
+                import_source = import_source_prefixes['DATA4NR']
+                pkg_bins[import_source].append(pkg['name'])
+                continue
+            if pkg['extras'].get('co_id'):
+                import_source = import_source_prefixes['COSPREAD']
+                pkg_bins[import_source].append(pkg['name'])
+                continue                
+            pkg_bins[manual_creation].append(pkg['name'])
+        return pkg_bins
+
+    def analyse_by_published_by(self, packages):
+        pkg_bins = defaultdict(list)
+        remove_id_regex = re.compile(' \[\d+\]')
+        for pkg in packages:
+            published_by = pkg['extras'].get('published_by')
+            published_by = remove_id_regex.sub('', published_by)
+            if published_by:
+                pkg_bins[published_by].append(pkg['name'])
+                continue
+            pkg_bins['No value'].append(pkg['name'])
         return pkg_bins
 
     def print_analysis(self, pkg_bins):
         log.info('* Analysis by source *')
         for pkg_bin, pkgs in sorted(pkg_bins.items(), key=lambda (pkg_bin, pkgs): -len(pkgs)):
-            log.info('  %s: %i (e.g. %r)', pkg_bin, len(pkgs), pkgs[0])
+            log.info('  %s: %i (e.g. %r)', pkg_bin, len(pkgs), pkgs[:int(self.options.examples)])
 
-def command():
+class Command(command.Command):
     usage = 'usage: %prog [options] dumpfile.json.zip'
     usage += '\nNB: dumpfile can be gzipped, zipped or json'
     usage += '\n    can be list of files and can be a wildcard.'
-    parser = OptionParser(usage=usage)
-    parser.add_option('--csv', dest='csv_filepath',
-                      help='add analysis to CSV report FILENAME', metavar='FILENAME')
-    parser.add_option('--txt', dest='txt_filepath',
-                      help='add analysis to textual report FILENAME', metavar='FILENAME')
-    (options, args) = parser.parse_args()
-    input_file_descriptors = args
-    input_filepaths = []
-    for input_file_descriptor in input_file_descriptors:
-        input_filepaths.extend(glob.glob(os.path.expanduser(input_file_descriptor)))
 
-    # Open output files
-    output_types = (
-        # (output_filepath, analysis_file_class)
-        (options.txt_filepath, TxtAnalysisFile),
-        (options.csv_filepath, CsvAnalysisFile),
-        )
-    analysis_files = {} # analysis_file_class, analysis_file
-    run_info = get_run_info()
-    for output_filepath, analysis_file_class in output_types:
-        if output_filepath:
-            analysis_files[analysis_file_class] = analysis_file_class(output_filepath, run_info)
+    def add_options(self):
+        self.parser.add_option('--csv', dest='csv_filepath',
+                               help='add analysis to CSV report FILENAME',
+                               metavar='FILENAME')
+        self.parser.add_option('--txt', dest='txt_filepath',
+                               help='add analysis to textual report FILENAME',
+                               metavar='FILENAME')
+        self.parser.add_option('--examples', dest='examples',
+                               default='1',
+                               help='show NUMBER of examples for each category',
+                               metavar='NUMBER')
+        self.parser.add_option('--analyse-by-source', dest='analyse_by_source',
+                               action="store_true")
+        self.parser.add_option('--analyse-ons-by-published-by', dest='analyse_ons_by_published_by',
+                               action="store_true")
 
-    for input_filepath in input_filepaths:
-        # Run analysis
-        analysis = DumpAnalysis(input_filepath)
+    def parse_args(self):
+        super(Command, self).parse_args()
+        if not (self.options.analyse_by_source or \
+                self.options.analyse_ons_by_published_by):
+            self.parser.error('Need to specify one or more analysese.')
+    
+    def command(self):
+        input_file_descriptors = self.args
+        input_filepaths = []
+        for input_file_descriptor in input_file_descriptors:
+            input_filepaths.extend(glob.glob(os.path.expanduser(input_file_descriptor)))
 
-        for analysis_file_class, analysis_file in analysis_files.items():
-            analysis_file.add_analysis(analysis.date, analysis.analysis_dict)
-            # Save
-            analysis_file.save()
-    log.info('Finished')
+        # Open output files
+        output_types = (
+            # (output_filepath, analysis_file_class)
+            (self.options.txt_filepath, TxtAnalysisFile),
+            (self.options.csv_filepath, CsvAnalysisFile),
+            )
+        analysis_files = {} # analysis_file_class, analysis_file
+        run_info = get_run_info()
+        for output_filepath, analysis_file_class in output_types:
+            if output_filepath:
+                analysis_files[analysis_file_class] = analysis_file_class(output_filepath, run_info)
+
+        for input_filepath in input_filepaths:
+            # Run analysis
+            analysis = DumpAnalysis(input_filepath, self.options)
+
+            if analysis_files:
+                assert analysis.date, 'The results are requested to be saved to '
+                'an analysis file which is sorted by date, but could not find '
+                'a date in the input filename: %s' % input_filepath
+
+            for analysis_file_class, analysis_file in analysis_files.items():
+                analysis_file.add_analysis(analysis.date, analysis.analysis_dict)
+                # Save
+                analysis_file.save()
+        log.info('Finished')
+
+def command():
+    Command().command()
