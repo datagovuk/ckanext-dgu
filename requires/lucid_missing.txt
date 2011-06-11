@@ -10,7 +10,7 @@
 # ckanext-harvest
 -e hg+https://bitbucket.org/okfn/ckanext-harvest@079e425bbd8d#egg=ckanext-harvest
 # ckanext-inspire
--e hg+https://bitbucket.org/okfn/ckanext-inspire@b46ed93e8360#egg=ckanext-inspire
+-e hg+https://bitbucket.org/okfn/ckanext-inspire@75a5510b8616#egg=ckanext-inspire
 # ckanext-spatial
 -e hg+https://bitbucket.org/okfn/ckanext-spatial@90466a83f22e#egg=ckanext-spatial
 # ckanext-qa
