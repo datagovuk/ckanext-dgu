@@ -1,0 +1,195 @@
+#!/bin/bash
+. /usr/lib/ckan/common.sh
+
+# The above command means import the bash functions from there so we can 
+# use them here
+
+# Things that could be done in a future version of this script
+# * Have a separate config for drupal password and Apache names
+# * Have dgu users, groups and directories, rather than CKAN ones so that 
+#   potentially lots of different INSTANCEs can be installed on the same
+#   machine
+
+# Exit immediately if there is ever a command that returns a non-zero value
+# and don't process any more commands, most likley leaving CKAN in maintenance
+# mode
+set -e 
+
+# Check we are root, something has gone very wrong if we are not!
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
+INSTANCE="dgu"
+
+# Disable any existing crontabs during the upgrade, we don't want
+# scripts running when things are still changing
+echo "Disabling the crontab for the ckan${INSTANCE} user ..."
+PACKAGED_CRONJOB="/tmp/${INSTANCE}-cronjob"
+cat <<EOF > ${PACKAGED_CRONJOB}
+# m  h dom mon dow  command
+EOF
+crontab -u ckan${INSTANCE} ${PACKAGED_CRONJOB}
+
+# Try to put CKAN into maintenance mode, if it is installed
+if ! [ -f /etc/apache2/sites-available/${INSTANCE}.maint ] ; then
+    # We have a maintence mode available
+    echo "Putting CKAN into maintenance mode ..."
+    ckan_maintenance_on ${INSTANCE}
+fi
+
+echo "Ensuring users and groups are set up correctly ..."
+ckan_ensure_users_and_groups ${INSTANCE}
+
+echo "Ensuring directories exist for ${INSTANCE} CKAN INSTANCE ..."
+# Ensure the standard directories exist
+ckan_make_ckan_directories ${INSTANCE}
+# Then create the extra ones DGU need and set permissions
+sudo chmod a+x /var/lib/ckan/${INSTANCE}/
+sudo mkdir -p -m 0700 /var/lib/ckan/${INSTANCE}/pid
+sudo chmod a+x /var/lib/ckan/${INSTANCE}/pid
+sudo mkdir -p -m 0700 /var/lib/ckan/${INSTANCE}/qa/download
+sudo chmod a+x /var/lib/ckan/${INSTANCE}/qa/download
+sudo chown -R ckan${INSTANCE}:ckan${INSTANCE} /var/lib/ckan/${INSTANCE}/qa/download
+
+echo "Setting log file permissions so that both Apache and cron jobs can log to the same place ..."
+ckan_set_log_file_permissions ${INSTANCE}
+
+echo "Ensuring who.ini file exists for data.gov.uk CKAN INSTANCE ..."
+ckan_create_who_ini ${INSTANCE}
+
+echo "Ensuring ${INSTANCE}.py file exists for data.gov.uk CKAN INSTANCE ..."
+ckan_create_wsgi_handler ${INSTANCE}
+
+echo "Ensuring the ${INSTANCE} database exists ..."
+ckan_ensure_db_exists ${INSTANCE}
+
+echo "Ensuring ${INSTANCE}.ini file exists for data.gov.uk CKAN INSTANCE ..."
+if ! [ -f /etc/ckan/${INSTANCE}/${INSTANCE}.ini ] ; then
+    # Create a password
+    password=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c10`
+    # Replace any existing user with a new one with this password
+    echo "Setting the password of the ${INSTANCE} user in PostgreSQL"
+    ckan_add_or_replace_database_user ${INSTANCE} ${password}
+    # Create the config file
+    echo "Creating a data.gov.uk config for CKAN with the same password as the DGU user"
+    # We use the actual password in PostgreSQL in case any non-sense has gone on
+    ckan_create_config_file ${INSTANCE} ${password}
+    # Now that the file exists, make some customisations
+    cat <<EOF >> /etc/ckan/${INSTANCE}/${INSTANCE}.ini
+ckan.qa_downloads = /var/lib/ckan/${INSTANCE}/qa/download
+dgu.xmlrpc_username = CKAN_API
+#------------------------------------- XXX setup Drupal here -------------
+# dgu.xmlrpc_password = XXX 
+# dgu.xmlrpc_domain = dev.dataco.coi.gov.uk
+#------------------------------------- XXX setup Drupal here -------------
+ckan.default_roles.Package = {"visitor": ["reader"], "logged_in": ["reader"]}
+ckan.default_roles.Group = {"visitor": ["reader"], "logged_in": ["reader"]}
+ckan.default_roles.System = {"visitor": ["reader"], "logged_in": ["reader"]}
+ckan.default_roles.AuthorizationGroup = {"visitor": ["reader"], "logged_in": ["reader"]}
+licenses_group_url = http://licenses.opendefinition.org/2.0/ukgov
+EOF
+    sed \
+        -e "s,^\(ckan.dump_dir\)[ =].*,\1 = /var/lib/ckan/dgu/static/dump," \
+        -e "s,^\(ckan.site_title\)[ =].*,\1 = data.gov.uk," \
+        -e "s,^\(ckan.site_url\)[ =].*,\1 = http://dgu-uat.okfn.org," \
+        -e "s,^\(package_form\)[ =].*,\1 = package_gov3," \
+        -e "s,^\(email_to\)[ =].*,\1 = ckan-sysadmin@okfn.org," \
+        -e "s,^\(error_email_from\)[ =].*,\1 = ckan-sysadmin@okfn.org," \
+        -i /etc/ckan/${INSTANCE}/${INSTANCE}.ini
+     echo "CAUTION: Make sure you edit '/etc/ckan/${INSTANCE}/${INSTANCE}.ini' to set the Drupal password."
+fi
+
+# Install the harvesting init scripts
+if ! [ -f /etc/rc2.d/S25${INSTANCE}_harvest_gather ] ; then
+    echo "Creating the harvester gather consumers ..."
+    sudo touch /var/lib/ckan/${INSTANCE}/pid/gather.pid
+    sudo chown ckan${INSTANCE}:ckan${INSTANCE} /var/lib/ckan/${INSTANCE}/pid/gather.pid
+    sudo update-rc.d -f ${INSTANCE}_harvest_gather defaults 25 &> /dev/null
+    sudo /etc/init.d/${INSTANCE}_harvest_gather start &> /dev/null
+fi
+if ! [ -f /etc/rc2.d/S25${INSTANCE}_harvest_fetch ] ; then
+    echo "Creating the harvester fetch consumers ..."
+    sudo touch /var/lib/ckan/${INSTANCE}/pid/fetch.pid
+    sudo chown ckan${INSTANCE}:ckan${INSTANCE} /var/lib/ckan/${INSTANCE}/pid/fetch.pid
+    sudo update-rc.d -f ${INSTANCE}_harvest_fetch defaults 25 &> /dev/null
+    sudo /etc/init.d/${INSTANCE}_harvest_fetch start &> /dev/null
+fi
+
+# Install the harvesting extension tables if they aren't there already
+COMMAND_OUTPUT=`sudo -u postgres psql -d ${INSTANCE} -c "SELECT 'True' AS harvest_source_exists from pg_tables where schemaname='public' and tablename='harvest_source';" 2> /dev/null`
+if [[ "$COMMAND_OUTPUT" =~ True ]] ; then
+    echo "Harvester tables present"
+else
+    echo "Setting up the harvester tables ..."
+    paster --plugin=ckanext-harvest harvester initdb --config=/etc/ckan/${INSTANCE}/${INSTANCE}.ini &> /dev/null
+fi
+
+# Install the geospatial search tables if they aren't there already
+COMMAND_OUTPUT=`sudo -u postgres psql -d ${INSTANCE} -c "SELECT count(*) from pg_proc where proname = 'postgis_full_version'" 2> /dev/null`
+if [[  "$COMMAND_OUTPUT" =~ 0 ]] ; then
+    echo "Adding the plpgsql langauge to the ${INSTANCE} database ..."
+    sudo -u postgres createlang plpgsql ${INSTANCE} &> /dev/null
+    echo "Installing PostGIS extensions ..."
+    sudo -u postgres psql -d ${INSTANCE} -f /usr/share/postgresql/8.4/contrib/postgis.sql &> /dev/null
+    sudo -u postgres psql -d ${INSTANCE} -f /usr/share/postgresql/8.4/contrib/spatial_ref_sys.sql &> /dev/null
+    echo "Setting PostGIS permissions for CKAN and initialising tables ..."
+    sudo -u postgres psql -d ${INSTANCE} -c "ALTER TABLE geometry_columns OWNER TO ${INSTANCE}" &> /dev/null
+    sudo -u postgres psql -d ${INSTANCE} -c "ALTER TABLE spatial_ref_sys OWNER TO ${INSTANCE}" &> /dev/null
+    sudo paster --plugin=ckanext-spatial spatial initdb --config=/etc/ckan/${INSTANCE}/${INSTANCE}.ini &> /dev/null
+fi
+
+# Set any plugins needed
+echo "Ensuring the latest plugins are configured ..."
+sed -e "s,^\(ckan.plugins\)[ =].*,\1 = dgu_form_api cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query dgu_theme_embedded qa dgu_auth_api," \
+    -i /etc/ckan/${INSTANCE}/${INSTANCE}.ini
+
+# Overwrite the existing Apache config
+if [ -f /etc/apache2/sites-enabled/default ] ; then
+    echo "Disabling the default Apache site ..."
+    a2dissite default
+fi
+
+echo "Overwriting the existing Apache config ..."
+ckan_overwrite_apache_config ${INSTANCE} catalog.data.gov.uk dgu-live.okfn.org
+
+# Make sure mod_rewrite is enabled
+if ! [ -f /etc/apache2/mods-enabled/rewrite.load ] ; then
+    echo "Enabling Apache mod_rewite ..."
+    a2enmod rewrite
+fi
+
+
+# Standard paster db upgrade
+echo "Performing any database upgrades ..."
+paster --plugin=ckan db upgrade --config=/etc/ckan/${INSTANCE}/${INSTANCE}.ini &> /dev/null
+
+# Make sure our INSTANCE is enabled
+echo "Bringing the ${INSTANCE} INSTANCE out of maintenance mode ..."
+ckan_maintenance_off ${INSTANCE}
+
+# Restart Apache so it is aware of any changes
+echo "Restarting apache ..."
+/etc/init.d/apache2 restart 
+#&> /dev/null
+
+# Install the new crontab
+echo "Enabling crontab for the ckan${INSTANCE} user ..."
+PACKAGED_CRONJOB="/tmp/${INSTANCE}-cronjob"
+cat <<EOF > ${PACKAGED_CRONJOB}
+# WARNING:  Do not edit these cron tabs, they will be overwritten any time 
+#           the ckan INSTANCE package is upgraded
+# QUESTION: Should email reports be sent to root?
+# Gov Daily
+# 31               23  *   *   *   python /usr/lib/pymodules/python2.6/ckanext/dgu/bin/gov_daily.py /etc/ckan/dgu/dgu.ini
+# Try to start the harvester consumers in case they have stopped
+*/10              *  *   *   *   /etc/init.d/dgu_harvest_gather start
+*/10              *  *   *   *   /etc/init.d/dgu_harvest_fetch start
+# Then run the harvester 1 minute after any fetch or gather restart
+# 1,11,21,31,41,51  *  *   *   *   paster --plugin=ckanext-harvest harvester run --config=/etc/ckan/dgu/dgu.ini
+# Update the package 5 star scores once a month
+# 0                 0  1   *   *   paster --plugin=ckanext-qa package-scores update --config=/etc/ckan/dgu/dgu.ini
+EOF
+crontab -u ckan${INSTANCE} ${PACKAGED_CRONJOB}
+

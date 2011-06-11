@@ -1,0 +1,15 @@
+Package: ckan-dgu
+# These variables are overwritten by the build system so should not be 
+# completed...
+# Version: 
+Architecture: all
+Maintainer: James Gardner <james.gardner@okfn.org>
+Installed-Size: 0
+Pre-Depends: ckan-common
+Depends: apache2, libapache2-mod-wsgi, postgresql-8.4-postgis, python-dateutil, rabbitmq-server, postgresql-8.4-postgis, python-carrot
+Section: main/web
+Priority: extra
+Homepage: http://ckan.org
+Description: ckan-dgu
+ Extensions for CKAN to run the data.gov.uk site
+

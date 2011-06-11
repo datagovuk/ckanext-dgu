@@ -1,3 +1,20 @@
+# CKAN itself
+-e hg+https://bitbucket.org/okfn/ckan@840b6788d301#egg=ckan
+# OWSLib
 # Note you have to use a patched version of owslib.etree to force the use of lxml
 -e svn+http://svn.gispython.org/svn/gispy/OWSLib/trunk@1707#egg=owslib
+# ApacheMiddleware
+-e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
+# ckanext-csw
+-e hg+https://bitbucket.org/okfn/ckanext-csw@20ae2eb2e145#egg=ckanext-csw
+# ckanext-harvest
+-e hg+https://bitbucket.org/okfn/ckanext-harvest@079e425bbd8d#egg=ckanext-harvest
+# ckanext-inspire
+-e hg+https://bitbucket.org/okfn/ckanext-inspire@b46ed93e8360#egg=ckanext-inspire
+# ckanext-spatial
+-e hg+https://bitbucket.org/okfn/ckanext-spatial@90466a83f22e#egg=ckanext-spatial
+# ckanext-qa
+-e hg+https://bitbucket.org/okfn/ckanext-qa@02c8c711c27f#egg=ckanext-qa
+# Swiss # XXX This link is broken, where is the swiss source code?
+# http://knowledgeforge.net/okfn/swiss/
 

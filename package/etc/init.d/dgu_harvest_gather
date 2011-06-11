@@ -1,0 +1,38 @@
+#!/bin/bash
+
+DAEMON=/usr/bin/python
+ARGS="/usr/bin/paster --plugin=ckanext-harvest harvester gather_consumer --config=/etc/ckan/dgu/dgu.ini"
+PIDFILE=/var/lib/ckan/dgu/pid/gather.pid
+
+function start {
+    /sbin/start-stop-daemon --start --pidfile $PIDFILE \
+        --user ckan --group ckan \
+        -b --make-pidfile \
+        --chuid ckan \
+        --exec $DAEMON -- $ARGS
+}  
+function stop {
+    /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose
+}
+
+case "$1" in
+  start)
+    echo "Starting server ..."
+    start
+    ;;
+  stop)
+    echo "Stopping server ..."
+    stop
+    ;;
+  restart)
+    echo "Restarting server ..."
+    stop
+    start
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
