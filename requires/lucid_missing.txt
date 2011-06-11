@@ -1,5 +1,5 @@
 # CKAN itself
--e hg+https://bitbucket.org/okfn/ckan@840b6788d301#egg=ckan
+-e hg+https://bitbucket.org/okfn/ckan@be399dffca43#egg=ckan
 # OWSLib
 # Note you have to use a patched version of owslib.etree to force the use of lxml
 -e svn+http://svn.gispython.org/svn/gispy/OWSLib/trunk@1707#egg=owslib
