@@ -15,6 +15,10 @@
 -e hg+https://bitbucket.org/okfn/ckanext-spatial@90466a83f22e#egg=ckanext-spatial
 # ckanext-qa
 -e hg+https://bitbucket.org/okfn/ckanext-qa@02c8c711c27f#egg=ckanext-qa
-# Swiss # XXX This link is broken, where is the swiss source code?
-# http://knowledgeforge.net/okfn/swiss/
+# Use the OKFN fork of OWSlib (it has the tests/__init__.py file removed to remove
+# a conflict with paste when installing as a debian package and it forces the use
+# of lxml as the XML library).
+-e hg+https://bitbucket.org/okfn/owslib@378e441455c0#egg=owslib
+# Replaces swiss
+-e hg+https://bitbucket.org/okfn/datautil@8c796b006f31#egg=datautil
 
