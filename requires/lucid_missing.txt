@@ -15,6 +15,8 @@
 -e hg+https://bitbucket.org/okfn/ckanext-spatial@90466a83f22e#egg=ckanext-spatial
 # ckanext-qa
 -e hg+https://bitbucket.org/okfn/ckanext-qa@02c8c711c27f#egg=ckanext-qa
+# ckanext-dgutheme
+-e hg+https://bitbucket.org/okfn/ckanext-dgutheme@ba95c57574abegg=ckanext-dgutheme
 # Use the OKFN fork of OWSlib (it has the tests/__init__.py file removed to remove
 # a conflict with paste when installing as a debian package and it forces the use
 # of lxml as the XML library).
