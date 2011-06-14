@@ -1,8 +1,5 @@
 # CKAN itself
 -e hg+https://bitbucket.org/okfn/ckan@17ca3ed55e97#egg=ckan
-# OWSLib
-# Note you have to use a patched version of owslib.etree to force the use of lxml
--e svn+http://svn.gispython.org/svn/gispy/OWSLib/trunk@1707#egg=owslib
 # ApacheMiddleware
 -e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
 # ckanext-csw
