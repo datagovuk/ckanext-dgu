@@ -123,10 +123,13 @@ class AuthAPIMiddleware(object):
 
 #Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESS9854522e7c5dba5831db083c5372623c=4160a72a4d6831abec1ac57d7b5a59eb; auth_tkt="a578c4a0d21bdbde7f80cd271d60b66f4ceabc3f4466!"; ckan_apikey="3a51edc6-6461-46b8-bfe2-57445cbdeb2b"; ckan_display_name="James Gardner"; ckan_user="4466"
 
+            # There is a bug(/feature?) in line 628 of Cookie.py that means
+            # it can't load from unicode strings. This causes Beaker to fail
+            # unless the value here is a string
             if not environ.get('HTTP_COOKIE'):
-                environ['HTTP_COOKIE'] += cookie_string
+                environ['HTTP_COOKIE'] += str(cookie_string)
             else:
-                environ['HTTP_COOKIE'] = cookie_string[2:]
+                environ['HTTP_COOKIE'] = str(cookie_string[2:])
 
             def cookie_setting_start_response(status, headers, exc_info=None):
                 headers += new_header
