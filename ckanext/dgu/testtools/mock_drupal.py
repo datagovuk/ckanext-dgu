@@ -18,8 +18,10 @@ def get_mock_drupal_config():
         'rpc_host': 'localhost',
         'rpc_port': MOCK_DRUPAL_PORT,
         'test_users': {'62': {'name': 'testname',
+                              'uid': '62',
                               'publishers': test_organisations}
                        },
+        'test_sessions': {'4160a72a4d6831abec1ac57d7b5a59eb': '62'}
         }
 
 class Command(paste.script.command.Command):
@@ -152,6 +154,16 @@ class MockDrupal(object):
                     else:
                         raise Fault(404, 'No department for organisation ID %r' % org_id)
 
+            class session:
+                @classmethod
+                def get(cls, session_id):
+                    # return user_id given a session_id
+                    # Example response:
+                    #   62
+                    try:
+                        return config['test_sessions'][session_id]
+                    except KeyError:
+                        raise Fault(404, 'There is no session with such ID.')                    
         server.register_instance(MyFuncs(), allow_dotted_names=True)
 
         # Run the server's main loop

@@ -31,21 +31,24 @@ class AuthAPIMiddleware(object):
     def __call__(self, environ, start_response):
         if self.drupal_client is None:
             self.drupal_client = DrupalClient()
+
+        # establish from the cookie whether ckan and drupal are signed in
         ckan_signed_in = [False]
         drupal_signed_in = [False]
-
         for k, v in environ.items():
             key = k.lower()
             if key  == 'http_cookie':
                 ckan_signed_in[0] = is_ckan_signed_in(v)
                 drupal_signed_in[0] = drupal_extract_cookie(v)
-
         ckan_signed_in = ckan_signed_in[0]
         drupal_signed_in = drupal_signed_in[0]
-        environ['drupal.user_id'] = None
-        environ['drupal.publisher'] = None
+
+        environ['drupal.uid'] = None
+        environ['drupal.publishers'] = None
         new_start_response = start_response
         if drupal_signed_in and not ckan_signed_in:
+            # get info about the user from drupal and store in environ for
+            # use by main CKAN app
             user_id = self.drupal_client.get_user_id_from_session_id(drupal_signed_in)
             res = self.drupal_client.get_user_properties(user_id)
             environ['drupal.uid'] = res['uid']
@@ -71,6 +74,10 @@ class AuthAPIMiddleware(object):
                 Session.commit()
             else:
                 user = query.one()
+
+            # We want to store values in the user's cookie, so
+            # prepare the response header with this value,
+            # using auth_tkt to sign it.
             new_header = environ['repoze.who.plugins']['auth_tkt'].remember(
                 environ,
                 {
@@ -79,7 +86,7 @@ class AuthAPIMiddleware(object):
                     'userdata': '',
                 }
             )
-
+            # e.g. new_header = [('Set-Cookie', 'bob=ab48fe; Path=/;')]
             cookie_template = new_header[0][1].split('; ')
 
             cookie_string = ''
