@@ -51,7 +51,6 @@ def command():
     from pylons import config
 
     # settings
-
     log_filepath = os.path.join(os.path.expanduser(config.get('ckan.log_dir', '~')),
                    'gov-daily.log')
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir', '~/dump'))
@@ -61,9 +60,8 @@ def command():
                                'data.gov.uk-ckan-meta-data-%Y-%m-%d')
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir', '~/backup'))
-    backup_filebase = dump_filebase = config.get(
-        'ckan.backup_filename_base',
-        ckan_instance_name + '.%Y-%m-%d.pg_dump')
+    backup_filebase = config.get('ckan.backup_filename_base',
+                                 ckan_instance_name + '.%Y-%m-%d.pg_dump')
 
     logging.basicConfig(filename=log_filepath, level=logging.INFO)
     logging.info('----------------------------')
@@ -74,9 +72,11 @@ def command():
     # Check database looks right
     num_packages_before = model.Session.query(model.Package).count()
     logging.info('Number of existing packages: %i' % num_packages_before)
-    if num_packages_before < 2500:
+    if num_packages_before < 2:
         logging.error('Expected more packages.')
         sys.exit(1)
+    elif num_packages_before < 2500:
+        logging.warn('Expected more packages.')
 
     # Create dumps for users
     logging.info('Creating database dump')
@@ -85,14 +85,15 @@ def command():
         os.makedirs(dump_dir)
     query = model.Session.query(model.Package)
     dump_file_base = start_time.strftime(dump_filebase)
-    for file_type, dumper in (('csv', dumper.SimpleDumper().dump_csv),
+    logging.getLogger("MARKDOWN").setLevel(logging.WARN)
+    for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
                               ('json', dumper.SimpleDumper().dump_json),
                              ):
         dump_filename = '%s.%s' % (dump_file_base, file_type)
         dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
         tmp_file = open(tmp_filepath, 'w')
         logging.info('Creating %s file: %s' % (file_type, dump_filepath))
-        dumper(tmp_file, query)
+        dumper_(tmp_file, query)
         tmp_file.close()
         dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
         dump_file.write(tmp_filepath, dump_filename)
