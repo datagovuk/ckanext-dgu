@@ -35,7 +35,6 @@ def command():
     USAGE = '''Daily script for government
     Usage: python %s [config.ini]
     ''' % sys.argv[0]
-
     if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
         err = 'Error: Please specify config file.'
         print USAGE, err
@@ -46,28 +45,43 @@ def command():
 
     load_config(path)
 
-    import ckan.model as model
-    import ckan.lib.dumper as dumper
     from pylons import config
 
     # settings
-    log_filepath = os.path.join(os.path.expanduser(config.get('ckan.log_dir', '~')),
-                   'gov-daily.log')
-    dump_dir = os.path.expanduser(config.get('ckan.dump_dir', '~/dump'))
-    ckan_instance_name = re.sub(r'[^\w.-]|https?', '', 
-                                config.get('ckan.site_url', 'dgu'))
+    ckan_instance_name = os.path.basename(config_file).replace('.ini', '')
+    if ckan_instance_name != 'development':
+        default_dump_dir = '/var/lib/ckan/%s/static/dump' % ckan_instance_name
+        default_backup_dir = '/var/backup/ckan/%s' % ckan_instance_name
+        default_log_dir = '/var/log/ckan/%s' % ckan_instance_name
+    else:
+        # test purposes
+        default_dump_dir = '~/dump'
+        default_backup_dir = '~/backup'
+        default_log_dir = '~'
+    dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
+                                             default_dump_dir))
+    backup_dir = os.path.expanduser(config.get('ckan.backup_dir',
+                                               default_backup_dir))
+    log_dir = os.path.expanduser(config.get('ckan.log_dir',
+                                            default_log_dir))
     dump_filebase = config.get('ckan.dump_filename_base',
                                'data.gov.uk-ckan-meta-data-%Y-%m-%d')
-    tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
-    backup_dir = os.path.expanduser(config.get('ckan.backup_dir', '~/backup'))
+    dump_analysis_filebase = config.get('ckan.dump_analysis_base',
+                               'data.gov.uk-analysis')
     backup_filebase = config.get('ckan.backup_filename_base',
                                  ckan_instance_name + '.%Y-%m-%d.pg_dump')
+    log_filepath = os.path.join(log_dir, 'gov-daily.log')
+    print 'Logging to: %s' % log_filepath
+    tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
 
     logging.basicConfig(filename=log_filepath, level=logging.INFO)
     logging.info('----------------------------')
     logging.info('Starting daily script')
     start_time = datetime.datetime.today()
     logging.info(start_time.strftime('%H:%M %d-%m-%Y'))
+
+    import ckan.model as model
+    import ckan.lib.dumper as dumper
 
     # Check database looks right
     num_packages_before = model.Session.query(model.Package).count()
@@ -103,8 +117,8 @@ def command():
     # Dump analysis
     logging.info('Creating dump analysis')
     json_dump_filepath = os.path.join(dump_dir, '%s.json.zip' % dump_file_base)
-    txt_filepath = os.path.join(dump_dir, 'package_counts.txt')
-    csv_filepath = os.path.join(dump_dir, 'package_counts.csv')
+    txt_filepath = os.path.join(dump_dir, dump_analysis_filebase + '.txt')
+    csv_filepath = os.path.join(dump_dir, dump_analysis_filebase + '.csv')
     run_info = get_run_info()
     options = DumpAnalysisOptions(analyse_by_source=True)
     analysis = DumpAnalysis(json_dump_filepath, options)
