@@ -57,10 +57,13 @@ def command():
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir', '~/dump'))
     ckan_instance_name = re.sub(r'[^\w.-]|https?', '', 
                                 config.get('ckan.site_url', 'dgu'))
-    dump_filebase = ckan_instance_name + '-%Y-%m-%d'
+    dump_filebase = config.get('ckan.dump_filename_base',
+                               'data.gov.uk-ckan-meta-data-%Y-%m-%d')
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir', '~/backup'))
-    backup_filebase = ckan_instance_name + '.%Y-%m-%d.pg_dump'
+    backup_filebase = dump_filebase = config.get(
+        'ckan.backup_filename_base',
+        ckan_instance_name + '.%Y-%m-%d.pg_dump')
 
     logging.basicConfig(filename=log_filepath, level=logging.INFO)
     logging.info('----------------------------')
