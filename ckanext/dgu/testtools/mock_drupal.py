@@ -4,7 +4,7 @@ from xmlrpclib import Fault
 import paste.script
 
 from ckanext.dgu.testtools.organisations import test_organisations, \
-     LotsOfOrganisations
+     test_organisation_names, LotsOfOrganisations
 
 # NB Mock drupal details must match those in ckanext-dgu/test-core.ini
 MOCK_DRUPAL_PATH = '/services/xmlrpc'
@@ -19,7 +19,7 @@ def get_mock_drupal_config():
         'rpc_port': MOCK_DRUPAL_PORT,
         'test_users': {'62': {'name': 'testname',
                               'uid': '62',
-                              'publishers': test_organisations}
+                              'publishers': test_organisation_names}
                        },
         'test_sessions': {'4160a72a4d6831abec1ac57d7b5a59eb': '62'}
         }
@@ -128,7 +128,7 @@ class MockDrupal(object):
                     # Example response:
                     #   "Arts Council England"
                     try:
-                        return self.organisations[org_id]
+                        return self.organisations[org_id]['name']
                     except KeyError:
                         raise Fault(404, 'There is no organisation with such ID.')                    
 
@@ -137,20 +137,19 @@ class MockDrupal(object):
                     # return org id by name
                     # Example response:
                     #   "12022"
-                    for id, name in self.organisations.items():
-                        if name == org_name:
+                    for id, org_dict in self.organisations.items():
+                        if org_name == org_dict['name']:
                             return id
                     raise Fault(404, 'Cannot find organisation %r.' % org_name)
                 
                 @classmethod
                 def department(cls, org_id): 
-                    # return top level parent ord id by org id
+                    # return top level parent org id by org id
                     # Example response:
                     #   {'11419': 'Department for Culture, Media and Sport'}
-                    if org_id == '2':
-                        return {'1': 'National Health Service'}
-                    elif org_id in self.organisations:
-                        return {org_id: self.organisations[org_id]}
+                    if org_id in self.organisations:
+                        parent_org_id = self.organisations[org_id]['parent_department_id']
+                        return {parent_org_id: self.organisations[parent_org_id]['name']}
                     else:
                         raise Fault(404, 'No department for organisation ID %r' % org_id)
 

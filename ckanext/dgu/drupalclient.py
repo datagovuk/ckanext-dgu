@@ -77,17 +77,27 @@ class DrupalClient(object):
         log.info('Obtained Drupal session for session ID %r: %r', session_id, session)
         return session
 
-    def get_department_from_publisher(self, id):
+    def get_department_from_organisation(self, id):
         try:
-            department = self.drupal.organisation.department(str(id))
+            # Example response:
+            #   {'11419': 'Department for Culture, Media and Sport'}
+            dept_dict = self.drupal.organisation.department(str(id))
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
         except Fault, e:
-            raise DrupalRequestError('Drupal returned error for organisation_id %r: %r' % (id, e))
+            if e.faultCode == 404:
+                raise DrupalKeyError(id)
+            else:
+                raise DrupalRequestError('Drupal returned error for organisation_id %r: %r' % (id, e))
         except ProtocolError, e:
             raise DrupalRequestError('Drupal returned protocol error for organisation_id %r: %r' % (id, e))
-        log.info('Obtained Drupal parent department %r from publisher %r', department, id)
-        return department
+        if len(dept_dict) == 0:
+            raise DrupalKeyError('No parent department for organisation_id %r' % id)
+        if len(dept_dict) > 1:
+            raise DrupalKeyError('Multiple parent departments for organisation_id %r: %r' % (id, dept_dict))
+        department_id, department_name = dept_dict.items()[0]
+        log.info('Obtained Drupal parent department %r (%s) from organisation %r', department_name, department_id, id)
+        return department_id
 
     def get_organisation_name(self, id):
         try:

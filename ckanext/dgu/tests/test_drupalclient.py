@@ -44,3 +44,17 @@ class TestDrupalConnection(MockDrupalCase):
         assert_raises(DrupalKeyError, client.get_organisation_name, '999')
         assert_raises(DrupalKeyError, client.get_organisation_name, '')
         assert_raises(DrupalKeyError, client.get_organisation_name, None)
+
+    def test_get_department_from_organisation(self):
+        drupal_config = get_mock_drupal_config()
+        client = DrupalClient()
+
+        parent_org_id = client.get_department_from_organisation('2')
+        assert_equal(parent_org_id, '7')
+        parent_org_id = client.get_department_from_organisation(2)
+        assert_equal(parent_org_id, '7')
+
+        assert_raises(DrupalKeyError, client.get_department_from_organisation, '999')
+        assert_raises(DrupalKeyError, client.get_department_from_organisation, '')
+        assert_raises(DrupalKeyError, client.get_department_from_organisation, None)
+        

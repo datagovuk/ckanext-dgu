@@ -1,10 +1,9 @@
-from ckanext.importlib.command import Command
+from ckanext.dgu.bin.command import Command
 
 class XmlRpcCommand(Command):
     '''Derive from this to use the xmlrpc setting options.
     '''
     def __init__(self, usage=None):
-        self.add_options()
         super(XmlRpcCommand, self).__init__()
 
     def add_options(self):

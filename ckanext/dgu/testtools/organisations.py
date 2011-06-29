@@ -2,7 +2,7 @@ import os.path
 import logging
 import sys
 
-from ckanext.dgu.command import XmlRpcCommand
+from ckanext.dgu.bin.xmlrpc_command import XmlRpcCommand
 
 from ckan.lib.helpers import json
 
@@ -12,13 +12,23 @@ from ckanext.dgu.drupalclient import DrupalClient
 
 log = logging.getLogger(__name__)
 
-test_organisations = {'1': 'National Health Service',
-                      '2': 'Ealing PCT',
-                      '3': 'Department for Education',
-                      '4': 'Department of Energy and Climate Change',
-                      '5': 'Department for Business, Innovation and Skills',
-                      '6': 'Department for Communities and Local Government',
+test_organisations = {'1': {'name': 'National Health Service',
+                            'parent_department_id': '7'},
+                      '2': {'name': 'Ealing PCT',
+                            'parent_department_id': '7'},
+                      '3': {'name': 'Department for Education',
+                            'parent_department_id': '3'},
+                      '4': {'name': 'Department of Energy and Climate Change',
+                            'parent_department_id': '4'},
+                      '5': {'name': 'Department for Business, Innovation and Skills',
+                            'parent_department_id': '5'},
+                      '6': {'name': 'Department for Communities and Local Government',
+                            'parent_department_id': '6'},
+                      '7': {'name': 'Department of Health',
+                            'parent_department_id': '7'},
                       }
+
+test_organisation_names = dict([(id, org_dict['name']) for id, org_dict in test_organisations.items()])
 
 class LotsOfOrganisations(object):
     orgs_cache = {}
@@ -48,7 +58,9 @@ class LotsOfOrganisations(object):
                 has_errors = True
                 continue
             proper_org_name = drupal.get_organisation_name(org_id)
-            orgs[org_id] = proper_org_name
+            parent_department_id = drupal.get_department_from_organisation(org_id)
+            orgs[org_id] = {'name': proper_org_name,
+                            'parent_department_id': parent_department_id}
             
         f = open(cls.lots_of_orgs_filepath, 'w')
         try:
@@ -71,7 +83,7 @@ class OrgCommand(XmlRpcCommand):
     def command(self):
         super(OrgCommand, self).command()
 
-        cmd = LotsOfOrganisations.generate(xmlrpc_settings)
+        cmd = LotsOfOrganisations.generate(self.xmlrpc_settings)
 
 def command():
     OrgCommand().command()

@@ -13,7 +13,7 @@ class TestMockDrupal(MockDrupalCase):
         assert isinstance(user, dict)
         assert user.has_key('name')
         assert user.has_key('publishers')
-        assert isinstance(user['publishers'], dict)
+        assert isinstance(user['publishers'], dict), user['publishers']
         publisher = user['publishers'].items()[0]
         assert isinstance(publisher[0], str)
         assert_equal(publisher[0], '1')
@@ -39,9 +39,9 @@ class TestMockDrupal(MockDrupalCase):
         assert_raises(xmlrpclib.Fault, self.s.organisation.match, 'Wrong org name')
 
     def test_department_lookup(self):
-        # return org id by name
+        # return org id of the parent department
         org = self.s.organisation.department('2')
-        assert_equal(org, {'1': 'National Health Service'})
+        assert_equal(org, {'7': 'Department of Health'})
 
     def test_department_lookup_error(self):
         assert_raises(xmlrpclib.Fault, self.s.organisation.department, '9999')
