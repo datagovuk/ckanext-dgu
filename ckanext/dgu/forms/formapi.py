@@ -9,7 +9,7 @@ from ckan.lib.helpers import json
 import ckan.controllers.package
 from ckan.lib.package_saver import WritePackageFromBoundFieldset
 from ckan.lib.package_saver import ValidationException
-from ckan.controllers.api import ApiController
+from ckan.controllers.api import ApiController, CONTENT_TYPES
 
 from ckanext.dgu.forms import harvest_source as harvest_source_form
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
@@ -448,7 +448,7 @@ class FormController(ApiController):
             if err_msg:
                 self.log.debug(err_msg)
                 response.status_int = 400
-                response.headers['Content-Type'] = self.content_type_json
+                response.headers['Content-Type'] = CONTENT_TYPES['json']
                 return json.dumps(err_msg)
             else:
                 return self._finish_ok(job)
@@ -478,7 +478,7 @@ class FormController(ApiController):
             if err_msg:
                 self.log.debug(err_msg)
                 response.status_int = 400
-                response.headers['Content-Type'] = self.content_type_json
+                response.headers['Content-Type'] = CONTENT_TYPES['json']
                 return json.dumps(err_msg)
             else:
                 return self._finish_ok()
@@ -567,9 +567,9 @@ class FormController(ApiController):
             log.error("Couldn't update harvest source: %s" % traceback.format_exc())
             raise
 
-    def get_department_from_publisher(self, id):
+    def get_department_from_organisation(self, id):
         try:
-            department = self.__class__._drupal_client().get_department_from_publisher(id)
+            department = self.__class__._drupal_client().get_department_from_organisation(id)
         except DrupalRequestError, e:
             abort(500, 'Error making internal request: %r' % e)
         return self._finish_ok(department)
