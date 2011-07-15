@@ -9,11 +9,9 @@ from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 import ckan.model as model
 from ckan.lib.create_test_data import CreateTestData
-from test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
+from test_form_api import BaseFormsApiCase
 from ckanext.dgu.tests import MockDrupalCase, Gov3Fixtures, strip_organisation_id
-from ckan.tests.functional.api.test_model import Api1TestCase
-from ckan.tests.functional.api.test_model import Api2TestCase
-from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
+from ckan.tests.functional.api.base import ApiTestCase, Api1TestCase, Api2TestCase, ApiUnversionedTestCase
 
 
 class PackageFixturesBase:

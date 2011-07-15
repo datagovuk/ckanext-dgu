@@ -7,10 +7,7 @@ from nose.plugins.skip import SkipTest;
 
 from ckan.tests import *
 from ckan.tests import search_related
-from ckan.tests.functional.api.base import ApiTestCase
-from ckan.tests.functional.api.test_model import Api1TestCase
-from ckan.tests.functional.api.test_model import Api2TestCase
-from ckan.tests.functional.api.test_model import ApiUnversionedTestCase
+from ckan.tests.functional.api.base import ApiTestCase, Api1TestCase, Api2TestCase, ApiUnversionedTestCase
 
 from ckanext.harvest.lib import get_harvest_source, create_harvest_source
 

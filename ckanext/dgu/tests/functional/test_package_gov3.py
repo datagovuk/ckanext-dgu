@@ -93,8 +93,8 @@ class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
 
 class TestFormsApi2(Api2TestCase, FormsApiTestCase):
 
-    def test_get_department_from_publisher_api(self):
-        assert self.app.get('/api/2/util/publisher/2/department').body=='{"1": "National Health Service"}',self.app.get('/api/2/util/publisher/2/department').body
+    def test_get_department_from_organisation_api(self):
+        assert self.app.get('/api/2/util/publisher/2/department').body=='"7"',self.app.get('/api/2/util/publisher/2/department').body
 
 class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     '''Tests the form as it would be used embedded in dgu html.'''
