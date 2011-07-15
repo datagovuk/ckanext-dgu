@@ -8,7 +8,10 @@ from ckan.lib.helpers import json
 from ckan.lib.helpers import literal
 from ckan.lib.create_test_data import CreateTestData
 from ckanext.dgu.forms.formapi import DrupalRequestError
-from ckanext.dgu.tests.forms.test_form_api import BaseFormsApiCase, Api1TestCase, Api2TestCase
+from ckan.tests.functional.api.base import (Api1TestCase,
+                                            Api2TestCase,
+                                            ApiUnversionedTestCase)
+from ckanext.dgu.tests.forms.test_form_api import BaseFormsApiCase
 from ckanext.dgu.tests import *
 
 package_form = 'package_gov3'
