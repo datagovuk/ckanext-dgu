@@ -10,12 +10,7 @@ from ckan.plugins import IMiddleware
 from ckanext.dgu.middleware import AuthAPIMiddleware
 import ckanext.dgu
 
-from ckan.model import Session
-from ckanext.harvest.model import HarvestObject
-
-import ckanext.dgu.forms.html as html
-from genshi.input import HTML
-from genshi.filters import Transformer
+import stream_filters
 
 log = getLogger(__name__)
 
@@ -99,7 +94,7 @@ class FormApiPlugin(SingletonPlugin):
         map.connect('/api/rest/harvesteddocument/:id/html', controller='ckanext.dgu.forms.formapi:FormController',
                 action='harvested_document_view_format', format='html')
         """
-        map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_publisher')
+        map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_organisation')
         map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         map.connect('home', '/ckan/', controller='home', action='index')
         return map
@@ -119,25 +114,14 @@ class FormApiPlugin(SingletonPlugin):
         from pylons import request, tmpl_context as c
         routes = request.environ.get('pylons.routes_dict')
 
-        if routes.get('controller') == 'package' and \
-            routes.get('action') == 'read' and c.pkg.id:
+        if routes and \
+               routes.get('controller') == 'package' and \
+               routes.get('action') == 'read' and c.pkg.id:
 
             is_inspire = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'INSPIRE']
             if is_inspire and is_inspire[0] == 'True':
-                # We need the guid from the HarvestedObject!
-                doc = Session.query(HarvestObject). \
-                      filter(HarvestObject.package_id==c.pkg.id). \
-                      order_by(HarvestObject.metadata_modified_date.desc()). \
-                      order_by(HarvestObject.gathered.desc()). \
-                      limit(1).first()
-                if doc:
-                    data = {'guid': doc.guid}
-                    html_code = html.GEMINI_CODE
-                    if len(c.pkg.resources) == 0:
-                        # If no resources, the table has only two columns
-                        html_code = html_code.replace('<td></td>','')
+                stream = stream_filters.harvest_filter(stream, c.pkg)
 
-                    stream = stream | Transformer('body//div[@class="resources subsection"]/table')\
-                        .append(HTML(html_code % data))
+            stream = stream_filters.archive_filter(stream)
 
         return stream

@@ -4,25 +4,15 @@ import re
 from paste.script.appinstall import SetupCommand
 from pylons import config
 
+from ckan import model
 from ckan.lib.create_test_data import CreateTestData
-from ckan.tests import WsgiAppCase
+from ckan.tests import WsgiAppCase, BaseCase
 from ckanext.dgu.testtools.mock_drupal import MOCK_DRUPAL_URL
+from ckanext.harvest.model import HarvestJob, HarvestObject
+from ckanext.harvest.model import setup as harvest_setup
 
 # Invoke websetup with the current config file
 SetupCommand('setup-app').run([config['__file__']])
-
-
-class BaseCase(object):
-    @staticmethod
-    def _system(cmd):
-        import commands
-        (status, output) = commands.getstatusoutput(cmd)
-        if status:
-            raise Exception, "Couldn't execute cmd: %s: %s" % (cmd, output)
-
-    @classmethod
-    def _paster(cls, cmd, config_path_rel):
-        cls._system('paster --plugin ckanext-dgu %s' % cmd)
 
 
 class PackageFixturesBase:
@@ -190,6 +180,8 @@ class PackageDictUtil(object):
         extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
         assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
 
+class DrupalSetupError(Exception):
+    pass
 
 class MockDrupalCase(BaseCase):
     xmlrpc_url = MOCK_DRUPAL_URL
@@ -197,6 +189,7 @@ class MockDrupalCase(BaseCase):
     
     @classmethod
     def setup_class(cls):
+        cls._check_drupal_not_already_running()
         cls.process = cls._mock_drupal_start()
         cls._wait_for_drupal_to_start()
 
@@ -214,6 +207,21 @@ class MockDrupalCase(BaseCase):
         return process
 
     @classmethod
+    def _check_drupal_not_already_running(cls,
+                                          url=None):
+        import xmlrpclib
+        import socket
+        import time
+        
+        url = url or cls.xmlrpc_url
+        drupal = xmlrpclib.ServerProxy(url)
+        try:
+            response = drupal.system.listMethods()
+        except socket.error, e:
+            return
+        raise DrupalSetupError('Drupal already seems to be running: %s' % url)
+
+    @classmethod
     def _wait_for_drupal_to_start(cls,
                                   url=None,
                                   timeout=15):
@@ -229,7 +237,8 @@ class MockDrupalCase(BaseCase):
             except socket.error, e:
                 time.sleep(0.01)
             else:
-                break
+                return
+        raise DrupalSetupError('Time-out while waiting for Drupal to start up.')
 
     @classmethod
     def _mock_drupal_stop(cls, process):
@@ -241,3 +250,25 @@ class MockDrupalCase(BaseCase):
 def strip_organisation_id(org_name_with_id):
     # e.g. 'NHS [54]' becomes 'NHS [some_number]'
     return re.sub('\[\d+\]', '[some_number]', org_name_with_id)
+
+class HarvestFixture(object):
+    '''Base class, useful for several tests relating to harvesting.'''
+    @classmethod
+    def setup_class(cls):
+        # Create package and its harvest object
+        CreateTestData.create()
+        harvest_setup()
+        job = HarvestJob()
+        job.save()
+        model.repo.commit_and_remove()
+        job = model.Session.query(HarvestJob).first()
+        ho = HarvestObject(package=model.Package.by_name(u'annakarenina'),
+                           harvest_job=job,
+                           guid='test-guid',
+                           content='<xml>test content</xml>')
+        ho.save()
+        model.repo.commit_and_remove()
+
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
