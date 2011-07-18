@@ -1,5 +1,5 @@
 from ckanext.importlib.api_command import ApiCommand
-from ckanext.dgu.command import XmlRpcCommand
+from ckanext.dgu.bin.xmlrpc_command import XmlRpcCommand
 from ckanext.dgu.cospread.cospread import CospreadImporter
 from ckanext.dgu.cospread.loader import CospreadLoader
 from ckanclient import CkanClient
