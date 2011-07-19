@@ -91,7 +91,7 @@ ckan.default_roles.AuthorizationGroup = {"visitor": ["reader"], "logged_in": ["r
 licenses_group_url = http://licenses.opendefinition.org/2.0/ukgov
 EOF
     sed \
-        -e "s,^\(ckan.dump_dir\)[ =].*,\1 = /var/lib/ckan/dgu/static/dump," \
+        -e "s,^\(ckan.dump_dir\)[ =].*,\1 = /var/lib/ckan/${INSTANCE}/static/dump," \
         -e "s,^\(ckan.site_title\)[ =].*,\1 = data.gov.uk," \
         -e "s,^\(ckan.site_url\)[ =].*,\1 = http://dgu-uat.okfn.org," \
         -e "s,^\(package_form\)[ =].*,\1 = package_gov3," \
