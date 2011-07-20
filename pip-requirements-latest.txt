@@ -2,7 +2,10 @@
 # the latest versions of everything. This is for installing a
 # development setup and for testing purposes only.
 
--e hg+https://bitbucket.org/okfn/ckan#egg=ckan
+# Don't include ckan, which makes this installable with pip into a
+# virtualenv
+#-e hg+https://bitbucket.org/okfn/ckan#egg=ckan
+
 -e hg+https://hg.3aims.com/public/ApacheMiddleware#egg=apachemiddleware
 -e hg+https://bitbucket.org/okfn/ckanext-csw#egg=ckanext-csw
 -e hg+https://bitbucket.org/okfn/ckanext-harvest#egg=ckanext-harvest
