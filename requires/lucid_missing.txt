@@ -1,5 +1,5 @@
 # CKAN itself
--e hg+https://bitbucket.org/okfn/ckan@742dbad3fec7#egg=ckan
+-e hg+https://bitbucket.org/okfn/ckan@fc68f7196b18#egg=ckan
 # ApacheMiddleware
 -e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
 # ckanext-csw
