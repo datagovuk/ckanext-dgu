@@ -10,6 +10,6 @@
 -e hg+https://bitbucket.org/okfn/ckanext-spatial#egg=ckanext-spatial
 -e hg+https://bitbucket.org/okfn/ckanext-qa#egg=ckanext-qa
 -e hg+https://bitbucket.org/okfn/ckanext-dgutheme#egg=ckanext-dgutheme
--e hg+https://bitbucket.org/okfn/ckanext-importlibegg=ckanext-importlib
+-e hg+https://bitbucket.org/okfn/ckanext-importlib#egg=ckanext-importlib
 -e hg+https://bitbucket.org/okfn/owslib#egg=owslib
 -e hg+https://bitbucket.org/okfn/datautil#egg=datautil
