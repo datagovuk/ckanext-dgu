@@ -122,6 +122,4 @@ class FormApiPlugin(SingletonPlugin):
             if is_inspire and is_inspire[0] == 'True':
                 stream = stream_filters.harvest_filter(stream, c.pkg)
 
-            stream = stream_filters.archive_filter(stream)
-
         return stream
