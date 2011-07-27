@@ -33,9 +33,8 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
         c.hide_welcome_message = False
         context = {'model': model, 'session': model.Session,
                    'user': c.user,
-                   'id':c.pkg.id,
                    'package':c.pkg}
-        c.pkg_dict = get.package_show(context)
+        c.pkg_dict = get.package_show(context, {'id':c.pkg.id})
         
         # Render package view page
         # (filter should not be called on this occasion)
