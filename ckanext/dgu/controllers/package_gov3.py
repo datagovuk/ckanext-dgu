@@ -57,7 +57,7 @@ class PackageGov3Controller(PackageController):
 
     package_form = 'package_gov3.html'
 
-    def _setup_template_variables(self, context):
+    def _setup_template_variables(self, context, data_dict=None):
         c.licences = [('', '')] + model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
         c.update_frequency = update_frequency
