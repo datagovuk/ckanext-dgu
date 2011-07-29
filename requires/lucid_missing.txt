@@ -3,9 +3,9 @@
 # ApacheMiddleware
 -e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
 # ckanext-csw
--e hg+https://bitbucket.org/okfn/ckanext-csw@20ae2eb2e145#egg=ckanext-csw
+-e hg+https://bitbucket.org/okfn/ckanext-csw@e2086b4d58fa#egg=ckanext-csw
 # ckanext-harvest
--e hg+https://bitbucket.org/okfn/ckanext-harvest@079e425bbd8d#egg=ckanext-harvest
+-e hg+https://bitbucket.org/okfn/ckanext-harvest@cf83d4846e1d#egg=ckanext-harvest
 # ckanext-inspire
 -e hg+https://bitbucket.org/okfn/ckanext-inspire@75a5510b8616#egg=ckanext-inspire
 # ckanext-spatial
