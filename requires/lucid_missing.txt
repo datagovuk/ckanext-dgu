@@ -1,5 +1,5 @@
 # CKAN itself
--e hg+https://bitbucket.org/okfn/ckan@9dd7f90de589#egg=ckan
+-e hg+https://bitbucket.org/okfn/ckan@42bf62a5539b#egg=ckan
 # ApacheMiddleware
 -e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
 # ckanext-csw
@@ -11,7 +11,7 @@
 # ckanext-spatial
 -e hg+https://bitbucket.org/okfn/ckanext-spatial@90466a83f22e#egg=ckanext-spatial
 # ckanext-qa
--e hg+https://bitbucket.org/okfn/ckanext-qa@02c8c711c27f#egg=ckanext-qa
+-e hg+https://bitbucket.org/okfn/ckanext-qa@e3621f689509#egg=ckanext-qa
 # ckanext-dgutheme
 -e hg+https://bitbucket.org/okfn/ckanext-dgutheme@ba95c57574ab#egg=ckanext-dgutheme
 # ckanext-importlib
