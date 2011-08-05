@@ -96,7 +96,7 @@ echo "Creating/overwriting the config for CKAN ... "
 ckan_create_config_file ${INSTANCE} ${CKAN_DB_PASSWORD}
 # Now that the file exists, make some customisations
     cat <<EOF >> /etc/ckan/${INSTANCE}/${INSTANCE}.ini
-ckan.qa_downloads = /var/lib/ckan/${INSTANCE}/qa/download
+ckan.qa_archive = /var/lib/ckan/${INSTANCE}/qa/download
 dgu.xmlrpc_username = CKAN_API
 dgu.xmlrpc_password = ${DRUPAL_XMLRPC_PASSWORD} 
 dgu.xmlrpc_domain = ${DRUPAL_XMLRPC_DOMAIN}
@@ -203,8 +203,10 @@ cat <<EOF > ${PACKAGED_CRONJOB}
 */10              *  *   *   *   /etc/init.d/dgu_harvest_fetch start
 # Then run the harvester 1 minute after any fetch or gather restart
 # 1,11,21,31,41,51  *  *   *   *   paster --plugin=ckanext-harvest harvester run --config=/etc/ckan/dgu/dgu.ini
-# Update the package 5 star scores once a month
-# 0                 0  1   *   *   paster --plugin=ckanext-qa package-scores update --config=/etc/ckan/dgu/dgu.ini
+# Update the package 5 star scores
+0         20  1,5,9,13,17,21,25,29   *   *   paster --plugin=ckanext-qa archive update --config=/etc/ckan/dgu/dgu.ini
+0         20  1,5,9,13,17,21,25,29   *   *   paster --plugin=ckanext-qa qa update --config=/etc/ckan/dgu/dgu.ini
+#0         20  1,5,9,13,17,21,25,29   *   *   paster --plugin=ckanext-qa process update --config=/etc/ckan/dgu/dgu.ini
 EOF
 crontab -u ckan${INSTANCE} ${PACKAGED_CRONJOB}
 
