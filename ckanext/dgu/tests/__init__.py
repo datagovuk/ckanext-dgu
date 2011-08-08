@@ -180,6 +180,24 @@ class PackageDictUtil(object):
         extra_keys = set(dict_to_check.keys()) - set(expected_dict.keys())
         assert not extra_keys, 'Keys that should not be there: %r. All unmatching keys: %r' % (extra_keys, unmatching_keys)
 
+    @classmethod
+    def assert_subset(cls, dict_to_check, expected_dict):
+        '''Takes a package dict_to_check and an expected package dict(expected_dict).
+        Returns ok if the items in the expected_dict are in the dict_to_check. If there
+        are other keys in the dict_to_check then these are ignored.
+
+        '''
+        for key, value in expected_dict.items():
+            if key == 'extras':
+                cls.assert_subset(dict_to_check['extras'], value)
+            else:
+                if value:
+                    assert dict_to_check[key] == value, 'Key \'%s\' should be %r not: %r' % (key, value, dict_to_check[key])
+                else:
+                    assert not dict_to_check.get(key), 'Key \'%s\' should have no value, not: %s' % (key, dict_to_check[key])
+        missing_keys = set(expected_dict.keys()) - set(dict_to_check.keys())
+        assert not missing_keys, 'Missing keys: %r' % (missing_keys)
+
 class DrupalSetupError(Exception):
     pass
 
