@@ -152,6 +152,15 @@ def command():
         logging.info('Backup successful: %s' % pg_dump_filepath)
     else:
         logging.error('Backup error: %s' % ret)
+    logging.info('Zipping up backup')
+    pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
+    cmd = 'gzip %s' % pg_dump_filepath
+    logging.info('Zip command: %s' % cmd)
+    ret = os.system(cmd)
+    if ret == 0:
+        logging.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
+    else:
+        logging.error('Backup gzip error: %s' % ret)
 
     # Log footer
     report_time_taken()

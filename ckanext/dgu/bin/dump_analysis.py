@@ -12,7 +12,7 @@ import glob
 from datautil.tabular import TabularData, CsvReader, CsvWriter
 from sqlalchemy.util import OrderedDict
 
-from ckanext.dgu import command
+from ckanext.importlib import command
 
 log = logging.getLogger('dump_analysis')
 
