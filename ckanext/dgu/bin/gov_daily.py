@@ -51,12 +51,12 @@ def command():
     ckan_instance_name = os.path.basename(config_file).replace('.ini', '')
     if ckan_instance_name != 'development':
         default_dump_dir = '/var/lib/ckan/%s/static/dump' % ckan_instance_name
-        default_backup_dir = '/var/backup/ckan/%s' % ckan_instance_name
+        default_backup_dir = '/var/backups/ckan/%s' % ckan_instance_name
         default_log_dir = '/var/log/ckan/%s' % ckan_instance_name
     else:
         # test purposes
         default_dump_dir = '~/dump'
-        default_backup_dir = '~/backup'
+        default_backup_dir = '~/backups'
         default_log_dir = '~'
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
                                              default_dump_dir))
