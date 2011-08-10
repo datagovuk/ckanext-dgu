@@ -43,7 +43,11 @@ class NSFilter(object):
             if count % pkgs_per_dot == 0:
                 log.debug('Processed %i packages', count)
             pkg = self.client.package_entity_get(pkg_ref)
-            if asbool(pkg['extras'].get('national_statistic') or False):
+            try:
+                is_ns = asbool(pkg['extras'].get('national_statistic') or False)
+            except ValueError, e:
+                is_ns = False
+            if is_ns:
                 if not pkg['extras'].get('import_source', '').startswith('ONS'):
                     save_result('NS but not ONS - change', pkg)
                     if not self.dry_run:
