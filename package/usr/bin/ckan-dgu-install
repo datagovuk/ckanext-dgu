@@ -119,6 +119,13 @@ sed \
 echo "Ensuring the ${INSTANCE} database exists ..."
 ckan_ensure_db_exists ${INSTANCE}
 
+if [ -f /etc/ckan/${INSTANCE}/latest.dump ] ; then
+    echo "Restoring from the latest dump"
+    paster --plugin=ckan db load --config=/etc/ckan/${INSTANCE}/${INSTANCE}.ini /etc/ckan/${INSTANCE}/latest.dump
+else
+    echo "No dump to install"
+fi
+
 # Install the harvesting init scripts
 if ! [ -f /etc/rc2.d/S25${INSTANCE}_harvest_gather ] ; then
     echo "Creating the harvester gather consumers ..."
