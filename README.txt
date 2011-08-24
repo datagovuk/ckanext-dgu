@@ -2,26 +2,28 @@
 ckanext-dgu - data.gov.uk extension
 ===================================
 
+This is an extension to CKAN that provides customisations specifically for the data.gov.uk project:
 
-Dependencies
-============
+ * DGU's package form - includes a number of custom fields such as temporal_coverage and geographic_coverage.
+ * the Form API - exposes in the API the form expressed as HTML for insertion in the Drupal front-end.
+ * Harvest Source form, supplied by Form API to the Drupal front-end.
+ * Harvest Object inserted into the CKAN package view page.
+ * gov_daily - a script (for running daily) that save the database dumps for end-users (JSON/CSV) and backups (SQL).
+ * ons_loader - an import script for data from the Office of National Statistics.
+ * cospread - an import script for packages listed in a standardised spreadsheet format.
+ * various other command-line utilities
 
 
-Setup
-=====
+Install
+=======
 
-You need ckan installed as well as various other dependencies listed in
-pip-requirements.txt::
+This is how to install ckanext-dgu, ckan and their dependencies into a python virtual environment::
 
     virtualenv pyenv
-    pip -E pyenv install -e .
+    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckan
     pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckan#egg=ckan
-    pip -E pyenv install -r pip-requirements.txt
-
-Now you can activate the environment and run the scripts::
-
-    . pyenv/bin/activate
-    ons_loader --help
+    pip -E pyenv install -r pyenv/src/ckan/pip-requirements.txt
+    pip -E pyenv install -r pyenv/src/ckanext-dgu/pip-requirements.txt
 
 
 Configuration
@@ -46,10 +48,29 @@ and credentials for HTTP Basic Authentication (if necessary)::
     dgu.xmlrpc_password = letmein
 
 
+Usage
+=====
+
+There is a front-page added to CKAN which describes the Catalogue APIs. The usual CKAN front-page has been moved to /ckan/ .
+
+e.g.::
+
+    http://127.0.0.1:5000/ckan/
+
+
+Scripts
+=======
+
+There are a number of command-line scripts for processing data. To run one of these, you should activate the environment first. For example to load in some ONS data you might start like this::
+
+    . pyenv/bin/activate
+    ons_loader --help
+
+
 Tests
 =====
 
-To test the DGU extension you need the setup with CKAN (see above).
+To test the DGU extension you need the setup with CKAN (see above) and creation of a configured pyenv/src/ckan/development.ini (see http://docs.ckan.org/en/latest/install-from-source.html ).
 
 To run the tests::
 
@@ -61,7 +82,7 @@ or run them from another directory by specifying the test.ini::
 
     nosetests {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/ --ckan --with-pylons={pyenv}/src/ckanext-dgu/test.ini {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/
 
-You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see the CKAN README.txt. 
+You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see http://docs.ckan.org/en/latest/install-from-source.html . 
 
 Test issues
 -----------
@@ -101,12 +122,9 @@ Documentation
 
 DGU is an extension for CKAN: http://ckan.org
 
-This README file is part of the DGU Developer Documentation, viewable at:
-http://knowledgeforge.net/ckan/doc/ckanext-dgu/index.html and stored in the
+This README file is part of the DGU Developer Documentation, stored in the
 ckanext-dgu repo at ``ckanext-dgu/doc``. 
 
-The Developer Docs are built using `Sphinx <http://sphinx.pocoo.org/>`_::
+The Developer Docs can be built using `Sphinx <http://sphinx.pocoo.org/>`_::
 
       python setup.py build_sphinx
-
-The docs are uploaded via dav.
