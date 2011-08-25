@@ -87,8 +87,8 @@ You can either run the 'quick and dirty' tests with SQLite or more comprehensive
 Test issues
 -----------
 
-Connection errors
-+++++++++++++++++
+Address and Connection errors
++++++++++++++++++++++++++++++
 
 * ``socket.error: [Errno 98] Address already in use``
 * ``error: [Errno 111] Connection refused``
@@ -108,13 +108,6 @@ Config errors
 * ``DrupalXmlRpcSetupError: Drupal XMLRPC not configured.``
 
 The missing settings that result in this error are to be found in {pyenv}/src/ckanext-dgu/test-core.ini which is also imported into {pyenv}/src/ckanext-dgu/test.ini, so make sure you are specifying either of these config files in your nosetests ``--with-pylons`` parameter.
-
-Mock Drupal process
-+++++++++++++++++++
-
-If you get "Address in use" then it means a previous run of the tests has not cleaned up the Mock Drupal process. You can verify that::
-
-    ps |grep paster
 
 
 Documentation
