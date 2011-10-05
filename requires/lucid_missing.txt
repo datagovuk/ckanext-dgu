@@ -21,4 +21,4 @@
 # of lxml as the XML library).
 -e hg+https://bitbucket.org/okfn/owslib@bef58d64b96e#egg=owslib
 # Replaces swiss
--e hg+https://bitbucket.org/okfn/datautil@8c796b006f31#egg=datautil
+-e hg+https://bitbucket.org/okfn/datautil-date@2dc27829de20#egg=datautil-date

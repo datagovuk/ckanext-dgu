@@ -188,7 +188,7 @@ class FormController(ApiController):
         location = '/api'
         location += cls._make_version_part()
         package_ref = getattr(package, cls._ref_package)
-        location += '/rest/package/%s' % package_ref
+        location += '/rest/dataset/%s' % package_ref
         return location
 
     @classmethod
