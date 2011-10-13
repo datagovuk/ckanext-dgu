@@ -15,4 +15,4 @@
 -e hg+https://bitbucket.org/okfn/ckanext-dgutheme#egg=ckanext-dgutheme
 -e hg+https://bitbucket.org/okfn/ckanext-importlib#egg=ckanext-importlib
 -e hg+https://bitbucket.org/okfn/owslib#egg=owslib
--e hg+https://bitbucket.org/okfn/datautil#egg=datautil
+-e hg+https://bitbucket.org/okfn/datautil-date#egg=datautil-date
