@@ -111,10 +111,6 @@ class FormController(ApiController):
             if not am_authz:
                 self._abort_not_authorized('User %r not authorized to create packages' % user.name)
 
-            api_url = config.get('ckan.api_url', '/').rstrip('/')
-            c.package_create_slug_api_url = \
-                   api_url + h.url_for(controller='api',
-                                       action='create_slug')
             # Get the fieldset.
             fieldset = self._get_package_fieldset()
             if request.method == 'GET':
