@@ -1,12 +1,15 @@
 from sqlalchemy.util import OrderedDict
 from pylons.i18n import _, ungettext, N_, gettext
-from pylons import config
+from pylons import c, config
+from pylons.templating import render_genshi as render
+import formalchemy
 from formalchemy.fields import Field
+import re
 
 from ckan.forms import common
 from ckan.forms import package
 from ckan.forms.builder import FormBuilder
-from ckan.forms.common import ResourcesField, TagField, GroupSelectField, package_name_validator
+from ckan.forms.common import ConfiguredField, TagField, GroupSelectField, package_name_validator
 from ckan import model
 from ckan.lib.helpers import literal
 
@@ -126,4 +129,114 @@ def get_gov3_fieldset(is_admin=False, user_editable_groups=None,
     return build_package_gov_form_v3( \
         is_admin=is_admin, user_editable_groups=user_editable_groups,
         publishers=publishers, **kwargs).get_fieldset()
+
+class ResourcesField(ConfiguredField):
+    '''A form field for multiple dataset resources.'''
+
+    def __init__(self, name, hidden_label=False, fields_required=None):
+        super(ResourcesField, self).__init__(name)
+        self._hidden_label = hidden_label
+        self.fields_required = fields_required or set(['url'])
+        assert isinstance(self.fields_required, set)
+
+    def resource_validator(self, val, field=None):
+        resources_data = val
+        assert isinstance(resources_data, list)
+        not_nothing_regex = re.compile('\S')
+        errormsg = _('Dataset resource(s) incomplete.')
+        not_nothing_validator = formalchemy.validators.regex(not_nothing_regex,
+                                                             errormsg)
+        for resource_data in resources_data:
+            assert isinstance(resource_data, dict)
+            for field in self.fields_required:
+                value = resource_data.get(field, '')
+                not_nothing_validator(value, field)
+            
+    def get_configured(self):
+        field = self._ResourcesField(self.name).with_renderer(self.ResourcesRenderer).validate(self.resource_validator)
+        field._hidden_label = self._hidden_label
+        field.fields_required = self.fields_required
+        field.set(multiple=True)
+        return field
+
+    class _ResourcesField(formalchemy.Field):
+        def sync(self):
+            if not self.is_readonly():
+                pkg = self.model
+                res_dicts = self._deserialize() or []
+                pkg.update_resources(res_dicts, autoflush=False)
+
+        def requires_label(self):
+            return not self._hidden_label
+        requires_label = property(requires_label)
+
+        @property
+        def raw_value(self):
+            # need this because it is a property
+            return getattr(self.model, self.name)
+
+        def is_required(self, field_name=None):
+            if not field_name:
+                return False
+            else:
+                return field_name in self.fields_required
+
+
+    class ResourcesRenderer(formalchemy.fields.FieldRenderer):
+        def render(self, **kwargs):
+            c.resources = self.value or []
+            # [:] does a copy, so we don't change original
+            c.resources = c.resources[:]
+            c.resources.extend([None])
+            c.id = self.name
+            c.columns = ('url', 'format', 'description')
+            c.field = self.field
+            c.fieldset = self.field.parent
+            return render('package/form_resources.html')            
+
+        def stringify_value(self, v):
+            # actually returns dict here for _value
+            # multiple=True means v is a Resource
+            res_dict = {}
+            if v:
+                assert isinstance(v, model.Resource)
+                for col in model.Resource.get_columns() + ['id']:
+                    res_dict[col] = getattr(v, col)
+            return res_dict
+
+        def _serialized_value(self):
+            package = self.field.parent.model
+            params = self.params
+            new_resources = []
+            rest_key = self.name
+
+            # REST param format
+            # e.g. 'Dataset-1-resources': [{u'url':u'http://ww...
+            if params.has_key(rest_key) and any(params.getall(rest_key)):
+                new_resources = params.getall(rest_key)[:] # copy, so don't edit orig
+
+            # formalchemy form param format
+            # e.g. 'Dataset-1-resources-0-url': u'http://ww...'
+            row = 0
+            # The base columns historically defaulted to empty strings
+            # not None (Null). This is why they are seperate here.
+            base_columns = ['url', 'format', 'description', 'hash', 'id']
+            while True:
+                if not params.has_key('%s-%i-url' % (self.name, row)):
+                    break
+                new_resource = {}
+                blank_row = True
+                for col in model.Resource.get_columns() + ['id']:
+                    if col in base_columns:
+                        value = params.get('%s-%i-%s' % (self.name, row, col), u'')
+                    else:
+                        value = params.get('%s-%i-%s' % (self.name, row, col))
+                    new_resource[col] = value
+                    if col != 'id' and value:
+                        blank_row = False
+                if not blank_row:
+                    new_resources.append(new_resource)
+                row += 1
+            return new_resources
+
 
