@@ -6,6 +6,7 @@ from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckan.lib.create_test_data import CreateTestData
 
+from pylons import config
 
 class TestChangeLicenses(TestController):
     @classmethod
@@ -27,6 +28,10 @@ class TestChangeLicenses(TestController):
         return dict([(pkg.name, pkg.license_id) for pkg in q.all()])
 
     def test_1_change_all_pkgs(self):
+
+        if 'sqlite' in config.get('sqlalchemy.url'):
+            raise SkipTest
+
         licenses_before = self.get_licenses()
         self.license_id = 'test-license'
         self.change_licenses = ChangeLicenses(self.testclient)
