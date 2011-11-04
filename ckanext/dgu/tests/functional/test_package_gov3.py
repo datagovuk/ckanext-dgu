@@ -43,7 +43,6 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         self.assert_formfield(form, 'Package--resources-0-url', '')
         self.assert_formfield(form, 'Package--resources-0-format', '')
         self.assert_formfield(form, 'Package--resources-0-description', '')
-        self.assert_formfield(form, 'Package--resources-0-hash', '')
         self.assert_formfield(form, 'Package--resources-0-id', '')
         self.assert_formfield(form, 'Package--author', '')
         self.assert_formfield(form, 'Package--author_email', '')
