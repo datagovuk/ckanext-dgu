@@ -196,7 +196,7 @@ class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
 
 class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
 
-class TestGeoCoverageBug(BaseFormsApiCase, Api2TestCase, MockDrupalCase):
+class TestGeoCoverageBug(Api2TestCase, BaseFormsApiCase, MockDrupalCase):
     @classmethod
     def setup(self):
         self.user_name = u'tester1'
