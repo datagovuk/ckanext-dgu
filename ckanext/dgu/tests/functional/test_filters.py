@@ -35,6 +35,15 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
                    'user': c.user,
                    'package':c.pkg}
         c.pkg_dict = get.package_show(context, {'id':c.pkg.id})
+
+        # inject a mock-routes_dict into the environ in order
+        # that the template can be rendered correctly.
+        # See 'ckan/templates/layout_base.html'
+        import pylons
+        pylons.request.environ.update({'pylons.routes_dict': {
+            'action': 'test-action',
+            'controller': 'test-package::',
+        }})
         
         # Render package view page
         # (filter should not be called on this occasion)
