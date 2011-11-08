@@ -9,6 +9,7 @@ from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.loader import OnsLoader
 from ckanext.importlib.tests.test_loader import TestLoaderBase, USER
 from ckan import model
+from ckan.lib import search
 from ckan.tests import CreateTestData, TestSearchIndexer, is_search_supported
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckanext.dgu.tests import MockDrupalCase
@@ -25,6 +26,7 @@ if not is_search_supported():
 class OnsLoaderBase(TestLoaderBase, MockDrupalCase):
     @classmethod
     def setup_class(self):
+        search.clear()
         super(OnsLoaderBase, self).setup_class()
 
     @classmethod
