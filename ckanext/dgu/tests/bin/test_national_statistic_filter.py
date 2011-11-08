@@ -1,5 +1,9 @@
 import copy
 
+from pylons import config
+
+from nose.plugins.skip import SkipTest
+
 from ckan import model
 from ckan.tests import TestController
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
@@ -63,6 +67,10 @@ class TestFilter(TestController):
         self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
 
     def test_filter(self):
+
+        if 'sqlite' in config.get('sqlalchemy.url'):
+            raise SkipTest
+
         ns_filter = NSFilter(self.testclient, dry_run=False, force=False)
         ns_filter.filter()
 
