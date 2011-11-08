@@ -510,9 +510,7 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
 
     @classmethod
     def teardown(self):
-        user = model.User.by_name(u'testsysadmin')
-        testclient_admin = WsgiCkanClient(self.app, api_key=user.apikey)
-        testclient_admin.package_entity_delete(package_name=self.pkg_dict['name'])
+        search.clear()
 
     def test_load(self):
         user = model.User.by_name(u'testsysadmin')
