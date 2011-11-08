@@ -37,6 +37,7 @@ class TestOnsLoadBasic(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadBasic, self).setup_class()
+        self.testclient.group_register_post({'name': 'ukgov'})
         importer_ = importer.OnsImporter(sample_filepath(''))
         self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
 
@@ -147,6 +148,7 @@ class TestOnsLoadTwice(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadTwice, self).setup_class()
+        self.testclient.group_register_post({'name': 'ukgov'})
         # sample_filepath(2 has the same packages as 1, but slightly updated
         for filepath in [sample_filepath(''), sample_filepath(2)]:
             importer_ = importer.OnsImporter(filepath)
@@ -173,6 +175,7 @@ class TestOnsLoadClashTitle(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadClashTitle, self).setup_class()
+        self.testclient.group_register_post({'name': 'ukgov'})
         # ons items have been split into 3 files, because search needs to
         # do indexing in between
         for suffix in 'abc':
@@ -206,6 +209,7 @@ class TestOnsLoadClashSource(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadClashSource, self).setup_class()
+        self.testclient.group_register_post({'name': 'ukgov'})
 
         self.clash_name = u'cereals_and_oilseeds_production_harvest'
         CreateTestData.create_arbitrary([
@@ -235,6 +239,7 @@ class TestOnsLoadSeries(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadSeries, self).setup_class()
+        self.testclient.group_register_post({'name': 'ukgov'})
         for filepath in [sample_filepath('4a'), sample_filepath('4b')]:
             importer_ = importer.OnsImporter(filepath)
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
@@ -295,6 +300,7 @@ class TestNationalParkDuplicate(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestNationalParkDuplicate, self).setup_class()
+        self.testclient.group_register_post({'name': 'ukgov'})
         filepath = sample_filepath(6)
         importer_ = importer.OnsImporter(filepath)
         pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
