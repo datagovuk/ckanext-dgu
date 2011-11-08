@@ -141,7 +141,6 @@ class TestOnsLoadBasic(OnsLoaderBase):
         assert cereals.author == u'Department for Environment, Food and Rural Affairs', cereals.author
         assert custody.author == u'Ministry of Justice', custody.author
 
-#        assert model.Group.by_name(u'ukgov') in pkg1.groups
         for pkg in (pkg1, cereals, custody):
             assert pkg.extras['import_source'].startswith('ONS'), '%s %s' % (pkg.name, pkg.extras['import_source'])
 
@@ -278,7 +277,7 @@ class TestOnsLoadMissingDept(OnsLoaderBase):
              "notes": "This report reviews:\n\nWhat is subjective wellbeing and why should we measure it?\n\nHow subjective wellbeing is currently measured in the UK - what subjective wellbeing questions are already being asked on major social surveys in the UK\n\nThe potential uses of subjective wellbeing data collected via these surveys\n\n\nIt concludes that subjective wellbeing is a valid construct that can be measured reliably. This is the first output of ONS' work on subjective wellbeing.\n\nSource agency: Office for National Statistics\n\nDesignation: Supporting material\n\nLanguage: English\n\nAlternative title: Working Paper: Measuring Subjective Wellbeing in the UK",
              "license_id": "ukcrown-withrights",
              "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
-             "groups": ["ukgov"],
+             "groups": [],
              "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "agency": "Office for National Statistics", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "department": 'UK Statistics Authority', "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
              "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010 | hub/id/77-31166", }],
              }
@@ -335,7 +334,7 @@ class TestDeathsOverwrite(OnsLoaderBase):
             "notes": "Weekly death figures provide provisional counts of the number of deaths registered in England and Wales in the latest four weeks for which data are available up to the end of 2009. From week one 2010 the latest eight weeks for which data are available will be published.\n\nSource agency: Office for National Statistics\n\nDesignation: National Statistics\n\nLanguage: English\n\nAlternative title: Weekly deaths",
             "license_id": "ukcrown-withrights",
             "tags": ["death", "deaths", "life-events", "life-in-the-community", "mortality-rates", "population", "weekly-deaths"],
-            "groups": ["ukgov"], "extras": {
+            "groups": [], "extras": {
                 "geographic_coverage": "101000: England, Wales",
                 "geographical_granularity": "Country",
                 "external_reference": "ONSHUB",
@@ -389,7 +388,7 @@ class TestAgencyFind(OnsLoaderBase):
             "notes": "The National Child Measurement Programme weighs and measures primary school children.\r\nThis publication was formerly announced as \"National Child Measurement Programme - Statistics on Child Obesity 2008-09\" but the title has been amended to reflect suggestions from the UKSA Assessments Board.\r\nSource agency: Information Centre for Health and Social Care\r\nDesignation: National Statistics\r\nLanguage: English\r\nAlternative title: National Child Measurement Programme",
             "license_id": "uk-ogl",
             "tags": ["health", "health-and-social-care", "health-of-the-population", "lifestyles-and-behaviours", "nhs", "well-being-and-care"],
-            "groups": ["ukgov"],
+            "groups": [],
             "extras": {
                 "geographic_coverage": "100000: England",
                 "geographical_granularity": "Country",
@@ -455,7 +454,7 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
             "notes": "Epidemiological analyses of Mandatory surveillance data on MRSA bacteraemia and C. difficile infection covering at least nine quarters\r\nSource agency: Health Protection Agency\r\nDesignation: Official Statistics not designated as National Statistics\r\nLanguage: English\r\nAlternative title: Quarterly Epi Commentary",
             "license_id": "uk-ogl",
             "tags": ["conditions-and-diseases", "health", "health-and-social-care", "health-of-the-population", "nhs-trust-hcai-pct-mrsa-mrsa-bacteraemia-c-difficile-c-diff-clostridium-difficile-healthcare-associa", "well-being-and-care"],
-            "groups": ["ukgov"],
+            "groups": [],
             "extras": {
                 "geographic_coverage": "100000: England",
                 "geographical_granularity": "Other",

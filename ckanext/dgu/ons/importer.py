@@ -136,7 +136,7 @@ class OnsImporter(PackageImporter):
             'notes': notes,
             'license_id': self._crown_license_id,
             'tags': [], # post-filled
-            'groups': ['ukgov'],
+            'groups': [],
             'resources': resources,
             'extras': extras,
             }
