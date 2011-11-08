@@ -187,7 +187,7 @@ class TestOnsImporter(MockDrupalCase):
             ('notes', u"Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities.\n\nSource agency: HM Treasury\n\nLanguage: English\n\nAlternative title: UK Reserves"),
             ('license_id', u'uk-ogl'),
             ('tags', [u'assets', u'currency', u'economics-and-finance', u'economy', u'gold', u'government-receipts-and-expenditure', u'liabilities', u'public-sector-finance', u'reserves']),
-            ('groups', ['ukgov']),
+            ('groups', []),
             ('resources', [OrderedDict([
                 ('url', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
                 ('description', u'December 2009 | hub/id/119-36345'),
