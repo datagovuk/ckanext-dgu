@@ -336,7 +336,8 @@ class FormController(ApiController):
             if not am_authz:
                 self._abort_not_authorized('User %r not authorized for harvesting' % user.name)
 
-            source = get_harvest_source(id,default=None)
+            #source = get_harvest_source(id,default=None)
+            source = get_harvest_source(id)
             if source is None:
                 response.status_int = 404
                 return 'Not found'

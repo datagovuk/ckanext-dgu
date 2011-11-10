@@ -95,16 +95,16 @@ class FormApiPlugin(SingletonPlugin):
                 action='harvested_document_view_format', format='html')
         """
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_organisation')
-        map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
-        map.connect('home', '/ckan/', controller='home', action='index')
+        #map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
+        #map.connect('home', '/ckan/', controller='home', action='index')
         return map
 
     def after_map(self, map):
         return map
 
     def update_config(self, config):
-        configure_template_directory(config, 'theme_common/templates')
-        configure_public_directory(config, 'theme_common/public')
+        #configure_template_directory(config, 'theme_common/templates')
+        #configure_public_directory(config, 'theme_common/public')
 
         # set the customised package form (see ``setup.py`` for entry point)
         config['package_form'] = 'package_gov3'
