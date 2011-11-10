@@ -130,6 +130,10 @@ def get_gov3_fieldset(is_admin=False, user_editable_groups=None,
         is_admin=is_admin, user_editable_groups=user_editable_groups,
         publishers=publishers, **kwargs).get_fieldset()
 
+# ResourcesField copied into here from ckan/forms/common.py so that
+# the rendered fields (c.columns) can be fixed, to avoid issues with
+# the new fields that have appeared since. Also, this form will not
+# be around much longer in either place in the code.
 class ResourcesField(ConfiguredField):
     '''A form field for multiple dataset resources.'''
 
@@ -153,13 +157,13 @@ class ResourcesField(ConfiguredField):
                 not_nothing_validator(value, field)
             
     def get_configured(self):
-        field = self._ResourcesField(self.name).with_renderer(self.ResourcesRenderer).validate(self.resource_validator)
+        field = self.ResourcesField_(self.name).with_renderer(self.ResourcesRenderer).validate(self.resource_validator)
         field._hidden_label = self._hidden_label
         field.fields_required = self.fields_required
         field.set(multiple=True)
         return field
 
-    class _ResourcesField(formalchemy.Field):
+    class ResourcesField_(formalchemy.Field):
         def sync(self):
             if not self.is_readonly():
                 pkg = self.model

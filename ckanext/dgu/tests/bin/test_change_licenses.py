@@ -28,8 +28,10 @@ class TestChangeLicenses(TestController):
         return dict([(pkg.name, pkg.license_id) for pkg in q.all()])
 
     def test_1_change_all_pkgs(self):
-
         if 'sqlite' in config.get('sqlalchemy.url'):
+            # Ian thinks this failed for him due to a timestamp not being converted
+            # to a datetime object, and being left as a unicode object.
+            # Could also be related to Sqlalchemy 0.7.x.
             raise SkipTest
 
         licenses_before = self.get_licenses()

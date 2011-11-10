@@ -39,6 +39,7 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
         # inject a mock-routes_dict into the environ in order
         # that the template can be rendered correctly.
         # See 'ckan/templates/layout_base.html'
+        # (This is also fixed in ckan 1.5.1)
         import pylons
         pylons.request.environ.update({'pylons.routes_dict': {
             'action': 'test-action',
