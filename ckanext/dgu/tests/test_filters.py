@@ -37,10 +37,13 @@ class TestHarvestFilter(HtmlCheckMethods, HarvestFixture):
     def setup_class(cls):
         HarvestFixture.setup_class()
         cls.pkg_page = HTML(basic_package_page)
-    
+
     def test_basic(self):
-        harvest_xml_url = '/api/2/rest/harvestobject/test-guid/xml'
-        harvest_html_url = '/api/2/rest/harvestobject/test-guid/html'
+
+        pkg = model.Package.by_name(u'annakarenina')
+        harvest_object_id = pkg.extras.get('harvest_object_id')
+        harvest_xml_url = '/api/2/rest/harvestobject/%s/xml' % harvest_object_id
+        harvest_html_url = '/api/2/rest/harvestobject/%s/html' % harvest_object_id
 
         # before filter
         pkg_page = HTML(self.pkg_page).render()
@@ -62,7 +65,7 @@ class _TestArchiveFilter(HtmlCheckMethods):
     @classmethod
     def setup_class(cls):
         cls.pkg_page = HTML(basic_package_page)
-        
+
     def test_basic(self):
         self.pkg_url = 'http://site.com/data.csv'
         self.archive_url = 'http://webarchive.nationalarchives.gov.uk/tna/+/' + self.pkg_url
@@ -72,7 +75,7 @@ class _TestArchiveFilter(HtmlCheckMethods):
         self.pkg_page = HTML(self.pkg_page).render()
         self.check_named_element(self.pkg_page, 'a', 'href="%s"' % self.pkg_url)
         self.check_named_element(self.pkg_page, 'a', '!href="%s"' % self.archive_url)
-        
+
         res = archive_filter(HTML(self.pkg_page))
         res = res.render('html').decode('utf8')
         print res

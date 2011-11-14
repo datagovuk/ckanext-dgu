@@ -4,17 +4,17 @@ from nose.tools import assert_equal
 from ckan.lib.package_saver import PackageSaver
 from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.base import render, c, h, g
-import ckan.logic.action.get as get
+from ckan.logic import get_action
 from ckan import model
 
-from ckanext.dgu.stream_filters import harvest_filter
+from ckanext.dgu.stream_filters import harvest_filter, package_id_filter
 
 from ckan.tests import TestController as ControllerTestCase
 from ckan.tests.pylons_controller import PylonsTestCase
 from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.tests import HarvestFixture
 
-class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
+class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
                         ControllerTestCase, HarvestFixture):
     @classmethod
     def setup_class(cls):
@@ -34,7 +34,7 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
         context = {'model': model, 'session': model.Session,
                    'user': c.user,
                    'package':c.pkg}
-        c.pkg_dict = get.package_show(context, {'id':c.pkg.id})
+        c.pkg_dict = get_action('package_show')(context, {'id':c.pkg.id})
 
         # inject a mock-routes_dict into the environ in order
         # that the template can be rendered correctly.
@@ -45,7 +45,7 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
             'action': 'test-action',
             'controller': 'test-package::',
         }})
-        
+
         # Render package view page
         # (filter should not be called on this occasion)
         PackageSaver().render_package(c.pkg_dict,
@@ -53,9 +53,12 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
         cls.pkg_page = render('package/read.html')
 
         # Expected URLs
-        cls.harvest_xml_url = '/api/2/rest/harvestobject/test-guid/xml'
-        cls.harvest_html_url = '/api/2/rest/harvestobject/test-guid/html'
-    
+        harvest_object_id = c.pkg.extras.get('harvest_object_id')
+        cls.harvest_xml_url = '/api/2/rest/harvestobject/%s/xml' % harvest_object_id
+        cls.harvest_html_url = '/api/2/rest/harvestobject/%s/html' % harvest_object_id
+
+class TestHarvestFilter(FilterTestCase):
+
     def test_basic(self):
         pkg_id = c.pkg.id
 
@@ -66,7 +69,6 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
 
         res = harvest_filter(HTML(self.pkg_page), c.pkg)
         res = res.render('html').decode('utf8')
-        main_res = self.main_div(res)
 
         # after filter
         self.check_named_element(res, 'a', 'href="%s"' % self.harvest_xml_url)
@@ -80,4 +82,19 @@ class TestHarvestFilter(PylonsTestCase, HtmlCheckMethods,
         res = self.app.get(self.harvest_html_url)
         assert 'GEMINI record' in res.body
         assert 'error' not in res.body
-        
+
+class TestPackageIdFilter(FilterTestCase):
+
+    def test_basic(self):
+        pkg_id = c.pkg.id
+
+        # before filter
+        # <a href="http://www.annakarenina.com/download/x=1&amp;y=2" target="_blank">Full text. Needs escaping: " Umlaut: u</a>
+        self.check_named_element(self.pkg_page, 'h3', '!ID')
+
+        res = package_id_filter(HTML(self.pkg_page), c.pkg)
+        res = res.render('html').decode('utf8')
+
+        # after filter
+        self.check_named_element(res, 'h3', 'ID')
+

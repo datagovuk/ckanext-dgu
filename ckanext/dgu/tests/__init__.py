@@ -285,6 +285,13 @@ class HarvestFixture(object):
                            guid='test-guid',
                            content='<xml>test content</xml>')
         ho.save()
+
+        # Save a reference to the harvest object in the package
+        rev = model.repo.new_revision()    
+        pkg = model.Package.by_name(u'annakarenina')
+        pkg.extras['harvest_object_id'] = ho.id
+        pkg.save()
+
         model.repo.commit_and_remove()
 
     @classmethod
