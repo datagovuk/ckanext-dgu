@@ -122,4 +122,6 @@ class FormApiPlugin(SingletonPlugin):
             if is_inspire and is_inspire[0] == 'True':
                 stream = stream_filters.harvest_filter(stream, c.pkg)
 
+            # Add dataset id to the UI
+            stream = stream_filters.package_id_filter(stream, c.pkg)
         return stream

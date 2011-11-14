@@ -23,3 +23,13 @@ def harvest_filter(stream, pkg):
 
     return stream
 
+def package_id_filter(stream, pkg):
+
+    data = {'id': pkg.id}
+    html_code = html.DATASET_ID_CODE
+
+    stream = stream | Transformer('body//ul[@class="property-list"]')\
+        .append(HTML(html_code % data))
+
+    return stream
+
