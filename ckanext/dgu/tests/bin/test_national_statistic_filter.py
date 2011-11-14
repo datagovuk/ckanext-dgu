@@ -21,6 +21,14 @@ class TestFilter(TestController):
             {'name': "ons_pkg",
              "extras": {
                  "import_source": "ONS-ons_data_7_days_to_2011-05-10",
+                 "notes": "<p>Designation: National Statistics\n</p>",
+                 "national_statistic": "yes",
+                 }
+             },
+            {'name': "ons_but_not_ns",
+             "extras": {
+                 "import_source": "ONS-ons_data_7_days_to_2011-05-10",
+                 "notes": "<p>Designation: Excellent Statistics\n</p>",
                  "national_statistic": "yes",
                  }
              },
@@ -58,7 +66,7 @@ class TestFilter(TestController):
                  "mandate": "", "date_update_future": "",
                  "update_frequency": "monthly",
                  "categories": "Government"}
-             }
+             },            
             ]
         CreateTestData.create_arbitrary(self.pkgs,
                                         extra_user_names=[username])
@@ -76,12 +84,18 @@ class TestFilter(TestController):
         ns_filter = NSFilter(self.testclient, dry_run=False, force=False)
         ns_filter.filter()
 
-        PackageDictUtil.assert_subset(model.Package.by_name(u'ons_pkg').as_dict(), self.pkgs[0])
-        PackageDictUtil.assert_subset(model.Package.by_name(u'not_ns_or_ons').as_dict(), self.pkgs[1])
-        PackageDictUtil.assert_subset(model.Package.by_name(u'not_ns').as_dict(), self.pkgs[2])
-
-        pkg = model.Package.by_name(u'local-authority-spend-over-500-london-borough-of-hackney')
-        expected_pkg = copy.deepcopy(self.pkgs[3])
-        expected_pkg['extras']['national_statistic'] = 'no'
-        PackageDictUtil.assert_subset(pkg.as_dict(), expected_pkg)
+        def assert_pkg_stayed_the_same(package_name, pkg_dict):
+            pkg = model.Package.by_name(unicode(package_name))
+            PackageDictUtil.assert_subset(pkg.as_dict(), pkg_dict)
+            
+        def assert_pkg_filtered(package_name, pkg_dict):
+            pkg = model.Package.by_name(unicode(package_name))
+            expected_pkg = copy.deepcopy(pkg_dict)
+            expected_pkg['extras']['national_statistic'] = 'no'
+            PackageDictUtil.assert_subset(pkg.as_dict(), expected_pkg)
         
+        assert_pkg_stayed_the_same('ons_pkg', self.pkgs[0])
+        assert_pkg_filtered('ons_but_not_ns', self.pkgs[1])
+        assert_pkg_stayed_the_same('not_ns_or_ons', self.pkgs[2])
+        assert_pkg_stayed_the_same('not_ns', self.pkgs[3])
+        assert_pkg_filtered('local-authority-spend-over-500-london-borough-of-hackney', self.pkgs[4])

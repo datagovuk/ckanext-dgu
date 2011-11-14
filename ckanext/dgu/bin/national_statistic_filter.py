@@ -49,24 +49,34 @@ class NSFilter(object):
                 is_ns = False
             if is_ns:
                 if not pkg['extras'].get('import_source', '').startswith('ONS'):
-                    save_result('NS but not ONS - change', pkg)
-                    if not self.dry_run:
-                        pkg['extras']['national_statistic'] = 'no'
-                        try:
-                            self.client.package_entity_put(pkg)
-                        except CkanApiError, e:
-                            log.error('Could not update package %r: %r' % (pkg['name'], e.args))
-                            if not self.force:
-                                raise
-                        log.info('Changed ok')
+                    save_result('NS but not from ONS Pub Hub - change', pkg)
+                    self.clear_ns_flag(pkg)
                 else:
-                    save_result('NS and ONS', pkg)
+                    notes = pkg['extras'].get('notes', '')
+                    if 'Designation' in notes:
+                        if 'Designation: National Statistic' in notes:
+                            save_result('NS, from ONS Pub Hub, Designated NS', pkg)
+                        else:
+                            save_result('NS, from ONS Pub Hub but not Designated NS - change', pkg)
+                            self.clear_ns_flag(pkg)
+                            
             else:
                 save_result('Not NS', pkg)
 
         # output summary
         for reason, pkgs in results.items():
             log.info('  %i %s: %r', len(pkgs), reason, pkgs[:5])
+
+    def clear_ns_flag(self, pkg):
+        if not self.dry_run:
+            pkg['extras']['national_statistic'] = 'no'
+            try:
+                self.client.package_entity_put(pkg)
+            except CkanApiError, e:
+                log.error('Could not update package %r: %r' % (pkg['name'], e.args))
+                if not self.force:
+                    raise
+            log.info('Changed ok')
 
 class Command(MassChangerCommand):
     '''Looks through all packages and if one is marked national statistic, but is
@@ -80,6 +90,9 @@ not from the hub, then unmark it.
                              dry_run=self.options.dry_run,
                              force=self.options.force)
         ns_filter.filter()
+
+    def add_options(self):
+        super(Command, self).add_options()
 
 if __name__ == '__main__':
     Command().command()
