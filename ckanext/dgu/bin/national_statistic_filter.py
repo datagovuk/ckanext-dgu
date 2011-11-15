@@ -77,6 +77,9 @@ class NSFilter(object):
                 if not self.force:
                     raise
             log.info('Changed ok')
+        else:
+            log.info('Would have updated: %r', pkg['name'])
+            
 
 class Command(MassChangerCommand):
     '''Looks through all packages and if one is marked national statistic, but is
