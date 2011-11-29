@@ -1,6 +1,6 @@
 import re
 
-from datautil import date
+from datautildate import date
 
 from ckanext.importlib.loader import ResourceSeriesLoader
 

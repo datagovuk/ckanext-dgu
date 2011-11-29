@@ -6,7 +6,7 @@ import glob
 from ckanext.importlib.importer import PackageImporter
 from ckanext.dgu import schema
 from ckanext.dgu.ons.producers import get_ons_producers
-from datautil import date
+from datautildate import date
 
 guid_prefix = 'http://www.statistics.gov.uk/'
 
@@ -184,6 +184,8 @@ class OnsImporter(PackageImporter):
         if dept_given == 'Office for National Statistics':
             department = 'UK Statistics Authority'
             agency = dept_given
+##            department = dept_given
+##            import pdb; pdb.set_trace()
         if dept_given == 'Education':
             department = 'Department for Education'
 
