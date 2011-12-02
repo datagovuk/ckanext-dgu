@@ -384,7 +384,10 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         CreateTestData.create()
         model.repo.new_revision()
         model.Session.add(model.User(name=u'testadmin'))
-        model.Session.add(model.User(name=u'testsysadmin'))
+
+        ## testsysadmin is already created by CreateTestData.create()
+        # model.Session.add(model.User(name=u'testsysadmin'))
+
         model.Session.add(model.User(name=u'notadmin'))
         model.repo.commit_and_remove()
 
