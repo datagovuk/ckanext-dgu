@@ -206,7 +206,7 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
         indict[prefix + 'name'] = u'testname'
         indict[prefix + 'title'] = u'testtitle'
         indict[prefix + 'notes'] = u'some new notes'
-        indict[prefix + 'tags'] = u'russian tolstoy, ' + newtagname,
+        indict[prefix + 'tags'] = 'russian,tolstoy,%s' % newtagname
         indict[prefix + 'license_id'] = u'gpl-3.0'
         indict[prefix + 'date_released'] = u'27/11/2008'
         indict[prefix + 'date_updated'] = u'1/4/2008'

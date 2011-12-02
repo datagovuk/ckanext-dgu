@@ -126,7 +126,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
             'title':'test title',
             'url':'http://someurl.com/',
             'notes':'test notes',
-            'tags':'sheep goat fish',
+            'tags':'sheep,goat,fish',
             'resources-0-url':'http://someurl.com/download.csv',
             'resources-0-format':'CSV',
             'resources-0-description':'A csv file',
@@ -153,7 +153,7 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
                 pkg_value = getattr(pkg.resources[0], subkey)
             elif key == 'tags':
                 pkg_value = set([tag.name for tag in pkg.tags])
-                data[key] = set(data[key].split())
+                data[key] = set(data[key].split(','))
             elif key in self.core_package_fields:
                 pkg_value = getattr(pkg, key)
             else:
