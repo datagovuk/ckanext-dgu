@@ -64,12 +64,12 @@ class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMeth
     def offset_package_create_form(self, **kwargs):
         self.set_drupal_user(kwargs)
         url_args, ignore = self.split_form_args(kwargs)
-        return self.offset(url_for('/form/package/create', **url_args))
+        return  url_for(self.offset('/form/package/create'), **url_args)
 
     def offset_package_edit_form(self, ref, **kwargs):
         self.set_drupal_user(kwargs)
         url_args, ignore = self.split_form_args(kwargs)
-        return self.offset(url_for('/form/package/edit/%s' % str(ref), **url_args))
+        return  url_for(self.offset('/form/package/edit/%s' % str(ref)), **url_args)
 
     def offset_harvest_source_create_form(self):
         return self.offset('/form/harvestsource/create')
