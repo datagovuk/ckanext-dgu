@@ -108,6 +108,7 @@ class FormApiPlugin(SingletonPlugin):
 
         # set the customised package form (see ``setup.py`` for entry point)
         config['package_form'] = 'package_gov3'
+        configure_template_directory(config, 'templates')
 
     def filter(self, stream):
 

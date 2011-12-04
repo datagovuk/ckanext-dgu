@@ -196,7 +196,7 @@ class ResourcesField(ConfiguredField):
             c.columns = ('url', 'format', 'description')
             c.field = self.field
             c.fieldset = self.field.parent
-            return render('package/form_resources.html')            
+            return render('form_resources.html')            
 
         def stringify_value(self, v):
             # actually returns dict here for _value
