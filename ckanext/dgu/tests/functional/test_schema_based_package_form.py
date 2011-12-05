@@ -24,8 +24,42 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods):
 
     # input name -> (Label text , input type)
     _expected_fields = {
+        # Basic information
         'title':     ('Title *', 'input'),
         'name':      ('Identifier *', 'input'),
+        'notes':     ('Abstract *', 'textarea'),
+        
+        # Details
+        'date_released':                ('Date released', 'input'),
+        'date_updated':                 ('Date updated', 'input'),
+        'date_update_future':           ('Date to be published', 'input'),
+        'update_frequency':             ('Update frequency', 'select'),
+        'update_frequency-other':       ('Other:', 'input'),
+        'precision':                    ('Precision', 'input'),
+        'geographic_granularity':       ('Geographic granularity', 'select'),
+        'geographic_granularity-other': ('Other', 'input'),
+        'geographic_coverage':          ('Geographic coverage', 'input'),
+        'temporal_granularity':         ('Temporal granularity', 'select'),
+        'temporal_granularity-other':   ('Other', 'input'),
+        'temporal_coverage':            ('Temporal coverage', 'input'),
+        'url':                          ('URL', 'input'),
+        'taxonomy_url':                 ('Taxonomy URL', 'input'),
+
+        # Resources
+        # ... test separately
+
+        # More details
+        'published_by':         ('Published by *', 'select'),
+        'published_via':        ('Published via', 'select'),
+        'author':               ('Contact', 'input'),
+        'author_email':         ('Contact email', 'input'),
+        'mandate':              ('Mandate', 'input'),
+        'license_id':           ('Licence *', 'select'),
+        # 'tags':                 ('Tags', 'input'), -- SKIP
+        'national_statistic':   ('National Statistic', 'input'),
+
+        # After fieldsets
+        'log_message':  ('Edit summary', 'textarea'),
 
     }
 
@@ -50,6 +84,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods):
             # e.g. <input name="title">
             self.check_named_element(response.body,
                                      input_type,
-                                     'name="%s"' % field)
+                                     'name="%s' % field)
 
 
