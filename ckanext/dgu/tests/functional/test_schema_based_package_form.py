@@ -8,6 +8,7 @@ see 'test_package_gov3.py'.
 
 from ckanext.dgu.tests import Gov3Fixtures
 
+from ckan.lib.field_types import DateType
 from ckan.tests import WsgiAppCase, CommonFixtureMethods
 from ckan.tests.html_check import HtmlCheckMethods
 
@@ -147,11 +148,14 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # Some of the data isn't in the format as rendered on the form, so
         # overwrite it by hand for now.
         expected_field_values['geographic_coverage'] = 'england'
-        expected_field_values['date_update_future'] = '1/7/2009'
-        expected_field_values['date_released'] = '30/7/2009'
-        expected_field_values['date_updated'] = '30/7/2009'
-        expected_field_values['temporal_coverage-from'] = '12:30 24/6/2008'
-        expected_field_values['temporal_coverage-to'] = '6/2009'
+        date_fields = ('date_update_future',
+                       'date_released',
+                       'date_updated',
+                       'temporal_coverage-from',
+                       'temporal_coverage-to',
+                       )
+        for field_name in date_fields:
+            expected_field_values[field_name] = _convert_date(expected_field_values[field_name])
 
         # TODO: fix these fields
         del expected_field_values['published_by']
@@ -163,4 +167,10 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                                      'name="%s"' % field_name,
                                      expected_value)
 
+def _convert_date(datestring):
+    """
+    Converts a date-string to that rendered by the form.
 
+    It does this by converting to db format, and then back to a string.
+    """
+    return DateType.db_to_form(datestring)
