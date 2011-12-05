@@ -1,8 +1,8 @@
 """
-Tests the package form
+High-level functional tests for the create/edit package form.
 
 The new package form is being refactored so as not to use sqlalchemy.  These
-are the tests for this form.  For tests based on the sqlaclhemy-based form,
+are the tests for this form.  For tests based on the sqlalchemy-based form,
 see 'test_package_gov3.py'.
 """
 
@@ -24,6 +24,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     Tests that the various fields are represeted correctly in the form.
     """
 
+    # Fields we expect to see on the rendered form.
     # input name -> (Label text , input type)
     _expected_fields = {
         # Basic information
@@ -116,7 +117,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         """
         Asserts that edit-form of a package has the fields prefilled correctly.
         """
-
         package = self.fixtures.pkgs[0]
 
         offset = url_for(controller='package', action='edit', id=package['name'])
