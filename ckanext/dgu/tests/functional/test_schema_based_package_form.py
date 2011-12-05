@@ -64,6 +64,12 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'log_message':  ('Edit summary', 'textarea'),
 
     }
+    
+    # Fields that shouldn't appear in the form
+    _unexpected_fields = (
+        'external_reference',
+        'import_source',
+    )
 
     @classmethod
     def setup(self):
@@ -134,10 +140,22 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         expected_field_values['tag_string'] = package['tags']
         expected_field_values['license_id'] = package['license']
 
-        # TODO: uncomment out the next line to test that the values
-        #       stored as extras get promoted to having dedicated
-        #       form fields, rather than the generated "key:value" fields.
-        # expected_field_values.update(package['extras'].items())
+        # Promote the key-value pairs stored in 'extras' to form fields.
+        expected_field_values.update((k,v) for (k,v) in package['extras'].items()\
+                                           if k not in self._unexpected_fields)
+
+        # Some of the data isn't in the format as rendered on the form, so
+        # overwrite it by hand for now.
+        expected_field_values['geographic_coverage'] = 'england'
+        expected_field_values['date_update_future'] = '1/7/2009'
+        expected_field_values['date_released'] = '30/7/2009'
+        expected_field_values['date_updated'] = '30/7/2009'
+        expected_field_values['temporal_coverage-from'] = '12:30 24/6/2008'
+        expected_field_values['temporal_coverage-to'] = '6/2009'
+
+        # TODO: fix these fields
+        del expected_field_values['published_by']
+        del expected_field_values['published_via']
     
         for field_name, expected_value in expected_field_values.items():
             self.check_named_element(response.body,
