@@ -6,7 +6,9 @@ are the tests for this form.  For tests based on the sqlaclhemy-based form,
 see 'test_package_gov3.py'.
 """
 
-from ckan.tests import WsgiAppCase
+from ckanext.dgu.tests import Gov3Fixtures
+
+from ckan.tests import WsgiAppCase, CommonFixtureMethods
 from ckan.tests.html_check import HtmlCheckMethods
 
 def url_for(**kwargs):
@@ -17,7 +19,7 @@ def url_for(**kwargs):
     url = _url_for(**kwargs)
     return url.replace('dataset','package')
 
-class TestFormRendering(WsgiAppCase, HtmlCheckMethods):
+class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     """
     Tests that the various fields are represeted correctly in the form.
     """
@@ -63,6 +65,24 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods):
 
     }
 
+    @classmethod
+    def setup(self):
+        """
+        Create standard gov3 test fixtures for this suite.
+
+        This test class won't be editing any packages, so it's ok to only
+        create these fixtures once.
+        """
+        self.fixtures = Gov3Fixtures()
+        self.fixtures.create()
+
+    @classmethod
+    def teardown(self):
+        """
+        Cleanup the Gov3Fixtures
+        """
+        self.fixtures.delete()
+
     def test_new_form_has_all_fields(self):
         """
         Asserts that a form for a new package contains the various expected fields
@@ -85,5 +105,44 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods):
             self.check_named_element(response.body,
                                      input_type,
                                      'name="%s' % field)
+
+    def test_edit_form_form_has_all_fields(self):
+        """
+        Asserts that edit-form of a package has the fields prefilled correctly.
+        """
+
+        package = self.fixtures.pkgs[0]
+
+        offset = url_for(controller='package', action='edit', id=package['name'])
+        response = self.app.get(offset)
+
+        # form field name => expected form field value
+        expected_field_values = {}
+
+        # populate expected_field_values with the simple fields first
+        for field_name in self._expected_fields:
+            try:
+                expected_value = package[field_name]
+                if isinstance(expected_value, basestring):
+                    expected_field_values[field_name] = expected_value
+            except KeyError:
+                pass
+
+        # populate expected_field_values for tag_string and license_id
+        # by hand, as the field names in the package dict don't follow the
+        # same naming scheme as the form fields.
+        expected_field_values['tag_string'] = package['tags']
+        expected_field_values['license_id'] = package['license']
+
+        # TODO: uncomment out the next line to test that the values
+        #       stored as extras get promoted to having dedicated
+        #       form fields, rather than the generated "key:value" fields.
+        # expected_field_values.update(package['extras'].items())
+    
+        for field_name, expected_value in expected_field_values.items():
+            self.check_named_element(response.body,
+                                     '(input|textarea)',
+                                     'name="%s"' % field_name,
+                                     expected_value)
 
 
