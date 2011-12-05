@@ -55,7 +55,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods):
         'author_email':         ('Contact email', 'input'),
         'mandate':              ('Mandate', 'input'),
         'license_id':           ('Licence *', 'select'),
-        # 'tags':                 ('Tags', 'input'), -- SKIP
+        'tag_string':           ('Tags', 'input'),
         'national_statistic':   ('National Statistic', 'input'),
 
         # After fieldsets
