@@ -62,11 +62,12 @@ class TestOnsLoadBasic(OnsLoaderBase):
         assert_equal(opts, [{'agency':'SomeAgency', 'title': 'titleA'}])
 
     def test_1_hub_id_extraction(self):
-        def assert_id(description, expected_id):
-            resource = {'description':description}
+        def assert_id(hub_id_value, expected_id):
+            resource = {'description':'Some description',
+                        'hub-id':hub_id_value}
             result = self.loader._get_hub_id(resource)
             assert_equal(result, expected_id)
-        assert_id("April 2009 data: Experimental Statistics | hub/id/119-46440",
+        assert_id("119-46440",
                   "119-46440")
 
     def test_2_date_choose(self):
@@ -103,12 +104,15 @@ class TestOnsLoadBasic(OnsLoaderBase):
         assert pkg1.notes.startswith("Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities."), pkg1.notes
         assert len(pkg1.resources) == 1, pkg1.resources
         assert pkg1.resources[0].url == 'http://www.hm-treasury.gov.uk/national_statistics.htm', pkg1.resources[0]
-        assert pkg1.resources[0].description == 'December 2009 | hub/id/119-36345', pkg1.resources[0].description
+        assert_equal(pkg1.resources[0].description, 'December 2009')
+        assert_equal(pkg1.resources[0].extras['hub-id'], '119-36345')
         assert len(custody.resources) == 2, custody.resources
         assert custody.resources[0].url == 'http://www.justice.gov.uk/publications/endofcustodylicence.htm', custody.resources[0]
-        assert custody.resources[0].description == 'November 2009 | hub/id/119-36836', custody.resources[0].description
+        assert_equal(custody.resources[0].description, 'November 2009')
+        assert_equal(custody.resources[0].extras['hub-id'], '119-36836')
         assert custody.resources[1].url == 'http://www.justice.gov.uk/publications/endofcustodylicence.htm', custody.resources[0]
-        assert custody.resources[1].description == 'December 2009 | hub/id/119-36838', custody.resources[1].description
+        assert_equal(custody.resources[1].description, 'December 2009')
+        assert_equal(custody.resources[1].extras['hub-id'], '119-36838')
         assert pkg1.extras['date_released'] == u'2010-01-06', pkg1.extras['date_released']
         assert probation.extras['date_released'] == u'2010-01-04', probation.extras['date_released']
         assert pkg1.extras['department'] == u"Her Majesty's Treasury", pkg1.extras['department']
@@ -274,7 +278,7 @@ class TestOnsLoadMissingDept(OnsLoaderBase):
              "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
              "groups": [],
              "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "agency": "Office for National Statistics", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "department": 'UK Statistics Authority', "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
-             "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010 | hub/id/77-31166", }],
+            "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010", "extras":{"hub-id":"77-31166"}}],
              }
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
@@ -324,7 +328,7 @@ class TestDeathsOverwrite(OnsLoaderBase):
         self.orig_pkg_dict = {
             "name": u"weekly_provisional_figures_on_deaths_registered_in_england_and_wales",
             "title": "Weekly provisional figures on deaths registered in England and Wales",
-            "version": None, "url": None, "author": "UK Statistics Authority", "author_email": None, "maintainer": None, "maintainer_email": None,
+            "version": None, "url": None, "author": "Office for National Statistics", "author_email": None, "maintainer": None, "maintainer_email": None,
             "notes": "Weekly death figures provide provisional counts of the number of deaths registered in England and Wales in the latest four weeks for which data are available up to the end of 2009. From week one 2010 the latest eight weeks for which data are available will be published.\n\nSource agency: Office for National Statistics\n\nDesignation: National Statistics\n\nLanguage: English\n\nAlternative title: Weekly deaths",
             "license_id": "ukcrown-withrights",
             "tags": ["death", "deaths", "life-events", "life-in-the-community", "mortality-rates", "population", "weekly-deaths"],
@@ -335,6 +339,7 @@ class TestDeathsOverwrite(OnsLoaderBase):
                 "temporal_coverage-from": "",
                 "temporal_granularity": "",
                 "date_updated": "",
+                "series": "Weekly provisional figures on deaths registered in England and Wales",
                 "agency": "",
                 "precision": "",
                 "geographic_granularity": "",
@@ -344,12 +349,12 @@ class TestDeathsOverwrite(OnsLoaderBase):
                 "import_source": "ONS-ons_data_60_days_to_2010-09-22",
                 "date_released": "2010-08-03",
                 "temporal_coverage-to": "",
-                "department": "UK Statistics Authority",
+                "department": "Office for National Statistics",
                 "update_frequency": "",
                 "national_statistic": "yes",
                 "categories": "Population"},
             "resources": [
-                {"url": "http://www.statistics.gov.uk/StatBase/Prep/9684.asp", "format": "", "description": "17/07/2009 | hub/id/77-27942", "hash": "", }],
+                {"url": "http://www.statistics.gov.uk/StatBase/Prep/9684.asp", "format": "", "description": "17/07/2009", "hash": "", "extras": {"hub-id": "77-27942"} }],
             }
 
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
@@ -403,9 +408,9 @@ class TestAgencyFind(OnsLoaderBase):
                 "update_frequency": "",
                 "national_statistic": "yes",
                 "categories": "Health and Social Care"},
-            "resources": [{"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "England, 2008/09 School Year | hub/id/119-37085"},
-                          {"url": "http://www.dh.gov.uk/en/Publichealth/Healthimprovement/Healthyliving/DH_073787", "format": "", "description": "2008 | hub/id/119-31792"},
-                          {"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "Statistics on child obesity 2007-08 | hub/id/119-31784"}],
+            "resources": [{"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "England, 2008/09 School Year", "extras":{"hub-id":"119-37085"}},
+                          {"url": "http://www.dh.gov.uk/en/Publichealth/Healthimprovement/Healthyliving/DH_073787", "format": "", "description": "2008", "extras":{"hub-id":"119-31792"}},
+                          {"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "Statistics on child obesity 2007-08", "extras":{"hub-id":"119-31784"}}],
             }
 
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
@@ -413,8 +418,8 @@ class TestAgencyFind(OnsLoaderBase):
         # same data is imported, but should find record and add department
         importer_ = importer.OnsImporter(sample_filepath(8))
         self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
-        assert self.pkg_dict['extras']['department'] == ''
-        assert self.pkg_dict['extras']['agency'] == 'NHS Information Centre for Health and Social Care'
+        assert self.pkg_dict['extras']['published_by'].startswith('NHS Information Centre for Health and Social Care')
+        assert_equal(self.pkg_dict['extras']['published_via'], '')
         loader = OnsLoader(self.testclient)
         print self.pkg_dict
         # load package twice, to ensure reload works too
@@ -432,7 +437,7 @@ class TestAgencyFind(OnsLoaderBase):
 
     def test_resources_sorted(self):
         pkg = model.Package.by_name(self.name)
-        hub_ids = [int(res.description.split('-')[-1]) for res in pkg.resources]
+        hub_ids = [int(res.extras['hub-id'].replace('-', '')) for res in pkg.resources]
         assert_equal(hub_ids, sorted(hub_ids))
 
 
@@ -456,7 +461,7 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
                 "temporal_coverage-from": "",
                 "temporal_granularity": "",
                 "date_updated": "",
-                "agency": "Health Protection Agency",
+                "published_via": "Health Protection Agency",
                 "precision": "",
                 "geographic_granularity": "",
                 "temporal_coverage_to": "",
@@ -465,7 +470,7 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
                 "import_source": "ONS-ons_data_7_days_to_2010-06-23",
                 "date_released": "2010-06-18",
                 "temporal_coverage-to": "",
-                "department": "Department of Health",
+                "published_by": "Department of Health",
                 "update_frequency": "quarterly",
                 "national_statistic": "no",
                 "categories": "Health and Social Care"

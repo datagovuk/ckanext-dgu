@@ -8,7 +8,7 @@ from ckanext.dgu import schema
 from ckanext.dgu.ons.producers import get_ons_producers
 from datautildate import date
 
-guid_prefix = 'http://www.statistics.gov.uk/'
+guid_prefix = 'http://www.statistics.gov.uk/hub/id/'
 
 log = __import__("logging").getLogger(__name__)
 
@@ -53,12 +53,6 @@ class OnsImporter(PackageImporter):
                 raise RowParseError('GUID de-prefixed should not have \'http\' in it still: %r' % (guid))
         existing_resource = None
         download_url = item.get('link', None)
-        descriptors = []
-        if release:
-            descriptors.append(release)
-        if guid:
-            descriptors.append(guid)
-        description = ' | '.join(descriptors)
 
         notes_list = []
         if item['description']:
@@ -77,13 +71,11 @@ class OnsImporter(PackageImporter):
             'external_reference': u'',
             'temporal_granularity': u'',
             'date_updated': u'',
-            'agency': u'',
             'precision': u'',
             'geographical_granularity': u'',
             'temporal_coverage-from': u'',
             'temporal_coverage-to': u'',
             'national_statistic': u'',
-            'department': u'',
             'update_frequency': u'',
             'date_released': u'',
             'categories': u'',
@@ -98,8 +90,6 @@ class OnsImporter(PackageImporter):
                 log.warn('Could not read format of publication (release) date: %r' % 
                          item["pubDate"])
         extras['date_released'] = date_released.isoformat()
-        extras['department'] = department or u''
-        extras['agency'] = agency or u''
         extras['published_by'] = published_by or u''
         extras['published_via'] = published_via or u''
         extras['categories'] = item['hub:theme']
@@ -117,11 +107,12 @@ class OnsImporter(PackageImporter):
                     extras['update_frequency'] = update_frequency_suggestion
         extras['import_source'] = 'ONS-%s' % self._current_filename 
 
-        author = extras['department'] if extras['department'] else None
+        author = department or None
         resources = [{
-                'url': download_url,
-                'description': description
-                }]
+            'url': download_url,
+            'description': release,
+            'hub-id': guid,
+            }]
 
         # update package
         pkg_dict = {
@@ -180,12 +171,8 @@ class OnsImporter(PackageImporter):
             if not agency:
                 log.warn('Could not find NI department: %s' % dept_given)
                 agency = dept_given
-
         if dept_given == 'Office for National Statistics':
-            department = 'UK Statistics Authority'
-            agency = dept_given
-##            department = dept_given
-##            import pdb; pdb.set_trace()
+            department = dept_given
         if dept_given == 'Education':
             department = 'Department for Education'
 
@@ -208,10 +195,6 @@ class OnsImporter(PackageImporter):
         published_by, published_via = orgs
 
         return department, agency, published_by, published_via
-
-
-            
-        
 
     @classmethod
     def _split_title(cls, xml_title):

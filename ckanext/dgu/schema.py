@@ -115,6 +115,7 @@ organisation_name_mapping = {
     'Agriculture and Rural Development (Northern Ireland)':'Department of Agriculture and Rural Development',
     'Social Development (Northern Ireland)':'Department for Social Development',
     'Department of Justice (Northern Ireland)':'Department of Justice',
+    'Justice (Northern Ireland)':'Department of Justice',
     'National Health Service in Scotland':'NHS Scotland',
     'Police Service of Northern Ireland (PSNI)':'Police Service of Northern Ireland',
     }

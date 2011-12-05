@@ -237,7 +237,8 @@ class MockDrupalCase(BaseCase):
             response = drupal.system.listMethods()
         except socket.error, e:
             return
-        raise DrupalSetupError('Drupal already seems to be running: %s' % url)
+        raise DrupalSetupError('MockDrupal already seems to be running: %s.\n'
+                               'Kill its process (paster) first.' % url)
 
     @classmethod
     def _wait_for_drupal_to_start(cls,

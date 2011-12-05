@@ -6,9 +6,7 @@ from ckanext.importlib.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):
-        field_keys_to_find_pkg_by = ['title', 'department']
-        resource_id_prefix = 'hub/id/'
-        self.resource_id_matcher = re.compile('.* \| hub\/id\/([0-9\-]*)')
+        field_keys_to_find_pkg_by = ['title', 'published_by']
         field_keys_to_expect_invariant = [
             'update_frequency', 'geographical_granularity',
             'geographic_coverage', 'temporal_granularity',
@@ -17,18 +15,16 @@ class OnsLoader(ResourceSeriesLoader):
         super(OnsLoader, self).__init__(
             ckanclient,
             field_keys_to_find_pkg_by,
-            resource_id_prefix,
             field_keys_to_expect_invariant=field_keys_to_expect_invariant,
             )
 
     def _get_search_options(self, field_keys, pkg_dict):
-        if pkg_dict['extras']['department']:
+        if pkg_dict['extras']['published_by']:
             search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
         else:
-            # if department is blank then search against agency instead
-            # (department may have been filled in manually)
-            field_keys.append('agency')
-            field_keys.remove('department')
+            # if published_by is blank then search against published_via instead
+            field_keys.append('published_via')
+            field_keys.remove('published_by')
             search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
         return search_options_list
 
@@ -37,7 +33,8 @@ class OnsLoader(ResourceSeriesLoader):
         e.g. "April 2009 data: Experimental Statistics | hub/id/119-46440"
               gives "119-46440"
         '''
-        id_match = self.resource_id_matcher.match(resource['description'])
+        return resource['hub-id']
+        id_match = self.resource_id_matcher.match()
         if not id_match:
             return None
         return id_match.groups()[0]
@@ -66,3 +63,6 @@ class OnsLoader(ResourceSeriesLoader):
                                                 self._get_hub_id(res2))
         merged_dict['resources'] = sorted(merged_dict['resources'], cmp=cmp_hub_id)
         return merged_dict
+
+    def _get_resource_id(self, res):
+        return res.get('hub-id')

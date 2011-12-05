@@ -84,54 +84,6 @@ class TestOnsImporter(MockDrupalCase):
             coverage_db = importer.OnsImporter._parse_geographic_coverage(coverage_str)
             assert_equal(coverage_db, expected_coverage_db)
 
-    def test_department_agency(self):
-        expected_results = [
-            # (hub:source-agency value, department, agency)
-            ('Information Centre for Health and Social Care', '', 'NHS Information Centre for Health and Social Care'),
-            ('Business, Innovation and Skills', 'Department for Business, Innovation and Skills', ''),
-            ('Communities and Local Government', 'Department for Communities and Local Government', ''),
-            ('Culture, Arts and Leisure (Northern Ireland)', 'Northern Ireland Executive', 'Department of Culture, Arts and Leisure'),
-            ('Defence', 'Ministry of Defence', ''),
-            ('Education', 'Department for Education', ''),
-            ('Employment and Learning (Northern Ireland)', 'Northern Ireland Executive', 'Department for Employment and Learning'),
-            ('Energy and Climate Change', 'Department of Energy and Climate Change', ''),
-            ('Enterprise, Trade and Investment (Northern Ireland)', 'Northern Ireland Executive', 'Department of Enterprise Trade and Investment'),
-            ('Environment, Food and Rural Affairs', 'Department for Environment, Food and Rural Affairs', ''),
-            ('Environment (Northern Ireland)', 'Northern Ireland Executive', 'Department of the Environment'),
-            ('Finance and Personnel (Northern Ireland)', 'Northern Ireland Executive', 'Department of Finance and Personnel'),
-            ('Food Standards Agency', 'Food Standards Agency', ''),
-            ('Forestry Commission', 'Forestry Commission', ''),
-            ('General Register Office for Scotland', '', 'General Register Office for Scotland'),
-            ('Health, Social Service and Public Safety (Northern Ireland)', 'Northern Ireland Executive', 'Department of Health, Social Services and Public Safety'),
-            ('Health', 'Department of Health', ''),
-            ('Health and Safety Executive', '', 'Health and Safety Executive'),
-            ('Health Protection Agency', '', 'Health Protection Agency'),
-            ('HM Revenue and Customs', 'Her Majesty\'s Revenue and Customs', ''),
-            ('HM Treasury', 'Her Majesty\'s Treasury', ''),
-            ('Home Office', 'Home Office', ''),
-            ('Information Centre for Health and Social Care', '', 'NHS Information Centre for Health and Social Care'),
-            ('International Development', 'Department for International Development', ''),
-            ('ISD Scotland (part of NHS National Services Scotland)', '', 'ISD Scotland'),
-            ('Justice', 'Ministry of Justice', ''),
-            ('National Treatment Agency', '', 'National Treatment Agency for Substance Misuse'),
-            ('NHS National Services Scotland', '', 'NHS National Services Scotland'),
-            ('Northern Ireland Statistics and Research Agency', '', 'Northern Ireland Statistics and Research Agency'),
-            ('Office for National Statistics', 'UK Statistics Authority', 'Office for National Statistics'),
-            ('Office of Qualifications and Examinations Regulation', '', 'Office of Qualifications and Examinations Regulation'),
-            ('Office of the First and Deputy First Minister', 'Northern Ireland Executive', 'Office of the First and Deputy First Minister'),
-            ('Passenger Focus', '', 'Passenger Focus'),
-            ('Regional Development (Northern Ireland)', 'Northern Ireland Executive', 'Department for Regional Development'),
-            ('Scottish Government', 'Scottish Government', ''),
-            ('Social Development (Northern Ireland)', 'Northern Ireland Executive', 'Department for Social Development'),
-            ('Transport', 'Department for Transport', ''),
-            ('Welsh Assembly Government', 'Welsh Assembly Government', ''),
-            ('Work and Pensions', 'Department for Work and Pensions', ''),
-            ]
-        for source_agency, expected_department, expected_agency in expected_results:
-            department, agency, published_by, published_via = importer.OnsImporter._source_to_organisations(source_agency)
-            assert_equal(department, expected_department or None)
-            assert_equal(agency, expected_agency or None)
-
     def test_dept_to_organisation(self):
         for source_agency in get_ons_producers():
             publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
@@ -145,6 +97,7 @@ class TestOnsImporter(MockDrupalCase):
             ('HM Treasury', 'Her Majesty\'s Treasury [some_number]', ''),
             ('Information Centre for Health and Social Care', 'NHS Information Centre for Health and Social Care [some_number]', ''),
             ('Environment (Northern Ireland)', 'Northern Ireland Executive [some_number]', 'Department of the Environment [some_number]'),
+            ('Office for National Statistics', 'Office for National Statistics [some_number]', ''),
             ]
         for source_agency, expected_published_by, expected_published_via in expected_results:
             department, agency, published_by, published_via = importer.OnsImporter._source_to_organisations(source_agency)
@@ -190,7 +143,8 @@ class TestOnsImporter(MockDrupalCase):
             ('groups', []),
             ('resources', [OrderedDict([
                 ('url', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
-                ('description', u'December 2009 | hub/id/119-36345'),
+                ('description', u'December 2009'),
+                ('hub-id', u'119-36345'),
                 ])]),
             ('extras', OrderedDict([
                 ('geographic_coverage', u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
@@ -198,13 +152,11 @@ class TestOnsImporter(MockDrupalCase):
                 ('external_reference', u'ONSHUB'),
                 ('temporal_granularity', u''),
                 ('date_updated', u''),
-                ('agency', u''),
                 ('precision', u''),
                 ('temporal_coverage-to', u''),
                 ('temporal_coverage-from', u''),
                 ('national_statistic', 'no'),
                 ('update_frequency', 'monthly'),
-                ('department', u"Her Majesty's Treasury"),
                 ('import_source', 'ONS-ons_hub_sample.xml'),
                 ('date_released', '2010-01-06'),
                 ('categories', u'Economy'),

@@ -9,7 +9,8 @@ from ckanclient import CkanClient
 
 class OnsLoaderCmd(ApiCommand, XmlRpcCommand):
     def add_options(self):
-        super(OnsLoaderCmd, self).add_options()
+        ApiCommand.add_options(self)
+        XmlRpcCommand.add_options(self)
         self.parser.add_option("-d", "--days",
                                dest="days",
                                help="Days to fetch data (e.g. 7) (period is up to today, unless start-date or end-date specified)")
@@ -29,7 +30,8 @@ class OnsLoaderCmd(ApiCommand, XmlRpcCommand):
         return datetime.date(*[int(date_chunk) for date_chunk in date_str.split('-')])
     
     def command(self):
-        super(OnsLoaderCmd, self).command()
+        ApiCommand.command(self)
+        XmlRpcCommand.command(self)
 
         if self.options.days:
             self.options.days = int(self.options.days)

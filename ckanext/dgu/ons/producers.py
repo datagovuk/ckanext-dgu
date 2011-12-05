@@ -1,6 +1,16 @@
 def get_ons_producers():
     # Pasted in from http://www.statistics.gov.uk/hub/statistics-producers/index.html
     # and titles commented out.
+    # When you add something to this:
+    # 1. Run: generate_test_organisations -D data.gov.uk:80 -U username -P password
+    # 2. Any organisations that can't be found, check on data.gov.uk.
+    #     * Either the mapping needs to be improved:
+    #         ckanext/dgu/schema.py:organisation_name_mapping
+    #     * or the organisation needs adding:
+    #         https://www.data.gov.uk/node/add/publisher
+    #     Then go back to step 1 until errors are elimenated.
+    # 3. Test with: ckanext.dgu.tests.ons.test_ons_importer.TestOnsImporter.test_dept_to_organisation
+    # 4. Commit changes to lots_of_orgs.json etc.
     ons_depts = '''
 #Government Statistical Departments
 Business, Innovation and Skills
@@ -8,6 +18,7 @@ Child Maintenance and Enforcement Commission
 Communities and Local Government
 Culture, Media and Sport
 Defence
+Justice (Northern Ireland)
 Education
 Energy and Climate Change
 Enterprise, Trade and Investment (Northern Ireland)
@@ -25,14 +36,19 @@ ISD Scotland (part of NHS National Services Scotland)
 Information Centre for Health and Social Care
 International Development
 Justice
+Marine Management Organisation
+National Treatment Agency
+NHS Information Centre for Health and Social Care
+National Records of Scotland
 National Treatment Agency
 Northern Ireland Statistics and Research Agency
-Office of Qualifications and Examinations Regulation
 Office for National Statistics
+Office for Standards in Education, Children\'s Services and Skills
+Office of Qualifications and Examinations Regulation
 Passenger Focus
 Scottish Government
 Transport
-Welsh Assembly Government
+Welsh Government
 Work and Pensions
 #Other statistics producers
 Civil Aviation Authority
