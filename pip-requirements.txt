@@ -1,1 +1,19 @@
+# This file allows you to install DGU and all it's dependencies
+# in a virtual environment.
+#
+# Use it like this:
+#
+#   pip install --ignore-installed -r pip-requirements.txt
+
+-e git+https://github.com/okfn/ckanext-dgu.git#egg=ckanext-dgu
+
+# DGU Dependencies
 -r requires/lucid_missing.txt
+
+# pastescript isn't required as a dependency, but it *is* required
+# in order to be able to run paster commands within the correct
+# virtualenv when deployed.
+pastescript
+
+# ApacheMiddleware
+-e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware

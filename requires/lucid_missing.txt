@@ -1,22 +1,31 @@
-# ApacheMiddleware
--e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
 # ckanext-csw
--e hg+https://bitbucket.org/okfn/ckanext-csw@e2086b4d58fa#egg=ckanext-csw
+-e git+https://github.com/okfn/ckanext-csw.git@85c55ebea17460dad56af9d6a86033941ca21b3d#egg=ckanext-csw
+
 # ckanext-harvest
--e hg+https://bitbucket.org/okfn/ckanext-harvest@d5d05c9e943b#egg=ckanext-harvest
+-e git+https://github.com/okfn/ckanext-harvest.git@8ec05bc3e3a4cab9eab2a8e0d353b03eb339b10a#egg=ckanext-harvest
+
 # ckanext-inspire
--e hg+https://bitbucket.org/okfn/ckanext-inspire@75a5510b8616#egg=ckanext-inspire
+-e git+https://github.com/okfn/ckanext-inspire.git@e837f682387f3aca4983c98e6fe4e594ff2a817e#egg=ckanext-inspire
+
 # ckanext-spatial
--e hg+https://bitbucket.org/okfn/ckanext-spatial@90466a83f22e#egg=ckanext-spatial
+-e git+https://github.com/okfn/ckanext-spatial.git@8eebe1c2396a1b89f34492fd9660133d56aa8cfe#egg=ckanext-spatial
+
 # ckanext-qa
--e hg+https://bitbucket.org/okfn/ckanext-qa@e3621f689509#egg=ckanext-qa
-# ckanext-dgutheme
--e hg+https://bitbucket.org/okfn/ckanext-dgutheme@ba95c57574ab#egg=ckanext-dgutheme
+-e git+https://github.com/okfn/ckanext-qa.git@aa366892b95963f67693267445d2b40a1714c8b3#egg=ckanext-qa
+
 # ckanext-importlib
--e hg+https://bitbucket.org/okfn/ckanext-importlib@7e314a51c4d6#egg=ckanext-importlib
+-e git+https://github.com/okfn/ckanext-importlib.git@4465bedbe39715071264bff6f12afe26336ea631#egg=ckanext-importlib
 # Use the OKFN fork of OWSlib (it has the tests/__init__.py file removed to remove
 # a conflict with paste when installing as a debian package and it forces the use
 # of lxml as the XML library).
--e hg+https://bitbucket.org/okfn/owslib@bef58d64b96e#egg=owslib
+-e git+https://github.com/okfn/owslib.git@49da24cc2b9cbf790aa141ac775cb49e5221a94c#egg=owslib
+
 # Replaces swiss
--e hg+https://bitbucket.org/okfn/datautil-date@4e8b4c556738#egg=datautildate
+-e git+https://github.com/okfn/datautil-date.git@e2777147bd11cded237867416270f8f9d16503fc#egg=datautildate
+
+# from ckanext-spacial: [-r /var/lib/ckan/dguos/pyenv/src/ckanext-spatial/pip-requirements.txt]
+# these were pulled from the ckanext-spacial plugin, but are now defined
+# as concrete dependencies.
+GeoAlchemy>=0.6
+Shapely>=1.2.13
+
