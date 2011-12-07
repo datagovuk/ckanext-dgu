@@ -52,6 +52,7 @@ class DguForm(SingletonPlugin):
 
     def update_config(self, config):
         configure_template_directory(config, 'templates')
+        configure_public_directory(config, 'theme_common/public')
 
 
 class FormApiPlugin(SingletonPlugin):
