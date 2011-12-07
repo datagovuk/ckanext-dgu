@@ -5,8 +5,9 @@ The new package form is being refactored so as not to use sqlalchemy.  These
 are the tests for this form.  For tests based on the sqlalchemy-based form,
 see 'test_package_gov3.py'.
 """
-
 import re
+
+from nose.plugins.skip import SkipTest
 
 from ckanext.dgu.tests import Gov3Fixtures
 
@@ -208,6 +209,101 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
             match = re.search('<(input|textarea|select) [^>]* name="%s"' % field,
                               response.body)
             assert not match , '"%s" found in response: "%s"' % (field, match.group(0))
+
+class TestFormValidation(WsgiAppCase):
+    """
+    A suite of tests that check validation of the various form fields.
+    """
+
+    def test_title_non_empty(self):
+        """Asserts that the title cannot be empty"""
+        data = {'title': ''}
+        response = self._post_form(data)
+        assert 'Title: Missing value' in response.body
+
+    def test_name_non_empty(self):
+        """Asserts that the name (uri identifier) is non-empty"""
+        data = {'name': ''}
+        response = self._post_form(data)
+        assert 'Name: Missing value' in response.body
+
+    def test_name_rejects_non_alphanumeric_names(self):
+        """Asserts that the name (uri identifier) does not allow punctuation"""
+        bad_names = ('fullstop.',
+                     'exclamation!',
+                     'quotes"',
+                     'hash#',
+                     'unicode%E3%82%A1', # u'unicode\u30a1' url-encoded
+                     )
+        for name in bad_names:
+            data = {'name': name}
+            response = self._post_form(data)
+            assert 'Url must be purely lowercase alphanumeric (ascii) characters and these symbols: -_'\
+                in response.body, '"%s" allowed as url identifier' % name
+
+    def test_name_must_be_at_least_2_characters(self):
+        """Asserts that 1-length names are not allowed"""
+        data = {'name': 'a'}
+        response = self._post_form(data)
+        assert 'Name must be at least 2 characters long' in response.body
+
+    def test_notes_non_empty(self):
+        """Asserts that the abstract cannot be empty"""
+        data = {'notes': ''}
+        response = self._post_form(data)
+        assert 'Notes: Missing value' in response.body
+
+    def test_date_released_only_accepts_well_formed_dates(self):
+        """
+        Asserts that date_released only accepts dates.
+        
+        TODO: what's the granularity of this field meant to be?  Schema indicates
+              it's very loose, e.g. "Dec/2011", whereas form help indicates it's
+              to the day.
+        TODO: are these even on the new form?
+        """
+        raise SkipTest('date_released field needs spec.')
+
+    def test_date_updated_only_accepts_well_formed_dates(self):
+        """
+        Asserts that date_updated only accepts dates.
+        
+        TODO: what's the granularity of this field meant to be?  Schema indicates
+              it's very loose, e.g. "Dec/2011", whereas form help indicates it's
+              to the day.
+        TODO: are these even on the new form?
+        """
+        raise SkipTest('date_updated field needs spec.')
+
+    def test_date_update_future_only_accepts_well_formed_dates(self):
+        """
+        Asserts that date_update_future only accepts dates.
+        
+        TODO: what's the granularity of this field meant to be?  Schema indicates
+              it's very loose, e.g. "Dec/2011", whereas form help indicates it's
+              to the day.
+        TODO: are these even on the new form?
+        """
+        raise SkipTest('date_update_future field needs spec.')
+
+    def _post_form(self, data):
+        """
+        GETs the package-create page, fills in the given fields, and POSTs the form.
+        """
+        offset = url_for(controller='package', action='new')
+        response = self.app.get(offset)
+        
+        # parse the form fields from the html
+        form_field_matches = re.finditer('<(input|select|textarea) [^>]* name="(?P<field_name>[^"]+)"',
+                                         response.body)
+
+        # initialise all fields with an empty string
+        form_fields = dict((match.group('field_name'), '') for match in form_field_matches)
+        form_fields['save'] = 'Save'
+        
+        # and fill in the form with the data provided
+        form_fields.update(data)
+        return self.app.post(offset, params=form_fields)
 
 def _convert_date(datestring):
     """
