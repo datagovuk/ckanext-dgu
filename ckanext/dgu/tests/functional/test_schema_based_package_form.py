@@ -6,6 +6,8 @@ are the tests for this form.  For tests based on the sqlalchemy-based form,
 see 'test_package_gov3.py'.
 """
 
+import re
+
 from ckanext.dgu.tests import Gov3Fixtures
 
 from ckan.lib.field_types import DateType
@@ -27,6 +29,9 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
 
     # Fields we expect to see on the rendered form.
     # input name -> (Label text , input type)
+    # for example:
+    #   <label for="title">Title *</label>
+    #   <input name="title"/>
     _expected_fields = {
         # Basic information
         'title':     ('Title *', 'input'),
@@ -71,6 +76,11 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     _unexpected_fields = (
         'external_reference',
         'import_source',
+        'version',
+        'maintainer',
+        'maintainer_email',
+        'newfield0-key',
+        'newfield0-value',
     )
 
     @classmethod
@@ -114,6 +124,21 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                                      input_type,
                                      'name="%s' % field)
 
+    def test_new_form_does_not_contain_unexpected_fields(self):
+        """
+        Asserts that the fields named in self._unexpected_fields do not appear in the form.
+
+        There are a set of fields that are on the normal package form that we don't
+        want appearing in the dgu form.
+        """
+        offset = url_for(controller='package', action='new')
+        response = self.app.get(offset)
+
+        for field in self._unexpected_fields:
+            match = re.search('<(input|textarea|select) [^>]* name="%s"' % field,
+                              response.body)
+            assert not match , '"%s" found in response: "%s"' % (field, match.group(0))
+
     def test_edit_form_form_has_all_fields(self):
         """
         Asserts that edit-form of a package has the fields prefilled correctly.
@@ -123,7 +148,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         offset = url_for(controller='package', action='edit', id=package['name'])
         response = self.app.get(offset)
 
-        # form field name => expected form field value
+        # form field name -> expected form field value
         expected_field_values = {}
 
         # populate expected_field_values with the simple fields first
@@ -166,6 +191,23 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                                      '(input|textarea)',
                                      'name="%s"' % field_name,
                                      expected_value)
+
+    def test_edit_form_does_not_contain_unexpected_fields(self):
+        """
+        Asserts that the fields named in self._unexpected_fields do not appear in the form.
+
+        There are a set of fields that are on the normal package form that we don't
+        want appearing in the dgu form.
+        """
+        package = self.fixtures.pkgs[0]
+
+        offset = url_for(controller='package', action='edit', id=package['name'])
+        response = self.app.get(offset)
+
+        for field in self._unexpected_fields:
+            match = re.search('<(input|textarea|select) [^>]* name="%s"' % field,
+                              response.body)
+            assert not match , '"%s" found in response: "%s"' % (field, match.group(0))
 
 def _convert_date(datestring):
     """
