@@ -11,6 +11,7 @@ from nose.plugins.skip import SkipTest
 
 from ckanext.dgu.tests import Gov3Fixtures
 
+from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.field_types import DateType
 from ckan.tests import WsgiAppCase, CommonFixtureMethods
 from ckan.tests.html_check import HtmlCheckMethods
@@ -210,7 +211,31 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                               response.body)
             assert not match , '"%s" found in response: "%s"' % (field, match.group(0))
 
-class TestFormValidation(WsgiAppCase):
+class _PackageFormClient(WsgiAppCase):
+    """
+    A mixin class that provides a single method for POSTing a package create form.
+    """
+
+    def _post_form(self, data):
+        """
+        GETs the package-create page, fills in the given fields, and POSTs the form.
+        """
+        offset = url_for(controller='package', action='new')
+        response = self.app.get(offset)
+        
+        # parse the form fields from the html
+        form_field_matches = re.finditer('<(input|select|textarea) [^>]* name="(?P<field_name>[^"]+)"',
+                                         response.body)
+
+        # initialise all fields with an empty string
+        form_fields = dict((match.group('field_name'), '') for match in form_field_matches)
+        form_fields['save'] = 'Save'
+        
+        # and fill in the form with the data provided
+        form_fields.update(data)
+        return self.app.post(offset, params=form_fields)
+
+class TestFormValidation(_PackageFormClient):
     """
     A suite of tests that check validation of the various form fields.
     """
@@ -286,24 +311,63 @@ class TestFormValidation(WsgiAppCase):
         """
         raise SkipTest('date_update_future field needs spec.')
 
-    def _post_form(self, data):
-        """
-        GETs the package-create page, fills in the given fields, and POSTs the form.
-        """
-        offset = url_for(controller='package', action='new')
-        response = self.app.get(offset)
-        
-        # parse the form fields from the html
-        form_field_matches = re.finditer('<(input|select|textarea) [^>]* name="(?P<field_name>[^"]+)"',
-                                         response.body)
+class TestPackageCreation(CommonFixtureMethods, _PackageFormClient):
+    """
+    A suite of tests that check that packages are created correctly through the creation form.
+    """
+    
+    _package_data = {
+        'name': 'new_name',
+        'title': 'New Package Title',
+        'notes': 'The package abstract.',
+        'author': 'A Job Role',
+        'author_email': 'role@department.gov.uk',
+        'tag_string': 'tag1, tag2, multi word tag',
+        'published_by': 'A publisher',
 
-        # initialise all fields with an empty string
-        form_fields = dict((match.group('field_name'), '') for match in form_field_matches)
-        form_fields['save'] = 'Save'
+        # resources
+        'resources__0__url': 'http://www.example.com',
+        'resources__0__description': 'A resource',
+        'resources__1__url': 'http://www.google.com',
+        'resources__1__description': 'A search engine',
+    }
+
+    def teardown(self):
+        """
+        Delete any created packages
+        """
+        CreateTestData.delete()
+
+    def test_submitting_a_valid_create_form_creates_a_new_package(self):
+        """Assert that submitting a valid create form does indeed create a new package"""
+        # setup fixture
+        package_name = self._package_data['name']
+        CreateTestData.flag_for_deletion(package_name)
+        assert not self.get_package_by_name(package_name),\
+            'Package "%s" already exists' % package_name
         
-        # and fill in the form with the data provided
-        form_fields.update(data)
-        return self.app.post(offset, params=form_fields)
+        # create package via form
+        self._post_form(self._package_data)
+        
+        # ensure it's correct
+        pkg = self.get_package_by_name(package_name)
+        assert pkg
+        assert self._package_data['name'] == pkg.name
+        assert self._package_data['title'] == pkg.title
+        assert self._package_data['notes'] == pkg.notes
+        assert self._package_data['author'] == pkg.author
+        assert self._package_data['author_email'] == pkg.author_email
+        assert set(['tag1', 'tag2', 'multi word tag']) ==\
+               set(tag.name for tag in pkg.tags)
+        assert self._package_data['published_by'] == pkg.extras['published_by']
+        assert self._package_data['resources__0__url'] ==\
+               pkg.resources[0].url
+        assert self._package_data['resources__1__url'] ==\
+               pkg.resources[1].url
+        assert self._package_data['resources__0__description'] ==\
+               pkg.resources[0].description
+        assert self._package_data['resources__1__description'] ==\
+               pkg.resources[1].description
 
 def _convert_date(datestring):
     """
