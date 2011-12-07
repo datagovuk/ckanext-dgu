@@ -5,6 +5,7 @@ The new package form is being refactored so as not to use sqlalchemy.  These
 are the tests for this form.  For tests based on the sqlalchemy-based form,
 see 'test_package_gov3.py'.
 """
+from functools import partial
 import re
 
 from nose.plugins.skip import SkipTest
@@ -211,45 +212,24 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                               response.body)
             assert not match , '"%s" found in response: "%s"' % (field, match.group(0))
 
-class _PackageFormClient(WsgiAppCase):
-    """
-    A mixin class that provides a single method for POSTing a package create form.
-    """
-
-    def _post_form(self, data):
-        """
-        GETs the package-create page, fills in the given fields, and POSTs the form.
-        """
-        offset = url_for(controller='package', action='new')
-        response = self.app.get(offset)
-        
-        # parse the form fields from the html
-        form_field_matches = re.finditer('<(input|select|textarea) [^>]* name="(?P<field_name>[^"]+)"',
-                                         response.body)
-
-        # initialise all fields with an empty string
-        form_fields = dict((match.group('field_name'), '') for match in form_field_matches)
-        form_fields['save'] = 'Save'
-        
-        # and fill in the form with the data provided
-        form_fields.update(data)
-        return self.app.post(offset, params=form_fields)
-
-class TestFormValidation(_PackageFormClient):
+class TestFormValidation(object):
     """
     A suite of tests that check validation of the various form fields.
     """
 
+    def __init__(self):
+        self._form_client = _PackageFormClient()
+
     def test_title_non_empty(self):
         """Asserts that the title cannot be empty"""
         data = {'title': ''}
-        response = self._post_form(data)
+        response = self._form_client.post_form(data)
         assert 'Title: Missing value' in response.body
 
     def test_name_non_empty(self):
         """Asserts that the name (uri identifier) is non-empty"""
         data = {'name': ''}
-        response = self._post_form(data)
+        response = self._form_client.post_form(data)
         assert 'Name: Missing value' in response.body
 
     def test_name_rejects_non_alphanumeric_names(self):
@@ -262,20 +242,20 @@ class TestFormValidation(_PackageFormClient):
                      )
         for name in bad_names:
             data = {'name': name}
-            response = self._post_form(data)
+            response = self._form_client.post_form(data)
             assert 'Url must be purely lowercase alphanumeric (ascii) characters and these symbols: -_'\
                 in response.body, '"%s" allowed as url identifier' % name
 
     def test_name_must_be_at_least_2_characters(self):
         """Asserts that 1-length names are not allowed"""
         data = {'name': 'a'}
-        response = self._post_form(data)
+        response = self._form_client.post_form(data)
         assert 'Name must be at least 2 characters long' in response.body
 
     def test_notes_non_empty(self):
         """Asserts that the abstract cannot be empty"""
         data = {'notes': ''}
-        response = self._post_form(data)
+        response = self._form_client.post_form(data)
         assert 'Notes: Missing value' in response.body
 
     def test_date_released_only_accepts_well_formed_dates(self):
@@ -311,7 +291,7 @@ class TestFormValidation(_PackageFormClient):
         """
         raise SkipTest('date_update_future field needs spec.')
 
-class TestPackageCreation(CommonFixtureMethods, _PackageFormClient):
+class TestPackageCreation(CommonFixtureMethods):
     """
     A suite of tests that check that packages are created correctly through the creation form.
     """
@@ -332,6 +312,9 @@ class TestPackageCreation(CommonFixtureMethods, _PackageFormClient):
         'resources__1__description': 'A search engine',
     }
 
+    def __init__(self):
+        self._form_client = _PackageFormClient()
+
     def teardown(self):
         """
         Delete any created packages
@@ -347,7 +330,7 @@ class TestPackageCreation(CommonFixtureMethods, _PackageFormClient):
             'Package "%s" already exists' % package_name
         
         # create package via form
-        self._post_form(self._package_data)
+        self._form_client.post_form(self._package_data)
         
         # ensure it's correct
         pkg = self.get_package_by_name(package_name)
@@ -368,6 +351,52 @@ class TestPackageCreation(CommonFixtureMethods, _PackageFormClient):
                pkg.resources[0].description
         assert self._package_data['resources__1__description'] ==\
                pkg.resources[1].description
+
+class _PackageFormClient(WsgiAppCase):
+    """
+    A helper object that provides a single method for POSTing a package create form.
+
+    It simulates form usage by first GETting the create form, pulling out the
+    form fields from the form, and POSTing back the form with the provided data.
+    """
+
+    def post_form(self, data):
+        """
+        GETs the package-create page, fills in the given fields, and POSTs the form.
+        """
+        offset = url_for(controller='package', action='new')
+        response = self.app.get(offset)
+        
+        # parse the form fields from the html
+        form_field_matches = re.finditer('<(input|select|textarea) [^>]*name="(?P<field_name>[^"]+)"',
+                                         response.body)
+
+        # initialise all fields with an empty string
+        form_fields = dict((match.group('field_name'), '') for match in form_field_matches)
+        form_fields['save'] = 'Save'
+        
+        self._assert_not_posting_extra_fields(form_fields.keys(), data.keys())
+
+        # and fill in the form with the data provided
+        form_fields.update(data)
+        return self.app.post(offset, params=form_fields)
+
+    def _assert_not_posting_extra_fields(self, form_fields, data_fields):
+        """
+        Asserts that we're not posting data for fields that don't exist on the form
+
+        Takes care of the one-to-many fields, eg. 'resources__0__url': an
+        arbitrary number of these may be added client-side using javascript,
+        so we only check that that the 0 index exists on the form.  This works
+        by mapping fields like 'resources__0__url' to 'resources__num__url'.
+        """
+        one_to_many_re = re.compile('(resources)__\d+__(.+)$')
+        sub = partial(one_to_many_re.sub,
+                      lambda m: '%s__num__%s' % (m.group(1), m.group(2)))
+
+        form_fields = set(map(sub, form_fields))
+        data_fields = set(map(sub, data_fields))
+        assert form_fields >= data_fields, str(form_fields - data_fields)
 
 def _convert_date(datestring):
     """
