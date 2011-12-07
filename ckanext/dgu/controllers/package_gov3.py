@@ -55,7 +55,8 @@ temporal_granularity = [("",""),
 
 class PackageGov3Controller(PackageController):
 
-    package_form = 'package_gov3.html'
+    # TODO: rename this back, or to something better
+    package_form = 'package_gov3_form_refactor.html'
 
     def _setup_template_variables(self, context, data_dict=None):
         c.licences = [('', '')] + model.Package.get_license_options()
