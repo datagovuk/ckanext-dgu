@@ -16,3 +16,4 @@ build/*
 tmp/*
 *.ini
 package/DEBIAN/control
+*.swp
