@@ -20,8 +20,8 @@ Install
 This is how to install ckanext-dgu, ckan and their dependencies into a python virtual environment::
 
     virtualenv pyenv
-    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckanext-dgu#egg=ckan
-    pip -E pyenv install -e hg+http://bitbucket.org/okfn/ckan#egg=ckan
+    pip -E pyenv install -e git+https://github.com:okfn/ckanext-dgu.git#egg=ckanext-dgu
+    pip -E pyenv install -e git+https://github.com/okfn/ckan.git#egg=ckan
     pip -E pyenv install -r pyenv/src/ckan/pip-requirements.txt
     pip -E pyenv install -r pyenv/src/ckanext-dgu/pip-requirements.txt
 

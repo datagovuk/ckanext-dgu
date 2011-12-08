@@ -6,7 +6,7 @@ from ons_analysis import OnsAnalysis
 
 class OnsAnalysisCommand(ApiCommand):
     def add_options(self):
-        pass
+        super(OnsAnalysisCommand, self).add_options()
     
     def command(self):
         super(OnsAnalysisCommand, self).command()

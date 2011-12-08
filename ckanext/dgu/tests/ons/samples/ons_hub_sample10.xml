@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<rss version="2.0">
+			
+			<channel xmlns:hub="http://www.statistics.gov.uk/xsd/hub" xmlns:atom="http://www.w3.org/2005/Atom">
+<title>Release Calendar</title>
+<link>http://www.statistics.gov.uk/</link>
+<description>Release Calendar description</description>
+<language>en-gb</language>
+<pubDate>Tue, 07 Dec 2010 15:58:43 GMT</pubDate>
+<atom:link href="http://www.statistics.gov.uk/hub/release-calendar/rss.xml" rel="self" type="application/rss+xml"/>
+
+<item>
+<title>NHS Cancer Waiting Times in Wales - Quarter Ending March 2010</title>
+<link>http://wales.gov.uk/topics/statistics/headlines/health2010/1006021/?lang=en</link>
+<description>Provides data on Cancer waiting times for Welsh NHS Trusts.</description>
+<pubDate>Wed, 02 Jun 2010 09:30:00 GMT</pubDate>
+<guid isPermaLink="false">http://www.statistics.gov.uk/hub/id/119-48744</guid>
+<hub:source-agency>Welsh Assembly Government</hub:source-agency>
+<hub:theme>Health and Social Care</hub:theme>
+<hub:coverage>Wales</hub:coverage>
+<hub:designation>National Statistics</hub:designation>
+<hub:geographic-breakdown>Country</hub:geographic-breakdown>
+<hub:language>English</hub:language>
+<hub:ipsv>Health, well-being and care</hub:ipsv>
+<hub:keywords>Health;Cancer;Health;Cancer</hub:keywords>
+<hub:altTitle>NHS Cancer Waiting Times in Wales</hub:altTitle>
+<hub:nscl>Health and Social Care;Health Care System;Access and Waiting Times;Health and Social Care;Health Care System;Access and Waiting Times</hub:nscl>
+</item>
+
+
+</channel>
+</rss>

@@ -2,9 +2,6 @@ import logging
 import socket
 from xmlrpclib import ServerProxy, Fault, ProtocolError
 
-from pylons import config
-from webhelpers.text import truncate
-
 log = logging.getLogger(__name__)
 
 class DrupalXmlRpcSetupError(Exception): pass
@@ -33,6 +30,10 @@ class DrupalClient(object):
                 username = xmlrpc_settings.get('xmlrpc_username')
                 password = xmlrpc_settings.get('xmlrpc_password')
             else:
+                try:
+                    from pylons import config
+                except ImportError:
+                    assert 0, 'Either supply XML RPC parameters or install pylons to try the Pylons config for it.'
                 domain = config.get('dgu.xmlrpc_domain')
                 username = config.get('dgu.xmlrpc_username')
                 password = config.get('dgu.xmlrpc_password')
@@ -62,7 +63,7 @@ class DrupalClient(object):
             raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (user_id, e))
         except ProtocolError, e:
             raise DrupalRequestError('Drupal returned protocol error for user_id %r: %r' % (user_id, e))
-        log.info('Obtained Drupal user: %r', truncate(unicode(user), 200))
+        log.info('Obtained Drupal user: %r', unicode(user)[:200])
         return user
 
     def get_user_id_from_session_id(self, session_id):

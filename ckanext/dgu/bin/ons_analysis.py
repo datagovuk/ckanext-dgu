@@ -2,6 +2,11 @@ from common import ScriptError
 
 from ckanclient import CkanApiError
 
+'''
+Looks at ONS packages with trailing underscores and says what department they
+are from.
+'''
+
 class OnsAnalysis:
     def __init__(self, ckanclient):
         self.ckanclient = ckanclient

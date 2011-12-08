@@ -10,7 +10,7 @@ if not os.path.exists(ONS_CACHE_PATH):
 ONS_URL_BASE = 'http://www.statistics.gov.uk/hub/release-calendar/rss.xml?lday=%(lday)s&lmonth=%(lmonth)s&lyear=%(lyear)s&uday=%(uday)s&umonth=%(umonth)s&uyear=%(uyear)s'
 
 MONTHS_PER_YEAR = 12
-YEAR_ONS_DATA_STARTS = 2004
+YEAR_ONS_DATA_STARTS = 1998
 
 class OnsData(object):
     '''Manages download and parse of ONS data.'''

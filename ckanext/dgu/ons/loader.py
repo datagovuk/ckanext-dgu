@@ -8,7 +8,7 @@ class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):
         field_keys_to_find_pkg_by = ['title', 'published_by']
         field_keys_to_expect_invariant = [
-            'update_frequency', 'geographical_granularity',
+            'geographical_granularity',
             'geographic_coverage', 'temporal_granularity',
             'precision', 'url', 'taxonomy_url', 'agency',
             'author', 'author_email', 'license_id']

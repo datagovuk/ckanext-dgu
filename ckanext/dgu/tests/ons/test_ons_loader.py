@@ -45,7 +45,6 @@ class TestOnsLoadBasic(OnsLoaderBase):
         self.loader = OnsLoader(self.testclient)
         self.res = self.loader.load_packages(self.pkg_dicts)
         assert self.res['num_errors'] == 0, self.res
-        CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in self.pkg_dicts])
 
     def test_0_search_options(self):
         field_keys = ['title', 'department']
@@ -159,7 +158,6 @@ class TestOnsLoadTwice(OnsLoaderBase):
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
-        CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in pkg_dicts])
 
     def test_packages(self):
         pkg = model.Package.by_name(u'uk_official_holdings_of_international_reserves')
@@ -186,7 +184,6 @@ class TestOnsLoadClashTitle(OnsLoaderBase):
             loader = OnsLoader(self.testclient)
             self.res = loader.load_packages(pkg_dicts)
             assert self.res['num_errors'] == 0, self.res
-        CreateTestData.flag_for_deletion([pkg_dict['name'] for pkg_dict in pkg_dicts])
 
     def test_ons_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings')
@@ -223,7 +220,6 @@ class TestOnsLoadClashSource(OnsLoaderBase):
              }
             ])
         importer_ = importer.OnsImporter(sample_filepath(''))
-        CreateTestData.flag_for_deletion(self.clash_name)
         pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
         loader = OnsLoader(self.testclient)
         self.res = loader.load_packages(pkg_dicts)
@@ -252,7 +248,6 @@ class TestOnsLoadSeries(OnsLoaderBase):
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
-        CreateTestData.flag_for_deletion('regional_labour_market_statistics')
 
     def test_packages(self):
         pkg = model.Package.by_name(u'regional_labour_market_statistics')
@@ -312,7 +307,6 @@ class TestNationalParkDuplicate(OnsLoaderBase):
         loader = OnsLoader(self.testclient)
         res = loader.load_packages(pkg_dicts)
         assert res['num_errors'] == 0, res
-        CreateTestData.flag_for_deletion(self.name)
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
@@ -527,3 +521,24 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
         assert pkg
         assert_equal(len(pkg.resources), self.num_resources_originally + 1)
 
+class TestOnsUnknownPublisher(OnsLoaderBase):
+    @classmethod
+    def setup_class(self):
+        super(TestOnsLoadSeries, self).setup_class()
+        for filepath in (sample_filepath('10'),):
+            importer_ = importer.OnsImporter(filepath)
+            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+            for pkg_dict in pkg_dicts:
+                assert_equal(pkg_dict['title'], 'NHS Cancer Waiting Times in Wales')
+                assert_equal(pkg_dict['extras']['published_by'], 'Welsh Assembly Government')
+                assert_equal(pkg_dict['extras']['published_via'], '')
+            loader = OnsLoader(self.testclient)
+            res = loader.load_packages(pkg_dicts)
+            assert res['num_errors'] == 0, res
+
+    def test_packages(self):
+        pkg = model.Package.by_name(u'nhs_cancer_waiting_times_in_wales')
+        assert pkg
+        assert_equal(pkg.title, 'NHS Cancer Waiting Times in Wales')
+        assert_equal(pkg.extras['published_by'], 'Welsh Assembly Government')
+        assert_equal(pkg.extras['published_via'], '')
