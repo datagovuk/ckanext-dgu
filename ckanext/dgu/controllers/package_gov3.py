@@ -67,7 +67,7 @@ class PackageGov3Controller(PackageController):
         c.publishers = self.get_publishers()
 
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
-        c.resource_columns = model.Resource.get_columns()
+        c.resource_columns = ('name', 'url')
 
         ## This is messy as auths take domain object not data_dict
         pkg = context.get('package') or c.pkg
