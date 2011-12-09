@@ -69,5 +69,6 @@ Eurostat
                   'Regional Development (Northern Ireland)',
                   'Social Development (Northern Ireland)',
                   'Employment and Learning (Northern Ireland)',
+                  'Welsh Government',
                   ]
     return org_names

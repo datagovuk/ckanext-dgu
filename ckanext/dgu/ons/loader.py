@@ -19,7 +19,7 @@ class OnsLoader(ResourceSeriesLoader):
             )
 
     def _get_search_options(self, field_keys, pkg_dict):
-        if pkg_dict['extras']['published_by']:
+        if pkg_dict['extras'].get('published_by'):
             search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
         else:
             # if published_by is blank then search against published_via instead

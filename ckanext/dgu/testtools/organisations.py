@@ -26,6 +26,8 @@ test_organisations = {'1': {'name': 'National Health Service',
                             'parent_department_id': '6'},
                       '7': {'name': 'Department of Health',
                             'parent_department_id': '7'},
+                      '8': {'name': 'Office for National Statistics',
+                            'parent_department_id': '8'},
                       }
 
 test_organisation_names = dict([(id, org_dict['name']) for id, org_dict in test_organisations.items()])

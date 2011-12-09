@@ -60,8 +60,8 @@ class TestOnsData:
     def test_get_urls_for_all_time(self):
         ons_data = OnsDataTester()
         url_tuples = ons_data._get_urls_for_all_time()
-        assert len(url_tuples) == 18, len(url_tuples)
-        assert url_tuples[0] == [self.ons_url_base + '?lday=1&lmonth=1&lyear=2004&uday=31&umonth=1&uyear=2004', '2004-01', False], url_tuples[0]
+        assert len(url_tuples) == 90,  len(url_tuples)
+        assert url_tuples[0] == [self.ons_url_base + '?lday=1&lmonth=1&lyear=1998&uday=31&umonth=1&uyear=1998', '1998-01', False], url_tuples[0]
         assert url_tuples[-2] == [self.ons_url_base + '?lday=1&lmonth=5&lyear=2005&uday=31&umonth=5&uyear=2005', '2005-05', False], url_tuples[-2]
         assert url_tuples[-1] == [self.ons_url_base + '?lday=1&lmonth=6&lyear=2005&uday=31&umonth=6&uyear=2005', '2005-06_incomplete', True], url_tuples[-1]
 

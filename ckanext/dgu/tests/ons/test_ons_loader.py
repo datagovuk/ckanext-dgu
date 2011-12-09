@@ -12,7 +12,7 @@ from ckan import model
 from ckan.lib import search
 from ckan.tests import CreateTestData, TestSearchIndexer, is_search_supported
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
-from ckanext.dgu.tests import MockDrupalCase
+from ckanext.dgu.tests import MockDrupalCase, strip_organisation_id
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_PATH = os.path.join(TEST_DIR, 'samples')
@@ -47,18 +47,18 @@ class TestOnsLoadBasic(OnsLoaderBase):
         assert self.res['num_errors'] == 0, self.res
 
     def test_0_search_options(self):
-        field_keys = ['title', 'department']
+        field_keys = ['title', 'published_by']
 
         pkg_dict = {'title':'titleA',
-                    'extras':{'department':'Department for Children, Schools and Families'}}
+                    'extras':{'published_by':'Department for Children, Schools and Families'}}
         opts = self.loader._get_search_options(field_keys, pkg_dict)
-        assert_equal(opts, [{'department': 'Department for Children, Schools and Families', 'title': 'titleA'}])
+        assert_equal(opts, [{'published_by': 'Department for Children, Schools and Families', 'title': 'titleA'}])
 
         pkg_dict = {'title':'titleA',
-                    'extras':{'department':'',
-                              'agency':'SomeAgency'}}
+                    'extras':{'published_by':'',
+                              'published_via':'SomeAgency'}}
         opts = self.loader._get_search_options(field_keys, pkg_dict)
-        assert_equal(opts, [{'agency':'SomeAgency', 'title': 'titleA'}])
+        assert_equal(opts, [{'published_via':'SomeAgency', 'title': 'titleA'}])
 
     def test_1_hub_id_extraction(self):
         def assert_id(hub_id_value, expected_id):
@@ -114,9 +114,9 @@ class TestOnsLoadBasic(OnsLoaderBase):
         assert_equal(custody.resources[1].extras['hub-id'], '119-36838')
         assert pkg1.extras['date_released'] == u'2010-01-06', pkg1.extras['date_released']
         assert probation.extras['date_released'] == u'2010-01-04', probation.extras['date_released']
-        assert pkg1.extras['department'] == u"Her Majesty's Treasury", pkg1.extras['department']
-        assert cereals.extras['department'] == u"Department for Environment, Food and Rural Affairs", cereals.extras['department']
-        assert custody.extras['department'] == u"Ministry of Justice", custody.extras['department']
+        assert_equal(strip_organisation_id(pkg1.extras['published_by']), u"Her Majesty's Treasury [some_number]")
+        assert_equal(strip_organisation_id(cereals.extras['published_by']), u"Department for Environment, Food and Rural Affairs [some_number]")
+        assert_equal(strip_organisation_id(custody.extras['published_by']), u"Ministry of Justice [some_number]")
         assert u"Source agency: HM Treasury" in pkg1.notes, pkg1.notes
         assert pkg1.extras['categories'] == 'Economy', pkg1.extras['category']
         assert pkg1.extras['geographic_coverage'] == '111100: United Kingdom (England, Scotland, Wales, Northern Ireland)', pkg1.extras['geographic_coverage']
@@ -188,7 +188,7 @@ class TestOnsLoadClashTitle(OnsLoaderBase):
     def test_ons_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings')
         assert pkg
-        assert pkg.extras.get('department') == 'UK Statistics Authority', pkg.extras.get('department')
+        assert_equal(strip_organisation_id(pkg.extras.get('published_by')), 'Office for National Statistics [some_number]')
         assert 'Office for National Statistics' in pkg.notes, pkg.notes
         assert len(pkg.resources) == 2, pkg.resources
         assert '2007 Results Phase 3 Tables' in pkg.resources[1].description, pkg.resources
@@ -197,7 +197,7 @@ class TestOnsLoadClashTitle(OnsLoaderBase):
     def test_welsh_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings_')
         assert pkg
-        assert pkg.extras['department'] == 'Welsh Assembly Government', pkg.extras['department']
+        assert_equal(strip_organisation_id(pkg.extras['published_by']), 'Welsh Government [some_number]')
         assert len(pkg.resources) == 1, pkg.resources
         assert '2008 Results' in pkg.resources[0].description, pkg.resources
 
@@ -214,7 +214,7 @@ class TestOnsLoadClashSource(OnsLoaderBase):
             {'name':self.clash_name,
              'title':'Test clash',
              'extras':{
-                 'department':'Department for Environment, Food and Rural Affairs',
+                 'published_by':'Department for Environment, Food and Rural Affairs',
                  'import_source':'DECC-Jan-09',
                  },
              }
@@ -241,8 +241,8 @@ class TestOnsLoadSeries(OnsLoaderBase):
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
             for pkg_dict in pkg_dicts:
                 assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
-                assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
-                assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
+                assert_equal(strip_organisation_id(pkg_dict['extras']['published_by']),
+                             'Office for National Statistics [some_number]')
                 assert '2010-08-' in pkg_dict['extras']['date_released'], pkg_dict
                 assert pkg_dict['extras']['date_updated'] == '', pkg_dict
             loader = OnsLoader(self.testclient)
@@ -253,7 +253,7 @@ class TestOnsLoadSeries(OnsLoaderBase):
         pkg = model.Package.by_name(u'regional_labour_market_statistics')
         assert pkg
         assert pkg.title == 'Regional Labour Market Statistics', pkg.title
-        assert pkg.extras['agency'] == 'Office for National Statistics', pkg.extras['agency']
+        assert_equal(strip_organisation_id(pkg.extras['published_by']), 'Office for National Statistics [some_number]')
         assert len(pkg.resources) == 9, pkg.resources
         assert_equal(pkg.extras['date_released'], '2010-08-10')
         assert_equal(pkg.extras['date_updated'], '2010-08-13')
@@ -272,7 +272,7 @@ class TestOnsLoadMissingDept(OnsLoaderBase):
              "license_id": "ukcrown-withrights",
              "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
              "groups": [],
-             "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "agency": "Office for National Statistics", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "department": 'UK Statistics Authority', "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
+             "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographical_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "published_by": 'Office for National Statistics [8]', "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
             "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010", "extras":{"hub-id":"77-31166"}}],
              }
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
@@ -288,7 +288,7 @@ class TestOnsLoadMissingDept(OnsLoaderBase):
         assert self.pkg_dict['name'] == self.orig_pkg_dict['name'], self.pkg_dict['name']
         pkg1 = model.Package.by_name(self.orig_pkg_dict['name'])
 
-        assert pkg1.extras.get('department') == u'UK Statistics Authority', pkg1.extras
+        assert_equal(strip_organisation_id(pkg1.extras.get('published_by')), u'Office for National Statistics [some_number]')
 
 
 class TestNationalParkDuplicate(OnsLoaderBase):
@@ -302,8 +302,8 @@ class TestNationalParkDuplicate(OnsLoaderBase):
         for pkg_dict in pkg_dicts:
             assert pkg_dict['name'] == self.name, pkg_dict['name']
             assert pkg_dict['title'] == 'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)', pkg_dict
-            assert pkg_dict['extras']['agency'] == 'Office for National Statistics', pkg_dict
-            assert pkg_dict['extras']['department'] == 'UK Statistics Authority', pkg_dict
+            assert_equal(strip_organisation_id(pkg_dict['extras']['published_by']), 'Office for National Statistics [some_number]')
+            assert pkg_dict['extras']['published_via'] == '', pkg_dict
         loader = OnsLoader(self.testclient)
         res = loader.load_packages(pkg_dicts)
         assert res['num_errors'] == 0, res
@@ -334,7 +334,7 @@ class TestDeathsOverwrite(OnsLoaderBase):
                 "temporal_granularity": "",
                 "date_updated": "",
                 "series": "Weekly provisional figures on deaths registered in England and Wales",
-                "agency": "",
+                "published_via": "",
                 "precision": "",
                 "geographic_granularity": "",
                 "temporal_coverage_to": "",
@@ -343,7 +343,7 @@ class TestDeathsOverwrite(OnsLoaderBase):
                 "import_source": "ONS-ons_data_60_days_to_2010-09-22",
                 "date_released": "2010-08-03",
                 "temporal_coverage-to": "",
-                "department": "Office for National Statistics",
+                "published_by": "Office for National Statistics [8]",
                 "update_frequency": "",
                 "national_statistic": "yes",
                 "categories": "Population"},
@@ -389,7 +389,6 @@ class TestAgencyFind(OnsLoaderBase):
                 "temporal_coverage-from": "",
                 "temporal_granularity": "",
                 "date_updated": "",
-                "agency": "NHS Information Centre for Health and Social Care",
                 "precision": "",
                 "geographic_granularity": "",
                 "temporal_coverage_to": "",
@@ -398,7 +397,7 @@ class TestAgencyFind(OnsLoaderBase):
                 "import_source": "ONS-ons_data_2009-12",
                 "date_released": "2009-12-10",
                 "temporal_coverage-to": "",
-                "department": "Department of Health",
+                "published_by": u"NHS Information Centre for Health and Social Care [16121]",
                 "update_frequency": "",
                 "national_statistic": "yes",
                 "categories": "Health and Social Care"},
@@ -455,7 +454,6 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
                 "temporal_coverage-from": "",
                 "temporal_granularity": "",
                 "date_updated": "",
-                "published_via": "Health Protection Agency",
                 "precision": "",
                 "geographic_granularity": "",
                 "temporal_coverage_to": "",
@@ -465,6 +463,7 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
                 "date_released": "2010-06-18",
                 "temporal_coverage-to": "",
                 "published_by": "Department of Health",
+                "published_via": "Health Protection Agency",
                 "update_frequency": "quarterly",
                 "national_statistic": "no",
                 "categories": "Health and Social Care"
@@ -475,8 +474,8 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
             "name": u"quarterly_epidemiological_commentary_-_none",
             "title": "Quarterly Epidemiological Commentary",
             "extras": {
-                "agency": "Health Protection Agency",
-                "department": "Department of Health",
+                "published_via": "Health Protection Agency",
+                "published_by": "Department of Health",
                 },
             }
         CreateTestData.create_arbitrary([self.orig_pkg_dict])
@@ -524,14 +523,15 @@ class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
 class TestOnsUnknownPublisher(OnsLoaderBase):
     @classmethod
     def setup_class(self):
-        super(TestOnsLoadSeries, self).setup_class()
+        super(TestOnsUnknownPublisher, self).setup_class()
         for filepath in (sample_filepath('10'),):
             importer_ = importer.OnsImporter(filepath)
             pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-            for pkg_dict in pkg_dicts:
-                assert_equal(pkg_dict['title'], 'NHS Cancer Waiting Times in Wales')
-                assert_equal(pkg_dict['extras']['published_by'], 'Welsh Assembly Government')
-                assert_equal(pkg_dict['extras']['published_via'], '')
+            assert_equal(len(pkg_dicts), 1)
+            pkg_dict = pkg_dicts[0]
+            assert_equal(pkg_dict['title'], 'NHS Cancer Waiting Times in Wales')
+            assert_equal(pkg_dict['extras']['published_by'], '')
+            assert_equal(pkg_dict['extras']['published_via'], '')
             loader = OnsLoader(self.testclient)
             res = loader.load_packages(pkg_dicts)
             assert res['num_errors'] == 0, res
@@ -540,5 +540,23 @@ class TestOnsUnknownPublisher(OnsLoaderBase):
         pkg = model.Package.by_name(u'nhs_cancer_waiting_times_in_wales')
         assert pkg
         assert_equal(pkg.title, 'NHS Cancer Waiting Times in Wales')
-        assert_equal(pkg.extras['published_by'], 'Welsh Assembly Government')
+        assert_equal(pkg.extras['published_by'], '')
         assert_equal(pkg.extras['published_via'], '')
+
+class TestReloadUnknownPublisher(OnsLoaderBase):
+    @classmethod
+    def setup_class(self):
+        super(TestReloadUnknownPublisher, self).setup_class()
+        for filepath in (sample_filepath('10'), sample_filepath('10')):
+            importer_ = importer.OnsImporter(filepath)
+            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+            assert_equal(len(pkg_dicts), 1)
+            loader = OnsLoader(self.testclient)
+            res = loader.load_packages(pkg_dicts)
+            assert res['num_errors'] == 0, res
+
+    def test_packages(self):
+        pkg = model.Package.by_name(u'nhs_cancer_waiting_times_in_wales')
+        assert pkg
+        pkg = model.Package.by_name(u'nhs_cancer_waiting_times_in_wales_')
+        assert not pkg

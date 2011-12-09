@@ -6,7 +6,7 @@
 # virtualenv
 #-e hg+https://bitbucket.org/okfn/ckan#egg=ckan
 
--e hg+https://hg.3aims.com/public/ApacheMiddleware#egg=apachemiddleware
+apachemiddleware
 -e hg+https://bitbucket.org/okfn/ckanext-csw#egg=ckanext-csw
 -e hg+https://bitbucket.org/okfn/ckanext-harvest#egg=ckanext-harvest
 -e hg+https://bitbucket.org/okfn/ckanext-inspire#egg=ckanext-inspire
