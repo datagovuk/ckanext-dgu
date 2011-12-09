@@ -33,11 +33,11 @@ class OnsLoader(ResourceSeriesLoader):
         e.g. "April 2009 data: Experimental Statistics | hub/id/119-46440"
               gives "119-46440"
         '''
-        return resource['hub-id']
-        id_match = self.resource_id_matcher.match()
-        if not id_match:
-            return None
-        return id_match.groups()[0]
+        try:
+            return resource['hub-id']
+        except KeyError, e:
+            raise Exception('Could not get hub-id from resource: %r' % resource)
+            
 
     def _choose_date(self, pkg1, date2_str, earlier_or_later, extra_field):
         '''From two packages, look in an extra field and return the value

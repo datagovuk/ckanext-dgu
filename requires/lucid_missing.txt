@@ -14,13 +14,13 @@
 -e git+https://github.com/okfn/ckanext-qa.git@aa366892b95963f67693267445d2b40a1714c8b3#egg=ckanext-qa
 
 # ckanext-importlib
--e git+https://github.com/okfn/ckanext-importlib.git@4465bedbe39715071264bff6f12afe26336ea631#egg=ckanext-importlib
+-e git+https://github.com/okfn/ckanext-importlib.git@4b66ea20f44e4dc7fa9b697b73e2fb7c523e59bf#egg=ckanext-importlib
 # Use the OKFN fork of OWSlib (it has the tests/__init__.py file removed to remove
 # a conflict with paste when installing as a debian package and it forces the use
 # of lxml as the XML library).
 -e git+https://github.com/okfn/owslib.git@49da24cc2b9cbf790aa141ac775cb49e5221a94c#egg=owslib
 
-# Replaces swiss
+# datautil-date
 -e git+https://github.com/okfn/datautil-date.git@e2777147bd11cded237867416270f8f9d16503fc#egg=datautildate
 
 # from ckanext-spacial: [-r /var/lib/ckan/dguos/pyenv/src/ckanext-spatial/pip-requirements.txt]

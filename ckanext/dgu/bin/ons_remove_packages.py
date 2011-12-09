@@ -80,6 +80,12 @@ class OnsRemoveResources:
                         else:
                             log.error('Exiting due to error')
                             break
+                    # just check the state is correct as older CKANs don't
+                    # work properly
+                    if self.ckanclient.last_message['state'] != pkg['state'] and \
+                       pkg['state'] == 'deleted':
+                        self.ckanclient.package_entity_delete(pkg['name'])
+                        log.info('...deleted separately')
                     log.info('...done')
                 pkgs_done.append(pkg)
             except ScriptError, e:

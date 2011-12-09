@@ -16,4 +16,5 @@
 pastescript
 
 # ApacheMiddleware
--e hg+https://hg.3aims.com/public/ApacheMiddleware@c5ab5c3169a5#egg=apachemiddleware
+apachemiddleware
+
