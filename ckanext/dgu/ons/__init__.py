@@ -25,6 +25,9 @@ class OnsLoaderCmd(ApiCommand, XmlRpcCommand):
                                action="store_true",
                                default=False,
                                help="Request all ONS updates ever")
+        self.parser.add_option("-c", "--cache-dir",
+                               dest="ons_cache_dir",
+                               help="Path to store downloads from ONS Pub Hub")
         
     def parse_date(self, date_str):
         return datetime.date(*[int(date_chunk) for date_chunk in date_str.split('-')])
@@ -46,7 +49,8 @@ class OnsLoaderCmd(ApiCommand, XmlRpcCommand):
             data_filepaths = OnsData.download_flexible(
                 days=self.options.days,
                 start_date=self.options.start_date,
-                end_date=self.options.end_date)
+                end_date=self.options.end_date,
+                ons_cache_dir=self.options.ons_cache_dir)
 
         elif self.options.all_time:
             data_filepaths = OnsData.download_all()

@@ -76,7 +76,7 @@ def command():
     log_filepath = os.path.join(log_dir, 'gov-daily.log')
     print 'Logging to: %s' % log_filepath
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
-
+]
     logging.basicConfig(filename=log_filepath, level=logging.INFO)
     logging.info('----------------------------')
     logging.info('Starting daily script')
@@ -148,22 +148,28 @@ def command():
     db_details = get_db_config(config)
     pg_dump_filename = start_time.strftime(backup_filebase)
     pg_dump_filepath = os.path.join(backup_dir, pg_dump_filename)
-    cmd = 'export PGPASSWORD=%(db_pass)s&&pg_dump -U %(db_user)s -h %(db_host)s -p %(db_port)s %(db_name)s' % db_details + ' > %s' % pg_dump_filepath
+    cmd = 'export PGPASSWORD=%(db_pass)s&&pg_dump ' % db_details
+    for pg_dump_option, db_details_key in (('U', 'db_user'),
+                                           ('h', 'db_host'),
+                                           ('p', 'db_port')):
+        if db_details.get(db_details_key):
+            cmd += '-%s %s ' % (pg_dump_option, db_details[db_details_key])
+    cmd += '%(db_name)s' % db_details + ' > %s' % pg_dump_filepath
     logging.info('Backup command: %s' % cmd)
     ret = os.system(cmd)
     if ret == 0:
         logging.info('Backup successful: %s' % pg_dump_filepath)
+        logging.info('Zipping up backup')
+        pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
+        cmd = 'gzip %s' % pg_dump_filepath
+        logging.info('Zip command: %s' % cmd)
+        ret = os.system(cmd)
+        if ret == 0:
+            logging.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
+        else:
+            logging.error('Backup gzip error: %s' % ret)
     else:
         logging.error('Backup error: %s' % ret)
-    logging.info('Zipping up backup')
-    pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
-    cmd = 'gzip %s' % pg_dump_filepath
-    logging.info('Zip command: %s' % cmd)
-    ret = os.system(cmd)
-    if ret == 0:
-        logging.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
-    else:
-        logging.error('Backup gzip error: %s' % ret)
 
     # Log footer
     report_time_taken()
