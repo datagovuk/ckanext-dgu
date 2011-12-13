@@ -9,6 +9,9 @@ import traceback
 import datetime
 import re
 
+# Import ckan as it changes the dependent packages imported
+import ckan
+
 from dump_analysis import get_run_info, TxtAnalysisFile, CsvAnalysisFile, DumpAnalysisOptions, DumpAnalysis
 
 def load_config(path):

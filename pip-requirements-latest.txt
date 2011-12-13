@@ -4,15 +4,17 @@
 
 # Don't include ckan, which makes this installable with pip into a
 # virtualenv
-#-e hg+https://bitbucket.org/okfn/ckan#egg=ckan
+#-e git+https://github.com/okfn/ckan#egg=ckan
 
 apachemiddleware
--e hg+https://bitbucket.org/okfn/ckanext-csw#egg=ckanext-csw
--e hg+https://bitbucket.org/okfn/ckanext-harvest#egg=ckanext-harvest
--e hg+https://bitbucket.org/okfn/ckanext-inspire#egg=ckanext-inspire
--e hg+https://bitbucket.org/okfn/ckanext-spatial#egg=ckanext-spatial
--e hg+https://bitbucket.org/okfn/ckanext-qa#egg=ckanext-qa
--e hg+https://bitbucket.org/okfn/ckanext-dgutheme#egg=ckanext-dgutheme
--e hg+https://bitbucket.org/okfn/ckanext-importlib#egg=ckanext-importlib
--e hg+https://bitbucket.org/okfn/owslib#egg=owslib
--e hg+https://bitbucket.org/okfn/datautil-date#egg=datautil-date
+-e git+https://github.com/okfn/ckanext-csw#egg=ckanext-csw
+-e git+https://github.com/okfn/ckanext-harvest#egg=ckanext-harvest
+-e git+https://github.com/okfn/ckanext-inspire#egg=ckanext-inspire
+-e git+https://github.com/okfn/ckanext-spatial#egg=ckanext-spatial
+-e git+https://github.com/okfn/ckanext-qa#egg=ckanext-qa
+-e git+https://github.com/okfn/ckanext-importlib#egg=ckanext-importlib
+-e git+https://github.com/okfn/owslib#egg=owslib
+-e git+https://github.com/okfn/datautildate#egg=datautildate
+-e git+https://github.com/okfn/datautil#egg=datautil
+GeoAlchemy>=0.6
+Shapely>=1.2.13
