@@ -35,44 +35,62 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     # for example:
     #   <label for="title">Title *</label>
     #   <input name="title"/>
+    # if Label text is None, it's not search for
     _expected_fields = {
-        # Basic information
-        'title':     ('Title *', 'input'),
-        'name':      ('Identifier *', 'input'),
-        'notes':     ('Abstract *', 'textarea'),
+        # Name section
+        'title':     ('Name:', 'input'),
+        'name':      ('Unique identifier for this data record', 'input'),
         
-        # Details
+        # Data section
+        'package_type':                     (None, 'input'),
+        'update_frequency':                 ('Update frequency', 'select'),
+        'update_frequency-other':           ('Other:', 'input'),
+        'resources__0__name-individual':    (None, 'input'),
+        'resources__0__url-individual':     (None, 'input'),
+        'resources__0__name-timeseries':    (None, 'input'),
+        'resources__0__url-timeseries':     (None, 'input'),
+        'resources__0__url-date':           (None, 'input'),
+
+        # Description section
+        'notes':     (None, 'textarea'),
+
+        # Contact details section
+        'published_by':         ('Published by:', 'select'),
+        'publisher_email':      ('Email address:', 'input'),
+        'publisher_url':        ('Link:', 'input'),
+        'publisher_telephone':  ('Telephone number:', 'input'),
+        'author':               ('Contact', 'input'),
+        'author_email':         ('Contact email', 'input'),
+        'author_url':           ('Contact link:', 'input'),
+        'author_telephone':     ('Contact telephone:', 'input'),
+
+        # Themes and tags section
+        'primary_theme':        (None, 'select'),
+        'secondary_theme':      (None, 'input'),
+        'tag_string':           ('Tags', 'input'),
+        'url':                  ('URL', 'input'),
+        'taxonomy_url':         ('Taxonomy URL', 'input'),
+        'mandate':              ('Mandate', 'input'),
+        'license_id':           ('Licence *', 'select'),
+        'national_statistic':   ('National Statistic', 'input'),
+
+        # Additional resources section
+        'resources__0__name-additional':    ('Description:', 'input'),
+        'resources__0__url-additional':     ('Link:', 'input'),
+
+        # Time & date section
         'date_released':                ('Date released', 'input'),
         'date_updated':                 ('Date updated', 'input'),
         'date_update_future':           ('Date to be published', 'input'),
-        'update_frequency':             ('Update frequency', 'select'),
-        'update_frequency-other':       ('Other:', 'input'),
         'precision':                    ('Precision', 'input'),
-        'geographic_granularity':       ('Geographic granularity', 'select'),
-        'geographic_granularity-other': ('Other', 'input'),
-        'geographic_coverage':          ('Geographic coverage', 'input'),
         'temporal_granularity':         ('Temporal granularity', 'select'),
         'temporal_granularity-other':   ('Other', 'input'),
         'temporal_coverage':            ('Temporal coverage', 'input'),
-        'url':                          ('URL', 'input'),
-        'taxonomy_url':                 ('Taxonomy URL', 'input'),
 
-        # Resources
-        # ... test separately
-
-        # More details
-        'published_by':         ('Published by *', 'select'),
-        'published_via':        ('Published via', 'select'),
-        'author':               ('Contact', 'input'),
-        'author_email':         ('Contact email', 'input'),
-        'mandate':              ('Mandate', 'input'),
-        'license_id':           ('Licence *', 'select'),
-        'tag_string':           ('Tags', 'input'),
-        'national_statistic':   ('National Statistic', 'input'),
-
-        # After fieldsets
-        'log_message':  ('Edit summary', 'textarea'),
-
+        # Geographic coverage section
+        'geographic_granularity':       ('Geographic granularity', 'select'),
+        'geographic_granularity-other': ('Other', 'input'),
+        'geographic_coverage':          ('Geographic coverage', 'input'),
     }
     
     # Fields that shouldn't appear in the form
@@ -117,10 +135,11 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         for field, (label_text, input_type) in self._expected_fields.items():
 
             # e.g. <label for="title">Title *</label>
-            self.check_named_element(response.body,
-                                     'label',
-                                     'for="%s"' % field,
-                                     label_text)
+            if label_text is not None:
+                self.check_named_element(response.body,
+                                        'label',
+                                        'for="%s"' % field,
+                                        label_text)
 
             # e.g. <input name="title">
             self.check_named_element(response.body,
@@ -191,7 +210,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     
         for field_name, expected_value in expected_field_values.items():
             self.check_named_element(response.body,
-                                     '(input|textarea)',
+                                     '(input|textarea|select)',
                                      'name="%s"' % field_name,
                                      expected_value)
 
