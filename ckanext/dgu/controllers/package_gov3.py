@@ -24,6 +24,8 @@ import ckan.logic.validators as val
 import ckan.logic.schema as default_schema
 from ckan.controllers.package import PackageController
 
+from ckanext.dgu.validators import merge_resources, validate_resources
+
 log = logging.getLogger(__name__)
 
 geographic_granularity = [('', ''),
@@ -98,7 +100,9 @@ class PackageGov3Controller(PackageController):
             'url': [unicode],
             'taxonomy_url': [unicode, convert_to_extras],
 
-            'resources': default_schema.default_resource_schema(),
+            'additional_resources': default_schema.default_resource_schema(),
+            'timeseries_resources': default_schema.default_resource_schema(),
+            'individual_resources': default_schema.default_resource_schema(),
             
             'published_by': [not_empty, unicode, convert_to_extras],
             'published_via': [ignore_missing, unicode, convert_to_extras],
@@ -110,10 +114,9 @@ class PackageGov3Controller(PackageController):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'log_message': [unicode, val.no_http],
-
             '__extras': [ignore],
             '__junk': [empty],
+            '__after': [validate_resources, merge_resources],
         }
         return schema
     

@@ -45,11 +45,11 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'package_type':                     (None, 'input'),
         'update_frequency':                 ('Update frequency', 'select'),
         'update_frequency-other':           ('Other:', 'input'),
-        'resources__0__name-individual':    (None, 'input'),
-        'resources__0__url-individual':     (None, 'input'),
-        'resources__0__name-timeseries':    (None, 'input'),
-        'resources__0__url-timeseries':     (None, 'input'),
-        'resources__0__url-date':           (None, 'input'),
+        'individual_resources__0__description':    (None, 'input'),
+        'individual_resources__0__url':     (None, 'input'),
+        'timeseries_resources__0__description':    (None, 'input'),
+        'timeseries_resources__0__url':     (None, 'input'),
+        'timeseries_resources__0__date':    (None, 'input'),
 
         # Description section
         'notes':     (None, 'textarea'),
@@ -75,8 +75,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'national_statistic':   ('National Statistic', 'input'),
 
         # Additional resources section
-        'resources__0__name-additional':    ('Description:', 'input'),
-        'resources__0__url-additional':     ('Link:', 'input'),
+        'additional_resources__0__description':    ('Description:', 'input'),
+        'additional_resources__0__url':     ('Link:', 'input'),
 
         # Time & date section
         'date_released':                ('Date released', 'input'),
@@ -310,6 +310,20 @@ class TestFormValidation(object):
         """
         raise SkipTest('date_update_future field needs spec.')
 
+    def test_both_timeseries_and_individual_resources_cannot_be_specified(self):
+        """
+        Asserts that it's not possible to enter both timeseries and individual resources
+        """
+        data = {
+            'timeseries_resources__0__description': 'Timeseries description',
+            'timeseries_resources__0__url':         'http://example.com/timeseries',
+            'timeseries_resources__0__date':        'December 2011',
+            'individual_resources__0__description': 'Individual description',
+            'individual_resources__0__url':         'http://example.com/individual',
+        }
+        response = self._form_client.post_form(data)
+        assert 'Only define timeseries or individual resources, not both' in response.body
+
 class TestPackageCreation(CommonFixtureMethods):
     """
     A suite of tests that check that packages are created correctly through the creation form.
@@ -325,10 +339,14 @@ class TestPackageCreation(CommonFixtureMethods):
         'published_by': 'A publisher',
 
         # resources
-        'resources__0__url': 'http://www.example.com',
-        'resources__0__description': 'A resource',
-        'resources__1__url': 'http://www.google.com',
-        'resources__1__description': 'A search engine',
+        'individual_resources__0__url': 'http://www.example.com',
+        'individual_resources__0__description': 'A resource',
+        'individual_resources__1__url': 'http://www.google.com',
+        'individual_resources__1__description': 'A search engine',
+
+        # additional resources
+        'additional_resources__0__url': 'http://www.example.com/additiona_resource',
+        'additional_resources__0__description': 'An additional resource',
     }
 
     def __init__(self):
@@ -362,14 +380,18 @@ class TestPackageCreation(CommonFixtureMethods):
         assert set(['tag1', 'tag2', 'multi word tag']) ==\
                set(tag.name for tag in pkg.tags)
         assert self._package_data['published_by'] == pkg.extras['published_by']
-        assert self._package_data['resources__0__url'] ==\
+        assert self._package_data['additional_resources__0__url'] ==\
                pkg.resources[0].url
-        assert self._package_data['resources__1__url'] ==\
-               pkg.resources[1].url
-        assert self._package_data['resources__0__description'] ==\
+        assert self._package_data['additional_resources__0__description'] ==\
                pkg.resources[0].description
-        assert self._package_data['resources__1__description'] ==\
+        assert self._package_data['individual_resources__0__url'] ==\
+               pkg.resources[1].url
+        assert self._package_data['individual_resources__0__description'] ==\
                pkg.resources[1].description
+        assert self._package_data['individual_resources__1__url'] ==\
+               pkg.resources[2].url
+        assert self._package_data['individual_resources__1__description'] ==\
+               pkg.resources[2].description
 
 class _PackageFormClient(WsgiAppCase):
     """

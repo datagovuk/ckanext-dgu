@@ -76,13 +76,14 @@
         <tr>
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
-            <input name="resources__${num}__${col}-timeseries" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
+            <input name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
           </td>
           </py:for>
           <td class="resource-date">
-            <input name="resources__${num}__date-timeseries" type="text" value="${res.get('date', '')}" class="short" />
+            <input name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
           </td>
-          <td class="resource-id"><input name="resources__${num}__id-timeseries" type="hidden" value="${res.get('id', '')}" /></td>
+          <td class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
+          <td class="resource-type"><input name="resources__${num}__resource_type" type="hidden" value="${res.get('type', '')}" /></td>
         </tr>
         </py:for>
       </tbody>
@@ -105,10 +106,11 @@
         <tr>
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
-            <input name="resources__${num}__${col}-individual" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
+            <input name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
           </td>
           </py:for>
-          <td class="resource-id"><input name="resources__${num}__id-individual" type="hidden" value="${res.get('id', '')}" /></td>
+          <td class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
+          <td class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('type', '')}" /></td>
         </tr>
         </py:for>
       </tbody>
@@ -118,7 +120,8 @@
     <p class="instructions basic">The files containing the data or address of the APIs for accessing it</p>
     <p class="instructions further">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.<br/> <b>URL:</b> This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department<br/> e.g. http://www.somedept.gov.uk/growth-figures-2009.csv<br/><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
   <p class="hints">Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
-  <p class="field_error" py:if="errors.get('resources', '')">Package resource(s) incomplete.</p>
+  <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
+  <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
 
 </fieldset>
 
@@ -197,23 +200,20 @@
   <legend>Additional resources (optional)</legend>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="flexitable" id="individual_table">
-    <thead>
-      <tr>
-        <th class="field_req resource-name">Name:</th>
-        <th class="field_opt resource-url">Link:</th>
-      </tr>
-    </thead>
     <tbody>
       <!-- TODO: change this to pull out resources based on resource_type -->
       <py:for each="num, res in enumerate(data.get('resources', []) + [{}])">
-      <tr>
-        <py:for each="col in c.resource_columns">
-        <td class="resource-${col}">
-          <input name="resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
-        </td>
-        </py:for>
-        <td class="resource-id"><input name="resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
-      </tr>
+        <tr>
+          <td>
+            <label class="field_opt" for="additional_resources__${num}__description">Description:</label>
+            <input name="additional_resources__${num}__description" type="text" value="${res.get('name','')}"/>
+          </td>
+          <td>
+            <label class="field_opt" for="additional_resources__${num}__url">Link:</label>
+            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}"/>
+          </td>
+        <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('type','documentation')}"/>
+        </tr>
       </py:for>
     </tbody>
     </table>
