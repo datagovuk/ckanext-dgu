@@ -36,6 +36,9 @@
   <p>Add the links to the data itself here.  You can add links to the website or more information in the 'Additional Resources' section.</p>
     <p>Please use a separate line and link for each different format</p>
 
+    <!-- TODO: this selection is only applicable in the package-create form.
+               At package-edit time, it should already be set.               -->
+
     <input id="package_type-individual" type="radio" name="package_type" value="individual"/>
     <label for="package_type-individual">An individual dataset</label>
     <br/>
@@ -132,7 +135,7 @@
 <fieldset>
   <legend>Contact details</legend>
   <p>Here are the contact details that will be displayed for this dataset.  To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.  Please click 'Next' to confirm.</p>
-    <label class="field_req" for="published_by">Published by *</label>
+    <label class="field_req" for="published_by">Published by: </label>
       <select id="published_by" name="published_by">
         <py:for each="published_name, published_desc in c.publishers">
           <option value="${published_name}" py:attrs="{'selected': 'selected' if data.get('published_by', '') == published_name else None}" >
@@ -140,6 +143,7 @@
           </option>
         </py:for>
       </select>
+    <!-- TODO: the labels can be removed -->
     <label for="published_by-email">Email:</label>
     <input id="published_by-email" name="published_by-email" type="text"/>
     <label for="published_by-url">Link</label>
@@ -147,8 +151,9 @@
     <label for="published_by-telephone">Telephone</label>
     <input id="published_by-telephone" name="published_by-telephone" type="text"/>
 
+    
     <label class="field_req" for="author">FOI Contact:</label>
-    <input id="author" name="author" type="text" value="${data.get('author_email', '')}"/>
+    <input id="author" name="author" type="text" value="${data.get('author', '')}"/>
     <label for="author_email">Email:</label>
     <input id="author_email" name="author_email" type="text" value="${data.get('author_email', '')}"/>
     <label for="author_url">Link</label>
