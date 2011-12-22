@@ -35,7 +35,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     # for example:
     #   <label for="title">Title *</label>
     #   <input name="title"/>
-    # if Label text is None, it's not search for
+    # if Label text is None, it's not searched for
     _expected_fields = {
         # Name section
         'title':     ('Name:', 'input'),
@@ -55,14 +55,14 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'notes':     (None, 'textarea'),
 
         # Contact details section
-        'published_by':         ('Published by:', 'select'),
-        'publisher_email':      ('Email address:', 'input'),
-        'publisher_url':        ('Link:', 'input'),
-        'publisher_telephone':  ('Telephone number:', 'input'),
-        'author':               ('Contact', 'input'),
-        'author_email':         ('Contact email', 'input'),
-        'author_url':           ('Contact link:', 'input'),
-        'author_telephone':     ('Contact telephone:', 'input'),
+        'published_by':             ('Published by:', 'select'),
+        'published_by-email':       (None, 'input'),
+        'published_by-url':         (None, 'input'),
+        'published_by-telephone':   (None, 'input'),
+        'author':                   ('FOI Contact:', 'input'),
+        'author_email':             (None, 'input'),
+        'author_url':               (None, 'input'),
+        'author_telephone':         (None, 'input'),
 
         # Themes and tags section
         'primary_theme':        (None, 'select'),
@@ -387,12 +387,16 @@ class _PackageFormClient(WsgiAppCase):
         response = self.app.get(offset)
         
         # parse the form fields from the html
-        form_field_matches = re.finditer('<(input|select|textarea) [^>]*name="(?P<field_name>[^"]+)"',
+        # TODO: there's an obvious deficiency: this will only pick up field
+        #       values if they are declared *after* the field name.
+        form_field_matches = re.finditer('<(input|select|textarea) [^>]*'
+                                         'name="(?P<field_name>[^"]+)"'
+                                         '( [^>]*value="(?P<field_value>[^"]+)")?',
                                          response.body)
 
-        # initialise all fields with an empty string
-        form_fields = dict((match.group('field_name'), '') for match in form_field_matches)
-        form_fields['save'] = 'Save'
+        # initialise all fields with an empty string, or with the form's pre-filled value
+        form_fields = dict( (match.group('field_name'), match.groupdict('').get('field_value')) \
+                                for match in form_field_matches)
         
         self._assert_not_posting_extra_fields(form_fields.keys(), data.keys())
 
@@ -415,7 +419,7 @@ class _PackageFormClient(WsgiAppCase):
 
         form_fields = set(map(sub, form_fields))
         data_fields = set(map(sub, data_fields))
-        assert form_fields >= data_fields, str(form_fields - data_fields)
+        assert form_fields >= data_fields, str(data_fields - form_fields)
 
 def _convert_date(datestring):
     """
