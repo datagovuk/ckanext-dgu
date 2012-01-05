@@ -30,7 +30,7 @@ ACCESS_DENIED = [403]
 # Todo: Test for access control setup. Just checking an object exists in the model doesn't mean it will be presented through the WebUI.
 
 
-class BaseFormsApiCase(ModelMethods, ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods, MockDrupalCase):
+class BaseFormsApiCase(ApiTestCase, WsgiAppCase, CommonFixtureMethods, CheckMethods, MockDrupalCase):
     '''Utilities and pythonic wrapper for the Forms API for testing it.'''
     
     api_version = ''
