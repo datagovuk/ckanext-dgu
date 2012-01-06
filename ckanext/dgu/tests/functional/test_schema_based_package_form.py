@@ -43,14 +43,14 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'name':      ('Unique identifier for this data record', 'input'),
         
         # Data section
-        'package_type':                     (None, 'input'),
-        'update_frequency':                 ('Update frequency', 'select'),
-        'update_frequency-other':           ('Other:', 'input'),
-        'individual_resources__0__description':    (None, 'input'),
-        'individual_resources__0__url':     (None, 'input'),
-        'timeseries_resources__0__description':    (None, 'input'),
-        'timeseries_resources__0__url':     (None, 'input'),
-        'timeseries_resources__0__date':    (None, 'input'),
+        'package_type':                         (None, 'input'),
+        'update_frequency':                     ('Update frequency', 'select'),
+        'update_frequency-other':               ('Other:', 'input'),
+        'individual_resources__0__description': (None, 'input'),
+        'individual_resources__0__url':         (None, 'input'),
+        'timeseries_resources__0__description': (None, 'input'),
+        'timeseries_resources__0__url':         (None, 'input'),
+        'timeseries_resources__0__date':        (None, 'input'),
 
         # Description section
         'notes':     (None, 'textarea'),
@@ -76,8 +76,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'national_statistic':   ('National Statistic', 'input'),
 
         # Additional resources section
-        'additional_resources__0__description':    ('Description:', 'input'),
-        'additional_resources__0__url':     ('Link:', 'input'),
+        'additional_resources__0__description': ('Description:', 'input'),
+        'additional_resources__0__url':         ('Link:', 'input'),
 
         # Time & date section
         'date_released':                ('Date released', 'input'),
