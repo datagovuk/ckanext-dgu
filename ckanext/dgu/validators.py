@@ -2,7 +2,14 @@
 navl validators for the DGU package schema.
 """
 
+from functools import partial
 from itertools import chain, groupby
+
+from pylons.i18n import _
+
+from ckan.lib.navl.dictization_functions import unflatten, Invalid
+
+from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
 def validate_resources(key, data, errors, context):
     """
@@ -70,6 +77,45 @@ def merge_resources(key, data, errors, context):
             errors[('resources', num, field)] = []  # safe since we know everthing has validated correctly
             del errors[(resource_type, original_index, field)]
 
+def unmerge_resources(key, data, errors, context):
+    """
+    Splits the merged resources back into their respective resource types.
+
+    And removes the 'resources' entry.
+
+    This post-processing only occurs if there have been no validation errors.
+    """
+    if key != ('__after',):
+        raise Exception('The unmerge_resources function should only be '
+                        'called as a post-processing function.  '
+                        'Called with "%s"' % key)
+    
+    for value in errors.values():
+        if value:
+            return
+
+    # data[('resources', '0', 'url')]
+
+    # Categorise each resource, and add it to the respective entry
+    unflattened_resources = unflatten(data)['resources']
+    error_resources = unflatten(errors)['resources']
+    resources = zip(unflattened_resources,
+                    map(categorise_resource, unflattened_resources),
+                    error_resources)
+
+    for resource_type in ('additional', 'timeseries', 'individual'):
+        match = lambda (r,t,e): t == resource_type # match resources of this resource_type
+        for index, (resource,_,error_resource) in enumerate(filter(match, resources)):
+            for field in resource.keys():
+                data_key = ('%s_resources'%resource_type, index, field)
+                data[data_key] = resource[field]
+            for field in error_resource.keys():
+                error_key = ('%s_resources'%resource_type, index, field)
+                errors[error_key] = []
+    
+    for d in (data, errors):
+        for key in ( key for key in d.keys() if key[0] == 'resources' ):
+            del d[key]
 
 def _validate_resource_types(allowed_types, default=None):
     """

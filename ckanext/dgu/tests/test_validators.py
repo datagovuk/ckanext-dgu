@@ -2,7 +2,7 @@ from nose.tools import assert_equal, assert_raises
 
 from ckan.lib.navl.dictization_functions import flatten_dict, unflatten, Invalid
 
-from ckanext.dgu.validators import merge_resources, \
+from ckanext.dgu.validators import merge_resources, unmerge_resources, \
                                    validate_additional_resource_types, \
                                    validate_data_resource_types
 
@@ -144,6 +144,200 @@ class TestMergeResources(object):
 
         assert_equal(result_errors, expected_errors)
 
+class TestUnmergeResources(object):
+    """
+    Tests ckanaext.dgu.validators.merge_resources()
+    """
+
+    def test_just_additional_resources(self):
+        """
+        Tests with just one set of additional resources defined.
+        """
+        data = {
+            'resources': [
+                {'description': 'Description 1', 'url': 'Url1', 'resource_type': 'documentation'},
+                {'description': 'Description 2', 'url': 'Url2', 'resource_type': 'documentation'}
+            ]
+        }
+
+        flattened_data = flatten_dict(data)
+
+        ignored = {}
+        errors = {k:[] for k in flattened_data.keys()}
+        unmerge_resources(('__after',), flattened_data, errors, ignored)
+        result_data = unflatten(flattened_data)
+
+        expected_data = {
+            'additional_resources': [
+                {'description': 'Description 1', 'url': 'Url1', 'resource_type': 'documentation'},
+                {'description': 'Description 2', 'url': 'Url2', 'resource_type': 'documentation'}
+            ]
+        }
+        
+        assert_equal(result_data, expected_data)
+
+    def test_just_timeseries_resources(self):
+        """
+        Tests with just one set of timeseries resources defined.
+        """
+        data = {
+            'resources': [
+                {'description': 'Description 1',
+                 'url': 'Url1',
+                 'resource_type': 'api',
+                 'extras': {'date': '2011-12-25'}},
+                {'description': 'Description 2',
+                 'url': 'Url2',
+                 'resource_type': 'api',
+                 'extras': {'date': '2011-11-25'}}
+            ]
+        }
+
+        flattened_data = flatten_dict(data)
+
+        ignored = {}
+        errors = {k:[] for k in flattened_data.keys()}
+        unmerge_resources(('__after',), flattened_data, errors, ignored)
+        result_data = unflatten(flattened_data)
+
+        expected_data = {
+            'timeseries_resources': [
+                {'description': 'Description 1',
+                 'url': 'Url1',
+                 'resource_type': 'api',
+                 'extras': {'date': '2011-12-25'}},
+                {'description': 'Description 2',
+                 'url': 'Url2',
+                 'resource_type': 'api',
+                 'extras': {'date': '2011-11-25'}}
+            ]
+        }
+        
+        assert_equal(result_data, expected_data)
+
+    def test_just_individual_resources(self):
+        """
+        Tests with just one set of individual resources defined.
+        """
+        data = {
+            'resources': [
+                {'description': 'Description 1',
+                 'url': 'Url1',
+                 'resource_type': 'api',
+                 'extras': {'date': ''}},
+                {'description': 'Description 2',
+                 'url': 'Url2',
+                 'resource_type': 'api',
+                 'extras': {}},
+                {'description': 'Description 3',
+                 'url': 'Url3',
+                 'resource_type': 'api'}
+            ]
+        }
+
+        flattened_data = flatten_dict(data)
+
+        ignored = {}
+        errors = {k:[] for k in flattened_data.keys()}
+        unmerge_resources(('__after',), flattened_data, errors, ignored)
+        result_data = unflatten(flattened_data)
+
+        expected_data = {
+            'individual_resources': [
+                {'description': 'Description 1',
+                 'url': 'Url1',
+                 'resource_type': 'api',
+                 'extras': {'date': ''}},
+                {'description': 'Description 2',
+                 'url': 'Url2',
+                 'resource_type': 'api',
+                 'extras': {}},
+                {'description': 'Description 3',
+                 'url': 'Url3',
+                 'resource_type': 'api'}
+            ]
+        }
+        
+        assert_equal(result_data, expected_data)
+
+    def test_mixture_of_resource_types(self):
+        """
+        Test with a mixture of additional and individual resources
+        """
+        data = {
+            'resources': [
+                {'description': 'Description 1', 'url': 'Url1', 'resource_type': 'documentation'},
+                {'description': 'Description 2', 'url': 'Url2', 'resource_type': 'api'},
+                {'description': 'Description 3', 'url': 'Url3', 'resource_type': 'file'},
+                {'description': 'Description 4', 'url': 'Url4', 'resource_type': 'documentation'}
+            ]
+        }
+
+        flattened_data = flatten_dict(data)
+
+        ignored = {}
+        errors = {k:[] for k in flattened_data.keys()}
+        unmerge_resources(('__after',), flattened_data, errors, ignored)
+        result_data = unflatten(flattened_data)
+
+        expected_data = {
+            'additional_resources': [
+                {'description': 'Description 1', 'url': 'Url1', 'resource_type': 'documentation'},
+                {'description': 'Description 4', 'url': 'Url4', 'resource_type': 'documentation'}
+            ],
+            'individual_resources': [
+                {'description': 'Description 2', 'url': 'Url2', 'resource_type': 'api'},
+                {'description': 'Description 3', 'url': 'Url3', 'resource_type': 'file'},
+            ]
+        }
+        
+        assert_equal(result_data, expected_data)
+
+    def test_error_keys_are_unmerged(self):
+        """
+        Test that the items in errors are unmerged too.
+
+        Note - errors may contain key values not present in the data
+        """
+        data = {
+            'resources': [
+                # additional resources
+                {'description': 'Additional 1', 'url': 'A_Url 1', 'resource_type': 'documentation'},
+                {'description': 'Additional 2', 'url': 'A_Url 2', 'resource_type': 'documentation'},
+
+                # individual resources
+                {'description': 'Individual 1', 'url': 'I_Url 1', 'resource_type': 'api'},
+                {'description': 'Individual 2', 'url': 'I_Url 2', 'resource_type': 'api'},
+                {'description': 'Individual 3', 'url': 'I_Url 3', 'resource_type': 'api'},
+            ],
+        }
+        flattened_data = flatten_dict(data)
+
+        errors = {k:[] for k in flattened_data.keys()}
+        # Add some extra fields into errors
+        errors[('resources', 0, 'foo')] = []
+        errors[('resources', 1, 'foo')] = []
+        errors[('resources', 2, 'foo')] = []
+        errors[('resources', 3, 'foo')] = []
+        errors[('resources', 4, 'foo')] = []
+
+        ignored = {}
+        unmerge_resources(('__after',), flattened_data, errors, ignored)
+        result_errors = unflatten(errors)
+
+        expected_errors = {
+            'additional_resources': [
+                {'description': [], 'url': [], 'resource_type': [], 'foo': []},
+                {'description': [], 'url': [], 'resource_type': [], 'foo': []},
+            ],
+            'individual_resources': [
+                {'description': [], 'url': [], 'resource_type': [], 'foo': []},
+                {'description': [], 'url': [], 'resource_type': [], 'foo': []},
+                {'description': [], 'url': [], 'resource_type': [], 'foo': []},
+            ]
+        }
+
+        assert_equal(result_errors, expected_errors)
 
 class TestResourceTypeValidators(object):
     """

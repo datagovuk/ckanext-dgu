@@ -72,7 +72,7 @@
         </tr>
       </thead>
       <tbody>
-        <py:for each="num, res in enumerate(data.get('resources', []) + [{}])">
+        <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
         <tr>
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
@@ -83,7 +83,7 @@
             <input name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
           </td>
           <td class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
-          <td class="resource-type"><input name="resources__${num}__resource_type" type="hidden" value="${res.get('type', '')}" /></td>
+          <td class="resource-type"><input name="resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
         </tr>
         </py:for>
       </tbody>
@@ -102,7 +102,7 @@
       </thead>
       <tbody>
         <!-- TODO: change this to pull out resources based on resource_type -->
-        <py:for each="num, res in enumerate(data.get('resources', []) + [{}])">
+        <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
         <tr>
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
@@ -110,7 +110,7 @@
           </td>
           </py:for>
           <td class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
-          <td class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('type', '')}" /></td>
+          <td class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
         </tr>
         </py:for>
       </tbody>
@@ -202,17 +202,17 @@
   <table class="flexitable" id="individual_table">
     <tbody>
       <!-- TODO: change this to pull out resources based on resource_type -->
-      <py:for each="num, res in enumerate(data.get('resources', []) + [{}])">
+      <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr>
           <td>
             <label class="field_opt" for="additional_resources__${num}__description">Description:</label>
-            <input name="additional_resources__${num}__description" type="text" value="${res.get('name','')}"/>
+            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}"/>
           </td>
           <td>
             <label class="field_opt" for="additional_resources__${num}__url">Link:</label>
             <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}"/>
           </td>
-        <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('type','documentation')}"/>
+        <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/>
         </tr>
       </py:for>
     </tbody>

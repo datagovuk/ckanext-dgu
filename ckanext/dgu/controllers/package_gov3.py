@@ -24,7 +24,8 @@ import ckan.logic.validators as val
 import ckan.logic.schema as default_schema
 from ckan.controllers.package import PackageController
 
-from ckanext.dgu.validators import merge_resources, validate_resources, \
+from ckanext.dgu.validators import merge_resources, unmerge_resources, \
+                                   validate_resources, \
                                    validate_additional_resource_types, \
                                    validate_data_resource_types
 
@@ -155,6 +156,7 @@ class PackageGov3Controller(PackageController):
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
+            '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],
         }

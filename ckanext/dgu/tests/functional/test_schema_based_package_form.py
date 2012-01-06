@@ -11,6 +11,7 @@ import re
 from nose.plugins.skip import SkipTest
 
 from ckanext.dgu.tests import Gov3Fixtures
+import ckanext.dgu.lib.helpers
 
 from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.field_types import DateType
@@ -208,6 +209,26 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         del expected_field_values['published_by']
         del expected_field_values['published_via']
     
+        # Ensure the resources have been un-merged correctly.
+        for resource_type in 'additional timeseries individual'.split():
+            resource_type += '_resources'
+
+            fields = []
+            for field_name in [f for f in self._expected_fields if f.startswith(resource_type)]:
+                fields.append(field_name.split('__')[-1])
+
+            resources = getattr(ckanext.dgu.lib.helpers, resource_type)(package)
+            for index, resource in enumerate(resources):
+                for field in fields:
+                    # eg. additional_resources__0__url
+                    full_field_name = '__'.join([resource_type,
+                                                 str(index),
+                                                 field])
+                    try:
+                        expected_field_values[full_field_name] = resource[field]
+                    except KeyError:
+                        expected_field_values[full_field_name] = resource['extras'][field]
+
         for field_name, expected_value in expected_field_values.items():
             self.check_named_element(response.body,
                                      '(input|textarea|select)',
