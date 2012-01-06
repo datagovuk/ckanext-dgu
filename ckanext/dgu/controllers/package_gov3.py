@@ -24,7 +24,9 @@ import ckan.logic.validators as val
 import ckan.logic.schema as default_schema
 from ckan.controllers.package import PackageController
 
-from ckanext.dgu.validators import merge_resources, validate_resources
+from ckanext.dgu.validators import merge_resources, validate_resources, \
+                                   validate_additional_resource_types, \
+                                   validate_data_resource_types
 
 log = logging.getLogger(__name__)
 
@@ -54,6 +56,11 @@ temporal_granularity = [("",""),
                        ("point","point"),
                        ("other","other - please specify")]
 
+additional_resource_schema = default_schema.default_resource_schema()
+additional_resource_schema['resource_type'].append(validate_additional_resource_types)
+
+data_resource_schema = default_schema.default_resource_schema()
+data_resource_schema['resource_type'].append(validate_data_resource_types)
 
 class PackageGov3Controller(PackageController):
 
@@ -100,9 +107,9 @@ class PackageGov3Controller(PackageController):
             'url': [unicode],
             'taxonomy_url': [unicode, convert_to_extras],
 
-            'additional_resources': default_schema.default_resource_schema(),
-            'timeseries_resources': default_schema.default_resource_schema(),
-            'individual_resources': default_schema.default_resource_schema(),
+            'additional_resources': additional_resource_schema,
+            'timeseries_resources': data_resource_schema,
+            'individual_resources': data_resource_schema,
             
             'published_by': [not_empty, unicode, convert_to_extras],
             'published_via': [ignore_missing, unicode, convert_to_extras],

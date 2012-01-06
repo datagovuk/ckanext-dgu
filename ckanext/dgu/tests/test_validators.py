@@ -1,8 +1,10 @@
 from nose.tools import assert_equal, assert_raises
 
-from ckan.lib.navl.dictization_functions import flatten_dict, unflatten
+from ckan.lib.navl.dictization_functions import flatten_dict, unflatten, Invalid
 
-from ckanext.dgu.validators import merge_resources
+from ckanext.dgu.validators import merge_resources, \
+                                   validate_additional_resource_types, \
+                                   validate_data_resource_types
 
 class TestMergeResources(object):
     """
@@ -143,3 +145,51 @@ class TestMergeResources(object):
         assert_equal(result_errors, expected_errors)
 
 
+class TestResourceTypeValidators(object):
+    """
+    Tests the validate_additional_resource_types and validate_data_resource_types functions.
+    """
+
+    def test_validate_additional_resource_validation(self):
+        """
+        Test validate_addition_resource_types only allows 'documentation'.
+        """
+        f = validate_additional_resource_types
+        _ = None
+
+        # allows 'documentation'
+        assert_equal (f('documentation'), 'documentation')
+        
+        # disallows 'docs'
+        assert_raises(Invalid, f, 'docs')
+
+    def test_validate_additional_resource_provides_a_default_value(self):
+        """
+        Test validate_additional_resource_types provides 'documentation' as a default value
+        """
+        f = validate_additional_resource_types
+
+        assert_equal (f(''), 'documentation')
+        assert_equal (f(None), 'documentation')
+
+    def test_validate_data_resource_validation(self):
+        """
+        Test validate_data_resource_types only allows 'file' or 'api'.
+        """
+        f = validate_data_resource_types
+
+        # allows 'file' and 'api;
+        assert_equal (f('api'), 'api')
+        assert_equal (f('file'), 'file')
+        
+        # disallows 'docs'
+        assert_raises(Invalid, f, 'docs')
+
+    def test_validate_data_resource_provides_a_default_value(self):
+        """
+        Test validate_data_resource_types provides 'file' as a default value
+        """
+        f = validate_data_resource_types
+
+        assert_equal (f(''), 'file')
+        assert_equal (f(None), 'file')

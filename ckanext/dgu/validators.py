@@ -55,7 +55,7 @@ def merge_resources(key, data, errors, context):
 
             # delete the original key from the data, e.g. 
             del data[(resource_type, original_index, field)]
-
+        
     # Update the errors dict
     additional_errors = _extract_resources('additional', errors)
     timeseries_errors = _extract_resources('timeseries', errors)
@@ -70,6 +70,30 @@ def merge_resources(key, data, errors, context):
             errors[('resources', num, field)] = []  # safe since we know everthing has validated correctly
             del errors[(resource_type, original_index, field)]
 
+
+def _validate_resource_types(allowed_types, default=None):
+    """
+    Returns a function that validates the given resource_type is allowed.
+
+    If a resource_type is False-like, then it returns a default value when
+    available.
+    """
+    
+    def _converter(value):
+        if not value and default:
+            return default
+        elif value not in allowed_types:
+            raise Invalid(_('Invalid resource type: %s' % value))
+        return value
+    return _converter
+
+validate_additional_resource_types = _validate_resource_types(
+                                         ('documentation',),
+                                         default='documentation')
+
+validate_data_resource_types = _validate_resource_types(
+                                   ('api','file'),
+                                   default='file')
 
 def _extract_resources(name, data):
     """
