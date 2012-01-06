@@ -83,7 +83,7 @@
             <input name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
           </td>
           <td class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
-          <td class="resource-type"><input name="resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
+          <td class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
         </tr>
         </py:for>
       </tbody>
@@ -167,7 +167,7 @@
 
 <fieldset>
   <legend>Theme &amp; tags</legend>
-    <p>1. Please choose a primary theme which this datar ecord falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
+    <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="primary_theme" name="primary_theme">
         <option value="Health">Health</option>
         <option value="Environment">Environment</option>
