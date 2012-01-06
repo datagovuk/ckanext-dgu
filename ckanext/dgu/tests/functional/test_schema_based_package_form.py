@@ -15,16 +15,8 @@ import ckanext.dgu.lib.helpers
 
 from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.field_types import DateType
-from ckan.tests import WsgiAppCase, CommonFixtureMethods
+from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for
 from ckan.tests.html_check import HtmlCheckMethods
-
-def url_for(**kwargs):
-    """
-    TODO: why isn't the real url_for picking up the correct route?
-    """
-    from ckan.tests import url_for as _url_for
-    url = _url_for(**kwargs)
-    return url.replace('dataset','package')
 
 class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     """
@@ -129,9 +121,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         """
         offset = url_for(controller='package', action='new')
         response = self.app.get(offset)
-
-        # quick check that we're checking the correct url
-        assert "package" in offset
 
         for field, (label_text, input_type) in self._expected_fields.items():
 
