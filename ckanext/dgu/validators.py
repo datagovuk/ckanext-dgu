@@ -42,9 +42,23 @@ def merge_resources(key, data, errors, context):
         if value:
             return
 
-    additional_resources = _extract_resources('additional', data)
-    timeseries_resources = _extract_resources('timeseries', data)
-    individual_resources = _extract_resources('individual', data)
+    _merge_dict(data)
+    _merge_dict(errors)
+            
+def _merge_dict(d):
+    """
+    Helper function that performs a resource merge on the given dict.
+
+    A resource merge takes a flattened dictionary, with keys (tuples) of the
+    form `('additional_resource', 0, 'url')` and `('timeseries_resource', 0, 'url')`.
+    And transforms it into a dict with the above keys merged into ones of the
+    form `('resources', 0, 'url')`.
+
+    d is the dict to perform the merge on.
+    """
+    additional_resources = _extract_resources('additional', d)
+    timeseries_resources = _extract_resources('timeseries', d)
+    individual_resources = _extract_resources('individual', d)
     resources = sorted(chain(additional_resources,
                              timeseries_resources,
                              individual_resources))
@@ -58,24 +72,10 @@ def merge_resources(key, data, errors, context):
     for (num, (resource, values)) in enumerate(groupby(resources, lambda t: t[:2])):
         resource_type, original_index = resource
         for (_,_,field) in values:
-            data[('resources', num, field)] = data[(resource_type, original_index, field)]
+            d[('resources', num, field)] = d[(resource_type, original_index, field)]
 
-            # delete the original key from the data, e.g. 
-            del data[(resource_type, original_index, field)]
-        
-    # Update the errors dict
-    additional_errors = _extract_resources('additional', errors)
-    timeseries_errors = _extract_resources('timeseries', errors)
-    individual_errors = _extract_resources('individual', errors)
-    all_errors = sorted(chain(additional_errors,
-                              timeseries_errors,
-                              individual_errors))
-
-    for (num, (resource, values)) in enumerate(groupby(all_errors, lambda t: t[:2])):
-        resource_type, original_index = resource
-        for (_,_,field) in values:
-            errors[('resources', num, field)] = []  # safe since we know everthing has validated correctly
-            del errors[(resource_type, original_index, field)]
+            # delete the original key from the d, e.g. 
+            del d[(resource_type, original_index, field)]
 
 def unmerge_resources(key, data, errors, context):
     """
