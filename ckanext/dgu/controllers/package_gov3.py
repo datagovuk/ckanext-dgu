@@ -57,11 +57,21 @@ temporal_granularity = [("",""),
                        ("point","point"),
                        ("other","other - please specify")]
 
-additional_resource_schema = default_schema.default_resource_schema()
-additional_resource_schema['resource_type'].append(validate_additional_resource_types)
+def additional_resource_schema():
+    schema = default_schema.default_resource_schema()
+    schema['resource_type'].insert(0, validate_additional_resource_types)
+    return schema
 
-data_resource_schema = default_schema.default_resource_schema()
-data_resource_schema['resource_type'].append(validate_data_resource_types)
+def individual_resource_schema():
+    schema = default_schema.default_resource_schema()
+    schema['resource_type'].insert(0, validate_data_resource_types)
+    return schema
+
+def timeseries_resource_schema():
+    schema = default_schema.default_resource_schema()
+    schema['date'] = [unicode, convert_to_extras]
+    schema['resource_type'].insert(0, validate_data_resource_types)
+    return schema
 
 class PackageGov3Controller(PackageController):
 
@@ -108,9 +118,9 @@ class PackageGov3Controller(PackageController):
             'url': [unicode],
             'taxonomy_url': [unicode, convert_to_extras],
 
-            'additional_resources': additional_resource_schema,
-            'timeseries_resources': data_resource_schema,
-            'individual_resources': data_resource_schema,
+            'additional_resources': additional_resource_schema(),
+            'timeseries_resources': timeseries_resource_schema(),
+            'individual_resources': individual_resource_schema(),
             
             'published_by': [not_empty, unicode, convert_to_extras],
             'published_via': [ignore_missing, unicode, convert_to_extras],
