@@ -4,10 +4,18 @@ High-level functional tests for the create/edit package form.
 The new package form is being refactored so as not to use sqlalchemy.  These
 are the tests for this form.  For tests based on the sqlalchemy-based form,
 see 'test_package_gov3.py'.
+
+TODO:
+
+[-] Assert all fields are being filled with data correctly
+[ ] Test validation of the resource_types: disallow 'docs' for example.
+[ ] Sub-themes
+
 """
 from functools import partial
 import re
 
+from nose.tools import assert_equal
 from nose.plugins.skip import SkipTest
 
 from ckanext.dgu.tests import Gov3Fixtures
@@ -357,6 +365,9 @@ class TestPackageCreation(CommonFixtureMethods):
         # additional resources
         'additional_resources__0__url': 'http://www.example.com/additiona_resource',
         'additional_resources__0__description': 'An additional resource',
+
+        # primary theme
+        'primary_theme': 'Health',
     }
 
     def __init__(self):
@@ -383,25 +394,172 @@ class TestPackageCreation(CommonFixtureMethods):
         pkg = self.get_package_by_name(package_name)
         assert pkg
         assert self._package_data['name'] == pkg.name
-        assert self._package_data['title'] == pkg.title
-        assert self._package_data['notes'] == pkg.notes
-        assert self._package_data['author'] == pkg.author
-        assert self._package_data['author_email'] == pkg.author_email
-        assert set(['tag1', 'tag2', 'multi word tag']) ==\
-               set(tag.name for tag in pkg.tags)
-        assert self._package_data['published_by'] == pkg.extras['published_by']
-        assert self._package_data['additional_resources__0__url'] ==\
-               pkg.resources[0].url
-        assert self._package_data['additional_resources__0__description'] ==\
-               pkg.resources[0].description
-        assert self._package_data['individual_resources__0__url'] ==\
-               pkg.resources[1].url
-        assert self._package_data['individual_resources__0__description'] ==\
-               pkg.resources[1].description
-        assert self._package_data['individual_resources__1__url'] ==\
-               pkg.resources[2].url
-        assert self._package_data['individual_resources__1__description'] ==\
-               pkg.resources[2].description
+        
+    def test_a_full_timeries_dataset(self):
+        """
+        Tests the submission of a fully-completed timeseries dataset.
+        """
+        package_data = self._package_data.copy()
+        package_name = package_data['name']
+        CreateTestData.flag_for_deletion(package_name)
+        assert not self.get_package_by_name(package_name),\
+            'Package "%s" already exists' % package_name
+
+        # remove the indivual resources as we're creating a timeseries dataset
+        for k in filter(lambda k: k.startswith('individual_resources'), package_data.keys()):
+            del package_data[k]
+
+        # fill out some more details on the form
+        extra_data = {
+            # Timeseries data
+            'update_frequency'      : 'other',
+            'update_frequency-other': 'solstices',
+            'timeseries_resources'  : [
+                {'description'      : 'Summer solstice 2010',
+                 'url'              : 'http://example.com/data/S2010',
+                 'date'             : 'Summer 2010'},
+
+                {'description'      : 'Winter solstice 2010',
+                 'url'              : 'http://example.com/data/W2010',
+                 'date'             : 'Winter 2010'},
+
+                {'description'      : 'Summer solstice 2011',
+                 'url'              : 'http://example.com/data/S2011',
+                 'date'             : 'Summer 2011'},
+
+                {'description'      : 'Winter solstice 2011',
+                 'url'              : 'http://example.com/data/W2011',
+                 'date'             : 'Winter 2011'}
+            ],
+
+            # Dataset info
+            'notes'                 : 'A multi-line\ndescription',
+
+            # Publisher / contact details
+            'published_by'          : 'pub2',
+            'published_by-email'    : 'pub2@example.com',
+            'published_by-url'      : 'http://example.com/publishers/pub2',
+            'published_by-telephone': '01234 567890',
+            'author'                : 'A. Person',
+            'author_email'          : 'a.person@example.com',
+            'author_telephone'      : '09876 543210',
+            'author_url'            : 'http://example.com/people/A-Person',
+
+            # Themes and tags
+            'primary_theme'         : 'Health',
+            'secondary_theme'       : ['Education', 'Transportation', 'Government'],
+            'tag_string'            : 'tag1, tag2, a multi word tag',
+            
+            # Additional resources
+            'additional_resources'  : [
+                {'description'      : 'Additional resource 1',
+                 'url'              : 'http://example.com/doc1'},
+
+                {'description'      : 'Additional resource 2',
+                 'url'              : 'http://example.com/doc2'},
+            ],
+
+            # The rest
+            'url'                   : 'http://example.com/another_url',
+            'taxonomy_url'          : 'http://example.com/taxonomy',
+            'mandate'               : 'http://example.com/mandate',
+            'license_id'            : 'odc-pddl',
+            'date_released'         : '01/01/2011',
+            'date_updated'          : '01/01/2012',
+            'date_update_future'    : '01/09/2012',
+            'precision'             : 'As supplied',
+            'temporal_granularity'  : 'other',
+            'temporal_granularity-other': 'lunar month',
+            'temporal_coverage-from': '01/01/2010',
+            'temporal_coverage-to'  : '01/01/2012',
+            'geographic_granularity': 'other',
+            'geographic_granularity-other': 'postcode',
+            'geographic_coverage'   : ['england','scotland'],
+        }
+
+        # flatten the resources dicts
+        for resource_type in 'additional timeseries individual'.split():
+            resource_type = resource_type + '_resources'
+            for index, resource in enumerate(extra_data.get(resource_type,[])):
+                for field, value in resource.items():
+                    form_field_name = '__'.join((resource_type, str(index), field))
+                    extra_data[form_field_name] = value
+            try:
+                del extra_data[resource_type]
+            except:
+                pass
+
+        package_data.update(extra_data)
+
+        # create package via form
+        response = self._form_client.post_form(package_data)
+        
+        # ensure it's correct
+        pkg = self.get_package_by_name(package_name)
+        assert pkg, response.body
+        assert_equal(package_data['title'], pkg.title)
+        assert_equal(package_data['notes'], pkg.notes)
+        assert_equal(package_data['author'], pkg.author)
+        assert_equal(package_data['author_email'], pkg.author_email)
+        assert_equal(package_data['published_by'], pkg.extras['published_by'])
+
+        # Extra data
+        # Timeseries data
+        expected_timeseries_keys = filter(lambda k: k.startswith('timeseries_resources'),
+                                          package_data.keys())
+        timeseries_resources = ckanext.dgu.lib.helpers.timeseries_resources(pkg.as_dict())
+        assert_equal(len(timeseries_resources), 4)
+        for key in expected_timeseries_keys:
+            index, field = key.split('__')[1:]
+            index = int(index)
+            assert_equal(package_data[key],
+                         timeseries_resources[index][field])
+
+        # Publisher / contact details
+        assert_equal(package_data['published_by'], pkg.extras['published_by'])
+        assert_equal(package_data['published_by-email'], pkg.extras['published_by-email'])
+        assert_equal(package_data['published_by-url'], pkg.extras['published_by-url'])
+        assert_equal(package_data['published_by-telephone'], pkg.extras['published_by-telephone'])
+        assert_equal(package_data['author'], pkg.author)
+        assert_equal(package_data['author_email'], pkg.author_email)
+        assert_equal(package_data['author_url'], pkg.extras['author_url'])
+        assert_equal(package_data['author_telephone'], pkg.extras['author_telephone'])
+
+        # Themes and tags
+        assert_equal(package_data['primary_theme'], pkg.extras['primary_theme'])
+
+        # TODO clarification on sub-themes needed:
+        #       - equality of sub-themes regardless of parent theme?
+        #       - searchable?
+        #
+        #      And from that, need to decide how they should be stored.
+        #      Until then, we skip this assertion.
+        # assert_equal(set(package_data['secondary_theme']),
+        #              set(pkg.extras['secondary_theme']))
+
+        assert_equal(set(['tag1', 'tag2', 'a multi word tag']),
+                     set(tag.name for tag in pkg.tags))
+
+        # Additional resources
+        expected_additional_keys = filter(lambda k: k.startswith('additional_resources'),
+                                          package_data.keys())
+        additional_resources = ckanext.dgu.lib.helpers.additional_resources(pkg.as_dict())
+        assert_equal(len(additional_resources), 2)
+        for key in expected_additional_keys:
+            index, field = key.split('__')[1:]
+            index = int(index)
+            assert_equal(package_data[key],
+                         additional_resources[index][field])
+
+        #assert package_data['individual_resources__0__url'] ==\
+        #       pkg.resources[1].url
+        #assert package_data['individual_resources__0__description'] ==\
+        #       pkg.resources[1].description
+        #assert package_data['individual_resources__1__url'] ==\
+        #       pkg.resources[2].url
+        #assert package_data['individual_resources__1__description'] ==\
+        #       pkg.resources[2].description
+
 
 class _PackageFormClient(WsgiAppCase):
     """

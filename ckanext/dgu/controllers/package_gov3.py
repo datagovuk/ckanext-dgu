@@ -123,14 +123,24 @@ class PackageGov3Controller(PackageController):
             'individual_resources': individual_resource_schema(),
             
             'published_by': [not_empty, unicode, convert_to_extras],
-            'published_via': [ignore_missing, unicode, convert_to_extras],
+            'published_by-email': [unicode, convert_to_extras],
+            'published_by-url': [unicode, convert_to_extras],
+            'published_by-telephone': [unicode, convert_to_extras],
+
             'author': [ignore_missing, unicode],
             'author_email': [ignore_missing, unicode],
+            'author_url': [ignore_missing, unicode, convert_to_extras],
+            'author_telephone': [ignore_missing, unicode, convert_to_extras],
+
+            'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
             'license_id': [ignore_missing, unicode],
             'tag_string': [ignore_missing, val.tag_string_convert],
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
+
+            'primary_theme': [not_empty, unicode, convert_to_extras],
+            'secondary_theme': [ignore_missing, unicode],
 
             '__extras': [ignore],
             '__junk': [empty],
