@@ -11,7 +11,7 @@ def _is_timeseries_resource(resource):
     Returns true iff the given resource identifies as a timeseries resource.
     """
     return not _is_additional_resource(resource) and \
-           resource.get('extras', {}).get('date', None)
+           resource.get('date', None)
 
 def _is_individual_resource(resource):
     """

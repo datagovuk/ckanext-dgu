@@ -185,11 +185,11 @@ class TestUnmergeResources(object):
                 {'description': 'Description 1',
                  'url': 'Url1',
                  'resource_type': 'api',
-                 'extras': {'date': '2011-12-25'}},
+                 'date': '2011-12-25',},
                 {'description': 'Description 2',
                  'url': 'Url2',
                  'resource_type': 'api',
-                 'extras': {'date': '2011-11-25'}}
+                 'date': '2011-11-25'},
             ]
         }
 
@@ -205,11 +205,11 @@ class TestUnmergeResources(object):
                 {'description': 'Description 1',
                  'url': 'Url1',
                  'resource_type': 'api',
-                 'extras': {'date': '2011-12-25'}},
+                 'date': '2011-12-25'},
                 {'description': 'Description 2',
                  'url': 'Url2',
                  'resource_type': 'api',
-                 'extras': {'date': '2011-11-25'}}
+                 'date': '2011-11-25'}
             ]
         }
         
@@ -224,14 +224,10 @@ class TestUnmergeResources(object):
                 {'description': 'Description 1',
                  'url': 'Url1',
                  'resource_type': 'api',
-                 'extras': {'date': ''}},
+                 'date': ''},
                 {'description': 'Description 2',
                  'url': 'Url2',
-                 'resource_type': 'api',
-                 'extras': {}},
-                {'description': 'Description 3',
-                 'url': 'Url3',
-                 'resource_type': 'api'}
+                 'resource_type': 'api',},
             ]
         }
 
@@ -247,14 +243,10 @@ class TestUnmergeResources(object):
                 {'description': 'Description 1',
                  'url': 'Url1',
                  'resource_type': 'api',
-                 'extras': {'date': ''}},
+                 'date': ''},
                 {'description': 'Description 2',
                  'url': 'Url2',
-                 'resource_type': 'api',
-                 'extras': {}},
-                {'description': 'Description 3',
-                 'url': 'Url3',
-                 'resource_type': 'api'}
+                 'resource_type': 'api'},
             ]
         }
         
