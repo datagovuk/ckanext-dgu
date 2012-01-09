@@ -434,7 +434,46 @@ class _PackageFormClient(WsgiAppCase):
 
         # and fill in the form with the data provided
         form_fields.update(data)
+        self._add_generated_fields(form_fields, data.keys())
         return self.app.post(offset, params=form_fields)
+
+    def _add_generated_fields(self, form_fields, keys):
+        """
+        Additional resource fields are created dynamically client-side.  This
+        method ensures that these fields are created if necessary.
+
+         - form_fields is the dict that is modified to include any generated fields
+
+         - keys is the iterable of field names being submitted.  This is used to work
+           out which fields need generating.
+        """
+
+        def _index(k):
+            """
+            Returns the index specified in the given key
+            
+            >>> _index('additional_resources__2__url')
+            2
+
+            """
+            return int(k.split('__')[1])
+
+        resource_types = 'additional individual timeseries'.split()
+        resource_counts = {}
+        for resource_type in resource_types:
+            resource_keys = filter(lambda k: k.startswith(resource_type+'_resources'), keys)
+            resource_counts[resource_type] = max([0] + map(_index, resource_keys))                    
+
+        # populate the form_fields dict with the generated fields up to the
+        # given index.  If the field already exists, then leave it alone, as
+        # it may contain pre-filled data already.
+        for resource_type in resource_types:
+            max_index = resource_counts[resource_type]
+            for i in xrange(max_index+1):
+                for field in ('resource_type',):    # TODO there are other fields too
+                    key = '__'.join((resource_type+'_resources', str(i), field))
+                    if not form_fields.has_key(key):
+                        form_fields[key] = ''
 
     def _assert_not_posting_extra_fields(self, form_fields, data_fields):
         """
