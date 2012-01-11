@@ -2,7 +2,7 @@ import datetime
 
 from ckanext.importlib.api_command import ApiCommand
 from ckanext.dgu.bin.xmlrpc_command import XmlRpcCommand
-from ckanext.dgu.ons.downloader import OnsData
+from ckanext.dgu.ons.downloader import OnsData, ONS_DEFAULT_CACHE_PATH
 from ckanext.dgu.ons.importer import OnsImporter
 from ckanext.dgu.ons.loader import OnsLoader
 from ckanclient import CkanClient
@@ -42,6 +42,8 @@ class OnsLoaderCmd(ApiCommand, XmlRpcCommand):
             self.options.start_date = self.parse_date(self.options.start_date)
         if self.options.end_date:
             self.options.end_date = self.parse_date(self.options.end_date)
+        if not self.options.ons_cache_dir:
+            self.options.ons_cache_dir = ONS_DEFAULT_CACHE_PATH
 
         if self.options.days or \
                self.options.start_date or \
