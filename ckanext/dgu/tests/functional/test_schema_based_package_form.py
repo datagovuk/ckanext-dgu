@@ -347,29 +347,6 @@ class TestPackageCreation(CommonFixtureMethods):
     A suite of tests that check that packages are created correctly through the creation form.
     """
     
-    _package_data = {
-        'name': 'new_name',
-        'title': 'New Package Title',
-        'notes': 'The package abstract.',
-        'author': 'A Job Role',
-        'author_email': 'role@department.gov.uk',
-        'tag_string': 'tag1, tag2, multi word tag',
-        'published_by': 'A publisher',
-
-        # resources
-        'individual_resources__0__url': 'http://www.example.com',
-        'individual_resources__0__description': 'A resource',
-        'individual_resources__1__url': 'http://www.google.com',
-        'individual_resources__1__description': 'A search engine',
-
-        # additional resources
-        'additional_resources__0__url': 'http://www.example.com/additiona_resource',
-        'additional_resources__0__description': 'An additional resource',
-
-        # primary theme
-        'primary_theme': 'Health',
-    }
-
     def __init__(self):
         self._form_client = _PackageFormClient()
 
@@ -382,114 +359,29 @@ class TestPackageCreation(CommonFixtureMethods):
     def test_submitting_a_valid_create_form_creates_a_new_package(self):
         """Assert that submitting a valid create form does indeed create a new package"""
         # setup fixture
-        package_name = self._package_data['name']
+        package_data = _EXAMPLE_INDIVIDUAL_DATA
+        package_name = package_data['name']
         CreateTestData.flag_for_deletion(package_name)
         assert not self.get_package_by_name(package_name),\
             'Package "%s" already exists' % package_name
         
         # create package via form
-        self._form_client.post_form(self._package_data)
+        self._form_client.post_form(package_data)
         
         # ensure it's correct
         pkg = self.get_package_by_name(package_name)
         assert pkg
-        assert self._package_data['name'] == pkg.name
+        assert package_data['name'] == pkg.name
         
     def test_a_full_timeseries_dataset(self):
         """
         Tests the submission of a fully-completed timeseries dataset.
         """
-        package_data = self._package_data.copy()
+        package_data = _EXAMPLE_TIMESERIES_DATA
         package_name = package_data['name']
         CreateTestData.flag_for_deletion(package_name)
         assert not self.get_package_by_name(package_name),\
             'Package "%s" already exists' % package_name
-
-        # remove the indivual resources as we're creating a timeseries dataset
-        for k in filter(lambda k: k.startswith('individual_resources'), package_data.keys()):
-            del package_data[k]
-
-        # fill out some more details on the form
-        extra_data = {
-            # Timeseries data
-            'update_frequency'      : 'other',
-            'update_frequency-other': 'solstices',
-            'timeseries_resources'  : [
-                {'description'      : 'Summer solstice 2010',
-                 'url'              : 'http://example.com/data/S2010',
-                 'date'             : 'Summer 2010'},
-
-                {'description'      : 'Winter solstice 2010',
-                 'url'              : 'http://example.com/data/W2010',
-                 'date'             : 'Winter 2010'},
-
-                {'description'      : 'Summer solstice 2011',
-                 'url'              : 'http://example.com/data/S2011',
-                 'date'             : 'Summer 2011'},
-
-                {'description'      : 'Winter solstice 2011',
-                 'url'              : 'http://example.com/data/W2011',
-                 'date'             : 'Winter 2011'}
-            ],
-
-            # Dataset info
-            'notes'                 : 'A multi-line\ndescription',
-
-            # Publisher / contact details
-            'published_by'          : 'pub2',
-            'published_by-email'    : 'pub2@example.com',
-            'published_by-url'      : 'http://example.com/publishers/pub2',
-            'published_by-telephone': '01234 567890',
-            'author'                : 'A. Person',
-            'author_email'          : 'a.person@example.com',
-            'author_telephone'      : '09876 543210',
-            'author_url'            : 'http://example.com/people/A-Person',
-
-            # Themes and tags
-            'primary_theme'         : 'Health',
-            'secondary_theme'       : ['Education', 'Transportation', 'Government'],
-            'tag_string'            : 'tag1, tag2, a multi word tag',
-            
-            # Additional resources
-            'additional_resources'  : [
-                {'description'      : 'Additional resource 1',
-                 'url'              : 'http://example.com/doc1'},
-
-                {'description'      : 'Additional resource 2',
-                 'url'              : 'http://example.com/doc2'},
-            ],
-
-            # The rest
-            'url'                   : 'http://example.com/another_url',
-            'taxonomy_url'          : 'http://example.com/taxonomy',
-            'mandate'               : 'http://example.com/mandate',
-            'license_id'            : 'odc-pddl',
-            'date_released'         : '1/1/2011',
-            'date_updated'          : '1/1/2012',
-            'date_update_future'    : '1/9/2012',
-            'precision'             : 'As supplied',
-            'temporal_granularity'  : 'other',
-            'temporal_granularity-other': 'lunar month',
-            'temporal_coverage-from': '1/1/2010',
-            'temporal_coverage-to'  : '1/1/2012',
-            'geographic_granularity': 'other',
-            'geographic_granularity-other': 'postcode',
-            'geographic_coverage'   : 'england', # TODO: check multiple boxes
-        }
-
-        # flatten the resources dicts
-        for resource_type in 'additional timeseries individual'.split():
-            resource_type = resource_type + '_resources'
-            for index, resource in enumerate(extra_data.get(resource_type,[])):
-                for field, value in resource.items():
-                    form_field_name = '__'.join((resource_type, str(index), field))
-                    extra_data[form_field_name] = value
-            try:
-                del extra_data[resource_type]
-            except:
-                pass
-
-        package_data.update(extra_data)
 
         # create package via form
         response = self._form_client.post_form(package_data)
@@ -655,6 +547,23 @@ class _PackageFormClient(WsgiAppCase):
         data_fields = set(map(sub, data_fields))
         assert form_fields >= data_fields, str(data_fields - form_fields)
 
+def _flatten_resource_dict(d):
+    to_return = d.copy()
+    for resource_type in 'additional timeseries individual'.split():
+        resource_type = resource_type + '_resources'
+        for index, resource in enumerate(to_return.get(resource_type,[])):
+            for field, value in resource.items():
+                form_field_name = '__'.join((resource_type, str(index), field))
+                to_return[form_field_name] = value
+        try:
+            del to_return[resource_type]
+        except:
+            pass
+    return to_return
+
+
+#### Helper methods ###
+
 def _convert_date(datestring):
     """
     Converts a date-string to that rendered by the form.
@@ -662,3 +571,97 @@ def _convert_date(datestring):
     It does this by converting to db format, and then back to a string.
     """
     return DateType.db_to_form(datestring)
+
+### Form data used in this module ###
+
+_EXAMPLE_FORM_DATA = {
+        # Dataset info
+        'name'                  : 'new_name',
+        'title'                 : 'New Package Title',
+        'notes'                 : 'A multi-line\ndescription',
+        'author'                : 'A Job Role',
+        'author_email'          : 'role@department.gov.uk',
+            
+        # Publisher / contact details
+        'published_by'          : 'pub2',
+        'published_by-email'    : 'pub2@example.com',
+        'published_by-url'      : 'http://example.com/publishers/pub2',
+        'published_by-telephone': '01234 567890',
+        'author'                : 'A. Person',
+        'author_email'          : 'a.person@example.com',
+        'author_telephone'      : '09876 543210',
+        'author_url'            : 'http://example.com/people/A-Person',
+
+
+        # additional resources
+        'additional_resources'  : [
+            {'url'              : 'http://www.example.com/additiona_resource',
+             'description'      : 'An additional resource'},
+            {'url'              : 'http://www.example.com/additiona_resource_2',
+             'description'      : 'Another additional resource'}
+        ],
+
+        # Themes and tags
+        'primary_theme'         : 'Health',
+        'secondary_theme'       : ['Education', 'Transportation', 'Government'],
+        'tag_string'            : 'tag1, tag2, a multi word tag',
+
+        # The rest
+        'url'                   : 'http://example.com/another_url',
+        'taxonomy_url'          : 'http://example.com/taxonomy',
+        'mandate'               : 'http://example.com/mandate',
+        'license_id'            : 'odc-pddl',
+        'date_released'         : '1/1/2011',
+        'date_updated'          : '1/1/2012',
+        'date_update_future'    : '1/9/2012',
+        'precision'             : 'As supplied',
+        'temporal_granularity'  : 'other',
+        'temporal_granularity-other': 'lunar month',
+        'temporal_coverage-from': '1/1/2010',
+        'temporal_coverage-to'  : '1/1/2012',
+        'geographic_granularity': 'other',
+        'geographic_granularity-other': 'postcode',
+        'geographic_coverage'   : 'england', # TODO: check multiple boxes
+}
+
+# An example of data for creating an individual dataset
+_EXAMPLE_INDIVIDUAL_DATA = _EXAMPLE_FORM_DATA.copy()
+_EXAMPLE_INDIVIDUAL_DATA.update({
+        # individual resources
+        'individual_resources'     : [
+            {'url'                 : 'http://www.example.com',
+             'description'         : 'A resource'},
+            {'url'                 : 'http://www.google.com',
+             'description'         : 'A search engine'}
+        ]
+})
+
+# An example of data for creating an timeseries dataset
+_EXAMPLE_TIMESERIES_DATA = _EXAMPLE_FORM_DATA.copy()
+_EXAMPLE_TIMESERIES_DATA.update({
+            # Timeseries data
+            'update_frequency'      : 'other',
+            'update_frequency-other': 'solstices',
+            'timeseries_resources'  : [
+                {'description'      : 'Summer solstice 2010',
+                 'url'              : 'http://example.com/data/S2010',
+                 'date'             : 'Summer 2010'},
+
+                {'description'      : 'Winter solstice 2010',
+                 'url'              : 'http://example.com/data/W2010',
+                 'date'             : 'Winter 2010'},
+
+                {'description'      : 'Summer solstice 2011',
+                 'url'              : 'http://example.com/data/S2011',
+                 'date'             : 'Summer 2011'},
+
+                {'description'      : 'Winter solstice 2011',
+                 'url'              : 'http://example.com/data/W2011',
+                 'date'             : 'Winter 2011'}
+            ],
+})
+
+_EXAMPLE_FORM_DATA       = _flatten_resource_dict(_EXAMPLE_FORM_DATA)
+_EXAMPLE_INDIVIDUAL_DATA = _flatten_resource_dict(_EXAMPLE_INDIVIDUAL_DATA)
+_EXAMPLE_TIMESERIES_DATA = _flatten_resource_dict(_EXAMPLE_TIMESERIES_DATA)
+
