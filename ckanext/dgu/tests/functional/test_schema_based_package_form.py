@@ -15,7 +15,7 @@ TODO:
 from functools import partial
 import re
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_in
 from nose.plugins.skip import SkipTest
 
 from ckanext.dgu.tests import Gov3Fixtures
@@ -395,7 +395,7 @@ class TestPackageCreation(CommonFixtureMethods):
         assert pkg
         assert self._package_data['name'] == pkg.name
         
-    def test_a_full_timeries_dataset(self):
+    def test_a_full_timeseries_dataset(self):
         """
         Tests the submission of a fully-completed timeseries dataset.
         """
@@ -464,17 +464,17 @@ class TestPackageCreation(CommonFixtureMethods):
             'taxonomy_url'          : 'http://example.com/taxonomy',
             'mandate'               : 'http://example.com/mandate',
             'license_id'            : 'odc-pddl',
-            'date_released'         : '01/01/2011',
-            'date_updated'          : '01/01/2012',
-            'date_update_future'    : '01/09/2012',
+            'date_released'         : '1/1/2011',
+            'date_updated'          : '1/1/2012',
+            'date_update_future'    : '1/9/2012',
             'precision'             : 'As supplied',
             'temporal_granularity'  : 'other',
             'temporal_granularity-other': 'lunar month',
-            'temporal_coverage-from': '01/01/2010',
-            'temporal_coverage-to'  : '01/01/2012',
+            'temporal_coverage-from': '1/1/2010',
+            'temporal_coverage-to'  : '1/1/2012',
             'geographic_granularity': 'other',
             'geographic_granularity-other': 'postcode',
-            'geographic_coverage'   : ['england','scotland'],
+            'geographic_coverage'   : 'england', # TODO: check multiple boxes
         }
 
         # flatten the resources dicts
@@ -551,15 +551,20 @@ class TestPackageCreation(CommonFixtureMethods):
             assert_equal(package_data[key],
                          additional_resources[index][field])
 
-        #assert package_data['individual_resources__0__url'] ==\
-        #       pkg.resources[1].url
-        #assert package_data['individual_resources__0__description'] ==\
-        #       pkg.resources[1].description
-        #assert package_data['individual_resources__1__url'] ==\
-        #       pkg.resources[2].url
-        #assert package_data['individual_resources__1__description'] ==\
-        #       pkg.resources[2].description
+        assert_equal(package_data['url'], pkg.url)
+        assert_equal(package_data['taxonomy_url'], pkg.extras['taxonomy_url'])
+        assert_equal(package_data['mandate'], pkg.extras['mandate'])
+        assert_equal(package_data['license_id'], pkg.license_id)
 
+        assert_equal(package_data['date_released'], _convert_date(pkg.extras['date_released']))
+        assert_equal(package_data['date_updated'], _convert_date(pkg.extras['date_updated']))
+        assert_equal(package_data['date_update_future'], _convert_date(pkg.extras['date_update_future']))
+        assert_equal(package_data['precision'], pkg.extras['precision'])
+        assert_equal(package_data['temporal_granularity-other'], pkg.extras['temporal_granularity'])
+        assert_equal(package_data['temporal_coverage-from'], _convert_date(pkg.extras['temporal_coverage-from']))
+        assert_equal(package_data['temporal_coverage-to'], _convert_date(pkg.extras['temporal_coverage-to']))
+        assert_equal(package_data['geographic_granularity-other'], pkg.extras['geographic_granularity'])
+        assert_in('England', pkg.extras['geographic_coverage'])
 
 class _PackageFormClient(WsgiAppCase):
     """
