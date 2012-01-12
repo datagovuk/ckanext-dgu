@@ -159,6 +159,41 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                               response.body)
             assert not match , '"%s" found in response: "%s"' % (field, match.group(0))
 
+    def test_failed_new_form_maintains_previously_entered_field_values(self):
+        """
+        Asserts that the user does not lose form data when attempting to submit an incorrect form.
+
+        By removing the required name field from the submission, we get a failed
+        submission, and then check each of the field values in the returned html.
+        """
+        package_data = _EXAMPLE_TIMESERIES_DATA.copy()
+        del package_data['name']
+
+        form_client = _PackageFormClient()
+        response = form_client.post_form(package_data)
+
+        # Sanity check that the form failed to submit due to the name being missing.
+        assert_in('Name: Missing value', response)
+
+        # TODO: re-instate these fields
+        del package_data['secondary_theme']
+
+        # Check the notes fiels separately as it contains a newline character
+        # in its value.  And the `self.check_named_element()` method doesn't
+        # use multi-line regular expressions.
+        self.check_named_element(response.body.replace('\n', '__newline__'),
+                                 'textarea',
+                                 'name="notes"',
+                                 package_data['notes'].replace('\n', '__newline__'))
+        del package_data['notes']
+
+        # Assert that the rest of the fields appear unaltered in the form
+        for field_name, expected_value in package_data.items():
+            self.check_named_element(response.body,
+                                     '(input|textarea|select)',
+                                     'name="%s"' % field_name,
+                                     expected_value)
+
     def test_edit_form_form_has_all_fields(self):
         """
         Asserts that edit-form of a package has the fields prefilled correctly.

@@ -148,11 +148,11 @@
       </select>
     <!-- TODO: the labels can be removed -->
     <label for="published_by-email">Email:</label>
-    <input id="published_by-email" name="published_by-email" type="text"/>
+    <input id="published_by-email" name="published_by-email" type="text" value="${data.get('published_by-email', '')}"/>
     <label for="published_by-url">Link</label>
-    <input id="published_by-url" name="published_by-url" type="text"/>
+    <input id="published_by-url" name="published_by-url" type="text" value="${data.get('published_by-url', '')}"/>
     <label for="published_by-telephone">Telephone</label>
-    <input id="published_by-telephone" name="published_by-telephone" type="text"/>
+    <input id="published_by-telephone" name="published_by-telephone" type="text" value="${data.get('published_by-telephone', '')}"/>
 
     
     <label class="field_req" for="author">FOI Contact:</label>
@@ -160,9 +160,9 @@
     <label for="author_email">Email:</label>
     <input id="author_email" name="author_email" type="text" value="${data.get('author_email', '')}"/>
     <label for="author_url">Link</label>
-    <input id="author_url" name="author_url" type="text"/>
+    <input id="author_url" name="author_url" type="text" value="${data.get('author_url', '')}"/>
     <label for="author_telephone">Telephone</label>
-    <input id="author_telephone" name="author_telephone" type="text"/>
+    <input id="author_telephone" name="author_telephone" type="text" value="${data.get('author_telephone', '')}"/>
 </fieldset>
 
 <fieldset>
