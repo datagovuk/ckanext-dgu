@@ -7,8 +7,8 @@ see 'test_package_gov3.py'.
 
 TODO:
 
-[-] Assert all fields are being filled with data correctly
-[ ] Test validation of the resource_types: disallow 'docs' for example.
+[X] Assert all fields are being filled with data correctly
+[X] Test validation of the resource_types: disallow 'docs' for example.
 [ ] Sub-themes
 
 """
@@ -376,6 +376,44 @@ class TestFormValidation(object):
         }
         response = self._form_client.post_form(data)
         assert 'Only define timeseries or individual resources, not both' in response.body
+
+    def test_additional_resources_disallows_non_documentation_resource_types(self):
+        """
+        Asserts that non-documentation resource types are not allowed for additional resources.
+        """
+        for resource_type in ["bad", "api", "file"]:
+            data = {
+                'additional_resources__0__description':   'Additional resource 1',
+                'additional_resources__0__url':           'http://example.com/doc1',
+                'additional_resources__0__resource_type': resource_type,
+            }
+            response = self._form_client.post_form(data)
+            assert_in("'Invalid resource type: %s']" % resource_type,
+                      response.body)
+
+    def test_data_resources_disallows_non_file_or_api_resource_types(self):
+        """
+        Asserts that non-{file,api} resource types are not allowed for data resources.
+        """
+        for resource_type in ["bad", "documentation"]:
+            data = {
+                'timeseries_resources__0__description':   'Timeseries resource 1',
+                'timeseries_resources__0__url':           'http://example.com/data1',
+                'timeseries_resources__0__date':          'Summer',
+                'timeseries_resources__0__resource_type': resource_type,
+            }
+            response = self._form_client.post_form(data)
+            assert_in("'Invalid resource type: %s']" % resource_type,
+                      response.body)
+
+            data = {
+                'individual_resources__0__description':   'Individual resource 1',
+                'individual_resources__0__url':           'http://example.com/data1',
+                'individual_resources__0__resource_type': resource_type,
+            }
+            response = self._form_client.post_form(data)
+            assert_in("'Invalid resource type: %s']" % resource_type,
+                      response.body)
 
 class TestPackageCreation(CommonFixtureMethods):
     """
