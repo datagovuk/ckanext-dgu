@@ -97,8 +97,8 @@ def unmerge_resources(key, data, errors, context):
     # data[('resources', '0', 'url')]
 
     # Categorise each resource, and add it to the respective entry
-    unflattened_resources = unflatten(data)['resources']
-    error_resources = unflatten(errors)['resources']
+    unflattened_resources = unflatten(data).get('resources', [])
+    error_resources = unflatten(errors).get('resources', [])
     resources = zip(unflattened_resources,
                     map(categorise_resource, unflattened_resources),
                     error_resources)
