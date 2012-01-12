@@ -173,9 +173,17 @@ class PackageGov3Controller(PackageController):
             },
             
             'published_by': [convert_from_extras, ignore_missing],
+            'published_by-email': [convert_from_extras, ignore_missing],
+            'published_by-url': [convert_from_extras, ignore_missing],
+            'published_by-telephone': [convert_from_extras, ignore_missing],
+
+            'author_url': [convert_from_extras, ignore_missing],
+            'author_telephone': [convert_from_extras, ignore_missing],
+
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
+            'primary_theme': [convert_from_extras, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],

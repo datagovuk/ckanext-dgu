@@ -169,13 +169,13 @@
   <legend>Theme &amp; tags</legend>
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="primary_theme" name="primary_theme">
-        <option value="Health">Health</option>
-        <option value="Environment">Environment</option>
-        <option value="Education">Education</option>
-        <option value="Finance">Finance</option>
-        <option value="Society">Society</option>
-        <option value="Defence">Defence</option>
-        <option value="Transportation">Transportation</option>
+        <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
+        <option value="Environment" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Environment' else None}">Environment</option>
+        <option value="Education" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Education' else None}">Education</option>
+        <option value="Finance" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Finance' else None}">Finance</option>
+        <option value="Society" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Society' else None}">Society</option>
+        <option value="Defence" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Defence' else None}">Defence</option>
+        <option value="Transportation" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Transportation' else None}">Transportation</option>
       </select>
     <p>2. Please choose secondary tags with which to tag this data record:</p>
     <input type="checkbox" name="secondary_theme" value="Health"/>Health
@@ -193,7 +193,7 @@
     <input class="long tagComplete" data-tagcomplete-queryparam="incomplete" 
            data-tagcomplete-url="/api/2/util/tag/autocomplete"
            id="tag_string" name="tag_string" size="60" type="text" 
-           value="${data.get('tag_string') or ' '.join([tag['name'] for tag in data.get('tags', [])])}" />
+           value="${data.get('tag_string') or ', '.join([tag['name'] for tag in data.get('tags', [])])}" />
 </fieldset>
 
 <fieldset>

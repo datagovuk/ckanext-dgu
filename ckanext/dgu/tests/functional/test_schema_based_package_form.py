@@ -218,8 +218,13 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # populate expected_field_values for tag_string and license_id
         # by hand, as the field names in the package dict don't follow the
         # same naming scheme as the form fields.
-        expected_field_values['tag_string'] = package['tags']
         expected_field_values['license_id'] = package['license']
+
+        # tags may be re-ordered, so test them manually
+        expected_tags = set(map(lambda s: s.strip(), package['tags'].split()))
+        tag_string_form_value = re.finditer(r'<input [^>]*id="tag_string" name="tag_string" [^>]*value="([^"]+)" />', response.body).next().group(1)
+        actual_tags = set(map(lambda s: s.strip(), tag_string_form_value.split(',')))
+        assert_equal(expected_tags, actual_tags)
 
         # Promote the key-value pairs stored in 'extras' to form fields.
         expected_field_values.update((k,v) for (k,v) in package['extras'].items()\
@@ -266,6 +271,51 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                                      '(input|textarea|select)',
                                      'name="%s"' % field_name,
                                      expected_value)
+
+    def test_a_full_timeseries_dataset_edit_form(self):
+        """
+        Creates a new package and then checks the edit form is filled correctly.
+        """
+        form_client = _PackageFormClient()
+        package_data = _EXAMPLE_TIMESERIES_DATA.copy()
+        package_name = package_data['name']
+        CreateTestData.flag_for_deletion(package_name)
+        assert not self.get_package_by_name(package_name),\
+            'Package "%s" already exists' % package_name
+
+        # create package via form
+        response = form_client.post_form(package_data)
+        
+        # GET the edit form
+        offset = url_for(controller='package', action='edit', id=package_name)
+        response = self.app.get(offset)
+
+        # TODO: test secondary theme
+        del package_data['secondary_theme']
+
+        # tags may be re-ordered, so test them manually
+        expected_tags = set(map(lambda s: s.strip(), package_data['tag_string'].split(',')))
+        tag_string_form_value = re.finditer(r'<input [^>]*id="tag_string" name="tag_string" [^>]*value="([^"]+)" />', response.body).next().group(1)
+        actual_tags = set(map(lambda s: s.strip(), tag_string_form_value.split(',')))
+        assert_equal(expected_tags, actual_tags)
+        del package_data['tag_string']
+
+        # Check the notes fiels separately as it contains a newline character
+        # in its value.  And the `self.check_named_element()` method doesn't
+        # use multi-line regular expressions.
+        self.check_named_element(response.body.replace('\n', '__newline__'),
+                                 'textarea',
+                                 'name="notes"',
+                                 package_data['notes'].replace('\n', '__newline__'))
+        del package_data['notes']
+
+        # Assert that the rest of the fields appear unaltered in the form
+        for field_name, expected_value in package_data.items():
+            self.check_named_element(response.body,
+                                     '(input|textarea|select)',
+                                     'name="%s"' % field_name,
+                                     expected_value)
+
 
     def test_edit_form_does_not_contain_unexpected_fields(self):
         """
