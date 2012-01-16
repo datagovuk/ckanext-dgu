@@ -33,7 +33,7 @@ configure () {
     # Configures the ini file settings
     sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_form cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
-             -e "s/^ckan.site_url =.*/ckan.site_url = http://$domain/" \
+             -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -i.bak "$ini_file"
 
     echo "ckan.spatial.srid = 4258" | sudo tee -a "$ini_file" > /dev/null
