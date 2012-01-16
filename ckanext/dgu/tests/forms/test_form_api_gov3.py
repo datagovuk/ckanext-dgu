@@ -249,11 +249,11 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
         assert self.get_package_by_name(self.package_name_alt)
 
 
-class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
-
-class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
-
-class TestFormsApiUnversioned(ApiUnversionedTestCase, FormsApiTestCase): pass
+## class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
+## 
+## class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
+## 
+## class TestFormsApiUnversioned(ApiUnversionedTestCase, FormsApiTestCase): pass
 
 
 class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
@@ -350,9 +350,9 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
 
     # TODO add other tests in from test_form.py
 
-class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
-
-class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
+## class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
+## 
+## class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
 
 
 class FormsApiAuthzTestCase(BaseFormsApiCase):
@@ -444,8 +444,8 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.check_edit_package('testadmin', expect_success=False)
         self.check_edit_package('notadmin', expect_success=False)
 
-class TestFormsApiAuthz1(Api1TestCase, FormsApiAuthzTestCase): pass
-
-class TestFormsApiAuthz2(Api2TestCase, FormsApiAuthzTestCase): pass
-
-class TestFormsApiAuthzUnversioned(ApiUnversionedTestCase, FormsApiAuthzTestCase): pass
+## class TestFormsApiAuthz1(Api1TestCase, FormsApiAuthzTestCase): pass
+## 
+## class TestFormsApiAuthz2(Api2TestCase, FormsApiAuthzTestCase): pass
+## 
+## class TestFormsApiAuthzUnversioned(ApiUnversionedTestCase, FormsApiAuthzTestCase): pass

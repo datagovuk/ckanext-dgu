@@ -470,23 +470,23 @@ class FormsApiAuthzTestCase(BaseFormsApiCase):
         self.check_edit_harvest_source('testadmin', expect_success=False)
         self.check_edit_harvest_source('notadmin', expect_success=False)
 
-class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
-
-class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
-
-class TestFormsApiUnversioned(ApiUnversionedTestCase, FormsApiTestCase): pass
-
-class WithOrigKeyHeader(FormsApiTestCase):
-    apikey_header_name = 'Authorization'
-
-class TestFormsApi1WithOrigKeyHeader(WithOrigKeyHeader, TestFormsApi1): pass
-
-class TestFormsApi2WithOrigKeyHeader(WithOrigKeyHeader, TestFormsApi2): pass
-
-class TestFormsApiUnversionedWithOrigKeyHeader(TestFormsApiUnversioned): pass
-
-class TestFormsApiAuthz1(Api1TestCase, FormsApiAuthzTestCase): pass
-
-class TestFormsApiAuthz2(Api2TestCase, FormsApiAuthzTestCase): pass
-
-class TestFormsApiAuthzUnversioned(ApiUnversionedTestCase, FormsApiAuthzTestCase): pass
+## class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
+## 
+## class TestFormsApi2(Api2TestCase, FormsApiTestCase): pass
+## 
+## class TestFormsApiUnversioned(ApiUnversionedTestCase, FormsApiTestCase): pass
+## 
+## class WithOrigKeyHeader(FormsApiTestCase):
+##     apikey_header_name = 'Authorization'
+## 
+## class TestFormsApi1WithOrigKeyHeader(WithOrigKeyHeader, TestFormsApi1): pass
+## 
+## class TestFormsApi2WithOrigKeyHeader(WithOrigKeyHeader, TestFormsApi2): pass
+## 
+## class TestFormsApiUnversionedWithOrigKeyHeader(TestFormsApiUnversioned): pass
+## 
+## class TestFormsApiAuthz1(Api1TestCase, FormsApiAuthzTestCase): pass
+## 
+## class TestFormsApiAuthz2(Api2TestCase, FormsApiAuthzTestCase): pass
+## 
+## class TestFormsApiAuthzUnversioned(ApiUnversionedTestCase, FormsApiAuthzTestCase): pass
