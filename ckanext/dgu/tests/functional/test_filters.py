@@ -36,15 +36,11 @@ class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
                    'package':c.pkg}
         c.pkg_dict = get_action('package_show')(context, {'id':c.pkg.id})
 
-        # inject a mock-routes_dict into the environ in order
+        # inject a mock PATH_INFO into the environ in order
         # that the template can be rendered correctly.
         # See 'ckan/templates/layout_base.html'
-        # (This is also fixed in ckan 1.5.1)
         import pylons
-        pylons.request.environ.update({'pylons.routes_dict': {
-            'action': 'test-action',
-            'controller': 'test-package::',
-        }})
+        pylons.request.environ.update({'PATH_INFO': '/dataset'})
 
         # Render package view page
         # (filter should not be called on this occasion)
