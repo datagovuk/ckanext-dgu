@@ -10,6 +10,7 @@ install_dependencies () {
     instance=$1
     user="ckan$instance"
 
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-dgutheme.git@feature-1645-apply-simple-theme#egg=ckanext-dgutheme
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-csw.git#egg=ckanext-csw
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-harvest.git#egg=ckanext-harvest
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-inspire.git#egg=ckanext-inspire
@@ -31,7 +32,7 @@ configure () {
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
-    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_form cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query/" \
+    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_form dgu_theme_embedded cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -i.bak "$ini_file"
