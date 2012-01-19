@@ -1,3 +1,4 @@
+
 <form id="package-edit" class="package_create_form ckan" method="post" 
   py:attrs="{'class':'has-errors'} if errors else {}"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
@@ -48,7 +49,7 @@
     <label for="package_type-timeseries">A new timeseries (for example 25k spending data that is republished every month)</label>
 
     <!-- The resource fieldset for a timeseries dataset -->
-    <fieldset>
+    <fieldset id="package_type-timeseries">
       <legend>Time-series dataset</legend>
 
       <label class="field_opt" for="update_frequency">Update frequency</label>
@@ -94,7 +95,8 @@
 
     
     <!-- The resource fieldset for an individual dataset -->
-    <fieldset>
+    <fieldset id="package_type-individual">
+      <legend>Individual dataset</legend>
       <table class="flexitable" id="individual_table">
       <thead>
         <tr>

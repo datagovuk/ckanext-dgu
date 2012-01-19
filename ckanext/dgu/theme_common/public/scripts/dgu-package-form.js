@@ -9,6 +9,23 @@
       $("#title").focus();
     }
 
+    /* Toggling visibility of time-series/data resources */
+    var toggled = function() {
+      var isTimeseries = $('input#package_type-timeseries').is(':checked');
+      var isIndividual = $('input#package_type-individual').is(':checked');
+      if(isTimeseries) {
+        $('fieldset#package_type-timeseries').slideDown('fast');
+        $('fieldset#package_type-individual').slideUp('fast');
+      } else {
+        $('fieldset#package_type-timeseries').slideUp('fast');
+        $('fieldset#package_type-individual').slideDown('fast');
+      }
+    };
+
+    $('input#package_type-individual').change(toggled).attr('checked', true);
+    $('input#package_type-timeseries').change(toggled);
+
+    toggled();
   });
 }(jQuery));
 
