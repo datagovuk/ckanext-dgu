@@ -13,22 +13,24 @@
 </div>
 
 <fieldset>
+
   <legend>Name</legend>
   <p>Please name your data record</p>
   <label class="field_req" for="title">Name:</label>
-  <input id="title" name="title" type="text" value="${data.get('title', '')}"/>
+  <input class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
   <p class="instructions basic">The title of the data set.</p>
   <p class="instructions further">The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop.</p>
   <p class="hints">e.g. Payments to suppliers with a value over &pound;500 from Harlow Council</p>
   <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p>
   
   <label class="field_req" for="name">Unique identifier for this data record:</label>
-  <input id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" />
+  <input class="js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" />
+  <p class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
   <p class="instructions basic">A public unique identifier for the dataset</p>
   <p class="instructions further">It should be roughly readable, with dashes separating words.</p>
   <p class="hints">Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow</p>
   <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
-  <p>This will locate this data set here: <span id="package_url">http://TODO</span></p>
+  <p>This will locate this data set here: <span class="js-url-text url-text" id="package_url">http://ian-laptop:5000/dataset/<span class="js-url-suffix"></span></span></p>
 </fieldset>
 
 <fieldset>
