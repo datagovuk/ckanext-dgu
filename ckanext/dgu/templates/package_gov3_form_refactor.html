@@ -66,7 +66,7 @@
       <dd class="instructions further">For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.</dd>
     <dd class="field_error" py:if="errors.get('update_frequency', '')">${errors.get('update_frequency', '')}</dd>
 
-      <table class="flexitable" id="timeseries_table">
+      <table class="flexitable" id="timeseries_resources-table">
       <thead>
         <tr>
           <th class="field_req resource-name">Name:</th>
@@ -76,7 +76,7 @@
       </thead>
       <tbody>
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
-        <tr>
+        <tr class="timeseries_resources__${num}">
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
             <input name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
@@ -87,6 +87,7 @@
           </td>
           <td class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
           <td class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
+          <td><a py:if="len(data.get('timeseries_resources',[])) == num" href="javascript:;" id="timeseries_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
         </py:for>
       </tbody>
@@ -97,7 +98,7 @@
     <!-- The resource fieldset for an individual dataset -->
     <fieldset id="package_type-individual">
       <legend>Individual dataset</legend>
-      <table class="flexitable" id="individual_table">
+      <table class="flexitable" id="individual_resources-table">
       <thead>
         <tr>
           <th class="field_req resource-name">Name:</th>
@@ -107,7 +108,7 @@
       <tbody>
         <!-- TODO: change this to pull out resources based on resource_type -->
         <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
-        <tr>
+        <tr class="individual_resources__${num}">
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
             <input name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
@@ -115,6 +116,7 @@
           </py:for>
           <td class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
           <td class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
+          <td><a py:if="len(data.get('individual_resources',[])) == num" href="javascript:;" id="individual_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
         </py:for>
       </tbody>
@@ -203,11 +205,11 @@
 <fieldset>
   <legend>Additional resources (optional)</legend>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
-  <table class="flexitable" id="individual_table">
+  <table class="flexitable" id="additional_resources-table">
     <tbody>
       <!-- TODO: change this to pull out resources based on resource_type -->
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
-        <tr>
+        <tr class="additional_resources__${num}">
           <td>
             <label class="field_opt" for="additional_resources__${num}__description">Description:</label>
             <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}"/>
@@ -216,7 +218,8 @@
             <label class="field_opt" for="additional_resources__${num}__url">Link:</label>
             <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}"/>
           </td>
-        <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/>
+          <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
+          <td><a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
       </py:for>
     </tbody>

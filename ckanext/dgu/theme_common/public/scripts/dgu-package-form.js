@@ -26,12 +26,43 @@
     $('input#package_type-timeseries').change(toggled);
 
     toggled();
+
+    /* Add new rows */
+    CKAN.Dgu.copyTableRowOnClick($('#additional_resources-add'), $('#additional_resources-table'));
+    CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
+    CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
   });
 }(jQuery));
 
 var CKAN = CKAN || {};
 
 CKAN.Dgu = function($, my) {
+
+  my.copyTableRowOnClick = function(button, table) {
+    button.attr('onclick', '').click(function() {
+      var lastRow = table.find('tr').last();
+      var info = lastRow.attr('class').split('__'); // eg. additional_resources__0
+      var prefix = info[0];
+      var newIndex = parseInt(info[1],10) + 1;
+      var newRow = lastRow.clone();
+      newRow.attr('class', prefix + "__" + newIndex);
+      newRow.insertAfter(lastRow);
+      newRow.find("*").each(function(index, node) {
+        var attrValueRegex = new RegExp(prefix + '__\\d+');
+        var replacement = prefix + '__' + newIndex;
+        
+        if ($(node).attr("for")) {
+          $(node).attr("for", $(node).attr("for").replace(attrValueRegex, replacement));
+        }
+        if ($(node).attr("name")) {
+          $(node).attr("name", $(node).attr("name").replace(attrValueRegex, replacement));
+        }
+        $(node).val("");
+      });
+      newRow.find('a.add-button').remove();
+      lastRow.find('a.add-button').appendTo(newRow.find('td').last());
+    });
+  };
 
   my.bindInputChanges = function(input, callback) {
     input.keyup(callback);
