@@ -13,7 +13,20 @@
 </ul>
 </div>
 
-<fieldset>
+<div id="form-tabs">
+  <ul>
+    <li><a id="section-name" href="#section-name" class="active">Name</a></li>
+    <li><a id="section-data" href="#section-data">Data</a></li>
+    <li><a id="section-description" href="#section-description">Description</a></li>
+    <li><a id="section-contacts" href="#section-contacts">Contact details</a></li>
+    <li><a id="section-themes" href="#section-themes">Theme &amp; tags</a></li>
+    <li><a id="section-additional_resources" href="#section-additional_resources">Additional resources (optional)</a></li>
+    <li><a id="section-temporal" href="#section-temporal">Temporal coverage (optional)</a></li>
+    <li><a id="section-geographic" href="#section-geographic">Geographic coverage (optional)</a></li>
+  </ul>
+</div>
+
+<fieldset id="section-name-fields">
 
   <legend>Name</legend>
   <p>Please name your data record</p>
@@ -34,7 +47,7 @@
   <p>This will locate this data set here: <span class="js-url-text url-text" id="package_url">http://ian-laptop:5000/dataset/<span class="js-url-suffix"></span></span></p>
 </fieldset>
 
-<fieldset>
+<fieldset id="section-data-fields">
   <legend>Data</legend>
   <p>Add the links to the data itself here.  You can add links to the website or more information in the 'Additional Resources' section.</p>
     <p>Please use a separate line and link for each different format</p>
@@ -132,7 +145,7 @@
 </fieldset>
 
 
-<fieldset>
+<fieldset id="section-description-fields">
   <legend>Description</legend>
   <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
     <textarea cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
@@ -141,7 +154,7 @@
     <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
-<fieldset>
+<fieldset id="section-contacts-fields">
   <legend>Contact details</legend>
   <p>Here are the contact details that will be displayed for this dataset.  To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.  Please click 'Next' to confirm.</p>
     <label class="field_req" for="published_by">Published by: </label>
@@ -171,7 +184,7 @@
     <input id="author_telephone" name="author_telephone" type="text" value="${data.get('author_telephone', '')}"/>
 </fieldset>
 
-<fieldset>
+<fieldset id="section-themes-fields">
   <legend>Theme &amp; tags</legend>
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="primary_theme" name="primary_theme">
@@ -202,7 +215,7 @@
            value="${data.get('tag_string') or ', '.join([tag['name'] for tag in data.get('tags', [])])}" />
 </fieldset>
 
-<fieldset>
+<fieldset id="section-additional_resources-fields">
   <legend>Additional resources (optional)</legend>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="flexitable" id="additional_resources-table">
@@ -263,7 +276,7 @@
 
 </fieldset>
 
-<fieldset>
+<fieldset id="section-temporal-fields">
   <legend>Time &amp; date (optional)</legend>
   <label class="field_opt" for="date_released">Date released</label>
   <input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" />
@@ -317,7 +330,7 @@
 
 </fieldset>
 
-<fieldset>
+<fieldset id="section-geographic-fields">
   <legend>Geographic coverage</legend>
     <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
     

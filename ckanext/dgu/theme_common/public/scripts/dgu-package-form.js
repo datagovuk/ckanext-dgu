@@ -31,12 +31,33 @@
     CKAN.Dgu.copyTableRowOnClick($('#additional_resources-add'), $('#additional_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
+
+    /* Hide field sets */
+    $('form#package-edit').children('fieldset').hide();
+    CKAN.Dgu.showTab($('a#section-name'),                 $('fieldset#section-name-fields'));
+    CKAN.Dgu.showTab($('a#section-data'),                 $('fieldset#section-data-fields'));
+    CKAN.Dgu.showTab($('a#section-description'),          $('fieldset#section-description-fields'));
+    CKAN.Dgu.showTab($('a#section-contacts'),             $('fieldset#section-contacts-fields'));
+    CKAN.Dgu.showTab($('a#section-themes'),               $('fieldset#section-themes-fields'));
+    CKAN.Dgu.showTab($('a#section-additional_resources'), $('fieldset#section-additional_resources-fields'));
+    CKAN.Dgu.showTab($('a#section-temporal'),             $('fieldset#section-temporal-fields'));
+    CKAN.Dgu.showTab($('a#section-geographic'),           $('fieldset#section-geographic-fields'));
+    $('fieldset#section-name-fields').show();
   });
 }(jQuery));
 
 var CKAN = CKAN || {};
 
 CKAN.Dgu = function($, my) {
+
+  my.showTab = function(button, fieldset) {
+    button.attr('onclick', '').click(function() {
+      $('form#package-edit').children('fieldset').hide();
+      $(fieldset).show();
+      $('#form-tabs').find('a').removeClass("active");
+      $(button).addClass("active");
+    });
+  };
 
   my.copyTableRowOnClick = function(button, table) {
     button.attr('onclick', '').click(function() {

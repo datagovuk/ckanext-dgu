@@ -1,0 +1,26 @@
+div#form-tabs {
+  float: left;
+}
+
+div#form-tabs li {
+  list-style: none;
+  border-style: solid;
+  border-width: 2px;
+  border-color: black;
+  background-color: #E0E0E0;
+  margin: 2px;
+}
+
+div#form-tabs li a {
+  display: block;
+  padding: 10px;
+}
+
+div#form-tabs a.active {
+  background-color: white;
+}
+
+div#form-tabs a:hover {
+  color: green;
+  background-color: white;
+}
