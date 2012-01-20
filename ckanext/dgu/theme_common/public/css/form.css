@@ -24,3 +24,8 @@ div#form-tabs a:hover {
   color: green;
   background-color: white;
 }
+
+table.flexitable td.resource-id, td.resource-type {
+  width: 0px;
+  padding: 0px;
+}

@@ -74,7 +74,7 @@
         </py:for>
       </select>
       <label class="inline" for="update_frequency-other">Other:</label>
-      <input class="medium-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
+      <input class="short-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
       <dd class="instructions basic">How frequently the dataset is updated with new versions</dd>
       <dd class="instructions further">For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.</dd>
     <dd class="field_error" py:if="errors.get('update_frequency', '')">${errors.get('update_frequency', '')}</dd>
@@ -313,7 +313,7 @@
         </py:for>
       </select>
       <label class="inline" for="temporal_granularity-other">Other: 
-        <input class="medium-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
+        <input class="short-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
       </label>
     
     <p class="instructions basic">The lowest level of temporal detail granularity</p>
@@ -342,7 +342,7 @@
         </py:for>
       </select>
       <label class="inline" for="geographic_granularity-other">Other: 
-        <input class="medium-width" id="geographic_granularity-other" 
+        <input class="short-width" id="geographic_granularity-other" 
         name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
       </label>
     
