@@ -86,6 +86,9 @@ class TestHarvestFilter(FilterTestCase):
 class TestPackageIdFilter(FilterTestCase):
 
     def test_basic(self):
+        """
+        Currently FAILs. Leaving in as I'm not sure of the expected behaviour
+        """
         pkg_id = c.pkg.id
 
         # before filter
