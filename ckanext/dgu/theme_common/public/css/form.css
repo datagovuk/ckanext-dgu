@@ -43,3 +43,7 @@ table.flexitable td.resource-id, td.resource-type {
   background-color: #F5A9BC;
   border: 2px solid #FF0040;
 }
+.to-be-completed, #tooltip.to-be-completed  {
+  background-color: #F5DA81;
+  border: 2px solid #FFBF00;
+}

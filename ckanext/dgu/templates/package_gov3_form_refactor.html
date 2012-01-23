@@ -157,8 +157,10 @@
 
 <fieldset id="section-contacts-fields">
   <legend>Contact details</legend>
-  <p>Here are the contact details that will be displayed for this dataset.  To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.  Please click 'Next' to confirm.</p>
-    <label class="field_req" for="published_by">Published by: </label>
+  <p>Here are the contact details that will be displayed for this dataset.  <span class="instruction-needed" title="What's this?">To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.</span>  Please click 'Next' to confirm.</p>
+    <fieldset id="publisher-information">
+      <legend>Publisher information</legend>
+      <label class="field_req to-be-completed" title="When publisher information is integrated, this will be pre-filled with the user's immediate publisher.  And publisher details will be pre-filled (email, link and telephone)" for="published_by">Published by: </label>
       <select id="published_by" name="published_by">
         <py:for each="published_name, published_desc in c.publishers">
           <option value="${published_name}" py:attrs="{'selected': 'selected' if data.get('published_by', '') == published_name else None}" >
@@ -167,22 +169,25 @@
         </py:for>
       </select>
     <!-- TODO: the labels can be removed -->
-    <label for="published_by-email">Email:</label>
-    <input id="published_by-email" name="published_by-email" type="text" value="${data.get('published_by-email', '')}"/>
-    <label for="published_by-url">Link</label>
-    <input id="published_by-url" name="published_by-url" type="text" value="${data.get('published_by-url', '')}"/>
-    <label for="published_by-telephone">Telephone</label>
-    <input id="published_by-telephone" name="published_by-telephone" type="text" value="${data.get('published_by-telephone', '')}"/>
-
+      <br/><label for="published_by-email">Publisher email:</label>
+      <input id="published_by-email" name="published_by-email" type="text" value="${data.get('published_by-email', '')}"/>
+      <br/><label for="published_by-url">Publisher link:</label>
+      <input id="published_by-url" name="published_by-url" type="text" value="${data.get('published_by-url', '')}"/>
+      <br/><label for="published_by-telephone">Publisher telephone:</label>
+      <input id="published_by-telephone" name="published_by-telephone" type="text" value="${data.get('published_by-telephone', '')}"/>
+    </fieldset>
     
-    <label class="field_req" for="author">FOI Contact:</label>
-    <input id="author" name="author" type="text" value="${data.get('author', '')}"/>
-    <label for="author_email">Email:</label>
-    <input id="author_email" name="author_email" type="text" value="${data.get('author_email', '')}"/>
-    <label for="author_url">Link</label>
-    <input id="author_url" name="author_url" type="text" value="${data.get('author_url', '')}"/>
-    <label for="author_telephone">Telephone</label>
-    <input id="author_telephone" name="author_telephone" type="text" value="${data.get('author_telephone', '')}"/>
+    <fieldset>
+      <legend>FOI information</legend>
+      <label class="field_req to-be-completed" title="When the publisher information is integrated, this will be pre-filled with the user's information." for="author">FOI Contact:</label>
+      <input id="author" name="author" type="text" value="${data.get('author', '')}"/>
+      <br/><label for="author_email">Email:</label>
+      <input id="author_email" name="author_email" type="text" value="${data.get('author_email', '')}"/>
+      <br/><label for="author_url">Link:</label>
+      <input id="author_url" name="author_url" type="text" value="${data.get('author_url', '')}"/>
+      <br/><label for="author_telephone">Telephone:</label>
+      <input id="author_telephone" name="author_telephone" type="text" value="${data.get('author_telephone', '')}"/>
+    </fieldset>
 </fieldset>
 
 <fieldset id="section-themes-fields">
