@@ -38,3 +38,8 @@ table.flexitable td.resource-id, td.resource-type {
   padding: 5px;
 }
 #tooltip h3, #tooltip div { margin: 0; color: black; }
+
+.instruction-needed, #tooltip.instruction-needed {
+  background-color: #F5A9BC;
+  border: 2px solid #FF0040;
+}

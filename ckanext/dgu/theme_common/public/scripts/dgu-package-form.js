@@ -11,6 +11,8 @@
 
     /* Create javascript tooltips */
     $('.js-tooltip').tooltip();
+    $('.js-tooltip-instruction-needed').attr('title', 'Tooltip text required?');
+    $('.js-tooltip-instruction-needed').tooltip({'extraClass':'instruction-needed'});
 
     /* Toggling visibility of time-series/data resources */
     var toggled = function() {

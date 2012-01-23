@@ -59,25 +59,25 @@
     <fieldset id="package_type-timeseries">
       <legend>Time-series dataset</legend>
 
-      <label class="field_opt" for="update_frequency">Update frequency</label>
-      <select class="short" id="update_frequency" name="update_frequency">
-        <py:for each="freq_name, freq_desc in c.update_frequency">
-          <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
-            ${freq_desc}
-          </option>
-        </py:for>
-      </select>
-      <label class="inline" for="update_frequency-other">Other:</label>
-      <input class="short-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
-      <dd class="instructions basic">How frequently the dataset is updated with new versions</dd>
-      <dd class="instructions further">For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.</dd>
+      <div class="instruction-needed" title="This seemed like a natural place for this.  It implies that update_frequency is not applicable to non-timeseries type datasets.  Is that a reasonable assumption?">
+        <label class="field_opt" for="update_frequency">Update frequency</label>
+        <select class="js-tooltip short" id="update_frequency" name="update_frequency" title="How frequently the dataset is updated with new versions.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+          <py:for each="freq_name, freq_desc in c.update_frequency">
+            <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
+              ${freq_desc}
+            </option>
+          </py:for>
+        </select>
+        <label class="inline" for="update_frequency-other">Other:</label>
+        <input class="short-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
+      </div>
     <dd class="field_error" py:if="errors.get('update_frequency', '')">${errors.get('update_frequency', '')}</dd>
 
       <table class="flexitable" id="timeseries_resources-table">
       <thead>
         <tr>
           <th class="field_req resource-name">Name:</th>
-          <th class="field_opt resource-url">Link:</th>
+          <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
           <th class="field_opt resource-date">Date:</th>
         </tr>
       </thead>
@@ -86,7 +86,11 @@
         <tr class="timeseries_resources__${num}">
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
-            <input name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
+            <py:choose test="">
+              <input py:when="col=='description'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
+              <input py:when="col=='url'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
+              <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
+            </py:choose>
           </td>
           </py:for>
           <td class="resource-date">
@@ -109,17 +113,20 @@
       <thead>
         <tr>
           <th class="field_req resource-name">Name:</th>
-          <th class="field_opt resource-url">Link:</th>
+          <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
         </tr>
       </thead>
       <tbody>
-        <!-- TODO: change this to pull out resources based on resource_type -->
         <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
         <tr class="individual_resources__${num}">
           <py:for each="col in c.resource_columns">
-          <td class="resource-${col}">
-            <input name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="${'medium-width' if col=='description' else 'short'}" />
-          </td>
+            <td class="resource-${col}">
+            <py:choose test="">
+              <input py:when="col=='description'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
+              <input py:when="col=='url'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
+              <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
+            </py:choose>
+            </td>
           </py:for>
           <td class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
           <td class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
@@ -131,8 +138,9 @@
     </fieldset>
 
     <p class="instructions basic">The files containing the data or address of the APIs for accessing it</p>
-    <p class="instructions further">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.<br/> <b>URL:</b> This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department<br/> e.g. http://www.somedept.gov.uk/growth-figures-2009.csv<br/><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
-  <p class="hints">Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+    <p class="instruction-needed instructions further" title="These instructions are from the current form.  Do they need re-wording?  I think we should hide them in a tooltip somehow.">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.</p>
+    <p class="instruction-needed" title="What are we doing with resource formats?"><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
+  <p class="instruction-needed hints" title="What are we doing with resource formats?">Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
   <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
   <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
 
@@ -214,7 +222,6 @@
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="flexitable" id="additional_resources-table">
     <tbody>
-      <!-- TODO: change this to pull out resources based on resource_type -->
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr class="additional_resources__${num}">
           <td>
