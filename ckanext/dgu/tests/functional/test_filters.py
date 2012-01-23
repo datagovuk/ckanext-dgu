@@ -53,6 +53,10 @@ class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
         cls.harvest_xml_url = '/api/2/rest/harvestobject/%s/xml' % harvest_object_id
         cls.harvest_html_url = '/api/2/rest/harvestobject/%s/html' % harvest_object_id
 
+    @classmethod
+    def teardown_class(cls):
+        HarvestFixture.teardown_class()
+
 class TestHarvestFilter(FilterTestCase):
 
     def test_basic(self):
