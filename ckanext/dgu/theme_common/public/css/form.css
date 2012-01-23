@@ -29,3 +29,12 @@ table.flexitable td.resource-id, td.resource-type {
   width: 0px;
   padding: 0px;
 }
+
+#tooltip {
+  position: absolute;
+  z-index: 3000;
+  border: 1px solid #111;
+  background-color: #E0E0E0;
+  padding: 5px;
+}
+#tooltip h3, #tooltip div { margin: 0; color: black; }

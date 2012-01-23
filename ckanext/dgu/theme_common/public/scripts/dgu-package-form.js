@@ -9,6 +9,9 @@
       $("#title").focus();
     }
 
+    /* Create javascript tooltips */
+    $('.js-tooltip').tooltip();
+
     /* Toggling visibility of time-series/data resources */
     var toggled = function() {
       var isTimeseries = $('input#package_type-timeseries').is(':checked');
