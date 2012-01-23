@@ -10,7 +10,11 @@ from ckan.lib.create_test_data import CreateTestData
 from ckanext.dgu.tests import WsgiAppCase, MockDrupalCase
 from ckanext.dgu.testtools.form_api_tester import *
 
-class TestFormApiTester(WsgiAppCase, MockDrupalCase):
+class _TestFormApiTester(WsgiAppCase, MockDrupalCase):
+    """
+    Disabled as we no longer integrate the form with drupal.
+    """
+
     @classmethod
     def setup_class(cls):
         super(TestFormApiTester, cls).setup_class()

@@ -90,13 +90,13 @@ class FormsApiTestCase(BaseFormsApiCase, MockDrupalCase):
             value = package.extras[key]
             self.assert_not_formfield(form, prefix + key, value)
         
-
-class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
-
-class TestFormsApi2(Api2TestCase, FormsApiTestCase):
-
-    def test_get_department_from_organisation_api(self):
-        assert self.app.get('/api/2/util/publisher/2/department').body=='"7"',self.app.get('/api/2/util/publisher/2/department').body
+## These tests are disabled as they are part of the old sqlalchemy form
+# class TestFormsApi1(Api1TestCase, FormsApiTestCase): pass
+# 
+# class TestFormsApi2(Api2TestCase, FormsApiTestCase):
+# 
+#     def test_get_department_from_organisation_api(self):
+#         assert self.app.get('/api/2/util/publisher/2/department').body=='"7"',self.app.get('/api/2/util/publisher/2/department').body
 
 class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
     '''Tests the form as it would be used embedded in dgu html.'''
@@ -191,9 +191,10 @@ class EmbeddedFormTestCase(BaseFormsApiCase, MockDrupalCase):
 
     # TODO add other tests in from test_form.py
 
-class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
+## These tests are disabled as we no longer embed the form in a drupal page.
+#class TestEmbeddedFormApi1(Api1TestCase, EmbeddedFormTestCase): pass
 
-class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
+#class TestEmbeddedFormApi2(Api2TestCase, EmbeddedFormTestCase): pass
 
 class TestGeoCoverageBug(Api2TestCase, BaseFormsApiCase, MockDrupalCase):
     @classmethod
@@ -213,6 +214,9 @@ class TestGeoCoverageBug(Api2TestCase, BaseFormsApiCase, MockDrupalCase):
         CreateTestData.delete()
 
     def test_edit_coverage(self):
+        """
+        Currently ERRORs.  Leaving in as a reminder to check the same thing against the new form.
+        """
         package = self.get_package_by_name(self.package_name)
         form, ret_status = self.get_package_edit_form(package.id, package_form=package_form)
         prefix = 'Package-%s-' % package.id
