@@ -151,8 +151,7 @@
   <legend>Description</legend>
   <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
     <textarea cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
-    <p class="instructions basic">The main description of the dataset</p>
-    <p class="instructions further">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
+    <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
     <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
