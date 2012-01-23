@@ -53,6 +53,10 @@ class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
         cls.harvest_xml_url = '/api/2/rest/harvestobject/%s/xml' % harvest_object_id
         cls.harvest_html_url = '/api/2/rest/harvestobject/%s/html' % harvest_object_id
 
+    @classmethod
+    def teardown_class(cls):
+        HarvestFixture.teardown_class()
+
 class TestHarvestFilter(FilterTestCase):
 
     def test_basic(self):
@@ -82,6 +86,9 @@ class TestHarvestFilter(FilterTestCase):
 class TestPackageIdFilter(FilterTestCase):
 
     def test_basic(self):
+        """
+        Currently FAILs. Leaving in as I'm not sure of the expected behaviour
+        """
         pkg_id = c.pkg.id
 
         # before filter
