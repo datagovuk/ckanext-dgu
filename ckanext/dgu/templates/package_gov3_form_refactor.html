@@ -227,15 +227,21 @@
   <legend>Additional resources (optional)</legend>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="flexitable" id="additional_resources-table">
+    <thead>
+      <tr>
+        <th class="field_req resource-name">Description:</th>
+        <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
+      </tr>
+    </thead>
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr class="additional_resources__${num}">
           <td>
-            <label class="field_opt" for="additional_resources__${num}__description">Description:</label>
+            <!-- <label class="field_opt" for="additional_resources__${num}__description">Description:</label> -->
             <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}"/>
           </td>
           <td>
-            <label class="field_opt" for="additional_resources__${num}__url">Link:</label>
+            <!-- <label class="field_opt" for="additional_resources__${num}__url">Link:</label> -->
             <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}"/>
           </td>
           <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
@@ -244,46 +250,48 @@
       </py:for>
     </tbody>
     </table>
-    <label class="field_opt" for="url">URL</label>
-    <input id="url" name="url" type="text" value="${data.get('url', '')}"/>
-    <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
-    <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
-    <p class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</p>
+    <div class="instruction-needed" title="All these fields exist in the current form, but are missing from the document.  We need to decided whether to keep them or remove them.">
+      <label class="field_opt" for="url">URL</label>
+      <input id="url" name="url" type="text" value="${data.get('url', '')}"/>
+      <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
+      <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
+      <p class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</p>
 
-    <label class="field_opt" for="taxonomy_url">Taxonomy URL</label>
-    <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/>
-    <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
-    <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
-    <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
-    
-    <label class="field_opt" for="mandate">Mandate</label>
-    <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
-    <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-    <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
-    <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
+      <label class="field_opt" for="taxonomy_url">Taxonomy URL</label>
+      <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/>
+      <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
+      <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
+      <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
+      
+      <label class="field_opt" for="mandate">Mandate</label>
+      <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
+      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
+      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+      <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
 
-    <label class="field_opt" for="license_id">Licence *</label>
-    
-      <select id="license_id" name="license_id">
-        <py:for each="licence_desc, licence_id in c.licences">
-          <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
-        </py:for>
-      </select>
-    
-    <p class="instructions basic">The licence under which the dataset is released.</p>
-    <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
+      <label class="field_opt" for="license_id">Licence *</label>
+      
+        <select id="license_id" name="license_id">
+          <py:for each="licence_desc, licence_id in c.licences">
+            <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
+          </py:for>
+        </select>
+      
+      <p class="instructions basic">The licence under which the dataset is released.</p>
+      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
 
-    <label class="field_opt" for="national_statistic">National Statistic</label>
-    <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
-         py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" />
-    <p class="instructions basic">Indicate if the dataset is a National Statistic</p>
-    <p class="instructions further">This is so that it can be highlighted.</p>
+      <label class="field_opt" for="national_statistic">National Statistic</label>
+      <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
+           py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" />
+      <p class="instructions basic">Indicate if the dataset is a National Statistic</p>
+      <p class="instructions further">This is so that it can be highlighted.</p>
+    </div>
 
 
 
 </fieldset>
 
-<fieldset id="section-temporal-fields">
+<fieldset class="instruction-needed" title="These fields are present in the current for, but not mentioned in the spec.  We need to decide what to do with them." id="section-temporal-fields">
   <legend>Time &amp; date (optional)</legend>
   <label class="field_opt" for="date_released">Date released</label>
   <input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" />
@@ -337,7 +345,7 @@
 
 </fieldset>
 
-<fieldset id="section-geographic-fields">
+<fieldset id="section-geographic-fields" class="instruction-needed" title="These fields are present in the current for, but not mentioned in the spec.  We need to decide what to do with them.">
   <legend>Geographic coverage</legend>
     <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
     

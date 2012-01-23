@@ -76,8 +76,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'national_statistic':   ('National Statistic', 'input'),
 
         # Additional resources section
-        'additional_resources__0__description': ('Description:', 'input'),
-        'additional_resources__0__url':         ('Link:', 'input'),
+        'additional_resources__0__description': (None, 'input'),
+        'additional_resources__0__url':         (None, 'input'),
 
         # Time & date section
         'date_released':                ('Date released', 'input'),
