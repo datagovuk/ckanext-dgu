@@ -8,7 +8,7 @@ from ckanext.harvest.model import HarvestObject
 import ckanext.dgu.forms.html as html
 
 def harvest_filter(stream, pkg):
-
+    
     harvest_object_id = pkg.extras.get('harvest_object_id')
     if harvest_object_id:
 
@@ -18,7 +18,7 @@ def harvest_filter(stream, pkg):
             # If no resources, the table has only two columns
             html_code = html_code.replace('<td></td>','')
 
-        stream = stream | Transformer('body//div[@class="resources subsection"]/table')\
+        stream = stream | Transformer('body//div[@class="resources subsection"]')\
             .append(HTML(html_code % data))
 
     return stream
