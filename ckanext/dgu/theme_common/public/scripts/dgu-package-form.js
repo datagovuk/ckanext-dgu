@@ -32,7 +32,7 @@
       }
     };
 
-    $('input#package_type-individual').change(toggled).attr('checked', true);
+    $('input#package_type-individual').change(toggled);
     $('input#package_type-timeseries').change(toggled);
 
     toggled();

@@ -1,6 +1,9 @@
 <?python 
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
+is_edit_form = bool(data.get('id'))
+is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
+is_individual_dataset = bool(data.get('individual_resources',[]))
 ?>
 
 <form id="package-edit" class="package_create_form ckan" method="post" 
@@ -53,10 +56,10 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
     <!-- TODO: this selection is only applicable in the package-create form.
                At package-edit time, it should already be set.               -->
 
-    <input id="package_type-individual" type="radio" name="package_type" value="individual"/>
+    <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual" type="radio" name="package_type" value="individual"/>
     <label for="package_type-individual">An individual dataset</label>
     <br/>
-    <input id="package_type-timeseries" type="radio" name="package_type" value="timeseries"/>
+    <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries" type="radio" name="package_type" value="timeseries"/>
     <label for="package_type-timeseries">A new timeseries (for example 25k spending data that is republished every month)</label>
 
     <!-- The resource fieldset for a timeseries dataset -->
