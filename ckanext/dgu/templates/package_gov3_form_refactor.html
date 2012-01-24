@@ -1,3 +1,7 @@
+<?python 
+from pylons import config
+drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
+?>
 
 <form id="package-edit" class="package_create_form ckan" method="post" 
   py:attrs="{'class':'has-errors'} if errors else {}"
@@ -394,8 +398,7 @@
   <input id="save" name="save" type="submit" value="Save" />
 </div>
 <p class="hints">
-<strong>Important:</strong> By submitting content, you agree to release your contributions
-  under the open license specified on the <a href="/license">license page</a>. Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
+<strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${drupal_host}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
 </p>
 
 </form>
