@@ -60,17 +60,23 @@ temporal_granularity = [("",""),
 def additional_resource_schema():
     schema = default_schema.default_resource_schema()
     schema['resource_type'].insert(0, validate_additional_resource_types)
+    schema['url'] = [not_empty]
+    schema['description'] = [not_empty]
     return schema
 
 def individual_resource_schema():
     schema = default_schema.default_resource_schema()
     schema['resource_type'].insert(0, validate_data_resource_types)
+    schema['url'] = [not_empty]
+    schema['description'] = [not_empty]
     return schema
 
 def timeseries_resource_schema():
     schema = default_schema.default_resource_schema()
-    schema['date'] = [unicode, convert_to_extras]
+    schema['date'] = [not_empty, unicode, convert_to_extras]
     schema['resource_type'].insert(0, validate_data_resource_types)
+    schema['url'] = [not_empty]
+    schema['description'] = [not_empty]
     return schema
 
 class PackageGov3Controller(PackageController):
