@@ -40,8 +40,8 @@ table.flexitable td.resource-id, td.resource-type {
 #tooltip h3, #tooltip div { margin: 0; color: black; }
 
 .instruction-needed, #tooltip.instruction-needed {
-  background-color: #F5A9BC;
-  border: 2px solid #FF0040;
+  background-color: #A9BCF5;
+  border: 2px solid #0040FF;
 }
 .to-be-completed, #tooltip.to-be-completed  {
   background-color: #F5DA81;
