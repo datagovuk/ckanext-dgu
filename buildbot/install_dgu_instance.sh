@@ -42,4 +42,5 @@ configure () {
     echo "dgu.xmlrpc_password = XXX" | sudo tee -a "$ini_file" > /dev/null
     echo "dgu.xmlrpc_domain = 212.110.177.173" | sudo tee -a "$ini_file" > /dev/null
     echo "ckan.enable_call_timing = false" | sudo tee -a "$ini_file" > /dev/null
+    echo "search.facets = groups tags res_format license resource-type INSPIRE" | sudo tee -a "$ini_file" > /dev/null
 }
