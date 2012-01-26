@@ -55,9 +55,10 @@ temporal_granularity = [("",""),
 
 class PackageGov3Controller(PackageController):
 
-    package_form = 'package_gov3.html'
+    def _package_form(self, package_type=None):
+        return 'package_gov3.html'
 
-    def _setup_template_variables(self, context, data_dict=None):
+    def _setup_template_variables(self, context, data_dict=None, package_type=None):
         c.licences = [('', '')] + model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
         c.update_frequency = update_frequency
@@ -74,7 +75,7 @@ class PackageGov3Controller(PackageController):
             c.auth_for_change_state = Authorizer().am_authorized(
                 c, model.Action.CHANGE_STATE, pkg)
 
-    def _form_to_db_schema(self):
+    def _form_to_db_schema(self, package_type=None):
 
         schema = {
             'title': [not_empty, unicode],
@@ -116,7 +117,7 @@ class PackageGov3Controller(PackageController):
         }
         return schema
     
-    def _db_to_form_schema(data):
+    def _db_to_form_schema(data, package_type=None):
         schema = {
             'date_released': [convert_from_extras, ignore_missing, date_to_form],
             'date_updated': [convert_from_extras, ignore_missing, date_to_form],
@@ -149,7 +150,7 @@ class PackageGov3Controller(PackageController):
         }
         return schema
 
-    def _check_data_dict(self, data_dict):
+    def _check_data_dict(self, data_dict, package_type=None):
         return
 
     def get_publishers(self):
