@@ -35,6 +35,8 @@ configure () {
     sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_form dgu_theme_embedded cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
+             -e '/^\[app:main\]$/ a\
+search.facets = groups tags res_format license resource-type INSPIRE' \
              -i.bak "$ini_file"
 
     echo "ckan.spatial.srid = 4258" | sudo tee -a "$ini_file" > /dev/null
@@ -42,5 +44,4 @@ configure () {
     echo "dgu.xmlrpc_password = XXX" | sudo tee -a "$ini_file" > /dev/null
     echo "dgu.xmlrpc_domain = 212.110.177.173" | sudo tee -a "$ini_file" > /dev/null
     echo "ckan.enable_call_timing = false" | sudo tee -a "$ini_file" > /dev/null
-    echo "search.facets = groups tags res_format license resource-type INSPIRE" | sudo tee -a "$ini_file" > /dev/null
 }
