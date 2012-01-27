@@ -281,8 +281,8 @@ class DumpAnalysis(object):
                         break
                 pkg_bins[import_source].append(pkg['name'])
                 continue
-            if pkg['extras'].get('INSPIRE') == 'True':
-                pkg_bins['INSPIRE'].append(pkg['name'])
+            if pkg['extras'].get('UKLP') == 'True':
+                pkg_bins['UKLP'].append(pkg['name'])
                 continue
             if (pkg.get('url') or '').startswith('http://www.data4nr.net/resources/'):
                 import_source = import_source_prefixes['DATA4NR']
