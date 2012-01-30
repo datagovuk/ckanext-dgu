@@ -30,20 +30,3 @@ table.flexitable td.resource-id, td.resource-type {
   padding: 0px;
 }
 
-#tooltip {
-  position: absolute;
-  z-index: 3000;
-  border: 1px solid #111;
-  background-color: #E0E0E0;
-  padding: 5px;
-}
-#tooltip h3, #tooltip div { margin: 0; color: black; }
-
-.instruction-needed, #tooltip.instruction-needed {
-  background-color: #A9BCF5;
-  border: 2px solid #0040FF;
-}
-.to-be-completed, #tooltip.to-be-completed  {
-  background-color: #F5DA81;
-  border: 2px solid #FFBF00;
-}
