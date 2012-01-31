@@ -44,6 +44,24 @@
     CKAN.Dgu.showTab($('a#section-temporal'),             $('fieldset#section-temporal-fields'));
     CKAN.Dgu.showTab($('a#section-geographic'),           $('fieldset#section-geographic-fields'));
     $('fieldset#section-name-fields').show();
+
+    /* Setup next/back buttons */
+    $('#back-button').attr('disabled', 'disabled');
+    $('#back-button').attr('onclick', '').click(function(){
+      var activeTab = $('div#form-tabs').find('a.active');
+      var previousTab = activeTab.parent().prev().children('a');
+      if(previousTab) {
+        previousTab.first().trigger('click');
+      }
+    });
+
+    $('#next-button').attr('onclick', '').click(function(){
+      var activeTab = $('div#form-tabs').find('a.active');
+      var nextTab = activeTab.parent().next().children('a');
+      if(nextTab) {
+        nextTab.first().trigger('click');
+      }
+    });
   });
 }(jQuery));
 
@@ -57,6 +75,23 @@ CKAN.Dgu = function($, my) {
       $(fieldset).show();
       $('#form-tabs').find('a').removeClass("active");
       $(button).addClass("active");
+
+      // Handle the back/next buttons
+      previousTab = $(button).parent().prev();
+      if (previousTab.length > 0) {
+        $('#back-button').removeAttr('disabled');
+      } else {
+        $('#back-button').attr('disabled', 'disabled');
+      }
+
+      nextTab = $(button).parent().next();
+      if (nextTab.length > 0) {
+        $('#next-button').removeAttr('disabled');
+      } else {
+        $('#next-button').attr('disabled', 'disabled');
+      }
+      
+      
     });
   };
 

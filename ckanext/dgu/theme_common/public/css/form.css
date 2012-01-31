@@ -30,3 +30,11 @@ table.flexitable td.resource-id, td.resource-type {
   padding: 0px;
 }
 
+div#nav-controls {
+  float: right;
+  clear: left;
+}
+
+div#disclaimer { 
+  clear: right;
+}

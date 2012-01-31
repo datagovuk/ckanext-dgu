@@ -397,11 +397,15 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
 </fieldset>
 
-<div class="submit">
+<div id="nav-controls" class="submit">
+  <input disabled="disabled" class="nav-button" type="button" id="back-button" value="Back" py:if="not is_edit_form"/>
   <input id="save" name="save" type="submit" value="Save" />
+  <input  disabled="disabled" class="nav-button" type="button" id="next-button" value="Next" py:if="not is_edit_form"/>
 </div>
-<p class="hints">
-<strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${drupal_host}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
-</p>
+<div id="disclaimer">
+  <p class="hints">
+  <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${drupal_host}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
+  </p>
+</div>
 
 </form>
