@@ -44,7 +44,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <label class="field_req" for="name">Unique identifier for this data record:</label>
   <input class="js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
   <p class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
-  <p>This will locate this data set here: <span class="js-url-text url-text" id="package_url">http://${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
+  <p>This will locate this data set here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
   <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
 </fieldset>
 
