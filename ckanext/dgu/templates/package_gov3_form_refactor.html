@@ -52,21 +52,20 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <fieldset id="section-data-fields">
   <legend>Data</legend>
-  <p>Add the links to the data itself here.  You can add links to the website or more information in the 'Additional Resources' section.</p>
-    <p>Please use a separate line and link for each different format</p>
-
-    <!-- TODO: this selection is only applicable in the package-create form.
-               At package-edit time, it should already be set.               -->
+  <p>In this tab you enter the links to the files you wish to add to this record. Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the 25k spend data, where new data is added to the record monthly).</p>
+    <p>This record is:</p>
 
     <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual" type="radio" name="package_type" value="individual"/>
-    <label for="package_type-individual">An individual dataset</label>
+    <label for="package_type-individual">A single file record</label>
     <br/>
     <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries" type="radio" name="package_type" value="timeseries"/>
-    <label for="package_type-timeseries">A new timeseries (for example 25k spending data that is republished every month)</label>
+    <label for="package_type-timeseries">A timeseries record</label>
 
     <!-- The resource fieldset for a timeseries dataset -->
     <fieldset id="package_type-timeseries">
-      <legend>Time-series dataset</legend>
+      <legend>Data Files</legend>
+
+      <p>For each format you have a copy of your data in, please add a link below. Use the plus button to add more lines.  You can add links to the website or more information in the 'Additional Resources' section.</p>
 
       <div class="instruction-needed" title="This seemed like a natural place for this.  It implies that update_frequency is not applicable to non-timeseries type datasets.  Is that a reasonable assumption?">
         <label class="field_opt" for="update_frequency">Update frequency</label>
@@ -85,8 +84,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <table class="flexitable" id="timeseries_resources-table">
       <thead>
         <tr>
-          <th class="resource-name">Name:</th>
-          <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
+          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
+          <th class="field_opt resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
           <th class="field_opt resource-date">Date:</th>
         </tr>
       </thead>
@@ -117,12 +116,15 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     
     <!-- The resource fieldset for an individual dataset -->
     <fieldset id="package_type-individual">
-      <legend>Individual dataset</legend>
+      <legend>Data Files</legend>
+
+      <p>For each format you have a copy of your data in, please add a link below. Use the plus button to add more lines.  You can add links to the website or more information in the 'Additional Resources' section.</p>
+
       <table class="flexitable" id="individual_resources-table">
       <thead>
         <tr>
-          <th class="resource-name">Name:</th>
-          <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
+          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
+          <th class="field_opt resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
         </tr>
       </thead>
       <tbody>
@@ -146,6 +148,16 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </table>
     </fieldset>
 
+    <label class="field_opt" for="license_id">Licence *</label>
+    
+    <select id="license_id" name="license_id">
+      <py:for each="licence_desc, licence_id in c.licences">
+        <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
+      </py:for>
+    </select>
+      
+      <p class="instructions basic">The licence under which the dataset is released.</p>
+      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
     <p class="instructions basic">The files containing the data or address of the APIs for accessing it</p>
     <p class="instruction-needed instructions further" title="These instructions are from the current form.  Do they need re-wording?  I think we should hide them in a tooltip somehow.">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.</p>
     <p class="instruction-needed" title="What are we doing with resource formats?"><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
@@ -210,6 +222,9 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <option value="Society" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Society' else None}">Society</option>
         <option value="Defence" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Defence' else None}">Defence</option>
         <option value="Transportation" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Transportation' else None}">Transportation</option>
+        <option value="Location" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Location' else None}">Location</option>
+        <option value="Administration" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Administration' else None}">Administration</option>
+        <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Spending Data' else None}">Spending Data</option>
       </select>
     <div class="instruction-needed" title="Is this still wanted?">
     <p>2. Please choose secondary tags with which to tag this data record:</p>
@@ -278,16 +293,6 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
       <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
 
-      <label class="field_opt" for="license_id">Licence *</label>
-      
-        <select id="license_id" name="license_id">
-          <py:for each="licence_desc, licence_id in c.licences">
-            <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
-          </py:for>
-        </select>
-      
-      <p class="instructions basic">The licence under which the dataset is released.</p>
-      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
 
       <label class="field_opt" for="national_statistic">National Statistic</label>
       <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
