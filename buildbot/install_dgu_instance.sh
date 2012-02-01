@@ -17,10 +17,27 @@ install_dependencies () {
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-spatial.git#egg=ckanext-spatial
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/owslib.git#egg=owslib
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-qa.git#egg=ckanext-qa
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-archiver.git#egg=ckanext-archiver
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-importlib.git#egg=ckanext-importlib
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/datautildate#egg=datautildate
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -r "/var/lib/ckan/$instance/pyenv/src/ckanext-spatial/pip-requirements.txt"
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed pastescript
+
+    # Install the qa and archiver dependencies
+    sudo apt-get install supervisor
+
+    # Configure celeryd under supervisor
+    sudo wget -O -  https://raw.github.com/okfn/ckan/master/ckan/config/celery-supervisor.conf | sed \
+        -e "/^user/ s/^user=ckan/user=$user/" \
+        -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
+        -e "/^command/ s,/path/to/config/testing.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/celery-supervisor.conf
+}
+
+post_install () {
+    # Start celeryd and workers under supervisord
+    sudo supervisorctl reread
+    sudo supervisorctl add celery
+    sudo supervisorctl status
 }
 
 configure () {
@@ -32,7 +49,7 @@ configure () {
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
-    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query/" \
+    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e '/^\[app:main\]$/ a\
