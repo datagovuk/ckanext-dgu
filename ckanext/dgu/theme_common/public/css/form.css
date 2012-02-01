@@ -20,6 +20,17 @@ div#form-tabs a.active {
   background-color: white;
 }
 
+div#form-tabs a.disabled {
+  background-color: white;
+  color: #D4D4D4;
+}
+
+div#form-tabs a.disabled:hover {
+  background-color: white;
+  color: #D4D4D4;
+  cursor: default;
+}
+
 div#form-tabs a:hover {
   color: green;
   background-color: white;

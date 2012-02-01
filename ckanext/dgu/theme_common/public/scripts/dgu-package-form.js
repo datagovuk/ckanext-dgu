@@ -55,11 +55,14 @@
       }
     });
 
+    $('#next-button').removeAttr('disabled');
     $('#next-button').attr('onclick', '').click(function(){
       var activeTab = $('div#form-tabs').find('a.active');
       var nextTab = activeTab.parent().next().children('a');
       if(nextTab) {
+        nextTab.removeClass('disabled');
         nextTab.first().trigger('click');
+        nextTab.removeClass('disabled');
       }
     });
   });
@@ -71,6 +74,7 @@ CKAN.Dgu = function($, my) {
 
   my.showTab = function(button, fieldset) {
     button.attr('onclick', '').click(function() {
+      if(button.hasClass('disabled')){ return; }
       $('form#package-edit').children('fieldset').hide();
       $(fieldset).show();
       $('#form-tabs').find('a').removeClass("active");

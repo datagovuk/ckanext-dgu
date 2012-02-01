@@ -1,7 +1,9 @@
 <?python 
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
-is_edit_form = bool(data.get('id'))
+is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None'
+has_errors = bool(error_summary)
+use_wizard = not has_errors and not is_edit_form
 is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
 ?>
@@ -23,13 +25,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <div id="form-tabs">
   <ul>
     <li><a id="section-name" href="#section-name" class="active">Name</a></li>
-    <li><a id="section-data" href="#section-data">Data</a></li>
-    <li><a id="section-description" href="#section-description">Description</a></li>
-    <li><a id="section-contacts" href="#section-contacts">Contact details</a></li>
-    <li><a id="section-themes" href="#section-themes">Theme &amp; tags</a></li>
-    <li><a id="section-additional_resources" href="#section-additional_resources">Additional resources (optional)</a></li>
-    <li><a id="section-temporal" href="#section-temporal">Temporal coverage (optional)</a></li>
-    <li><a id="section-geographic" href="#section-geographic">Geographic coverage (optional)</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-data" href="#section-data">Data</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-description" href="#section-description">Description</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-contacts" href="#section-contacts">Contact details</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-themes" href="#section-themes">Theme &amp; tags</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-additional_resources" href="#section-additional_resources">Additional resources (optional)</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-temporal" href="#section-temporal">Temporal coverage (optional)</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-geographic" href="#section-geographic">Geographic coverage (optional)</a></li>
   </ul>
 </div>
 
