@@ -24,7 +24,7 @@ install_dependencies () {
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed pastescript
 
     # Install the qa and archiver dependencies
-    sudo apt-get install supervisor
+    sudo apt-get -y install supervisor
 
     # Configure celeryd under supervisor
     sudo wget -O -  https://raw.github.com/okfn/ckan/master/ckan/config/celery-supervisor.conf | sed \
