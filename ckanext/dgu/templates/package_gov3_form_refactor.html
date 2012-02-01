@@ -39,12 +39,12 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
   <legend>Name</legend>
   <p>Please name your data record</p>
-  <label class="field_req" for="title">Name:</label>
-  <input class="js-title js-tooltip" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
+  <label for="title">Name:</label>
+  <input class="field_req js-title js-tooltip" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
   <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
   
-  <label class="field_req" for="name">Unique identifier for this data record:</label>
-  <input class="js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
+  <label for="name">Unique identifier for this data record:</label>
+  <input class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
   <p class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
   <p>This will locate this data set here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
   <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
@@ -85,7 +85,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <table class="flexitable" id="timeseries_resources-table">
       <thead>
         <tr>
-          <th class="field_req resource-name">Name:</th>
+          <th class="resource-name">Name:</th>
           <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
           <th class="field_opt resource-date">Date:</th>
         </tr>
@@ -121,7 +121,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <table class="flexitable" id="individual_resources-table">
       <thead>
         <tr>
-          <th class="field_req resource-name">Name:</th>
+          <th class="resource-name">Name:</th>
           <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
         </tr>
       </thead>
@@ -159,7 +159,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <fieldset id="section-description-fields">
   <legend>Description</legend>
   <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
-    <textarea cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
+    <textarea class="field_req" cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
     <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
     <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
@@ -169,7 +169,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <p>Here are the contact details that will be displayed for this dataset.  <span class="instruction-needed" title="What's this?">To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.</span>  Please click 'Next' to confirm.</p>
     <fieldset id="publisher-information">
       <legend>Publisher information</legend>
-      <label class="field_req to-be-completed" title="When publisher information is integrated, this will be pre-filled with the user's immediate publisher.  And publisher details will be pre-filled (email, link and telephone)" for="published_by">Published by: </label>
+      <label class="to-be-completed" title="When publisher information is integrated, this will be pre-filled with the user's immediate publisher.  And publisher details will be pre-filled (email, link and telephone)" for="published_by">Published by: </label>
       <select id="published_by" name="published_by">
         <py:for each="published_name, published_desc in c.publishers">
           <option value="${published_name}" py:attrs="{'selected': 'selected' if data.get('published_by', '') == published_name else None}" >
@@ -188,7 +188,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     
     <fieldset>
       <legend>FOI information</legend>
-      <label class="field_req to-be-completed" title="When the publisher information is integrated, this will be pre-filled with the user's information." for="author">FOI Contact:</label>
+      <label class="to-be-completed" title="When the publisher information is integrated, this will be pre-filled with the user's information." for="author">FOI Contact:</label>
       <input id="author" name="author" type="text" value="${data.get('author', '')}"/>
       <br/><label for="author_email">Email:</label>
       <input id="author_email" name="author_email" type="text" value="${data.get('author_email', '')}"/>
@@ -238,7 +238,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <table class="flexitable" id="additional_resources-table">
     <thead>
       <tr>
-        <th class="field_req resource-name">Description:</th>
+        <th class="resource-name">Description:</th>
         <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
       </tr>
     </thead>
@@ -401,7 +401,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <div id="nav-controls" class="submit">
   <input disabled="disabled" class="nav-button" type="button" id="back-button" value="Back" py:if="not is_edit_form"/>
-  <input id="save" name="save" type="submit" value="Save" />
+  <input py:attrs="{'disabled': 'disabled' if use_wizard else None}" id="save-button" name="save" type="submit" value="Save" />
   <input  disabled="disabled" class="nav-button" type="button" id="next-button" value="Next" py:if="not is_edit_form"/>
 </div>
 <div id="disclaimer">
