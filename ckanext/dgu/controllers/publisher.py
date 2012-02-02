@@ -49,7 +49,7 @@ class PublisherController(BaseController):
         letter = request.params.get('letter', 'A'),
 
         c.page = AlphaPage(
-            url="/publisher",
+            controller_name="ckanext.dgu.controllers.publisher:PublisherController",
             collection=results,
             page=request.params.get('page', 'A'),
             alpha_attribute='title',
