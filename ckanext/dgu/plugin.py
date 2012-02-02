@@ -100,6 +100,9 @@ class FormApiPlugin(SingletonPlugin):
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_organisation')
         #map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         #map.connect('home', '/ckan/', controller='home', action='index')
+        
+        map.connect('/publisher', controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')        
+                
         return map
 
     def after_map(self, map):
