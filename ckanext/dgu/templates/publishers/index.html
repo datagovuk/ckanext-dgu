@@ -29,7 +29,32 @@
 		    ${c.page.pager()}
 		</div>
 		<div id="publisherhierarchy">
-			<p>2</p>
+			<div id="publisher_tree" class="" style="height:300px;background-color: white;">
+				<ul>
+					<li id="node_1">
+						<a href="#">Department 1</a>
+						<ul>
+							<li id="node_2">
+								<a href="#">Publisher 1</a>
+							</li>
+							<li id="node_3">
+								<a href="#">Publisher 2</a>
+								<ul>
+									<li id="node_4">
+										<a href="#">Publisher 3</a>
+									</li>
+									<li id="node_5">
+										<a href="#">Publisher 4</a>
+									</li>									
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li id="node_6">
+						<a href="#">Department 2</a>
+					</li>
+				</ul>
+			</div> <!-- tree -->
 		</div>
 	</div>
 
@@ -39,7 +64,35 @@
   <py:def function="optional_head">
 	<script type="text/javascript">
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();			
+			$( "#tabs" ).tabs();	
+			$("#publisher_tree").jstree(
+//				{
+//				 "plugins" : [ "themes",/*"json_data",*/"ui"]
+
+/*
+
+        "json_data" : {
+            // This tree is ajax enabled - as this is most common, and maybe a bit more complex
+            // All the options are almost the same as jQuery's AJAX (read the docs)
+            "ajax" : {
+                // the URL to fetch the data
+                "url" : "",
+                // the `data` function is executed in the instance's scope
+                // the parameter is the node being loaded
+                // (may be -1, 0, or undefined when loading the root nodes)
+                "data" : function (n) {
+                    // the result is fed to the AJAX request `data` option
+                    return {
+                        "operation" : "get_children",
+                        "id" : n.attr ? n.attr("id").replace("node_","") : 1
+                    };
+                }
+            }
+        },
+
+*/				
+			//	}
+			);		
 		});
 	</script>
   </py:def>

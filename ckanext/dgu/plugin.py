@@ -113,7 +113,11 @@ class FormApiPlugin(SingletonPlugin):
         #configure_public_directory(config, 'theme_common/public')
 
         # set the customised package form (see ``setup.py`` for entry point)
-        config['package_form'] = 'package_gov3'
+        config['package_form']      = 'package_gov3'
+        
+        # set the auth profile to use the publisher based auth
+        config['ckan.auth.profile'] = 'publisher'
+        
         configure_template_directory(config, 'templates')
 
     def filter(self, stream):
