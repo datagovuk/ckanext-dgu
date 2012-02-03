@@ -149,8 +149,8 @@ class PackageGov3Controller(PackageController):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'primary_theme': [not_empty, unicode, convert_to_extras],
-            'secondary_theme': [ignore_missing, unicode],
+            'primary_theme': [not_empty, unicode, val.tag_string_convert, convert_to_extras],
+            'secondary_theme': [ignore_missing, val.tag_string_convert, convert_to_extras],
 
             '__extras': [ignore],
             '__junk': [empty],
@@ -194,6 +194,7 @@ class PackageGov3Controller(PackageController):
             'mandate': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'primary_theme': [convert_from_extras, ignore_missing],
+            'secondary_theme': [convert_from_extras, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],

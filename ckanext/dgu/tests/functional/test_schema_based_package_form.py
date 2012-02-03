@@ -181,9 +181,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # Sanity check that the form failed to submit due to the name being missing.
         assert_in('Name: Missing value', response)
 
-        # TODO: re-instate these fields
-        del package_data['secondary_theme']
-
         # Check the notes fiels separately as it contains a newline character
         # in its value.  And the `self.check_named_element()` method doesn't
         # use multi-line regular expressions.
@@ -297,9 +294,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # GET the edit form
         offset = url_for(controller='package', action='edit', id=package_name)
         response = self.app.get(offset)
-
-        # TODO: test secondary theme
-        del package_data['secondary_theme']
 
         # tags may be re-ordered, so test them manually
         expected_tags = set(map(lambda s: s.strip(), package_data['tag_string'].split(',')))
@@ -612,16 +606,12 @@ class TestPackageCreation(CommonFixtureMethods):
         # Themes and tags
         assert_equal(package_data['primary_theme'], pkg.extras['primary_theme'])
 
-        # TODO clarification on sub-themes needed:
-        #       - equality of sub-themes regardless of parent theme?
-        #       - searchable?
-        #
-        #      And from that, need to decide how they should be stored.
-        #      Until then, we skip this assertion.
-        # assert_equal(set(package_data['secondary_theme']),
-        #              set(pkg.extras['secondary_theme']))
+        assert_equal(set(package_data['secondary_theme']),
+                     set(pkg.extras['secondary_theme']))
 
-        assert_equal(set(['tag1', 'tag2', 'a multi word tag']),
+        # Health and Education are from the primary and secondary themes, which
+        # end up in the tags
+        assert_equal(set(['tag1', 'tag2', 'a multi word tag', 'Health', 'Education']),
                      set(tag.name for tag in pkg.tags))
 
         # Additional resources
@@ -787,7 +777,7 @@ _EXAMPLE_FORM_DATA = {
 
         # Themes and tags
         'primary_theme'         : 'Health',
-        'secondary_theme'       : ['Education', 'Transportation', 'Government'],
+        'secondary_theme'       : 'Education', # TODO: check multiple boxes
         'tag_string'            : 'tag1, tag2, a multi word tag',
 
         # The rest

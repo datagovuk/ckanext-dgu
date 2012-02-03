@@ -239,6 +239,19 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <fieldset id="section-themes-fields">
   <legend>Theme &amp; tags</legend>
+
+  <?python
+    import re
+    all_tags = [t['name'] for t in data.get('tags', [])]
+    primary_theme = data.get('primary_theme', '')
+    secondary_themes_raw = data.get('secondary_theme', '')
+    if isinstance(secondary_themes_raw, basestring):
+      secondary_themes= set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('secondary_theme', '')).split(',')))
+    else:
+      secondary_themes = set(secondary_themes_raw)
+    free_tags = set(all_tags) - set([primary_theme]) - secondary_themes
+  ?>
+
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select class="instruction-needed" title="We need a tag taxonomy in order to implement this." id="primary_theme" name="primary_theme">
         <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
@@ -254,15 +267,15 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </select>
     <div class="instruction-needed" title="Is this still wanted?">
     <p>2. Please choose secondary tags with which to tag this data record:</p>
-    <input type="checkbox" name="secondary_theme" value="Health"/>Health
-    <input type="checkbox" name="secondary_theme" value="Environment"/>Environment
-    <input type="checkbox" name="secondary_theme" value="Education"/>Education
-    <input type="checkbox" name="secondary_theme" value="Finance"/>Finance
-    <input type="checkbox" name="secondary_theme" value="Society"/>Society
-    <input type="checkbox" name="secondary_theme" value="Defence"/>Defence
-    <input type="checkbox" name="secondary_theme" value="Transportation"/>Transportation
-    <input type="checkbox" name="secondary_theme" value="Spending data"/>Spending data
-    <input type="checkbox" name="secondary_theme" value="Government"/>Government
+    <input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health
+    <input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment
+    <input type="checkbox" name="secondary_theme" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education
+    <input type="checkbox" name="secondary_theme" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance
+    <input type="checkbox" name="secondary_theme" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society
+    <input type="checkbox" name="secondary_theme" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence
+    <input type="checkbox" name="secondary_theme" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation
+    <input type="checkbox" name="secondary_theme" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data
+    <input type="checkbox" name="secondary_theme" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government
     </div>
 
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
@@ -270,7 +283,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <input class="long tagComplete to-be-completed" data-tagcomplete-queryparam="incomplete" 
            data-tagcomplete-url="/api/2/util/tag/autocomplete"
            id="tag_string" name="tag_string" size="60" type="text"
-           value="${data.get('tag_string') or ', '.join([tag['name'] for tag in data.get('tags', [])])}" />
+           value="${data.get('tag_string') or ', '.join(free_tags)}" />
 </fieldset>
 
 <fieldset id="section-additional_resources-fields">
