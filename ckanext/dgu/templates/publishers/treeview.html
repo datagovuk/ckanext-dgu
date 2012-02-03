@@ -17,4 +17,16 @@
    </py:for>
  </table>
 
+ <table py:def="publisher_tree(groups)" class="groups">
+	<!-- Top level departments -->
+   <ul>	
+   	<py:for each="group in groups">
+		<li id="node_${group['name']}">
+			<a href="/publisher/${group['name']}">${group['display_name']}</a>
+		</li>
+   </py:for>
+   </ul>
+ </table>
+
+
 </html>

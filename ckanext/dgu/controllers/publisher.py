@@ -6,21 +6,19 @@ from ckan.lib.base import BaseController, c, model, request, render, h, g
 from ckan.lib.base import ValidationException, abort, gettext
 from pylons.i18n import get_lang, _
 import ckan.authz as authz
-from ckan.authz import Authorizer
 from ckan.lib.alphabet_paginate import AlphaPage
-from ckan.plugins import PluginImplementations, IGroupController, IGroupForm
 from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
 from ckan.logic import NotFound, NotAuthorized, ValidationError
 from ckan.logic import check_access, get_action
-from ckan.logic.schema import group_form_schema
 from ckan.logic import tuplize_dict, clean_dict, parse_params
 from ckan.lib.dictization.model_dictize import package_dictize
+from ckan.controllers.group import GroupController
 import ckan.forms
 
 
 log = logging.getLogger(__name__)
 
-class PublisherController(BaseController):
+class PublisherController(GroupController):
 
     ## end hooks
     def index(self):
@@ -39,7 +37,7 @@ class PublisherController(BaseController):
         
         # Testing junk until I can get the publisher new working again.
         results = []
-        for x in range( 1, 60):
+        for x in range( 1, 25):
             results = results + [
                 { "title": "ABC", "name": "alpha_beta_c", "packages": 1, "display_name": "ABC", "description": "A description"},
                 { "title": "DEF", "name": "deaf",         "packages": 2, "display_name":  "DEF", "description": "A description"},
@@ -54,6 +52,11 @@ class PublisherController(BaseController):
             other_text=_('-'),
         )
         
+        c.departments = [
+                { "title": "ABC", "name": "alpha_beta_c", "packages": 1, "display_name": "ABC", "description": "A description"},
+                { "title": "DEF", "name": "deaf",         "packages": 2, "display_name":  "DEF", "description": "A description"},
+                { "title": "XYZ", "name": "xylophone",    "packages": 3, "display_name": "XYZ", "description": "A description" },                        
+            ]
+        
         return render('publishers/index.html')
-
 

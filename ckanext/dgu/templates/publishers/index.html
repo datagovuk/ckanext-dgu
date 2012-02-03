@@ -15,13 +15,12 @@
     </li>
   </py:match>
 
-	  
-	
   <div py:match="content">
 	<div id="tabs">
 		<ul>
 			<li><a href="#publisherlist">Publisher list</a></li>
 			<li><a href="#publisherhierarchy">Publisher hierarchy</a></li>
+			<li><a href="#treedemo">DEMO</a></li>			
 		</ul>
 		<div id="publisherlist">
 		    ${c.page.pager()}
@@ -30,6 +29,11 @@
 		</div>
 		<div id="publisherhierarchy">
 			<div id="publisher_tree" class="" style="height:300px;background-color: white;">
+				${publisher_tree( c.departments )}				
+			</div>
+		</div>
+		<div id="treedemo">		
+			<div id="demo" class="" style="height:300px;background-color: white;">				
 				<ul>
 					<li id="node_1">
 						<a href="#">Department 1</a>
@@ -65,6 +69,7 @@
 	<script type="text/javascript">
 		$(document).ready(function() {
 			$( "#tabs" ).tabs();	
+			$("#demo").jstree();
 			$("#publisher_tree").jstree(
 //				{
 //				 "plugins" : [ "themes",/*"json_data",*/"ui"]
