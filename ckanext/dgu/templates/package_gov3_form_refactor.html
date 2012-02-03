@@ -280,7 +280,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
     <label class="field_opt to-be-completed" for="tag_string" title="Auto-completion to be implemented.">Tags</label>
-    <input class="long tagComplete to-be-completed" data-tagcomplete-queryparam="incomplete" 
+    <input class="long autocomplete-tag to-be-completed" data-tagcomplete-queryparam="incomplete" 
            data-tagcomplete-url="/api/2/util/tag/autocomplete"
            id="tag_string" name="tag_string" size="60" type="text"
            value="${data.get('tag_string') or ', '.join(free_tags)}" />
