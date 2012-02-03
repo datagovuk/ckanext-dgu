@@ -69,29 +69,18 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'primary_theme':        (None, 'select'),
         'secondary_theme':      (None, 'input'),
         'tag_string':           ('Tags', 'input'),
-        'url':                  ('URL', 'input'),
-        'taxonomy_url':         ('Taxonomy URL', 'input'),
         'mandate':              ('Mandate', 'input'),
         'license_id':           ('License:', 'select'),
         'license_id-other':     ('Other:', 'input'),
-        'national_statistic':   ('National Statistic', 'input'),
 
         # Additional resources section
         'additional_resources__0__description': (None, 'input'),
         'additional_resources__0__url':         (None, 'input'),
 
         # Time & date section
-        'date_released':                ('Date released', 'input'),
-        'date_updated':                 ('Date updated', 'input'),
-        'date_update_future':           ('Date to be published', 'input'),
-        'precision':                    ('Precision', 'input'),
-        'temporal_granularity':         ('Temporal granularity', 'select'),
-        'temporal_granularity-other':   ('Other', 'input'),
         'temporal_coverage':            ('Temporal coverage', 'input'),
 
         # Geographic coverage section
-        'geographic_granularity':       ('Geographic granularity', 'select'),
-        'geographic_granularity-other': ('Other', 'input'),
         'geographic_coverage':          ('Geographic coverage', 'input'),
     }
     
@@ -104,6 +93,22 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'maintainer_email',
         'newfield0-key',
         'newfield0-value',
+    )
+
+    # Fields that are still part of the package, but we only
+    # expect them to appear on an edit-form, and only then if they
+    # have a non-empty value
+    _ignored_fields = (
+        'url',
+        'taxonomy_url',
+        'date_released',
+        'date_updated',
+        'date_update_future',
+        'precision',
+        'temporal_granularity',
+        'temporal_granularity-other',
+        'geographic_granularity',
+        'geographic_granularity-other',
     )
 
     @classmethod
@@ -268,10 +273,12 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                         expected_field_values[full_field_name] = resource['extras'][field]
 
         for field_name, expected_value in expected_field_values.items():
-            self.check_named_element(response.body,
-                                     '(input|textarea|select)',
-                                     'name="%s"' % field_name,
-                                     expected_value)
+
+            if field_name not in self._ignored_fields or expected_value:
+                self.check_named_element(response.body,
+                                        '(input|textarea|select)',
+                                        'name="%s"' % field_name,
+                                        expected_value)
 
     def test_a_full_timeseries_dataset_edit_form(self):
         """
@@ -628,19 +635,11 @@ class TestPackageCreation(CommonFixtureMethods):
             assert_equal(package_data[key],
                          additional_resources[index][field])
 
-        assert_equal(package_data['url'], pkg.url)
-        assert_equal(package_data['taxonomy_url'], pkg.extras['taxonomy_url'])
         assert_equal(package_data['mandate'], pkg.extras['mandate'])
         assert_equal(package_data['license_id-other'], pkg.license_id)
 
-        assert_equal(package_data['date_released'], _convert_date(pkg.extras['date_released']))
-        assert_equal(package_data['date_updated'], _convert_date(pkg.extras['date_updated']))
-        assert_equal(package_data['date_update_future'], _convert_date(pkg.extras['date_update_future']))
-        assert_equal(package_data['precision'], pkg.extras['precision'])
-        assert_equal(package_data['temporal_granularity-other'], pkg.extras['temporal_granularity'])
         assert_equal(package_data['temporal_coverage-from'], _convert_date(pkg.extras['temporal_coverage-from']))
         assert_equal(package_data['temporal_coverage-to'], _convert_date(pkg.extras['temporal_coverage-to']))
-        assert_equal(package_data['geographic_granularity-other'], pkg.extras['geographic_granularity'])
         assert_in('England', pkg.extras['geographic_coverage'])
 
 class _PackageFormClient(WsgiAppCase):
@@ -792,21 +791,11 @@ _EXAMPLE_FORM_DATA = {
         'tag_string'            : 'tag1, tag2, a multi word tag',
 
         # The rest
-        'url'                   : 'http://example.com/another_url',
-        'taxonomy_url'          : 'http://example.com/taxonomy',
         'mandate'               : 'http://example.com/mandate',
         'license_id-other'      : 'Free-from license',
         'license_id'            : '',
-        'date_released'         : '1/1/2011',
-        'date_updated'          : '1/1/2012',
-        'date_update_future'    : '1/9/2012',
-        'precision'             : 'As supplied',
-        'temporal_granularity'  : 'other',
-        'temporal_granularity-other': 'lunar month',
         'temporal_coverage-from': '1/1/2010',
         'temporal_coverage-to'  : '1/1/2012',
-        'geographic_granularity': 'other',
-        'geographic_granularity-other': 'postcode',
         'geographic_coverage'   : 'england', # TODO: check multiple boxes
 }
 

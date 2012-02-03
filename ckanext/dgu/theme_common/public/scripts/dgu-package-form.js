@@ -43,6 +43,7 @@
     CKAN.Dgu.showTab($('a#section-additional_resources'), $('fieldset#section-additional_resources-fields'));
     CKAN.Dgu.showTab($('a#section-temporal'),             $('fieldset#section-temporal-fields'));
     CKAN.Dgu.showTab($('a#section-geographic'),           $('fieldset#section-geographic-fields'));
+    CKAN.Dgu.showTab($('a#section-extra'),                $('fieldset#section-extra-fields'));
     $('fieldset#section-name-fields').show();
 
     /* Setup next/back buttons */

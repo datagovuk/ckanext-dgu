@@ -32,6 +32,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-additional_resources" href="#section-additional_resources">Additional resources (optional)</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-temporal" href="#section-temporal">Temporal coverage (optional)</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-geographic" href="#section-geographic">Geographic coverage (optional)</a></li>
+    <li py:if="is_edit_form"><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-extra" href="#section-extra">Extras (optional)</a></li>
   </ul>
 </div>
 
@@ -299,80 +300,17 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </py:for>
     </tbody>
     </table>
-    <div class="instruction-needed" title="All these fields exist in the current form, but are missing from the document.  We need to decided whether to keep them or remove them.">
-      <label class="field_opt" for="url">URL</label>
-      <input id="url" name="url" type="text" value="${data.get('url', '')}"/>
-      <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
-      <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
-      <p class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</p>
 
-      <label class="field_opt" for="taxonomy_url">Taxonomy URL</label>
-      <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/>
-      <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
-      <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
-      <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
-      
-      <label class="field_opt" for="mandate">Mandate</label>
-      <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
-      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
-      <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
-
-
-      <label class="field_opt" for="national_statistic">National Statistic</label>
-      <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
-           py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" />
-      <p class="instructions basic">Indicate if the dataset is a National Statistic</p>
-      <p class="instructions further">This is so that it can be highlighted.</p>
-    </div>
-
-
+  <label class="field_opt" for="mandate">Mandate</label>
+  <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
+  <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
+  <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+  <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
 
 </fieldset>
 
-<fieldset class="instruction-needed" title="These fields are present in the current for, but not mentioned in the spec.  We need to decide what to do with them." id="section-temporal-fields">
+<fieldset id="section-temporal-fields">
   <legend>Time &amp; date (optional)</legend>
-  <label class="field_opt" for="date_released">Date released</label>
-  <input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" />
-  <p class="instructions basic">The date of the official release of the initial version of the dataset</p>
-  <p class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
-  <p class="hints">DD/MM/YYYY</p>
-  <p class="field_error" py:if="errors.get('date_released', '')">${errors.get('date_released', '')}</p>
-
-  <label class="field_opt" for="date_updated">Date updated</label>
-  <input id="date_updated" name="date_updated" size="40" type="text" value="${data.get('date_updated', '')}"/>
-  <p class="instructions basic">The date of release of the most recent version of the dataset</p>
-  <p class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
-    <p class="hints">DD/MM/YYYY</p>
-    <p class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</p>
-
-    <label class="field_opt" for="date_update_future">Date to be published</label>
-    <input id="date_update_future" name="date_update_future" size="40" type="text" value="${data.get('date_update_future', '')}"/>
-    <p class="instructions basic">When the dataset will be updated in the future, if appropriate</p>
-    <p class="hints">DD/MM/YYYY</p>
-    <p class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</p>
-
-    <label class="field_opt" for="precision">Precision</label>
-    <input id="precision" name="precision" size="40" type="text" value="${data.get('precision', '')}"/>
-    <p class="instructions basic">Indicate the level of precision in the data, to avoid over-interpretation.</p>
-    <p class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</p>
-
-    <label class="field_opt" for="temporal_granularity">Temporal granularity</label>
-    
-      <select class="short" id="temporal_granularity" name="temporal_granularity">
-        <py:for each="temporal_name, temporal_desc in c.temporal_granularity">
-          <option value="${temporal_name}" py:attrs="{'selected': 'selected' if data.get('temporal_granularity', '') == temporal_name else None}" >
-            ${temporal_name}
-          </option>
-        </py:for>
-      </select>
-      <label class="inline" for="temporal_granularity-other">Other: 
-        <input class="short-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
-      </label>
-    
-    <p class="instructions basic">The lowest level of temporal detail granularity</p>
-    <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
-
     <label class="field_opt" for="temporal_coverage">Temporal coverage</label>
     
       <input class="medium-width" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
@@ -384,25 +322,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 </fieldset>
 
-<fieldset id="section-geographic-fields" class="instruction-needed" title="These fields are present in the current for, but not mentioned in the spec.  We need to decide what to do with them.">
+<fieldset id="section-geographic-fields">
   <legend>Geographic coverage</legend>
-    <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
-    
-      <select class="short" id="geographic_granularity" name="geographic_granularity">
-        <py:for each="geog_name, geog_desc in c.geographic_granularity">
-          <option value="${geog_name}" py:attrs="{'selected': 'selected' if data.get('geographic_granularity', '') == geog_name else None}" >
-            ${geog_desc}
-          </option>
-        </py:for>
-      </select>
-      <label class="inline" for="geographic_granularity-other">Other: 
-        <input class="short-width" id="geographic_granularity-other" 
-        name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
-      </label>
-    
-    <p class="instructions basic">The lowest level of geographic detail</p>
-    <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
-    <p class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</p>
 
     <label class="field_opt" for="geographic_coverage">Geographic coverage</label>
     <p py:with="geographic_coverage=data.get('geographic_coverage', [])">
@@ -427,6 +348,106 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </p>
     <p class="instructions basic">The geographic coverage of this dataset.</p>
     <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
+</fieldset>
+
+<fieldset id="section-extra-fields">
+  <legend>Extras</legend>
+
+  <div py:if="data.get('url', '')">
+    <label class="field_opt" for="url">URL</label>
+    <input id="url" name="url" type="text" value="${data.get('url', '')}"/>
+    <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
+    <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
+    <p class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</p>
+  </div>
+
+  <div py:if="data.get('taxonomy_url','')">
+    <label class="field_opt" for="taxonomy_url">Taxonomy URL</label>
+    <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/>
+    <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
+    <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
+    <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
+  </div>
+  
+  <div>
+    <label class="field_opt" for="national_statistic">National Statistic</label>
+    <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
+         py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" />
+    <p class="instructions basic">Indicate if the dataset is a National Statistic</p>
+    <p class="instructions further">This is so that it can be highlighted.</p>
+  </div>
+
+  <div py:if="data.get('date_released', '')">
+    <label class="field_opt" for="date_released">Date released</label>
+    <input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" />
+    <p class="instructions basic">The date of the official release of the initial version of the dataset</p>
+    <p class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
+    <p class="hints">DD/MM/YYYY</p>
+    <p class="field_error" py:if="errors.get('date_released', '')">${errors.get('date_released', '')}</p>
+  </div>
+
+  <div py:if="data.get('date_updated', '')">
+    <label class="field_opt" for="date_updated">Date updated</label>
+    <input id="date_updated" name="date_updated" size="40" type="text" value="${data.get('date_updated', '')}"/>
+    <p class="instructions basic">The date of release of the most recent version of the dataset</p>
+    <p class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
+    <p class="hints">DD/MM/YYYY</p>
+    <p class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</p>
+  </div>
+
+  <div py:if="data.get('date_update_future', '')">
+    <label class="field_opt" for="date_update_future">Date to be published</label>
+    <input id="date_update_future" name="date_update_future" size="40" type="text" value="${data.get('date_update_future', '')}"/>
+    <p class="instructions basic">When the dataset will be updated in the future, if appropriate</p>
+    <p class="hints">DD/MM/YYYY</p>
+    <p class="field_error" py:if="errors.get('date_update_future', '')">${errors.get('date_update_future', '')}</p>
+  </div>
+
+  <div py:if="data.get('precision', '')">
+    <label class="field_opt" for="precision">Precision</label>
+    <input id="precision" name="precision" size="40" type="text" value="${data.get('precision', '')}"/>
+    <p class="instructions basic">Indicate the level of precision in the data, to avoid over-interpretation.</p>
+    <p class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</p>
+  </div>
+
+  <div py:if="data.get('temporal_granularity', '')">
+    <label class="field_opt" for="temporal_granularity">Temporal granularity</label>
+    
+    <select class="short" id="temporal_granularity" name="temporal_granularity">
+      <py:for each="temporal_name, temporal_desc in c.temporal_granularity">
+        <option value="${temporal_name}" py:attrs="{'selected': 'selected' if data.get('temporal_granularity', '') == temporal_name else None}" >
+          ${temporal_name}
+        </option>
+      </py:for>
+    </select>
+    <label class="inline" for="temporal_granularity-other">Other: 
+      <input class="short-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
+    </label>
+    
+    <p class="instructions basic">The lowest level of temporal detail granularity</p>
+    <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
+  </div>
+
+  <div py:if="data.get('geographic_granularity', '')">
+    <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
+    
+    <select class="short" id="geographic_granularity" name="geographic_granularity">
+      <py:for each="geog_name, geog_desc in c.geographic_granularity">
+        <option value="${geog_name}" py:attrs="{'selected': 'selected' if data.get('geographic_granularity', '') == geog_name else None}" >
+          ${geog_desc}
+        </option>
+      </py:for>
+    </select>
+    <label class="inline" for="geographic_granularity-other">Other: 
+      <input class="short-width" id="geographic_granularity-other" 
+      name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
+    </label>
+    
+    <p class="instructions basic">The lowest level of geographic detail</p>
+    <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
+    <p class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</p>
+  </div>
+
 </fieldset>
 
 <div id="nav-controls" class="submit">
