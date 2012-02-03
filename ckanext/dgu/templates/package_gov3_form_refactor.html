@@ -148,14 +148,39 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </table>
     </fieldset>
 
-    <label class="field_opt" for="license_id">Licence *</label>
-    
+    <?python
+      license_id = data.get('license_id', 'uk-ogl')
+      license_id_other = data.get('license_id-other', '')
+      available_license_ids = zip(*c.licenses)[1]
+      is_other_license = license_id not in available_license_ids
+    ?>
+    <label for="license_id">License:</label>
     <select id="license_id" name="license_id">
-      <py:for each="licence_desc, licence_id in c.licences">
-        <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
-      </py:for>
+
+      <py:if test="not is_edit_form">
+        <!-- If this is a new dataset, then we only offer OGL in the dropdown -->
+        <py:for each="license_desc, license_id in filter(lambda (desc,id): id == 'uk-ogl', c.licenses)">
+          <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
+        </py:for>
+      </py:if>
+
+      <py:if test="is_edit_form">
+        <!-- If this is an edit form, then we want to offer the current license
+             in the dropdown, unless it's a free-text license -->
+        <?python
+          license_choices = set(available_license_ids) & set([license_id, 'uk-ogl'])
+        ?>
+        <py:for each="license_desc, license_id in filter(lambda (desc,id): id in license_choices, c.licenses)">
+          <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
+        </py:for>
+      </py:if>
+
+      <option value="" py:attrs="{'selected': 'selected' if is_other_license else None}">Specify other...</option>
     </select>
-      
+    
+    <label for="license_id-other">Other:</label>
+    <input id="license_id-other" name="license_id-other" value="${license_id_other if license_id_other else (license_id if is_other_license else '')}"/>
+
       <p class="instructions basic">The licence under which the dataset is released.</p>
       <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
     <p class="instructions basic">The files containing the data or address of the APIs for accessing it</p>

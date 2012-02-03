@@ -2,7 +2,6 @@
 navl validators for the DGU package schema.
 """
 
-from functools import partial
 from itertools import chain, groupby
 
 from pylons.i18n import _
@@ -10,6 +9,37 @@ from pylons.i18n import _
 from ckan.lib.navl.dictization_functions import unflatten, Invalid
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
+
+def validate_license(key, data, errors, context):
+    """
+    Validates the selected license options.
+
+    Validation rules must be true to validate:
+
+     license_id == '' => license_id-other != ''
+     license_id != '' => license_id-other == ''
+
+    Additional transformations occur:
+
+     license_id-other != '' => license_id ~> license_id-other
+     license_id-other is DROPPED
+
+    """
+
+    license_id = bool(data[('license_id',)])
+    license_id_other = bool(data[('license_id-other',)])
+
+    if not (license_id ^ license_id_other):
+        if license_id:
+            errors[('license_id',)] = ['Leave the "other" box empty if '
+                                       'selecting a license from the list']
+        else:
+            errors[('license_id',)] = ['Please enter the name of the license']
+
+    if not license_id:
+        data[('license_id',)] = data[('license_id-other',)] 
+    del data[('license_id-other',)]
+    del errors[('license_id-other',)]
 
 def validate_resources(key, data, errors, context):
     """

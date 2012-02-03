@@ -27,7 +27,8 @@ from ckan.controllers.package import PackageController
 from ckanext.dgu.validators import merge_resources, unmerge_resources, \
                                    validate_resources, \
                                    validate_additional_resource_types, \
-                                   validate_data_resource_types
+                                   validate_data_resource_types, \
+                                   validate_license
 
 log = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class PackageGov3Controller(PackageController):
         return 'package_gov3_form_refactor.html'
 
     def _setup_template_variables(self, context, data_dict=None, package_type=None):
-        c.licences = [('', '')] + model.Package.get_license_options()
+        c.licenses = model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
         c.update_frequency = update_frequency
         c.temporal_granularity = temporal_granularity 
@@ -141,7 +142,9 @@ class PackageGov3Controller(PackageController):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
-            'license_id': [ignore_missing, unicode],
+            'license_id': [unicode],
+            'license_id-other': [ignore_missing, unicode],
+
             'tag_string': [ignore_missing, val.tag_string_convert],
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
@@ -151,7 +154,7 @@ class PackageGov3Controller(PackageController):
 
             '__extras': [ignore],
             '__junk': [empty],
-            '__after': [validate_resources, merge_resources],
+            '__after': [validate_license, validate_resources, merge_resources],
         }
         return schema
     

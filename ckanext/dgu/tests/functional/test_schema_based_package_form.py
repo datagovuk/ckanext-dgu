@@ -72,7 +72,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'url':                  ('URL', 'input'),
         'taxonomy_url':         ('Taxonomy URL', 'input'),
         'mandate':              ('Mandate', 'input'),
-        'license_id':           ('Licence *', 'select'),
+        'license_id':           ('License:', 'select'),
+        'license_id-other':     ('Other:', 'input'),
         'national_statistic':   ('National Statistic', 'input'),
 
         # Additional resources section
@@ -510,6 +511,22 @@ class TestFormValidation(object):
             assert_in("'Invalid resource type: %s']" % resource_type,
                       response.body)
 
+    def test_cannot_create_a_non_ogl_dataset_without_specifying_license_name(self):
+        """
+        Asserts that the user specify a license name if the license is non-OGL
+        """
+        data = {'license_id': ""}
+        response = self._form_client.post_form(data)
+        assert_in('License id: Please enter the name of the license', response.body)
+
+    def test_cannot_name_another_license_if_declaring_the_dataset_to_be_ogl_licensed(self):
+        """
+        Asserts that if specifying an ogl license, then the user cannot fill the license id themselves
+        """
+        data = {'license_id': 'uk-ogl', 'license_id-other': 'A difference license'}
+        response = self._form_client.post_form(data)
+        assert_in('License id: Leave the "other" box empty if selecting a license from the list', response.body)
+
 class TestPackageCreation(CommonFixtureMethods):
     """
     A suite of tests that check that packages are created correctly through the creation form.
@@ -614,7 +631,7 @@ class TestPackageCreation(CommonFixtureMethods):
         assert_equal(package_data['url'], pkg.url)
         assert_equal(package_data['taxonomy_url'], pkg.extras['taxonomy_url'])
         assert_equal(package_data['mandate'], pkg.extras['mandate'])
-        assert_equal(package_data['license_id'], pkg.license_id)
+        assert_equal(package_data['license_id-other'], pkg.license_id)
 
         assert_equal(package_data['date_released'], _convert_date(pkg.extras['date_released']))
         assert_equal(package_data['date_updated'], _convert_date(pkg.extras['date_updated']))
@@ -778,7 +795,8 @@ _EXAMPLE_FORM_DATA = {
         'url'                   : 'http://example.com/another_url',
         'taxonomy_url'          : 'http://example.com/taxonomy',
         'mandate'               : 'http://example.com/mandate',
-        'license_id'            : 'odc-pddl',
+        'license_id-other'      : 'Free-from license',
+        'license_id'            : '',
         'date_released'         : '1/1/2011',
         'date_updated'          : '1/1/2012',
         'date_update_future'    : '1/9/2012',
