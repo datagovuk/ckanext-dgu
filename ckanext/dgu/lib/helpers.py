@@ -45,14 +45,16 @@ def resource_type(resource):
 
 def render_tree(groups,  type='publisher'):
     """
-        If called with some groups, maybe a hierarchy, it will write them into
-        a dict and work out the relationship between them.
+        Uses the provided groups to generate a tree structure (in a dict) by
+        matching up the tree relationship using the Member objects.
+        
+        We might look at using postgres CTE to build the entire tree inside
+        postgres but for now this is adequate for our needs.
     """        
     from ckan import model
     
     root = PublisherNode( "root", "root")                    
     tree = { root.slug : root }
-    
     
     members = model.Session.query(model.Member).\
                 join(model.Group, model.Member.group_id == model.Group.id).\
@@ -75,6 +77,8 @@ def render_tree(groups,  type='publisher'):
         if not slug in tree:
             tree[slug] = PublisherNode(slug, title)
         else:
+            # May be updating a parent placeholder where the child was 
+            # encountered first.
             tree[slug].slug = slug
             tree[slug].title = title
             
@@ -85,6 +89,7 @@ def render_tree(groups,  type='publisher'):
             for parent in parent_nodes:
                 parent_slug, parent_title = parent.name, parent.title             
                 if not parent_slug in tree:
+                    # Parent doesn't yet exist, add a placeholder
                     tree[parent_slug] = PublisherNode('', '')
                 tree[parent_slug].children.append(tree[slug])     
 
