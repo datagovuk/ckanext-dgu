@@ -43,15 +43,34 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def render_tree(groups, type='publisher'):
+def render_tree(groups,  type='publisher'):
     """
         If called with some groups, maybe a hierarchy, it will write them into
         a dict and work out the relationship between them.
     """        
+    from ckan import model
+    
     root = PublisherNode( "root", "root")                    
     tree = { root.slug : root }
     
-    for group in sorted(groups, key=lambda g: g.title):
+    
+    members = model.Session.query(model.Member).\
+                join(model.Group, model.Member.group_id == model.Group.id).\
+                filter(model.Group.type == 'publisher').\
+                filter(model.Member.table_name == 'group').all()
+               
+    group_lookup  = dict( [ (g.id,g, ) for g in groups ] ) 
+    group_members = dict( [ (g.id,[],) for g in groups ] )
+    
+    # Process the membership rules    
+    for member in members:
+        if member.table_id in group_lookup and member.group_id:
+            group_members[member.table_id].append( member.group_id )
+
+    def get_groups(group):
+        return [group_lookup[i] for i in group_members[group.id]]
+    
+    for group in groups:
         slug, title = group.name, group.title
         if not slug in tree:
             tree[slug] = PublisherNode(slug, title)
@@ -59,7 +78,7 @@ def render_tree(groups, type='publisher'):
             tree[slug].slug = slug
             tree[slug].title = title
             
-        parent_nodes = group.get_groups(type) # Database hit. Ow.
+        parent_nodes = get_groups(group) 
         if len(parent_nodes) == 0:
             root.children.append( tree[slug] )
         else:    

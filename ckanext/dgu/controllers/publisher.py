@@ -24,7 +24,8 @@ def demo_data(model):
     for x in range(0,10):
         model.Session.add( model.Group(name="group_%s" % x, title=u"Group %s" % x, type="publisher") )        
     model.Session.flush()
-        
+
+    g0 = model.Group.get('group_0')        
     g1 = model.Group.get('group_1')
     g2 = model.Group.get('group_2')
     g3 = model.Group.get('group_3')
@@ -32,13 +33,17 @@ def demo_data(model):
     g5 = model.Group.get('group_5')
     g6 = model.Group.get('group_6')
     g7 = model.Group.get('group_7')                
+    g8 = model.Group.get('group_8')         
+    g9 = model.Group.get('group_9')             
         
     member1 = model.Member(group=g1, table_id=g2.id, table_name='group')
     member2 = model.Member(group=g1, table_id=g3.id, table_name='group')
-    member3 = model.Member(group=g1, table_id=g4.id, table_name='group')
+    member3 = model.Member(group=g0, table_id=g4.id, table_name='group')
+    member4 = model.Member(group=g2, table_id=g5.id, table_name='group')                
     member5 = model.Member(group=g2, table_id=g6.id, table_name='group')
     member6 = model.Member(group=g2, table_id=g7.id, table_name='group')                                
-    member4 = model.Member(group=g2, table_id=g5.id, table_name='group')                
+    member7 = model.Member(group=g7, table_id=g8.id, table_name='group')                    
+    member8 = model.Member(group=g4, table_id=g9.id, table_name='group')                            
         
     model.Session.add(member1)        
     model.Session.add(member2)        
@@ -46,6 +51,8 @@ def demo_data(model):
     model.Session.add(member4)        
     model.Session.add(member5)        
     model.Session.add(member6)        
+    model.Session.add(member7)            
+    model.Session.add(member8)                
     model.Session.flush()
     
 
