@@ -61,8 +61,8 @@ def render_tree(groups,  type='publisher'):
                 filter(model.Group.type == 'publisher').\
                 filter(model.Member.table_name == 'group').all()
                
-    group_lookup  = dict( [ (g.id,g, ) for g in groups ] ) 
-    group_members = dict( [ (g.id,[],) for g in groups ] )
+    group_lookup  = dict( (g.id,g, ) for g in groups ) 
+    group_members = dict( (g.id,[],) for g in groups )
     
     # Process the membership rules    
     for member in members:
