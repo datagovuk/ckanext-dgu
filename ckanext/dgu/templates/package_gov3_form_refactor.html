@@ -340,6 +340,9 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <label class="field_opt" for="geographic_coverage">Geographic coverage</label>
     <p py:with="geographic_coverage=data.get('geographic_coverage', [])">
+      <label for="local_authority">
+        <input id="local_authority" name="geographic_coverage" size="40" type="checkbox" 
+        value="local_authority" py:attrs="{'checked': 'checked' if 'local_authority' in geographic_coverage else None}"/> Local Authority</label>
       <label for="england">
         <input id="england" name="geographic_coverage" size="40" type="checkbox" 
         value="england" py:attrs="{'checked': 'checked' if 'england' in geographic_coverage else None}"/> England</label>

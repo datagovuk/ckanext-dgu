@@ -12,7 +12,7 @@ from ckan.lib.package_saver import PackageSaver
 from ckan.lib.field_types import DateType, DateConvertError
 from ckan.authz import Authorizer
 from ckan.lib.navl.dictization_functions import Invalid
-from ckanext.dgu.forms.package_gov_fields import GeoCoverageType
+from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import validate, missing
 from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,

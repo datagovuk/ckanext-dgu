@@ -71,14 +71,15 @@ class TestOnsImporter(MockDrupalCase):
 
     def test_geo_coverage(self):
         coverage_tests = [
-            ('UK', '111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
-            ('GB', '111000: Great Britain (England, Scotland, Wales)'),
-            ('England and Wales', '101000: England, Wales'),
-            ('England', '100000: England'),
-            ('Wales', '001000: Wales'),
-            ('Scotland', '010000: Scotland'),
-            ('Northern Ireland', '000100: Northern Ireland'),
-            ('International', '000001: Global'),
+            ('UK', '1111000: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
+            ('GB', '1110000: Great Britain (England, Scotland, Wales)'),
+            ('England and Wales', '1010000: England, Wales'),
+            ('England', '1000000: England'),
+            ('Wales', '0010000: Wales'),
+            ('Scotland', '0100000: Scotland'),
+            ('Northern Ireland', '0001000: Northern Ireland'),
+            ('International', '0000010: Global'),
+            ('Local Authority', '0000001: Local Authority'),
             ]
         for coverage_str, expected_coverage_db in coverage_tests:
             coverage_db = importer.OnsImporter._parse_geographic_coverage(coverage_str)
@@ -147,7 +148,7 @@ class TestOnsImporter(MockDrupalCase):
                 ('hub-id', u'119-36345'),
                 ])]),
             ('extras', OrderedDict([
-                ('geographic_coverage', u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
+                ('geographic_coverage', u'1111000: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
                 ('geographical_granularity', u'UK and GB'),
                 ('external_reference', u'ONSHUB'),
                 ('temporal_granularity', u''),

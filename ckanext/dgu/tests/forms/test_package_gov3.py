@@ -265,7 +265,7 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
             'date_updated':'2008-04-01',
             'date_update_future':u'2010-07-01',
             'geographic_granularity':indict[prefix + 'geographic_granularity'],
-            'geographic_coverage':'101000: England, Wales',
+            'geographic_coverage':'1010000: England, Wales',
             'temporal_granularity':indict[prefix + 'temporal_granularity'],
             'temporal_coverage-from':'2008-06',
             'temporal_coverage-to':'2009-06',
@@ -293,7 +293,7 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
               'date_updated':'2008-04-01',
               'date_update_future':'1/7/2009',
               'geographic_granularity':'testgran',
-              'geographic_coverage':'111000: England, Scotland, Wales',
+              'geographic_coverage':'1110000: England, Scotland, Wales',
               'temporal_granularity':'testtempgran',
               'temporal_coverage-from':'2007-01-08',
               'temporal_coverage-to':'2007-01-09',
@@ -365,7 +365,7 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
             'date_updated':'2008-04-01',
             'date_update_future':'2010-08-01',
             'geographic_granularity':indict[prefix + 'geographic_granularity'],
-            'geographic_coverage':'101000: England, Wales',
+            'geographic_coverage':'1010000: England, Wales',
             'temporal_granularity':indict[prefix + 'temporal_granularity'],
             'temporal_coverage-from':'2008-06',
             'temporal_coverage-to':'2009-06',
@@ -487,7 +487,7 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
             'name':pkg_name,
             'title':'test_title',
             'extras':{
-              'geographic_coverage':'001000: England, Scotland, Wales',
+              'geographic_coverage':'0010000: England, Scotland, Wales',
               },
             }]
         CreateTestData.create_arbitrary(init_data)
@@ -509,5 +509,5 @@ class TestFieldset(PylonsTestCase, WsgiAppCase, HtmlCheckMethods):
         model.repo.commit_and_remove()
 
         outpkg = model.Package.by_name(pkg_name)
-        assert_equal(outpkg.extras['geographic_coverage'], '111001: Global, Great Britain (England, Scotland, Wales)')
+        assert_equal(outpkg.extras['geographic_coverage'], '1110010: Global, Great Britain (England, Scotland, Wales)')
 
