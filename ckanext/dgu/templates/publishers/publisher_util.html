@@ -11,7 +11,7 @@
    <py:for each="group in groups">
    <tr>
      <td><a href="${h.url_for(controller='group', action='read', id=group['name'])}">${group['display_name']}</a></td>
-     <td>${group['packages']}</td>
+     <td>0</td>
      <td>${h.truncate(group['description'], length=80, whole_word=True)}</td>
    </tr>
    </py:for>

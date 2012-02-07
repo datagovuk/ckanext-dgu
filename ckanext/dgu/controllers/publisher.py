@@ -18,42 +18,6 @@ import ckan.model as model
 
 log = logging.getLogger(__name__)
 
-def demo_data(model):
-    model.repo.new_revision()
-
-    for x in range(0,10):
-        model.Session.add( model.Group(name="group_%s" % x, title=u"Group %s" % x, type="publisher") )        
-    model.Session.flush()
-
-    g0 = model.Group.get('group_0')        
-    g1 = model.Group.get('group_1')
-    g2 = model.Group.get('group_2')
-    g3 = model.Group.get('group_3')
-    g4 = model.Group.get('group_4')                
-    g5 = model.Group.get('group_5')
-    g6 = model.Group.get('group_6')
-    g7 = model.Group.get('group_7')                
-    g8 = model.Group.get('group_8')         
-    g9 = model.Group.get('group_9')             
-        
-    member1 = model.Member(group=g1, table_id=g2.id, table_name='group')
-    member2 = model.Member(group=g1, table_id=g3.id, table_name='group')
-    member3 = model.Member(group=g0, table_id=g4.id, table_name='group')
-    member4 = model.Member(group=g2, table_id=g5.id, table_name='group')                
-    member5 = model.Member(group=g2, table_id=g6.id, table_name='group')
-    member6 = model.Member(group=g2, table_id=g7.id, table_name='group')                                
-    member7 = model.Member(group=g7, table_id=g8.id, table_name='group')                    
-    member8 = model.Member(group=g4, table_id=g9.id, table_name='group')                            
-        
-    model.Session.add(member1)        
-    model.Session.add(member2)        
-    model.Session.add(member3)        
-    model.Session.add(member4)        
-    model.Session.add(member5)        
-    model.Session.add(member6)        
-    model.Session.add(member7)            
-    model.Session.add(member8)                
-    model.Session.flush()
     
 
 class PublisherController(GroupController):
@@ -70,26 +34,16 @@ class PublisherController(GroupController):
         except NotAuthorized:
             abort(401, _('Not authorized to see this page'))
         
-        # Testing junk until I can get the publisher new working again.
-        results = []
-        for x in range( 1, 25):
-            results = results + [
-                { "title": "ABC", "name": "alpha_beta_c", "packages": 1, "display_name": "ABC", "description": "A description"},
-                { "title": "DEF", "name": "deaf",         "packages": 2, "display_name":  "DEF", "description": "A description"},
-                { "title": "XYZ", "name": "xylophone",    "packages": 3, "display_name": "XYZ", "description": "A description" },                        
-            ]
+        c.all_groups = model.Session.query(model.Group).\
+                       filter(model.Group.type == 'publisher').order_by('title').all()
 
         c.page = AlphaPage(
             controller_name="ckanext.dgu.controllers.publisher:PublisherController",
-            collection=results,
+            collection=c.all_groups,
             page=request.params.get('page', 'A'),
             alpha_attribute='title',
             other_text=_('-'),
         )
-        
-        demo_data(model)
-        c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'publisher').order_by('title').all()
-        
+                
         return render('publishers/index.html')
 

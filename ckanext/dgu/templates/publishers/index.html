@@ -3,15 +3,15 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <xi:include href="treeview.html" />
+  <xi:include href="publisher_util.html" />
 
   <py:def function="page_title">Publisher</py:def>
   <py:def function="page_heading">Publishers</py:def>
 
   <py:match path="primarysidebar">
     <li class="widget-container boxed widget_text">
-      <h3>What are Publishers?</h3>
-      <span i18n:msg="">Publishers?</span>
+      <h3>Publishers</h3>
+      <span i18n:msg="">Description of publishers</span>
     </li>
   </py:match>
 
@@ -19,8 +19,7 @@
 	<div id="tabs">
 		<ul>
 			<li><a href="#publisherlist">Publisher list</a></li>
-			<li><a href="#publisherhierarchy">Publisher hierarchy</a></li>
-			<li><a href="#treedemo">DEMO</a></li>			
+			<li><a href="#publisherhierarchy">Publisher hierarchy</a></li>		
 		</ul>
 		<div id="publisherlist">
 		    ${c.page.pager()}
@@ -28,37 +27,9 @@
 		    ${c.page.pager()}
 		</div>
 		<div id="publisherhierarchy">
-			<div id="publisher_tree" class="" style="height:300px;background-color: white;">
+			<div id="publisher_tree" class="" style="background-color: white;">
 				${publisher_tree( c.all_groups )}				
 			</div>
-		</div>
-		<div id="treedemo">		
-			<div id="demo" class="" style="height:300px;background-color: white;">				
-				<ul>
-					<li id="node_1">
-						<a href="#">Department 1</a>
-						<ul>
-							<li id="node_2">
-								<a href="#">Publisher 1</a>
-							</li>
-							<li id="node_3">
-								<a href="#">Publisher 2</a>
-								<ul>
-									<li id="node_4">
-										<a href="#">Publisher 3</a>
-									</li>
-									<li id="node_5">
-										<a href="#">Publisher 4</a>
-									</li>									
-								</ul>
-							</li>
-						</ul>
-					</li>
-					<li id="node_6">
-						<a href="#">Department 2</a>
-					</li>
-				</ul>
-			</div> <!-- tree -->
 		</div>
 	</div>
 
@@ -69,35 +40,7 @@
 	<script type="text/javascript">
 		$(document).ready(function() {
 			$( "#tabs" ).tabs();	
-			$("#demo").jstree();
-			$("#publisher_tree").jstree(
-//				{
-//				 "plugins" : [ "themes",/*"json_data",*/"ui"]
-
-/*
-
-        "json_data" : {
-            // This tree is ajax enabled - as this is most common, and maybe a bit more complex
-            // All the options are almost the same as jQuery's AJAX (read the docs)
-            "ajax" : {
-                // the URL to fetch the data
-                "url" : "",
-                // the `data` function is executed in the instance's scope
-                // the parameter is the node being loaded
-                // (may be -1, 0, or undefined when loading the root nodes)
-                "data" : function (n) {
-                    // the result is fed to the AJAX request `data` option
-                    return {
-                        "operation" : "get_children",
-                        "id" : n.attr ? n.attr("id").replace("node_","") : 1
-                    };
-                }
-            }
-        },
-
-*/				
-			//	}
-			);		
+			$("#publisher_tree").jstree().delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });		
 		});
 	</script>
   </py:def>
