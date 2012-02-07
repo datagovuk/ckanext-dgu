@@ -25,7 +25,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <div id="form-tabs">
   <ul>
     <li><a id="section-name" href="#section-name" class="active">Name</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-data" href="#section-data">Data</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-data" href="#section-data">Files</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-description" href="#section-description">Description</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-contacts" href="#section-contacts">Contact details</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-themes" href="#section-themes">Theme &amp; tags</a></li>
@@ -52,7 +52,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </fieldset>
 
 <fieldset id="section-data-fields">
-  <legend>Data</legend>
+  <legend>Files</legend>
   <p>In this tab you enter the links to the files you wish to add to this record. Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the 25k spend data, where new data is added to the record monthly).</p>
     <p>This record is:</p>
 
