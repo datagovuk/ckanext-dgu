@@ -7,12 +7,10 @@
   >
 
  <table py:def="publisher_list(groups)" class="groups">
-   <tr><th>Title</th><th>Number of datasets</th><th>Description</th></tr>
+   <tr><th>Title</th></tr>
    <py:for each="group in groups">
    <tr>
-     <td><a href="${h.url_for(controller='group', action='read', id=group['name'])}">${group['display_name']}</a></td>
-     <td>0</td>
-     <td>${h.truncate(group['description'], length=80, whole_word=True)}</td>
+     <td><a href="/publisher/${ group['name']}">${group['display_name']}</a></td>
    </tr>
    </py:for>
  </table>
