@@ -144,11 +144,11 @@ CKAN.Dgu = function($, my) {
     var urlInput = $('.js-url-input');
     var validMsg = $('.js-url-is-valid');
 
-    if (titleInput.length==0) throw "No titleInput found.";
-    if (urlText.length==0) throw "No urlText found.";
-    if (urlSuffix.length==0) throw "No urlSuffix found.";
-    if (urlInput.length==0) throw "No urlInput found.";
-    if (validMsg.length==0) throw "No validMsg found.";
+    if (titleInput.length==0) return;
+    if (urlText.length==0) return;
+    if (urlSuffix.length==0) return;
+    if (urlInput.length==0) return;
+    if (validMsg.length==0) return;
 
     var api_url = '/api/2/util/is_slug_valid';
     // (make length less than max, in case we need a few for '_' chars to de-clash slugs.)
