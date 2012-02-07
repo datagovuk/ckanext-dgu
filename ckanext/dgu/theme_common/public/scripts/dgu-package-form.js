@@ -67,17 +67,6 @@
       }
     });
 
-    /* Ensure required fields have values before the save button appears */
-    CKAN.Dgu.bindInputChanges($('.field_req'), function() {
-      var complete = true;
-      $('.field_req').each(function(){
-        var v = $(this).val();
-        complete &= Boolean(v);
-      });
-      if(complete){ $('#save-button').removeAttr('disabled'); }
-      else { $('#save-button').attr('disabled', 'disabled'); }
-    });
-
     /* Tag auto-completion */
     CKAN.Dgu.setupTagAutocomplete($('input.autocomplete-tag'));
   });

@@ -476,7 +476,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <div id="nav-controls" class="submit">
   <input disabled="disabled" class="nav-button" type="button" id="back-button" value="Back" py:if="not is_edit_form"/>
-  <input py:attrs="{'disabled': 'disabled' if use_wizard else None}" id="save-button" name="save" type="submit" value="Save" />
+  <input id="save-button" name="save" type="submit" value="Save" />
   <input  disabled="disabled" class="nav-button" type="button" id="next-button" value="Next" py:if="not is_edit_form"/>
 </div>
 <div id="disclaimer">
