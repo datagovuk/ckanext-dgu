@@ -48,9 +48,11 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'update_frequency-other':               ('Other:', 'input'),
         'individual_resources__0__description': (None, 'input'),
         'individual_resources__0__url':         (None, 'input'),
+        'individual_resources__0__format':      (None, 'input'),
         'timeseries_resources__0__description': (None, 'input'),
         'timeseries_resources__0__url':         (None, 'input'),
         'timeseries_resources__0__date':        (None, 'input'),
+        'timeseries_resources__0__format':      (None, 'input'),
 
         # Description section
         'notes':     (None, 'textarea'),
@@ -76,6 +78,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # Additional resources section
         'additional_resources__0__description': (None, 'input'),
         'additional_resources__0__url':         (None, 'input'),
+        'additional_resources__0__format':      (None, 'input'),
 
         # Time & date section
         'temporal_coverage':            ('Temporal coverage', 'input'),
@@ -770,9 +773,11 @@ _EXAMPLE_FORM_DATA = {
         # additional resources
         'additional_resources'  : [
             {'url'              : 'http://www.example.com/additiona_resource',
-             'description'      : 'An additional resource'},
+             'description'      : 'An additional resource',
+             'format'           : 'CSV'},
             {'url'              : 'http://www.example.com/additiona_resource_2',
-             'description'      : 'Another additional resource'}
+             'description'      : 'Another additional resource',
+             'format'           : 'XML'}
         ],
 
         # Themes and tags
@@ -795,9 +800,11 @@ _EXAMPLE_INDIVIDUAL_DATA.update({
         # individual resources
         'individual_resources'     : [
             {'url'                 : 'http://www.example.com',
-             'description'         : 'A resource'},
+             'description'         : 'A resource',
+             'format'              : 'XML'},
             {'url'                 : 'http://www.google.com',
-             'description'         : 'A search engine'}
+             'description'         : 'A search engine',
+             'format'              : 'SDMX'}
         ]
 })
 
@@ -810,19 +817,23 @@ _EXAMPLE_TIMESERIES_DATA.update({
             'timeseries_resources'  : [
                 {'description'      : 'Summer solstice 2010',
                  'url'              : 'http://example.com/data/S2010',
-                 'date'             : 'Summer 2010'},
+                 'date'             : 'Summer 2010',
+                 'format'           : 'XML'},
 
                 {'description'      : 'Winter solstice 2010',
                  'url'              : 'http://example.com/data/W2010',
-                 'date'             : 'Winter 2010'},
+                 'date'             : 'Winter 2010',
+                 'format'           : 'RDF'},
 
                 {'description'      : 'Summer solstice 2011',
                  'url'              : 'http://example.com/data/S2011',
-                 'date'             : 'Summer 2011'},
+                 'date'             : 'Summer 2011',
+                 'format'           : 'CSV'},
 
                 {'description'      : 'Winter solstice 2011',
                  'url'              : 'http://example.com/data/W2011',
-                 'date'             : 'Winter 2011'}
+                 'date'             : 'Winter 2011',
+                 'format'           : ''} # omitted format is OK.
             ],
 })
 

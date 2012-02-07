@@ -87,6 +87,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
           <th class="field_opt resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
+          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
           <th class="field_opt resource-date">Date:</th>
         </tr>
       </thead>
@@ -98,6 +99,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
             <py:choose test="">
               <input py:when="col=='description'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
               <input py:when="col=='url'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
+              <input py:when="col=='format'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
               <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
             </py:choose>
           </td>
@@ -126,6 +128,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
           <th class="field_opt resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
+          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
         </tr>
       </thead>
       <tbody>
@@ -136,6 +139,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
             <py:choose test="">
               <input py:when="col=='description'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
               <input py:when="col=='url'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
+              <input py:when="col=='format'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
               <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
             </py:choose>
             </td>
@@ -149,6 +153,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </table>
     </fieldset>
 
+    <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
+    <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
     <?python
       license_id = data.get('license_id', 'uk-ogl')
       license_id_other = data.get('license_id-other', '')
@@ -183,11 +189,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <input id="license_id-other" name="license_id-other" value="${license_id_other if license_id_other else (license_id if is_other_license else '')}"/>
 
       <p class="instructions basic">The licence under which the dataset is released.</p>
-      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
-    <p class="instructions basic">The files containing the data or address of the APIs for accessing it</p>
-    <p class="instruction-needed instructions further" title="These instructions are from the current form.  Do they need re-wording?  I think we should hide them in a tooltip somehow.">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.</p>
-    <p class="instruction-needed" title="What are we doing with resource formats?"><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
-  <p class="instruction-needed hints" title="What are we doing with resource formats?">Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the license in the "Other" box provided.</p>
   <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
   <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
 
@@ -294,6 +296,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <tr>
         <th class="resource-name">Description:</th>
         <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
+          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
       </tr>
     </thead>
     <tbody>
@@ -301,11 +304,15 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr class="additional_resources__${num}">
           <td>
             <!-- <label class="field_opt" for="additional_resources__${num}__description">Description:</label> -->
-            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}"/>
+            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}" class="medium-width"/>
           </td>
           <td>
             <!-- <label class="field_opt" for="additional_resources__${num}__url">Link:</label> -->
-            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}"/>
+            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}" class="short"/>
+          </td>
+          <td>
+            <!-- <label class="field_opt" for="additional_resources__${num}__format">Format:</label> -->
+            <input name="additional_resources__${num}__format" type="text" value="${res.get('format','')}" class="short"/>
           </td>
           <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
           <td><a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
