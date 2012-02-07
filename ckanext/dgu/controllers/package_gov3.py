@@ -89,7 +89,7 @@ class PackageGov3Controller(PackageController):
     def _setup_template_variables(self, context, data_dict=None, package_type=None):
         c.licenses = model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
-        c.update_frequency = update_frequency
+        c.update_frequency = filter(lambda f: f[0] != 'discontinued', update_frequency)
         c.temporal_granularity = temporal_granularity 
 
         c.publishers = self.get_publishers()

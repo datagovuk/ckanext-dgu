@@ -76,6 +76,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
               ${freq_desc}
             </option>
           </py:for>
+          <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
         </select>
         <label class="inline" for="update_frequency-other">Other:</label>
         <input class="short-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
