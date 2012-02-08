@@ -1,15 +1,25 @@
-'''
-Daily script for gov server
-'''
+################################################################################
+# Imports the DGU Publisher hierarchy from a CSV that was generated from the
+# Drupal MySql database. 
+#
+# The CSV file can be generated with the following SQL statement.
+#
+# SELECT r.title, 
+#       p.nid,
+#       (SELECT title FROM dgu_drupal.node_revisions AS rr WHERE rr.nid = p.field_pub_parent_nid ) AS 'parent_title',
+#       p.field_pub_parent_nid, 
+#       p.field_acronym_value, 
+#       p.field_pub_email_display_email, 
+#       p.field_pub_web_url, 
+#       p.field_pub_web_title
+# FROM dgu_drupal.content_type_publisher AS p
+# INNER JOIN dgu_drupal.node_revisions AS r ON r.vid = p.vid;
+################################################################################
+
 import os
 import logging
 import sys
-import zipfile
-import traceback
-import datetime
-import re
 from sqlalchemy import engine_from_config
-# Import ckan as it changes the dependent packages imported
 import ckan
 from ckan import model
 from ckan.lib.munge import munge_title_to_name
