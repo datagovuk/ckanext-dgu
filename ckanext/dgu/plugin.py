@@ -119,8 +119,8 @@ class FormApiPlugin(SingletonPlugin):
                routes.get('controller') == 'package' and \
                routes.get('action') == 'read' and c.pkg.id:
 
-            is_inspire = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'INSPIRE']
-            if is_inspire and is_inspire[0] == 'True':
+            is_uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
+            if is_uklp and is_uklp[0] == 'True':
                 stream = stream_filters.harvest_filter(stream, c.pkg)
 
             # Add dataset id to the UI
