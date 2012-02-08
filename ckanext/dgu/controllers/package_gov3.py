@@ -84,8 +84,7 @@ class PackageGov3Controller(PackageController):
 
     def history(self, id):
         """ Auth is different for DGU than for publisher default """
-        package = model.Package.get(id)
-        if not _groups_intersect( package.get_groups('publisher'), c.userobj.get_groups('publisher') ):
+        if len ( c.userobj.get_groups('publisher') ) == 0:
             abort( 401, _('Unauthorized to read package history') )
         return super(PackageGov3Controller, self).history(  id )
 
