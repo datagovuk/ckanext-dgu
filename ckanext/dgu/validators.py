@@ -16,15 +16,25 @@ def validate_license(key, data, errors, context):
 
     Validation rules must be true to validate:
 
-     license_id == '' => license_id-other != ''
-     license_id != '' => license_id-other == ''
+     license_id == ''                             => license_id-other != ''
+     license_id != '__extra__' ^ license_id != '' => license_id-other == ''
 
     Additional transformations occur:
 
-     license_id-other != '' => license_id ~> license_id-other
+     license_id == '__extra__' => licence_id := None
+     license_id-other != ''    => license_id := license_id-other
      license_id-other is DROPPED
 
     """
+    if data[('license_id',)]== '__extra__':
+        data[('license_id',)] = None
+        try:
+            del data[('license_id-other',)]
+            del errors[('license_id-other',)]
+        except:
+            pass
+        #data[('extras',)].append({'key': 'licence', 'value': data[('license_id-other',)]})
+        return
 
     license_id = bool(data[('license_id',)])
     license_id_other = bool(data[('license_id-other',)])
