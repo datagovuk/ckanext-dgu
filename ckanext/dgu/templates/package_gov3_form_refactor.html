@@ -25,13 +25,14 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <div id="form-tabs">
   <ul>
     <li><a id="section-name" href="#section-name" class="active">Name</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-data" href="#section-data">Data</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-data" href="#section-data">Files</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-description" href="#section-description">Description</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-contacts" href="#section-contacts">Contact details</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-themes" href="#section-themes">Theme &amp; tags</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-additional_resources" href="#section-additional_resources">Additional resources (optional)</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-temporal" href="#section-temporal">Temporal coverage (optional)</a></li>
     <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-geographic" href="#section-geographic">Geographic coverage (optional)</a></li>
+    <li py:if="is_edit_form"><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-extra" href="#section-extra">Extras (optional)</a></li>
   </ul>
 </div>
 
@@ -40,18 +41,20 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <legend>Name</legend>
   <p>Please name your data record</p>
   <label for="title">Name:</label>
-  <input class="field_req js-title js-tooltip" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
+  <input py:attrs="{'class': 'field_req js-tooltip' if is_edit_form else 'field_req js-title js-tooltip'}" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
   <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
   
-  <label for="name">Unique identifier for this data record:</label>
-  <input class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
-  <p class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
-  <p>This will locate this data set here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
+  <label py:if="not is_edit_form" for="name">Unique identifier for this data record:</label>
+  <input py:if="not is_edit_form" class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
+  <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
+  <p py:if="not is_edit_form" class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
+  <p py:if="not is_edit_form">This will locate this data set here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
+  <p py:if="is_edit_form"><b>The dataset is located here: </b><a href="${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}">${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}</a></p>
   <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
 </fieldset>
 
 <fieldset id="section-data-fields">
-  <legend>Data</legend>
+  <legend>Files</legend>
   <p>In this tab you enter the links to the files you wish to add to this record. Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the 25k spend data, where new data is added to the record monthly).</p>
     <p>This record is:</p>
 
@@ -75,6 +78,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
               ${freq_desc}
             </option>
           </py:for>
+          <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
         </select>
         <label class="inline" for="update_frequency-other">Other:</label>
         <input class="short-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
@@ -86,6 +90,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
           <th class="field_opt resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
+          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
           <th class="field_opt resource-date">Date:</th>
         </tr>
       </thead>
@@ -97,6 +102,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
             <py:choose test="">
               <input py:when="col=='description'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
               <input py:when="col=='url'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
+              <input py:when="col=='format'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
               <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
             </py:choose>
           </td>
@@ -125,6 +131,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
           <th class="field_opt resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
+          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
         </tr>
       </thead>
       <tbody>
@@ -135,6 +142,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
             <py:choose test="">
               <input py:when="col=='description'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
               <input py:when="col=='url'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
+              <input py:when="col=='format'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
               <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
             </py:choose>
             </td>
@@ -148,20 +156,43 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </table>
     </fieldset>
 
-    <label class="field_opt" for="license_id">Licence *</label>
-    
+    <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
+    <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+    <?python
+      license_id = data.get('license_id', 'uk-ogl')
+      license_id_other = data.get('license_id-other', '')
+      available_license_ids = zip(*c.licenses)[1]
+      is_other_license = license_id not in available_license_ids
+    ?>
+    <label for="license_id">License:</label>
     <select id="license_id" name="license_id">
-      <py:for each="licence_desc, licence_id in c.licences">
-        <option value="${licence_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == licence_id else None}" >${licence_desc}</option>
-      </py:for>
+
+      <py:if test="not is_edit_form">
+        <!-- If this is a new dataset, then we only offer OGL in the dropdown -->
+        <py:for each="license_desc, license_id in filter(lambda (desc,id): id == 'uk-ogl', c.licenses)">
+          <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
+        </py:for>
+      </py:if>
+
+      <py:if test="is_edit_form">
+        <!-- If this is an edit form, then we want to offer the current license
+             in the dropdown, unless it's a free-text license -->
+        <?python
+          license_choices = set(available_license_ids) & set([license_id, 'uk-ogl'])
+        ?>
+        <py:for each="license_desc, license_id in filter(lambda (desc,id): id in license_choices, c.licenses)">
+          <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
+        </py:for>
+      </py:if>
+
+      <option value="" py:attrs="{'selected': 'selected' if is_other_license else None}">Specify other...</option>
     </select>
-      
+    
+    <label for="license_id-other">Other:</label>
+    <input id="license_id-other" name="license_id-other" value="${license_id_other if license_id_other else (license_id if is_other_license else '')}"/>
+
       <p class="instructions basic">The licence under which the dataset is released.</p>
-      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please contact the <a href="mailto:PublicData@nationalarchives.gsi.gov.uk">Public Data and Transparency Team</a>.</p>
-    <p class="instructions basic">The files containing the data or address of the APIs for accessing it</p>
-    <p class="instruction-needed instructions further" title="These instructions are from the current form.  Do they need re-wording?  I think we should hide them in a tooltip somehow.">These can be repeated as required. For example if the data is being supplied in multiple formats, or split into different areas or time periods, each file is a different 'resource' which should be described differently. They will all appear on the dataset page on data.gov.uk together.</p>
-    <p class="instruction-needed" title="What are we doing with resource formats?"><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
-  <p class="instruction-needed hints" title="What are we doing with resource formats?">Format choices: CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+      <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the license in the "Other" box provided.</p>
   <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
   <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
 
@@ -213,6 +244,19 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <fieldset id="section-themes-fields">
   <legend>Theme &amp; tags</legend>
+
+  <?python
+    import re
+    all_tags = [t['name'] for t in data.get('tags', [])]
+    primary_theme = data.get('primary_theme', '')
+    secondary_themes_raw = data.get('secondary_theme', '')
+    if isinstance(secondary_themes_raw, basestring):
+      secondary_themes= set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('secondary_theme', '')).split(',')))
+    else:
+      secondary_themes = set(secondary_themes_raw)
+    free_tags = set(all_tags) - set([primary_theme]) - secondary_themes
+  ?>
+
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select class="instruction-needed" title="We need a tag taxonomy in order to implement this." id="primary_theme" name="primary_theme">
         <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
@@ -228,23 +272,23 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </select>
     <div class="instruction-needed" title="Is this still wanted?">
     <p>2. Please choose secondary tags with which to tag this data record:</p>
-    <input type="checkbox" name="secondary_theme" value="Health"/>Health
-    <input type="checkbox" name="secondary_theme" value="Environment"/>Environment
-    <input type="checkbox" name="secondary_theme" value="Education"/>Education
-    <input type="checkbox" name="secondary_theme" value="Finance"/>Finance
-    <input type="checkbox" name="secondary_theme" value="Society"/>Society
-    <input type="checkbox" name="secondary_theme" value="Defence"/>Defence
-    <input type="checkbox" name="secondary_theme" value="Transportation"/>Transportation
-    <input type="checkbox" name="secondary_theme" value="Spending data"/>Spending data
-    <input type="checkbox" name="secondary_theme" value="Government"/>Government
+    <input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health
+    <input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment
+    <input type="checkbox" name="secondary_theme" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education
+    <input type="checkbox" name="secondary_theme" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance
+    <input type="checkbox" name="secondary_theme" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society
+    <input type="checkbox" name="secondary_theme" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence
+    <input type="checkbox" name="secondary_theme" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation
+    <input type="checkbox" name="secondary_theme" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data
+    <input type="checkbox" name="secondary_theme" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government
     </div>
 
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
     <label class="field_opt to-be-completed" for="tag_string" title="Auto-completion to be implemented.">Tags</label>
-    <input class="long tagComplete to-be-completed" data-tagcomplete-queryparam="incomplete" 
+    <input class="long autocomplete-tag to-be-completed" data-tagcomplete-queryparam="incomplete" 
            data-tagcomplete-url="/api/2/util/tag/autocomplete"
            id="tag_string" name="tag_string" size="60" type="text"
-           value="${data.get('tag_string') or ', '.join([tag['name'] for tag in data.get('tags', [])])}" />
+           value="${data.get('tag_string') or ', '.join(free_tags)}" />
 </fieldset>
 
 <fieldset id="section-additional_resources-fields">
@@ -255,6 +299,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <tr>
         <th class="resource-name">Description:</th>
         <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
+          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
       </tr>
     </thead>
     <tbody>
@@ -262,11 +307,15 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr class="additional_resources__${num}">
           <td>
             <!-- <label class="field_opt" for="additional_resources__${num}__description">Description:</label> -->
-            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}"/>
+            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}" class="medium-width"/>
           </td>
           <td>
             <!-- <label class="field_opt" for="additional_resources__${num}__url">Link:</label> -->
-            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}"/>
+            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}" class="short"/>
+          </td>
+          <td>
+            <!-- <label class="field_opt" for="additional_resources__${num}__format">Format:</label> -->
+            <input name="additional_resources__${num}__format" type="text" value="${res.get('format','')}" class="short"/>
           </td>
           <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
           <td><a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
@@ -274,80 +323,17 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </py:for>
     </tbody>
     </table>
-    <div class="instruction-needed" title="All these fields exist in the current form, but are missing from the document.  We need to decided whether to keep them or remove them.">
-      <label class="field_opt" for="url">URL</label>
-      <input id="url" name="url" type="text" value="${data.get('url', '')}"/>
-      <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
-      <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
-      <p class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</p>
 
-      <label class="field_opt" for="taxonomy_url">Taxonomy URL</label>
-      <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/>
-      <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
-      <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
-      <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
-      
-      <label class="field_opt" for="mandate">Mandate</label>
-      <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
-      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
-      <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
-
-
-      <label class="field_opt" for="national_statistic">National Statistic</label>
-      <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
-           py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" />
-      <p class="instructions basic">Indicate if the dataset is a National Statistic</p>
-      <p class="instructions further">This is so that it can be highlighted.</p>
-    </div>
-
-
+  <label class="field_opt" for="mandate">Mandate</label>
+  <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
+  <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
+  <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+  <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
 
 </fieldset>
 
-<fieldset class="instruction-needed" title="These fields are present in the current for, but not mentioned in the spec.  We need to decide what to do with them." id="section-temporal-fields">
+<fieldset id="section-temporal-fields">
   <legend>Time &amp; date (optional)</legend>
-  <label class="field_opt" for="date_released">Date released</label>
-  <input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" />
-  <p class="instructions basic">The date of the official release of the initial version of the dataset</p>
-  <p class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
-  <p class="hints">DD/MM/YYYY</p>
-  <p class="field_error" py:if="errors.get('date_released', '')">${errors.get('date_released', '')}</p>
-
-  <label class="field_opt" for="date_updated">Date updated</label>
-  <input id="date_updated" name="date_updated" size="40" type="text" value="${data.get('date_updated', '')}"/>
-  <p class="instructions basic">The date of release of the most recent version of the dataset</p>
-  <p class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
-    <p class="hints">DD/MM/YYYY</p>
-    <p class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</p>
-
-    <label class="field_opt" for="date_update_future">Date to be published</label>
-    <input id="date_update_future" name="date_update_future" size="40" type="text" value="${data.get('date_update_future', '')}"/>
-    <p class="instructions basic">When the dataset will be updated in the future, if appropriate</p>
-    <p class="hints">DD/MM/YYYY</p>
-    <p class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</p>
-
-    <label class="field_opt" for="precision">Precision</label>
-    <input id="precision" name="precision" size="40" type="text" value="${data.get('precision', '')}"/>
-    <p class="instructions basic">Indicate the level of precision in the data, to avoid over-interpretation.</p>
-    <p class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</p>
-
-    <label class="field_opt" for="temporal_granularity">Temporal granularity</label>
-    
-      <select class="short" id="temporal_granularity" name="temporal_granularity">
-        <py:for each="temporal_name, temporal_desc in c.temporal_granularity">
-          <option value="${temporal_name}" py:attrs="{'selected': 'selected' if data.get('temporal_granularity', '') == temporal_name else None}" >
-            ${temporal_name}
-          </option>
-        </py:for>
-      </select>
-      <label class="inline" for="temporal_granularity-other">Other: 
-        <input class="short-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
-      </label>
-    
-    <p class="instructions basic">The lowest level of temporal detail granularity</p>
-    <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
-
     <label class="field_opt" for="temporal_coverage">Temporal coverage</label>
     
       <input class="medium-width" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
@@ -359,28 +345,14 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 </fieldset>
 
-<fieldset id="section-geographic-fields" class="instruction-needed" title="These fields are present in the current for, but not mentioned in the spec.  We need to decide what to do with them.">
+<fieldset id="section-geographic-fields">
   <legend>Geographic coverage</legend>
-    <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
-    
-      <select class="short" id="geographic_granularity" name="geographic_granularity">
-        <py:for each="geog_name, geog_desc in c.geographic_granularity">
-          <option value="${geog_name}" py:attrs="{'selected': 'selected' if data.get('geographic_granularity', '') == geog_name else None}" >
-            ${geog_desc}
-          </option>
-        </py:for>
-      </select>
-      <label class="inline" for="geographic_granularity-other">Other: 
-        <input class="short-width" id="geographic_granularity-other" 
-        name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
-      </label>
-    
-    <p class="instructions basic">The lowest level of geographic detail</p>
-    <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
-    <p class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</p>
 
     <label class="field_opt" for="geographic_coverage">Geographic coverage</label>
     <p py:with="geographic_coverage=data.get('geographic_coverage', [])">
+      <label for="local_authority">
+        <input id="local_authority" name="geographic_coverage" size="40" type="checkbox" 
+        value="local_authority" py:attrs="{'checked': 'checked' if 'local_authority' in geographic_coverage else None}"/> Local Authority</label>
       <label for="england">
         <input id="england" name="geographic_coverage" size="40" type="checkbox" 
         value="england" py:attrs="{'checked': 'checked' if 'england' in geographic_coverage else None}"/> England</label>
@@ -404,9 +376,109 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
 </fieldset>
 
+<fieldset id="section-extra-fields">
+  <legend>Extras</legend>
+
+  <div py:if="data.get('url', '')">
+    <label class="field_opt" for="url">URL</label>
+    <input id="url" name="url" type="text" value="${data.get('url', '')}"/>
+    <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
+    <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
+    <p class="field_error" py:if="errors.get('url', '')">${errors.get('url', '')}</p>
+  </div>
+
+  <div py:if="data.get('taxonomy_url','')">
+    <label class="field_opt" for="taxonomy_url">Taxonomy URL</label>
+    <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="${data.get('taxonomy_url', '')}"/>
+    <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
+    <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
+    <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
+  </div>
+  
+  <div>
+    <label class="field_opt" for="national_statistic">National Statistic</label>
+    <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
+         py:attrs="{'checked': 'checked' if data.get('national_statistic', '').lower() == 'yes' else None}" />
+    <p class="instructions basic">Indicate if the dataset is a National Statistic</p>
+    <p class="instructions further">This is so that it can be highlighted.</p>
+  </div>
+
+  <div py:if="data.get('date_released', '')">
+    <label class="field_opt" for="date_released">Date released</label>
+    <input id="date_released" name="date_released" size="40" type="text" value="${data.get('date_released', '')}" />
+    <p class="instructions basic">The date of the official release of the initial version of the dataset</p>
+    <p class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
+    <p class="hints">DD/MM/YYYY</p>
+    <p class="field_error" py:if="errors.get('date_released', '')">${errors.get('date_released', '')}</p>
+  </div>
+
+  <div py:if="data.get('date_updated', '')">
+    <label class="field_opt" for="date_updated">Date updated</label>
+    <input id="date_updated" name="date_updated" size="40" type="text" value="${data.get('date_updated', '')}"/>
+    <p class="instructions basic">The date of release of the most recent version of the dataset</p>
+    <p class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
+    <p class="hints">DD/MM/YYYY</p>
+    <p class="field_error" py:if="errors.get('date_updated', '')">${errors.get('date_updated', '')}</p>
+  </div>
+
+  <div py:if="data.get('date_update_future', '')">
+    <label class="field_opt" for="date_update_future">Date to be published</label>
+    <input id="date_update_future" name="date_update_future" size="40" type="text" value="${data.get('date_update_future', '')}"/>
+    <p class="instructions basic">When the dataset will be updated in the future, if appropriate</p>
+    <p class="hints">DD/MM/YYYY</p>
+    <p class="field_error" py:if="errors.get('date_update_future', '')">${errors.get('date_update_future', '')}</p>
+  </div>
+
+  <div py:if="data.get('precision', '')">
+    <label class="field_opt" for="precision">Precision</label>
+    <input id="precision" name="precision" size="40" type="text" value="${data.get('precision', '')}"/>
+    <p class="instructions basic">Indicate the level of precision in the data, to avoid over-interpretation.</p>
+    <p class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</p>
+  </div>
+
+  <div py:if="data.get('temporal_granularity', '')">
+    <label class="field_opt" for="temporal_granularity">Temporal granularity</label>
+    
+    <select class="short" id="temporal_granularity" name="temporal_granularity">
+      <py:for each="temporal_name, temporal_desc in c.temporal_granularity">
+        <option value="${temporal_name}" py:attrs="{'selected': 'selected' if data.get('temporal_granularity', '') == temporal_name else None}" >
+          ${temporal_name}
+        </option>
+      </py:for>
+    </select>
+    <label class="inline" for="temporal_granularity-other">Other: 
+      <input class="short-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
+    </label>
+    
+    <p class="instructions basic">The lowest level of temporal detail granularity</p>
+    <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
+  </div>
+
+  <div py:if="data.get('geographic_granularity', '')">
+    <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
+    
+    <select class="short" id="geographic_granularity" name="geographic_granularity">
+      <py:for each="geog_name, geog_desc in c.geographic_granularity">
+        <option value="${geog_name}" py:attrs="{'selected': 'selected' if data.get('geographic_granularity', '') == geog_name else None}" >
+          ${geog_desc}
+        </option>
+      </py:for>
+    </select>
+    <label class="inline" for="geographic_granularity-other">Other: 
+      <input class="short-width" id="geographic_granularity-other" 
+      name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
+    </label>
+    
+    <p class="instructions basic">The lowest level of geographic detail</p>
+    <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
+    <p class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</p>
+  </div>
+
+</fieldset>
+
 <div id="nav-controls" class="submit">
   <input disabled="disabled" class="nav-button" type="button" id="back-button" value="Back" py:if="not is_edit_form"/>
-  <input py:attrs="{'disabled': 'disabled' if use_wizard else None}" id="save-button" name="save" type="submit" value="Save" />
+  <input id="save-button" name="save" type="submit" value="Save" />
   <input  disabled="disabled" class="nav-button" type="button" id="next-button" value="Next" py:if="not is_edit_form"/>
 </div>
 <div id="disclaimer">

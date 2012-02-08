@@ -48,9 +48,11 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'update_frequency-other':               ('Other:', 'input'),
         'individual_resources__0__description': (None, 'input'),
         'individual_resources__0__url':         (None, 'input'),
+        'individual_resources__0__format':      (None, 'input'),
         'timeseries_resources__0__description': (None, 'input'),
         'timeseries_resources__0__url':         (None, 'input'),
         'timeseries_resources__0__date':        (None, 'input'),
+        'timeseries_resources__0__format':      (None, 'input'),
 
         # Description section
         'notes':     (None, 'textarea'),
@@ -69,28 +71,19 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'primary_theme':        (None, 'select'),
         'secondary_theme':      (None, 'input'),
         'tag_string':           ('Tags', 'input'),
-        'url':                  ('URL', 'input'),
-        'taxonomy_url':         ('Taxonomy URL', 'input'),
         'mandate':              ('Mandate', 'input'),
-        'license_id':           ('Licence *', 'select'),
-        'national_statistic':   ('National Statistic', 'input'),
+        'license_id':           ('License:', 'select'),
+        'license_id-other':     ('Other:', 'input'),
 
         # Additional resources section
         'additional_resources__0__description': (None, 'input'),
         'additional_resources__0__url':         (None, 'input'),
+        'additional_resources__0__format':      (None, 'input'),
 
         # Time & date section
-        'date_released':                ('Date released', 'input'),
-        'date_updated':                 ('Date updated', 'input'),
-        'date_update_future':           ('Date to be published', 'input'),
-        'precision':                    ('Precision', 'input'),
-        'temporal_granularity':         ('Temporal granularity', 'select'),
-        'temporal_granularity-other':   ('Other', 'input'),
         'temporal_coverage':            ('Temporal coverage', 'input'),
 
         # Geographic coverage section
-        'geographic_granularity':       ('Geographic granularity', 'select'),
-        'geographic_granularity-other': ('Other', 'input'),
         'geographic_coverage':          ('Geographic coverage', 'input'),
     }
     
@@ -103,6 +96,22 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'maintainer_email',
         'newfield0-key',
         'newfield0-value',
+    )
+
+    # Fields that are still part of the package, but we only
+    # expect them to appear on an edit-form, and only then if they
+    # have a non-empty value
+    _ignored_fields = (
+        'url',
+        'taxonomy_url',
+        'date_released',
+        'date_updated',
+        'date_update_future',
+        'precision',
+        'temporal_granularity',
+        'temporal_granularity-other',
+        'geographic_granularity',
+        'geographic_granularity-other',
     )
 
     @classmethod
@@ -174,9 +183,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
 
         # Sanity check that the form failed to submit due to the name being missing.
         assert_in('Name: Missing value', response)
-
-        # TODO: re-instate these fields
-        del package_data['secondary_theme']
 
         # Check the notes fiels separately as it contains a newline character
         # in its value.  And the `self.check_named_element()` method doesn't
@@ -267,10 +273,12 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                         expected_field_values[full_field_name] = resource['extras'][field]
 
         for field_name, expected_value in expected_field_values.items():
-            self.check_named_element(response.body,
-                                     '(input|textarea|select)',
-                                     'name="%s"' % field_name,
-                                     expected_value)
+
+            if field_name not in self._ignored_fields or expected_value:
+                self.check_named_element(response.body,
+                                        '(input|textarea|select)',
+                                        'name="%s"' % field_name,
+                                        expected_value)
 
     def test_a_full_timeseries_dataset_edit_form(self):
         """
@@ -289,9 +297,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # GET the edit form
         offset = url_for(controller='package', action='edit', id=package_name)
         response = self.app.get(offset)
-
-        # TODO: test secondary theme
-        del package_data['secondary_theme']
 
         # tags may be re-ordered, so test them manually
         expected_tags = set(map(lambda s: s.strip(), package_data['tag_string'].split(',')))
@@ -510,6 +515,22 @@ class TestFormValidation(object):
             assert_in("'Invalid resource type: %s']" % resource_type,
                       response.body)
 
+    def test_cannot_create_a_non_ogl_dataset_without_specifying_license_name(self):
+        """
+        Asserts that the user specify a license name if the license is non-OGL
+        """
+        data = {'license_id': ""}
+        response = self._form_client.post_form(data)
+        assert_in('License id: Please enter the name of the license', response.body)
+
+    def test_cannot_name_another_license_if_declaring_the_dataset_to_be_ogl_licensed(self):
+        """
+        Asserts that if specifying an ogl license, then the user cannot fill the license id themselves
+        """
+        data = {'license_id': 'uk-ogl', 'license_id-other': 'A difference license'}
+        response = self._form_client.post_form(data)
+        assert_in('License id: Leave the "other" box empty if selecting a license from the list', response.body)
+
 class TestPackageCreation(CommonFixtureMethods):
     """
     A suite of tests that check that packages are created correctly through the creation form.
@@ -588,16 +609,12 @@ class TestPackageCreation(CommonFixtureMethods):
         # Themes and tags
         assert_equal(package_data['primary_theme'], pkg.extras['primary_theme'])
 
-        # TODO clarification on sub-themes needed:
-        #       - equality of sub-themes regardless of parent theme?
-        #       - searchable?
-        #
-        #      And from that, need to decide how they should be stored.
-        #      Until then, we skip this assertion.
-        # assert_equal(set(package_data['secondary_theme']),
-        #              set(pkg.extras['secondary_theme']))
+        assert_equal(set(package_data['secondary_theme']),
+                     set(pkg.extras['secondary_theme']))
 
-        assert_equal(set(['tag1', 'tag2', 'a multi word tag']),
+        # Health and Education are from the primary and secondary themes, which
+        # end up in the tags
+        assert_equal(set(['tag1', 'tag2', 'a multi word tag', 'Health', 'Education']),
                      set(tag.name for tag in pkg.tags))
 
         # Additional resources
@@ -611,19 +628,11 @@ class TestPackageCreation(CommonFixtureMethods):
             assert_equal(package_data[key],
                          additional_resources[index][field])
 
-        assert_equal(package_data['url'], pkg.url)
-        assert_equal(package_data['taxonomy_url'], pkg.extras['taxonomy_url'])
         assert_equal(package_data['mandate'], pkg.extras['mandate'])
-        assert_equal(package_data['license_id'], pkg.license_id)
+        assert_equal(package_data['license_id-other'], pkg.license_id)
 
-        assert_equal(package_data['date_released'], _convert_date(pkg.extras['date_released']))
-        assert_equal(package_data['date_updated'], _convert_date(pkg.extras['date_updated']))
-        assert_equal(package_data['date_update_future'], _convert_date(pkg.extras['date_update_future']))
-        assert_equal(package_data['precision'], pkg.extras['precision'])
-        assert_equal(package_data['temporal_granularity-other'], pkg.extras['temporal_granularity'])
         assert_equal(package_data['temporal_coverage-from'], _convert_date(pkg.extras['temporal_coverage-from']))
         assert_equal(package_data['temporal_coverage-to'], _convert_date(pkg.extras['temporal_coverage-to']))
-        assert_equal(package_data['geographic_granularity-other'], pkg.extras['geographic_granularity'])
         assert_in('England', pkg.extras['geographic_coverage'])
 
 class _PackageFormClient(WsgiAppCase):
@@ -764,31 +773,24 @@ _EXAMPLE_FORM_DATA = {
         # additional resources
         'additional_resources'  : [
             {'url'              : 'http://www.example.com/additiona_resource',
-             'description'      : 'An additional resource'},
+             'description'      : 'An additional resource',
+             'format'           : 'CSV'},
             {'url'              : 'http://www.example.com/additiona_resource_2',
-             'description'      : 'Another additional resource'}
+             'description'      : 'Another additional resource',
+             'format'           : 'XML'}
         ],
 
         # Themes and tags
         'primary_theme'         : 'Health',
-        'secondary_theme'       : ['Education', 'Transportation', 'Government'],
+        'secondary_theme'       : 'Education', # TODO: check multiple boxes
         'tag_string'            : 'tag1, tag2, a multi word tag',
 
         # The rest
-        'url'                   : 'http://example.com/another_url',
-        'taxonomy_url'          : 'http://example.com/taxonomy',
         'mandate'               : 'http://example.com/mandate',
-        'license_id'            : 'odc-pddl',
-        'date_released'         : '1/1/2011',
-        'date_updated'          : '1/1/2012',
-        'date_update_future'    : '1/9/2012',
-        'precision'             : 'As supplied',
-        'temporal_granularity'  : 'other',
-        'temporal_granularity-other': 'lunar month',
+        'license_id-other'      : 'Free-from license',
+        'license_id'            : '',
         'temporal_coverage-from': '1/1/2010',
         'temporal_coverage-to'  : '1/1/2012',
-        'geographic_granularity': 'other',
-        'geographic_granularity-other': 'postcode',
         'geographic_coverage'   : 'england', # TODO: check multiple boxes
 }
 
@@ -798,9 +800,11 @@ _EXAMPLE_INDIVIDUAL_DATA.update({
         # individual resources
         'individual_resources'     : [
             {'url'                 : 'http://www.example.com',
-             'description'         : 'A resource'},
+             'description'         : 'A resource',
+             'format'              : 'XML'},
             {'url'                 : 'http://www.google.com',
-             'description'         : 'A search engine'}
+             'description'         : 'A search engine',
+             'format'              : 'SDMX'}
         ]
 })
 
@@ -813,19 +817,23 @@ _EXAMPLE_TIMESERIES_DATA.update({
             'timeseries_resources'  : [
                 {'description'      : 'Summer solstice 2010',
                  'url'              : 'http://example.com/data/S2010',
-                 'date'             : 'Summer 2010'},
+                 'date'             : 'Summer 2010',
+                 'format'           : 'XML'},
 
                 {'description'      : 'Winter solstice 2010',
                  'url'              : 'http://example.com/data/W2010',
-                 'date'             : 'Winter 2010'},
+                 'date'             : 'Winter 2010',
+                 'format'           : 'RDF'},
 
                 {'description'      : 'Summer solstice 2011',
                  'url'              : 'http://example.com/data/S2011',
-                 'date'             : 'Summer 2011'},
+                 'date'             : 'Summer 2011',
+                 'format'           : 'CSV'},
 
                 {'description'      : 'Winter solstice 2011',
                  'url'              : 'http://example.com/data/W2011',
-                 'date'             : 'Winter 2011'}
+                 'date'             : 'Winter 2011',
+                 'format'           : ''} # omitted format is OK.
             ],
 })
 

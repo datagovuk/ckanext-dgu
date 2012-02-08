@@ -43,6 +43,7 @@
     CKAN.Dgu.showTab($('a#section-additional_resources'), $('fieldset#section-additional_resources-fields'));
     CKAN.Dgu.showTab($('a#section-temporal'),             $('fieldset#section-temporal-fields'));
     CKAN.Dgu.showTab($('a#section-geographic'),           $('fieldset#section-geographic-fields'));
+    CKAN.Dgu.showTab($('a#section-extra'),                $('fieldset#section-extra-fields'));
     $('fieldset#section-name-fields').show();
 
     /* Setup next/back buttons */
@@ -66,16 +67,8 @@
       }
     });
 
-    /* Ensure required fields have values before the save button appears */
-    CKAN.Dgu.bindInputChanges($('.field_req'), function() {
-      var complete = true;
-      $('.field_req').each(function(){
-        var v = $(this).val();
-        complete &= Boolean(v);
-      });
-      if(complete){ $('#save-button').removeAttr('disabled'); }
-      else { $('#save-button').attr('disabled', 'disabled'); }
-    });
+    /* Tag auto-completion */
+    CKAN.Dgu.setupTagAutocomplete($('input.autocomplete-tag'));
   });
 }(jQuery));
 
@@ -151,11 +144,11 @@ CKAN.Dgu = function($, my) {
     var urlInput = $('.js-url-input');
     var validMsg = $('.js-url-is-valid');
 
-    if (titleInput.length==0) throw "No titleInput found.";
-    if (urlText.length==0) throw "No urlText found.";
-    if (urlSuffix.length==0) throw "No urlSuffix found.";
-    if (urlInput.length==0) throw "No urlInput found.";
-    if (validMsg.length==0) throw "No validMsg found.";
+    if (titleInput.length==0) return;
+    if (urlText.length==0) return;
+    if (urlSuffix.length==0) return;
+    if (urlInput.length==0) return;
+    if (validMsg.length==0) return;
 
     var api_url = '/api/2/util/is_slug_valid';
     // (make length less than max, in case we need a few for '_' chars to de-clash slugs.)
@@ -251,6 +244,50 @@ CKAN.Dgu = function($, my) {
       });
     }
   }
+
+  my.setupTagAutocomplete = function(elements) {
+    elements
+      // don't navigate away from the field on tab when selecting an item
+      .bind( "keydown", function( event ) {
+        if ( event.keyCode === $.ui.keyCode.TAB &&
+            $( this ).data( "autocomplete" ).menu.active ) {
+          event.preventDefault();
+        }
+      })
+      .autocomplete({
+        minLength: 1,
+        source: function(request, callback) {
+          // here request.term is whole list of tags so need to get last
+          var _realTerm = request.term.split(',').pop().trim();
+          var url = CKAN.SITE_URL + '/api/2/util/tag/autocomplete?incomplete=' + _realTerm;
+          $.getJSON(url, function(data) {
+            // data = { ResultSet: { Result: [ {Name: tag} ] } } (Why oh why?)
+            var tags = $.map(data.ResultSet.Result, function(value, idx) {
+              return value.Name;
+            });
+            callback(
+              $.ui.autocomplete.filter(tags, _realTerm)
+            );
+          });
+        },
+        focus: function() {
+          // prevent value inserted on focus
+          return false;
+        },
+        select: function( event, ui ) {
+          var terms = this.value.split(',');
+          // remove the current input
+          terms.pop();
+          // add the selected item
+          terms.push( " "+ui.item.value );
+          // add placeholder to get the comma-and-space at the end
+          terms.push( " " );
+          this.value = terms.join( "," );
+          return false;
+        }
+    });
+  };
+
 
   return my;
 }(jQuery, CKAN.Dgu || {});

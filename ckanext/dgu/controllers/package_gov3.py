@@ -13,7 +13,7 @@ from ckan.lib.package_saver import PackageSaver
 from ckan.lib.field_types import DateType, DateConvertError
 from ckan.authz import Authorizer
 from ckan.lib.navl.dictization_functions import Invalid
-from ckanext.dgu.forms.package_gov_fields import GeoCoverageType
+from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import validate, missing
 from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,
@@ -28,7 +28,8 @@ from ckan.controllers.package import PackageController
 from ckanext.dgu.validators import merge_resources, unmerge_resources, \
                                    validate_resources, \
                                    validate_additional_resource_types, \
-                                   validate_data_resource_types
+                                   validate_data_resource_types, \
+                                   validate_license
 
 log = logging.getLogger(__name__)
 
@@ -93,15 +94,15 @@ class PackageGov3Controller(PackageController):
         return 'package_gov3_form_refactor.html'
 
     def _setup_template_variables(self, context, data_dict=None, package_type=None):
-        c.licences = [('', '')] + model.Package.get_license_options()
+        c.licenses = model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
-        c.update_frequency = update_frequency
+        c.update_frequency = filter(lambda f: f[0] != 'discontinued', update_frequency)
         c.temporal_granularity = temporal_granularity 
 
         c.publishers = self.get_publishers()
 
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
-        c.resource_columns = ('description', 'url')
+        c.resource_columns = ('description', 'url', 'format')
 
         ## This is messy as auths take domain object not data_dict
         pkg = context.get('package') or c.pkg
@@ -116,21 +117,21 @@ class PackageGov3Controller(PackageController):
             'name': [not_empty, unicode, val.name_validator, val.package_name_validator],
             'notes': [not_empty, unicode],
 
-            'date_released': [date_to_db, convert_to_extras],
-            'date_updated': [date_to_db, convert_to_extras],
-            'date_update_future': [date_to_db, convert_to_extras],
-            'update_frequency': [use_other, unicode, convert_to_extras],
-            'update_frequency-other': [],
-            'precision': [unicode, convert_to_extras],
-            'geographic_granularity': [use_other, unicode, convert_to_extras],
-            'geographic_granularity-other': [],
+            'date_released': [ignore_missing, date_to_db, convert_to_extras],
+            'date_updated': [ignore_missing, date_to_db, convert_to_extras],
+            'date_update_future': [ignore_missing, date_to_db, convert_to_extras],
+            'update_frequency': [ignore_missing, use_other, unicode, convert_to_extras],
+            'update_frequency-other': [ignore_missing],
+            'precision': [ignore_missing, unicode, convert_to_extras],
+            'geographic_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
+            'geographic_granularity-other': [ignore_missing],
             'geographic_coverage': [ignore_missing, convert_geographic_to_db, convert_to_extras],
-            'temporal_granularity': [use_other, unicode, convert_to_extras],
-            'temporal_granularity-other': [],
+            'temporal_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
+            'temporal_granularity-other': [ignore_missing],
             'temporal_coverage-from': [date_to_db, convert_to_extras],
             'temporal_coverage-to': [date_to_db, convert_to_extras],
-            'url': [unicode],
-            'taxonomy_url': [unicode, convert_to_extras],
+            'url': [ignore_missing, unicode],
+            'taxonomy_url': [ignore_missing, unicode, convert_to_extras],
 
             'additional_resources': additional_resource_schema(),
             'timeseries_resources': timeseries_resource_schema(),
@@ -148,17 +149,19 @@ class PackageGov3Controller(PackageController):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
-            'license_id': [ignore_missing, unicode],
+            'license_id': [unicode],
+            'license_id-other': [ignore_missing, unicode],
+
             'tag_string': [ignore_missing, val.tag_string_convert],
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'primary_theme': [not_empty, unicode, convert_to_extras],
-            'secondary_theme': [ignore_missing, unicode],
+            'primary_theme': [not_empty, unicode, val.tag_string_convert, convert_to_extras],
+            'secondary_theme': [ignore_missing, val.tag_string_convert, convert_to_extras],
 
             '__extras': [ignore],
             '__junk': [empty],
-            '__after': [validate_resources, merge_resources],
+            '__after': [validate_license, validate_resources, merge_resources],
         }
         return schema
     
@@ -198,6 +201,7 @@ class PackageGov3Controller(PackageController):
             'mandate': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'primary_theme': [convert_from_extras, ignore_missing],
+            'secondary_theme': [convert_from_extras, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],
