@@ -58,3 +58,10 @@ class PublisherController(GroupController):
         except NotAuthorized:
             c.is_superuser_or_groupadmin = False
         return super(PublisherController, self).edit(id)
+
+
+    def read(self, id):
+        group = model.Group.get(id)
+        c.is_superuser_or_groupmember = Authorizer().is_sysadmin(unicode(c.user)) or \
+                len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0
+        return super(PublisherController, self).read(id)

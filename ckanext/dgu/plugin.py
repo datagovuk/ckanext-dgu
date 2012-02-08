@@ -47,6 +47,7 @@ class DguForm(SingletonPlugin):
         map.connect('/package/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
         map.connect('/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
+        map.connect('/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')        
         return map
 
     def after_map(self, map):

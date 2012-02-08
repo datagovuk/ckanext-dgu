@@ -7,6 +7,7 @@ import ckan.logic.action.get as get
 from ckan.lib.navl.dictization_functions import DataError, flatten_dict, unflatten
 from ckan.logic import NotFound, NotAuthorized, ValidationError
 from ckan.logic import tuplize_dict, clean_dict, parse_params
+from ckan.logic.auth.publisher import _groups_intersect
 from ckan.logic.schema import package_form_schema
 from ckan.lib.package_saver import PackageSaver
 from ckan.lib.field_types import DateType, DateConvertError
@@ -80,6 +81,13 @@ def timeseries_resource_schema():
     return schema
 
 class PackageGov3Controller(PackageController):
+
+    def history(self, id):
+        """ Auth is different for DGU than for publisher default """
+        package = model.Package.get(id)
+        if not _groups_intersect( package.get_groups('publisher'), c.userobj.get_groups('publisher') ):
+            abort( 401, _('Unauthorized to read package history') )
+        return super(PackageGov3Controller, self).history(  id )
 
     # TODO: rename this back, or to something better
     def _package_form(self, package_type=None):
