@@ -287,7 +287,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   ?>
 
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
-      <select class="instruction-needed" title="We need a tag taxonomy in order to implement this." id="primary_theme" name="primary_theme">
+      <select id="primary_theme" name="primary_theme">
         <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
         <option value="Environment" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Environment' else None}">Environment</option>
         <option value="Education" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Education' else None}">Education</option>
@@ -299,7 +299,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <option value="Administration" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Administration' else None}">Administration</option>
         <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Spending Data' else None}">Spending Data</option>
       </select>
-    <div class="instruction-needed" title="Is this still wanted?">
+    <div>
     <p>2. Please choose secondary tags with which to tag this data record:</p>
     <input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health
     <input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment
@@ -313,8 +313,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </div>
 
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
-    <label class="field_opt to-be-completed" for="tag_string" title="Auto-completion to be implemented.">Tags</label>
-    <input class="long autocomplete-tag to-be-completed" data-tagcomplete-queryparam="incomplete" 
+    <label class="field_opt" for="tag_string">Tags</label>
+    <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete" 
            data-tagcomplete-url="/api/2/util/tag/autocomplete"
            id="tag_string" name="tag_string" size="60" type="text"
            value="${data.get('tag_string') or ', '.join(free_tags)}" />
