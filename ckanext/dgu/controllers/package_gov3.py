@@ -102,6 +102,8 @@ class PackageGov3Controller(PackageController):
         if pkg:
             c.auth_for_change_state = Authorizer().am_authorized(
                 c, model.Action.CHANGE_STATE, pkg)
+        
+        c.schema_fields = set(self._form_to_db_schema().keys())
 
     def _form_to_db_schema(self, package_type=None):
 
@@ -151,10 +153,11 @@ class PackageGov3Controller(PackageController):
 
             'primary_theme': [not_empty, unicode, val.tag_string_convert, convert_to_extras],
             'secondary_theme': [ignore_missing, val.tag_string_convert, convert_to_extras],
+            'extras': default_schema.default_extras_schema(),
 
             '__extras': [ignore],
             '__junk': [empty],
-            '__after': [validate_license, validate_resources, merge_resources],
+            '__after': [validate_license, validate_resources, merge_resources]
         }
         return schema
     
@@ -223,11 +226,11 @@ def date_to_form(value, context):
 
 def convert_to_extras(key, data, errors, context):
 
-    extras = data.get(('extras',), [])
-    if not extras:
-        data[('extras',)] = extras
+    current_index = max( [int(k[1]) for k in data.keys() \
+                                    if len(k) == 3 and k[0] == 'extras'] + [-1] )
 
-    extras.append({'key': key[-1], 'value': data[key]})
+    data[('extras', current_index+1, 'key')] = key[-1]
+    data[('extras', current_index+1, 'value')] = data[key]
 
 def convert_from_extras(key, data, errors, context):
 
