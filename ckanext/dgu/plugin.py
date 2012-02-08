@@ -45,6 +45,7 @@ class DguForm(SingletonPlugin):
     def before_map(self, map):
         map.connect('/package/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('/package/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
+        map.connect('/package/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
         map.connect('/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
         map.connect('/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')        
@@ -102,9 +103,10 @@ class FormApiPlugin(SingletonPlugin):
         #map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         #map.connect('home', '/ckan/', controller='home', action='index')
         
-        map.connect('/publisher', controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')        
-        map.connect('/publisher/edit/:id', controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit')
-                
+        map.connect('/publisher',          controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')        
+        map.connect('/publisher/edit/:id', controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
+        map.connect('/publisher/new',      controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
+
         return map
 
     def after_map(self, map):

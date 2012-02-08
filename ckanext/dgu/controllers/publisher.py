@@ -49,6 +49,7 @@ class PublisherController(GroupController):
         return render('publishers/index.html')
 
     def edit(self, id):
+        c.body_class = "group edit"
         group = model.Group.get(id)
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'group': group}
@@ -61,7 +62,15 @@ class PublisherController(GroupController):
 
 
     def read(self, id):
+        c.body_class = "group view"
         group = model.Group.get(id)
         c.is_superuser_or_groupmember = Authorizer().is_sysadmin(unicode(c.user)) or \
                 len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0
         return super(PublisherController, self).read(id)
+
+
+    def new(self, data=None, errors=None, error_summary=None):
+        if not Authorizer().is_sysadmin(unicode(c.user)):
+            abort(401, _('Only system administrators can see this page'))
+        c.body_class = "group new"
+        return super(PublisherController, self).new(data, errors, error_summary)
