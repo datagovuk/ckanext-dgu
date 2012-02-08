@@ -8,6 +8,7 @@ from pylons.i18n import get_lang, _
 import ckan.authz as authz
 from ckan.lib.alphabet_paginate import AlphaPage
 from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
+from ckan.authz import Authorizer
 from ckan.logic import NotFound, NotAuthorized, ValidationError
 from ckan.logic import check_access, get_action
 from ckan.logic import tuplize_dict, clean_dict, parse_params
@@ -47,3 +48,13 @@ class PublisherController(GroupController):
                 
         return render('publishers/index.html')
 
+    def edit(self, id):
+        group = model.Group.get(id)
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'group': group}
+        try:
+            check_access('group_update', context)
+            c.is_superuser_or_groupadmin = True
+        except NotAuthorized:
+            c.is_superuser_or_groupadmin = False
+        return super(PublisherController, self).edit(id)

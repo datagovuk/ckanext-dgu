@@ -102,6 +102,7 @@ class FormApiPlugin(SingletonPlugin):
         #map.connect('home', '/ckan/', controller='home', action='index')
         
         map.connect('/publisher', controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')        
+        map.connect('/publisher/edit/:id', controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit')
                 
         return map
 
