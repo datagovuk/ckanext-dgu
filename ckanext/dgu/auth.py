@@ -48,8 +48,6 @@ def dgu_package_update(context, data_dict):
     user = context.get('user')
     package = get_package_object(context, data_dict)
     
-    return {'success': True}
-    
     if package.extras.get("UKLP", "False") != "True":
         return {'success': False, 
                 'msg': _('UKLP Datasets cannot be manually modified')}
