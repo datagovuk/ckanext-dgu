@@ -53,7 +53,7 @@ configure () {
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e '/^\[app:main\]$/ a\
-search.facets = groups tags res_format license resource-type INSPIRE' \
+search.facets = groups tags res_format license resource-type UKLP' \
              -i.bak "$ini_file"
 
     echo "ckan.spatial.srid = 4258" | sudo tee -a "$ini_file" > /dev/null
