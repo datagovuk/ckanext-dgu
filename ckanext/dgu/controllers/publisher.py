@@ -70,7 +70,5 @@ class PublisherController(GroupController):
 
 
     def new(self, data=None, errors=None, error_summary=None):
-        if not Authorizer().is_sysadmin(unicode(c.user)):
-            abort(401, _('Only system administrators can see this page'))
         c.body_class = "group new"
         return super(PublisherController, self).new(data, errors, error_summary)

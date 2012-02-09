@@ -7,7 +7,9 @@ from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
 from ckan.plugins import IGenshiStreamFilter
 from ckan.plugins import IMiddleware
+from ckan.plugins import IAuthFunctions
 from ckanext.dgu.middleware import AuthAPIMiddleware
+from ckanext.dgu.auth import dgu_group_update, dgu_group_create, dgu_package_update
 import ckanext.dgu
 
 import stream_filters
@@ -32,10 +34,20 @@ def configure_served_directory(config, relative_path, config_var):
             config[config_var] = absolute_path
 
 class AuthApiPlugin(SingletonPlugin):
+
     implements(IMiddleware, inherit=True)
+    implements(IAuthFunctions)
 
     def make_middleware(self, app, config):
         return AuthAPIMiddleware(app, config)
+
+    def get_auth_functions(self):
+        return {
+            'group_update' : dgu_group_update,
+            'group_create' : dgu_group_create,
+            'package_update' : dgu_package_update
+        }
+
 
 class DguForm(SingletonPlugin):
 
