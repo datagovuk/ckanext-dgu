@@ -1,6 +1,7 @@
+from pylons.i18n import _
 from ckan.authz import Authorizer
 from ckan.logic import check_access_old
-from ckan.logic.auth import get_group_object
+from ckan.logicauth import get_group_object, get_package_object
 from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
 
 
@@ -36,7 +37,7 @@ def dgu_group_create(context, data_dict=None):
     model = context['model']
     user = context['user']
    
-    if Authorizer().is_sysadmin(unicode(c.user)):
+    if Authorizer().is_sysadmin(unicode(user)):
         return {'success': True}
     
     return {'success': False, 'msg': _('User %s not authorized to create groups') % str(user)}
@@ -47,6 +48,12 @@ def dgu_package_update(context, data_dict):
     user = context.get('user')
     package = get_package_object(context, data_dict)
     
+    return {'success': True}
+    
+    if package.extras.get("UKLP", "False") != "True":
+        return {'success': False, 
+                'msg': _('UKLP Datasets cannot be manually modified')}
+
     userobj = model.User.get( user )
     if not userobj or \
        not _groups_intersect( userobj.get_groups('publisher'), package.get_groups('publisher') ):
