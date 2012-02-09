@@ -22,6 +22,7 @@ install_dependencies () {
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/datautildate#egg=datautildate
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -r "/var/lib/ckan/$instance/pyenv/src/ckanext-spatial/pip-requirements.txt"
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed pastescript
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed carrot
 
     # Install the qa and archiver dependencies
     sudo apt-get -y install supervisor
@@ -53,12 +54,12 @@ configure () {
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e '/^\[app:main\]$/ a\
-search.facets = groups tags res_format license resource-type UKLP' \
+search.facets = groups tags res_format license resource-type UKLP\
+ckan.spatial.srid = 4258\
+dgu.xmlrpc_username = CKAN_API\
+dgu.xmlrpc_password = XXX\
+dgu.xmlrpc_domain = 212.110.177.173\
+ckan.enable_call_timing = false' \
              -i.bak "$ini_file"
 
-    echo "ckan.spatial.srid = 4258" | sudo tee -a "$ini_file" > /dev/null
-    echo "dgu.xmlrpc_username = CKAN_API" | sudo tee -a "$ini_file" > /dev/null
-    echo "dgu.xmlrpc_password = XXX" | sudo tee -a "$ini_file" > /dev/null
-    echo "dgu.xmlrpc_domain = 212.110.177.173" | sudo tee -a "$ini_file" > /dev/null
-    echo "ckan.enable_call_timing = false" | sudo tee -a "$ini_file" > /dev/null
 }
