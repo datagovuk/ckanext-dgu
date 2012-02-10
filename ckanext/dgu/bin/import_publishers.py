@@ -50,11 +50,18 @@ def command():
             if not g:
                 g = model.Group(name=slug, title=row[0], type='publisher')
                 model.Session.add( g )
-                model.Session.flush()
+                model.Session.commit()
 
+        # Second run through for parents
+        f.seek(0)
+        for row in reader:
             if row[2]:
+                slug = munge_title_to_name( row[0] )
+                g = model.Group.get( slug )
+
                 parent_slug = munge_title_to_name( row[2] )
                 parent = model.Group.get( parent_slug )
+
                 if parent:
                     if model.Session.query(model.Member).\
                        filter(model.Member.group==parent and model.Member.table_id==g.id).count() == 0:
