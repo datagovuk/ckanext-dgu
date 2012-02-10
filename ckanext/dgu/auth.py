@@ -1,7 +1,7 @@
 from pylons.i18n import _
 from ckan.authz import Authorizer
 from ckan.logic import check_access_old
-from ckan.logicauth import get_group_object, get_package_object
+from ckan.logic.auth import get_group_object, get_package_object
 from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
 
 
