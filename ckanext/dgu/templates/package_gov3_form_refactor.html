@@ -100,10 +100,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
           <py:for each="col in c.resource_columns">
           <td class="resource-${col}">
             <py:choose test="">
-              <input py:when="col=='description'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
-              <input py:when="col=='url'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
-              <input py:when="col=='format'" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
-              <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
+              <input py:when="col=='description'" id="timeseries_resources__${num}__${col}" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
+              <input py:when="col=='url'" id="timeseries_resources__${num}__${col}" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
+              <input py:when="col=='format'" id="timeseries_resources__${num}__${col}" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
+              <input py:otherwise="" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
             </py:choose>
           </td>
           </py:for>
@@ -140,10 +140,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
             <py:choose test="">
-              <input py:when="col=='description'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
-              <input py:when="col=='url'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
-              <input py:when="col=='format'" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
-              <input py:otherwise="" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
+              <input py:when="col=='description'" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
+              <input py:when="col=='url'" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
+              <input py:when="col=='format'" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
+              <input py:otherwise="" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
             </py:choose>
             </td>
           </py:for>

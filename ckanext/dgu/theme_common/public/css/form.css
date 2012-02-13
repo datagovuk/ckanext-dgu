@@ -49,3 +49,7 @@ div#nav-controls {
 div#disclaimer { 
   clear: right;
 }
+
+.fieldset_button_error {
+  background: transparent url(../images/icons/error.png) right center no-repeat; }
+}
