@@ -72,8 +72,6 @@ def command():
                 pkg = qp.all()[0]
                 packages[dataset_title] = pkg
 
-            rebuild( package=pkg.id )
-
             count = count + 1            
 
             pub = groups[publisher_slug]
@@ -81,9 +79,8 @@ def command():
                           filter(model.Member.table_id==pkg.id and model.Member.group == pub and
                                  model.Member.table_name == 'package').count()
             if c > 0:
-                print 'Package "%s" is already under publisher "%s"' % (pkg.title, pub.title)
                 continue
-                
+
             model.Session.add( model.Member(group=pub, table_id=pkg.id, table_name='package')  )
             model.Session.commit()
             rebuild( package=pkg.id )
