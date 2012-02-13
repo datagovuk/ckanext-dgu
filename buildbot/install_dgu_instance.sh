@@ -62,7 +62,7 @@ configure () {
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
-    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_publishers dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa/" \
+    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e '/^\[app:main\]$/ a\

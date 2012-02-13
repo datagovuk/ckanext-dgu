@@ -1,6 +1,27 @@
 (function ($) {
   $(document).ready(function () {
 
+    for (field_id in form_errors) {
+      
+      // This is a really ugly hack to handle the fact that form_errors may
+      // be nested.  I promise I'll clean this up!
+      var errors = form_errors[field_id];
+      if( ! errors.length) { return; }
+      if( typeof(errors[0]) === "object" ){
+        for(key in errors[0]){
+          field_id = field_id + '__0__' + key;
+          break;
+        }
+      }
+
+      var field = $('#'+field_id);
+      if (field !== undefined) {
+        var fieldset_id = field.parents('fieldset').last().attr('id');
+        fieldset_id = fieldset_id.replace(/-fields$/, '');
+        $('#'+fieldset_id).addClass('fieldset_button_error');
+      }
+    }
+
     /* URL auto-completion */
     var isDatasetNew = $('body.package.new').length > 0;
     if (true || isDatasetNew) {
