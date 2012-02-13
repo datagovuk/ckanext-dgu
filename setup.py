@@ -32,6 +32,7 @@ setup(
         dgu_form = ckanext.dgu.plugin:DguForm
         dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin
         form_api_tester = ckanext.dgu.testtools.form_api_tester:FormApiTester
+        dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
         
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load

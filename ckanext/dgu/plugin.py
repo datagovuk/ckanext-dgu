@@ -70,6 +70,25 @@ class DguForm(SingletonPlugin):
         configure_template_directory(config, 'templates')
         configure_public_directory(config, 'theme_common/public')
 
+class PublisherPlugin(SingletonPlugin):
+
+    implements(IRoutes)
+    implements(IConfigurer)
+
+    def before_map(self, map):
+        map.connect('/publisher',          controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')
+        map.connect('/publisher/edit/:id', controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
+        map.connect('/publisher/new',      controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
+        return map
+    
+    def after_map(self, map):
+        return map
+
+    def update_config(self, config):
+        # set the auth profile to use the publisher based auth
+        config['ckan.auth.profile'] = 'publisher'
+        configure_template_directory(config, 'templates')
+
 
 class FormApiPlugin(SingletonPlugin):
     """
@@ -114,10 +133,6 @@ class FormApiPlugin(SingletonPlugin):
         map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_organisation')
         #map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
         #map.connect('home', '/ckan/', controller='home', action='index')
-        
-        map.connect('/publisher',          controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')        
-        map.connect('/publisher/edit/:id', controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
-        map.connect('/publisher/new',      controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
 
         return map
 
@@ -130,9 +145,6 @@ class FormApiPlugin(SingletonPlugin):
 
         # set the customised package form (see ``setup.py`` for entry point)
         config['package_form']      = 'package_gov3'
-        
-        # set the auth profile to use the publisher based auth
-        config['ckan.auth.profile'] = 'publisher'
         
         configure_template_directory(config, 'templates')
 

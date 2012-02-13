@@ -65,7 +65,7 @@ def command():
                 pkg = packages[dataset_title]     
             else:
                 qp = model.Session.query(model.Package).\
-                          filter(model.Package.title==dataset_title)
+                          filter(model.Package.title==dataset_title and model.Package.state == 'active')
                 if qp.count() == 0:
                     continue
                 pkg = qp.all()[0]
