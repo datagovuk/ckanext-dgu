@@ -49,9 +49,6 @@ def dgu_package_update(context, data_dict):
     user = context.get('user')
     package = get_package_object(context, data_dict)
     
-    # @rossjones: is this the correct way of allowing sysadmins to edit
-    #             any dataset?  Or is it better to capture that by having
-    #             sysadmins members of all groups?
     if Authorizer().is_sysadmin(unicode(user)):
         return {'success': True}
     
