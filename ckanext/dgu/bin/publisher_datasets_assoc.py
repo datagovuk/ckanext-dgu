@@ -17,6 +17,7 @@ import logging
 import sys
 import ckan
 from ckan import model
+from ckan.lib.search import rebuild
 from ckan.lib.munge import munge_title_to_name
 from sqlalchemy import engine_from_config
 
@@ -57,7 +58,7 @@ def command():
             proc = proc + 1
             if proc % 500 == 0:
                 print '-> %d/%d' % (count,proc,)
-            
+
             if not publisher_slug in groups:
                 continue
                 
@@ -71,16 +72,23 @@ def command():
                 pkg = qp.all()[0]
                 packages[dataset_title] = pkg
 
+            rebuild( package=pkg.id )
+
             count = count + 1            
-                
+
             pub = groups[publisher_slug]
-            if pub in pkg.get_groups('publisher'):
+            c = model.Session.query(model.Member).\
+                          filter(model.Member.table_id==pkg.id and model.Member.group == pub and
+                                 model.Member.table_name == 'package').count()
+            if c > 0:
+                print 'Package "%s" is already under publisher "%s"' % (pkg.title, pub.title)
                 continue
                 
-            m = model.Member(group=pub, table_id=pkg.id, table_name='package')                 
-            model.Session.add( m )
+            model.Session.add( model.Member(group=pub, table_id=pkg.id, table_name='package')  )
+            model.Session.commit()
+            rebuild( package=pkg.id )
         
-        print 'Processed', count, 'rows'
+            print 'Processed', count, 'rows'
         
         
 def usage():

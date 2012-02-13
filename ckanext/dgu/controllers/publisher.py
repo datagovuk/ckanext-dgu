@@ -60,7 +60,6 @@ class PublisherController(GroupController):
             c.is_superuser_or_groupadmin = False
         return super(PublisherController, self).edit(id)
 
-
     def read(self, id):
         c.body_class = "group view"
         group = model.Group.get(id)
