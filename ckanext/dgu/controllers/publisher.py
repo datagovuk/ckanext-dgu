@@ -48,16 +48,35 @@ class PublisherController(GroupController):
 
         return render('publishers/index.html')
 
-    def apply(self, id):
+    def _send_application( self, group, reason  ):
+        from ckan.logic.action.update import group_error_summary
+        admins = c.group.members_of_type( model.User, 'admin' )
+
+        if not reason:
+            h.flash_error(_("There was a problem with your submission, please correct it and try again"))
+            errors = {"reason": ["No reason was supplied"]}
+            return self.apply(group.id, errors=errors, error_summary=group_error_summary(errors))
+
+        h.flash_notice(_("Your application has been submitted"))
+        h.redirect_to( 'publisher_read', id=group.name)
+
+    def apply(self, id, data=None, errors=None, error_summary=None):
         """
         A user has requested access to this publisher and so we will send an
         email to any admins within the publisher.
         """
-        group = model.Group.get(id)
+        c.group = model.Group.get(id)
 
-        group.members_of_type( model.User, 'admin' )
+        if 'save' in request.params and not errors:
+            return self._send_application(c.group, request.params.get('reason', None))
 
-        h.redirect_to( 'publisher_read', id=group.name )
+        data = data or {}
+        errors = errors or {}
+        error_summary = error_summary or {}
+        vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
+        c.form = render('publishers/apply_form.html', extra_vars=vars)
+
+        return render('publishers/apply.html')
 
     def edit(self, id):
         c.body_class = "group edit"
