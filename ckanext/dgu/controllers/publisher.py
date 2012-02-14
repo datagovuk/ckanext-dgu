@@ -80,7 +80,10 @@ class PublisherController(GroupController):
 
     def edit(self, id):
         c.body_class = "group edit"
+
         group = model.Group.get(id)
+        if not group:
+            abort( 404 )
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'group': group}
         try:
@@ -88,11 +91,21 @@ class PublisherController(GroupController):
             c.is_superuser_or_groupadmin = True
         except NotAuthorized:
             c.is_superuser_or_groupadmin = False
+
+        c.possible_parents = model.Session.query(model.Group).\
+               filter(model.Group.state == 'active').\
+               filter(model.Group.type == 'publisher').\
+               filter(model.Group.name != id ).order_by(model.Group.title).all()
+
+        c.parent = None
+        grps = group.get_groups('publisher')
+        if grps:
+            c.parent = grps[0]
         return super(PublisherController, self).edit(id)
 
     def read(self, id):
         c.body_class = "group view"
-        group = model.Group.get(id)
+        group = model.Group.by_name(id)
         c.is_superuser_or_groupmember = c.userobj and \
                                         (Authorizer().is_sysadmin(unicode(c.user)) or \
                             len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0 )
@@ -103,4 +116,17 @@ class PublisherController(GroupController):
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"
+        c.possible_parents = model.Session.query(model.Group).\
+               filter(model.Group.state == 'active').\
+               filter(model.Group.type == 'publisher').\
+               order_by(model.Group.title).all()
+
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author}
+        try:
+            check_access('group_create', context)
+            c.is_superuser_or_groupadmin = True
+        except NotAuthorized:
+            c.is_superuser_or_groupadmin = False
+
         return super(PublisherController, self).new(data, errors, error_summary)
