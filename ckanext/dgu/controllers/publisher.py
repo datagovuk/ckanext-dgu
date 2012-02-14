@@ -57,7 +57,7 @@ class PublisherController(GroupController):
             errors = {"reason": ["No reason was supplied"]}
             return self.apply(group.id, errors=errors, error_summary=group_error_summary(errors))
 
-        h.flash_notice(_("Your application has been submitted"))
+        h.flash_success(_("Your application has been submitted"))
         h.redirect_to( 'publisher_read', id=group.name)
 
     def apply(self, id, data=None, errors=None, error_summary=None):
