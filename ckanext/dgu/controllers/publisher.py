@@ -19,7 +19,7 @@ import ckan.model as model
 
 log = logging.getLogger(__name__)
 
-    
+
 
 class PublisherController(GroupController):
 
@@ -34,7 +34,7 @@ class PublisherController(GroupController):
             check_access('site_read', context)
         except NotAuthorized:
             abort(401, _('Not authorized to see this page'))
-        
+
         c.all_groups = model.Session.query(model.Group).\
                        filter(model.Group.type == 'publisher').order_by('title').all()
 
@@ -45,8 +45,19 @@ class PublisherController(GroupController):
             alpha_attribute='title',
             other_text=_('-'),
         )
-                
+
         return render('publishers/index.html')
+
+    def apply(self, id):
+        """
+        A user has requested access to this publisher and so we will send an
+        email to any admins within the publisher.
+        """
+        group = model.Group.get(id)
+
+        group.members_of_type( model.User, 'admin' )
+
+        h.redirect_to( 'publisher_read', id=group.name )
 
     def edit(self, id):
         c.body_class = "group edit"
@@ -63,8 +74,11 @@ class PublisherController(GroupController):
     def read(self, id):
         c.body_class = "group view"
         group = model.Group.get(id)
-        c.is_superuser_or_groupmember = Authorizer().is_sysadmin(unicode(c.user)) or \
-                len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0
+        c.is_superuser_or_groupmember = c.userobj and \
+                                        (Authorizer().is_sysadmin(unicode(c.user)) or \
+                            len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0 )
+
+        c.administrators = group.members_of_type(model.User, 'admin')
         return super(PublisherController, self).read(id)
 
 

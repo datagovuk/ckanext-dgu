@@ -76,9 +76,21 @@ class PublisherPlugin(SingletonPlugin):
     implements(IConfigurer)
 
     def before_map(self, map):
-        map.connect('/publisher',          controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')
-        map.connect('/publisher/edit/:id', controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
-        map.connect('/publisher/new',      controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
+        map.connect('publisher_index', 
+                    '/publisher',           
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')
+        map.connect('publisher_edit',
+                    '/publisher/edit/:id',  
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
+        map.connect('publisher_apply',
+                    '/publisher/apply/:id', 
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )                                
+        map.connect('publisher_new',
+                    '/publisher/new',       
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
+        map.connect('publisher_read',
+                    '/publisher/:id',       
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='read' )                
         return map
     
     def after_map(self, map):
