@@ -19,7 +19,8 @@
 	<div id="tabs">
 		<ul>
 			<li><a href="#publisherlist">Publisher list</a></li>
-			<li><a href="#publisherhierarchy">Publisher hierarchy</a></li>		
+			<li><a href="#publisherhierarchy">Publisher hierarchy</a></li>
+			<li><a href="#publishersearch">Publisher search</a></li>
 		</ul>
 		<div id="publisherlist">
 		    ${c.page.pager()}
@@ -28,8 +29,14 @@
 		</div>
 		<div id="publisherhierarchy">
 			<div id="publisher_tree" class="" style="background-color: white;">
-				${publisher_tree( c.all_groups )}				
+				${publisher_tree( c.all_groups )}
 			</div>
+		</div>
+		<div id="publishersearch" style="text-align:center;">
+	        <input type="search" class="search autocomplete-publisherx" id="q" value="${c.q}" style="width:400px;" autocomplete="off" results="0" placeholder="${_('Search...')}"  />
+			<button onclick="return  publisher_search();">${_('Search...')}</button>
+			<table id="search_results" class="groups" style="display:none;">
+			</table>
 		</div>
 	</div>
 
@@ -38,9 +45,25 @@
 
   <py:def function="optional_head">
 	<script type="text/javascript">
+		function publisher_search() {
+			var term = $("#q").val();
+			$("#search_results").empty();
+			$("#search_results").css("display", "block");
+			var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=publisher&amp;q=' + term;
+        	$.getJSON(url, function(data) {
+				$("#search_results").append( '<tr><th>Title</th></tr>' );
+          		$.each(data, function(idx, groupobj) {
+					var tpl = '<tr><td>' +
+							  	'<a href="/publisher/' + groupobj.name + '">' + groupobj.title + '</a>' +
+							  '</td></tr>';
+					$("#search_results").append( tpl );
+          		});
+        	});
+			return false;
+		}
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();	
-			$("#publisher_tree").jstree().delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });		
+			$( "#tabs" ).tabs();
+			$("#publisher_tree").jstree().delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
 		});
 	</script>
   </py:def>
