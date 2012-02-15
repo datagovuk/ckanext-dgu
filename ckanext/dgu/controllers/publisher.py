@@ -50,12 +50,48 @@ class PublisherController(GroupController):
 
     def _send_application( self, group, reason  ):
         from ckan.logic.action.update import group_error_summary
-        admins = c.group.members_of_type( model.User, 'admin' )
+        from ckan.lib.mailer import mail_recipient
+        from genshi.template.text import NewTextTemplate
+        from pylons import config
 
         if not reason:
-            h.flash_error(_("There was a problem with your submission, please correct it and try again"))
+            h.flash_error(_("There was a problem with your submission, \
+                             please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
-            return self.apply(group.id, errors=errors, error_summary=group_error_summary(errors))
+            return self.apply(group.id, errors=errors,
+                              error_summary=group_error_summary(errors))
+
+
+        admins = group.members_of_type( model.User, 'admin' ).all()
+        recipients = [(u.fullname,u.email) for u in admins] if admins else \
+                     [(config.get('dgu.admin.name', "DGU Admin"),
+                       config.get('dgu.admin.email', None), )]
+
+        if not recipients:
+            h.flash_error(_("There is a problem with the system configuration"))
+            errors = {"reason": ["No group administrator exists"]}
+            return self.apply(group.id, errors=errors,
+                              error_summary=group_error_summary(errors))
+        print recipients
+        extra_vars = {
+            'group'    : group,
+            'requester': c.userobj,
+            'reason'   : reason
+        }
+        email_msg = render("email/join_publisher_request.txt", extra_vars=extra_vars,
+                         loader_class=NewTextTemplate)
+
+        try:
+            for (name,recipient) in recipients:
+                mail_recipient(name,
+                               recipient,
+                               "Publisher request",
+                               email_msg)
+        except:
+            h.flash_error(_("There is a problem with the system configuration"))
+            errors = {"reason": ["No mail server was found"]}
+            return self.apply(group.id, errors=errors,
+                              error_summary=group_error_summary(errors))
 
         h.flash_success(_("Your application has been submitted"))
         h.redirect_to( 'publisher_read', id=group.name)

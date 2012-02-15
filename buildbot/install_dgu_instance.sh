@@ -66,6 +66,8 @@ configure () {
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e '/^\[app:main\]$/ a\
+dgu.admin.name = Test Account\
+dgu.admin.email = ross.jones@okfn.org\
 search.facets = groups tags res_format license resource-type UKLP\
 ckan.spatial.srid = 4258\
 dgu.xmlrpc_username = CKAN_API\
