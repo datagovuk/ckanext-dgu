@@ -60,7 +60,7 @@ class DguForm(SingletonPlugin):
         map.connect('/package/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
         map.connect('/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
-        map.connect('/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')        
+        map.connect('/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
         return map
 
     def after_map(self, map):
@@ -76,23 +76,26 @@ class PublisherPlugin(SingletonPlugin):
     implements(IConfigurer)
 
     def before_map(self, map):
-        map.connect('publisher_index', 
-                    '/publisher',           
+        map.connect('publisher_index',
+                    '/publisher',
                     controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')
         map.connect('publisher_edit',
-                    '/publisher/edit/:id',  
+                    '/publisher/edit/:id',
                     controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
         map.connect('publisher_apply',
-                    '/publisher/apply/:id', 
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )                                
+                    '/publisher/apply/:id',
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )
+        map.connect('publisher_apply',
+                    '/publisher/users/:id',
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='users' )
         map.connect('publisher_new',
-                    '/publisher/new',       
+                    '/publisher/new',
                     controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
         map.connect('publisher_read',
-                    '/publisher/:id',       
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='read' )                
+                    '/publisher/:id',
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='read' )
         return map
-    
+
     def after_map(self, map):
         return map
 
@@ -157,7 +160,7 @@ class FormApiPlugin(SingletonPlugin):
 
         # set the customised package form (see ``setup.py`` for entry point)
         config['package_form']      = 'package_gov3'
-        
+
         configure_template_directory(config, 'templates')
 
     def filter(self, stream):

@@ -72,7 +72,7 @@ class PublisherController(GroupController):
             errors = {"reason": ["No group administrator exists"]}
             return self.apply(group.id, errors=errors,
                               error_summary=group_error_summary(errors))
-        print recipients
+
         extra_vars = {
             'group'    : group,
             'requester': c.userobj,
@@ -114,6 +114,75 @@ class PublisherController(GroupController):
 
         return render('publishers/apply.html')
 
+    def _add_users( self, group, parameters  ):
+        from ckan.logic.schema import default_group_schema
+        from ckan.lib.navl.dictization_functions import validate
+        from ckan.lib.dictization.model_save import group_member_save
+
+        if not group:
+            h.flash_error(_("There was a problem with your submission, \
+                             please correct it and try again"))
+            errors = {"reason": ["No reason was supplied"]}
+            return self.apply(group.id, errors=errors,
+                              error_summary=group_error_summary(errors))
+
+        data_dict = clean_dict(unflatten(
+                tuplize_dict(parse_params(request.params))))
+        data_dict['id'] = group.id
+
+        # Temporary fix for strange caching during dev
+        l = data_dict['users']
+        for d in l:
+            if d['capacity'] == 'undefined':
+                d['capacity'] = 'editor'
+
+        context = {
+            "group" : group,
+            "schema": default_group_schema(),
+            "model": model,
+            "session": model.Session
+        }
+
+        model.repo.new_revision()
+        group_member_save(context, data_dict, 'users')
+        model.Session.commit()
+
+        h.redirect_to( 'publisher_edit', id=group.name)
+
+
+    def users(self, id, data=None, errors=None, error_summary=None):
+        c.group = model.Group.get(id)
+        context = {
+                   'model': model,
+                   'session': model.Session,
+                   'user': c.user or c.author,
+                   'group': c.group }
+
+        try:
+            check_access('group_update',context)
+        except NotAuthorized, e:
+            abort(401, _('User %r not authorized to edit %s') % (c.user, id))
+
+        if 'save' in request.params and not errors:
+            return self._add_users(c.group, request.params)
+
+        data = data or {}
+        errors = errors or {}
+        error_summary = error_summary or {}
+
+        data['users'] = []
+        data['users'].extend( { "name": user.name,
+                                "capacity": "admin" }
+                                for user in c.group.members_of_type( model.User, "admin"  ).all() )
+        data['users'].extend( { "name": user.name,
+                                "capacity": "editor" }
+                                for user in c.group.members_of_type( model.User, 'editor' ).all() )
+
+        vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
+        c.form = render('publishers/users_form.html', extra_vars=vars)
+
+        return render('publishers/users.html')
+
     def edit(self, id):
         c.body_class = "group edit"
 
@@ -137,6 +206,7 @@ class PublisherController(GroupController):
         grps = group.get_groups('publisher')
         if grps:
             c.parent = grps[0]
+
         return super(PublisherController, self).edit(id)
 
     def read(self, id):
