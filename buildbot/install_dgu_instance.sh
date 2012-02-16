@@ -32,6 +32,12 @@ install_dependencies () {
         -e "/^user/ s/^user=ckan/user=$user/" \
         -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
         -e "/^command/ s,/path/to/config/testing.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/celery-supervisor.conf
+
+    # Configure the harvest fetcher and gatherers to run under supervisor
+    sudo cat "/var/lib/ckan/$instance/pyenv/src/ckanext-harvest/config/supervisor/ckan_harvesting.conf" | sed \
+        -e "/^user/ s/^user=ckan/user=$user/" \
+        -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
+        -e "/^command/ s,/path/to/config/$instance.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/ckan_harvesting.conf
 }
 
 run_database_migrations () {
@@ -47,11 +53,19 @@ run_database_migrations () {
 }
 
 post_install () {
+
+    instance=$1
+    user="ckan$instance"
+
     # Start celeryd and workers under supervisord
     echo "Starting post-installation processes."
     sudo supervisorctl reread
     sudo supervisorctl add celery
+    sudo supervisorctl add ckan_gather_consumer
+    sudo supervisorctl add ckan_fetch_consumer
     sudo supervisorctl status
+
+    echo "*/15 *  *   *   *     /var/lib/ckan/$instance/pyenv/bin/paster --plugin=ckanext-harvest harvester run --config=/etc/ckan/$instance/$instance.ini" | tee -a "/var/spool/cron/crontabs/$user"
 }
 
 configure () {
