@@ -44,6 +44,13 @@
   </div>
 
   <py:def function="optional_head">
+	<!--[if IE 7]>
+		<style>
+			.ui-icon { text-indent: 0; }
+			.node { padding: 2px; }
+		</style>
+	<![endif]-->
+
 	<script type="text/javascript">
 		function publisher_search() {
 			var term = $("#q").val();
@@ -63,7 +70,9 @@
 		}
 		$(document).ready(function() {
 			$( "#tabs" ).tabs();
-			$("#publisher_tree").jstree().delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
+			$("#publisher_tree").jstree(
+				 {"plugins" : ["themes","html_data","ui"]}
+			).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
 		});
 	</script>
   </py:def>
