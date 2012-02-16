@@ -49,11 +49,6 @@ def dgu_package_update(context, data_dict):
     user = context.get('user')
     package = get_package_object(context, data_dict)
     
-    if package.extras.get("UKLP", "False") == "True":
-        return {'success': False, 
-                'msg': _('UKLP Datasets cannot be manually modified')}
-
-    # Note : not even sysadmins can edit UKLP datasets
     if Authorizer().is_sysadmin(unicode(user)):
         return {'success': True}
     
