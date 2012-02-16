@@ -48,6 +48,7 @@ run_database_migrations () {
 
 post_install () {
     # Start celeryd and workers under supervisord
+    echo "Starting post-installation processes."
     sudo supervisorctl reread
     sudo supervisorctl add celery
     sudo supervisorctl status
@@ -62,13 +63,14 @@ configure () {
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
-    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa synchronous_search/" \
+    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa synchronous_search dgu_search/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
+             -e "s/^ckan.gravatar_default =.*/ckan.gravatar_default = mm/" \
              -e '/^\[app:main\]$/ a\
 dgu.admin.name = Test Account\
 dgu.admin.email = ross.jones@okfn.org\
-search.facets = groups tags res_format license resource-type UKLP\
+search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl\
 ckan.spatial.srid = 4258\
 dgu.xmlrpc_username = CKAN_API\
 dgu.xmlrpc_password = XXX\
