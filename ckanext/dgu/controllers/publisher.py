@@ -185,6 +185,7 @@ class PublisherController(GroupController):
 
     def edit(self, id):
         c.body_class = "group edit"
+        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
 
         group = model.Group.get(id)
         if not group:
@@ -222,6 +223,7 @@ class PublisherController(GroupController):
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"
+        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
         c.possible_parents = model.Session.query(model.Group).\
                filter(model.Group.state == 'active').\
                filter(model.Group.type == 'publisher').\
