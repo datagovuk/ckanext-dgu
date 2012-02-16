@@ -61,7 +61,6 @@ class PublisherController(GroupController):
             return self.apply(group.id, errors=errors,
                               error_summary=group_error_summary(errors))
 
-
         admins = group.members_of_type( model.User, 'admin' ).all()
         recipients = [(u.fullname,u.email) for u in admins] if admins else \
                      [(config.get('dgu.admin.name', "DGU Admin"),
@@ -70,7 +69,7 @@ class PublisherController(GroupController):
         if not recipients:
             h.flash_error(_("There is a problem with the system configuration"))
             errors = {"reason": ["No group administrator exists"]}
-            return self.apply(group.id, errors=errors,
+            return self.apply(group.id, data=data, errors=errors,
                               error_summary=group_error_summary(errors))
 
         extra_vars = {
@@ -96,23 +95,36 @@ class PublisherController(GroupController):
         h.flash_success(_("Your application has been submitted"))
         h.redirect_to( 'publisher_read', id=group.name)
 
-    def apply(self, id, data=None, errors=None, error_summary=None):
+    def apply(self, id=None, data=None, errors=None, error_summary=None):
         """
         A user has requested access to this publisher and so we will send an
         email to any admins within the publisher.
         """
-        c.group = model.Group.get(id)
+        if 'parent' in request.params and not id:
+            id = request.params['parent']
 
-        if 'save' in request.params and not errors:
-            return self._send_application(c.group, request.params.get('reason', None))
+        if id:
+            c.group = model.Group.get(id)
+            if 'save' in request.params and not errors:
+                return self._send_application(c.group, request.params.get('reason', None))
 
+        self._add_publisher_list()
         data = data or {}
         errors = errors or {}
         error_summary = error_summary or {}
+
+        data.update(request.params)
+
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
         c.form = render('publishers/apply_form.html', extra_vars=vars)
 
         return render('publishers/apply.html')
+
+    def _add_publisher_list(self):
+        c.possible_parents = model.Session.query(model.Group).\
+               filter(model.Group.state == 'active').\
+               filter(model.Group.type == 'publisher').\
+               order_by(model.Group.title).all()
 
     def _add_users( self, group, parameters  ):
         from ckan.logic.schema import default_group_schema
@@ -220,14 +232,10 @@ class PublisherController(GroupController):
         c.administrators = group.members_of_type(model.User, 'admin')
         return super(PublisherController, self).read(id)
 
-
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
-        c.possible_parents = model.Session.query(model.Group).\
-               filter(model.Group.state == 'active').\
-               filter(model.Group.type == 'publisher').\
-               order_by(model.Group.title).all()
+        self._add_publisher_list()
 
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author}

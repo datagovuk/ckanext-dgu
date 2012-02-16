@@ -17,6 +17,19 @@
 
 <fieldset id="application">
   <dl>
+	<dt>
+		<label class="field_opt" for="name">Publisher</label>
+	</dt>
+	<dd>
+		<select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
+			<option value=""></option>
+    		<py:for each="pg in c.possible_parents">
+				<option py:attrs="{'selected': 'selected' if c.group and pg.id == c.group.id else None}" value="${pg.id}">${pg.title}</option>
+			</py:for>
+		</select>
+	</dd>
+
+
     <dt><label class="field_opt" for="name">Reason</label></dt>
     <dd>
 		<textarea rows="10" cols="60" class="" id="reason" name="reason">${data.get('reason', '')}</textarea>

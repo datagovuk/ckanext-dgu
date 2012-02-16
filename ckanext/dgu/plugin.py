@@ -85,7 +85,10 @@ class PublisherPlugin(SingletonPlugin):
         map.connect('publisher_apply',
                     '/publisher/apply/:id',
                     controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )
-        map.connect('publisher_apply',
+        map.connect('publisher_apply_empty',
+                    '/publisher/apply',
+                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )
+        map.connect('publisher_users',
                     '/publisher/users/:id',
                     controller='ckanext.dgu.controllers.publisher:PublisherController', action='users' )
         map.connect('publisher_new',
