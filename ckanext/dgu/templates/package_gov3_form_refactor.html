@@ -503,20 +503,23 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</p>
   </div>
   
-  <div class="instruction-needed" title="We need to decide on how the edit-form will behave.  Including harvested datasets.  Particular problems are the temporal-coverage fields and the license.">
+  <div py:if="is_edit_form and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
     <?python
       hidden_extra_fields = [ e for e in data.get('extras', []) \
                                 if e['key'] not in c.schema_fields ]
     ?>
-    <py:for each="num, extra in enumerate(hidden_extra_fields)">
-      <py:with vars="key = extra.get('key'); value = extra.get('value')">
-        <div>
-          <label for="extras__${num}__value">${key}:</label>
-          <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${key}" />
-          <input id="extras__${num}__value" name="extras__${num}__value" type="text" value="${value}" />
-        </div>
-      </py:with>
-    </py:for>
+    <fieldset py:if="len(hidden_extra_fields)">
+    <legend>Dataset Extra Fields (sysadmin only)</legend>
+      <py:for each="num, extra in enumerate(hidden_extra_fields)">
+        <py:with vars="key = extra.get('key'); value = extra.get('value')">
+          <div>
+            <label for="extras__${num}__value">${key}:</label>
+            <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${key}" />
+            <input id="extras__${num}__value" name="extras__${num}__value" type="text" value="${value}" />
+          </div>
+        </py:with>
+      </py:for>
+    </fieldset>
   </div>
 
 </fieldset>                                                               

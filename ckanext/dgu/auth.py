@@ -59,3 +59,16 @@ def dgu_package_update(context, data_dict):
                 'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
 
     return {'success': True}
+
+def dgu_extra_fields_editable(context, data_dict):
+    """
+    Determines whether a dataset's extra-fields are editable directly.
+
+    Typically, this is only something we want sysadmins to be able to do.
+    """
+    user = context.get('user')
+    if Authorizer().is_sysadmin(unicode(user)):
+        return {'success': True}
+    else:
+        return {'success': False,
+                'msg': _('User %s not authorized to edit a dataset\'s extra fields') % str(user)}

@@ -9,7 +9,9 @@ from ckan.plugins import IGenshiStreamFilter
 from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckanext.dgu.middleware import AuthAPIMiddleware
-from ckanext.dgu.auth import dgu_group_update, dgu_group_create, dgu_package_update
+from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
+                             dgu_package_update, dgu_extra_fields_editable 
+                             
 import ckanext.dgu
 
 import stream_filters
@@ -45,7 +47,8 @@ class AuthApiPlugin(SingletonPlugin):
         return {
             'group_update' : dgu_group_update,
             'group_create' : dgu_group_create,
-            'package_update' : dgu_package_update
+            'package_update' : dgu_package_update,
+            'package_extra_fields_editable' : dgu_extra_fields_editable,
         }
 
 
