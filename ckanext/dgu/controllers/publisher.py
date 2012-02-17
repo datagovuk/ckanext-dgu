@@ -230,6 +230,7 @@ class PublisherController(GroupController):
                             len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0 )
 
         c.administrators = group.members_of_type(model.User, 'admin')
+
         return super(PublisherController, self).read(id)
 
     def new(self, data=None, errors=None, error_summary=None):

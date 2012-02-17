@@ -1,21 +1,28 @@
 ###############################################################################
-# Uses a CSV export from DGU Drupal to determine which datasets are owned by 
+# Uses a CSV export from DGU Drupal to determine which datasets are owned by
 # which publishers.
-
-# The SQL to generate the CSV looks like:
 #
-# SELECT R.title, 
-#      (SELECT title FROM dgu_drupal.node_revisions AS rr WHERE rr.nid = P.nid) AS 'pub_title'
+# CSV is generated with:
+#
+# SELECT
+#  distinct
+#  DI.ckan_id as 'dataset_id',
+#  (SELECT title FROM dgu_drupal.node_revisions
+#  AS rr
+#  WHERE rr.nid = K.field_publisher_nid ) AS 'publisher_title'
 # FROM dgu_drupal.content_type_ckan_package as K
-# INNER JOIN dgu_drupal.node_revisions AS R ON R.vid=K.vid
-# INNER JOIN dgu_drupal.content_type_publisher AS P ON P.nid=K.field_publisher_nid;
+# INNER JOIN dgu_drupal.ckan_package as DI ON DI.nid = K.nid
+# ORDER BY 'publisher_title'
+# LIMIT 100000;
 #
 ###############################################################################
 
 import os
 import logging
 import sys
+import re
 import ckan
+import uuid
 from ckan import model
 from ckan.lib.search import rebuild
 from ckan.lib.munge import munge_title_to_name
@@ -35,67 +42,96 @@ def command():
     load_config( os.path.abspath( sys.argv[1] ) )
     engine = engine_from_config(config,'sqlalchemy.')
 
-    model.init_model(engine)    
+    model.init_model(engine)
     model.repo.new_revision()
 
-    print 'Fetching group cache'
-    groups = {}
-    for g in model.Session.query(model.Group).filter(model.Group.type=='publisher').all():
-        groups[g.name] = g
-    print ' .. done'    
-    
-    packages = {}
-    
+    publishers = {  }
     with open(sys.argv[2], 'rU') as f:
-        reader = csv.reader( f) 
+        reader = csv.reader( f)
         reader.next() # skip headers
-        
-        count, proc = 0, 0
         for row in reader:
-            dataset_title, publisher_title = row
-            publisher_slug = munge_title_to_name( publisher_title )
-            
-            proc = proc + 1
-            if proc % 500 == 0:
-                print '-> %d/%d' % (count,proc,)
+            publishers[ int(row[0]) ] = munge_title_to_name(row[1])
 
-            if not publisher_slug in groups:
-                continue
-                
-            if dataset_title in packages:
-                pkg = packages[dataset_title]     
-            else:
-                qp = model.Session.query(model.Package).\
-                          filter(model.Package.title==dataset_title and model.Package.state == 'active')
-                if qp.count() == 0:
-                    continue
-                pkg = qp.all()[0]
-                packages[dataset_title] = pkg
+    # Check whether
+    with_name = re.compile("^.*\[(\d+)\]$")
+    current_data = model.Session.query("package_id", "value")\
+                    .from_statement(DATASET_EXTRA_QUERY).all()
+    for p,v in current_data:
+        value = v.strip("\"")
+        if not value:
+            continue # blank value == no publisher
 
-            count = count + 1            
+        # Use the with_name regex to strip out the number from something
+        # of the format "Name of the publisher [extra_id]"
+        g = with_name.match(value)
+        if g:
+            value = g.groups(0)[0]
 
-            pub = groups[publisher_slug]
-            c = model.Session.query(model.Member).\
-                          filter(model.Member.table_id==pkg.id and model.Member.group == pub and
-                                 model.Member.table_name == 'package').count()
-            if c > 0:
-                continue
+        # We want to use ints for the lookup, just because
+        value = int(value)
 
-            model.Session.add( model.Member(group=pub, table_id=pkg.id, table_name='package')  )
-            model.Session.commit()
-            rebuild( package=pkg.id )
-        
-            print 'Processed', count, 'rows'
-        
-        
+        # We don't handle unknown publishers but these should not exist as
+        # we are looking from a shared datasource (i.e. publishers published
+        # from same list).
+        if not value in publishers:
+            continue
+
+        member_id          = unicode(uuid.uuid4())
+        member_revision_id = unicode(uuid.uuid4())
+        revision_id        = unicode(uuid.uuid4())
+
+        # We could optimise here, but seeing as the script currently runs adequately fast
+        # we won't bother with caching the name->id lookup
+        ids = model.Session.query("id")\
+                    .from_statement("select id from public.group where name='%s'" % publishers[value]).all()
+        publisher_id = ids[0][0]
+
+        memberq      = MEMBER_QUERY.strip() % \
+                        (member_id, p, publisher_id, revision_id)
+        member_rev_q = MEMBER_REVISION_QUERY.strip() % \
+                        (member_id, p, publisher_id, revision_id, member_id)
+        revision_q   = REVISION_QUERY.strip() % (revision_id,)
+
+        print revision_q
+        print memberq
+        print member_rev_q
+        print ''
+
+
+
+MEMBER_QUERY = """
+INSERT INTO public.member(id, table_id,group_id, state,revision_id,
+                          table_name, capacity)
+    VALUES ('%s', '%s', '%s', 'active', '%s', 'group', 'member');
+"""
+MEMBER_REVISION_QUERY = """
+INSERT INTO public.member_revision(id, table_id, group_id,
+                                   state, revision_id, table_name,
+                                   capacity, revision_timestamp,
+                                   current, continuity_id)
+    VALUES ('%s', '%s', '%s', 'active', '%s', 'group', 'member',
+            '2012-02-17',  true, '%s');
+"""
+REVISION_QUERY = """
+INSERT INTO public.revision(id, timestamp, author, message, state,
+                            approved_timestamp)
+    VALUES ('%s','2012-02-17', 'admin', 'Migration task', 'active',
+            '2012-02-17');
+"""
+DATASET_EXTRA_QUERY = \
+    "select package_id, value from package_extra where key='published_by'"
+
+
+
 def usage():
     print """
 Usage:
-  Associates publishers with datasets from the provided CSV
+  Associates publishers with datasets from the provided CSV and using the
+  publisher extra property on each dataset in the existing database.
 
-    python publisher_datasets_assoc.py <path to ini file>  <path to csv file>
+    python publisher_datasets_assoc.py <path to ini file>  <path to nodepublisher csv file>
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         usage()
