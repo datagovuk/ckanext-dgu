@@ -1,0 +1,536 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+  
+  <xi:include href="../facets.html" />
+  <py:def function="page_title">Welcome</py:def>
+  <py:def function="body_class">hide-sidebar</py:def>
+
+    <div py:match="//primarysidebar">
+      <div id="block-block-77" class="block block-block">
+        <h2>UK Location Map Based Search</h2>
+        <div class="content">
+        <p>PLACEHOLDER</p>
+        </div>
+      </div>
+
+      <div class="content">
+          <div class="view-header">
+            <h2 class="title">Popular tags</h2>
+            <div id="tagcloud">
+              <?python
+                import random
+                tags = h.facet_items(c, 'tags', limit=20)
+                random.shuffle(tags)
+              ?>
+              <py:for each="tag_name, count in tags">
+                <a class="tag" rel="${count}" title="${count}" href="/dataset?tags=${tag_name}">${tag_name}</a>
+              </py:for>
+            </div>
+            <a href="/tags" class="viewall">View all tags</a>
+          </div>
+  
+      </div>
+
+      <div id="login-side">
+          <div class="view-header">
+            <h2 class="title">Login</h2>
+          </div>
+            <a href="${h.url_for(controller='user', action='login')}">Log-in as publisher</a><br/>
+            <a href="${h.url_for(controller='user', action='register')}">Register as publisher</a>
+      </div>
+
+    </div>
+
+    <div py:match="//div[@id='content']" id="content-top">
+
+      <div class="span-24 last">
+        <h1 class="title">
+          <img src="/images/1x1.gif" id="icon_page-title"/>
+          Data
+        </h1>
+      </div>
+      <div class="span-8 action-box">
+        <div class="action-box-inner find">
+          <form action="${h.url_for(controller='package', action='index')}" method="GET"> 
+            <input name="q" type="text" maxlength="256" id="data-search" size="15" value="" title="Enter the terms you wish to search for." class="form-text" />
+          </form> 
+          ${g.site_title} contains <a href="${h.url_for(controller='package')}">${c.package_count} datasets</a> that you can 
+          browse, learn about and download. 
+        </div>
+      </div>
+
+      <div id="content-bottom" class="region region-content_bottom">
+        <div class="content">
+          <div style="background: url('/images/gradient_heading.png') repeat-x; border-radius: 3px 3px 3px 3px; overflow: hidden; padding: 0; width: auto; height:30px;">
+            <h2 style="font-size: 1.4em;">PLACEHOLDER HEADING</h2>
+          </div>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et justo eget nisl volutpat suscipit. Etiam risus arcu, pulvinar vel vulputate a, varius a neque. In metus eros, dictum ut dapibus in, blandit vitae dolor. Donec suscipit elementum massa, vel consectetur magna dignissim nec.</p>
+          <br/>
+        </div>
+
+        <div class="content">
+          <div style="background: url(/images/gradient_heading.png) repeat-x; border-radius: 3px 3px 3px 3px; overflow: hidden; padding: 0; width: auto; height: 30px;">
+            <h2 style="font-size: 1.4em;">PLACEHOLDER HEADING 2</h2>
+          </div>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer et justo eget nisl volutpat suscipit. Etiam risus arcu, pulvinar vel vulputate a, varius a neque. In metus eros, dictum ut dapibus in, blandit vitae dolor. Donec suscipit elementum massa, vel consectetur magna dignissim nec.</p>
+        </div>
+
+        <div id="block-views-publishers-block_1">
+          <div class="view view-publishers view-id-publishers view-display-id-block_1 view-dom-id-3 view-id-display-id-publishers-block_1">
+            <div class="view-header">
+              <h2 class="title">Browse by publisher</h2>
+              <a href="/publisher" class="viewall">View all publishers</a>
+            </div>
+  
+            <div class="view-content">
+              <div py:for="name, count in h.facet_items(c, 'groups', limit=7)"
+                   class="views-row">
+                <div class="views-field-title">
+                  <span class="field-content"><span class="field-content">
+                    <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=name)}">
+                      ${h.group_name_to_title(name)} (${count})
+                    </a>
+                  </span></span>
+                </div>
+              </div>
+            </div>
+  
+          </div>
+        </div>
+  
+        <div id="block-views-data_featured_terms-block_2">
+          <div class="view view-data-featured-terms view-id-data_featured_terms view-display-id-block_2 view-dom-id-4 view-id-display-id-data_featured_terms-block_2">
+            <div class="view-header">
+              <h2 class="title">Browse by nation</h2>
+              <a href="/data/nation" class="viewall">View all nations</a>
+            </div>
+  
+            <div class="view-content">
+
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-name">
+                  <span class="field-content"><span class="field-content"><a href="/search/apachesolr_search/?filters=tid%3A904&amp;retain-filters=1">England</a></span></span>
+                </div>
+              </div>
+
+              <div class="views-row views-row-2 views-row-even">      
+                <div class="views-field-name">
+                  <span class="field-content"><span class="field-content"><a href="/search/apachesolr_search/?filters=tid%3A900&amp;retain-filters=1">Northern Ireland</a></span></span>
+                </div>
+              </div>
+
+              <div class="views-row views-row-3 views-row-odd">
+                <div class="views-field-name">
+                  <span class="field-content"><span class="field-content"><a href="/search/apachesolr_search/?filters=tid%3A913&amp;retain-filters=1">Scotland</a></span></span>
+                </div>
+              </div>
+
+              <div class="views-row views-row-4 views-row-even views-row-last">
+                <div class="views-field-name">
+                  <span class="field-content"><span class="field-content"><a href="/search/apachesolr_search/?filters=tid%3A907&amp;retain-filters=1">Wales</a></span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div style="clear: both; background: url('/images/gradient_heading.png') repeat-x; border-radius: 3px 3px 3px 3px; overflow: hidden; padding: 0; width: auto; height:30px;">
+            <h2 style="font-size: 1.4em;">Developers</h2>
+          </div>
+            <p class="p1">You can also access this catalogue via the <a title="API" href="${g.site_url}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="${g.site_url}/dump">CSV/JSON dump</a>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div py:match="//pagebottom">
+      <div id="block-views-featured_data-block_2" class="block block-views">
+        <div class="content">
+          <div class="view view-featured-data view-id-featured_data view-display-id-block_2 view-dom-id-5 view-id-display-id-featured_data-block_2">
+            <div class="view-header">
+              <div class="feed-icon">
+                <a href="/data/%2A/rss.xml" class="feed-icon"><img src="/misc/feed.png" alt="Syndicate content" title="" width="16" height="16"/></a>
+              </div>
+              <h2 class="title">Featured data</h2>
+              <a href="/search/apachesolr_search/?filters=type%3Ackan_package&amp;solrsort=changed desc&amp;retain-filters=1" class="viewall" id="viewalldata">View all data</a>
+              <a href="/data/random" id="randomdata" class="viewall">Random data set</a>
+            </div>
+
+            <div class="view-content">
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-title">
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/dataset/spotlightonspend-transactions-download" title="spotlightonspend Raw Data Download Files">spotlightonspend Raw Data Do...</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="views-field-field-publisher-nid">
+                  <label class="views-label-field-publisher-nid"> by </label>
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/search/apachesolr_search?filters=ss_cck_field_publisher%3a&quot;Spikes Cavell Analytic Ltd&quot;" title="Spikes Cavell Analytic Ltd">Spikes Cavell</a>
+                    </span>
+                  </div>
+                </div>
+
+
+                <div class="views-field-value">
+                  <div class="field-content">
+                    <div class="field-content">
+                      <div class="fivestar-widget-static fivestar-widget-static- fivestar-widget-static-5 clear-block">
+                        <div class="star star-1 star-odd star-first">
+                          <span class="on">3.607145</span>
+                        </div>
+                        <div class="star star-2 star-even">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-3 star-odd">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-4 star-even">
+                          <span class="on" style="width: 60.7145%"></span>
+                        </div>
+                        <div class="star star-5 star-odd star-last">
+                          <span class="off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="views-field-teaser">
+                  <div class="field-content">
+                    <span class="field-content">The content contains multiple datasets where each dataset contains...</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-title">
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/dataset/spotlightonspend-transactions-download" title="spotlightonspend Raw Data Download Files">spotlightonspend Raw Data Do...</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="views-field-field-publisher-nid">
+                  <label class="views-label-field-publisher-nid"> by </label>
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/search/apachesolr_search?filters=ss_cck_field_publisher%3a&quot;Spikes Cavell Analytic Ltd&quot;" title="Spikes Cavell Analytic Ltd">Spikes Cavell</a>
+                    </span>
+                  </div>
+                </div>
+
+
+                <div class="views-field-value">
+                  <div class="field-content">
+                    <div class="field-content">
+                      <div class="fivestar-widget-static fivestar-widget-static- fivestar-widget-static-5 clear-block">
+                        <div class="star star-1 star-odd star-first">
+                          <span class="on">3.607145</span>
+                        </div>
+                        <div class="star star-2 star-even">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-3 star-odd">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-4 star-even">
+                          <span class="on" style="width: 60.7145%"></span>
+                        </div>
+                        <div class="star star-5 star-odd star-last">
+                          <span class="off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="views-field-teaser">
+                  <div class="field-content">
+                    <span class="field-content">The content contains multiple datasets where each dataset contains...</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-title">
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/dataset/spotlightonspend-transactions-download" title="spotlightonspend Raw Data Download Files">spotlightonspend Raw Data Do...</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="views-field-field-publisher-nid">
+                  <label class="views-label-field-publisher-nid"> by </label>
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/search/apachesolr_search?filters=ss_cck_field_publisher%3a&quot;Spikes Cavell Analytic Ltd&quot;" title="Spikes Cavell Analytic Ltd">Spikes Cavell</a>
+                    </span>
+                  </div>
+                </div>
+
+
+                <div class="views-field-value">
+                  <div class="field-content">
+                    <div class="field-content">
+                      <div class="fivestar-widget-static fivestar-widget-static- fivestar-widget-static-5 clear-block">
+                        <div class="star star-1 star-odd star-first">
+                          <span class="on">3.607145</span>
+                        </div>
+                        <div class="star star-2 star-even">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-3 star-odd">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-4 star-even">
+                          <span class="on" style="width: 60.7145%"></span>
+                        </div>
+                        <div class="star star-5 star-odd star-last">
+                          <span class="off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="views-field-teaser">
+                  <div class="field-content">
+                    <span class="field-content">The content contains multiple datasets where each dataset contains...</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-title">
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/dataset/spotlightonspend-transactions-download" title="spotlightonspend Raw Data Download Files">spotlightonspend Raw Data Do...</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="views-field-field-publisher-nid">
+                  <label class="views-label-field-publisher-nid"> by </label>
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/search/apachesolr_search?filters=ss_cck_field_publisher%3a&quot;Spikes Cavell Analytic Ltd&quot;" title="Spikes Cavell Analytic Ltd">Spikes Cavell</a>
+                    </span>
+                  </div>
+                </div>
+
+
+                <div class="views-field-value">
+                  <div class="field-content">
+                    <div class="field-content">
+                      <div class="fivestar-widget-static fivestar-widget-static- fivestar-widget-static-5 clear-block">
+                        <div class="star star-1 star-odd star-first">
+                          <span class="on">3.607145</span>
+                        </div>
+                        <div class="star star-2 star-even">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-3 star-odd">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-4 star-even">
+                          <span class="on" style="width: 60.7145%"></span>
+                        </div>
+                        <div class="star star-5 star-odd star-last">
+                          <span class="off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="views-field-teaser">
+                  <div class="field-content">
+                    <span class="field-content">The content contains multiple datasets where each dataset contains...</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-title">
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/dataset/spotlightonspend-transactions-download" title="spotlightonspend Raw Data Download Files">spotlightonspend Raw Data Do...</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="views-field-field-publisher-nid">
+                  <label class="views-label-field-publisher-nid"> by </label>
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/search/apachesolr_search?filters=ss_cck_field_publisher%3a&quot;Spikes Cavell Analytic Ltd&quot;" title="Spikes Cavell Analytic Ltd">Spikes Cavell</a>
+                    </span>
+                  </div>
+                </div>
+
+
+                <div class="views-field-value">
+                  <div class="field-content">
+                    <div class="field-content">
+                      <div class="fivestar-widget-static fivestar-widget-static- fivestar-widget-static-5 clear-block">
+                        <div class="star star-1 star-odd star-first">
+                          <span class="on">3.607145</span>
+                        </div>
+                        <div class="star star-2 star-even">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-3 star-odd">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-4 star-even">
+                          <span class="on" style="width: 60.7145%"></span>
+                        </div>
+                        <div class="star star-5 star-odd star-last">
+                          <span class="off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="views-field-teaser">
+                  <div class="field-content">
+                    <span class="field-content">The content contains multiple datasets where each dataset contains...</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="views-row views-row-1 views-row-odd views-row-first">
+                <div class="views-field-title">
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/dataset/spotlightonspend-transactions-download" title="spotlightonspend Raw Data Download Files">spotlightonspend Raw Data Do...</a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="views-field-field-publisher-nid">
+                  <label class="views-label-field-publisher-nid"> by </label>
+                  <div class="field-content">
+                    <span class="field-content">
+                      <a href="/search/apachesolr_search?filters=ss_cck_field_publisher%3a&quot;Spikes Cavell Analytic Ltd&quot;" title="Spikes Cavell Analytic Ltd">Spikes Cavell</a>
+                    </span>
+                  </div>
+                </div>
+
+
+                <div class="views-field-value">
+                  <div class="field-content">
+                    <div class="field-content">
+                      <div class="fivestar-widget-static fivestar-widget-static- fivestar-widget-static-5 clear-block">
+                        <div class="star star-1 star-odd star-first">
+                          <span class="on">3.607145</span>
+                        </div>
+                        <div class="star star-2 star-even">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-3 star-odd">
+                          <span class="on"></span>
+                        </div>
+                        <div class="star star-4 star-even">
+                          <span class="on" style="width: 60.7145%"></span>
+                        </div>
+                        <div class="star star-5 star-odd star-last">
+                          <span class="off"></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="views-field-teaser">
+                  <div class="field-content">
+                    <span class="field-content">The content contains multiple datasets where each dataset contains...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div> <!-- end of pagebottom -->
+
+    <!-- <div py:match="//div[@id='content']" class="front-page">
+      <div class="span-24 last">
+        <h1 class="title">
+          <img src="/images/1x1.gif" id="icon_page-title"/>
+          Data
+        </h1>
+      </div>
+      <div class="span-8 action-box">
+        <div class="action-box-inner find">
+          <h1>Find data</h1>
+
+          <form action="${h.url_for(controller='package', action='index')}" method="GET"> 
+            <input name="q" value="" class="search-field" placeholder="${_('Find datasets')}" /> 
+          </form> 
+          ${g.site_title} contains <a href="${h.url_for(controller='package')}">${c.package_count} datasets</a> that you can 
+          browse, learn about and download. 
+        </div>
+      </div>
+      <div class="span-8 action-box">
+        <div class="action-box-inner share">
+        <h1>Share data</h1>
+
+        Add your own datasets to share them with others and
+        to find other people interested in your data.
+        
+        <py:choose test="h.am_authorized(c, actions.PACKAGE_CREATE)">
+          <a py:when="" href="${h.url_for(controller='package', action='new')}" class="create-button">Create a dataset &raquo;</a>
+          <py:otherwise>
+            <a href="${h.url_for(controller='user', action='login')}" class="create-button">Sign up &raquo;</a>
+          </py:otherwise>
+        </py:choose>
+        </div>
+      </div>
+      <div class="span-8 last action-box">
+        <div class="action-box-inner collaborate">
+        <h1>Collaborate</h1>
+
+        Find out more about working with open data by exploring 
+        these resources: 
+        <ul>
+          <li><a href="http://getthedata.org">GetTheData.org</a></li>
+          <li><a href="http://datapatterns.org">DataPatterns.org</a></li>
+          <li><a href="http://opendatamanual.org">Open Data Manual</a></li>
+        </ul>
+        </div>
+      </div>
+      <div py:if="c.groups" class="span-24 last whoelse">
+        <h2>Who else is here?</h2>
+      </div>
+      <py:for each="i, group_dict in enumerate(c.groups[:6])">
+        <div class="span-8 group ${'last' if i % 3 == 2 else ''}">
+          <h3><a href="${h.url_for(controller='group', action='read', id=group_dict['name'])}">${group_dict['title']}</a></h3>
+          <p>
+            ${h.markdown_extract(group_dict['description'])}
+          </p>
+          <strong>${group_dict['title']} has ${group_dict['packages']} datasets.</strong>
+        </div>
+      </py:for>
+  </div> -->
+  <head py:match="head">
+      ${select('*')}
+      <script type="text/javascript" src="${g.site_url}/scripts/vendors/jquery.tagcloud.js"></script>
+      <script type="text/javascript" charset="utf-8">
+        $(document).ready(function(){
+          $.fn.tagcloud.defaults = {
+            size: {start: 8, end: 18, unit: "pt"}, 
+            color: {start: '#6bb247', end: '#000'}
+          };
+          $("#tagcloud a").tagcloud();
+        });
+      </script>
+  </head>
+  <xi:include href="layout.html" />
+</html>
+
