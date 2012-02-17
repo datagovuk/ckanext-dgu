@@ -32,6 +32,12 @@ install_dependencies () {
         -e "/^user/ s/^user=ckan/user=$user/" \
         -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
         -e "/^command/ s,/path/to/config/testing.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/celery-supervisor.conf
+
+    # Configure the harvest fetcher and gatherers to run under supervisor
+    sudo cat "/var/lib/ckan/$instance/pyenv/src/ckanext-harvest/config/supervisor/ckan_harvesting.conf" | sed \
+        -e "/^user/ s/^user=ckan/user=$user/" \
+        -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
+        -e "/^command/ s,/path/to/config/$instance.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/ckan_harvesting.conf
 }
 
 run_database_migrations () {
@@ -47,10 +53,19 @@ run_database_migrations () {
 }
 
 post_install () {
+
+    instance=$1
+    user="ckan$instance"
+
     # Start celeryd and workers under supervisord
+    echo "Starting post-installation processes."
     sudo supervisorctl reread
     sudo supervisorctl add celery
+    sudo supervisorctl add ckan_gather_consumer
+    sudo supervisorctl add ckan_fetch_consumer
     sudo supervisorctl status
+
+    echo "*/15 *  *   *   *     /var/lib/ckan/$instance/pyenv/bin/paster --plugin=ckanext-harvest harvester run --config=/etc/ckan/$instance/$instance.ini" | tee -a "/var/spool/cron/crontabs/$user"
 }
 
 configure () {
@@ -62,13 +77,14 @@ configure () {
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
-    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa/" \
+    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa synchronous_search dgu_search/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
+             -e "s/^ckan.gravatar_default =.*/ckan.gravatar_default = mm/" \
              -e '/^\[app:main\]$/ a\
 dgu.admin.name = Test Account\
 dgu.admin.email = ross.jones@okfn.org\
-search.facets = groups tags res_format license resource-type UKLP\
+search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl\
 ckan.spatial.srid = 4258\
 dgu.xmlrpc_username = CKAN_API\
 dgu.xmlrpc_password = XXX\
