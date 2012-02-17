@@ -53,19 +53,31 @@ def command():
             publishers[ int(row[0]) ] = munge_title_to_name(row[1])
 
     # Check whether
-    with_name = re.compile("^.*\[(\d+)\]$")
+    with_name = re.compile("^.*\[(\d+)\].*$")
     current_data = model.Session.query("package_id", "value")\
-                    .from_statement(DATASET_EXTRA_QUERY).all()
+                    .from_statement(DATASET_EXTRA_QUERY_VIA).all()
+
+    count = 0
     for p,v in current_data:
-        value = v.strip("\"")
+        value = v.strip("\"'")
         if not value:
-            continue # blank value == no publisher
+            # blank value == no publisher so we should check the published_BY
+            new_v = model.Session.query("value")\
+                    .from_statement(DATASET_EXTRA_QUERY_BY).params(package_id=p).all()
+            if new_v:
+                value = new_v[0][0]
+                value = value.strip("\"'")
+                if not value:
+                    count = count + 1
+                    continue
 
         # Use the with_name regex to strip out the number from something
         # of the format "Name of the publisher [extra_id]"
         g = with_name.match(value)
         if g:
             value = g.groups(0)[0]
+        else:
+            print value
 
         # We want to use ints for the lookup, just because
         value = int(value)
@@ -91,7 +103,6 @@ def command():
         member_rev_q = MEMBER_REVISION_QUERY.strip() % \
                         (member_id, p, publisher_id, revision_id, member_id)
         revision_q   = REVISION_QUERY.strip() % (revision_id,)
-
         print revision_q
         print memberq
         print member_rev_q
@@ -100,26 +111,25 @@ def command():
 
 
 MEMBER_QUERY = """
-INSERT INTO public.member(id, table_id,group_id, state,revision_id,
-                          table_name, capacity)
+INSERT INTO public.member(id, table_id,group_id, state,revision_id, table_name, capacity)
     VALUES ('%s', '%s', '%s', 'active', '%s', 'group', 'member');
 """
 MEMBER_REVISION_QUERY = """
-INSERT INTO public.member_revision(id, table_id, group_id,
-                                   state, revision_id, table_name,
-                                   capacity, revision_timestamp,
-                                   current, continuity_id)
+INSERT INTO public.member_revision(id, table_id, group_id, state, revision_id, table_name,
+                                      capacity, revision_timestamp, current, continuity_id)
     VALUES ('%s', '%s', '%s', 'active', '%s', 'group', 'member',
             '2012-02-17',  true, '%s');
 """
 REVISION_QUERY = """
-INSERT INTO public.revision(id, timestamp, author, message, state,
-                            approved_timestamp)
+INSERT INTO public.revision(id, timestamp, author, message, state, approved_timestamp)
     VALUES ('%s','2012-02-17', 'admin', 'Migration task', 'active',
             '2012-02-17');
 """
-DATASET_EXTRA_QUERY = \
-    "select package_id, value from package_extra where key='published_by'"
+
+DATASET_EXTRA_QUERY_VIA = \
+    "select package_id, value from package_extra where key='published_via'"
+DATASET_EXTRA_QUERY_BY = \
+    "select value from package_extra where key='published_by' and package_id=:package_id"
 
 
 
