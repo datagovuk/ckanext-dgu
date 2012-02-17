@@ -2,6 +2,11 @@
 # Uses a CSV export from DGU Drupal to determine which datasets are owned by
 # which publishers.
 #
+# Iterates through all of the published_via extras for packages and then if it
+# is empty tries the published_by for that package.  Assuming we find something we
+# lookup the ID of the publisher (using the CSV instead of trusting the name) and
+# associate them.
+#
 # CSV is generated with:
 #
 # SELECT
