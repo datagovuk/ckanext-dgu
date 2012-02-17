@@ -28,16 +28,25 @@ install_dependencies () {
     sudo apt-get -y install supervisor
 
     # Configure celeryd under supervisor
+    echo "Configuring celeryd to run under supervisor"
     sudo wget -O -  https://raw.github.com/okfn/ckan/master/ckan/config/celery-supervisor.conf | sed \
         -e "/^user/ s/^user=ckan/user=$user/" \
         -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
         -e "/^command/ s,/path/to/config/testing.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/celery-supervisor.conf
 
     # Configure the harvest fetcher and gatherers to run under supervisor
+    echo "Configuring harvesters to run under supervisor"
     sudo cat "/var/lib/ckan/$instance/pyenv/src/ckanext-harvest/config/supervisor/ckan_harvesting.conf" | sed \
         -e "/^user/ s/^user=ckan/user=$user/" \
         -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
         -e "/^command/ s,/path/to/config/$instance.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/ckan_harvesting.conf
+
+    # Link to the solr schema file
+    echo "Replacing solr schema file"
+    sudo /etc/init.d/jetty stop
+    sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.ckan
+    sudo ln -s "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml" /etc/solr/conf/schema.xml
+    sudo /etc/init.d/jetty start
 }
 
 run_database_migrations () {
