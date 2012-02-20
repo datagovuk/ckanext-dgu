@@ -33,8 +33,8 @@
 			</div>
 		</div>
 		<div id="publishersearch" style="text-align:center;">
-	        <input type="search" class="search autocomplete-publisherx" id="q" value="${c.q}" style="width:400px;" autocomplete="off" results="0" placeholder="${_('Search...')}"  />
-			<button onclick="return  publisher_search();">${_('Search...')}</button>
+	        <input type="search" class="search autocomplete-publisherx" id="q" value="${c.q}" style="width:400px;" autocomplete="off" results="0" placeholder="${_('Search...')}"/>
+			<button id="search_button" onclick="return  publisher_search();">${_('Search...')}</button>
 			<table id="search_results" class="groups" style="display:none;">
 			</table>
 		</div>
@@ -73,6 +73,10 @@
 			$("#publisher_tree").jstree(
 				 {"plugins" : ["themes","html_data","ui"]}
 			).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
+			$("#q").keypress(function(e)
+			{
+        		if (e.which == 13) publisher_search();
+			});
 		});
 	</script>
   </py:def>
