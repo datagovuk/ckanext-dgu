@@ -23,6 +23,7 @@ import ckanext.dgu.lib.helpers
 
 from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.field_types import DateType
+import ckan.model as model
 from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for
 from ckan.tests.html_check import HtmlCheckMethods
 
@@ -124,6 +125,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         """
         self.fixtures = Gov3Fixtures()
         self.fixtures.create()
+        self.admin = _create_sysadmin()
 
     @classmethod
     def teardown(self):
@@ -131,13 +133,14 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         Cleanup the Gov3Fixtures
         """
         self.fixtures.delete()
+        _drop_sysadmin()
 
     def test_new_form_has_all_fields(self):
         """
         Asserts that a form for a new package contains the various expected fields
         """
         offset = url_for(controller='package', action='new')
-        response = self.app.get(offset)
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
 
         for field, (label_text, input_type) in self._expected_fields.items():
 
@@ -161,7 +164,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         want appearing in the dgu form.
         """
         offset = url_for(controller='package', action='new')
-        response = self.app.get(offset)
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
 
         for field in self._unexpected_fields:
             match = re.search('<(input|textarea|select) [^>]* name="%s"' % field,
@@ -207,7 +210,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         package = self.fixtures.pkgs[0]
 
         offset = url_for(controller='package', action='edit', id=package['name'])
-        response = self.app.get(offset)
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
 
         # form field name -> expected form field value
         expected_field_values = {}
@@ -296,7 +299,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         
         # GET the edit form
         offset = url_for(controller='package', action='edit', id=package_name)
-        response = self.app.get(offset)
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
 
         # tags may be re-ordered, so test them manually
         expected_tags = set(map(lambda s: s.strip(), package_data['tag_string'].split(',')))
@@ -332,7 +335,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         package = self.fixtures.pkgs[0]
 
         offset = url_for(controller='package', action='edit', id=package['name'])
-        response = self.app.get(offset)
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
 
         for field in self._unexpected_fields:
             match = re.search('<(input|textarea|select) [^>]* name="%s"' % field,
@@ -346,6 +349,10 @@ class TestFormValidation(object):
 
     def __init__(self):
         self._form_client = _PackageFormClient()
+
+    @classmethod
+    def teardown_class(self):
+        _drop_sysadmin()
 
     def test_title_non_empty(self):
         """Asserts that the title cannot be empty"""
@@ -543,6 +550,7 @@ class TestPackageCreation(CommonFixtureMethods):
         """
         Delete any created packages
         """
+        _drop_sysadmin()
         CreateTestData.delete()
 
     def test_submitting_a_valid_create_form_creates_a_new_package(self):
@@ -643,12 +651,16 @@ class _PackageFormClient(WsgiAppCase):
     form fields from the form, and POSTing back the form with the provided data.
     """
 
+    def __init__(self):
+        _drop_sysadmin()
+        self.admin = _create_sysadmin()
+
     def post_form(self, data):
         """
         GETs the package-create page, fills in the given fields, and POSTs the form.
         """
         offset = url_for(controller='package', action='new')
-        response = self.app.get(offset)
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
         
         # parse the form fields from the html
         # TODO: there's an obvious deficiency: this will only pick up field
@@ -667,7 +679,7 @@ class _PackageFormClient(WsgiAppCase):
         # and fill in the form with the data provided
         form_fields.update(data)
         self._add_generated_fields(form_fields, data.keys())
-        return self.app.post(offset, params=form_fields)
+        return self.app.post(offset, params=form_fields, extra_environ={'REMOTE_USER': self.admin})
 
     def _add_generated_fields(self, form_fields, keys):
         """
@@ -724,6 +736,8 @@ class _PackageFormClient(WsgiAppCase):
         data_fields = set(map(sub, data_fields))
         assert form_fields >= data_fields, str(data_fields - form_fields)
 
+#### Helper methods ###
+
 def _flatten_resource_dict(d):
     to_return = d.copy()
     for resource_type in 'additional timeseries individual'.split():
@@ -738,9 +752,6 @@ def _flatten_resource_dict(d):
             pass
     return to_return
 
-
-#### Helper methods ###
-
 def _convert_date(datestring):
     """
     Converts a date-string to that rendered by the form.
@@ -748,6 +759,20 @@ def _convert_date(datestring):
     It does this by converting to db format, and then back to a string.
     """
     return DateType.db_to_form(datestring)
+
+def _create_sysadmin():
+    model.repo.new_revision()
+    sysadmin_user = model.User(name='sysadmin')
+    model.Session.add(sysadmin_user)
+    model.add_user_to_role(sysadmin_user, model.Role.ADMIN, model.System())
+    model.repo.commit_and_remove()
+    return 'sysadmin'
+
+def _drop_sysadmin():
+    if model.User.get('sysadmin'):
+        model.repo.new_revision()
+        model.User.get('sysadmin').delete()
+        model.repo.commit_and_remove()
 
 ### Form data used in this module ###
 
