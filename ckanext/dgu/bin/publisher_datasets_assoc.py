@@ -59,18 +59,19 @@ def command():
 
     # Check whether
     with_name = re.compile("^.*\[(\d+)\].*$")
-    current_data = model.Session.query("package_id", "value")\
+    current_data = model.Session.query("id","package_id", "value")\
                     .from_statement(DATASET_EXTRA_QUERY_VIA).all()
 
     count = 0
-    for p,v in current_data:
+    for i,p,v in current_data:
+        extra_delete_ids = []
         value = v.strip("\"'")
         if not value:
             # blank value == no publisher so we should check the published_BY
-            new_v = model.Session.query("value")\
+            new_v = model.Session.query("id","value")\
                     .from_statement(DATASET_EXTRA_QUERY_BY).params(package_id=p).all()
             if new_v:
-                value = new_v[0][0]
+                value = new_v[0][1]
                 value = value.strip("\"'")
                 if not value:
                     count = count + 1
@@ -132,9 +133,9 @@ INSERT INTO public.revision(id, timestamp, author, message, state, approved_time
 """
 
 DATASET_EXTRA_QUERY_VIA = \
-    "select package_id, value from package_extra where key='published_via'"
+    "select id,package_id, value from package_extra where key='published_via'"
 DATASET_EXTRA_QUERY_BY = \
-    "select value from package_extra where key='published_by' and package_id=:package_id"
+    "select id, value from package_extra where key='published_by' and package_id=:package_id"
 
 
 

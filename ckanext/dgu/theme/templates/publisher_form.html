@@ -80,13 +80,50 @@
   </dl>
 </fieldset>
 
+<fieldset id="contact-details">
+  <h3>Contact Details</h3>
+  <dt><label for="contact-name">Name</label></dt>
+  <dd>
+<input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
+  </dd>
+
+  <dt><label for="contact-email">Email</label></dt>
+  <dd>
+<input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
+  </dd>
+
+  <dt><label for="contact-name">Telephone</label></dt>
+  <dd>
+<input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
+  </dd>
+
+
+</fieldset>
+<fieldset id="foi-details">
+  <h3>FOI Details</h3>
+  <dt><label for="foi-name">Name</label></dt>
+  <dd>
+<input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
+  </dd>
+
+  <dt><label for="foi-email">Email</label></dt>
+  <dd>
+<input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
+  </dd>
+
+  <dt><label for="foi-name">Telephone</label></dt>
+  <dd>
+<input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
+  </dd>
+</fieldset>
+
 <fieldset id="extras">
   <h3>Extras</h3>
   <dl>
     <py:with vars="extras = data.get('extras', [])">
     <py:for each="num, extra in enumerate(data.get('extras', []))">
-    <dt><label for="extras__${num}__value">${extra.get('key')}</label></dt>
-    <dd>
+    <dt py:if="not extra.get('key') in c.schema_fields"><label for="extras__${num}__value">${extra.get('key')}</label></dt>
+    <dd py:if="not extra.get('key') in c.schema_fields">
       <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
       <input id="extras__${num}__value" name="extras__${num}__value" type="text" value="${extra.get('value')}" />
       <input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}">Delete</input>
