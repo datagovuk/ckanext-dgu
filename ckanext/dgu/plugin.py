@@ -67,7 +67,6 @@ class ThemePlugin(SingletonPlugin):
 class AuthApiPlugin(SingletonPlugin):
 
     implements(IMiddleware, inherit=True)
-    implements(IAuthFunctions)
 
     def make_middleware(self, app, config):
         return AuthAPIMiddleware(app, config)
@@ -85,6 +84,12 @@ class DguForm(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
+    implements(IAuthFunctions)
+
+    def get_auth_functions(self):
+        return {
+            'package_extra_fields_editable' : dgu_extra_fields_editable,
+        }
 
     def before_map(self, map):
         map.connect('/package/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
