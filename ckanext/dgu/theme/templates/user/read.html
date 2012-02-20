@@ -55,7 +55,7 @@
 	from ckan.authz import Authorizer
 	groups = None
 	u = model.User.get(c.user_dict['id'])
-	if len( c.userobj.get_groups('publisher') ) > 0 or Authorizer().is_sysadmin(c.user):
+	if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or Authorizer().is_sysadmin(c.user):
 		groups = u.get_groups('publisher' )
 ?>
 
