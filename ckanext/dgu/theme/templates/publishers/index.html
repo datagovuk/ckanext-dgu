@@ -69,7 +69,13 @@
 			return false;
 		}
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();
+			$( "#tabs" ).tabs( {
+				show: function(e, ui) {
+					if ( ui.index == 2 ) {
+						$("#q").focus();
+					}
+        		}
+			});
 			$("#publisher_tree").jstree(
 				 {"plugins" : ["themes","html_data","ui"]}
 			).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
