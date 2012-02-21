@@ -139,15 +139,17 @@ class PackageGov3Controller(PackageController):
             'timeseries_resources': timeseries_resource_schema(),
             'individual_resources': individual_resource_schema(),
             
-            'published_by': [not_empty, unicode, convert_to_extras],
-            'published_by-email': [unicode, convert_to_extras],
-            'published_by-url': [unicode, convert_to_extras],
-            'published_by-telephone': [unicode, convert_to_extras],
+            'groups': {
+                'name': [not_empty, unicode]
+            },
+
+            'contact-name': [unicode, convert_to_extras],
+            'contact-email': [unicode, convert_to_extras],
+            'contact-phone': [unicode, convert_to_extras],
 
             'author': [ignore_missing, unicode],
-            'author_email': [ignore_missing, unicode],
-            'author_url': [ignore_missing, unicode, convert_to_extras],
-            'author_telephone': [ignore_missing, unicode, convert_to_extras],
+            'foi-email': [ignore_missing, unicode, convert_to_extras],
+            'foi-phone': [ignore_missing, unicode, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
@@ -192,13 +194,16 @@ class PackageGov3Controller(PackageController):
                 '__extras': [keep_extras]
             },
             
-            'published_by': [convert_from_extras, ignore_missing],
-            'published_by-email': [convert_from_extras, ignore_missing],
-            'published_by-url': [convert_from_extras, ignore_missing],
-            'published_by-telephone': [convert_from_extras, ignore_missing],
+            'groups': {
+                'name': [not_empty, unicode]
+            },
 
-            'author_url': [convert_from_extras, ignore_missing],
-            'author_telephone': [convert_from_extras, ignore_missing],
+            'contact-name': [convert_from_extras, ignore_missing],
+            'contact-email': [convert_from_extras, ignore_missing],
+            'contact-phone': [convert_from_extras, ignore_missing],
+
+            'foi-email': [convert_from_extras, ignore_missing],
+            'foi-phone': [convert_from_extras, ignore_missing],
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],
@@ -215,7 +220,14 @@ class PackageGov3Controller(PackageController):
         return
 
     def get_publishers(self):
-        return [('pub1', 'pub2')]
+        from ckan.model.group import Group
+        if Authorizer().is_sysadmin(c.user):
+            groups = Group.all(group_type='publisher')
+        elif c.userobj:
+            groups = c.userobj.get_groups('publisher')
+        else: # anonymous user shouldn't have access to this page anyway.
+            groups = []
+        return [ (g.name, g.title) for g in groups ]
 
 def date_to_db(value, context):
     try:

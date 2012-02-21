@@ -118,6 +118,7 @@ class Gov3Fixtures(PackageFixturesBase):
      'author_email':u'statistics@dcsf.gsi.gov.uk',
      'license':u'uk-ogl',
      'tags':u'children fostering',
+     'groups':['publisher-1'],
      'extras':{
         'external_reference':u'DCSF-DCSF-0024',
         'date_released':u'2009-07-30',
@@ -147,6 +148,7 @@ class Gov3Fixtures(PackageFixturesBase):
      'author_email':u'energy.stats@decc.gsi.gov.uk',
      'license':u'ukcrown',
      'tags':u'fuel prices',
+     'groups':['publisher-1'],
      'extras':{
         'external_reference':u'DECC-DECC-0001',
         'date_released':u'2009-11-24',

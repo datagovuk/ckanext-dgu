@@ -59,14 +59,13 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'notes':     (None, 'textarea'),
 
         # Contact details section
-        'published_by':             ('Published by:', 'select'),
-        'published_by-email':       (None, 'input'),
-        'published_by-url':         (None, 'input'),
-        'published_by-telephone':   (None, 'input'),
-        'author':                   ('FOI Contact:', 'input'),
-        'author_email':             (None, 'input'),
-        'author_url':               (None, 'input'),
-        'author_telephone':         (None, 'input'),
+        'groups__0__name':            ('Published by: ', 'select'),
+        'contact-name':             (None, 'input'),
+        'contact-email':            (None, 'input'),
+        'contact-phone':            (None, 'input'),
+        'author':                   (None, 'input'),
+        'foi-email':                (None, 'input'),
+        'foi-phone':                (None, 'input'),
 
         # Themes and tags section
         'primary_theme':        (None, 'select'),
@@ -114,7 +113,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'geographic_granularity',
         'geographic_granularity-other',
     )
-
+    
     @classmethod
     def setup(self):
         """
@@ -123,6 +122,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         This test class won't be editing any packages, so it's ok to only
         create these fixtures once.
         """
+        CreateTestData.create_groups(_EXAMPLE_GROUPS, auth_profile='publisher')
+        CreateTestData.flag_for_deletion(group_names=[g['name'] for g in _EXAMPLE_GROUPS])
         self.fixtures = Gov3Fixtures()
         self.fixtures.create()
         self.admin = _create_sysadmin()
@@ -134,6 +135,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         """
         self.fixtures.delete()
         _drop_sysadmin()
+        CreateTestData.delete()
 
     def test_new_form_has_all_fields(self):
         """
@@ -333,7 +335,6 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         want appearing in the dgu form.
         """
         package = self.fixtures.pkgs[0]
-
         offset = url_for(controller='package', action='edit', id=package['name'])
         response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
 
@@ -543,8 +544,10 @@ class TestPackageCreation(CommonFixtureMethods):
     A suite of tests that check that packages are created correctly through the creation form.
     """
     
-    def __init__(self):
+    def setup(self):
         self._form_client = _PackageFormClient()
+        CreateTestData.create_groups(_EXAMPLE_GROUPS, auth_profile='publisher')
+        CreateTestData.flag_for_deletion(group_names=[g['name'] for g in _EXAMPLE_GROUPS])
 
     def teardown(self):
         """
@@ -589,8 +592,10 @@ class TestPackageCreation(CommonFixtureMethods):
         assert_equal(package_data['title'], pkg.title)
         assert_equal(package_data['notes'], pkg.notes)
         assert_equal(package_data['author'], pkg.author)
-        assert_equal(package_data['author_email'], pkg.author_email)
-        assert_equal(package_data['published_by'], pkg.extras['published_by'])
+        # assert_equal(package_data['author_email'], pkg.author_email)
+
+        publisher = pkg.as_dict()['groups'][0]
+        assert_equal(package_data['groups__0__name'], publisher)
 
         # Extra data
         # Timeseries data
@@ -605,14 +610,13 @@ class TestPackageCreation(CommonFixtureMethods):
                          timeseries_resources[index][field])
 
         # Publisher / contact details
-        assert_equal(package_data['published_by'], pkg.extras['published_by'])
-        assert_equal(package_data['published_by-email'], pkg.extras['published_by-email'])
-        assert_equal(package_data['published_by-url'], pkg.extras['published_by-url'])
-        assert_equal(package_data['published_by-telephone'], pkg.extras['published_by-telephone'])
+        # assert_equal(package_data['published_by-email'], pkg.extras['published_by-email'])
+        # assert_equal(package_data['published_by-url'], pkg.extras['published_by-url'])
+        # assert_equal(package_data['published_by-telephone'], pkg.extras['published_by-telephone'])
         assert_equal(package_data['author'], pkg.author)
-        assert_equal(package_data['author_email'], pkg.author_email)
-        assert_equal(package_data['author_url'], pkg.extras['author_url'])
-        assert_equal(package_data['author_telephone'], pkg.extras['author_telephone'])
+        # assert_equal(package_data['author_email'], pkg.author_email)
+        # assert_equal(package_data['author_url'], pkg.extras['author_url'])
+        # assert_equal(package_data['author_telephone'], pkg.extras['author_telephone'])
 
         # Themes and tags
         assert_equal(package_data['primary_theme'], pkg.extras['primary_theme'])
@@ -782,17 +786,22 @@ _EXAMPLE_FORM_DATA = {
         'title'                 : 'New Package Title',
         'notes'                 : 'A multi-line\ndescription',
         'author'                : 'A Job Role',
-        'author_email'          : 'role@department.gov.uk',
+        # 'author_email'          : 'role@department.gov.uk',
             
         # Publisher / contact details
-        'published_by'          : 'pub2',
-        'published_by-email'    : 'pub2@example.com',
-        'published_by-url'      : 'http://example.com/publishers/pub2',
-        'published_by-telephone': '01234 567890',
+        'groups__0__name'        : 'publisher-1',
+        'contact-name'           : 'Publisher custom name',
+        'contact-email'          : 'Publisher custom email',
+        'contact-phone'          : 'Publisher custom phone',
+        'foi-email'              : 'FOI custom email',
+        'foi-phone'              : 'FOI custom phone',
+        # 'published_by-email'    : 'pub2@example.com',
+        # 'published_by-url'      : 'http://example.com/publishers/pub2',
+        # 'published_by-telephone': '01234 567890',
         'author'                : 'A. Person',
-        'author_email'          : 'a.person@example.com',
-        'author_telephone'      : '09876 543210',
-        'author_url'            : 'http://example.com/people/A-Person',
+        # 'author_email'          : 'a.person@example.com',
+        # 'author_telephone'      : '09876 543210',
+        # 'author_url'            : 'http://example.com/people/A-Person',
 
 
         # additional resources
@@ -866,3 +875,7 @@ _EXAMPLE_FORM_DATA       = _flatten_resource_dict(_EXAMPLE_FORM_DATA)
 _EXAMPLE_INDIVIDUAL_DATA = _flatten_resource_dict(_EXAMPLE_INDIVIDUAL_DATA)
 _EXAMPLE_TIMESERIES_DATA = _flatten_resource_dict(_EXAMPLE_TIMESERIES_DATA)
 
+_EXAMPLE_GROUPS = [
+    {'name': 'publisher-1', 'title': 'Publisher One'},
+    {'name': 'publisher-2', 'title': 'Publisher Two'},
+]
