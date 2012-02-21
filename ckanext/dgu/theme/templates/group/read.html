@@ -15,6 +15,10 @@
       <ul class="property-list" py:for="admin in c.administrators">
         <li>${h.linked_user(admin)}</li>
       </ul>
+	  <h2>Editors</h2>
+      <ul class="property-list" py:for="editor in c.editors">
+        <li>${h.linked_user(editor)}</li>
+      </ul>
     </div>
 	<div py:if="c.userobj and not c.userobj in c.administrators" class="facet-box" style="padding:8px; text-align: center;">
 		<a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Add this publisher to your account</a>
