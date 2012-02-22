@@ -49,6 +49,12 @@ def command():
             g = model.Group.get( slug ) 
             if not g:
                 g = model.Group(name=slug, title=row[0], type='publisher')
+                g.extras['contact-name'] = 'Contact name for "%s"' % row[0]
+                g.extras['contact-email'] = 'Contact email for "%s"' % row[0]
+                g.extras['contact-phone'] = 'Contact phone for "%s"' % row[0]
+                g.extras['foi-name'] = 'FOI name for "%s"' % row[0]
+                g.extras['foi-email'] = 'FOI email for "%s"' % row[0]
+                g.extras['foi-phone'] = 'FOI phone for "%s"' % row[0]
                 model.Session.add( g )
                 model.Session.commit()
 
