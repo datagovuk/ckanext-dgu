@@ -75,6 +75,8 @@ class PublisherController(GroupController):
         c.schema_fields = set(self._form_to_db_schema().keys())
 
 
+
+
     def _form_to_db_schema(self, group_type=None):
         from ckan.logic.schema import default_group_schema
         schema = {
@@ -275,17 +277,129 @@ class PublisherController(GroupController):
 
         return super(PublisherController, self).edit(id)
 
+
     def read(self, id):
+        from ckan.lib.search import SearchError
+        import genshi
+
+        group_type = self._get_group_type(id.split('@')[0])
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author,
+                   'schema': self._form_to_db_schema(group_type=type)}
+        data_dict = {'id': id}
+        q = c.q = request.params.get('q', '') # unicode format (decoded from utf8)
+
+        try:
+            c.group_dict = get_action('group_show')(context, data_dict)
+            c.group = context['group']
+        except NotFound:
+            abort(404, _('Group not found'))
+        except NotAuthorized:
+            abort(401, _('Unauthorized to read group %s') % id)
+
+        # Search within group
+        q += ' groups: "%s"' % c.group_dict.get('name')
+
+        try:
+            description_formatted = ckan.misc.MarkdownFormat().to_html(c.group_dict.get('description',''))
+            c.description_formatted = genshi.HTML(description_formatted)
+        except Exception, e:
+            error_msg = "<span class='inline-warning'>%s</span>" % _("Cannot render description")
+            c.description_formatted = genshi.HTML(error_msg)
+
+        c.group_admins = self.authorizer.get_admins(c.group)
+
+        context['return_query'] = True
+
+        limit = 20
+        try:
+            page = int(request.params.get('page', 1))
+        except ValueError, e:
+            abort(400, ('"page" parameter must be an integer'))
+
+        # most search operations should reset the page counter:
+        params_nopage = [(k, v) for k,v in request.params.items() if k != 'page']
+
+        def search_url(params):
+            pubctrl = 'ckanext.dgu.controllers.publisher:PublisherController'
+            url = h.url_for(controller=pubctrl, action='read', id=c.group_dict.get('name'))
+            params = [(k, v.encode('utf-8') if isinstance(v, basestring) else str(v)) \
+                            for k, v in params]
+            return url + u'?' + urlencode(params)
+
+        def drill_down_url(**by):
+            params = list(params_nopage)
+            params.extend(by.items())
+            return search_url(set(params))
+
+        c.drill_down_url = drill_down_url
+
+        def remove_field(key, value):
+            params = list(params_nopage)
+            params.remove((key, value))
+            return search_url(params)
+
+        c.remove_field = remove_field
+
+        def pager_url(q=None, page=None):
+            params = list(params_nopage)
+            params.append(('page', page))
+            return search_url(params)
+
+        try:
+            c.fields = []
+            search_extras = {}
+            for (param, value) in request.params.items():
+                if not param in ['q', 'page'] \
+                        and len(value) and not param.startswith('_'):
+                    if not param.startswith('ext_'):
+                        c.fields.append((param, value))
+                        q += ' %s: "%s"' % (param, value)
+                    else:
+                        search_extras[param] = value
+
+            data_dict = {
+                'q':q,
+                'facet.field':g.facets,
+                'rows':limit,
+                'start':(page-1)*limit,
+                'extras':search_extras
+            }
+
+            query = get_action('package_search')(context,data_dict)
+
+            c.page = h.Page(
+                collection=query['results'],
+                page=page,
+                url=pager_url,
+                item_count=query['count'],
+                items_per_page=limit
+            )
+            c.facets = query['facets']
+            c.page.items = query['results']
+        except SearchError, se:
+            log.error('Group search error: %r', se.args)
+            c.query_error = True
+            c.facets = {}
+            c.page = h.Page(collection=[])
+
+        # Add the group's activity stream (already rendered to HTML) to the
+        # template context for the group/read.html template to retrieve later.
+        c.group_activity_stream = \
+                ckan.logic.action.get.group_activity_list_html(context,
+                    {'id': c.group_dict['id']})
+
         c.body_class = "group view"
-        group = model.Group.by_name(id)
         c.is_superuser_or_groupmember = c.userobj and \
                                         (Authorizer().is_sysadmin(unicode(c.user)) or \
                             len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0 )
 
-        c.administrators = group.members_of_type(model.User, 'admin')
-        c.editors = group.members_of_type(model.User, 'editor')
+        c.administrators = c.group.members_of_type(model.User, 'admin')
+        c.editors = c.group.members_of_type(model.User, 'editor')
 
-        return super(PublisherController, self).read(id)
+        return render('publishers/read.html')
+
+
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"
