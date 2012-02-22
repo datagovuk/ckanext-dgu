@@ -54,29 +54,33 @@
 	<script type="text/javascript">
 		function publisher_search() {
 			var term = $("#q").val();
+			var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=publisher&amp;q=' + term;
+
 			$("#search_results").empty();
 			$("#search_results").css("display", "block");
-			var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=publisher&amp;q=' + term;
         	$.getJSON(url, function(data) {
 				$("#search_results").append( '<tr><th>Title</th></tr>' );
+
           		$.each(data, function(idx, groupobj) {
-					var tpl = '<tr><td>' +
-							  	'<a href="/publisher/' + groupobj.name + '">' + groupobj.title + '</a>' +
-							  '</td></tr>';
+					var tpl =   '<tr><td>' +
+							  	'<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
+								'</a></td></tr>';
 					$("#search_results").append( tpl );
           		});
         	});
 			return false;
 		}
+
 		$(document).ready(function() {
-			$( "#tabs" ).tabs();
+			$( "#tabs" ).tabs( {
+				show: function(e, ui) { if ( ui.index == 2 ) { $("#q").focus(); } }
+			});
+
 			$("#publisher_tree").jstree(
 				 {"plugins" : ["themes","html_data","ui"]}
 			).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
-			$("#q").keypress(function(e)
-			{
-        		if (e.which == 13) publisher_search();
-			});
+
+			$("#q").keypress(function(e) {  if (e.which == 13) publisher_search(); });
 		});
 	</script>
   </py:def>
