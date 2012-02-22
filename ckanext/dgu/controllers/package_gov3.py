@@ -1,3 +1,4 @@
+import json
 import logging
 from ckan.lib.base import BaseController, render, c, model, abort, request
 from ckan.lib.base import redirect, _, config, h
@@ -100,6 +101,7 @@ class PackageGov3Controller(PackageController):
         c.temporal_granularity = temporal_granularity 
 
         c.publishers = self.get_publishers()
+        c.publishers_json = json.dumps(c.publishers)
 
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
         c.resource_columns = ('description', 'url', 'format')
@@ -147,7 +149,7 @@ class PackageGov3Controller(PackageController):
             'contact-email': [unicode, convert_to_extras],
             'contact-phone': [unicode, convert_to_extras],
 
-            'author': [ignore_missing, unicode],
+            'foi-name': [ignore_missing, unicode, convert_to_extras],
             'foi-email': [ignore_missing, unicode, convert_to_extras],
             'foi-phone': [ignore_missing, unicode, convert_to_extras],
 
@@ -202,6 +204,7 @@ class PackageGov3Controller(PackageController):
             'contact-email': [convert_from_extras, ignore_missing],
             'contact-phone': [convert_from_extras, ignore_missing],
 
+            'foi-name': [convert_from_extras, ignore_missing],
             'foi-email': [convert_from_extras, ignore_missing],
             'foi-phone': [convert_from_extras, ignore_missing],
 
@@ -227,7 +230,21 @@ class PackageGov3Controller(PackageController):
             groups = c.userobj.get_groups('publisher')
         else: # anonymous user shouldn't have access to this page anyway.
             groups = []
-        return [ (g.name, g.title) for g in groups ]
+
+        # Be explicit about which fields we make available in the template
+        groups = [ {
+            'name': g.name,
+            'id': g.id,
+            'title': g.title,
+            'contact-name': g.extras.get('contact-name', ''),
+            'contact-email': g.extras.get('contact-email', ''),
+            'contact-phone': g.extras.get('contact-phone', ''),
+            'foi-name': g.extras.get('foi-name', ''),
+            'foi-email': g.extras.get('foi-email', ''),
+            'foi-phone': g.extras.get('foi-phone', ''),
+        } for g in groups ]
+        
+        return dict( (g['name'], g) for g in groups )
 
 def date_to_db(value, context):
     try:

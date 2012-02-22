@@ -238,17 +238,17 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <fieldset id="section-contacts-fields">
   <legend>Contact details</legend>
+    <label for="groups__0__name">Published by: </label>
+    <select id="groups__0__name" name="groups__0__name">
+      <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
+        <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('groups', [{}])[0].get('name', '') == publisher_name else None}" >
+          ${publisher['title']}
+        </option>
+      </py:for>
+    </select>
   <p>Here are the contact details that will be displayed for this dataset.  <span class="instruction-needed" title="What's this?">To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.</span>  Please click 'Next' to confirm.</p>
     <fieldset id="publisher-information">
       <legend>Publisher information</legend>
-      <label class="to-be-completed" title="When publisher information is integrated, this will be pre-filled with the user's immediate publisher.  And publisher details will be pre-filled (email, link and telephone)" for="groups__0__name">Published by: </label>
-      <select id="groups__0__name" name="groups__0__name">
-        <py:for each="publisher_name, publisher_desc in c.publishers">
-          <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('groups', [{}])[0].get('name', '') == publisher_name else None}" >
-            ${publisher_desc}
-          </option>
-        </py:for>
-      </select>
     <!-- TODO: the labels can be removed -->
       <br/><label for="contact-name">Publisher name:</label>
       <input id="contact-name" name="contact-name" type="text" value="${data.get('contact-name', '')}"/>
@@ -260,8 +260,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     
     <fieldset>
       <legend>FOI information</legend>
-      <label class="to-be-completed" title="When the publisher information is integrated, this will be pre-filled with the user's information." for="author">FOI Contact:</label>
-      <input id="author" name="author" type="text" value="${data.get('author', '')}"/>
+      <label class="to-be-completed" title="When the publisher information is integrated, this will be pre-filled with the user's information." for="foi-name">FOI Contact:</label>
+      <input id="foi-name" name="foi-name" type="text" value="${data.get('foi-name', '')}"/>
       <br/><label for="foi-email">Email:</label>
       <input id="foi-email" name="foi-email" type="text" value="${data.get('foi-email', '')}"/>
       <br/><label for="foi-phone">Telephone:</label>

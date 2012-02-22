@@ -63,7 +63,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'contact-name':             (None, 'input'),
         'contact-email':            (None, 'input'),
         'contact-phone':            (None, 'input'),
-        'author':                   (None, 'input'),
+        'foi-name':                 (None, 'input'),
         'foi-email':                (None, 'input'),
         'foi-phone':                (None, 'input'),
 
@@ -591,8 +591,6 @@ class TestPackageCreation(CommonFixtureMethods):
         assert pkg, response.body
         assert_equal(package_data['title'], pkg.title)
         assert_equal(package_data['notes'], pkg.notes)
-        assert_equal(package_data['author'], pkg.author)
-        # assert_equal(package_data['author_email'], pkg.author_email)
 
         publisher = pkg.as_dict()['groups'][0]
         assert_equal(package_data['groups__0__name'], publisher)
@@ -613,7 +611,6 @@ class TestPackageCreation(CommonFixtureMethods):
         # assert_equal(package_data['published_by-email'], pkg.extras['published_by-email'])
         # assert_equal(package_data['published_by-url'], pkg.extras['published_by-url'])
         # assert_equal(package_data['published_by-telephone'], pkg.extras['published_by-telephone'])
-        assert_equal(package_data['author'], pkg.author)
         # assert_equal(package_data['author_email'], pkg.author_email)
         # assert_equal(package_data['author_url'], pkg.extras['author_url'])
         # assert_equal(package_data['author_telephone'], pkg.extras['author_telephone'])
@@ -785,24 +782,15 @@ _EXAMPLE_FORM_DATA = {
         'name'                  : 'new_name',
         'title'                 : 'New Package Title',
         'notes'                 : 'A multi-line\ndescription',
-        'author'                : 'A Job Role',
-        # 'author_email'          : 'role@department.gov.uk',
             
         # Publisher / contact details
         'groups__0__name'        : 'publisher-1',
         'contact-name'           : 'Publisher custom name',
         'contact-email'          : 'Publisher custom email',
         'contact-phone'          : 'Publisher custom phone',
+        'foi-name'               : 'A. Person',
         'foi-email'              : 'FOI custom email',
         'foi-phone'              : 'FOI custom phone',
-        # 'published_by-email'    : 'pub2@example.com',
-        # 'published_by-url'      : 'http://example.com/publishers/pub2',
-        # 'published_by-telephone': '01234 567890',
-        'author'                : 'A. Person',
-        # 'author_email'          : 'a.person@example.com',
-        # 'author_telephone'      : '09876 543210',
-        # 'author_url'            : 'http://example.com/people/A-Person',
-
 
         # additional resources
         'additional_resources'  : [

@@ -90,6 +90,18 @@
 
     /* Tag auto-completion */
     CKAN.Dgu.setupTagAutocomplete($('input.autocomplete-tag'));
+
+    /* Auto-fill contact and FOI information based upon selected publisher */
+    $('#groups__0__name').change(function() {
+      var selectedPublisherName = $(this).val();
+      var publisher = publishers[selectedPublisherName];
+      $('#contact-name').val(publisher['contact-name']);
+      $('#contact-email').val(publisher['contact-email']);
+      $('#contact-phone').val(publisher['contact-phone']);
+      $('#foi-name').val(publisher['foi-name']);
+      $('#foi-email').val(publisher['foi-email']);
+      $('#foi-phone').val(publisher['foi-phone']);
+    });
   });
 }(jQuery));
 
