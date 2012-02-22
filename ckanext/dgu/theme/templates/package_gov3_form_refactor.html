@@ -249,23 +249,51 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <p>Here are the contact details that will be displayed for this dataset.  <span class="instruction-needed" title="What's this?">To edit, please go to 'My Account' and then <a href="#TODO">contact details</a>.</span>  Please click 'Next' to confirm.</p>
     <fieldset id="publisher-information">
       <legend>Publisher information</legend>
-    <!-- TODO: the labels can be removed -->
-      <br/><label for="contact-name">Publisher name:</label>
-      <input id="contact-name" name="contact-name" type="text" value="${data.get('contact-name', '')}"/>
-      <br/><label for="contact-email">Publisher email:</label>
-      <input id="contact-email" name="contact-email" type="text" value="${data.get('contact-email', '')}"/>
-      <br/><label for="contact-phone">Publisher phone:</label>
-      <input id="contact-phone" name="contact-phone" type="text" value="${data.get('contact-phone', '')}"/>
+
+      <p><b>Name: </b> <span id="contact-name-label">${data.get('contact-name', '')}</span></p>
+      <p><b>Email: </b><span id="contact-email-label">${data.get('contact-email', '')}</span></p>
+      <p><b>Phone: </b><span id="contact-phone-label">${data.get('contact-phone', '')}</span></p>
+
+      <input id="contact-name" name="contact-name" type="hidden" value="${data.get('contact-name', '')}"/>
+      <input id="contact-email" name="contact-email" type="hidden" value="${data.get('contact-email', '')}"/>
+      <input id="contact-phone" name="contact-phone" type="hidden" value="${data.get('contact-phone', '')}"/>
+
+      <input type="button" id="contact-edit" value="Edit"/>
+
+      <div id="contact-dialogbox" title="Edit contact information">
+        <p>Edit any of the contact details below.</p>
+          <br/><label for="contact-name-dialog">Name:</label>
+          <input id="contact-name-dialog" name="contact-name-dialog" type="text" value="${data.get('contact-name', '')}"/>
+          <br/><label for="contact-email-dialog">Email:</label>
+          <input id="contact-email-dialog" name="contact-email-dialog" type="text" value="${data.get('contact-email', '')}"/>
+          <br/><label for="contact-phone-dialog">Phone:</label>
+          <input id="contact-phone-dialog" name="contact-phone-dialog" type="text" value="${data.get('contact-phone', '')}"/>
+      </div>
+
     </fieldset>
     
     <fieldset>
       <legend>FOI information</legend>
-      <label class="to-be-completed" title="When the publisher information is integrated, this will be pre-filled with the user's information." for="foi-name">FOI Contact:</label>
-      <input id="foi-name" name="foi-name" type="text" value="${data.get('foi-name', '')}"/>
-      <br/><label for="foi-email">Email:</label>
-      <input id="foi-email" name="foi-email" type="text" value="${data.get('foi-email', '')}"/>
-      <br/><label for="foi-phone">Telephone:</label>
-      <input id="foi-phone" name="foi-phone" type="text" value="${data.get('foi-phone', '')}"/>
+      
+      <p><b>Name: </b> <span id="foi-name-label">${data.get('foi-name', '')}</span></p>
+      <p><b>Email: </b><span id="foi-email-label">${data.get('foi-email', '')}</span></p>
+      <p><b>Phone: </b><span id="foi-phone-label">${data.get('foi-phone', '')}</span></p>
+
+      <input id="foi-name" name="foi-name" type="hidden" value="${data.get('foi-name', '')}"/>
+      <input id="foi-email" name="foi-email" type="hidden" value="${data.get('foi-email', '')}"/>
+      <input id="foi-phone" name="foi-phone" type="hidden" value="${data.get('foi-phone', '')}"/>
+
+      <input type="button" id="foi-edit" value="Edit"/>
+
+      <div id="foi-dialogbox" title="Edit FOI information">
+        <p>Edit any of the FOI details below.</p>
+          <br/><label for="foi-name-dialog">Name:</label>
+          <input id="foi-name-dialog" name="foi-name-dialog" type="text" value="${data.get('foi-name', '')}"/>
+          <br/><label for="foi-email-dialog">Email:</label>
+          <input id="foi-email-dialog" name="foi-email-dialog" type="text" value="${data.get('foi-email', '')}"/>
+          <br/><label for="foi-phone-dialog">Phone:</label>
+          <input id="foi-phone-dialog" name="foi-phone-dialog" type="text" value="${data.get('foi-phone', '')}"/>
+      </div>
     </fieldset>
 </fieldset>
 

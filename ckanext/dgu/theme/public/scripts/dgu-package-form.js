@@ -98,19 +98,66 @@
       $('#contact-name').val(publisher['contact-name']);
       $('#contact-email').val(publisher['contact-email']);
       $('#contact-phone').val(publisher['contact-phone']);
+      $('#contact-name-dialog').val(publisher['contact-name']);
+      $('#contact-email-dialog').val(publisher['contact-email']);
+      $('#contact-phone-dialog').val(publisher['contact-phone']);
+      $('#contact-name-label').text(publisher['contact-name']);
+      $('#contact-email-label').text(publisher['contact-email']);
+      $('#contact-phone-label').text(publisher['contact-phone']);
       $('#foi-name').val(publisher['foi-name']);
       $('#foi-email').val(publisher['foi-email']);
       $('#foi-phone').val(publisher['foi-phone']);
+      $('#foi-name-dialog').val(publisher['foi-name']);
+      $('#foi-email-dialog').val(publisher['foi-email']);
+      $('#foi-phone-dialog').val(publisher['foi-phone']);
+      $('#foi-name-label').text(publisher['foi-name']);
+      $('#foi-email-label').text(publisher['foi-email']);
+      $('#foi-phone-label').text(publisher['foi-phone']);
     });
-    if(preload_dataset === undefined){ // new dataset form
-      $('#groups__0__name').change(); // trigger the above event
-    }
+
+    /* Create dialog boxes for editing the contact and foi information */
+    CKAN.Dgu.setupContactEditDialog($('#contact-dialogbox'));
+    CKAN.Dgu.setupContactEditDialog($('#foi-dialogbox'));
+
   });
 }(jQuery));
 
 var CKAN = CKAN || {};
 
 CKAN.Dgu = function($, my) {
+
+  my.setupContactEditDialog = function(dialogDiv) {
+    var fields = ['name', 'email', 'phone'];
+    var prefix = dialogDiv.attr('id').split('-')[0]; // e.g. 'contact' or 'foi'
+
+    $('#'+prefix+'-edit').click(function(){dialogDiv.dialog("open");});
+
+    dialogDiv.dialog({
+      autoOpen: false,
+      height: 300,
+      width: 350,
+      modal: true,
+      buttons: {
+        "Save": function() {
+          for(var i=0; i<fields.length; i++){
+            var fieldName = fields[i];
+            var fieldId = '#' + prefix + '-' + fieldName;
+            $(fieldId + '-label').text($(fieldId + '-dialog').val());
+            $(fieldId).val($(fieldId + '-dialog').val());
+          }
+          $(this).dialog("close");
+        },
+        "Cancel": function() {
+          for(var i=0; i<fields.length; i++){
+            var fieldName = fields[i];
+            var fieldId = '#' + prefix + '-' + fieldName;
+            $(fieldId + '-dialog').val($(fieldId).val());
+          }
+          $(this).dialog("close");
+        }
+      }
+    });
+  };
 
   my.showTab = function(button, fieldset) {
     button.attr('onclick', '').click(function() {
