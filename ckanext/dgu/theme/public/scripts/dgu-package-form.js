@@ -102,6 +102,9 @@
       $('#foi-email').val(publisher['foi-email']);
       $('#foi-phone').val(publisher['foi-phone']);
     });
+    if(preload_dataset === undefined){ // new dataset form
+      $('#groups__0__name').change(); // trigger the above event
+    }
   });
 }(jQuery));
 
