@@ -44,7 +44,7 @@ install_dependencies () {
     echo "Replacing solr schema file"
     sudo /etc/init.d/jetty stop
     sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.ckan
-    sudo ln -s "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml" /etc/solr/conf/schema.xml
+    sudo cp "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml" /etc/solr/conf/schema.xml
     sudo /etc/init.d/jetty start
 }
 
@@ -77,6 +77,7 @@ post_install () {
     sudo supervisorctl status
 
     echo "*/15 *  *   *   *     /var/lib/ckan/$instance/pyenv/bin/paster --plugin=ckanext-harvest harvester run --config=/etc/ckan/$instance/$instance.ini" | tee -a "/var/spool/cron/crontabs/$user"
+    sudo service cron reload
 }
 
 configure () {
