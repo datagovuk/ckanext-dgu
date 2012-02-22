@@ -15,7 +15,7 @@ TODO:
 from functools import partial
 import re
 
-from nose.tools import assert_equal, assert_in
+from nose.tools import assert_equal, assert_in, assert_not_in
 from nose.plugins.skip import SkipTest
 
 from ckanext.dgu.tests import Gov3Fixtures
@@ -608,12 +608,15 @@ class TestPackageCreation(CommonFixtureMethods):
                          timeseries_resources[index][field])
 
         # Publisher / contact details
-        # assert_equal(package_data['published_by-email'], pkg.extras['published_by-email'])
-        # assert_equal(package_data['published_by-url'], pkg.extras['published_by-url'])
-        # assert_equal(package_data['published_by-telephone'], pkg.extras['published_by-telephone'])
-        # assert_equal(package_data['author_email'], pkg.author_email)
-        # assert_equal(package_data['author_url'], pkg.extras['author_url'])
-        # assert_equal(package_data['author_telephone'], pkg.extras['author_telephone'])
+        # The contact-email should not be an extra-field on the dataset as it's the
+        # same as the publisher group's contact-email.  ie - it hasn't been overridden.
+        # The resof the information should be in the extras fields
+        assert_not_in('contact-email', pkg.extras)
+        assert_equal(package_data['contact-name'], pkg.extras['contact-name'])
+        assert_equal(package_data['contact-phone'], pkg.extras['contact-phone'])
+        assert_equal(package_data['foi-name'], pkg.extras['foi-name'])
+        assert_equal(package_data['foi-email'], pkg.extras['foi-email'])
+        assert_equal(package_data['foi-phone'], pkg.extras['foi-phone'])
 
         # Themes and tags
         assert_equal(package_data['primary_theme'], pkg.extras['primary_theme'])
@@ -786,9 +789,9 @@ _EXAMPLE_FORM_DATA = {
         # Publisher / contact details
         'groups__0__name'        : 'publisher-1',
         'contact-name'           : 'Publisher custom name',
-        'contact-email'          : 'Publisher custom email',
+        'contact-email'          : 'Publisher 1 contact email', # not custom: same as the group
         'contact-phone'          : 'Publisher custom phone',
-        'foi-name'               : 'A. Person',
+        'foi-name'               : 'FOI custom name',
         'foi-email'              : 'FOI custom email',
         'foi-phone'              : 'FOI custom phone',
 
@@ -864,6 +867,9 @@ _EXAMPLE_INDIVIDUAL_DATA = _flatten_resource_dict(_EXAMPLE_INDIVIDUAL_DATA)
 _EXAMPLE_TIMESERIES_DATA = _flatten_resource_dict(_EXAMPLE_TIMESERIES_DATA)
 
 _EXAMPLE_GROUPS = [
-    {'name': 'publisher-1', 'title': 'Publisher One'},
-    {'name': 'publisher-2', 'title': 'Publisher Two'},
+    {'name': 'publisher-1',
+     'title': 'Publisher One',
+     'contact-email': 'Publisher 1 contact email'},
+    {'name': 'publisher-2',
+     'title': 'Publisher Two'},
 ]

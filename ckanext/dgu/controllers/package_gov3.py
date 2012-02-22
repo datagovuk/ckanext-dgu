@@ -30,7 +30,9 @@ from ckanext.dgu.validators import merge_resources, unmerge_resources, \
                                    validate_resources, \
                                    validate_additional_resource_types, \
                                    validate_data_resource_types, \
-                                   validate_license
+                                   validate_license, \
+                                   drop_if_same_as_publisher, \
+                                   populate_from_publisher_if_missing
 
 log = logging.getLogger(__name__)
 
@@ -145,13 +147,13 @@ class PackageGov3Controller(PackageController):
                 'name': [not_empty, unicode]
             },
 
-            'contact-name': [unicode, convert_to_extras],
-            'contact-email': [unicode, convert_to_extras],
-            'contact-phone': [unicode, convert_to_extras],
+            'contact-name': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'contact-email': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'contact-phone': [unicode, drop_if_same_as_publisher, convert_to_extras],
 
-            'foi-name': [ignore_missing, unicode, convert_to_extras],
-            'foi-email': [ignore_missing, unicode, convert_to_extras],
-            'foi-phone': [ignore_missing, unicode, convert_to_extras],
+            'foi-name': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-email': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-phone': [unicode, drop_if_same_as_publisher, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
@@ -200,13 +202,13 @@ class PackageGov3Controller(PackageController):
                 'name': [not_empty, unicode]
             },
 
-            'contact-name': [convert_from_extras, ignore_missing],
-            'contact-email': [convert_from_extras, ignore_missing],
-            'contact-phone': [convert_from_extras, ignore_missing],
+            'contact-name': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
+            'contact-email': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
+            'contact-phone': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
 
-            'foi-name': [convert_from_extras, ignore_missing],
-            'foi-email': [convert_from_extras, ignore_missing],
-            'foi-phone': [convert_from_extras, ignore_missing],
+            'foi-name': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
+            'foi-email': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
+            'foi-phone': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],

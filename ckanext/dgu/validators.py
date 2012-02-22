@@ -6,9 +6,50 @@ from itertools import chain, groupby
 
 from pylons.i18n import _
 
-from ckan.lib.navl.dictization_functions import unflatten, Invalid
+from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
+                                                StopOnError, missing
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
+
+def drop_if_same_as_publisher(key, data, errors, context):
+    """
+    Validates the contact- and foi- data.
+
+    If it's the same as that on the publisher, then the data is dropped,
+    otherwise it's kept, and stored on the dataset (as an extra field).
+
+    For example:
+
+    if key == 'contact-name'.  Then we load the group referenced
+    by 'groups__0__name', and then check group.extras['contact-name'].
+    """
+    from ckan.model.group import Group
+    field_name = key[0] # extract from tuple
+    group = Group.get(data.get(('groups', 0, 'name'), None))
+    if not group:
+        return
+    if group.extras.get(field_name, None) == data[key]:
+        # Remove from data and errors iff the two are equal.
+        # If the group doesn't have an extra field for this key,
+        # then store it against the dataset.
+        data.pop(key, None)
+        errors.pop(key, None)
+        raise StopOnError
+
+def populate_from_publisher_if_missing(key, data, errors, context):
+    """
+    If the data is missing, then populate from the publisher.
+    """
+    from ckan.model.group import Group
+
+    if data[key] is not missing:
+        return
+
+    field_name = key[0] # extract from tuple
+    group = Group.get(data.get(('groups', 0, 'name'), None))
+    if not group:
+        return
+    data[key] = group.extras.get(field_name, None)
 
 def validate_license(key, data, errors, context):
     """
