@@ -3,6 +3,7 @@ import re
 
 from logging import getLogger
 
+from ckan.lib.helpers import flash_notice, _flash
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
@@ -10,10 +11,11 @@ from ckan.plugins import IGenshiStreamFilter
 from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
+from ckan.plugins import ISession
 from ckanext.dgu.middleware import AuthAPIMiddleware
 from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
-                             dgu_package_update, dgu_extra_fields_editable 
-                             
+                             dgu_package_update, dgu_extra_fields_editable
+from ckan.lib.helpers import url_for
 import ckanext.dgu
 
 import stream_filters
@@ -101,33 +103,57 @@ class DguForm(SingletonPlugin):
     def update_config(self, config):
         pass
 
+
 class PublisherPlugin(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
+    implements(ISession, inherit=True)
+
+
+    def before_commit(self, session):
+        """
+        Before we commit a session we will check to see if any of the new
+        items are users so we
+        """
+        from pylons.i18n import _
+        from ckan.model.group import User
+
+        session.flush()
+        if not hasattr(session, '_object_cache'):
+            return
+
+        pubctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
+        for obj in set( session._object_cache['new'] ):
+            if isinstance(obj, (User)):
+                url = url_for(controller=pubctlr, action='apply')
+                msg = "You can now <a href='%s'>apply for publisher access</a>" % url
+                flash_notice(_(msg), allow_html=True)
+
 
     def before_map(self, map):
+        pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
         map.connect('publisher_index',
                     '/publisher',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')
+                    controller=pub_ctlr, action='index')
         map.connect('publisher_edit',
                     '/publisher/edit/:id',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit' )
+                    controller=pub_ctlr, action='edit' )
         map.connect('publisher_apply',
                     '/publisher/apply/:id',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )
+                    controller=pub_ctlr, action='apply' )
         map.connect('publisher_apply_empty',
                     '/publisher/apply',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply' )
+                    controller=pub_ctlr, action='apply' )
         map.connect('publisher_users',
                     '/publisher/users/:id',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='users' )
+                    controller=pub_ctlr, action='users' )
         map.connect('publisher_new',
                     '/publisher/new',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='new'  )
+                    controller=pub_ctlr, action='new'  )
         map.connect('publisher_read',
                     '/publisher/:id',
-                    controller='ckanext.dgu.controllers.publisher:PublisherController', action='read' )
+                    controller=pub_ctlr, action='read' )
         return map
 
     def after_map(self, map):
@@ -243,7 +269,7 @@ class SearchPlugin(SingletonPlugin):
 
     def authz_add_role(self, object_role):
         pass
-    
+
     def authz_remove_role(self, object_role):
         pass
 
