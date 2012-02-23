@@ -395,46 +395,53 @@ class TestFormValidation(object):
 
     def test_individual_resource_url_non_empty(self):
         """Asserts that individual resources must have url defined"""
-        data = {'individual_resources__0__description': 'description with no url'}
+        data = {'individual_resources__0__description': 'description with no url',
+                'individual_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
         assert 'Individual resources: {\'url\': [u\'Missing value\']}' in response.body
 
     def test_timeseries_resource_url_non_empty(self):
         """Asserts that timeseries resources must have url defined"""
         data = {'timeseries_resources__0__description': 'description with no url',
-                'timeseries_resources__0__date': 'date with no url'}
+                'timeseries_resources__0__date': 'date with no url',
+                'timeseries_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Timeseries resources: {\'url\': [u\'Missing value\']}' in response.body
+        assert_in('Timeseries resources: {\'url\': [u\'Missing value\']}', response.body, response.body)
 
     def test_additional_resource_url_non_empty(self):
         """Asserts that additional resources must have url defined"""
-        data = {'additional_resources__0__description': 'description with no url'}
+        data = {'additional_resources__0__description': 'description with no url',
+                'additional_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
         assert 'Additional resources: {\'url\': [u\'Missing value\']}' in response.body
 
     def test_individual_resource_description_non_empty(self):
         """Asserts that individual resources must have description defined"""
-        data = {'individual_resources__0__url': 'url with no description'}
+        data = {'individual_resources__0__url': 'url with no description',
+                'individual_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
         assert 'Individual resources: {\'description\': [u\'Missing value\']}' in response.body
 
     def test_timeseries_resource_description_non_empty(self):
         """Asserts that timeseries resources must have description defined"""
         data = {'timeseries_resources__0__url': 'url with no description',
-                'timeseries_resources__0__date': 'date with no description'}
+                'timeseries_resources__0__date': 'date with no description',
+                'timeseries_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
         assert 'Timeseries resources: {\'description\': [u\'Missing value\']}' in response.body
 
     def test_additional_resource_description_non_empty(self):
         """Asserts that additional resources must have description defined"""
-        data = {'additional_resources__0__url': 'url with no description'}
+        data = {'additional_resources__0__url': 'url with no description',
+                'additional_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
         assert 'Additional resources: {\'description\': [u\'Missing value\']}' in response.body
 
     def test_timeseries_resource_date_non_empty(self):
         """Asserts that timeseries resources must have date defined"""
         data = {'timeseries_resources__0__description': 'description with no date',
-                'timeseries_resources__0__url': 'url with no date',}
+                'timeseries_resources__0__url': 'url with no date',
+                'timeseries_resources__0__format': 'format with no date',}
         response = self._form_client.post_form(data)
         assert 'Timeseries resources: {\'date\': [u\'Missing value\']}' in response.body
 
@@ -858,7 +865,7 @@ _EXAMPLE_TIMESERIES_DATA.update({
                 {'description'      : 'Winter solstice 2011',
                  'url'              : 'http://example.com/data/W2011',
                  'date'             : 'Winter 2011',
-                 'format'           : ''} # omitted format is OK.
+                 'format'           : 'XLS'}
             ],
 })
 
