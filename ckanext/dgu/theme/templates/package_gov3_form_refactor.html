@@ -399,24 +399,38 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr class="additional_resources__${num}">
-          <td>
-            <!-- <label class="field_opt" for="additional_resources__${num}__description">Description:</label> -->
-            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}" class="medium-width"/>
-          </td>
-          <td>
-            <!-- <label class="field_opt" for="additional_resources__${num}__url">Link:</label> -->
-            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}" class="short"/>
-          </td>
-          <td>
-            <!-- <label class="field_opt" for="additional_resources__${num}__format">Format:</label> -->
-            <input name="additional_resources__${num}__format" type="text" value="${res.get('format','')}" class="short"/>
-          </td>
+          <py:for each="col in ['description', 'url', 'format']">
+            <td>
+              <?python
+                resource_errors = errors.get('additional_resources', None)
+                cell_has_error = resource_errors and \
+                                 num < len(resource_errors) and \
+                                 bool(resource_errors[num].get(col, False))
+              ?>
+              <py:choose test="">
+                <input py:when="col=='description'"
+                       id="additional_resources__${num}__${col}"
+                       name="additional_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                <input py:otherwise=""
+                       id="additional_resources__${num}__${col}"
+                       name="additional_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+
+              </py:choose>
+            </td>
+          </py:for>
           <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
           <td><a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
       </py:for>
     </tbody>
     </table>
+    <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Additional resource(s) incomplete.</p>
 
   <label class="field_opt" for="mandate">Mandate</label>
   <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
