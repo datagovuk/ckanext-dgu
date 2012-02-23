@@ -59,7 +59,8 @@ class PublisherController(GroupController):
             abort(401, _('Not authorized to see this page'))
 
         c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'publisher').order_by('title').all()
+                       filter(model.Group.type == 'publisher').order_by('title')
+#        results = get_action('group_list')(context, data_dict)
 
         c.page = AlphaPage(
             controller_name="ckanext.dgu.controllers.publisher:PublisherController",

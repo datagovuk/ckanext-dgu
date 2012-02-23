@@ -47,50 +47,50 @@ def render_tree(groups,  type='publisher'):
     """
         Uses the provided groups to generate a tree structure (in a dict) by
         matching up the tree relationship using the Member objects.
-        
+
         We might look at using postgres CTE to build the entire tree inside
         postgres but for now this is adequate for our needs.
-    """        
+    """
     from ckan import model
-    
-    root = PublisherNode( "root", "root")                    
+
+    root = PublisherNode( "root", "root")
     tree = { root.slug : root }
-    
+
     members = model.Session.query(model.Member).\
                 join(model.Group, model.Member.group_id == model.Group.id).\
                 filter(model.Group.type == 'publisher').\
                 filter(model.Member.table_name == 'group').all()
-               
-    group_lookup  = dict( (g.id,g, ) for g in groups ) 
+
+    group_lookup  = dict( (g.id,g, ) for g in groups )
     group_members = dict( (g.id,[],) for g in groups )
-    
-    # Process the membership rules    
+
+    # Process the membership rules
     for member in members:
         if member.table_id in group_lookup and member.group_id:
             group_members[member.table_id].append( member.group_id )
 
     def get_groups(group):
         return [group_lookup[i] for i in group_members[group.id]]
-    
+
     for group in groups:
         slug, title = group.name, group.title
         if not slug in tree:
             tree[slug] = PublisherNode(slug, title)
         else:
-            # May be updating a parent placeholder where the child was 
+            # May be updating a parent placeholder where the child was
             # encountered first.
             tree[slug].slug = slug
             tree[slug].title = title
-            
-        parent_nodes = get_groups(group) 
+
+        parent_nodes = get_groups(group)
         if len(parent_nodes) == 0:
             root.children.append( tree[slug] )
-        else:    
+        else:
             for parent in parent_nodes:
-                parent_slug, parent_title = parent.name, parent.title             
+                parent_slug, parent_title = parent.name, parent.title
                 if not parent_slug in tree:
                     # Parent doesn't yet exist, add a placeholder
                     tree[parent_slug] = PublisherNode('', '')
-                tree[parent_slug].children.append(tree[slug])     
+                tree[parent_slug].children.append(tree[slug])
 
     return root.render()
