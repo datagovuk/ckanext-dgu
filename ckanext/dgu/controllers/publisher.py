@@ -419,6 +419,7 @@ class PublisherController(GroupController):
         c.unassigned_users = model.Session.query(model.User).from_statement(query).all()
         c.unassigned_users_count = len(c.unassigned_users)
 
+
         g_query = """SELECT g.* FROM public.group g WHERE id NOT IN
                     (SELECT group_id FROM public.member WHERE capacity='admin')
                     ORDER BY g.name;"""
