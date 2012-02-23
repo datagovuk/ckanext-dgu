@@ -133,7 +133,12 @@ class PublisherPlugin(SingletonPlugin):
             if isinstance(obj, (User)):
                 url = url_for(controller=pubctlr, action='apply')
                 msg = "You can now <a href='%s'>apply for publisher access</a>" % url
-                flash_notice(_(msg), allow_html=True)
+                try:
+                    flash_notice(_(msg), allow_html=True)
+                except TypeError:
+                    # Raised when there is no session registered, and this is
+                    # the case when using the paster commands.
+                    log.warning('Failed to add a flash message due to a missing session')
 
 
     def before_map(self, map):
