@@ -210,6 +210,10 @@ class PublisherController(GroupController):
             "session": model.Session
         }
 
+        # Temporary cleanup of a capacity being sent without a name
+        users = [d for d in data_dict['users'] if len(d) == 2]
+        data_dict['users'] = users
+
         model.repo.new_revision()
         group_member_save(context, data_dict, 'users')
         model.Session.commit()
@@ -274,6 +278,8 @@ class PublisherController(GroupController):
         grps = group.get_groups('publisher')
         if grps:
             c.parent = grps[0]
+
+        c.users = group.members_of_type(model.User)
 
         return super(PublisherController, self).edit(id)
 
