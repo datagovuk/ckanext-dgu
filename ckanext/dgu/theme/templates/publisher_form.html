@@ -150,19 +150,14 @@
 <a py:if="c.group" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Manage users</a>
 
 
-  <dl py:if="data.get('users')">
-    <py:for each="num, user in enumerate(data.get('users'))">
-	      <dd>
-	        <label for="users__${num}__name">${user['name']}</label>
-		     <div style="float:right;margin-right: 20px;">
-			  <input type="hidden" name="users__${num}__capacity" value="admin"></input>
-			  <input id="users__${num}__name" name="users__${num}__name" type="hidden" value="${user['name']}"/>
-			  <span>${user['capacity']}</span>
-			 </div>
-		  </dd>
+  <dl py:if="c.users">
+    <py:for each="user in c.users">
+		<dd>
+			<label>${user['name']}</label>
+		</dd>
     </py:for>
   </dl>
-  <p py:if="not data.get('users')">There are no users currently in this publisher.</p>
+  <p py:if="not c.users.all()">There are no users currently in this publisher.</p>
 </fieldset>
 
 <fieldset id="datasets">

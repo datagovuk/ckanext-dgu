@@ -1,0 +1,62 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="publisher_util.html" />
+
+  <py:def function="page_title">Publisher report</py:def>
+  <py:def function="page_heading">Publisher report</py:def>
+
+  <py:match path="primarysidebar">
+    <li class="widget-container boxed widget_text">
+      <h3>Publisher report</h3>
+      <span i18n:msg="">
+		This report shows both publishers without admins and users who are yet to be connected
+		to publishers.
+  	  </span>
+    </li>
+  </py:match>
+
+  <div py:match="content">
+	<h3>Users not in a publisher (${ c.unassigned_users_count })
+		<a py:if="c.unassigned_users_count" style="float:right;margin-right:10px;color:white;" href="#" onclick="$('#users').slideToggle('slow');return false;">Show</a>
+		</h3>
+	<table id="users" py:if="c.unassigned_users_count > 0" style="display:none;">
+		<tr>
+			<th>Full Name</th>
+			<th>Username</th>
+			<th>Email</th>
+			<th>Created</th>
+		</tr>
+    	<py:for each="user in c.unassigned_users">
+			<tr>
+				<td>${user.fullname}</td>
+				<td><a href="${h.url_for(controller='user', action='read', id=user.name)}">${user.name}</a></td>
+				<td>${user.email}</td>
+				<td>${h.render_datetime(user.created)}</td>
+			</tr>
+		</py:for>
+	</table>
+
+	<div>&nbsp;</div>
+
+	<h3>Publishers without admins (${ c.non_admin_count})
+		<a id="admin_toggle" py:if="c.non_admin_count" style="float:right;margin-right:10px;color:white;" href="#" onclick="$('#admins').slideToggle('slow');return false;">Show</a>
+	</h3>
+	<table id="admins" py:if="c.non_admin_count > 0" style="display:none;">
+		<tr>
+			<th>Publisher</th>
+		</tr>
+    	<py:for each="publisher in c.non_admin">
+			<tr>
+				<td><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=publisher.name)}">${publisher.title}</a></td>
+			</tr>
+		</py:for>
+	</table>
+  </div>
+
+
+  <xi:include href="../layout.html" />
+
+</html>

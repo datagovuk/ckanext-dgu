@@ -76,7 +76,7 @@ def command():
     log_filepath = os.path.join(log_dir, 'gov-daily.log')
     print 'Logging to: %s' % log_filepath
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
-]
+
     logging.basicConfig(filename=log_filepath, level=logging.INFO)
     logging.info('----------------------------')
     logging.info('Starting daily script')

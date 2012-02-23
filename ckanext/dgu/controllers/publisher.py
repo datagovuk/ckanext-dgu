@@ -58,9 +58,10 @@ class PublisherController(GroupController):
         except NotAuthorized:
             abort(401, _('Not authorized to see this page'))
 
+        # TODO: Fix this up, we only really need to do this when we are
+        # showing the hierarchy (and then we should load on demand really).
         c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'publisher').order_by('title').all()
-
+                       filter(model.Group.type == 'publisher').order_by('title')
         c.page = AlphaPage(
             controller_name="ckanext.dgu.controllers.publisher:PublisherController",
             collection=c.all_groups,
@@ -210,6 +211,10 @@ class PublisherController(GroupController):
             "session": model.Session
         }
 
+        # Temporary cleanup of a capacity being sent without a name
+        users = [d for d in data_dict['users'] if len(d) == 2]
+        data_dict['users'] = users
+
         model.repo.new_revision()
         group_member_save(context, data_dict, 'users')
         model.Session.commit()
@@ -274,6 +279,8 @@ class PublisherController(GroupController):
         grps = group.get_groups('publisher')
         if grps:
             c.parent = grps[0]
+
+        c.users = group.members_of_type(model.User)
 
         return super(PublisherController, self).edit(id)
 
@@ -399,6 +406,28 @@ class PublisherController(GroupController):
 
         return render('publishers/read.html')
 
+
+    def report(self):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author}
+        try:
+            check_access('group_create', context)
+        except NotAuthorized:
+            abort(401, _('Not authorized to see this page'))
+
+        query = """SELECT * FROM public.user WHERE id NOT IN
+                (SELECT table_id FROM public.member WHERE table_name='user');"""
+        c.unassigned_users = model.Session.query(model.User).from_statement(query).all()
+        c.unassigned_users_count = len(c.unassigned_users)
+
+
+        g_query = """SELECT g.* FROM public.group g WHERE id NOT IN
+                    (SELECT group_id FROM public.member WHERE capacity='admin')
+                    ORDER BY g.name;"""
+        c.non_admin = model.Session.query(model.Group).from_statement(g_query).all()
+        c.non_admin_count = len(c.non_admin)
+
+        return render('publishers/report.html')
 
 
     def new(self, data=None, errors=None, error_summary=None):

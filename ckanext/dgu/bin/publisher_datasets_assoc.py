@@ -61,6 +61,13 @@ def command():
     update_datasets()
 
 
+def log_missing_data( id, name, package, first=False ):
+    mode = 'wb' if first else 'ab'
+    with open('errors.csv', mode) as f:
+        if first:
+            f.write( 'DGU_Publisher_ID,Extra,Package\r\n' )
+        f.write( '%s, %s, "%s"\r\n' % (id, name, package,) )
+
 def generate_harvest_publishers():
     data = model.Session.query("id","publisher_id")\
                 .from_statement("SELECT id,publisher_id FROM harvest_source").all()
@@ -74,51 +81,58 @@ def generate_harvest_publishers():
             print HARVEST_UPDATE % (publisher_id,i,)
 
 
-
-
 def update_datasets():
-    # Check whether
     with_name = re.compile("^.*\[(\d+)\].*$")
-    current_data = model.Session.query("id","package_id", "value")\
-                    .from_statement(DATASET_EXTRA_QUERY_VIA).all()
 
-    count = 0
-    for i,p,v in current_data:
+    missing_initial = True
+    package_ids = model.Session.query("id")\
+                    .from_statement("SELECT id FROM package").all()
+    package_ids = [p[0] for p in package_ids]
+    for pid in package_ids:
+#        if pid == '2b1370f3-694f-44e1-a07d-413361fec7c3':
+#            from pdb import set_trace;
+#            set_trace()
         provider = ""
-        value = v.strip("\"'")
-        by_value = model.Session.query("id","value")\
-                   .from_statement(DATASET_EXTRA_QUERY_BY).params(package_id=p).all()[0][1]
+        via = model.Session.query("id","value")\
+                    .from_statement(DATASET_EXTRA_QUERY_VIA).params(package_id=pid).all()
 
-        if not value:
-            # blank value == no publisher so we should check the published_BY
+        by = model.Session.query("id","value")\
+                   .from_statement(DATASET_EXTRA_QUERY_BY).params(package_id=pid).all()
+
+        via_value = via[0][1].strip("\"' ") if via else None
+        by_value = by[0][1].strip("\"' ") if by else None
+        if not via_value:
             if by_value:
-                value = by_value.strip("\"'")
-                if not value:
-                    count = count + 1
-                    continue
+                value = by_value
         else:
-            # Check if the 'via' and 'by' fields are the same and if so
-            # we can use the by field to generate the provider
-            by_value = by_value.strip("\"' ")
-            if value.strip() != by_value:
+            value = via_value
+            # We have a value but we should check against the BY query
+            if via_value != by_value:
                 if '[' in by_value:
                     provider = by_value[:by_value.index('[')].strip("\"' ")
                 else:
                     provider = by_value
 
+
         # Use the with_name regex to strip out the number from something
         # of the format "Name of the publisher [extra_id]"
-        g = with_name.match(value)
-        if g:
-            value = g.groups(0)[0]
-
+        if value:
+            try:
+                g = with_name.match(str(value))
+                if g:
+                    value = g.groups(0)[0]
+            except:
+                print value
+                raise
         # We want to use ints for the lookup, just because
-        value = int(value)
+        value = int(value or 0)
 
         # We don't handle unknown publishers but these should not exist as
         # we are looking from a shared datasource (i.e. publishers published
         # from same list).
-        if not value in publishers:
+        if not value or not value in publishers:
+            log_missing_data(value, via_value or by_value, pid, first=missing_initial)
+            missing_initial = False
             continue
 
         member_id          = unicode(uuid.uuid4())
@@ -133,9 +147,9 @@ def update_datasets():
         publisher_id = ids[0][0]
 
         memberq      = MEMBER_QUERY.strip() % \
-                        (member_id, p, publisher_id, revision_id)
+                        (member_id, pid, publisher_id, revision_id)
         member_rev_q = MEMBER_REVISION_QUERY.strip() % \
-                        (member_id, p, publisher_id, revision_id, member_id)
+                        (member_id, pid, publisher_id, revision_id, member_id)
         revision_q   = REVISION_QUERY.strip() % (revision_id,)
         cleanup_q    = DATASET_EXTRA_CLEANUP.strip() % (publisher_id,)
 
@@ -144,12 +158,7 @@ def update_datasets():
         print member_rev_q
         print cleanup_q
         if provider:
-            try:
-                data = model.Session.query("id")\
-                   .from_statement("SELECT name FROM package where id=:id").params(id=p).all()[0][1]
-                print PROVIDER_INSERT % (provider_id, publisher_id, provider)
-            except:
-                pass
+            print PROVIDER_INSERT % (provider_id, pid, provider)
         print ''
 
 
@@ -162,13 +171,13 @@ INSERT INTO public.package_extra(id, package_id,key, value, state)
 
 MEMBER_QUERY = """
 INSERT INTO public.member(id, table_id,group_id, state,revision_id, table_name, capacity)
-    VALUES ('%s', '%s', '%s', 'active', '%s', 'group', 'member');
+    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'member');
 """
 MEMBER_REVISION_QUERY = """
 INSERT INTO public.member_revision(id, table_id, group_id, state, revision_id, table_name,
-                                      capacity, revision_timestamp, current, continuity_id)
-    VALUES ('%s', '%s', '%s', 'active', '%s', 'group', 'member',
-            '2012-02-17',  true, '%s');
+                                      capacity, revision_timestamp, current, continuity_id, expired_timestamp)
+    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'member',
+            '2012-02-17',  true, '%s', '9999-12-31');
 """
 REVISION_QUERY = """
 INSERT INTO public.revision(id, timestamp, author, message, state, approved_timestamp)
@@ -177,7 +186,7 @@ INSERT INTO public.revision(id, timestamp, author, message, state, approved_time
 """
 
 DATASET_EXTRA_QUERY_VIA = \
-    "SELECT id,package_id, value FROM package_extra WHERE key='published_via'"
+    "SELECT id,package_id, value FROM package_extra WHERE key='published_via' AND package_id=:package_id"
 DATASET_EXTRA_QUERY_BY = \
     "SELECT id, value FROM package_extra WHERE key='published_by' AND package_id=:package_id"
 DATASET_EXTRA_CLEANUP = \

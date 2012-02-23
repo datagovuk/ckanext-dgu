@@ -161,6 +161,9 @@ class PublisherPlugin(SingletonPlugin):
         map.connect('publisher_new',
                     '/publisher/new',
                     controller=pub_ctlr, action='new'  )
+        map.connect('publisher_report',
+                    '/publisher/report',
+                    controller=pub_ctlr, action='report' )
         map.connect('publisher_read',
                     '/publisher/:id',
                     controller=pub_ctlr, action='read' )
