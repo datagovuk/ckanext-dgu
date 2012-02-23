@@ -51,5 +51,18 @@ div#disclaimer {
 }
 
 .fieldset_button_error {
-  background: transparent url(../images/icons/error.png) right center no-repeat; }
+  background: transparent url(../images/icons/error.png) right center no-repeat;
 }
+
+p.field_error {
+  background: transparent url(../images/icons/error.png) left center no-repeat;
+  padding-left: 20px;
+  color: #FF6666;
+  display: inline;
+}
+
+input.field_error {
+  border: 2px solid #FF6666 ;
+}
+
+
