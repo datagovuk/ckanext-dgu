@@ -68,7 +68,7 @@
                 provider = providers[0]['value'] if len(providers) else ''
                 display_provider = is_uklp or bool(provider)
             ?>
-            <p py:if="display_provider"><b>Provider:</b> ${provider}</p>
+            <p py:if="display_provider"><b>Provider:</b> ${provider.strip('"')}</p>
         </div>
         <!--ul py:if="package.tags" class="tags">
           <li py:for="tag in package.tags">${tag.name}</li>
