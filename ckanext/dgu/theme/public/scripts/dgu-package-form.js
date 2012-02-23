@@ -211,6 +211,9 @@ CKAN.Dgu = function($, my) {
         if ($(node).attr("name")) {
           $(node).attr("name", $(node).attr("name").replace(attrValueRegex, replacement));
         }
+        if ($(node).attr("id")) {
+          $(node).attr("id", $(node).attr("id").replace(attrValueRegex, replacement));
+        }
         $(node).val("");
       });
       newRow.find('a.add-button').remove();
