@@ -175,9 +175,9 @@ INSERT INTO public.member(id, table_id,group_id, state,revision_id, table_name, 
 """
 MEMBER_REVISION_QUERY = """
 INSERT INTO public.member_revision(id, table_id, group_id, state, revision_id, table_name,
-                                      capacity, revision_timestamp, current, continuity_id)
+                                      capacity, revision_timestamp, current, continuity_id, expired_timestamp)
     VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'member',
-            '2012-02-17',  true, '%s');
+            '2012-02-17',  true, '%s', '9999-12-31');
 """
 REVISION_QUERY = """
 INSERT INTO public.revision(id, timestamp, author, message, state, approved_timestamp)
