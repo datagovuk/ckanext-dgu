@@ -54,8 +54,11 @@
 	</dt>
 
 	<dd py:if="c.group and not c.is_sysadmin">
-		<span class="js-title">
+		<span py:if="c.parent is not None" class="js-title">
 			${c.parent.title}
+		</span>
+		<span py:if="c.parent is None" class="js-title">
+			No parent publisher
 		</span>
 	</dd>
 

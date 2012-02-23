@@ -392,7 +392,7 @@ class PublisherController(GroupController):
         c.body_class = "group view"
         c.is_superuser_or_groupmember = c.userobj and \
                                         (Authorizer().is_sysadmin(unicode(c.user)) or \
-                            len( set([group]).intersection( set(c.userobj.get_groups('publisher')) ) ) > 0 )
+                            len( set([c.group]).intersection( set(c.userobj.get_groups('publisher','admin')) ) ) > 0 )
 
         c.administrators = c.group.members_of_type(model.User, 'admin')
         c.editors = c.group.members_of_type(model.User, 'editor')
