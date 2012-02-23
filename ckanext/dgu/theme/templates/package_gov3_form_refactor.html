@@ -267,14 +267,22 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <fieldset id="section-contacts-fields">
   <legend>Contact details</legend>
+    <?python
+      if not data.get('groups'):
+        group_name = None
+      else:
+        group_name = data.get('groups')[0].get('name', '')
+    ?>
     <label for="groups__0__name">Published by: </label>
     <select id="groups__0__name" name="groups__0__name">
+      <option value=" " py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
       <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-        <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('groups', [{}])[0].get('name', '') == publisher_name else None}" >
+        <option value="${publisher_name}" py:attrs="{'selected': 'selected' if group_name == publisher_name else None}" >
           ${publisher['title']}
         </option>
       </py:for>
     </select>
+    <p class="field_error" py:if="errors.get('groups', '')">Please select a publisher.</p>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
     <fieldset id="publisher-information">
       <legend>Publisher information</legend>

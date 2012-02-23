@@ -147,7 +147,7 @@ class PackageGov3Controller(PackageController):
             'individual_resources': individual_resource_schema(),
             
             'groups': {
-                'name': [not_empty, unicode]
+                'name': [not_empty, val.group_id_or_name_exists, unicode]
             },
 
             'contact-name': [unicode, drop_if_same_as_publisher, convert_to_extras],
