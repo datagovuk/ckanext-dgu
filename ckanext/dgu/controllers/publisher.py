@@ -406,6 +406,27 @@ class PublisherController(GroupController):
         return render('publishers/read.html')
 
 
+    def report(self):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author}
+        try:
+            check_access('group_create', context)
+        except NotAuthorized:
+            abort(401, _('Not authorized to see this page'))
+
+        query = """SELECT * FROM public.user WHERE id NOT IN
+                (SELECT table_id FROM public.member WHERE table_name='user');"""
+        c.unassigned_users = model.Session.query(model.User).from_statement(query).all()
+        c.unassigned_users_count = len(c.unassigned_users)
+
+        g_query = """SELECT g.* FROM public.group g WHERE id NOT IN
+                    (SELECT group_id FROM public.member WHERE capacity='admin')
+                    ORDER BY g.name;"""
+        c.non_admin = model.Session.query(model.Group).from_statement(g_query).all()
+        c.non_admin_count = len(c.non_admin)
+
+        return render('publishers/report.html')
+
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"

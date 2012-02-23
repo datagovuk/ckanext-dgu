@@ -3,13 +3,14 @@
 # associate them with the appropriate publishers.
 #
 # SELECT U.uid, U.name, U.mail, R.name AS 'role_name',
-#        U.data, A.nid AS 'old_publisher_id'
+#        A.nid AS 'old_publisher_id'
 # FROM users U
 # INNER JOIN users_roles AS UR ON UR.uid = U.uid
 # INNER JOIN role AS R ON R.rid = UR.rid
 # LEFT OUTER JOIN acl_user AS AU ON AU.uid= U.uid
 # LEFT OUTER JOIN acl_node AS A ON AU.acl_id = A.acl_id
-# WHERE U.status = 1 LIMIT 100000;
+# WHERE R.name in ('publishing user', 'publisher admin')
+# AND A.nid IS NOT NULL LIMIT 100000;
 #
 ##############################################################################
 
@@ -86,7 +87,7 @@ def command():
         reader = csv.reader( f)
         reader.next() # skip headers
         for row in reader:
-            oldid, name,email, role, _, oldpubid = row
+            oldid, name,email, role, oldpubid = row
 
             # create a new user
             uname, u = _add_new_user( name, email, role )
@@ -136,7 +137,7 @@ def usage():
 Usage:
     Loads users from the DGU database export and maps them to publishers along with their roles.
 
-    python publisher_datasets_assoc.py <path to ini file>  <path to nodepublisher csv file> <path to user csv file>
+    python user_import.py <path to ini file>  <path to nodepublisher csv file> <path to user csv file>
     """
 
 if __name__ == '__main__':
