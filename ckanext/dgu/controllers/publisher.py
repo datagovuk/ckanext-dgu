@@ -58,10 +58,10 @@ class PublisherController(GroupController):
         except NotAuthorized:
             abort(401, _('Not authorized to see this page'))
 
+        # TODO: Fix this up, we only really need to do this when we are
+        # showing the hierarchy (and then we should load on demand really).
         c.all_groups = model.Session.query(model.Group).\
                        filter(model.Group.type == 'publisher').order_by('title')
-#        results = get_action('group_list')(context, data_dict)
-
         c.page = AlphaPage(
             controller_name="ckanext.dgu.controllers.publisher:PublisherController",
             collection=c.all_groups,
