@@ -1,6 +1,8 @@
 (function ($) {
   $(document).ready(function () {
 
+    var isDatasetNew = preload_dataset === undefined;
+
     for (field_id in form_errors) {
       
       // This is a really ugly hack to handle the fact that form_errors may
@@ -23,8 +25,7 @@
     }
 
     /* URL auto-completion */
-    var isDatasetNew = $('body.package.new').length > 0;
-    if (true || isDatasetNew) {
+    if (isDatasetNew) {
       // Set up magic URL slug editor
       CKAN.Dgu.setupUrlEditor('package', false);
       $("#title").focus();

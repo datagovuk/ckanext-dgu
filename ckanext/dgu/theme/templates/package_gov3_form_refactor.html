@@ -41,7 +41,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <legend>Name</legend>
   <p>Please name your data record</p>
   <label for="title">Name:</label>
-  <input py:attrs="{'class': 'field_req js-tooltip' if is_edit_form else 'field_req js-title js-tooltip'}" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
+  <input class="field_req js-title js-tooltip" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
   <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
   
   <label py:if="not is_edit_form" for="name">Unique identifier for this data record:</label>
