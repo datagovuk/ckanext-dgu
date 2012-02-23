@@ -99,12 +99,12 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr class="timeseries_resources__${num}">
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
-						  <?python
-						  	resource_errors = errors.get('timeseries_resources', None)
-						  	cell_has_error = resource_errors and \
-						  									 num < len(resource_errors) and \
-						  									 bool(resource_errors[num].get(col, False))
-						  ?>
+              <?python
+                resource_errors = errors.get('timeseries_resources', None)
+                cell_has_error = resource_errors and \
+                                 num < len(resource_errors) and \
+                                 bool(resource_errors[num].get(col, False))
+              ?>
               <py:choose test="">
                 <input py:when="col=='description'"
                        id="timeseries_resources__${num}__${col}"
@@ -132,7 +132,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         </py:for>
       </tbody>
       </table>
-  		<p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
+      <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
     </fieldset>
 
     
@@ -155,25 +155,25 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr class="individual_resources__${num}">
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
-						<?python
-							resource_errors = errors.get('individual_resources', None)
-							cell_has_error = resource_errors and \
-															 num < len(resource_errors) and \
-															 bool(resource_errors[num].get(col, False))
-						?>
+            <?python
+              resource_errors = errors.get('individual_resources', None)
+              cell_has_error = resource_errors and \
+                               num < len(resource_errors) and \
+                               bool(resource_errors[num].get(col, False))
+            ?>
             <py:choose test="">
               <input py:when="col=='description'"
-										 id="individual_resources__${num}__${col}"
-										 name="individual_resources__${num}__${col}"
-                     type="text"
-                     value="${res.get(col, '')}"
-										 py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
-              <input py:otherwise=""
-										 id="individual_resources__${num}__${col}"
+                     id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-										 py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+                     py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+              <input py:otherwise=""
+                     id="individual_resources__${num}__${col}"
+                     name="individual_resources__${num}__${col}"
+                     type="text"
+                     value="${res.get(col, '')}"
+                     py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
             </py:choose>
             </td>
           </py:for>
@@ -184,7 +184,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         </py:for>
       </tbody>
       </table>
-  		<p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
+      <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
     </fieldset>
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
