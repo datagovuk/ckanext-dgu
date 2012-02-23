@@ -261,8 +261,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <legend>Description</legend>
   <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
     <textarea class="field_req" cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
+    <p style="display: block;" class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
     <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
-    <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
 <fieldset id="section-contacts-fields">
@@ -351,6 +351,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="primary_theme" name="primary_theme">
+        <option value="" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == '' else None}">Please select a primary theme...</option>
         <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
         <option value="Environment" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Environment' else None}">Environment</option>
         <option value="Education" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Education' else None}">Education</option>
@@ -363,6 +364,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Spending Data' else None}">Spending Data</option>
       </select>
     <div>
+    <p class="field_error" py:if="errors.get('primary_theme', '')">${errors.get('primary_theme', '')}</p>
     <p>2. Please choose secondary tags with which to tag this data record:</p>
     <input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health
     <input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment
@@ -431,6 +433,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <input class="medium-width" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
       <input class="medium-width" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
     
+    <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
+    <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
     <p class="instructions basic">The temporal coverage of this dataset.</p>
     <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the 'To' sub-element can be left blank.</p>
     <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
