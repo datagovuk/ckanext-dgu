@@ -6,7 +6,7 @@
   <xi:include href="../facets.html" />
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">${c.group.display_name}
-	<a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}">Edit</a>
+	<a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:def>
 
   <py:match path="primarysidebar">
