@@ -97,9 +97,9 @@ class DguForm(SingletonPlugin):
         map.connect('/package/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('/package/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
         map.connect('/package/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
-        map.connect('/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
-        map.connect('/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
-        map.connect('/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
+        map.connect('dataset_new','/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
+        map.connect('dataset_edit','/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
+        map.connect('dataset_history','/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
         return map
 
     def after_map(self, map):
@@ -148,7 +148,7 @@ class PublisherPlugin(SingletonPlugin):
                     controller=pub_ctlr, action='index')
         map.connect('publisher_edit',
                     '/publisher/edit/:id',
-                    controller=pub_ctlr, action='edit' )
+                    controller='group', action='edit' )
         map.connect('publisher_apply',
                     '/publisher/apply/:id',
                     controller=pub_ctlr, action='apply' )

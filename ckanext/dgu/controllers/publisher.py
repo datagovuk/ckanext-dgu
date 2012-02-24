@@ -72,10 +72,6 @@ class PublisherController(GroupController):
 
         return render('publishers/index.html')
 
-    def _setup_template_variables(self, context, data_dict=None, group_type=None):
-        c.schema_fields = set(self._form_to_db_schema().keys())
-
-
 
 
     def _form_to_db_schema(self, group_type=None):
@@ -255,34 +251,6 @@ class PublisherController(GroupController):
 
         return render('publishers/users.html')
 
-    def edit(self, id):
-        c.body_class = "group edit"
-        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
-
-        group = model.Group.get(id)
-        if not group:
-            abort( 404 )
-        context = {'model': model, 'session': model.Session,
-                   'user': c.user or c.author, 'group': group}
-        try:
-            check_access('group_update', context)
-            c.is_superuser_or_groupadmin = True
-        except NotAuthorized:
-            c.is_superuser_or_groupadmin = False
-
-        c.possible_parents = model.Session.query(model.Group).\
-               filter(model.Group.state == 'active').\
-               filter(model.Group.type == 'publisher').\
-               filter(model.Group.name != id ).order_by(model.Group.title).all()
-
-        c.parent = None
-        grps = group.get_groups('publisher')
-        if grps:
-            c.parent = grps[0]
-
-        c.users = group.members_of_type(model.User)
-
-        return super(PublisherController, self).edit(id)
 
 
     def read(self, id):

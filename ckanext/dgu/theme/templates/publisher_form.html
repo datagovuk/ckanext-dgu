@@ -164,9 +164,9 @@
   <h3>Datasets</h3>
   <dl py:if="data.get('packages')">
     <py:for each="num, package in enumerate(data.get('packages'))">
-      <dt><input checked="checked" id="datasets__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/></dt>
+      <dt><input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/></dt>
       <dd>
-        <label for="packages__${num}__name">${package['name']}</label>
+        <label for="packages__${num}__name">${package['title']}</label>
       </dd>
     </py:for>
   </dl>
