@@ -23,6 +23,9 @@
 	<div py:if="c.userobj and (not c.userobj in c.administrators and not c.userobj in c.editors)" class="facet-box" style="padding:8px; text-align: center;">
 		<a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Add this publisher to your account</a>
 	</div>
+	<div py:if="c.userobj and ((c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember)" class="facet-box" style="padding:8px; text-align: center;">
+		<a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')}?group__0__id=${c.group.id}">Add a new dataset with this publisher</a>
+	</div>
 
     ${facet_filters()}
   </py:match>
