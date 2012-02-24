@@ -125,6 +125,20 @@
     CKAN.Dgu.setupContactEditDialog($('#contact-dialogbox'));
     CKAN.Dgu.setupContactEditDialog($('#foi-dialogbox'));
 
+    /* Hide/Show the access constraints box when selecting the license_id */
+    $('#license_id').change(function(){
+      var selectedLicense = $(this).val();
+      if(selectedLicense == "uk-ogl"){
+        $('#access_constraints').val('');
+        $('#access_constraints').hide();
+        $('label[for="access_constraints"]').hide();
+      } else {
+        $('#access_constraints').show();
+        $('label[for="access_constraints"]').show();
+      }
+    });
+    $('#license_id').change();
+
   });
 }(jQuery));
 
