@@ -64,6 +64,7 @@ temporal_granularity = [("",""),
 
 def additional_resource_schema():
     schema = default_schema.default_resource_schema()
+    schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_additional_resource_types)
     schema['url'] = [not_empty]
     schema['description'] = [not_empty]
@@ -71,6 +72,7 @@ def additional_resource_schema():
 
 def individual_resource_schema():
     schema = default_schema.default_resource_schema()
+    schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
     schema['url'] = [not_empty]
     schema['description'] = [not_empty]
@@ -79,6 +81,7 @@ def individual_resource_schema():
 def timeseries_resource_schema():
     schema = default_schema.default_resource_schema()
     schema['date'] = [not_empty, unicode, convert_to_extras]
+    schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
     schema['url'] = [not_empty]
     schema['description'] = [not_empty]
@@ -144,7 +147,7 @@ class PackageGov3Controller(PackageController):
             'individual_resources': individual_resource_schema(),
             
             'groups': {
-                'name': [not_empty, unicode]
+                'name': [not_empty, val.group_id_or_name_exists, unicode]
             },
 
             'contact-name': [unicode, drop_if_same_as_publisher, convert_to_extras],

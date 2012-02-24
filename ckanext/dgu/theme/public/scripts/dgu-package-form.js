@@ -1,21 +1,28 @@
 (function ($) {
   $(document).ready(function () {
 
+    var isDatasetNew = preload_dataset === undefined;
+
     for (field_id in form_errors) {
       
-      // This is a really ugly hack to handle the fact that form_errors may
-      // be nested.  I promise I'll clean this up!
       var errors = form_errors[field_id];
       if( ! errors.length) { return; }
+
+      // errors could be nested, in which case it's a list of objects.
+      // We need to find the first reference to an error in the list of
+      // objects, and pull out a field_id from that.
       if( typeof(errors[0]) === "object" ){
-        for(key in errors[0]){
-          field_id = field_id + '__0__' + key;
-          break;
+        found = false;
+        for(var i=0; i<errors.length && !found; i++){
+          for(key in errors[i]){
+            field_id = field_id + '__' + i + '__' + key;
+            found = true;
+            break;
+          }
         }
       }
-
       var field = $('#'+field_id);
-      if (field !== undefined) {
+      if (field !== undefined && field.length > 0) {
         var fieldset_id = field.parents('fieldset').last().attr('id');
         fieldset_id = fieldset_id.replace(/-fields$/, '');
         $('#'+fieldset_id).addClass('fieldset_button_error');
@@ -23,8 +30,7 @@
     }
 
     /* URL auto-completion */
-    var isDatasetNew = $('body.package.new').length > 0;
-    if (true || isDatasetNew) {
+    if (isDatasetNew) {
       // Set up magic URL slug editor
       CKAN.Dgu.setupUrlEditor('package', false);
       $("#title").focus();
@@ -204,6 +210,9 @@ CKAN.Dgu = function($, my) {
         }
         if ($(node).attr("name")) {
           $(node).attr("name", $(node).attr("name").replace(attrValueRegex, replacement));
+        }
+        if ($(node).attr("id")) {
+          $(node).attr("id", $(node).attr("id").replace(attrValueRegex, replacement));
         }
         $(node).val("");
       });

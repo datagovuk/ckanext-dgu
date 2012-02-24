@@ -41,16 +41,16 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <legend>Name</legend>
   <p>Please name your data record</p>
   <label for="title">Name:</label>
-  <input py:attrs="{'class': 'field_req js-tooltip' if is_edit_form else 'field_req js-title js-tooltip'}" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
+  <input class="field_req js-title js-tooltip" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
   <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
   
   <label py:if="not is_edit_form" for="name">Unique identifier for this data record:</label>
   <input py:if="not is_edit_form" class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
   <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
+  <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
   <p py:if="not is_edit_form" class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
   <p py:if="not is_edit_form">This will locate this data set here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
   <p py:if="is_edit_form"><b>The dataset is located here: </b><a href="${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}">${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}</a></p>
-  <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
 </fieldset>
 
 <fieldset id="section-data-fields">
@@ -98,14 +98,29 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
         <tr class="timeseries_resources__${num}">
           <py:for each="col in c.resource_columns">
-          <td class="resource-${col}">
-            <py:choose test="">
-              <input py:when="col=='description'" id="timeseries_resources__${num}__${col}" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
-              <input py:when="col=='url'" id="timeseries_resources__${num}__${col}" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
-              <input py:when="col=='format'" id="timeseries_resources__${num}__${col}" name="timeseries_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip" />
-              <input py:otherwise="" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
-            </py:choose>
-          </td>
+            <td class="resource-${col}">
+              <?python
+                resource_errors = errors.get('timeseries_resources', None)
+                cell_has_error = resource_errors and \
+                                 num < len(resource_errors) and \
+                                 bool(resource_errors[num].get(col, False))
+              ?>
+              <py:choose test="">
+                <input py:when="col=='description'"
+                       id="timeseries_resources__${num}__${col}"
+                       name="timeseries_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                <input py:otherwise=""
+                       id="timeseries_resources__${num}__${col}"
+                       name="timeseries_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+
+              </py:choose>
+            </td>
           </py:for>
           <td class="resource-date">
             <input name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
@@ -117,6 +132,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         </py:for>
       </tbody>
       </table>
+      <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
     </fieldset>
 
     
@@ -139,11 +155,25 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <tr class="individual_resources__${num}">
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
+            <?python
+              resource_errors = errors.get('individual_resources', None)
+              cell_has_error = resource_errors and \
+                               num < len(resource_errors) and \
+                               bool(resource_errors[num].get(col, False))
+            ?>
             <py:choose test="">
-              <input py:when="col=='description'" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="medium-width"/>
-              <input py:when="col=='url'" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
-              <input py:when="col=='format'" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short js-tooltip"/>
-              <input py:otherwise="" id="individual_resources__${num}__${col}" name="individual_resources__${num}__${col}" type="text" value="${res.get(col, '')}" class="short" />
+              <input py:when="col=='description'"
+                     id="individual_resources__${num}__${col}"
+                     name="individual_resources__${num}__${col}"
+                     type="text"
+                     value="${res.get(col, '')}"
+                     py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+              <input py:otherwise=""
+                     id="individual_resources__${num}__${col}"
+                     name="individual_resources__${num}__${col}"
+                     type="text"
+                     value="${res.get(col, '')}"
+                     py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
             </py:choose>
             </td>
           </py:for>
@@ -154,6 +184,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         </py:for>
       </tbody>
       </table>
+      <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
     </fieldset>
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
@@ -222,8 +253,6 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
       <p class="instructions basic">The licence under which the dataset is released.</p>
       <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the license in the "Other" box provided.</p>
-  <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
-  <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
 
 </fieldset>
 
@@ -232,20 +261,28 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <legend>Description</legend>
   <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
     <textarea class="field_req" cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
+    <p style="display: block;" class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
     <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
-    <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
 <fieldset id="section-contacts-fields">
   <legend>Contact details</legend>
+    <?python
+      if not data.get('groups'):
+        group_name = None
+      else:
+        group_name = data.get('groups')[0].get('name', '')
+    ?>
     <label for="groups__0__name">Published by: </label>
     <select id="groups__0__name" name="groups__0__name">
+      <option value=" " py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
       <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-        <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('groups', [{}])[0].get('name', '') == publisher_name else None}" >
+        <option value="${publisher_name}" py:attrs="{'selected': 'selected' if group_name == publisher_name else None}" >
           ${publisher['title']}
         </option>
       </py:for>
     </select>
+    <p class="field_error" py:if="errors.get('groups', '')">Please select a publisher.</p>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
     <fieldset id="publisher-information">
       <legend>Publisher information</legend>
@@ -314,6 +351,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="primary_theme" name="primary_theme">
+        <option value="" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == '' else None}">Please select a primary theme...</option>
         <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
         <option value="Environment" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Environment' else None}">Environment</option>
         <option value="Education" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Education' else None}">Education</option>
@@ -326,6 +364,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Spending Data' else None}">Spending Data</option>
       </select>
     <div>
+    <p class="field_error" py:if="errors.get('primary_theme', '')">${errors.get('primary_theme', '')}</p>
     <p>2. Please choose secondary tags with which to tag this data record:</p>
     <input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health
     <input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment
@@ -360,24 +399,38 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr class="additional_resources__${num}">
-          <td>
-            <!-- <label class="field_opt" for="additional_resources__${num}__description">Description:</label> -->
-            <input name="additional_resources__${num}__description" type="text" value="${res.get('description','')}" class="medium-width"/>
-          </td>
-          <td>
-            <!-- <label class="field_opt" for="additional_resources__${num}__url">Link:</label> -->
-            <input name="additional_resources__${num}__url" type="text" value="${res.get('url','')}" class="short"/>
-          </td>
-          <td>
-            <!-- <label class="field_opt" for="additional_resources__${num}__format">Format:</label> -->
-            <input name="additional_resources__${num}__format" type="text" value="${res.get('format','')}" class="short"/>
-          </td>
+          <py:for each="col in ['description', 'url', 'format']">
+            <td>
+              <?python
+                resource_errors = errors.get('additional_resources', None)
+                cell_has_error = resource_errors and \
+                                 num < len(resource_errors) and \
+                                 bool(resource_errors[num].get(col, False))
+              ?>
+              <py:choose test="">
+                <input py:when="col=='description'"
+                       id="additional_resources__${num}__${col}"
+                       name="additional_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                <input py:otherwise=""
+                       id="additional_resources__${num}__${col}"
+                       name="additional_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+
+              </py:choose>
+            </td>
+          </py:for>
           <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
           <td><a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
       </py:for>
     </tbody>
     </table>
+    <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Additional resource(s) incomplete.</p>
 
   <label class="field_opt" for="mandate">Mandate</label>
   <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
@@ -394,6 +447,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <input class="medium-width" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
       <input class="medium-width" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
     
+    <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
+    <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
     <p class="instructions basic">The temporal coverage of this dataset.</p>
     <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the 'To' sub-element can be left blank.</p>
     <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
