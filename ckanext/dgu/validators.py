@@ -57,28 +57,28 @@ def validate_license(key, data, errors, context):
 
     Validation rules must be true to validate:
 
-     license_id == ''                             => license_id-other != ''
-     license_id != '__extra__' ^ license_id != '' => license_id-other == ''
+     license_id == ''                             => access_constraints != ''
+     license_id != '__extra__' ^ license_id != '' => access_constraints == ''
 
     Additional transformations occur:
 
      license_id == '__extra__' => licence_id := None
-     license_id-other != ''    => license_id := license_id-other
-     license_id-other is DROPPED
+     access_constraints != ''    => license_id := access_constraints
+     access_constraints is DROPPED
 
     """
     if data[('license_id',)]== '__extra__':
         data[('license_id',)] = None
         try:
-            del data[('license_id-other',)]
-            del errors[('license_id-other',)]
+            del data[('access_constraints',)]
+            del errors[('access_constraints',)]
         except:
             pass
-        #data[('extras',)].append({'key': 'licence', 'value': data[('license_id-other',)]})
+        #data[('extras',)].append({'key': 'licence', 'value': data[('access_constraints',)]})
         return
 
     license_id = bool(data[('license_id',)])
-    license_id_other = bool(data[('license_id-other',)])
+    license_id_other = bool(data[('access_constraints',)])
 
     if not (license_id ^ license_id_other):
         if license_id:
@@ -88,9 +88,9 @@ def validate_license(key, data, errors, context):
             errors[('license_id',)] = ['Please enter the name of the license']
 
     if not license_id:
-        data[('license_id',)] = data[('license_id-other',)] 
-    del data[('license_id-other',)]
-    del errors[('license_id-other',)]
+        data[('license_id',)] = data[('access_constraints',)] 
+    del data[('access_constraints',)]
+    del errors[('access_constraints',)]
 
 def validate_resources(key, data, errors, context):
     """

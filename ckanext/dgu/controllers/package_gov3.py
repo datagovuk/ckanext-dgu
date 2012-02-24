@@ -162,7 +162,7 @@ class PackageGov3Controller(PackageController):
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
             'license_id': [unicode],
-            'license_id-other': [ignore_missing, unicode],
+            'access_constraints': [ignore_missing, unicode],
 
             'tag_string': [ignore_missing, val.tag_string_convert],
             'national_statistic': [ignore_missing, convert_to_extras],
