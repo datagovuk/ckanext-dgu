@@ -268,10 +268,24 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <fieldset id="section-contacts-fields">
   <legend>Contact details</legend>
     <?python
+
       if not data.get('groups'):
         group_name = None
+        group_id = None
       else:
+        group_id = data.get('groups')[0].get('id', '')
         group_name = data.get('groups')[0].get('name', '')
+        if group_id:
+          groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
+          group_name = groups[0] if groups else ''
+      group = c.publishers.get(group_name, {}) if group_id else data
+      
+      contact_name = group.get('contact-name', '')
+      contact_email = group.get('contact-email', '')
+      contact_phone = group.get('contact-phone', '')
+      foi_name = group.get('foi-name', '')
+      foi_email = group.get('foi-email', '')
+      foi_phone = group.get('foi-phone', '')
     ?>
     <label for="groups__0__name">Published by: </label>
     <select id="groups__0__name" name="groups__0__name">
@@ -287,24 +301,24 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <fieldset id="publisher-information">
       <legend>Publisher information</legend>
 
-      <p><b>Name: </b> <span id="contact-name-label">${data.get('contact-name', '')}</span></p>
-      <p><b>Email: </b><span id="contact-email-label">${data.get('contact-email', '')}</span></p>
-      <p><b>Phone: </b><span id="contact-phone-label">${data.get('contact-phone', '')}</span></p>
+      <p><b>Name: </b> <span id="contact-name-label">${contact_name}</span></p>
+      <p><b>Email: </b><span id="contact-email-label">${contact_email}</span></p>
+      <p><b>Phone: </b><span id="contact-phone-label">${contact_phone}</span></p>
 
-      <input id="contact-name" name="contact-name" type="hidden" value="${data.get('contact-name', '')}"/>
-      <input id="contact-email" name="contact-email" type="hidden" value="${data.get('contact-email', '')}"/>
-      <input id="contact-phone" name="contact-phone" type="hidden" value="${data.get('contact-phone', '')}"/>
+      <input id="contact-name" name="contact-name" type="hidden" value="${contact_name}"/>
+      <input id="contact-email" name="contact-email" type="hidden" value="${contact_email}"/>
+      <input id="contact-phone" name="contact-phone" type="hidden" value="${contact_phone}"/>
 
       <input type="button" id="contact-edit" value="Edit"/>
 
       <div id="contact-dialogbox" title="Edit contact information">
         <p>Edit any of the contact details below.</p>
           <br/><label for="contact-name-dialog">Name:</label>
-          <input id="contact-name-dialog" name="contact-name-dialog" type="text" value="${data.get('contact-name', '')}"/>
+          <input id="contact-name-dialog" name="contact-name-dialog" type="text" value="${contact_name}"/>
           <br/><label for="contact-email-dialog">Email:</label>
-          <input id="contact-email-dialog" name="contact-email-dialog" type="text" value="${data.get('contact-email', '')}"/>
+          <input id="contact-email-dialog" name="contact-email-dialog" type="text" value="${contact_email}"/>
           <br/><label for="contact-phone-dialog">Phone:</label>
-          <input id="contact-phone-dialog" name="contact-phone-dialog" type="text" value="${data.get('contact-phone', '')}"/>
+          <input id="contact-phone-dialog" name="contact-phone-dialog" type="text" value="${contact_phone}"/>
       </div>
 
     </fieldset>
@@ -312,24 +326,24 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <fieldset>
       <legend>FOI information</legend>
       
-      <p><b>Name: </b> <span id="foi-name-label">${data.get('foi-name', '')}</span></p>
-      <p><b>Email: </b><span id="foi-email-label">${data.get('foi-email', '')}</span></p>
-      <p><b>Phone: </b><span id="foi-phone-label">${data.get('foi-phone', '')}</span></p>
+      <p><b>Name: </b> <span id="foi-name-label">${foi_name}</span></p>
+      <p><b>Email: </b><span id="foi-email-label">${foi_email}</span></p>
+      <p><b>Phone: </b><span id="foi-phone-label">${foi_phone}</span></p>
 
-      <input id="foi-name" name="foi-name" type="hidden" value="${data.get('foi-name', '')}"/>
-      <input id="foi-email" name="foi-email" type="hidden" value="${data.get('foi-email', '')}"/>
-      <input id="foi-phone" name="foi-phone" type="hidden" value="${data.get('foi-phone', '')}"/>
+      <input id="foi-name" name="foi-name" type="hidden" value="${foi_name}"/>
+      <input id="foi-email" name="foi-email" type="hidden" value="${foi_email}"/>
+      <input id="foi-phone" name="foi-phone" type="hidden" value="${foi_phone}"/>
 
       <input type="button" id="foi-edit" value="Edit"/>
 
       <div id="foi-dialogbox" title="Edit FOI information">
         <p>Edit any of the FOI details below.</p>
           <br/><label for="foi-name-dialog">Name:</label>
-          <input id="foi-name-dialog" name="foi-name-dialog" type="text" value="${data.get('foi-name', '')}"/>
+          <input id="foi-name-dialog" name="foi-name-dialog" type="text" value="${foi_name}"/>
           <br/><label for="foi-email-dialog">Email:</label>
-          <input id="foi-email-dialog" name="foi-email-dialog" type="text" value="${data.get('foi-email', '')}"/>
+          <input id="foi-email-dialog" name="foi-email-dialog" type="text" value="${foi_email}"/>
           <br/><label for="foi-phone-dialog">Phone:</label>
-          <input id="foi-phone-dialog" name="foi-phone-dialog" type="text" value="${data.get('foi-phone', '')}"/>
+          <input id="foi-phone-dialog" name="foi-phone-dialog" type="text" value="${foi_phone}"/>
       </div>
     </fieldset>
 </fieldset>
