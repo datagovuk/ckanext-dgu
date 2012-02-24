@@ -98,27 +98,28 @@
     CKAN.Dgu.setupTagAutocomplete($('input.autocomplete-tag'));
 
     /* Auto-fill contact and FOI information based upon selected publisher */
+    var publisherInfoFields = [
+      "contact-name",
+      "contact-email",
+      "contact-phone",
+      "foi-name",
+      "foi-email",
+      "foi-phone"
+    ];
     $('#groups__0__name').change(function() {
       var selectedPublisherName = $(this).val();
       var publisher = publishers[selectedPublisherName];
-      $('#contact-name').val(publisher['contact-name']);
-      $('#contact-email').val(publisher['contact-email']);
-      $('#contact-phone').val(publisher['contact-phone']);
-      $('#contact-name-dialog').val(publisher['contact-name']);
-      $('#contact-email-dialog').val(publisher['contact-email']);
-      $('#contact-phone-dialog').val(publisher['contact-phone']);
-      $('#contact-name-label').text(publisher['contact-name']);
-      $('#contact-email-label').text(publisher['contact-email']);
-      $('#contact-phone-label').text(publisher['contact-phone']);
-      $('#foi-name').val(publisher['foi-name']);
-      $('#foi-email').val(publisher['foi-email']);
-      $('#foi-phone').val(publisher['foi-phone']);
-      $('#foi-name-dialog').val(publisher['foi-name']);
-      $('#foi-email-dialog').val(publisher['foi-email']);
-      $('#foi-phone-dialog').val(publisher['foi-phone']);
-      $('#foi-name-label').text(publisher['foi-name']);
-      $('#foi-email-label').text(publisher['foi-email']);
-      $('#foi-phone-label').text(publisher['foi-phone']);
+      if(publisher === undefined){
+        publisher = {};
+        for(var i=0; i<publisherInfoFields.length; i++){
+          publisher[publisherInfoFields[i]] = '';
+        }
+      }
+      for(var i=0; i<publisherInfoFields.length; i++){
+        $('#' + publisherInfoFields[i]).val(publisher[publisherInfoFields[i]]);
+        $('#' + publisherInfoFields[i] + '-dialog').val(publisher[publisherInfoFields[i]]);
+        $('#' + publisherInfoFields[i] + '-label').text(publisher[publisherInfoFields[i]]);
+      }
     });
 
     /* Create dialog boxes for editing the contact and foi information */
