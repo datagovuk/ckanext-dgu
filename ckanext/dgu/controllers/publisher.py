@@ -26,22 +26,6 @@ from ckan.lib.navl.validators import (ignore_missing,
 
 log = logging.getLogger(__name__)
 
-def convert_to_extras(key, data, errors, context):
-
-    current_index = max( [int(k[1]) for k in data.keys() \
-                                    if len(k) == 3 and k[0] == 'extras'] + [-1] )
-
-    data[('extras', current_index+1, 'key')] = key[-1]
-    data[('extras', current_index+1, 'value')] = data[key]
-
-def convert_from_extras(key, data, errors, context):
-
-    for data_key, data_value in data.iteritems():
-        if (data_key[0] == 'extras'
-            and data_key[-1] == 'key'
-            and data_value == key[-1]):
-            data[key] = data[('extras', data_key[1], 'value')]
-
 
 
 class PublisherController(GroupController):
@@ -73,32 +57,6 @@ class PublisherController(GroupController):
         return render('publishers/index.html')
 
 
-
-    def _form_to_db_schema(self, group_type=None):
-        from ckan.logic.schema import default_group_schema
-        schema = {
-            'foi-name': [ignore_missing, unicode, convert_to_extras],
-            'foi-email': [ignore_missing, unicode, convert_to_extras],
-            'foi-phone': [ignore_missing, unicode, convert_to_extras],
-            'contact-name': [ignore_missing, unicode, convert_to_extras],
-            'contact-email': [ignore_missing, unicode, convert_to_extras],
-            'contact-phone': [ignore_missing, unicode, convert_to_extras],
-        }
-        schema.update( default_group_schema() )
-        return schema
-
-    def _db_to_form_schema(data, package_type=None):
-        from ckan.logic.schema import default_group_schema
-        schema = {
-            'foi-name' : [convert_from_extras, ignore_missing, unicode],
-            'foi-email': [convert_from_extras, ignore_missing, unicode],
-            'foi-phone': [convert_from_extras, ignore_missing, unicode],
-            'contact-name' : [convert_from_extras, ignore_missing, unicode],
-            'contact-email': [convert_from_extras, ignore_missing, unicode],
-            'contact-phone': [convert_from_extras, ignore_missing, unicode],
-        }
-        schema.update( default_group_schema() )
-        return schema
 
     def _send_application( self, group, reason  ):
         from ckan.logic.action.update import group_error_summary

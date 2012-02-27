@@ -35,14 +35,15 @@ setup(
         dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
         dgu_theme = ckanext.dgu.plugin:ThemePlugin
         dgu_search = ckanext.dgu.plugin:SearchPlugin
-        
+        dgu_publisher_form=ckanext.dgu.forms.publisher_form:PublisherForm
+
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
         cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
         transfer_url = ckanext.dgu.bin.transfer_url_cmd:command
         ons_analysis = ckanext.dgu.bin.ons_analysis_cmd:command
-        ofsted_fix = ckanext.dgu.bin.ofsted_fix_cmd:command        
+        ofsted_fix = ckanext.dgu.bin.ofsted_fix_cmd:command
         publisher_migration = ckanext.dgu.bin.publisher_migration:command
         metadata_v3_migration = ckanext.dgu.bin.metadata_v3_migration:command
         generate_test_organisations = ckanext.dgu.testtools.organisations:command
@@ -53,7 +54,7 @@ setup(
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
-        
+
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
 

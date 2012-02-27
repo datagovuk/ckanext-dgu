@@ -113,6 +113,7 @@ def update_datasets():
                 else:
                     provider = by_value
 
+                provider = provider.replace("'", "\\'")
 
         # Use the with_name regex to strip out the number from something
         # of the format "Name of the publisher [extra_id]"
@@ -166,7 +167,7 @@ def update_datasets():
 HARVEST_UPDATE = "UPDATE public.harvest_source SET publisher_id='%s' WHERE id='%s';"
 PROVIDER_INSERT = """
 INSERT INTO public.package_extra(id, package_id,key, value, state)
-    VALUES ('%s', '%s', 'provider', '%s', 'active');
+    VALUES ('%s', '%s', 'provider', E'%s', 'active');
 """
 
 MEMBER_QUERY = """
