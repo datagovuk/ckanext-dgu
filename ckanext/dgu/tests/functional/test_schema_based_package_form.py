@@ -73,7 +73,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'tag_string':           ('Tags', 'input'),
         'mandate':              ('Mandate', 'input'),
         'license_id':           ('License:', 'select'),
-        'license_id-other':     ('Other:', 'input'),
+        'access_constraints':   ('Other:', 'input'),
 
         # Additional resources section
         'additional_resources__0__description': (None, 'input'),
@@ -542,7 +542,7 @@ class TestFormValidation(object):
         """
         Asserts that if specifying an ogl license, then the user cannot fill the license id themselves
         """
-        data = {'license_id': 'uk-ogl', 'license_id-other': 'A difference license'}
+        data = {'license_id': 'uk-ogl', 'access_constraints': 'A difference license'}
         response = self._form_client.post_form(data)
         assert_in('License id: Leave the "other" box empty if selecting a license from the list', response.body)
 
@@ -648,7 +648,7 @@ class TestPackageCreation(CommonFixtureMethods):
                          additional_resources[index][field])
 
         assert_equal(package_data['mandate'], pkg.extras['mandate'])
-        assert_equal(package_data['license_id-other'], pkg.license_id)
+        assert_equal(package_data['access_constraints'], pkg.license_id)
 
         assert_equal(package_data['temporal_coverage-from'], _convert_date(pkg.extras['temporal_coverage-from']))
         assert_equal(package_data['temporal_coverage-to'], _convert_date(pkg.extras['temporal_coverage-to']))
@@ -819,7 +819,7 @@ _EXAMPLE_FORM_DATA = {
 
         # The rest
         'mandate'               : 'http://example.com/mandate',
-        'license_id-other'      : 'Free-from license',
+        'access_constraints'    : 'Free-from license',
         'license_id'            : '',
         'temporal_coverage-from': '1/1/2010',
         'temporal_coverage-to'  : '1/1/2012',
