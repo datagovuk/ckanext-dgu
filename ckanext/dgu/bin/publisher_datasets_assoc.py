@@ -160,9 +160,18 @@ def update_datasets():
             model.Session.commit()
         print ''
 
-        # Not currently deleting extras as it means this import cannot be run again
-        # and if we do it after we've generated the SQL it takes an excessively long
-        # time to clean up the revisions etc.
+# Not currently deleting extras as it means this import cannot be run again
+# and if we do it after we've generated the SQL it takes an excessively long
+# time to clean up the revisions etc.
+#    model.Session.query(model.PackageExtraRevision).\
+#        filter(model.PackageExtraRevision.key == 'published_by' or
+#               model.PackageExtraRevision.key == 'published_via').\
+#        delete(synchronize_session=False)
+
+#    model.Session.query(model.PackageExtra).\
+#        filter(model.PackageExtra.key == 'published_by' or
+#               model.PackageExtra.key == 'published_via').\
+#        delete(synchronize_session=False)
 
 HARVEST_UPDATE = "UPDATE public.harvest_source SET publisher_id='%s' WHERE id='%s';"
 
