@@ -156,7 +156,7 @@
 		</dd>
     </py:for>
   </dl>
-  <p py:if="not c.users.all()">There are no users currently in this publisher.</p>
+  <p py:if="not c.users or not c.users.all()">There are no users currently in this publisher.</p>
 </fieldset>
 
 <fieldset id="datasets">

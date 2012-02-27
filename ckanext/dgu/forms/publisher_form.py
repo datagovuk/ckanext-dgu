@@ -166,3 +166,5 @@ class PublisherForm(SingletonPlugin):
                 c.parent = grps[0]
 
             c.users = group.members_of_type(model.User)
+        else:
+            c.body_class = 'group new'
