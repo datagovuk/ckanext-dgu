@@ -94,6 +94,7 @@ configure () {
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e "s/^ckan.gravatar_default =.*/ckan.gravatar_default = mm/" \
              -e '/^\[app:main\]$/ a\
+openid_enabled = False\
 dgu.admin.name = Test Account\
 dgu.admin.email = ross.jones@okfn.org\
 search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl\
