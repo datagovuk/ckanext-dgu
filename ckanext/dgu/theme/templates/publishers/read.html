@@ -10,6 +10,15 @@
   </py:def>
 
   <py:match path="primarysidebar">
+    <h2 py:if="sub_groups">Sub-publishers</h2>
+    <ul py:if="sub_groups">
+    <py:for each='g in sub_groups'>
+        <li>
+            <a href="${h.url_for('publisher_read', id=g.name)}">${g.title}</a>
+        </li>
+    </py:for>
+    </ul>
+
     <div py:if="c.is_superuser_or_groupmember and c.administrators" class="facet-box">
 	  <h2 py:if="len(c.administrators.all()) > 0">Administrators</h2>
       <ul class="property-list" py:for="admin in c.administrators">
@@ -31,6 +40,10 @@
   </py:match>
 
 
+<?python
+    from ckan import model
+    sub_groups = sorted([model.Group.get(x['id']) for x in c.group.get_children_groups('publisher')], key=lambda g:g.title)
+?>
   <py:match path="content">
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
     <div class="notes" py:if="str(c.description_formatted).strip()">

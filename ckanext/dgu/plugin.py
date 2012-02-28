@@ -293,6 +293,18 @@ class SearchPlugin(SingletonPlugin):
         if not pkg_dict.has_key('group_titles'):
             pkg_dict['group_titles'] = [Group.get(g).title for g in pkg_dict['groups']]
 
+        if not pkg_dict.has_key('parent_publishers'):
+            pkg_dict['parent_publishers'] = []
+
+            groups = [Group.get(g) for g in pkg_dict['groups']]
+            for g in groups:
+                for gg in g.get_groups('publisher'):
+                    pkg_dict['parent_publishers'].append( gg.name )
+
+        if not pkg_dict.has_key('publisher'):
+            pkg_dict['publisher'] = pkg_dict['groups'][:]
+
+
         return pkg_dict
 
     _disallowed_characters = re.compile(r'[^a-z]')
