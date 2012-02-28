@@ -179,7 +179,6 @@ class FormApiPlugin(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
-    implements(IGenshiStreamFilter)
 
     def before_map(self, map):
 
@@ -229,22 +228,6 @@ class FormApiPlugin(SingletonPlugin):
         config['package_form']      = 'package_gov3'
 
 
-    def filter(self, stream):
-
-        from pylons import request, tmpl_context as c
-        routes = request.environ.get('pylons.routes_dict')
-
-        if routes and \
-               routes.get('controller') == 'package' and \
-               routes.get('action') == 'read' and c.pkg.id:
-
-            is_uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
-            if is_uklp and is_uklp[0] == 'True':
-                stream = stream_filters.harvest_filter(stream, c.pkg)
-
-            # Add dataset id to the UI
-            stream = stream_filters.package_id_filter(stream, c.pkg)
-        return stream
 
 class SearchPlugin(SingletonPlugin):
     """
