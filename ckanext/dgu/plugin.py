@@ -294,7 +294,7 @@ class SearchPlugin(SingletonPlugin):
             pkg_dict['group_titles'] = [Group.get(g).title for g in pkg_dict['groups']]
 
         if not pkg_dict.has_key('parent_publishers'):
-            pkg_dict['parent_publishers'] = []
+            pkg_dict['parent_publishers'] = pkg_dict['groups'][:]
 
             groups = [Group.get(g) for g in pkg_dict['groups']]
             for g in groups:

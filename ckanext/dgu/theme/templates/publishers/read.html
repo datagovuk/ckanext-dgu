@@ -49,11 +49,16 @@
     <div class="notes" py:if="str(c.description_formatted).strip()">
       ${c.description_formatted}
     </div>
+
+
+    <a py:if="not c.restricted_to_publisher" href="${c.drill_down_url(publisher=c.group.name)}">Only show ${c.group.title} datasets</a>
+    <a py:if="c.restricted_to_publisher"  href="${c.remove_field('publisher', c.group.name)}">Show datasets from ${c.group.title} and sub-publishers</a>
+
     <div class="group-dataset-list">
       <h3>Datasets</h3>
 
       <form id="dataset-search" class="dataset-search" method="GET">
-        <input type="search" class="search" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+        <input type="search" class="search" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" style="width:360px;"/>
         <py:for each="(k, v) in c.fields">
           <input type="hidden" name="${k}" value="${v}" />
         </py:for>
