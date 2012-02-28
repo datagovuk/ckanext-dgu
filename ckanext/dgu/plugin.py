@@ -68,7 +68,8 @@ class ThemePlugin(SingletonPlugin):
 
 class AuthApiPlugin(SingletonPlugin):
 
-    implements(IMiddleware, inherit=True)
+    implements(IAuthFunctions, inherit=True)
+    implements(IMiddleware,    inherit=True)
 
     def make_middleware(self, app, config):
         return AuthAPIMiddleware(app, config)
