@@ -160,7 +160,7 @@
 </fieldset>
 
 <fieldset id="datasets">
-  <h3>Datasets (${len(data.get('packages'))})</h3>
+  <h3>Datasets <span py:if="data.get('packages')">(${len(data.get('packages'))})</span></h3>
   <dl py:if="data.get('packages')">
     <py:for each="num, package in enumerate(data.get('packages'))">
       <dt><input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/></dt>
