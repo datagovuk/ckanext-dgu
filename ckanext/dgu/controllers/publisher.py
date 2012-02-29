@@ -127,8 +127,8 @@ class PublisherController(GroupController):
 
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
         c.form = render('publishers/apply_form.html', extra_vars=vars)
-
         return render('publishers/apply.html')
+
 
     def _add_publisher_list(self):
         c.possible_parents = model.Session.query(model.Group).\
@@ -221,6 +221,7 @@ class PublisherController(GroupController):
                    'schema': self._form_to_db_schema(group_type=type)}
         data_dict = {'id': id}
         q = c.q = request.params.get('q', '') # unicode format (decoded from utf8)
+        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
 
         try:
             c.group_dict = get_action('group_show')(context, data_dict)

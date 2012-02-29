@@ -34,6 +34,11 @@
         <li>${h.linked_user(editor)}</li>
       </ul>
     </div>
+
+	<div py:if="c.is_sysadmin" class="facet-box" style="padding:8px; text-align: center;">
+		<a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report')}">Publisher report</a>
+	</div>
+
 	<div py:if="c.userobj and (not c.userobj in c.administrators and not c.userobj in c.editors)" class="facet-box" style="padding:8px; text-align: center;">
 		<a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Add this publisher to your account</a>
 	</div>

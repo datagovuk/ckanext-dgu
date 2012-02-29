@@ -75,10 +75,11 @@ def generate_harvest_publishers():
         if p and len(p) == 5:
             old_id = int(p)
 
-            ids = model.Session.query("id")\
-                        .from_statement("select id from public.group where name='%s'" % publishers[old_id]).all()
-            publisher_id = ids[0][0]
-            print HARVEST_UPDATE % (publisher_id,i,)
+            if old_id in publishers:
+                ids = model.Session.query("id")\
+                            .from_statement("select id from public.group where name='%s'" % publishers[old_id]).all()
+                publisher_id = ids[0][0]
+                print HARVEST_UPDATE % (publisher_id,i,)
 
 
 def update_datasets():
