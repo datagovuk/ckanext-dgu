@@ -32,6 +32,7 @@
     </div>
 
     ${facet_filters()}
+    ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
 
     <li class="widget-container widget_text">
         <h4>Other access</h4>
