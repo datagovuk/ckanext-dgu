@@ -139,6 +139,10 @@
 
     <field name="indexed_ts" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
 
+    <field name="publisher" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="parent_publishers" type="string" indexed="true" stored="true" multiValued="true"/>
+
+
     <dynamicField name="extras_*" type="text" indexed="true" stored="true" multiValued="false"/>
     <dynamicField name="*" type="string" indexed="true"  stored="false"/>
 </fields>

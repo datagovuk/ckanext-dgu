@@ -1,5 +1,4 @@
 from genshi.input import HTML
-
 from ckan import model
 from ckan.lib.create_test_data import CreateTestData
 from ckanext.dgu.stream_filters import harvest_filter
@@ -82,4 +81,3 @@ class _TestArchiveFilter(HtmlCheckMethods):
         # after filter
         self.check_named_element(res, 'a', 'href="%s"' % self.pkg_url)
         self.check_named_element(res, 'a', 'href="%s"' % self.archive_url)
-

@@ -39,6 +39,24 @@
             </p>
           </div>
         </py:for>
+        <?python
+            is_uklp = False
+            uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
+            if uklp and uklp[0] == 'True':
+                is_uklp = True
+                harvest_object_id = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'harvest_object_id']
+                if harvest_object_id:
+                    harvest_object_id = harvest_object_id[0]
+        ?>
+        <div py:if="is_uklp" id="dataset-gemini-links">
+            <div>
+                <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" target="_blank">Source GEMINI2 document</a> (XML)
+            </div>
+            <div>
+                <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" target="_blank">Formatted GEMINI2 document</a> (HTML)
+            </div>
+        </div>
+
         <py:if test="not len(c.pkg_dict.get('resources', []))">
           (none)
         </py:if>

@@ -89,9 +89,6 @@ def update_datasets():
                     .from_statement("SELECT id FROM package").all()
     package_ids = [p[0] for p in package_ids]
     for pid in package_ids:
-#        if pid == '2b1370f3-694f-44e1-a07d-413361fec7c3':
-#            from pdb import set_trace;
-#            set_trace()
         provider = ""
         via = model.Session.query("id","value")\
                     .from_statement(DATASET_EXTRA_QUERY_VIA).params(package_id=pid).all()
@@ -152,23 +149,31 @@ def update_datasets():
         member_rev_q = MEMBER_REVISION_QUERY.strip() % \
                         (member_id, pid, publisher_id, revision_id, member_id)
         revision_q   = REVISION_QUERY.strip() % (revision_id,)
-        cleanup_q    = DATASET_EXTRA_CLEANUP.strip() % (publisher_id,)
 
         print revision_q
         print memberq
         print member_rev_q
-        print cleanup_q
         if provider:
-            print PROVIDER_INSERT % (provider_id, pid, provider)
+            p = model.PackageExtra(id=unicode(uuid.uuid4()), package_id=pid,
+                                   key='provider', value=provider)
+            model.Session.add(p)
+            model.Session.commit()
         print ''
 
+# Not currently deleting extras as it means this import cannot be run again
+# and if we do it after we've generated the SQL it takes an excessively long
+# time to clean up the revisions etc.
+#    model.Session.query(model.PackageExtraRevision).\
+#        filter(model.PackageExtraRevision.key == 'published_by' or
+#               model.PackageExtraRevision.key == 'published_via').\
+#        delete(synchronize_session=False)
 
+#    model.Session.query(model.PackageExtra).\
+#        filter(model.PackageExtra.key == 'published_by' or
+#               model.PackageExtra.key == 'published_via').\
+#        delete(synchronize_session=False)
 
 HARVEST_UPDATE = "UPDATE public.harvest_source SET publisher_id='%s' WHERE id='%s';"
-PROVIDER_INSERT = """
-INSERT INTO public.package_extra(id, package_id,key, value, state)
-    VALUES ('%s', '%s', 'provider', E'%s', 'active');
-"""
 
 MEMBER_QUERY = """
 INSERT INTO public.member(id, table_id,group_id, state,revision_id, table_name, capacity)
@@ -190,9 +195,6 @@ DATASET_EXTRA_QUERY_VIA = \
     "SELECT id,package_id, value FROM package_extra WHERE key='published_via' AND package_id=:package_id"
 DATASET_EXTRA_QUERY_BY = \
     "SELECT id, value FROM package_extra WHERE key='published_by' AND package_id=:package_id"
-DATASET_EXTRA_CLEANUP = \
-    "DELETE FROM package_extra WHERE (key='published_via' OR key='published_by') AND package_id='%s';"
-
 
 
 def usage():

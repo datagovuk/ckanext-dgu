@@ -76,7 +76,7 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
     CKAN.SITE_URL = CKAN.SITE_URL.replace(/\/$/, '');
     $(document).ready(function() {
 		$(".chzn-select").chosen();
-        var ckan_user = $.cookie("ckan_display_name");
+        var ckan_user =  '${ c.user }' // $.cookie("ckan_display_name");
         if (ckan_user) {
             $(".ckan-logged-out").hide();
             $(".ckan-logged-in").show();

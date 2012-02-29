@@ -231,7 +231,7 @@ class PublisherController(GroupController):
             abort(401, _('Unauthorized to read group %s') % id)
 
         # Search within group
-        q += ' groups: "%s"' % c.group_dict.get('name')
+        q += ' parent_publishers: "%s"' % c.group_dict.get('name')
 
         try:
             description_formatted = ckan.misc.MarkdownFormat().to_html(c.group_dict.get('description',''))
@@ -269,7 +269,8 @@ class PublisherController(GroupController):
 
         def remove_field(key, value):
             params = list(params_nopage)
-            params.remove((key, value))
+            if (key, value) in params:
+                params.remove((key, value))
             return search_url(params)
 
         c.remove_field = remove_field
@@ -329,6 +330,10 @@ class PublisherController(GroupController):
 
         c.administrators = c.group.members_of_type(model.User, 'admin')
         c.editors = c.group.members_of_type(model.User, 'editor')
+
+        c.restricted_to_publisher = 'publisher' in request.params
+        parent_groups = c.group.get_groups('publisher')
+        c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
 
         return render('publishers/read.html')
 

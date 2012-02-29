@@ -69,8 +69,8 @@ class ThemePlugin(SingletonPlugin):
 
 class AuthApiPlugin(SingletonPlugin):
 
-    implements(IMiddleware, inherit=True)
     implements(IAuthFunctions, inherit=True)
+    implements(IMiddleware,    inherit=True)
 
     def make_middleware(self, app, config):
         return AuthAPIMiddleware(app, config)
@@ -183,7 +183,6 @@ class FormApiPlugin(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
-    implements(IGenshiStreamFilter)
 
     def before_map(self, map):
 
@@ -233,22 +232,6 @@ class FormApiPlugin(SingletonPlugin):
         config['package_form']      = 'package_gov3'
 
 
-    def filter(self, stream):
-
-        from pylons import request, tmpl_context as c
-        routes = request.environ.get('pylons.routes_dict')
-
-        if routes and \
-               routes.get('controller') == 'package' and \
-               routes.get('action') == 'read' and c.pkg.id:
-
-            is_uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
-            if is_uklp and is_uklp[0] == 'True':
-                stream = stream_filters.harvest_filter(stream, c.pkg)
-
-            # Add dataset id to the UI
-            stream = stream_filters.package_id_filter(stream, c.pkg)
-        return stream
 
 class SearchPlugin(SingletonPlugin):
     """
@@ -313,6 +296,18 @@ class SearchPlugin(SingletonPlugin):
         # Populate group titles
         if not pkg_dict.has_key('group_titles'):
             pkg_dict['group_titles'] = [Group.get(g).title for g in pkg_dict['groups']]
+
+        if not pkg_dict.has_key('parent_publishers'):
+            pkg_dict['parent_publishers'] = pkg_dict['groups'][:]
+
+            groups = [Group.get(g) for g in pkg_dict['groups']]
+            for g in groups:
+                for gg in g.get_groups('publisher'):
+                    pkg_dict['parent_publishers'].append( gg.name )
+
+        if not pkg_dict.has_key('publisher'):
+            pkg_dict['publisher'] = pkg_dict['groups'][:]
+
 
         return pkg_dict
 
