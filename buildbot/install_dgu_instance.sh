@@ -96,7 +96,7 @@ configure () {
              -e '/^\[app:main\]$/ a\
 openid_enabled = False\
 dgu.admin.name = Test Account\
-dgu.admin.email = ross.jones@okfn.org\
+dgu.admin.email = ian.murray@okfn.org\
 search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl\
 ckan.spatial.srid = 4258\
 dgu.xmlrpc_username = CKAN_API\
