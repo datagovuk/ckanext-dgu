@@ -293,22 +293,55 @@ class SearchPlugin(SingletonPlugin):
         # Clean the resource formats prior to indexing
         pkg_dict['res_format'] = [ self._clean_format(f) for f in pkg_dict.get('res_format', []) ]
 
-        # Populate group titles
+        # Populate group related fields
+        groups = [Group.get(g) for g in pkg_dict['groups']]
+        publishers = [g for g in groups if g.type == 'publisher']
+
+        # Group titles 
         if not pkg_dict.has_key('group_titles'):
-            pkg_dict['group_titles'] = [Group.get(g).title for g in pkg_dict['groups']]
+            pkg_dict['group_titles'] = [g.title for g in groups]
+        else:
+            log.warning('Unable to add "group_titles" to index, as the datadict '
+                        'already contains a key of that name')
+
+        # Each dataset should have exactly one group of type "publisher".
+        # However, this is not enforced in the data model.
+        if len(publishers) > 1:
+            log.warning('This dataset seems to have more than one publisher!  '
+                        'Only indexing the first one: %s', repr(publishers))
+            publishers = publishers[:1]
+        elif len(publishers) == 0:
+            log.warning('This dataset doesn\'t seem to have a publisher!  '
+                        'Unabled to add publisher to index.')
+            return pkg_dict
+
+        # Publisher names
+        if not pkg_dict.has_key('publisher'):
+            pkg_dict['publisher'] = [p.name for p in publishers]
+        else:
+            log.warning('Unable to add "publisher" to index, as the datadict '
+                        'already contains a key of that name')
+
+        # Ancestry of publishers
+        ancestors = []
+        publisher = publishers[0]
+        while(publisher is not None):
+            ancestors.append(publisher)
+            parent_publishers = publisher.get_groups('publisher')
+            if len(parent_publishers) == 0:
+                publisher = None
+            else:
+                if len(parent_publishers) > 1:
+                    log.warning('This publisher has more than one parent publisher. '
+                                'Ignoring all but the first. %s', repr(parent_publishers))
+                publisher = parent_publishers[0]
+        
 
         if not pkg_dict.has_key('parent_publishers'):
-            pkg_dict['parent_publishers'] = pkg_dict['groups'][:]
-
-            groups = [Group.get(g) for g in pkg_dict['groups']]
-            for g in groups:
-                for gg in g.get_groups('publisher'):
-                    pkg_dict['parent_publishers'].append( gg.name )
-
-        if not pkg_dict.has_key('publisher'):
-            pkg_dict['publisher'] = pkg_dict['groups'][:]
-
-
+            pkg_dict['parent_publishers'] = [ p.name for p in ancestors ]
+        else:
+            log.warning('Unable to add "parent_publishers" to index, as the datadict '
+                        'already contains a key of that name')
         return pkg_dict
 
     _disallowed_characters = re.compile(r'[^a-z]')
