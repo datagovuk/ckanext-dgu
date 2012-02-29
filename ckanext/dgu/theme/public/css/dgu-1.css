@@ -562,6 +562,35 @@ body.harvest #content{
     display:none;
 }
 
+.markdown-editor .button-row {
+  xpadding-right: 40px;
+  text-align: center;
+}
+.markdown-editor div.markdown-preview {
+  background: white;
+  border: 1px solid #CCC;
+  padding: 5px;
+  margin-bottom: 5px;
+  overflow: auto;
+}
+.markdown-editor textarea.markdown-input {
+  margin-bottom: 5px;
+  padding: 5px;
+  display: block;
+  width:95%;
+  height: 6em;
+}
+
+/* ============= */
+/* = Mini-Tabs = */
+/* ============= */
+ul.button-row {
+  margin-bottom: 5px;
+}
+ul.button-row li {
+  display: inline;
+  margin-right: 10px;
+
 #sub-publishers li.collapsed {
     display: none;
 }

@@ -29,6 +29,8 @@
 	</dd>
 
 
+        <dd class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</dd>
+
     <dt><label class="field_opt" for="title">Url</label></dt>
     <dd class="name-field">
       <span class="js-url-text url-text">${g.site_url+h.url_for('publisher_index')+'/'}<span class="js-url-viewmode js-url-suffix">&nbsp;</span><a style="display: none;" href="#" class="url-edit js-url-editlink js-url-viewmode">(edit)</a></span>
@@ -36,7 +38,7 @@
       <p class="js-url-is-valid">&nbsp;</p>
     </dd>
     <dd style="display: none;" class="js-url-editmode instructions basic">2+ chars, lowercase, using only 'a-z0-9' and '-_'</dd>
-    <dd class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</dd>
+
 
     <dt class="description-label"><label class="field_opt" for="title">Publisher Description</label></dt>
     <dd class="description-field"><div class="markdown-editor">

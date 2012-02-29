@@ -29,6 +29,7 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
   </py:choose>
 
   <link rel="stylesheet" href="/css/style.css" type="text/css" media="screen, print" />
+  <link rel="stylesheet" href="/css/pretty_buttons.css" type="text/css" media="screen, print" />
   <link rel="stylesheet" href="/scripts/vendors/jstree/themes/default/style.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="${g.site_url}/css/chosen.css" type="text/css" />
 
@@ -68,6 +69,9 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
 
   <!-- the tooltip js script can be removed once we're ready to deploy.  It's being used to highlight work in progress -->
   <script type="text/javascript" src="${g.site_url}/scripts/vendors/jquery.tooltip.min.js"></script>
+
+  <!-- Translated js strings live inside an html template. -->
+  <xi:include href="js_strings.html" />
 
   <script type="text/javascript">
     var CKAN = CKAN || {};
