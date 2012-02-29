@@ -561,3 +561,7 @@ body.harvest #content{
 .harvest-source-title{
     display:none;
 }
+
+#sub-publishers li.collapsed {
+    display: none;
+}

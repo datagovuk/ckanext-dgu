@@ -16,13 +16,21 @@
 
   <py:match path="primarysidebar">
     <h2 py:if="sub_groups">Sub-publishers</h2>
-    <ul py:if="sub_groups">
-    <py:for each='g in sub_groups'>
+    <ul id="sub-publishers" py:if="sub_groups">
+    <py:for each='g in sub_groups[:15]'>
         <li>
             <a href="${h.url_for('publisher_read', id=g.name)}">${g.title}</a>
         </li>
     </py:for>
+    <py:for each='g in sub_groups[15:]'>
+        <li class="collapsed">
+            <a href="${h.url_for('publisher_read', id=g.name)}">${g.title}</a>
+        </li>
+    </py:for>
     </ul>
+    <div style="text-align: center;">
+      <a id="sub-publisher-toggle" href="#" py:if="sub_groups[15:]">(${len(sub_groups[15:])} hidden)</a>
+    </div>
 
     <div py:if="c.is_superuser_or_groupmember and c.administrators" class="facet-box">
 	  <h2 py:if="len(c.administrators.all()) > 0">Administrators</h2>
