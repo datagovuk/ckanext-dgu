@@ -9,6 +9,11 @@
 	<a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:def>
 
+<?python
+    from ckan import model
+    sub_groups = sorted([model.Group.get(x['id']) for x in c.group.get_children_groups('publisher')], key=lambda g:g.title)
+?>
+
   <py:match path="primarysidebar">
     <h2 py:if="sub_groups">Sub-publishers</h2>
     <ul py:if="sub_groups">
@@ -40,16 +45,21 @@
   </py:match>
 
 
-<?python
-    from ckan import model
-    sub_groups = sorted([model.Group.get(x['id']) for x in c.group.get_children_groups('publisher')], key=lambda g:g.title)
-?>
   <py:match path="content">
+    <div py:if="c.parent_publisher">
+        <a href="${h.url_for('publisher_read', id=c.parent_publisher.name)}">
+            ${c.parent_publisher.title}
+        </a>
+        |
+        <span>
+            ${c.group.title}
+        </span>
+    </div>
+
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
     <div class="notes" py:if="str(c.description_formatted).strip()">
       ${c.description_formatted}
     </div>
-
 
     <a py:if="not c.restricted_to_publisher" href="${c.drill_down_url(publisher=c.group.name)}">Only show ${c.group.title} datasets</a>
     <a py:if="c.restricted_to_publisher"  href="${c.remove_field('publisher', c.group.name)}">Show datasets from ${c.group.title} and sub-publishers</a>
