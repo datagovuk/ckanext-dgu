@@ -45,6 +45,13 @@
       <a href="${h.url_for(controller='package', action='edit', id=c.pkg.name)}">Edit</a>
     </li>
 
+    <?python
+      from ckan import model
+    ?>
+    <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED">
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete</a>
+    </li>
+
     <li py:if="c.pkg_dict.get('tags')" class="sidebar-section">
       <h3>Tags</h3>
       ${tag_list(c.pkg_dict.get('tags', ''))}

@@ -10,6 +10,11 @@ jQuery(function ($) {
 
     $('.to-be-completed').addClass('js-tooltip-to-be-completed');
     $('.js-tooltip-to-be-completed').tooltip({'extraClass':'to-be-completed'});
-    
+ 
+    /* Toggle visibility of sub-publishers on the publisher/read.html page */
+    $('#sub-publisher-toggle').click(function(){
+      $('#sub-publishers li.collapsed').toggle();
+    });
+   
   });
 })

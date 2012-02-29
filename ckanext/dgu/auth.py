@@ -60,6 +60,22 @@ def dgu_package_update(context, data_dict):
 
     return {'success': True}
 
+def dgu_dataset_delete(context, data_dict):
+    """
+    Determines whether a dataset's state can be set to "deleted".
+
+    Currently, only UKLP datasets can be deleted; and only by sysadmin users.
+    """
+    model = context['model']
+    user = context.get('user')
+    package = get_package_object(context, data_dict)
+    
+    if Authorizer().is_sysadmin(unicode(user)) and \
+       package.extras.get('UKLP', '') == 'True':
+        return {'success': True}
+    
+    return {'success': False}
+
 def dgu_extra_fields_editable(context, data_dict):
     """
     Determines whether a dataset's extra-fields are editable directly.

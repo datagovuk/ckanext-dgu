@@ -7,7 +7,7 @@ import ckan.logic.action.update as update
 import ckan.logic.action.get as get
 from ckan.lib.navl.dictization_functions import DataError, flatten_dict, unflatten
 from ckan.logic import NotFound, NotAuthorized, ValidationError
-from ckan.logic import tuplize_dict, clean_dict, parse_params
+from ckan.logic import tuplize_dict, clean_dict, parse_params, get_action, check_access
 from ckan.logic.auth.publisher import _groups_intersect
 from ckan.logic.schema import package_form_schema
 from ckan.lib.package_saver import PackageSaver
@@ -94,6 +94,45 @@ class PackageGov3Controller(PackageController):
         if len ( c.userobj.get_groups('publisher') ) == 0:
             abort( 401, _('Unauthorized to read package history') )
         return super(PackageGov3Controller, self).history(  id )
+
+    def delete(self, id):
+        """Provide a delete action, but only for UKLP datasets"""
+        from ckan.lib.search import SearchIndexError
+        context = {
+            'model': model,
+            'session': model.Session,
+            'user': c.user,
+        }
+
+        pkg_dict = get_action('package_show')(context, {'id':id}) # has side-effect of populating context.get('package')
+
+        if request.params: # POST
+            try:
+                package_name = pkg_dict['name']
+                get_action('package_delete')(context, {'id':id})
+                h.flash_success(_('Successfully deleted package.'))
+                self._form_save_redirect(package_name, 'edit')
+            except NotAuthorized:
+                abort(401, _('Unauthorized to read package %s') % id)
+            except NotFound, e:
+                abort(404, _('Package not found'))
+            except DataError:
+                abort(400, _(u'Integrity Error'))
+            except SearchIndexError, e:
+                abort(500, _(u'Unable to update search index.') + repr(e.args))
+            except ValidationError, e:
+                abort(400, _('Unable to delete package.') + repr(e.error_dict))
+        
+        # GET
+        c.pkg = context.get('package')
+        try:
+            check_access('package_delete', context)
+        except NotAuthorized, e:
+            abort(401, _('Unauthorized to delete package.'))
+        package_type = self._get_package_type(id)
+        self._setup_template_variables(context, {'id': id}, package_type=package_type)
+        return render('package/delete.html')
+            
 
     # TODO: rename this back, or to something better
     def _package_form(self, package_type=None):

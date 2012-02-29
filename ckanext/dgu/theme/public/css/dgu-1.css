@@ -562,7 +562,6 @@ body.harvest #content{
     display:none;
 }
 
-
 .markdown-editor .button-row {
   xpadding-right: 40px;
   text-align: center;
@@ -591,4 +590,7 @@ ul.button-row {
 ul.button-row li {
   display: inline;
   margin-right: 10px;
+
+#sub-publishers li.collapsed {
+    display: none;
 }
