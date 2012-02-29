@@ -15,6 +15,25 @@
 ?>
 
   <py:match path="primarysidebar">
+
+    <div py:if="c.is_superuser_or_groupmember and c.administrators" class="facet-box">
+	    <h2 py:if="len(c.administrators.all()) > 0">Administrators</h2>
+      <ul class="property-list" py:for="admin in c.administrators">
+        <li>${h.linked_user(admin)}</li>
+      </ul>
+	    <h2 py:if="len(c.editors.all()) > 0">Publishers</h2>
+      <ul class="property-list" py:for="editor in c.editors">
+        <li>${h.linked_user(editor)}</li>
+      </ul>
+    </div>
+	  <div py:if="c.userobj and (not c.userobj in c.administrators and not c.userobj in c.editors)" class="facet-box" style="padding:8px; text-align: center;">
+		  <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Add this publisher to your account</a>
+	  </div>
+	  <div py:if="c.userobj and ((c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember)" class="facet-box" style="padding:8px; text-align: center;">
+		  <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset with this publisher</a>
+	  </div>
+
+
     <h2 py:if="sub_groups">Sub-publishers</h2>
     <ul id="sub-publishers" py:if="sub_groups">
     <py:for each='g in sub_groups[:15]'>
@@ -31,24 +50,6 @@
     <div style="text-align: center;">
       <a id="sub-publisher-toggle" href="#" py:if="sub_groups[15:]">(${len(sub_groups[15:])} hidden)</a>
     </div>
-
-    <div py:if="c.is_superuser_or_groupmember and c.administrators" class="facet-box">
-	  <h2 py:if="len(c.administrators.all()) > 0">Administrators</h2>
-      <ul class="property-list" py:for="admin in c.administrators">
-        <li>${h.linked_user(admin)}</li>
-      </ul>
-	  <h2 py:if="len(c.editors.all()) > 0">Publishers</h2>
-      <ul class="property-list" py:for="editor in c.editors">
-        <li>${h.linked_user(editor)}</li>
-      </ul>
-    </div>
-	<div py:if="c.userobj and (not c.userobj in c.administrators and not c.userobj in c.editors)" class="facet-box" style="padding:8px; text-align: center;">
-		<a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Add this publisher to your account</a>
-	</div>
-	<div py:if="c.userobj and ((c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember)" class="facet-box" style="padding:8px; text-align: center;">
-		<a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset with this publisher</a>
-	</div>
-
     ${facet_filters()}
   </py:match>
 
