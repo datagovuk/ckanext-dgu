@@ -14,7 +14,8 @@ from ckan.plugins import IPackageController
 from ckan.plugins import ISession
 from ckanext.dgu.middleware import AuthAPIMiddleware
 from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
-                             dgu_package_update, dgu_extra_fields_editable
+                             dgu_package_update, dgu_extra_fields_editable, \
+                             dgu_dataset_delete
 from ckan.lib.helpers import url_for
 import ckanext.dgu
 
@@ -69,6 +70,7 @@ class ThemePlugin(SingletonPlugin):
 class AuthApiPlugin(SingletonPlugin):
 
     implements(IMiddleware, inherit=True)
+    implements(IAuthFunctions, inherit=True)
 
     def make_middleware(self, app, config):
         return AuthAPIMiddleware(app, config)
@@ -79,6 +81,7 @@ class AuthApiPlugin(SingletonPlugin):
             'group_create' : dgu_group_create,
             'package_update' : dgu_package_update,
             'package_extra_fields_editable' : dgu_extra_fields_editable,
+            'package_delete': dgu_dataset_delete,
         }
 
 
@@ -86,19 +89,15 @@ class DguForm(SingletonPlugin):
 
     implements(IRoutes)
     implements(IConfigurer)
-    implements(IAuthFunctions)
-
-    def get_auth_functions(self):
-        return {
-            'package_extra_fields_editable' : dgu_extra_fields_editable,
-        }
 
     def before_map(self, map):
         map.connect('/package/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('/package/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
+        map.connect('/package/delete/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete')
         map.connect('/package/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
         map.connect('dataset_new','/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
         map.connect('dataset_edit','/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
+        map.connect('/dataset/delete/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete')
         map.connect('dataset_history','/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
         return map
 
