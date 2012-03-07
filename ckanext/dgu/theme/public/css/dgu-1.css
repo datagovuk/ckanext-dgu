@@ -558,7 +558,8 @@ body.harvest #content{
     margin-top: 0 !important;
 }
 
-.harvest-source-title{
+.harvest-source-title,
+.harvest-source-config{
     display:none;
 }
 
