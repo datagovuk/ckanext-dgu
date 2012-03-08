@@ -132,7 +132,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         </py:for>
       </tbody>
       </table>
+
       <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
+      <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check Links"/>
+      <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
     
@@ -185,6 +188,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </tbody>
       </table>
       <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
+      <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check Links"/>
+      <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
@@ -446,6 +451,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </tbody>
     </table>
     <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Additional resource(s) incomplete.</p>
+    <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check Links"/>
+    <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
 
   <label class="field_opt" for="mandate">Mandate</label>
   <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>

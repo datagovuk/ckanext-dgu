@@ -140,6 +140,46 @@
     });
     $('#license_id').change();
 
+    /* Validate resources buttons */
+    $('.validate-resources-button').click(function(){
+      $(this).attr({'disabled': 'disabled'});
+      var fieldSet = $(this).parent();
+      fieldSet.find('span.checking-links-label').show();
+      var urlResourceValues = fieldSet.find('input[name$="__url"]').map(function(){return this.value;});
+      var urls = [];
+      for(var i=0; i<urlResourceValues.length; i++) { urls.push(urlResourceValues[i]); }
+      $.ajax({
+        url: CKAN.SITE_URL + '/qa/link_checker',
+        traditional: true,
+        context: fieldSet,
+        data: {
+          url: urls
+        },
+        dataType: 'json',
+        success: function(data){
+          for(var i=0; i<data.length; i++){
+            // Populate the format field (if it isn't "htm" or "html")
+            var formatField = $(this).find('input[id$="__'+i+'__format"]');
+            if(formatField.val().trim() == "" && !data[i].inner_format.match(/^html?$/) ){
+              formatField.val(data[i].inner_format);
+            }
+
+            // Indicate any url errors
+            if(data[i].url_errors.length) {
+              $(this).find('input[id$="__'+i+'__url"]').addClass('field_error').attr({'title': data[i].url_errors[0]});
+            } else {
+              $(this).find('input[id$="__'+i+'__url"]').removeClass('field_error').removeAttr('title');
+            }
+          }
+        },
+        complete: function(){
+          $(this).find('.validate-resources-button').removeAttr('disabled');
+          $(this).find('span.checking-links-label').hide();
+        }
+      });
+      
+    });
+
   });
 }(jQuery));
 
