@@ -22,8 +22,10 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       ignore,
                                       keep_extras,
                                      )
+from ckan.lib.plugins import DefaultDatasetForm
 import ckan.logic.validators as val
 import ckan.logic.schema as default_schema
+from ckan.plugins import implements, IDatasetForm, SingletonPlugin
 from ckan.controllers.package import PackageController
 
 from ckanext.dgu.validators import merge_resources, unmerge_resources, \
@@ -133,12 +135,21 @@ class PackageGov3Controller(PackageController):
         self._setup_template_variables(context, {'id': id}, package_type=package_type)
         return render('package/delete.html')
             
+class DatasetForm(SingletonPlugin):
+
+    implements(IDatasetForm, inherit=True)
+
+    def is_fallback(self):
+        return True
+
+    def package_types(self):
+        return ["dgu"]
 
     # TODO: rename this back, or to something better
-    def _package_form(self, package_type=None):
+    def package_form(self, package_type=None):
         return 'package_gov3_form_refactor.html'
 
-    def _setup_template_variables(self, context, data_dict=None, package_type=None):
+    def setup_template_variables(self, context, data_dict=None, package_type=None):
         c.licenses = model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
         c.update_frequency = filter(lambda f: f[0] != 'discontinued', update_frequency)
@@ -156,9 +167,9 @@ class PackageGov3Controller(PackageController):
             c.auth_for_change_state = Authorizer().am_authorized(
                 c, model.Action.CHANGE_STATE, pkg)
         
-        c.schema_fields = set(self._form_to_db_schema().keys())
+        c.schema_fields = set(self.form_to_db_schema().keys())
 
-    def _form_to_db_schema(self, package_type=None):
+    def form_to_db_schema(self, package_type=None):
 
         schema = {
             'title': [not_empty, unicode],
@@ -217,7 +228,7 @@ class PackageGov3Controller(PackageController):
         }
         return schema
     
-    def _db_to_form_schema(data, package_type=None):
+    def db_to_form_schema(data, package_type=None):
         schema = {
             'date_released': [convert_from_extras, ignore_missing, date_to_form],
             'date_updated': [convert_from_extras, ignore_missing, date_to_form],
@@ -264,7 +275,7 @@ class PackageGov3Controller(PackageController):
         }
         return schema
 
-    def _check_data_dict(self, data_dict, package_type=None):
+    def check_data_dict(self, data_dict, package_type=None):
         return
 
     def get_publishers(self):

@@ -28,16 +28,15 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
   </py:otherwise>
   </py:choose>
 
-  <link rel="stylesheet" href="${g.site_url}/css/pretty_buttons.css" type="text/css" media="screen, print" />
-  <link rel="stylesheet" href="${g.site_url}/css/chosen.css" type="text/css" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/chosen.css')}" type="text/css" />
 
   <!--[if IE]>
-  <link rel="stylesheet" href="${g.site_url}/css/ie.css" type="text/css" media="screen, print" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/ie.css')}" type="text/css" media="screen, print" />
   <![endif]-->
 
   <link rel="shortcut icon" href="http://data.gov.uk/sites/default/files/datagovuk_favicon.png" type="image/x-icon" />
-  <link type="text/css" rel="stylesheet" media="all" href="${g.site_url}/css/pagination.css" />
-  <link type="text/css" rel="stylesheet" media="all" href="${g.site_url}/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
+  <link type="text/css" rel="stylesheet" media="all" href="${h.url_for_static('/css/pagination.css')}" />
+  <link type="text/css" rel="stylesheet" media="all" href="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css')}" />
 
 
 
@@ -51,21 +50,22 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
   <![endif]-->
 
 
-  <script src="${g.site_url}/scripts/vendor/jquery/1.6.2/jquery.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/vendor/jquery.cookie/jquery.cookie.min.js"></script>
-  <script src="${g.site_url}/scripts/vendor/jquery.placeholder/jquery.placeholder.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js "></script>
- <script type="text/javascript" src="${g.site_url}/scripts/vendors/jquery.chosen/0.9.7/chosen.js"></script>
+  <script src="${h.url_for_static('/scripts/vendor/jquery/1.7.1/jquery.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.cookie/jquery.cookie.min.js')}"></script>
+  <script src="${h.url_for_static('/scripts/vendor/jquery.placeholder/jquery.placeholder.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js ')}"></script>
+ <script type="text/javascript" src="${h.url_for_static('/scripts/vendors/jquery.chosen/0.9.7/chosen.js')}"></script>
 
-  <script type="text/javascript" src="${g.site_url}/scripts/vendor/underscore/1.1.6/underscore.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/vendor/backbone/0.5.1/backbone.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/vendor/ckanjs/1.0.0/ckanjs.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/application.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/dgu.js"></script>
-  <script type="text/javascript" src="${g.site_url}/scripts/dgu-publisher-forms.js"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/bootstrap/2.0.0/bootstrap.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/underscore/1.1.6/underscore.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/backbone/0.5.1/backbone.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/ckanjs/1.0.0/ckanjs.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/application.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-publisher-forms.js')}"></script>
 
   <!-- the tooltip js script can be removed once we're ready to deploy.  It's being used to highlight work in progress -->
-  <script type="text/javascript" src="${g.site_url}/scripts/vendors/jquery.tooltip.min.js"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendors/jquery.tooltip.min.js')}"></script>
 
   <!-- Translated js strings live inside an html template. -->
   <xi:include href="js_strings.html" />
@@ -137,7 +137,7 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
     <div py:if="messages" class="flash-messages ${m.category}" py:for="m in messages">
       <div>
         ${h.literal(m)}
-		<a onclick="$('div.flash-messages').slideUp();return false;" href="javascript:void(0);" style="float:right; "><img src="${g.site_url}/images/close.png" style="margin-right:20px;" border="0"/></a>
+		<a onclick="$('div.flash-messages').slideUp();return false;" href="javascript:void(0);" style="float:right; "><img src="${h.url_for_static('/images/close.png')}" style="margin-right:20px;" border="0"/></a>
       </div>
     </div>
 	<script type="text/javascript" py:if="messages">

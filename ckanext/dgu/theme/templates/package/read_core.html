@@ -129,19 +129,20 @@
             <p>
                 This information on this page (the package metadata) is also
                 available programatically via this site's <a
-                  href="${h.url_for(controller='api', action='get_api', id=None)}">CKAN API</a>.
+                  href="${h.url_for(controller='api', action='get_api', id=None, ver='2')}">CKAN API</a>.
             </p>
             <dl>
               <dt>JSON</dt>
               <dd>
                 <code>
                   <py:if test="config.get('ckan.api_url')">
-                    <a href="${config.get('ckan.api_url') + h.url_for(controller='api', register='package', action='show', id=c.pkg.name)}">
-                      ${config.get('ckan.api_url') + h.url_for(controller='api', register='package', action='show', id=c.pkg.name)}</a>
+                    <a href="${config.get('ckan.api_url') + h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
+                      ${config.get('ckan.api_url') + h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}</a>
                   </py:if>                
                   <py:if test="not config.get('ckan.api_url')">
-                    <a href="${h.url_for(controller='api', register='package', action='show', id=c.pkg.name)}">
-                      ${h.url_for(controller='api', register='package', action='show', id=c.pkg.name)}</a>
+                    <a href="${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
+                      ${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}</a>
+    
                   </py:if>
                 </code>
               </dd>

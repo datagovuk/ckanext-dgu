@@ -280,6 +280,9 @@ class SearchPlugin(SingletonPlugin):
     def after_search(self, search_results, search_params):
         return search_results
 
+    def before_view(self, pkg_dict):
+        return pkg_dict
+
     def before_index(self, pkg_dict):
         """
         Dynamically creates a license_id-is-ogl field to index on, and clean

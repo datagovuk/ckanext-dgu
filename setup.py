@@ -36,6 +36,7 @@ setup(
         dgu_theme = ckanext.dgu.plugin:ThemePlugin
         dgu_search = ckanext.dgu.plugin:SearchPlugin
         dgu_publisher_form=ckanext.dgu.forms.publisher_form:PublisherForm
+        dgu_dataset_form=ckanext.dgu.controllers.package_gov3:DatasetForm
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
