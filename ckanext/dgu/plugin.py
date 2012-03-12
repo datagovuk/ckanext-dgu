@@ -175,6 +175,9 @@ class PublisherPlugin(SingletonPlugin):
         # set the auth profile to use the publisher based auth
         config['ckan.auth.profile'] = 'publisher'
 
+        # same for the harvesting auth profile
+        config['ckan.harvest.auth.profile'] = 'publisher'
+
 
 class FormApiPlugin(SingletonPlugin):
     """
