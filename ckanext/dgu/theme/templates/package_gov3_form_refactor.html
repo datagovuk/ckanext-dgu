@@ -123,7 +123,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
             </td>
           </py:for>
           <td class="resource-date">
-            <input name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
+            <input id="timeseries_resources__${num}__date" name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
           </td>
           <td class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
           <td class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>

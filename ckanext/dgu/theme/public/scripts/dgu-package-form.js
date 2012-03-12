@@ -166,7 +166,20 @@
 
             // Indicate any url errors
             if(data[i].url_errors.length) {
-              $(this).find('input[id$="__'+i+'__url"]').addClass('field_error').attr({'title': data[i].url_errors[0]});
+              // If an empty url field, then only display error if there's at least one
+              // other non-empty field in that row.
+              var requiredFields = ["url", "description", "format", "date"];
+              var showError = false;
+              for(var j=0; j<requiredFields.length; j++){
+                var field = $(this).find('input[id$="__'+i+'__'+requiredFields[j]+'"]');
+                showError = field.length >0 && field.val().trim() !== '';
+                if(showError){break;}
+              }
+              if(showError){
+                $(this).find('input[id$="__'+i+'__url"]').addClass('field_error').attr({'title': data[i].url_errors[0]});
+              } else {
+                $(this).find('input[id$="__'+i+'__url"]').removeClass('field_error').removeAttr('title');
+              }
             } else {
               $(this).find('input[id$="__'+i+'__url"]').removeClass('field_error').removeAttr('title');
             }
