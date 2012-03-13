@@ -178,6 +178,10 @@ class PublisherController(GroupController):
 
     def users(self, id, data=None, errors=None, error_summary=None):
         c.group = model.Group.get(id)
+
+        if not c.group:
+            abort(404, _('Group not found'))
+
         context = {
                    'model': model,
                    'session': model.Session,
