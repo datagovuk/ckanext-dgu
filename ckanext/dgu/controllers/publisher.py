@@ -59,7 +59,7 @@ class PublisherController(GroupController):
 
 
     def _send_application( self, group, reason  ):
-        from ckan.logic.action.update import group_error_summary
+        from ckan.logic.action import error_summary
         from ckan.lib.mailer import mail_recipient
         from genshi.template.text import NewTextTemplate
         from pylons import config
@@ -69,7 +69,7 @@ class PublisherController(GroupController):
                              please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
             return self.apply(group.id, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         admins = group.members_of_type( model.User, 'admin' ).all()
         recipients = [(u.fullname,u.email) for u in admins] if admins else \
@@ -80,7 +80,7 @@ class PublisherController(GroupController):
             h.flash_error(_("There is a problem with the system configuration"))
             errors = {"reason": ["No group administrator exists"]}
             return self.apply(group.id, data=data, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         extra_vars = {
             'group'    : group,
@@ -100,7 +100,7 @@ class PublisherController(GroupController):
             h.flash_error(_("There is a problem with the system configuration"))
             errors = {"reason": ["No mail server was found"]}
             return self.apply(group.id, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         h.flash_success(_("Your application has been submitted"))
         h.redirect_to( 'publisher_read', id=group.name)
@@ -138,7 +138,7 @@ class PublisherController(GroupController):
 
     def _add_users( self, group, parameters  ):
         from ckan.logic.schema import default_group_schema
-        from ckan.lib.navl.dictization_functions import validate
+        from ckan.logic.action import error_summary
         from ckan.lib.dictization.model_save import group_member_save
 
         if not group:
@@ -146,7 +146,7 @@ class PublisherController(GroupController):
                              please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
             return self.apply(group.id, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         data_dict = clean_dict(unflatten(
                 tuplize_dict(parse_params(request.params))))
