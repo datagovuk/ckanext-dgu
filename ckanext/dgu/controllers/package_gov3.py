@@ -124,7 +124,7 @@ class PackageGov3Controller(PackageController):
                 abort(500, _(u'Unable to update search index.') + repr(e.args))
             except ValidationError, e:
                 abort(400, _('Unable to delete package.') + repr(e.error_dict))
-        
+
         # GET
         c.pkg = context.get('package')
         try:
@@ -134,10 +134,25 @@ class PackageGov3Controller(PackageController):
         package_type = self._get_package_type(id)
         self._setup_template_variables(context, {'id': id}, package_type=package_type)
         return render('package/delete.html')
-            
+
 class DatasetForm(SingletonPlugin):
 
     implements(IDatasetForm, inherit=True)
+
+    def new_template(self):
+        return 'package/new.html'
+
+    def comments_template(self):
+        return 'package/comments.html'
+
+    def search_template(self):
+        return 'package/search.html'
+
+    def read_template(self):
+        return 'package/read.html'
+
+    def history_template(self):
+        return 'package/history.html'
 
     def is_fallback(self):
         return True
@@ -153,7 +168,7 @@ class DatasetForm(SingletonPlugin):
         c.licenses = model.Package.get_license_options()
         c.geographic_granularity = geographic_granularity
         c.update_frequency = filter(lambda f: f[0] != 'discontinued', update_frequency)
-        c.temporal_granularity = temporal_granularity 
+        c.temporal_granularity = temporal_granularity
 
         c.publishers = self.get_publishers()
         c.publishers_json = json.dumps(c.publishers)
@@ -166,7 +181,7 @@ class DatasetForm(SingletonPlugin):
         if pkg:
             c.auth_for_change_state = Authorizer().am_authorized(
                 c, model.Action.CHANGE_STATE, pkg)
-        
+
         c.schema_fields = set(self.form_to_db_schema().keys())
 
     def form_to_db_schema(self, package_type=None):
@@ -195,7 +210,7 @@ class DatasetForm(SingletonPlugin):
             'additional_resources': additional_resource_schema(),
             'timeseries_resources': timeseries_resource_schema(),
             'individual_resources': individual_resource_schema(),
-            
+
             'groups': {
                 'name': [not_empty, val.group_id_or_name_exists, unicode],
                 'id': [ignore_missing, unicode],
@@ -227,7 +242,7 @@ class DatasetForm(SingletonPlugin):
             '__after': [validate_license, validate_resources, merge_resources]
         }
         return schema
-    
+
     def db_to_form_schema(data, package_type=None):
         schema = {
             'date_released': [convert_from_extras, ignore_missing, date_to_form],
@@ -251,7 +266,7 @@ class DatasetForm(SingletonPlugin):
             'tags': {
                 '__extras': [keep_extras]
             },
-            
+
             'groups': {
                 'name': [not_empty, unicode]
             },
@@ -299,7 +314,7 @@ class DatasetForm(SingletonPlugin):
             'foi-email': g.extras.get('foi-email', ''),
             'foi-phone': g.extras.get('foi-phone', ''),
         } for g in groups ]
-        
+
         return dict( (g['name'], g) for g in groups )
 
 def date_to_db(value, context):
@@ -327,7 +342,7 @@ def convert_to_extras(key, data, errors, context):
 def convert_from_extras(key, data, errors, context):
 
     for data_key, data_value in data.iteritems():
-        if (data_key[0] == 'extras' 
+        if (data_key[0] == 'extras'
             and data_key[-1] == 'key'
             and data_value == key[-1]):
             data[key] = data[('extras', data_key[1], 'value')]
@@ -353,7 +368,7 @@ def extract_other(option_list):
             other_key = key[-1] + '-other'
             data[(other_key,)] = value
     return other
-            
+
 def convert_geographic_to_db(value, context):
 
     if isinstance(value, list):
@@ -362,7 +377,7 @@ def convert_geographic_to_db(value, context):
         regions = [value]
     else:
         regions = []
-        
+
     return GeoCoverageType.get_instance().form_to_db(regions)
 
 def convert_geographic_to_form(value, context):
