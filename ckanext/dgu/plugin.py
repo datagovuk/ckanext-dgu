@@ -19,8 +19,6 @@ from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
 from ckan.lib.helpers import url_for
 import ckanext.dgu
 
-import stream_filters
-
 log = getLogger(__name__)
 
 def configure_template_directory(config, relative_path):
