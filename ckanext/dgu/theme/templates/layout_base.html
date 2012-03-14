@@ -27,8 +27,12 @@
   <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History" href="${h.url_for(controller='revision', action='list', format='atom', days=1)}" />
   </py:otherwise>
   </py:choose>
-  <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css' />
 
+  <!--
+  =================================
+  TODO restore required stylesheets
+  =================================
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css' />
   <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css')}" type="text/css" media="screen, print" />
   <link rel="stylesheet" href="${h.url_for_static('/css/boilerplate.css?v=2')}" />
   <link rel="stylesheet" href="${h.url_for_static('/css/bootstrap.css')}" type="text/css" media="screen projection" />
@@ -38,6 +42,10 @@
   ${jsConditionalForIe(8, '&lt;link rel="stylesheet" href="' + h.url_for_static('/css/blueprint/ie.css') + '" type="text/css" media="screen, projection"&gt;')}
   <link rel="stylesheet" href="${h.url_for_static('/css/style.css?v=2')}" />
   ${jsConditionalForIe(9, '&lt;script type="text/javascript" src="' + h.url_for_static('/scripts/vendor/html5shiv/html5.js') + '"&gt;&lt;/script&gt;')}
+  -->
+
+
+  <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}" type="text/css" />
 
   <py:if test="defined('optional_head')">
     ${optional_head()}
