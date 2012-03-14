@@ -1,272 +1,264 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  >
-
+<!--[if IE 8 ]>    <html class="no-js ie8" lang="en"> <![endif]-->
+  <!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js" lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      > <!--<![endif]-->
 <xi:include href="_util.html" />
-<xi:include href="_dgu_util.html" />
-
-<?python
-from pylons import config
-drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
-?>
-
 <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
   <title>${page_title()} - ${g.site_title}</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <link rel="shortcut icon" href="${g.favicon}" type="image/x-icon" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" href="${h.url_for_static(g.favicon)}" />
+
   <py:choose>
   <py:when test="defined('optional_feed')">
     ${optional_feed()}
   </py:when>
   <py:otherwise>
-  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History" href="${h.url_for(controller='revision', action='list', id=None, format='atom', days=1)}" />
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History" href="${h.url_for(controller='revision', action='list', format='atom', days=1)}" />
   </py:otherwise>
   </py:choose>
+  <link href='http://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css' />
 
+  <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css')}" type="text/css" media="screen, print" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/boilerplate.css?v=2')}" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/bootstrap.css')}" type="text/css" media="screen projection" />
   <link rel="stylesheet" href="${h.url_for_static('/css/chosen.css')}" type="text/css" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/blueprint/screen.css')}" type="text/css" media="screen, projection" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/blueprint/print.css')}" type="text/css" media="print" />
+  ${jsConditionalForIe(8, '&lt;link rel="stylesheet" href="' + h.url_for_static('/css/blueprint/ie.css') + '" type="text/css" media="screen, projection"&gt;')}
+  <link rel="stylesheet" href="${h.url_for_static('/css/style.css?v=2')}" />
+  ${jsConditionalForIe(9, '&lt;script type="text/javascript" src="' + h.url_for_static('/scripts/vendor/html5shiv/html5.js') + '"&gt;&lt;/script&gt;')}
 
-  <!--[if IE]>
-  <link rel="stylesheet" href="${h.url_for_static('/css/ie.css')}" type="text/css" media="screen, print" />
-  <![endif]-->
+  <py:if test="defined('optional_head')">
+    ${optional_head()}
+  </py:if>
 
-  <link rel="shortcut icon" href="http://data.gov.uk/sites/default/files/datagovuk_favicon.png" type="image/x-icon" />
-  <link type="text/css" rel="stylesheet" media="all" href="${h.url_for_static('/css/pagination.css')}" />
-  <link type="text/css" rel="stylesheet" media="all" href="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css')}" />
+  ${h.literal(getattr(g, 'template_head_end', ''))}
+</head>
 
+<body class="${request.environ.get('pylons.routes_dict', {}).get('action')}
+             ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
+             ${defined('body_class') and body_class()}
+  ">
 
+   <div class="welcome-banner js-welcome-banner" style="display: none;">
+     <span>First time at ${g.site_title}? Visit our <a href="${h.url_for(controller='home', action='about')}">About page</a> to find out more.</span>
+     <button class="pretty-button js-kill-button">x</button>
+  </div>
+  <div id="wrap">
+    <div class="header outer">
+      <header class="container">
+        <div class="menu account">
+          <span class="ckan-logged-in" style="display: none;">
+            <a href="${h.url_for(controller='user',action='me')}">${h.gravatar((c.userobj.email_hash if c and c.userobj else ''),size=20)}${c.user}</a>
+            <a href="${h.url_for('/user/logout')}">Logout</a>
+          </span>
+          <span class="ckan-logged-out">
+            <a href="${h.url_for(controller='user',action='login')}">Login</a>
+            <a href="${h.url_for(controller='user',action='register')}">Register</a>
+          </span>
+        </div>
+        <a href="${h.url('home')}">
+          <img width="64" src="${h.url_for_static(g.site_logo)}" alt="${g.site_title} Logo" title="${g.site_title} Logo" id="logo" />
+        </a>
+        <div id="site-name">
+          <a href="${h.url('home')}">${g.site_title} &mdash; ${g.site_description}</a>
+        </div>
+        <div class="menu">
+          <span id="menusearch">
+            <form action="${h.url(controller='package', action='search')}" method="GET">
+              <input name="q" value="${c.q if hasattr(c, 'q') else ''}" class="search" placeholder="${_('Find datasets')}" />
+            </form>
+          </span>
+          <div id="mainmenu">
+            <span py:if="h.check_access('package_create')">${h.nav_link(c, _('Add a dataset'), controller='package', action='new')}</span>
+            ${h.nav_link(c, _('Search'), controller='package', action='search', highlight_actions = 'new index')}
+            ${h.nav_named_link(c, _('Groups'), name='%s_index' % h.default_group_type() )}
+            ${h.nav_link(c, _('About'), controller='home', action='about')}
+          </div>
+        </div>
+      </header>
+    </div>
+    <py:with vars="messages = list(h._flash.pop_messages())">
+    <div class="flash-messages container">
+      <div class="${m.category}" py:for="m in messages">
+        ${h.literal(m)}
+      </div>
+    </div>
+    </py:with>
 
-  <link type="text/css" rel="stylesheet" media="all" href="/css/dgu-1.css" />
-  <!--<link type="text/css" rel="stylesheet" media="print" href="/css/dgu-2.css" />-->
-  <!--[if IE 7]>
-    <link type="text/css" rel="stylesheet" media="all" href="http://data.gov.uk/sites/all/themes/datagovuk/css/ie7.css" />
-  <![endif]-->
-  <!--[if IE 6]>
-    <link type="text/css" rel="stylesheet" media="all" href="http://data.gov.uk/sites/all/themes/datagovuk/css/ie6.css" />
-  <![endif]-->
+    <div id="main" class="container" role="main">
+      <h1 py:if="defined('page_heading')" class="page_heading">${page_heading()}</h1>
+      <div id="minornavigation" class="span-24 last">
+          <minornavigation></minornavigation>
+      </div>
 
+      <div id="content" class="span-16 append-1">
+        <py:if test="defined('content')">
+          ${content()}
+        </py:if>
+        <content>
+          <p>Master content template placeholder &hellip; please replace me.</p>
+        </content>
+      </div> <!-- /content -->
+      <div id="sidebar" class="span-7 last">
+        <ul class="widget-list">
+          <py:if test="defined('primary_sidebar_extras')">
+            ${primary_sidebar_extras()}
+          </py:if>
+          <primarysidebar>
+            <!-- Primary Side Bar Goes Here -->
+          </primarysidebar>
+        </ul>
+      </div>
+    </div>
+    <br/><br/>
+  </div>
+  <div class="clearfix"></div>
+  <div class="footer outer">
+    <footer class="container">
+        <div class="xoxo span-6">
+          <h3 class="widget-title">About ${g.site_title}</h3>
+          <div class="textwidget">
+            <ul>
+                <li>${h.link_to(_('About'), h.url_for(controller='home', action='about'))}</li>
+              <li>
+                <a href="http://twitter.com/ckanproject">Twitter @ckanproject</a>
+              </li>
+                <li>${h.link_to(_('API'), h.url_for(controller='api', action='get_api', ver=1))}</li>
+                <li>${h.link_to(_('API Docs'), 'http://wiki.ckan.net/API')}</li>
+              <li>
+                <a href="http://ckan.org/contact/">Contact Us</a>
+              </li>
+              <li>
+                <a href="http://okfn.org/privacy-policy/">Privacy Policy</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="xoxo span-6">
+          <h3 class="widget-title">Sections</h3>
+          <div class="textwidget">
+            <ul>
+              <li>
+                <a href="${h.url(controller='user', action='index')}">
+                  Users
+                </a>
+              </li>
+              <li>
+                <a href="${h.url(controller='tag', action='index')}">
+                  Tags
+                </a>
+              </li>
+              <li py:if="'stats' in config.get('ckan.plugins','').split(' ')">
+                <a href="${h.url('stats')}">
+                  Statistics
+                </a>
+              </li>
+              <li>
+                <a href="${h.url(controller='revision', action='index')}">
+                  Revisions
+                </a>
+              </li>
+              <li>
+                <a href="${h.url(controller='authorization_group', action='index')}">
+                  Authorization Groups
+                </a>
+              </li>
+              <li>
+                <a href="${h.url_for('ckanadmin_index')}">
+                  Site Admin
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="xoxo span-6">
+          <h3 class="widget-title">Languages</h3>
+          <div class="textwidget">
+            <ul>
+<?python
+  current_url = request.environ['CKAN_CURRENT_URL']
+?>
+              <li py:for="locale in h.get_available_locales()">
+              <a href="${h.url(current_url, locale=str(locale))}">
+                  ${locale.display_name or locale.english_name}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="xoxo span-6 last">
+          <h3 class="widget-title">Meta</h3>
+          <p id="credits">
+            &copy; 2012
+            <img src="http://assets.okfn.org/images/logo/okf_logo_white_and_green_tiny.png" id="footer-okf-logo" />
+            <a href="http://okfn.org/">Open Knowledge Foundation</a>
+            Licensed under the <a href="http://opendatacommons.org/licenses/odbl/1.0/">Open Database License</a>
+            <a href="http://opendefinition.org/"><img alt="This Content and Data is Open" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" style="border: none ; margin-bottom: -4px;"/></a>
+
+            <br/><br/>
+            Powered by <a href="http://ckan.org">CKAN</a> v${c.__version__}.<br/>
+          </p>
+        </div>
+    </footer>
+  </div> <!-- eo #container -->
 
   <script src="${h.url_for_static('/scripts/vendor/jquery/1.7.1/jquery.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/json2.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.tmpl/beta1/jquery.tmpl.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.cookie/jquery.cookie.min.js')}"></script>
-  <script src="${h.url_for_static('/scripts/vendor/jquery.placeholder/jquery.placeholder.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js ')}"></script>
- <script type="text/javascript" src="${h.url_for_static('/scripts/vendors/jquery.chosen/0.9.7/chosen.js')}"></script>
-
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.chosen/0.9.7/chosen.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.placeholder/jquery.placeholder.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/bootstrap/2.0.0/bootstrap.js')}"></script>
+  <!-- for ckanjs etc -->
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/underscore/1.1.6/underscore.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/backbone/0.5.1/backbone.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.fileupload/20110801/jquery.iframe-transport.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.fileupload/20110801/jquery.fileupload.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/ckanjs/1.0.0/ckanjs.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/application.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-publisher-forms.js')}"></script>
-
-  <!-- the tooltip js script can be removed once we're ready to deploy.  It's being used to highlight work in progress -->
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendors/jquery.tooltip.min.js')}"></script>
-
   <!-- Translated js strings live inside an html template. -->
   <xi:include href="js_strings.html" />
+  <!-- finally our application js that sets everything up-->
+  <script type="text/javascript" src="${h.url_for_static('/scripts/application.js?lang=${c.locale}')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/templates.js')}"></script>
+
+  <script src="${h.url_for_static('/scripts/vendor/modernizr/1.7/modernizr.min.js')}"></script>
 
   <script type="text/javascript">
-    var CKAN = CKAN || {};
+    CKAN.plugins = [
+      // Declare js array from Python string
+      ${['\'%s\', '%s  for s in config.get('ckan.plugins','').split(' ')]}
+    ];
+    <py:if test="config.get('ckan.storage.bucket', '')">
+    CKAN.plugins.push('storage');
+    </py:if>
     CKAN.SITE_URL = '${h.url('/')}';
     // later use will add offsets with leading '/' so ensure no trailing slash
     CKAN.SITE_URL = CKAN.SITE_URL.replace(/\/$/, '');
     $(document).ready(function() {
-		$(".chzn-select").chosen();
-        var ckan_user =  '${ c.user }' // $.cookie("ckan_display_name");
+        var ckan_user = '${c.user}';
         if (ckan_user) {
             $(".ckan-logged-out").hide();
             $(".ckan-logged-in").show();
         }
         $('input[placeholder], textarea[placeholder]').placeholder();
+
+		$(".chzn-select").chosen();
     });
   </script>
-  <style type="text/css">
-    /* ckan page headings are h2 */
-    #content h2 {
-      color: black;
-      font-family: Helvetica, Arial, sans-serif;
-      font-size: 30px;
-      font-style: normal;
-      font-variant: normal;
-      font-weight: bold;
-      background: transparent;
-      margin: 0;
-      margin-bottom: 15px;
-      padding: 0;
-    }
 
-    #block-block-30 {
-      border: none;
-    }
-
-    /* block witdth is 287px */
-    div#block-block-30 p {
-      padding: 15px;
-      padding-bottom: 0px;
-      width: 257px;
-    }
-
-    #secondary {
-      border-top: solid 1px lightGrey;
-    }
-
-    #logo-title {
-    	margin-left: 20px;
-    	font-size: 25px;
-        height: 50px;
-    }
-
-    #logo-title span {
-    	margin-left: 10px;
-    }
-  </style>
-  <py:if test="defined('optional_head')">
-    ${optional_head()}
-  </py:if>
-</head>
-
-<body class="${value_of('body_class', default=lambda: c.body_class)()} sidebar-right page-data">
-
-  <div id="page">
-    <py:with vars="messages = list(h._flash.pop_messages())">
-    <div py:if="messages" class="flash-messages ${m.category}" py:for="m in messages">
-      <div>
-        ${h.literal(m)}
-		<a onclick="$('div.flash-messages').slideUp();return false;" href="javascript:void(0);" style="float:right; "><img src="${h.url_for_static('/images/close.png')}" style="margin-right:20px;" border="0"/></a>
-      </div>
-    </div>
-	<script type="text/javascript" py:if="messages">
-		setTimeout(function(){$("div.flash-messages").slideUp();}, 10000);
-	</script>
-    </py:with>
-
-    <ul id="accesslinks">
-      <li id="skip-to-nav"><a href="#navigation_primary">Skip to Navigation</a></li>
-      <li id="skip-to-content"><a href="#content" accesskey="s">Skip to Content</a></li>
-    </ul>
-
-    <div id="header" role="banner">
-      <div id="login">
-        <img src="/images/1x1.gif" alt="HM Government logo" id="logo_hm-government" class="sprite" />
-        <span class="ckan-logged-out">
-          <a href="${h.url_for(controller='user', action='login')}">Log in</a> or <a href="${h.url_for(controller='user', action='register')}">sign up</a>
-        </span>
-        <span class="ckan-logged-in" style="display: none;">
-          You are logged-in as <a href="${h.url_for(controller='user', action='me')}"><span id="ckan_user_name">${c.user}</span></a>. <a href="/user/logout">Log out</a>.
-        </span>
-<!--                  <span class="ckan_logged_out">
-                    <a href="${h.url_for(controller='user',action='login', id=None)}">Login with ${h.icon('openid')} OpenID</a>
-                  </span>
--->
-      </div>
-      <div class="inner">
-         <a href="http://${drupal_host}/" id="logo_datagovuk" class="sprite" accesskey="1" title="Back to data.gov.uk homepage"><span>Back to data.gov.uk homepage</span></a>
-         <span id="slogan" class="sprite"><span>Opening up government data</span></span>
-        <div id="site-description">${g.site_description}</div>
-
-
-      </div> <!-- /#inner -->
-      <div id="navbar" class="clearfix">
-         <div id="navbar-inner" class="clear-block region region-navbar">
-          <a name="navigation" id="navigation"></a>
-            <ul id="navigation_primary" role="navigation" class="clearfix">
-              <li class="menu-361 first home-icon"><a href="http://${drupal_host}/" title="Home">Home</a></li>
-              <li class="menu-364"><a href="/data" title="">Data</a></li>
-              <li class="menu-366"><a href="http://${drupal_host}/apps" title="">Apps</a></li>
-              <li class="menu-1120"><a href="http://data.gov.uk/government-procurement" title="">Event</a></li>
-              <li class="menu-118"><a href="http://${drupal_host}/forum" title="">Forum</a></li>
-              <li class="menu-370"><a href="http://${drupal_host}/blog" title="">Blogs</a></li>
-              <li class="menu-367"><a href="http://${drupal_host}/ideas" title="">Ideas</a></li>
-              <li class="menu-6340"><a href="http://${drupal_host}/linked-data" title="Linked Data">Linked Data</a></li>
-              <li class="menu-368"><a href="http://${drupal_host}/resources" title="">Resources</a></li>
-              <li class="menu-6327 last"><a href="http://${drupal_host}/about" title="">About</a></li>
-            </ul>
-<!--
-            <ul id="navigation_primary" class="links clearfix">
-              <li class="first">${h.nav_link(c, _('CKAN Home'), controller='home', action='index', id=None)}</li>
-              <li>${h.nav_link(c, _('Search'), controller='package', action='index', id=None, highlight_actions = 'search index')}</li>
-              <li py:if="h.am_authorized(c, actions.PACKAGE_CREATE)">${h.nav_link(c, _('Add a package'), controller='package', action='new', id=None)}</li>
-              <li>${h.nav_link(c, _('Tags'), controller='tag', action='index', id=None)}</li>
-              <li class="last">${h.nav_link(c, _('Groups'), controller='group', action='index', id=None, highlight_actions = 'new index')}</li>
-            </ul>
--->
-
-         </div> <!-- /#navbar-inner -->
-      </div> <!-- /#navbar -->
-    </div> <!-- /#header -->
-
-    <div id="main">
-      <div id="main-inner" class="clear-block with-navbar">
-        <div id="content">
-          <div id="content-inner">
-            <div id="content-header">
-              <h1 py:if="defined('page_heading')" class="page_heading">${page_heading()}</h1>
-            </div> <!-- /#content-header -->
-            <div id="content-area">
-              <div id="node-3" class="node node-type-page">
-                <div class="node-inner">
-
-                  <div class="content">
-                    <content>
-                    </content>
-                  </div>
-
-                </div> <!-- /node-inner -->
-              </div> <!-- /node -->
-            </div> <!-- /content-area -->
-
-          </div> <!-- /#content-inner -->
-        </div> <!-- /#content -->
-
-
-        <div id="sidebar-right">
-          <div id="sidebar-right-inner" class="region region-right">
-            <div id="block-block-30" class="block block-block region-odd odd region-count-1 count-1">
-              <div class="block-inner">
-
-                <primarysidebar>
-                  <!-- Primary Side Bar Goes Here -->
-
-                </primarysidebar>
-
-              </div> <!-- /block-inner -->
-            </div> <!-- /block -->
-          </div> <!-- /#sidebar-right-inner -->
-        </div> <!-- /#sidebar-right -->
-
-        <div id="page-bottom">
-          <pagebottom>
-
-          </pagebottom>
-        </div>
-
-      </div> <!-- /#main-inner -->
-    </div> <!-- /#main -->
-
-    <div id="secondary" class="clear-block">
-      <ul class="links">
-        <li class="first"><a href="http://${drupal_host}/terms-and-conditions" title="Terms / Privacy" accesskey="8">Terms and conditions</a></li>
-        <li><a href="http://${drupal_host}/code-conduct" title="Code of conduct">Code of conduct</a></li>
-        <li><a href="http://${drupal_host}/project" title="">Project Info</a></li>
-        <li><a href="http://${drupal_host}/faq" title="FAQ" accesskey="5">FAQ</a></li>
-        <li><a href="http://${drupal_host}/contact" title="Contact Us" accesskey="9">Contact us</a></li>
-        <li><a href="http://${drupal_host}/accessibility-statement" title="Accessibility Statement" accesskey="0">Accessibility</a></li>
-        <li><a href="http://${drupal_host}/moderation-policy" title="Moderation policy">Moderation policy</a></li>
-        <li><a href="http://${drupal_host}/privacy" title="Privacy">Privacy</a></li>
-        <li><a href="http://${drupal_host}/sitemap" title="" accesskey="3">Sitemap</a></li>
-        <li class="last">CKAN
-               <span i18n:msg="version">
-                  ${c.__version__}
-               </span>
-        </li>
-      </ul>
-    </div> <!-- /#secondary -->
-  </div> <!-- /#page -->
   <py:if test="defined('optional_footer')">
     ${optional_footer()}
   </py:if>
@@ -274,3 +266,6 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
 ${h.literal(getattr(g, 'template_footer_end', ''))}
 </body>
 </html>
+
+
+
