@@ -25,9 +25,20 @@ def drop_if_same_as_publisher(key, data, errors, context):
     """
     from ckan.model.group import Group
     field_name = key[0] # extract from tuple
-    group = Group.get(data.get(('groups', 0, 'name'), None))
+
+    group_ref = None
+    for ref_name in ['name', 'id']:
+        group_ref = data.get(('groups', 0, ref_name), None)
+        if group_ref and group_ref is not missing:
+            break
+
+    if not group_ref:
+        return
+
+    group = Group.get(group_ref)
     if not group:
         return
+
     if group.extras.get(field_name, None) == data[key]:
         # Remove from data and errors iff the two are equal.
         # If the group doesn't have an extra field for this key,
@@ -76,7 +87,7 @@ def validate_license(key, data, errors, context):
             pass
         #data[('extras',)].append({'key': 'licence', 'value': data[('access_constraints',)]})
         return
-
+    
     license_id = bool(data[('license_id',)])
     license_id_other = bool(data[('access_constraints',)])
 

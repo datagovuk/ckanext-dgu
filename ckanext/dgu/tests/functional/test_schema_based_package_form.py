@@ -59,7 +59,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'notes':     (None, 'textarea'),
 
         # Contact details section
-        'groups__0__name':            ('Published by: ', 'select'),
+        'groups__0__name':          ('Published by: ', 'select'),
         'contact-name':             (None, 'input'),
         'contact-email':            (None, 'input'),
         'contact-phone':            (None, 'input'),
@@ -73,7 +73,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'tag_string':           ('Tags', 'input'),
         'mandate':              ('Mandate', 'input'),
         'license_id':           ('License:', 'select'),
-        'access_constraints':   ('Other:', 'input'),
+        'access_constraints':   (None, 'textarea'),
 
         # Additional resources section
         'additional_resources__0__description': (None, 'input'),
@@ -536,7 +536,7 @@ class TestFormValidation(object):
         """
         data = {'license_id': ""}
         response = self._form_client.post_form(data)
-        assert_in('License id: Please enter the name of the license', response.body)
+        assert_in('License id: Please enter the access constraints.', response.body)
 
     def test_cannot_name_another_license_if_declaring_the_dataset_to_be_ogl_licensed(self):
         """
@@ -544,7 +544,7 @@ class TestFormValidation(object):
         """
         data = {'license_id': 'uk-ogl', 'access_constraints': 'A difference license'}
         response = self._form_client.post_form(data)
-        assert_in('License id: Leave the "other" box empty if selecting a license from the list', response.body)
+        assert_in('License id: Leave the "Access Constraints" box empty if selecting a license from the list', response.body)
 
 class TestPackageCreation(CommonFixtureMethods):
     """
@@ -634,7 +634,7 @@ class TestPackageCreation(CommonFixtureMethods):
         # Health and Education are from the primary and secondary themes, which
         # end up in the tags
         assert_equal(set(['tag1', 'tag2', 'a multi word tag', 'Health', 'Education']),
-                     set(tag.name for tag in pkg.tags))
+                     set(tag.name for tag in pkg.get_tags()))
 
         # Additional resources
         expected_additional_keys = filter(lambda k: k.startswith('additional_resources'),
@@ -806,10 +806,10 @@ _EXAMPLE_FORM_DATA = {
         'additional_resources'  : [
             {'url'              : 'http://www.example.com/additiona_resource',
              'description'      : 'An additional resource',
-             'format'           : 'CSV'},
+             'format'           : 'csv'},
             {'url'              : 'http://www.example.com/additiona_resource_2',
              'description'      : 'Another additional resource',
-             'format'           : 'XML'}
+             'format'           : 'xml'}
         ],
 
         # Themes and tags
@@ -833,10 +833,10 @@ _EXAMPLE_INDIVIDUAL_DATA.update({
         'individual_resources'     : [
             {'url'                 : 'http://www.example.com',
              'description'         : 'A resource',
-             'format'              : 'XML'},
+             'format'              : 'xml'},
             {'url'                 : 'http://www.google.com',
              'description'         : 'A search engine',
-             'format'              : 'SDMX'}
+             'format'              : 'sdmx'}
         ]
 })
 
@@ -850,22 +850,22 @@ _EXAMPLE_TIMESERIES_DATA.update({
                 {'description'      : 'Summer solstice 2010',
                  'url'              : 'http://example.com/data/S2010',
                  'date'             : 'Summer 2010',
-                 'format'           : 'XML'},
+                 'format'           : 'xml'},
 
                 {'description'      : 'Winter solstice 2010',
                  'url'              : 'http://example.com/data/W2010',
                  'date'             : 'Winter 2010',
-                 'format'           : 'RDF'},
+                 'format'           : 'rdf'},
 
                 {'description'      : 'Summer solstice 2011',
                  'url'              : 'http://example.com/data/S2011',
                  'date'             : 'Summer 2011',
-                 'format'           : 'CSV'},
+                 'format'           : 'csv'},
 
                 {'description'      : 'Winter solstice 2011',
                  'url'              : 'http://example.com/data/W2011',
                  'date'             : 'Winter 2011',
-                 'format'           : 'XLS'}
+                 'format'           : 'xls'}
             ],
 })
 

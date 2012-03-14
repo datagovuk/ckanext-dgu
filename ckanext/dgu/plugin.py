@@ -19,8 +19,6 @@ from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
 from ckan.lib.helpers import url_for
 import ckanext.dgu
 
-import stream_filters
-
 log = getLogger(__name__)
 
 def configure_template_directory(config, relative_path):
@@ -177,64 +175,6 @@ class PublisherPlugin(SingletonPlugin):
 
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
-
-
-class FormApiPlugin(SingletonPlugin):
-    """
-    Configures the Form API and harvesting used by Drupal.
-    """
-
-    implements(IRoutes)
-    implements(IConfigurer)
-
-    def before_map(self, map):
-
-        map.connect('/package/new', controller='package_formalchemy', action='new')
-        map.connect('/package/edit/{id}', controller='package_formalchemy', action='edit')
-
-        for version in ('', '1/'):
-            map.connect('/api/%sform/package/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
-            map.connect('/api/%sform/package/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
-            map.connect('/api/%sform/harvestsource/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-            map.connect('/api/%sform/harvestsource/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
-            map.connect('/api/%sform/harvestsource/delete/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
-            map.connect('/api/%srest/harvestsource/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
-        map.connect('/api/2/form/package/create', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
-        map.connect('/api/2/form/package/edit/:id', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
-        map.connect('/api/2/form/harvestsource/create', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-        map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
-        map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
-        map.connect('/api/2/rest/harvestsource', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
-        map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
-        # I had to add this line!!!!
-        map.connect('/api/2/rest/harvestsource/publisher/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
-        map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvesting_job_create',
-                conditions=dict(method=['POST']))
-        """
-        These routes are implemented in ckanext-csw
-        map.connect('/api/2/rest/harvesteddocument/:id/xml/:id2.xml', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvested_document_view_format',format='xml')
-        map.connect('/api/rest/harvesteddocument/:id/html', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvested_document_view_format', format='html')
-        """
-        map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_organisation')
-        #map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
-        #map.connect('home', '/ckan/', controller='home', action='index')
-
-        return map
-
-    def after_map(self, map):
-        return map
-
-    def update_config(self, config):
-        #configure_template_directory(config, 'theme_common/templates')
-        #configure_public_directory(config, 'theme_common/public')
-
-        # set the customised package form (see ``setup.py`` for entry point)
-        config['package_form']      = 'package_gov3'
-
-
 
 class SearchPlugin(SingletonPlugin):
     """
