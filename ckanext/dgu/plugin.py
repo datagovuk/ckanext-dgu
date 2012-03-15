@@ -4,6 +4,7 @@ import re
 from logging import getLogger
 
 from ckan.lib.helpers import flash_notice, _flash
+from ckan.logic import NotFound
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
@@ -224,7 +225,7 @@ class SearchPlugin(SingletonPlugin):
         If a dismax query is run, then these will be the fields that are searched
         within.
         """
-        search_params['qf'] = 'title^4 name^3 tags^3 group_titles^3 notes^2 text'
+        search_params['qf'] = 'title^4 name^3 tags^3 group_titles^3 notes^2 text extras_harvest_document_content^0.2'
         return search_params
 
     def after_search(self, search_results, search_params):
@@ -298,6 +299,27 @@ class SearchPlugin(SingletonPlugin):
         else:
             log.warning('Unable to add "parent_publishers" to index, as the datadict '
                         'already contains a key of that name')
+
+        # Index a harvested dataset's XML content
+        # (Given a low priority when searching)
+        if pkg_dict.get('UKLP', '') == 'True':
+            import ckan
+            from ckan.logic import get_action
+
+            context = {'model': ckan.model,
+                       'session': ckan.model.Session,
+                       'ignore_auth': True}
+
+            data_dict = {'id': pkg_dict.get('harvest_object_id', '')}
+
+            try:
+                harvest_object = get_action('harvest_object_show')(context, data_dict)
+                pkg_dict['extras_harvest_document_content'] = harvest_object.get('content', '')
+            except NotFound:
+                log.warning('Unable to find harvest object "%s" '
+                            'referenced by dataset "%s"',
+                            data_dict['id'], pkg_dict['id'])
+
         return pkg_dict
 
     _disallowed_characters = re.compile(r'[^a-z]')
