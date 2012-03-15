@@ -215,6 +215,16 @@ class SearchPlugin(SingletonPlugin):
         pass
 
     def before_search(self, search_params):
+        """
+        Modify the search query.
+
+        Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
+        tuned for DGU.
+
+        If a dismax query is run, then these will be the fields that are searched
+        within.
+        """
+        search_params['qf'] = 'title^4 name^3 tags^3 group_titles^3 notes^2 text'
         return search_params
 
     def after_search(self, search_results, search_params):
