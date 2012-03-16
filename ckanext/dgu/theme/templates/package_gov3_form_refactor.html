@@ -134,7 +134,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </table>
 
       <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
-      <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check Links"/>
+      <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check all URLs"/>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
@@ -188,7 +188,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </tbody>
       </table>
       <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
-      <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check Links"/>
+      <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check all URLs"/>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
@@ -451,7 +451,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </tbody>
     </table>
     <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Additional resource(s) incomplete.</p>
-    <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check Links"/>
+    <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check all URLs"/>
     <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
 
   <label class="field_opt" for="mandate">Mandate</label>
