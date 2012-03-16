@@ -96,7 +96,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </thead>
       <tbody>
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
-        <tr class="timeseries_resources__${num}">
+        <tr class="timeseries_resources__${num} resource">
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
               <?python
@@ -112,6 +112,18 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        type="text"
                        value="${res.get(col, '')}"
                        py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                <span py:when="col=='url'">
+                  <input id="timeseries_resources__${num}__${col}"
+                         name="timeseries_resources__${num}__${col}"
+                         type="text"
+                         value="${res.get(col, '')}"
+                         py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                  <input id="timeseries_resources__${num}__validate-resource-button"
+                         type="button"
+                         class="validate-resource-button"
+                         value="Check"/>
+                </span>
+        
                 <input py:otherwise=""
                        id="timeseries_resources__${num}__${col}"
                        name="timeseries_resources__${num}__${col}"
@@ -155,7 +167,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </thead>
       <tbody>
         <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
-        <tr class="individual_resources__${num}">
+        <tr class="individual_resources__${num} resource">
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
             <?python
@@ -171,6 +183,17 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                      type="text"
                      value="${res.get(col, '')}"
                      py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+              <span py:when="col=='url'">
+                <input id="individual_resources__${num}__${col}"
+                       name="individual_resources__${num}__${col}"
+                       type="text"
+                       value="${res.get(col, '')}"
+                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                <input id="individual_resources__${num}__validate-resource-button"
+                       type="button"
+                       class="validate-resource-button"
+                       value="Check"/>
+              </span>
               <input py:otherwise=""
                      id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
@@ -418,7 +441,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </thead>
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
-        <tr class="additional_resources__${num}">
+        <tr class="additional_resources__${num} resource">
           <py:for each="col in ['description', 'url', 'format']">
             <td>
               <?python
@@ -434,6 +457,17 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        type="text"
                        value="${res.get(col, '')}"
                        py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                <span py:when="col=='url'">
+                  <input id="additional_resources__${num}__${col}"
+                         name="additional_resources__${num}__${col}"
+                         type="text"
+                         value="${res.get(col, '')}"
+                         py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                  <input id="additional_resources__${num}__validate-resource-button"
+                         type="button"
+                         class="validate-resource-button"
+                         value="Check"/>
+                </span>
                 <input py:otherwise=""
                        id="additional_resources__${num}__${col}"
                        name="additional_resources__${num}__${col}"
