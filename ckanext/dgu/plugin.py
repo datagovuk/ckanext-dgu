@@ -241,7 +241,7 @@ class SearchPlugin(SingletonPlugin):
     DGU-specific searching.
 
     One thing DGU specific about the search is that DGU facets on
-    whether a dataset's licenese_id is OGL (Open Government License) or not.
+    whether a dataset's license_id is OGL (Open Government License) or not.
     Since this is calcuable from the license_id, but is not a facet over the
     whole set of possible license_id values (ie. 'ukcrown', 'other' etc. should
     all be grouped together under the 'non-ogl' facet), we index on a field
