@@ -1,3 +1,12 @@
+'''
+Goes through a CKAN database and normalises the value in the format
+field for all resources. It makes them capitalised and not .xls etc.
+
+Usage:
+ $ python ../dgu/ckanext/dgu/bin/tidy_resource_types.py --config=ckan-demo.ini
+
+'''
+
 import os
 import logging
 import sys
@@ -67,9 +76,6 @@ res_type_map = {
     }
 
 def command(dry_run=False):
-    import csv
-    from pylons import config
-
     if not dry_run:
         model.repo.new_revision()
 

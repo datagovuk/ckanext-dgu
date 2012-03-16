@@ -39,7 +39,7 @@
           <py:if test="not package.isopen">
             <li>
               <span class="closed">
-                ${h.icon('lock')} Not Openly Licensed
+                ${h.icon('lock')} Not Openly Licenced
               </span>
             </li>
           </py:if>
@@ -106,7 +106,7 @@
       <p py:if="not len(h.facet_items(c, 'resource-type'))">There are no further UKLP filters to apply.</p>
     </div>
 
-    ${facet_sidebar('license_id-is-ogl', title=lambda n: 'License', label=lambda n: 'Open Government License' if n == 'true' else 'Non-Open Government License', if_empty='There are no further license filters to apply.')}
+    ${facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
   </div>
 
