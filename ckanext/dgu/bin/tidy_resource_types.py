@@ -23,14 +23,11 @@ res_type_map = {
     'application/x-msexcel': 'XLS',
     'Excel': 'XLS',
     'excel': 'XLS',
+    'ecel': 'XLS',
     'Excel (xls)': 'XLS',
+    'Excel (.xls)': 'XLS',
     'osd': 'ODS',
     'csv': 'CSV',
-    'CSV ': 'CSV',
-    'CSv': 'CSV',
-    '.csv': 'CSV',
-    '.CSV': 'CSV',
-    'CVS': 'CSV',
     'cvs': 'CSV',
     'Zipped CSV': 'CSV/Zip',
     'CSV Zip': 'CSV/Zip',
@@ -47,6 +44,7 @@ res_type_map = {
     'Portable Document File': 'PDF',
     'pdf': 'PDF',
     'PDF ': 'PDF',
+    'pdf file': 'PDF',
     'Adobe PDF': 'PDF',
     'ppt': 'PPT',
     'odp': 'ODP',
@@ -62,6 +60,9 @@ res_type_map = {
     'zip': 'ZIP',
     'Unverified': '',
     'json': 'JSON',
+    'iCalendar': 'iCal',
+    'HTML/iCalendar': 'iCal',
+    'HTML/iCal': 'iCal',
     ' ': '',
     }
 
@@ -84,7 +85,7 @@ def command(dry_run=False):
             improved_fmt = res_type_map[canonised_fmt]
         else:
             improved_fmt = tidy(res.format)
-        if improved_fmt or '' != res.format or '':
+        if (improved_fmt or '') != (res.format or ''):
             if not dry_run:
                 res.format = improved_fmt
             stats.add(improved_fmt, res.format)
