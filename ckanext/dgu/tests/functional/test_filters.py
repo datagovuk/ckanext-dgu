@@ -7,8 +7,6 @@ from ckan.lib.base import render, c, h, g
 from ckan.logic import get_action
 from ckan import model
 
-from ckanext.dgu.stream_filters import harvest_filter, package_id_filter
-
 from ckan.tests import TestController as ControllerTestCase
 from ckan.tests.pylons_controller import PylonsTestCase
 from ckan.tests.html_check import HtmlCheckMethods
@@ -18,6 +16,7 @@ class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
                         ControllerTestCase, HarvestFixture):
     @classmethod
     def setup_class(cls):
+        model.repo.rebuild_db()
         PylonsTestCase.setup_class()
         HarvestFixture.setup_class()
 
@@ -59,21 +58,6 @@ class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
 
 class TestHarvestFilter(FilterTestCase):
 
-    def test_basic(self):
-        pkg_id = c.pkg.id
-
-        # before filter
-        # <a href="http://www.annakarenina.com/download/x=1&amp;y=2" target="_blank">Full text. Needs escaping: " Umlaut: u</a>
-        self.check_named_element(self.pkg_page, 'a', '!href="%s"' % self.harvest_xml_url)
-        self.check_named_element(self.pkg_page, 'a', '!href="%s"' % self.harvest_html_url)
-
-        res = harvest_filter(HTML(self.pkg_page), c.pkg)
-        res = res.render('html').decode('utf8')
-
-        # after filter
-        self.check_named_element(res, 'a', 'href="%s"' % self.harvest_xml_url)
-        self.check_named_element(res, 'a', 'href="%s"' % self.harvest_html_url)
-
     def test_link_to_xml(self):
         res = self.app.get(self.harvest_xml_url)
         assert_equal(res.body, '<xml>test content</xml>')
@@ -82,22 +66,4 @@ class TestHarvestFilter(FilterTestCase):
         res = self.app.get(self.harvest_html_url)
         assert 'GEMINI record' in res.body
         assert 'error' not in res.body
-
-class TestPackageIdFilter(FilterTestCase):
-
-    def test_basic(self):
-        """
-        Currently FAILs. Leaving in as I'm not sure of the expected behaviour
-        """
-        pkg_id = c.pkg.id
-
-        # before filter
-        # <a href="http://www.annakarenina.com/download/x=1&amp;y=2" target="_blank">Full text. Needs escaping: " Umlaut: u</a>
-        self.check_named_element(self.pkg_page, 'h3', '!ID')
-
-        res = package_id_filter(HTML(self.pkg_page), c.pkg)
-        res = res.render('html').decode('utf8')
-
-        # after filter
-        self.check_named_element(res, 'h3', 'ID')
 
