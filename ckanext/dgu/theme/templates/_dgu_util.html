@@ -10,47 +10,16 @@
         templating issues -->
 
   <ul py:def="package_list_from_dict(packages)" class="datasets">
-    <li py:for="package in packages"
-        class="${'fullyopen' if (package.isopen and package.get('resources')) else None}">
-        <div class="header">
-      <span class="title">
+   <li py:for="package in packages">
+    <div class="dataset">
+     <img class="placeholder dataset-icon" href="#" />
+     <div class="dataset-header">
+      <h3>
         ${h.link_to(package.get('title') or package.get('name'), h.url_for(controller='package', action='read', id=package.get('name')))}
-      </span>
-
-      <div class="search_meta">
-        <py:if test="package.resources">
-          <ul class="dataset_formats">
-            <py:for each="resource in package.resources">
-              <py:if test="resource.get('format')">
-                <li><a href="${resource.get('url')}"
-                  title="${resource.get('description')}">${resource.get('format')}</a></li>
-              </py:if>
-            </py:for>
-          </ul>
-        </py:if>
-        <ul class="openness">
-          <py:if test="package.isopen">
-            <li>
-              <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-                  <img src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
-              </a>
-            </li>
-          </py:if>
-          <py:if test="not package.isopen">
-            <li>
-              <span class="closed">
-                ${h.icon('lock')} Not Openly Licensed
-              </span>
-            </li>
-          </py:if>
-        </ul>
-      </div>
-		</div>
-		<div class="extract">
-			${h.markdown_extract(package.notes)}
-		</div>
-        <div class="owners">
-            <p><b>Publisher:</b>
+      </h3>
+      <h4>
+            <strong>Publisher</strong> 
+            :&nbsp;
               <?python
                 groups = package.get('groups', [])
                 publishers = [ g for g in groups if g['type'] == 'publisher' ]
@@ -59,20 +28,42 @@
               <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=publisher.get('name', ''))}">
                 ${publisher.get('title', '')}
               </a>
-            </p>
-            <?python
+      </h4>
+      <?python
                 display_provider = False
                 uklps = [d for d in package.get('extras', {}) if d['key'] == 'UKLP']
                 is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
                 providers = [d for d in package.get('extras', {}) if d['key'] == 'provider']
                 provider = providers[0]['value'] if len(providers) else ''
                 display_provider = is_uklp or bool(provider)
-            ?>
-            <p py:if="display_provider"><b>Provider:</b> ${provider.strip('"')}</p>
+      ?>
+      <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
+       </div>
+     <div class="dataset-description">
+        ${h.markdown_extract(package.notes)}
+     </div>
+     <py:if test="package.resources">
+          <ul class="dataset-formats">
+            <py:for each="resource in package.resources">
+              <py:if test="resource.get('format')">
+                <li><a href="${resource.get('url')}"
+                  title="${resource.get('description')}">${resource.get('format')}</a></li>
+              </py:if>
+            </py:for>
+          </ul>
+     </py:if>
+     <ul class="dataset-preview">
+        <li class="map">preview on map</li>
+        <li class="add">add to preview</li>
+     </ul>
+     <div class="clearfix"></div>
+
+        <div class="owners">
         </div>
         <!--ul py:if="package.tags" class="tags">
           <li py:for="tag in package.tags">${tag.name}</li>
         </ul-->
+     </div>
     </li>
   </ul>
 
