@@ -64,10 +64,19 @@ class PublisherForm(SingletonPlugin):
         """
         here = os.path.dirname(__file__)
         rootdir = os.path.dirname(os.path.dirname(here))
-#        template_dir = os.path.join(rootdir, 'ckanext',
-#                                    'publisher_form', 'templates')
-#        config['extra_template_paths'] = ','.join([template_dir,
-#                config.get('extra_template_paths', '')])
+
+    def new_template(self):
+        return 'group/new.html'
+
+    def index_template(self):
+        return 'group/index.html'
+
+    def read_template(self):
+        return 'group/read.html'
+
+    def history_template(self):
+        return 'group/history.html'
+
 
     def group_form(self):
         """

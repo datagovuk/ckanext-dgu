@@ -4,6 +4,7 @@ import re
 from logging import getLogger
 
 from ckan.lib.helpers import flash_notice, _flash
+from ckan.logic import NotFound
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
@@ -18,8 +19,6 @@ from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
                              dgu_dataset_delete
 from ckan.lib.helpers import url_for
 import ckanext.dgu
-
-import stream_filters
 
 log = getLogger(__name__)
 
@@ -178,64 +177,6 @@ class PublisherPlugin(SingletonPlugin):
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
 
-
-class FormApiPlugin(SingletonPlugin):
-    """
-    Configures the Form API and harvesting used by Drupal.
-    """
-
-    implements(IRoutes)
-    implements(IConfigurer)
-
-    def before_map(self, map):
-
-        map.connect('/package/new', controller='package_formalchemy', action='new')
-        map.connect('/package/edit/{id}', controller='package_formalchemy', action='edit')
-
-        for version in ('', '1/'):
-            map.connect('/api/%sform/package/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_create')
-            map.connect('/api/%sform/package/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='package_edit')
-            map.connect('/api/%sform/harvestsource/create' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-            map.connect('/api/%sform/harvestsource/edit/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
-            map.connect('/api/%sform/harvestsource/delete/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
-            map.connect('/api/%srest/harvestsource/:id' % version, controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
-        map.connect('/api/2/form/package/create', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_create')
-        map.connect('/api/2/form/package/edit/:id', controller='ckanext.dgu.forms.formapi:Form2Controller', action='package_edit')
-        map.connect('/api/2/form/harvestsource/create', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_create')
-        map.connect('/api/2/form/harvestsource/edit/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_edit')
-        map.connect('/api/2/form/harvestsource/delete/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_delete')
-        map.connect('/api/2/rest/harvestsource', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
-        map.connect('/api/2/rest/harvestsource/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_view')
-        # I had to add this line!!!!
-        map.connect('/api/2/rest/harvestsource/publisher/:id', controller='ckanext.dgu.forms.formapi:FormController', action='harvest_source_list')
-        map.connect('/api/2/rest/harvestingjob', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvesting_job_create',
-                conditions=dict(method=['POST']))
-        """
-        These routes are implemented in ckanext-csw
-        map.connect('/api/2/rest/harvesteddocument/:id/xml/:id2.xml', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvested_document_view_format',format='xml')
-        map.connect('/api/rest/harvesteddocument/:id/html', controller='ckanext.dgu.forms.formapi:FormController',
-                action='harvested_document_view_format', format='html')
-        """
-        map.connect('/api/2/util/publisher/:id/department', controller='ckanext.dgu.forms.formapi:FormController', action='get_department_from_organisation')
-        #map.connect('/', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
-        #map.connect('home', '/ckan/', controller='home', action='index')
-
-        return map
-
-    def after_map(self, map):
-        return map
-
-    def update_config(self, config):
-        #configure_template_directory(config, 'theme_common/templates')
-        #configure_public_directory(config, 'theme_common/public')
-
-        # set the customised package form (see ``setup.py`` for entry point)
-        config['package_form']      = 'package_gov3'
-
-
-
 class SearchPlugin(SingletonPlugin):
     """
     DGU-specific searching.
@@ -275,10 +216,23 @@ class SearchPlugin(SingletonPlugin):
         pass
 
     def before_search(self, search_params):
+        """
+        Modify the search query.
+
+        Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
+        tuned for DGU.
+
+        If a dismax query is run, then these will be the fields that are searched
+        within.
+        """
+        search_params['qf'] = 'title^4 name^3 tags^3 group_titles^3 notes^2 text extras_harvest_document_content^0.2'
         return search_params
 
     def after_search(self, search_results, search_params):
         return search_results
+
+    def before_view(self, pkg_dict):
+        return pkg_dict
 
     def before_index(self, pkg_dict):
         """
@@ -345,6 +299,27 @@ class SearchPlugin(SingletonPlugin):
         else:
             log.warning('Unable to add "parent_publishers" to index, as the datadict '
                         'already contains a key of that name')
+
+        # Index a harvested dataset's XML content
+        # (Given a low priority when searching)
+        if pkg_dict.get('UKLP', '') == 'True':
+            import ckan
+            from ckan.logic import get_action
+
+            context = {'model': ckan.model,
+                       'session': ckan.model.Session,
+                       'ignore_auth': True}
+
+            data_dict = {'id': pkg_dict.get('harvest_object_id', '')}
+
+            try:
+                harvest_object = get_action('harvest_object_show')(context, data_dict)
+                pkg_dict['extras_harvest_document_content'] = harvest_object.get('content', '')
+            except NotFound:
+                log.warning('Unable to find harvest object "%s" '
+                            'referenced by dataset "%s"',
+                            data_dict['id'], pkg_dict['id'])
+
         return pkg_dict
 
     _disallowed_characters = re.compile(r'[^a-z]')

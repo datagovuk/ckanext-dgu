@@ -78,6 +78,19 @@
 
 
   <div py:def="facet_filters()" class="datasets">
+
+    <div class="facet-box">
+      <h2>Sort results</h2>
+      <ul>
+        <li py:if="c.sort_by_fields"><a href="${c.sort_by([])}">Relevancy</a></li>
+        <li py:if="not c.sort_by_fields">Relevancy</li>
+        <py:for each="field,title,order in [('titleString','Title','asc'), ('metadata_modified', 'Date Modified', 'desc')]">
+          <li py:if="field not in c.sort_by_fields"><a href="${c.sort_by([(field,order)])}">${title}</a></li>
+          <li py:if="field in c.sort_by_fields">${title}</li>
+        </py:for>
+      </ul>
+    </div>
+
     ${facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
     ${facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', count_label=lambda c: '')}
 

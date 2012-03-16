@@ -140,44 +140,12 @@
     });
     $('#license_id').change();
 
-    /* Validate resources buttons */
-    $('.validate-resources-button').click(function(){
-      $(this).attr({'disabled': 'disabled'});
-      var fieldSet = $(this).parent();
-      fieldSet.find('span.checking-links-label').show();
-      var urlResourceValues = fieldSet.find('input[name$="__url"]').map(function(){return this.value;});
-      var urls = [];
-      for(var i=0; i<urlResourceValues.length; i++) { urls.push(urlResourceValues[i]); }
-      $.ajax({
-        url: CKAN.SITE_URL + '/qa/link_checker',
-        traditional: true,
-        context: fieldSet,
-        data: {
-          url: urls
-        },
-        dataType: 'json',
-        success: function(data){
-          for(var i=0; i<data.length; i++){
-            // Populate the format field (if it isn't "htm" or "html")
-            var formatField = $(this).find('input[id$="__'+i+'__format"]');
-            if(formatField.val().trim() == "" && !data[i].inner_format.match(/^html?$/) ){
-              formatField.val(data[i].inner_format);
-            }
-
-            // Indicate any url errors
-            if(data[i].url_errors.length) {
-              $(this).find('input[id$="__'+i+'__url"]').addClass('field_error').attr({'title': data[i].url_errors[0]});
-            } else {
-              $(this).find('input[id$="__'+i+'__url"]').removeClass('field_error').removeAttr('title');
-            }
-          }
-        },
-        complete: function(){
-          $(this).find('.validate-resources-button').removeAttr('disabled');
-          $(this).find('span.checking-links-label').hide();
-        }
-      });
-      
+    /* Validate resource buttons */
+    $('.validate-resources-button').each(function(index, e){ // validate all resources
+      CKAN.Dgu.validateResource(e, function(){return $(e).parent().find('tr.resource');});
+    });
+    $('.validate-resource-button').each(function(index, e){ // validate individual resource
+      CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
     });
 
   });
@@ -255,11 +223,12 @@ CKAN.Dgu = function($, my) {
       var newIndex = parseInt(info[1],10) + 1;
       var newRow = lastRow.clone();
       newRow.attr('class', prefix + "__" + newIndex);
+      newRow.addClass("resource");
       newRow.insertAfter(lastRow);
       newRow.find("*").each(function(index, node) {
         var attrValueRegex = new RegExp(prefix + '__\\d+');
         var replacement = prefix + '__' + newIndex;
-        
+
         if ($(node).attr("for")) {
           $(node).attr("for", $(node).attr("for").replace(attrValueRegex, replacement));
         }
@@ -270,9 +239,17 @@ CKAN.Dgu = function($, my) {
           $(node).attr("id", $(node).attr("id").replace(attrValueRegex, replacement));
         }
         $(node).val("");
+        $(node).removeClass("field_error");
       });
       newRow.find('a.add-button').remove();
       lastRow.find('a.add-button').appendTo(newRow.find('td').last());
+
+      // Check URL button
+      newRow.find('input[id$="__validate-resource-button"]').attr('value', 'Check')
+                                                            .removeAttr('disabled')
+                                                            .each(function(index, e){
+        CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
+      });
     });
   };
 
@@ -435,6 +412,66 @@ CKAN.Dgu = function($, my) {
     });
   };
 
+  /**
+   * Setup the given button to validate the given resource URLs.
+   *
+   * button - the button that when pressed triggers the validation
+   * getResources - a callable that returns the <tr> resources to validate
+   **/
+  my.validateResource = function(button, getResources) {
+    $(button).click(function(){
+      $(this).attr({'disabled': 'disabled'});
+      $(this).siblings('span.checking-links-label').show();
+      var resources = getResources();
+      var urlResourceValues = $(resources).map(function(){
+        return $(this).find('input[name$="__url"]').val();
+      });
+      var urls = []; // copy url values in order that data serialises correctly in
+                     // the ajax request.  I don't know why it doesn't work otherwise.
+      for(var i=0; i<urlResourceValues.length; i++) { urls.push(urlResourceValues[i]); }
+
+      $.ajax({
+        url: CKAN.SITE_URL + '/qa/link_checker',
+        traditional: true,
+        context: resources,
+        data: { url: urls },
+        dataType: 'json',
+        success: function(data){
+          for(var i=0; i<data.length; i++){
+            // Populate the format field (if it isn't "htm" or "html")
+            var formatField = $(this[i]).find('input[id$="__format"]');
+            if(formatField.val().trim() == "" && !data[i].inner_format.match(/^html?$/) ){
+              formatField.val(data[i].inner_format);
+            }
+
+            // Indicate any url errors
+            if(data[i].url_errors.length) {
+              // If an empty url field, then only display error if there's at least one
+              // other non-empty field in that row.
+              var requiredFields = ["url", "description", "format", "date"];
+              var showError = false;
+              for(var j=0; j<requiredFields.length; j++){
+                var field = $(this[i]).find('input[id$="__'+requiredFields[j]+'"]');
+                showError = field.length >0 && field.val().trim() !== '';
+                if(showError){break;}
+              }
+              if(showError){
+                $(this[i]).find('input[id$="__url"]').addClass('field_error').attr({'title': data[i].url_errors[0]});
+              } else {
+                $(this[i]).find('input[id$="__url"]').removeClass('field_error').removeAttr('title');
+              }
+            } else {
+              $(this[i]).find('input[id$="__url"]').removeClass('field_error').removeAttr('title');
+            }
+          }
+        },
+        complete: function(){
+          $(button).removeAttr('disabled');
+          $(button).siblings('span.checking-links-label').hide();
+        }
+      });
+    });
+  };
 
   return my;
 }(jQuery, CKAN.Dgu || {});

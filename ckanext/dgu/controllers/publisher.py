@@ -59,7 +59,7 @@ class PublisherController(GroupController):
 
 
     def _send_application( self, group, reason  ):
-        from ckan.logic.action.update import group_error_summary
+        from ckan.logic.action import error_summary
         from ckan.lib.mailer import mail_recipient
         from genshi.template.text import NewTextTemplate
         from pylons import config
@@ -69,7 +69,7 @@ class PublisherController(GroupController):
                              please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
             return self.apply(group.id, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         admins = group.members_of_type( model.User, 'admin' ).all()
         recipients = [(u.fullname,u.email) for u in admins] if admins else \
@@ -80,7 +80,7 @@ class PublisherController(GroupController):
             h.flash_error(_("There is a problem with the system configuration"))
             errors = {"reason": ["No group administrator exists"]}
             return self.apply(group.id, data=data, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         extra_vars = {
             'group'    : group,
@@ -100,7 +100,7 @@ class PublisherController(GroupController):
             h.flash_error(_("There is a problem with the system configuration"))
             errors = {"reason": ["No mail server was found"]}
             return self.apply(group.id, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         h.flash_success(_("Your application has been submitted"))
         h.redirect_to( 'publisher_read', id=group.name)
@@ -138,7 +138,7 @@ class PublisherController(GroupController):
 
     def _add_users( self, group, parameters  ):
         from ckan.logic.schema import default_group_schema
-        from ckan.lib.navl.dictization_functions import validate
+        from ckan.logic.action import error_summary
         from ckan.lib.dictization.model_save import group_member_save
 
         if not group:
@@ -146,7 +146,7 @@ class PublisherController(GroupController):
                              please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
             return self.apply(group.id, errors=errors,
-                              error_summary=group_error_summary(errors))
+                              error_summary=error_summary(errors))
 
         data_dict = clean_dict(unflatten(
                 tuplize_dict(parse_params(request.params))))
@@ -178,6 +178,10 @@ class PublisherController(GroupController):
 
     def users(self, id, data=None, errors=None, error_summary=None):
         c.group = model.Group.get(id)
+
+        if not c.group:
+            abort(404, _('Group not found'))
+
         context = {
                    'model': model,
                    'session': model.Session,
@@ -276,6 +280,30 @@ class PublisherController(GroupController):
 
         c.remove_field = remove_field
 
+        sort_by = request.params.get('sort', None)
+        params_nosort = [(k, v) for k,v in params_nopage if k != 'sort']
+        def _sort_by(fields):
+            """
+            Sort by the given list of fields.
+
+            Each entry in the list is a 2-tuple: (fieldname, sort_order)
+
+            eg - [('metadata_modified', 'desc'), ('name', 'asc')]
+
+            If fields is empty, then the default ordering is used.
+            """
+            params = params_nosort[:]
+
+            if fields:
+                sort_string = ', '.join( '%s %s' % f for f in fields )
+                params.append(('sort', sort_string))
+            return search_url(params)
+        c.sort_by = _sort_by
+        if sort_by is None:
+            c.sort_by_fields = []
+        else:
+            c.sort_by_fields = [ field.split()[0] for field in sort_by.split(',') ]
+
         def pager_url(q=None, page=None):
             params = list(params_nopage)
             params.append(('page', page))
@@ -285,7 +313,7 @@ class PublisherController(GroupController):
             c.fields = []
             search_extras = {}
             for (param, value) in request.params.items():
-                if not param in ['q', 'page'] \
+                if not param in ['q', 'page', 'sort'] \
                         and len(value) and not param.startswith('_'):
                     if not param.startswith('ext_'):
                         c.fields.append((param, value))
@@ -298,6 +326,7 @@ class PublisherController(GroupController):
                 'facet.field':g.facets,
                 'rows':limit,
                 'start':(page-1)*limit,
+                'sort': sort_by,
                 'extras':search_extras
             }
 
