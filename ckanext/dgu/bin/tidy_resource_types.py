@@ -79,12 +79,12 @@ def command(dry_run=False):
     stats = StatsList()
 
     for res in model.Session.query(model.Resource):
-        canonised_fmt = canonise(res.format)
+        canonised_fmt = canonise(res.format or '')
         if canonised_fmt in res_type_map:
             improved_fmt = res_type_map[canonised_fmt]
         else:
             improved_fmt = tidy(res.format)
-        if improved_fmt != res.format:
+        if improved_fmt or '' != res.format or '':
             if not dry_run:
                 res.format = improved_fmt
             stats.add(improved_fmt, res.format)
