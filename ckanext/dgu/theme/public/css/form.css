@@ -65,4 +65,7 @@ input.field_error {
   border: 2px solid #FF6666 ;
 }
 
-
+input.display-error-inside.field_error {
+  padding-left: 20px;
+  background: transparent url(../images/icons/error.png) left center no-repeat;
+}

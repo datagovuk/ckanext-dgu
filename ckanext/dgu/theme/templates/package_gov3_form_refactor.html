@@ -117,13 +117,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                          name="timeseries_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                         py:attrs="{'class': 'medium-width field_error display-error-inside' if cell_has_error else 'medium-width display-error-inside'}"/>
                   <input id="timeseries_resources__${num}__validate-resource-button"
                          type="button"
                          class="validate-resource-button"
                          value="Check"/>
                 </span>
-        
+
                 <input py:otherwise=""
                        id="timeseries_resources__${num}__${col}"
                        name="timeseries_resources__${num}__${col}"
@@ -188,7 +188,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        name="individual_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                       py:attrs="{'class': 'medium-width field_error display-error-inside' if cell_has_error else 'medium-width display-error-inside'}"/>
                 <input id="individual_resources__${num}__validate-resource-button"
                        type="button"
                        class="validate-resource-button"
@@ -462,7 +462,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                          name="additional_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                         py:attrs="{'class': 'medium-width field_error display-error-inside' if cell_has_error else 'medium-width display-error-inside'}"/>
                   <input id="additional_resources__${num}__validate-resource-button"
                          type="button"
                          class="validate-resource-button"
