@@ -596,7 +596,3 @@ ul.button-row li {
 #sub-publishers li.collapsed {
     display: none;
 }
-
-#form-tabs ul {
-  padding-left: 0px;
-}

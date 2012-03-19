@@ -69,3 +69,7 @@ input.display-error-inside.field_error {
   padding-left: 20px;
   background: transparent url(../images/icons/error.png) left center no-repeat;
 }
+
+#form-tabs ul {
+  padding-left: 0px;
+}
