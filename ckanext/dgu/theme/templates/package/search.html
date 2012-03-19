@@ -11,16 +11,6 @@
 
   <py:match path="primarysidebar">
     
-    <li class="widget-container boxed widget_text" py:if="h.check_access('package_create')">
-        <h2>Add a dataset</h2>
-        <p>
-            Do you know of a dataset that should be added to ${g.site_title}?
-            <br/>
-            
-            <a href="${h.url_for(controller='package', action='new', id=None)}">Register it now</a>.
-        </p>
-    </li>
- 
     <div id="filter-heading">
       <h1>Filters</h1>
       <p>You can refine your search results using the filters below</p>
@@ -33,22 +23,6 @@
 
     ${facet_filters()}
     ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
-
-    <li class="widget-container widget_text">
-        <h4>Other access</h4>
-<?python
-  from pylons import config
-  dumps_url = config.get('ckan.dumps_url')
-  dumps_format = config.get('ckan.dumps_format', '')
-?>
-        <p>
-            You can also access this registry using the 
-            ${h.link_to(_('API'), h.url_for(controller='api', action='get_api', id=None, ver='2'))}
-            (see ${h.link_to(_('API Docs'), 'http://wiki.ckan.net/API')})<py:if test="dumps_url">
-                or download a <a href="${dumps_url}">full ${dumps_format} 
-                dump</a></py:if>.
-        </p>
-    </li>
  
   </py:match>
 
@@ -62,6 +36,9 @@
       </py:if>
       <py:if test="request.params">      
         <h4 i18n:msg="item_count"><strong>${c.page.item_count}</strong> datasets found</h4>            
+        <span class="action">
+          ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
+        </span>
      </py:if>
       <py:if test="c.page.item_count == 0 and request.params">
         <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
