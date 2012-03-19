@@ -15,7 +15,7 @@ class PackageGov3Controller(PackageController):
     def history(self, id):
         """ Auth is different for DGU than for publisher default """
         if (not c.userobj) or \
-           len (c.userobj.get_groups('publisher')) == 0:
+           (len (c.userobj.get_groups('publisher')) == 0 and not c.sysadmin):
             abort(401, _('Unauthorized to read package history'))
         return super(PackageGov3Controller, self).history(id)
 
