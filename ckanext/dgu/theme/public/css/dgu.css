@@ -404,65 +404,36 @@ ul.datasets {
   margin: 0;
 }
 .dataset {
-  color: #666;
-  padding: 10px;
-  margin: 3px;
-  /* Gradient */
-  background: rgb(255,255,255); /* Old browsers */
-  background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(232,232,232,1) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(232,232,232,1))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(232,232,232,1) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(232,232,232,1) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(232,232,232,1) 100%); /* IE10+ */
-  background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(232,232,232,1) 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e8e8e8',GradientType=0 ); /* IE6-9 */
+  margin-bottom: 30px;
+  padding: 14px 10px;
 }
 .dataset img.dataset-icon {
   float: left;
   width: 45px;
   height: 45px;
-  margin: 10px 8px 4px 0;
-}
-.dataset .dataset-header {
-  float: left;
-  width: 90%;
-}
-.dataset .dataset-header h3 {
-  color: #000;
-}
-.dataset .dataset-header h4 {
-  margin-top: 5px;
-}
-.dataset .dataset-description {
-  float: left;
-  margin-top: 10px;
-}
-.dataset > ul {
-  margin: 10px 0 0 0;
-  float: left;
-  display: block;
-  list-style-type: none;
-}
-.dataset > ul li { 
-  display: inline-block;
-  padding: 3px 8px;
-  background: #fff;
-  border-radius: 4px;
   margin-right: 10px;
-  -moz-box-shadow: 0 0 4px #000; /* Firefox */
-  -webkit-box-shadow: 0 0 4px #000; /* Safari, Chrome */
-  box-shadow: 0 0 4px #000;
 }
-.dataset > ul.dataset-preview {
+.dataset-header {
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #aaa;
+}
+.dataset-header a       { color: #666; }
+.dataset-header a:hover { color: #000; text-decoration: none; }
+.dataset h4 {
+  color: #666;
+  margin: 4px 0;
+  font-size: 12px;
+}
+.dataset h4 ul {
+  display: inline;
+  margin: 0;
+}
+.dataset h4 ul li {
+  display: inline-block;
+  margin-left: 10px;
+}
+.dataset button.preview {
   float: right;
-}
-.dataset-shadow {
-  border: 1px solid #ccc;
-  height: 20px;
-  margin-top: -21px;
-  -moz-box-shadow: 0px 4px 8px #ccc; /* Firefox */
-  -webkit-box-shadow: 0px 4px 8px #ccc; /* Safari, Chrome */
-  box-shadow: 0px 4px 8px #ccc;
-  border-top: 0;
-  margin-bottom: 30px;
+  margin: 0 10px;
 }
