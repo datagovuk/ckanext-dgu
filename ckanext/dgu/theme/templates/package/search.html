@@ -9,18 +9,12 @@
   <py:def function="page_title">Search | data.gov.uk</py:def>
   <py:def function="body_class">no-sidebar</py:def>
 
-  <py:match path="primarysidebar">
-    
- 
-  </py:match>
-
   <div py:match="content">
     <div class="row">
       <div class="span12">
         <xi:include href="search_form.html" />
       </div>
       <div class="span3">
-
         <div id="filter-heading">
           <p>You can refine your search results using the filters below</p>
         </div>
@@ -30,10 +24,7 @@
           <p><a href="${h.url_for_static('/map-based-search')}">Conduct Map Based Search</a></p>
         </div>
 
-        <div id="facet-menu">
-          ${facet_filters()}
-          ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
-        </div>
+        ${facet_filters()}
       </div>
       <div class="offset1 span8">
         ${field_list()}   

@@ -80,8 +80,13 @@
       </ul>
     </div>
 
+    ${facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
+
     ${facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
+
     ${facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', count_label=lambda c: '')}
+
+    ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
 
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
@@ -94,8 +99,6 @@
       </ul>
       <p py:if="not len(h.facet_items(c, 'resource-type'))">There are no further UKLP filters to apply.</p>
     </div>
-
-    ${facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
   </div>
 
