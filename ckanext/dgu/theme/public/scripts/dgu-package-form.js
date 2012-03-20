@@ -468,7 +468,8 @@ CKAN.Dgu = function($, my) {
         complete: function(){
           $(button).removeAttr('disabled');
           $(button).siblings('span.checking-links-label').hide();
-        }
+        },
+        timeout: 10000,
       });
     });
   };
