@@ -7,44 +7,52 @@
 
   <xi:include href="../facets.html" />
   <py:def function="page_title">Search | data.gov.uk</py:def>
-  <py:def function="page_heading">Search</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
 
   <py:match path="primarysidebar">
     
-    <div id="filter-heading">
-      <h1>Filters</h1>
-      <p>You can refine your search results using the filters below</p>
-    </div>
-
-    <div id="map-based-search">
-      <h2>UK Location Map Based Search</h2>
-      <p><a href="${h.url_for_static('/map-based-search')}">Conduct Map Based Search</a></p>
-    </div>
-
-    ${facet_filters()}
-    ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
  
   </py:match>
 
   <div py:match="content">
-    <xi:include href="search_form.html" />
-    ${field_list()}   
-    
-      <py:if test="c.query_error">
-        <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
-            Please try again.</p>
-      </py:if>
-      <py:if test="request.params">      
-        <h4 i18n:msg="item_count"><strong>${c.page.item_count}</strong> datasets found</h4>            
-        <span class="action">
-          ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
-        </span>
-     </py:if>
-      <py:if test="c.page.item_count == 0 and request.params">
-        <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
-      </py:if>
-      ${package_list_from_dict(c.page.items)}
-      ${c.page.pager(q=c.q)}
+    <div class="row">
+      <div class="span12">
+        <xi:include href="search_form.html" />
+      </div>
+      <div class="span4">
+        <div id="filter-heading">
+          <h1>Filters</h1>
+          <p>You can refine your search results using the filters below</p>
+        </div>
+
+        <div id="map-based-search">
+          <h2>UK Location Map Based Search</h2>
+          <p><a href="${h.url_for_static('/map-based-search')}">Conduct Map Based Search</a></p>
+        </div>
+
+        ${facet_filters()}
+        ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
+      </div>
+      <div class="span8">
+          ${field_list()}   
+          
+        <py:if test="c.query_error">
+          <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
+              Please try again.</p>
+        </py:if>
+        <py:if test="request.params">      
+          <h4 i18n:msg="item_count"><strong>${c.page.item_count}</strong> datasets found</h4>            
+          <span class="action">
+            ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
+          </span>
+        </py:if>
+        <py:if test="c.page.item_count == 0 and request.params">
+          <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
+        </py:if>
+        ${package_list_from_dict(c.page.items)}
+        ${c.page.pager(q=c.q)}
+      </div>
+    </div>
 
   </div>
   <xi:include href="layout.html" />

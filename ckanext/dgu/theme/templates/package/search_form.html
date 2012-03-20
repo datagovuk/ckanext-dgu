@@ -1,0 +1,31 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
+
+<div class="boxed search-area-outer">
+  <table class="search-area">
+    <tr>
+      <td class="left">
+        <div class="result-count">50,000</div>
+        <div class="result-count-footer">results</div>
+      </td>
+      <td class="right">
+        <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
+          <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+          <input type="submit" value="${_('Search')}" class="btn btn-datagov button" />
+          <span py:if="c.fields">
+          <py:for each="(k, v) in c.fields"> 
+            <input type="hidden" name="${k}" value="${v}" />  
+          </py:for>
+          </span>
+          <div id="dataset-search-ext"></div>
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+
+</html>

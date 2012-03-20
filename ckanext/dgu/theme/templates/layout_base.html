@@ -57,32 +57,32 @@
   <div id="blackbar-underlay">
   </div>
 
-  <div id="greenbar">
-    <div class="container">
-      <img id="logo" class="placeholder" />
+  <div class="container" id="branding">
+    <img class="branding-logo placeholder" />
+    <div class="branding-text">
       <a href="#" id="home-link">DATA.GOV.UK</a>
       <span id="home-tagline">Opening up Government</span>
-      <ul id="nav">
-        <li><a href="#"><img src="#" class="placeholder nav-icon" />Home</a><div class="active-triangle"></div></li>
-        <li class="active"><a href="#">Data</a><div class="active-triangle"></div></li>
-        <li><a href="#">Participate</a><div class="active-triangle"></div></li>
-        <li><a href="#">Apps</a><div class="active-triangle"></div></li>
-        <li><a href="#">Location</a><div class="active-triangle"></div></li>
-        <li><a href="#">Library</a><div class="active-triangle"></div></li>
-        <li><a href="#">Linked data</a><div class="active-triangle"></div></li>
-        <li><a href="#">Lab</a><div class="active-triangle"></div></li>
-        <li><a href="#">About</a><div class="active-triangle"></div></li>
-      </ul>
     </div>
   </div>
-   <div class="welcome-banner js-welcome-banner" style="display: none;">
-     <span>First time at ${g.site_title}? Visit our <a href="${h.url_for(controller='home', action='about')}">About page</a> to find out more.</span>
-     <button class="pretty-button js-kill-button">x</button>
+  <div class="container">
+    <table id="nav">
+      <tr>
+        <td><a href="#"><img src="#" class="placeholder nav-icon" />Home</a><div class="active-triangle"></div></td>
+        <td class="active"><a href="#">Data</a><div class="active-triangle"></div></td>
+        <td><a href="#">Participate</a><div class="active-triangle"></div></td>
+        <td><a href="#">Apps</a><div class="active-triangle"></div></td>
+        <td><a href="#">Location</a><div class="active-triangle"></div></td>
+        <td><a href="#">Library</a><div class="active-triangle"></div></td>
+        <td><a href="#">Linked data</a><div class="active-triangle"></div></td>
+        <td><a href="#">Lab</a><div class="active-triangle"></div></td>
+        <td><a href="#">About</a><div class="active-triangle"></div></td>
+      </tr>
+    </table>
   </div>
 
   <div class="container">
     <div class="row">
-      <div class="span8">
+      <div class="span8 main-outer">
         <div id="main">
           <!-- Flash Messages -->
           <py:with vars="messages = list(h._flash.pop_messages())">
@@ -109,7 +109,7 @@
           </div>
         </div><!-- /main -->
       </div><!-- /span8 -->
-      <div class="span4">
+      <div class="span4 sidebar-outer">
         <div id="sidebar">
           <div class="upper">
           </div>
@@ -133,88 +133,76 @@
     <footer class="container">
       <div class="row">
         <div class="span3">
-          <h3 class="widget-title">About ${g.site_title}</h3>
-          <div class="textwidget">
-            <ul>
-                <li>${h.link_to(_('About'), h.url_for(controller='home', action='about'))}</li>
-              <li>
-                <a href="http://twitter.com/ckanproject">Twitter @ckanproject</a>
-              </li>
-                <li>${h.link_to(_('API'), h.url_for(controller='api', action='get_api', ver=1))}</li>
-                <li>${h.link_to(_('API Docs'), 'http://wiki.ckan.net/API')}</li>
-              <li>
-                <a href="http://ckan.org/contact/">Contact Us</a>
-              </li>
-              <li>
-                <a href="http://okfn.org/privacy-policy/">Privacy Policy</a>
-              </li>
-            </ul>
-          </div>
+          <div class="footer-section">
+            <div class="textwidget">
+              <ul>
+                  <li>${h.link_to(_('About'), h.url_for(controller='home', action='about'))}</li>
+                <li>
+                  <a href="http://twitter.com/ckanproject">Twitter @ckanproject</a>
+                </li>
+                  <li>${h.link_to(_('API'), h.url_for(controller='api', action='get_api', ver=1))}</li>
+                  <li>${h.link_to(_('API Docs'), 'http://wiki.ckan.net/API')}</li>
+                <li>
+                  <a href="http://ckan.org/contact/">Contact Us</a>
+                </li>
+                <li>
+                  <a href="http://okfn.org/privacy-policy/">Privacy Policy</a>
+                </li>
+              </ul>
+            </div>
+          </div><!-- /footer-section -->
         </div>
         <div class="span3">
-          <h3 class="widget-title">Sections</h3>
-          <div class="textwidget">
-            <ul>
-              <li>
-                <a href="${h.url(controller='user', action='index')}">
-                  Users
-                </a>
-              </li>
-              <li>
-                <a href="${h.url(controller='tag', action='index')}">
-                  Tags
-                </a>
-              </li>
-              <li py:if="'stats' in config.get('ckan.plugins','').split(' ')">
-                <a href="${h.url('stats')}">
-                  Statistics
-                </a>
-              </li>
-              <li>
-                <a href="${h.url(controller='revision', action='index')}">
-                  Revisions
-                </a>
-              </li>
-              <li>
-                <a href="${h.url(controller='authorization_group', action='index')}">
-                  Authorization Groups
-                </a>
-              </li>
-              <li>
-                <a href="${h.url_for('ckanadmin_index')}">
-                  Site Admin
-                </a>
-              </li>
-            </ul>
-          </div>
+          <div class="footer-section">
+            <div class="textwidget">
+              <ul>
+                <li>
+                  <a href="${h.url(controller='user', action='index')}">
+                    Users
+                  </a>
+                </li>
+                <li>
+                  <a href="${h.url(controller='tag', action='index')}">
+                    Tags
+                  </a>
+                </li>
+                <li py:if="'stats' in config.get('ckan.plugins','').split(' ')">
+                  <a href="${h.url('stats')}">
+                    Statistics
+                  </a>
+                </li>
+                <li>
+                  <a href="${h.url(controller='revision', action='index')}">
+                    Revisions
+                  </a>
+                </li>
+                <li>
+                  <a href="${h.url(controller='authorization_group', action='index')}">
+                    Authorization Groups
+                  </a>
+                </li>
+                <li>
+                  <a href="${h.url_for('ckanadmin_index')}">
+                    Site Admin
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div><!-- /footer-section -->
         </div>
-        <div class="span3">
-          <h3 class="widget-title">Languages</h3>
-          <div class="textwidget">
-            <ul>
-<?python
-  current_url = request.environ['CKAN_CURRENT_URL']
-?>
-              <li py:for="locale in h.get_available_locales()">
-              <a href="${h.url(current_url, locale=str(locale))}">
-                  ${locale.display_name or locale.english_name}
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div class="span3">
-          <h3 class="widget-title">Meta</h3>
-          <p id="credits">
-            &copy; 2012
-            <img src="http://assets.okfn.org/images/logo/okf_logo_white_and_green_tiny.png" id="footer-okf-logo" />
-            <a href="http://okfn.org/">Open Knowledge Foundation</a>
-            Licensed under the <a href="http://opendatacommons.org/licenses/odbl/1.0/">Open Database License</a>
-            <a href="http://opendefinition.org/"><img alt="This Content and Data is Open" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" style="border: none ; margin-bottom: -4px;"/></a>
+        <div class="span6">
+          <div class="footer-section last">
+            <p id="credits">
+              &copy; 2012
+              <img src="http://assets.okfn.org/images/logo/okf_logo_white_and_green_tiny.png" id="footer-okf-logo" />
+              <a href="http://okfn.org/">Open Knowledge Foundation</a>
+              Licensed under the <a href="http://opendatacommons.org/licenses/odbl/1.0/">Open Database License</a>
+              <a href="http://opendefinition.org/"><img alt="This Content and Data is Open" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" style="border: none ; margin-bottom: -4px;"/></a>
 
-            <br/><br/>
-            Powered by <a href="http://ckan.org">CKAN</a> v${c.__version__}.<br/>
-          </p>
+              <br/><br/>
+              Powered by <a href="http://ckan.org">CKAN</a> v${c.__version__}.<br/>
+            </p>
+          </div><!-- /footer-section -->
         </div>
       </div>
     </footer>
