@@ -435,5 +435,12 @@ ul.datasets {
 }
 .dataset button.preview {
   float: right;
-  margin: 0 10px;
+  margin-right: 25px;
+  position: relative;
+  padding: 5px 26px;
+}
+.preview-stamp {
+  position: absolute; 
+  top: -10px;
+  right: -25px;
 }
