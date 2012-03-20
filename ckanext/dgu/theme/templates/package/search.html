@@ -19,21 +19,23 @@
       <div class="span12">
         <xi:include href="search_form.html" />
       </div>
-      <div class="span4">
+      <div class="span3">
+
         <div id="filter-heading">
-          <h1>Filters</h1>
           <p>You can refine your search results using the filters below</p>
         </div>
 
-        <div id="map-based-search">
-          <h2>UK Location Map Based Search</h2>
+        <div class="facet-box" id="map-based-search">
+          <h2>UK Location Map Search</h2>
           <p><a href="${h.url_for_static('/map-based-search')}">Conduct Map Based Search</a></p>
         </div>
 
-        ${facet_filters()}
-        ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
+        <div id="facet-menu">
+          ${facet_filters()}
+          ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
+        </div>
       </div>
-      <div class="span8">
+      <div class="offset1 span8">
           ${field_list()}   
           
         <py:if test="c.query_error">

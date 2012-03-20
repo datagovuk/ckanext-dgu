@@ -239,56 +239,13 @@ body.no-sidebar .sidebar-outer {
 
 /* Content */
 /* ------- */
+.facet-box,
 .boxed {
   background: #fff;
   border-radius: 5px;
   box-shadow: 0px 2px 6px #bbb;
   padding: 9px;
   margin-bottom: 10px;
-}
-
-
-/* Sidebar */
-/* ------- */
-#sidebar > .upper {
-  min-height: 140px;
-  padding: 15px;
-}
-#sidebar > .lower {
-  padding: 5px;
-  background: url('../images/sidebar-bg.png');
-  min-height: 300px;
-  color: #777;
-}
-#sidebar .lower h2 {
-  font-size: 14px;
-  line-height: 23px;
-  margin-top: 14px;
-  border: 1px solid #ccc;
-  border-left: none;
-  border-right: none;
-  display: block;
-}
-#sidebar .lower > ul {
-  list-style-type: none;
-  margin: 0 0 0 0;
-  border-bottom: 1px solid #ccc;
-  padding: 5px 15px;
-}
-#sidebar .lower > ul li {
-  margin: 8px 0;
-}
-#sidebar img.facets-title {
-  height: 22px;
-  width: 22px;
-  vertical-align: top;
-  margin-right: 8px;
-}
-#sidebar img.facets-radio {
-  height: 16px;
-  width: 16px;
-  vertical-align: top;
-  margin-right: 8px;
 }
 
 
@@ -392,6 +349,52 @@ body.no-sidebar .sidebar-outer {
   color: #c00;
   font-weight: bold;
 }
+
+/* Facet Menu */
+/* ---------- */
+#filter-heading,
+.facet-box {
+  margin-bottom: 20px;
+}
+.facet-box h2 {
+  font-size: 14px;
+  line-height: 23px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid #ccc;
+  display: block;
+}
+.facet-box > ul {
+  list-style-type: none;
+  margin: 0;
+  font-size: 11px;
+  padding: 0 15px;
+}
+.facet-box .lower > ul li {
+  margin: 8px 0;
+}
+.facet-box .lower > ul li:first-child {
+  margin-top: 14px;
+}
+.facet-box .lower > ul li:last-child {
+  margin-bottom: 14px;
+}
+.facet-box p {
+  font-size: 11px;
+  line-height: 13px;
+}
+.facet-box img.facets-title {
+  height: 22px;
+  width: 22px;
+  vertical-align: top;
+  margin-right: 8px;
+}
+.facet-box img.facets-radio {
+  height: 16px;
+  width: 16px;
+  vertical-align: top;
+  margin-right: 8px;
+}
+
 
 
 /* Dataset */
