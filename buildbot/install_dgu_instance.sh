@@ -61,6 +61,9 @@ run_database_migrations () {
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/publisher_datasets_assoc.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/etc/nodepublishermap.csv" | sudo -u postgres psql "$instance"
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/user_import.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/etc/nodepublishermap.csv" "$users_file"
 
+    echo "Tidying resource formats..."
+    "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_resource_types.py" --config "/etc/ckan/$instance/$instance.ini"
+    echo "Finished tidying resource formats."
 }
 
 post_install () {
