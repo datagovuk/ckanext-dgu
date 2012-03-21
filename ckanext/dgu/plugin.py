@@ -225,7 +225,7 @@ class SearchPlugin(SingletonPlugin):
         If a dismax query is run, then these will be the fields that are searched
         within.
         """
-        search_params['qf'] = 'title^4 name^3 tags^3 group_titles^3 notes^2 text extras_harvest_document_content^0.2'
+        search_params['qf'] = 'title^4 name^3 notes^2 text tags^0.3 group_titles^0.3 extras_harvest_document_content^0.2'
         return search_params
 
     def after_search(self, search_results, search_params):
