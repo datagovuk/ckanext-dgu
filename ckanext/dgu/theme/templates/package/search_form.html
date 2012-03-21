@@ -9,8 +9,13 @@
   <table class="search-area">
     <tr>
       <td class="left">
-        <div class="result-count">50,000</div>
-        <div class="result-count-footer">results</div>
+        <div class="result-count">${c.page.item_count if c.page else c.package_count or 0}</div>
+        <py:if test="request.params">      
+          <div class="result-count-footer">results</div>
+        </py:if>
+        <py:if test="not request.params">      
+          <div class="result-count-footer">datasets</div>
+        </py:if>
       </td>
       <td class="right">
         <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">

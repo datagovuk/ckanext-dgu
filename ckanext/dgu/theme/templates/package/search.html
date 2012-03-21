@@ -34,7 +34,6 @@
               Please try again.</p>
         </py:if>
         <py:if test="request.params">      
-          <h4 i18n:msg="item_count"><strong>${c.page.item_count}</strong> datasets found</h4>            
           <span class="action">
             ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
           </span>
