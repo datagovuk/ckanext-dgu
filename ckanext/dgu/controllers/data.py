@@ -1,8 +1,28 @@
+import sqlalchemy
+from pylons.i18n import _
+
 import ckan.logic
 from ckan.lib.base import request, c, BaseController, model, abort, h, g, render
 #from ckan.controllers.package import PackageController
 
 class DataController(BaseController):
+    def __before__(self, action, **env):
+        try:
+            BaseController.__before__(self, action, **env)
+        except ckan.logic.NotAuthorized:
+            abort(401, _('Not authorized to see this page'))
+        except (sqlalchemy.exc.ProgrammingError,
+                sqlalchemy.exc.OperationalError), e:
+            # postgres and sqlite errors for missing tables
+            msg = str(e)
+            if ('relation' in msg and 'does not exist' in msg) or \
+                   ('no such table' in msg) :
+                # table missing, major database problem
+                abort(503, _('This site is currently off-line. Database is not initialised.'))
+                # TODO: send an email to the admin person (#1285)
+            else:
+                raise
+
     def index(self):
         from ckan.lib.search import SearchError
         try:
