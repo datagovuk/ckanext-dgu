@@ -29,7 +29,6 @@
             <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags</a>
     </div>
 
-
     <h2>Publishers</h2>
     <ul class="facet-options">
             <li py:for="name, count in h.facet_items(c, 'publishers', limit=10)"
@@ -40,6 +39,9 @@
             </li>
     </ul>
     <p py:if="not len(h.facet_items(c, 'publishers', limit=10))">No publishers found</p>
+
+    <h2>UK Location Map Search</h2>
+    <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
 
     <h2>Developers</h2>
     <div>
