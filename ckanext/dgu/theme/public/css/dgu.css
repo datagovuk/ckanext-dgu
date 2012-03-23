@@ -19,6 +19,7 @@ a       { color: #690; }
 a:hover { color: #470; }
 input:focus,
 textarea:focus {
+  border-color: #55AA00;
   border-color: rgba(80, 160, 0, 0.8);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(50, 100, 0, 0.6);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(50, 100, 0, 0.6);
@@ -55,9 +56,10 @@ textarea:focus {
 .btn-datagov,
 .btn-datagov:hover {
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  color: #ffffff;
+  color: #FFFFFF;
 }
 .btn-datagov.active {
+  color: #FFFFFF;
   color: rgba(255, 255, 255, 0.75);
 }
 
@@ -79,6 +81,7 @@ body.no-sidebar .sidebar-outer {
   position: fixed;
   z-index: 1;
   width: 100%;
+  background: #333;
   background: rgba(0,0,0,0.8);
   color: #fff;
   height: 36px;
@@ -159,7 +162,7 @@ body.no-sidebar .sidebar-outer {
   border-left-color: transparent;
   font-size: 15px;
   /* Gradient */
-  background: rgb(255,255,255); /* Old browsers */
+  background: #FFFFFF; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(244,244,244,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(244,244,244,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(244,244,244,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -177,7 +180,7 @@ body.no-sidebar .sidebar-outer {
   border-left-color: transparent;
   text-decoration: none;
   /* Gradient */
-  background: rgb(255,255,255); /* Old browsers */
+  background: #FFFFFF; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(240,240,240,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(240,240,240,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -280,7 +283,7 @@ body.no-sidebar .sidebar-outer {
   width: 572px;
   margin-left: 10px;
   /* Gradient */
-  background: rgb(45,48,53); /* Old browsers */
+  background: #2D3035; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(45,48,53,1) 0%, rgba(33,33,33,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(45,48,53,1)), color-stop(100%,rgba(33,33,33,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(45,48,53,1) 0%,rgba(33,33,33,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -317,7 +320,7 @@ body.no-sidebar .sidebar-outer {
   box-shadow: 0 1px 2px #bbb;
   border-radius: 3px;
   /* Gradient */
-  background: rgb(240,240,240); /* Old browsers */
+  background: #EEEEEE; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(240,240,240,1) 0%, rgba(228,228,228,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(240,240,240,1)), color-stop(100%,rgba(228,228,228,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(240,240,240,1) 0%,rgba(228,228,228,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -330,7 +333,7 @@ body.no-sidebar .sidebar-outer {
   text-decoration: none;
   color: #000;
   /* Gradient */
-  background: rgb(228,228,228); /* Old browsers */
+  background: #E4E4E4; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(228,228,228,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(228,228,228,1)), color-stop(100%,rgba(240,240,240,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(228,228,228,1) 0%,rgba(240,240,240,1) 100%); /* Chrome10+,Safari5.1+ */
