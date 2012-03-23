@@ -145,7 +145,7 @@ body.no-sidebar .sidebar-outer {
 }
 #branding #branding-line1 {
   font-size: 23px;
-  margin-top: 4px;
+  padding-top: 4px;
 }
 #branding #branding-line2 {
   font-size: 17px;
@@ -438,7 +438,7 @@ ul.datasets {
 }
 .dataset {
   margin-bottom: 30px;
-  padding: 14px 10px;
+  padding: 14px 17px;
 }
 .dataset img.dataset-icon {
   float: left;
@@ -460,14 +460,19 @@ ul.datasets {
 }
 .dataset h4 ul {
   display: inline;
+  list-style-type: none;
   margin: 0;
 }
 .dataset h4 ul li {
-  display: inline-block;
   margin-left: 10px;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
 }
 .dataset button.preview {
   float: right;
+  margin-top: 12px;
   margin-right: 25px;
   position: relative;
   padding: 5px 26px;
