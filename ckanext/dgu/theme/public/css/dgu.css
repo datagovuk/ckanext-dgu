@@ -110,7 +110,6 @@ body.no-sidebar .sidebar-outer {
 /* Green section */
 /* ------------- */
 #greenbar {
-  margin-bottom: 25px; 
   /* Gradient */
   background: #6AB000;
   background: -moz-linear-gradient(top,  rgba(106,176,0,1) 0%, rgba(119,185,0,1) 100%); /* FF3.6+ */
@@ -177,8 +176,8 @@ ul#nav {
   text-align: center;
   display: block;
   padding: 10px 10px;
-  border: 1px solid #ccc;
-  border-left-color: transparent;
+  border: 1px solid #c6c6c6;
+  border-left-color: #ebebeb;
   font-size: 15px;
   /* Gradient */
   background: #F4F4F4; /* Old browsers */
@@ -191,12 +190,12 @@ ul#nav {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f4f4f4',GradientType=0 ); /* IE6-9 */
 }
 #nav li:first-child a {
-  border-left-color: #ccc;
+  border-left-color: #c6c6c6;
 }
 #nav li a:hover {
   color: #000;
   border-color: #aaa;
-  border-left-color: transparent;
+  border-left-color: #e0e0e0;
   text-decoration: none;
   /* Gradient */
   background: #FFFFFF; /* Old browsers */
@@ -211,29 +210,33 @@ ul#nav {
 #nav li:first-child a:hover {
   border-left-color: #aaa;
 }
-
-
+#nav li.active a {
+  background: #fff;
+  border-bottom-color: transparent;
+}
 #nav .nav-icon {
   margin: 0 10px 0 0;
   vertical-align: top;
 }
-#nav .active-triangle {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 14px;
-  height: 7px;
-  margin-left: -4px;
-  display: none;
+
+/* Subnavigation */
+/* ------------- */
+#subnav {
+  background: #fff;
+  margin: 0 0 25px 16px;
+  width: 862px;
+  list-style-type: none;
+  padding: 6px 18px;
+  border: 1px solid #ccc;
+  border-top: none;
 }
-#nav li.active .active-triangle {
-  display: block;
-  background: url('http://localhost:5000/images/nav_active.png');
+#subnav li {
+  display: inline;
 }
-#nav li:hover .active-triangle {
-  display: block;
-  background: url('http://localhost:5000/images/nav_hover.png');
+#subnav .divider {
+  color: #bbb;
 }
+
 
 /* Footer */
 /* ------ */
