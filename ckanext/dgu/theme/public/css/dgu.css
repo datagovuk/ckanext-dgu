@@ -307,8 +307,11 @@ ul#nav {
 
 .form-search {
   padding: 9px;
-  float: left;
   margin-left: 10px;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
   /* Gradient */
   background: #2D3035; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(45,48,53,1) 0%, rgba(33,33,33,1) 100%); /* FF3.6+ */
