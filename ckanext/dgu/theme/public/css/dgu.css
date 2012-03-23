@@ -118,8 +118,6 @@ body.no-sidebar .sidebar-outer {
 }
 #branding .branding-logo {
   margin-left: 25px;
-  height: 54px;
-  width: 54px;
   float: left;
 }
 #branding .branding-text {
@@ -144,20 +142,22 @@ body.no-sidebar .sidebar-outer {
 
 /* Nav */
 /* --- */
-#nav {
-  margin-bottom: 25px;
-  width: 100%;
+ul#nav {
+  list-style-type: none;
+  margin: 0 auto 25px auto;
+  font-size: 0; /* Delete space between inline block elements */
 }
-#nav td {
+#nav li {
   padding: 0;
+  display: inline-block;
+  width: 104px;
   position: relative;
 }
-#nav td a {
+#nav li a {
   color: #666;
   text-align: center;
   display: block;
   padding: 10px 10px;
-  min-width: 80px;
   border: 1px solid #ccc;
   border-left-color: transparent;
   font-size: 15px;
@@ -171,10 +171,10 @@ body.no-sidebar .sidebar-outer {
   background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(244,244,244,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f4f4f4',GradientType=0 ); /* IE6-9 */
 }
-#nav td:first-child a {
+#nav li:first-child a {
   border-left-color: #ccc;
 }
-#nav td a:hover {
+#nav li a:hover {
   color: #000;
   border-color: #aaa;
   border-left-color: transparent;
@@ -189,12 +189,13 @@ body.no-sidebar .sidebar-outer {
   background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(240,240,240,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f0f0f0',GradientType=0 ); /* IE6-9 */
 }
-#nav td:first-child a:hover {
+#nav li:first-child a:hover {
   border-left-color: #aaa;
 }
+
+
 #nav .nav-icon {
   margin: 0 10px;
-  height: 18px;
   vertical-align: top;
 }
 #nav .active-triangle {
@@ -206,11 +207,11 @@ body.no-sidebar .sidebar-outer {
   margin-left: -4px;
   display: none;
 }
-#nav td.active .active-triangle {
+#nav li.active .active-triangle {
   display: block;
   background: url('http://localhost:5000/images/nav_active.png');
 }
-#nav td:hover .active-triangle {
+#nav li:hover .active-triangle {
   display: block;
   background: url('http://localhost:5000/images/nav_hover.png');
 }
@@ -245,7 +246,11 @@ body.no-sidebar .sidebar-outer {
 .facet-box,
 .boxed {
   background: #fff;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
   border-radius: 5px;
+  -moz-box-shadow: 0px 2px 6px #bbb;
+  -webkit-box-shadow: 0px 2px 6px #bbb;
   box-shadow: 0px 2px 6px #bbb;
   padding: 9px;
   margin-bottom: 10px;
@@ -280,7 +285,7 @@ body.no-sidebar .sidebar-outer {
 
 .form-search {
   padding: 9px;
-  width: 572px;
+  float: left;
   margin-left: 10px;
   /* Gradient */
   background: #2D3035; /* Old browsers */
@@ -318,6 +323,8 @@ body.no-sidebar .sidebar-outer {
   -moz-box-shadow: 0 1px 2px #bbb; /* Firefox */
   -webkit-box-shadow: 0 1px 2px #bbb; /* Safari, Chrome */
   box-shadow: 0 1px 2px #bbb;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
   border-radius: 3px;
   /* Gradient */
   background: #EEEEEE; /* Old browsers */
