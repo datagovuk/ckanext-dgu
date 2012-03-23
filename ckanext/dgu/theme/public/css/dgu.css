@@ -144,14 +144,18 @@ body.no-sidebar .sidebar-outer {
 /* --- */
 ul#nav {
   list-style-type: none;
-  margin: 0 auto 25px auto;
+  margin-left: 16px;
+  margin-bottom: 25px; 
   font-size: 0; /* Delete space between inline block elements */
 }
 #nav li {
   padding: 0;
-  display: inline-block;
-  width: 104px;
+  width: 100px;
   position: relative;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
 }
 #nav li a {
   color: #666;
@@ -195,7 +199,7 @@ ul#nav {
 
 
 #nav .nav-icon {
-  margin: 0 10px;
+  margin: 0 10px 0 0;
   vertical-align: top;
 }
 #nav .active-triangle {
@@ -307,13 +311,10 @@ ul#nav {
   float: right;
 }
 .search-facets {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 20px;
-  margin-bottom: 10px;
+  padding: 10px 0;
   color: #888;
 }
 .search-facets .facet {
-  display: inline-block;
   color: #333;
   padding: 3px 8px;
   margin-left: 10px;
@@ -326,6 +327,10 @@ ul#nav {
   -moz-border-radius: 3px;
   -webkit-border-radius: 3px;
   border-radius: 3px;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
   /* Gradient */
   background: #EEEEEE; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(240,240,240,1) 0%, rgba(228,228,228,1) 100%); /* FF3.6+ */

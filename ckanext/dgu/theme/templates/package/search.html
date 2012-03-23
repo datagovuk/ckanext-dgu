@@ -28,16 +28,11 @@
         ${facet_filters()}
       </div>
       <div class="offset1 span8">
-        ${field_list()}   
-          
         <py:if test="c.query_error">
           <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
               Please try again.</p>
         </py:if>
         <py:if test="request.params">      
-          <span class="action">
-            ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
-          </span>
         </py:if>
         <py:if test="c.page.item_count == 0 and request.params">
           <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>

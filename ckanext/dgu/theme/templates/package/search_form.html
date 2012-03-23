@@ -28,6 +28,20 @@
           </span>
           <div id="dataset-search-ext"></div>
         </form>
+        <div class="clearfix"></div>
+        <div class="search-facets" py:if="c.fields">
+          <div class="rss-link">
+            ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
+          </div>
+          Your search:
+          <py:for each="(field, value) in c.fields">
+            <a class="facet" href="${c.remove_field(field, value)}">
+              <span class="name">${h.facet_title(field)}</span>:
+              <span class="value">${value}</span>
+              <span class="x">x</span>
+            </a>
+          </py:for>  
+        </div>
       </td>
     </tr>
   </table>
