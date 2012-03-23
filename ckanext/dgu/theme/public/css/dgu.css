@@ -107,36 +107,51 @@ body.no-sidebar .sidebar-outer {
   font-weight: bold;
 }
 
+/* Green section */
+/* ------------- */
+#greenbar {
+  margin-bottom: 25px; 
+  /* Gradient */
+  background: #6AB000;
+  background: -moz-linear-gradient(top,  rgba(106,176,0,1) 0%, rgba(119,185,0,1) 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(106,176,0,1)), color-stop(100%,rgba(119,185,0,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* IE10+ */
+  background: linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6ab000', endColorstr='#77b900',GradientType=0 ); /* IE6-9 */
+}
+
 /* Branding space */
 /* -------------- */
 #branding {
-  height: 100px;
-  padding-top: 40px;
-  font-weight: 300;
+  height: 90px;
+  padding-top: 47px;
+}
+#branding a {
+  display: block;
+  width: 340px;
   letter-spacing: 1px;
-  color: #666;
+  color: #333;
 }
-#branding .branding-logo {
-  margin-left: 25px;
-  float: left;
-}
-#branding .branding-text {
-  margin-left: 20px;
-  margin-top: 7px;
-  text-shadow: 1px 1px 1px #ccc;
-  float: left;
-}
-#branding a#home-link {
-  font-size: 23px;
-  color: inherit;
-}
-#branding a#home-link:hover {
+#branding a:hover {
   text-decoration: none;
   color: #000;
 }
-#branding span#home-tagline {
-  display: block;
+#branding #branding-logo {
+  margin-left: 30px;
+  margin-right: 12px;
+  width: 51px;
+  float: left;
+}
+#branding #branding-line1 {
+  font-size: 23px;
+  margin-top: 4px;
+}
+#branding #branding-line2 {
   font-size: 17px;
+  font-weight: 300;
+  margin-top: 8px;
 }
 
 
@@ -145,7 +160,7 @@ body.no-sidebar .sidebar-outer {
 ul#nav {
   list-style-type: none;
   margin-left: 16px;
-  margin-bottom: 25px; 
+  margin-bottom: 0;
   font-size: 0; /* Delete space between inline block elements */
 }
 #nav li {
@@ -166,7 +181,7 @@ ul#nav {
   border-left-color: transparent;
   font-size: 15px;
   /* Gradient */
-  background: #FFFFFF; /* Old browsers */
+  background: #F4F4F4; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(244,244,244,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(244,244,244,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(244,244,244,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -375,7 +390,7 @@ ul#nav {
   font-size: 14px;
   line-height: 23px;
   margin-bottom: 8px;
-  border-bottom: 2px solid #ccc;
+  border-bottom: 1px solid #ccc;
   display: block;
 }
 .facet-box > ul {
