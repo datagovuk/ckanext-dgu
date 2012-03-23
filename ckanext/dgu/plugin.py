@@ -54,13 +54,15 @@ class ThemePlugin(SingletonPlugin):
 
     def before_map(self, map):
         """
-        Connect the homepage to "/data".
-
-        This is just for demonstration.  In deployment, CKAN will be
-        hosted at "/data".  Making this unecessary.
+        Make "/data" the homepage.
         """
-        map.connect('/data', controller='home', action='index')
-        # map.connect('/data', controller='ckanext.dgu.controllers.catalogue:CatalogueController', action='home')
+        map.redirect('/', '/data')
+        map.connect('/data', controller='ckanext.dgu.controllers.data:DataController', action='index')
+        map.connect('/data/tag', controller='tag', action='index')
+        map.connect('/data/tag/{id}', controller='tag', action='read')
+        map.connect('/data/search', controller='package', action='search')
+        map.connect('/data/api', controller='ckanext.dgu.controllers.data:DataController', action='api')
+
         return map
 
     def after_map(self, map):

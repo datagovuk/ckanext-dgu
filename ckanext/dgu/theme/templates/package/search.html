@@ -22,7 +22,7 @@
 
         <div class="facet-box" id="map-based-search">
           <h2>UK Location Map Search</h2>
-          <p><a href="${h.url_for_static('/map-based-search')}">Conduct Map Based Search</a></p>
+          <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
         </div>
 
         ${facet_filters()}
@@ -35,7 +35,6 @@
               Please try again.</p>
         </py:if>
         <py:if test="request.params">      
-          <h4 i18n:msg="item_count"><strong>${c.page.item_count}</strong> datasets found</h4>            
           <span class="action">
             ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
           </span>

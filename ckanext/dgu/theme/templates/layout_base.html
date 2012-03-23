@@ -66,11 +66,23 @@
   <div id="blackbar">
     <div class="container">
       <div id="hm-government-link">
-        <a href="http://www.gov.uk"><img src="images/crown.png" />HM Government</a>
+        <img src="/images/crown.png" />HM Government
       </div>
-      <div id="login-or-signup">
-        <a href="#">Log in</a> or <a href="#">sign up</a>
-      </div>
+
+      <span class="ckan-logged-in" style="display: none;">
+        <div id="login-or-signup">
+          You are logged-in as 
+          <a href="${h.url_for(controller='user',action='me')}">${c.user}</a>.
+          <a href="${h.url_for('/user/logout')}">Logout</a>.
+        </div>
+      </span>
+      <span class="ckan-logged-out">
+        <div id="login-or-signup">
+          <a href="${h.url_for(controller='user',action='login')}">Log in</a>
+          or 
+          <a href="${h.url_for(controller='user',action='register')}">sign up</a>
+        </div>
+      </span>
     </div>
   </div>
   <div id="blackbar-underlay">
@@ -86,7 +98,7 @@
   <div class="container">
     <ul id="nav">
       <li><a href="#"><img src="/images/home-icon.png" class="nav-icon" />Home</a><div class="active-triangle"></div></li>
-      <li class="active"><a href="#">Data</a><div class="active-triangle"></div></li>
+      <li class="active"><a href="${h.url_for(controller='data',action='index')}">Data</a><div class="active-triangle"></div></li>
       <li><a href="#">Participate</a><div class="active-triangle"></div></li>
       <li><a href="#">Apps</a><div class="active-triangle"></div></li>
       <li><a href="#">Location</a><div class="active-triangle"></div></li>
@@ -255,6 +267,21 @@
   </py:if>
 
   ${h.literal(getattr(g, 'template_footer_end', ''))}
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+        var ckan_user = '${c.user}';
+        if (ckan_user) {
+            $(".ckan-logged-out").hide();
+            $(".ckan-logged-in").show();
+        }
+        $('input[placeholder], textarea[placeholder]').placeholder();
+
+		$(".chzn-select").chosen();
+    });
+  </script>
+
+
 </body>
 </html>
 

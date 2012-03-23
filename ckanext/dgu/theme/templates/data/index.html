@@ -1,0 +1,54 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="../facets.html" />
+  <py:def function="page_title">Data | data.gov.uk</py:def>
+
+  <div py:match="content">
+    <!-- <p><strong>${c.package_count}</strong> datasets to search</p> -->
+
+    <h2>Search Datasets</h2>
+    <xi:include href="../package/search_form.html" />
+
+    <h2>Browse tags</h2>
+    <div>
+            <div id="tagcloud">
+              <?python
+                import random
+                tags = h.facet_items(c, 'tags', limit=20)
+                random.shuffle(tags)
+              ?>
+              <py:for each="tag_name, count in tags">
+                <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
+              </py:for>
+            </div>
+            <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags</a>
+    </div>
+
+    <h2>Publishers</h2>
+    <ul class="facet-options">
+            <li py:for="name, count in h.facet_items(c, 'publishers', limit=10)"
+                py:if="not ('publishers', name) in c.fields">
+                  <a href="${c.drill_down_url(**{'publishers': name})}">
+                  <span py:if="'format' in 'publishers'.lower()">${h.icon(h.format_icon(name))}</span>
+                    ${label(name)}</a>${count_label(count)}
+            </li>
+    </ul>
+    <p py:if="not len(h.facet_items(c, 'publishers', limit=10))">No publishers found</p>
+
+    <h2>UK Location Map Search</h2>
+    <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
+
+    <h2>Developers</h2>
+    <div>
+      <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="${g.site_url}/data/dump">CSV or JSON dump</a>.</p>
+    </div>
+
+  </div>
+  <xi:include href="../layout.html" />
+
+</html>
