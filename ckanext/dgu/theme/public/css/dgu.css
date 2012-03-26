@@ -205,11 +205,11 @@ body.no-sidebar .sidebar-outer {
 }
 #nav td.active .active-triangle {
   display: block;
-  background: url('http://localhost:5000/images/nav_active.png');
+  background: url('/images/nav_active.png');
 }
 #nav td:hover .active-triangle {
   display: block;
-  background: url('http://localhost:5000/images/nav_hover.png');
+  background: url('/images/nav_hover.png');
 }
 
 /* Footer */

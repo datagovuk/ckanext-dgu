@@ -223,6 +223,8 @@
   <script src="${h.url_for_static('/scripts/vendor/modernizr/1.7/modernizr.min.js')}"></script>
 
   <script type="text/javascript">
+    var CKAN = CKAN || {}; // DR: Taken from application.js
+
     CKAN.plugins = [
       // Declare js array from Python string
       ${['\'%s\', '%s  for s in config.get('ckan.plugins','').split(' ')]}
@@ -239,9 +241,11 @@
             $(".ckan-logged-out").hide();
             $(".ckan-logged-in").show();
         }
+        <!--! //DR: Not sure what this does 
         $('input[placeholder], textarea[placeholder]').placeholder();
 
 		$(".chzn-select").chosen();
+        -->
     });
   </script>
 
@@ -250,20 +254,6 @@
   </py:if>
 
   ${h.literal(getattr(g, 'template_footer_end', ''))}
-
-  <script type="text/javascript">
-    $(document).ready(function() {
-        var ckan_user = '${c.user}';
-        if (ckan_user) {
-            $(".ckan-logged-out").hide();
-            $(".ckan-logged-in").show();
-        }
-        $('input[placeholder], textarea[placeholder]').placeholder();
-
-		$(".chzn-select").chosen();
-    });
-  </script>
-
 
 </body>
 </html>
