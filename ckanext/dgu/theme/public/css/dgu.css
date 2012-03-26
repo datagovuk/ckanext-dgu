@@ -19,6 +19,7 @@ a       { color: #690; }
 a:hover { color: #470; }
 input:focus,
 textarea:focus {
+  border-color: #55AA00;
   border-color: rgba(80, 160, 0, 0.8);
   -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(50, 100, 0, 0.6);
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(50, 100, 0, 0.6);
@@ -55,9 +56,10 @@ textarea:focus {
 .btn-datagov,
 .btn-datagov:hover {
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  color: #ffffff;
+  color: #FFFFFF;
 }
 .btn-datagov.active {
+  color: #FFFFFF;
   color: rgba(255, 255, 255, 0.75);
 }
 
@@ -79,6 +81,7 @@ body.no-sidebar .sidebar-outer {
   position: fixed;
   z-index: 1;
   width: 100%;
+  background: #333;
   background: rgba(0,0,0,0.8);
   color: #fff;
   height: 36px;
@@ -104,62 +107,80 @@ body.no-sidebar .sidebar-outer {
   font-weight: bold;
 }
 
+/* Green section */
+/* ------------- */
+#greenbar {
+  /* Gradient */
+  background: #6AB000;
+  background: -moz-linear-gradient(top,  rgba(106,176,0,1) 0%, rgba(119,185,0,1) 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(106,176,0,1)), color-stop(100%,rgba(119,185,0,1))); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* IE10+ */
+  background: linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6ab000', endColorstr='#77b900',GradientType=0 ); /* IE6-9 */
+}
+
 /* Branding space */
 /* -------------- */
 #branding {
-  height: 100px;
-  padding-top: 40px;
-  font-weight: 300;
+  height: 90px;
+  padding-top: 47px;
+}
+#branding a {
+  display: block;
+  width: 340px;
   letter-spacing: 1px;
-  color: #666;
+  color: #333;
 }
-#branding .branding-logo {
-  margin-left: 25px;
-  height: 54px;
-  width: 54px;
-  float: left;
-}
-#branding .branding-text {
-  margin-left: 20px;
-  margin-top: 7px;
-  text-shadow: 1px 1px 1px #ccc;
-  float: left;
-}
-#branding a#home-link {
-  font-size: 23px;
-  color: inherit;
-}
-#branding a#home-link:hover {
+#branding a:hover {
   text-decoration: none;
   color: #000;
 }
-#branding span#home-tagline {
-  display: block;
+#branding #branding-logo {
+  margin-left: 30px;
+  margin-right: 12px;
+  width: 51px;
+  float: left;
+}
+#branding #branding-line1 {
+  font-size: 23px;
+  padding-top: 4px;
+}
+#branding #branding-line2 {
   font-size: 17px;
+  font-weight: 300;
+  margin-top: 8px;
 }
 
 
 /* Nav */
 /* --- */
-#nav {
-  margin-bottom: 25px;
-  width: 100%;
+ul#nav {
+  list-style-type: none;
+  margin-left: 16px;
+  margin-bottom: 0;
+  font-size: 0; /* Delete space between inline block elements */
 }
-#nav td {
+#nav li {
   padding: 0;
+  width: 100px;
   position: relative;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
 }
-#nav td a {
+#nav li a {
   color: #666;
   text-align: center;
   display: block;
   padding: 10px 10px;
-  min-width: 80px;
-  border: 1px solid #ccc;
-  border-left-color: transparent;
+  border: 1px solid #c6c6c6;
+  border-left-color: #ebebeb;
   font-size: 15px;
   /* Gradient */
-  background: rgb(255,255,255); /* Old browsers */
+  background: #F4F4F4; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(244,244,244,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(244,244,244,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(244,244,244,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -168,16 +189,16 @@ body.no-sidebar .sidebar-outer {
   background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(244,244,244,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f4f4f4',GradientType=0 ); /* IE6-9 */
 }
-#nav td:first-child a {
-  border-left-color: #ccc;
+#nav li:first-child a {
+  border-left-color: #c6c6c6;
 }
-#nav td a:hover {
+#nav li a:hover {
   color: #000;
   border-color: #aaa;
-  border-left-color: transparent;
+  border-left-color: #e0e0e0;
   text-decoration: none;
   /* Gradient */
-  background: rgb(255,255,255); /* Old browsers */
+  background: #FFFFFF; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(255,255,255,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,1)), color-stop(100%,rgba(240,240,240,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(240,240,240,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -186,31 +207,36 @@ body.no-sidebar .sidebar-outer {
   background: linear-gradient(top,  rgba(255,255,255,1) 0%,rgba(240,240,240,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f0f0f0',GradientType=0 ); /* IE6-9 */
 }
-#nav td:first-child a:hover {
+#nav li:first-child a:hover {
   border-left-color: #aaa;
 }
+#nav li.active a {
+  background: #fff;
+  border-bottom-color: transparent;
+}
 #nav .nav-icon {
-  margin: 0 10px;
-  height: 18px;
+  margin: 0 10px 0 0;
   vertical-align: top;
 }
-#nav .active-triangle {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 14px;
-  height: 7px;
-  margin-left: -4px;
-  display: none;
+
+/* Subnavigation */
+/* ------------- */
+#subnav {
+  background: #fff;
+  margin: 0 0 25px 16px;
+  width: 862px;
+  list-style-type: none;
+  padding: 6px 18px;
+  border: 1px solid #ccc;
+  border-top: none;
 }
-#nav td.active .active-triangle {
-  display: block;
-  background: url('/images/nav_active.png');
+#subnav li {
+  display: inline;
 }
-#nav td:hover .active-triangle {
-  display: block;
-  background: url('/images/nav_hover.png');
+#subnav .divider {
+  color: #bbb;
 }
+
 
 /* Footer */
 /* ------ */
@@ -242,7 +268,11 @@ body.no-sidebar .sidebar-outer {
 .facet-box,
 .boxed {
   background: #fff;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
   border-radius: 5px;
+  -moz-box-shadow: 0px 2px 6px #bbb;
+  -webkit-box-shadow: 0px 2px 6px #bbb;
   box-shadow: 0px 2px 6px #bbb;
   padding: 9px;
   margin-bottom: 10px;
@@ -277,10 +307,13 @@ body.no-sidebar .sidebar-outer {
 
 .form-search {
   padding: 9px;
-  width: 572px;
   margin-left: 10px;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
   /* Gradient */
-  background: rgb(45,48,53); /* Old browsers */
+  background: #2D3035; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(45,48,53,1) 0%, rgba(33,33,33,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(45,48,53,1)), color-stop(100%,rgba(33,33,33,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(45,48,53,1) 0%,rgba(33,33,33,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -299,13 +332,10 @@ body.no-sidebar .sidebar-outer {
   float: right;
 }
 .search-facets {
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 20px;
-  margin-bottom: 10px;
+  padding: 10px 0;
   color: #888;
 }
 .search-facets .facet {
-  display: inline-block;
   color: #333;
   padding: 3px 8px;
   margin-left: 10px;
@@ -315,9 +345,15 @@ body.no-sidebar .sidebar-outer {
   -moz-box-shadow: 0 1px 2px #bbb; /* Firefox */
   -webkit-box-shadow: 0 1px 2px #bbb; /* Safari, Chrome */
   box-shadow: 0 1px 2px #bbb;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
   border-radius: 3px;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
   /* Gradient */
-  background: rgb(240,240,240); /* Old browsers */
+  background: #EEEEEE; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(240,240,240,1) 0%, rgba(228,228,228,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(240,240,240,1)), color-stop(100%,rgba(228,228,228,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(240,240,240,1) 0%,rgba(228,228,228,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -330,7 +366,7 @@ body.no-sidebar .sidebar-outer {
   text-decoration: none;
   color: #000;
   /* Gradient */
-  background: rgb(228,228,228); /* Old browsers */
+  background: #E4E4E4; /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(228,228,228,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6+ */
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(228,228,228,1)), color-stop(100%,rgba(240,240,240,1))); /* Chrome,Safari4+ */
   background: -webkit-linear-gradient(top,  rgba(228,228,228,1) 0%,rgba(240,240,240,1) 100%); /* Chrome10+,Safari5.1+ */
@@ -360,7 +396,7 @@ body.no-sidebar .sidebar-outer {
   font-size: 14px;
   line-height: 23px;
   margin-bottom: 8px;
-  border-bottom: 2px solid #ccc;
+  border-bottom: 1px solid #ccc;
   display: block;
 }
 .facet-box > ul {
@@ -405,7 +441,7 @@ ul.datasets {
 }
 .dataset {
   margin-bottom: 30px;
-  padding: 14px 10px;
+  padding: 14px 17px;
 }
 .dataset img.dataset-icon {
   float: left;
@@ -427,14 +463,19 @@ ul.datasets {
 }
 .dataset h4 ul {
   display: inline;
+  list-style-type: none;
   margin: 0;
 }
 .dataset h4 ul li {
-  display: inline-block;
   margin-left: 10px;
+  /* Cross-browser inline-block positioning */
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
 }
 .dataset button.preview {
   float: right;
+  margin-top: 12px;
   margin-right: 25px;
   position: relative;
   padding: 5px 26px;
