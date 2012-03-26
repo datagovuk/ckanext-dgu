@@ -37,7 +37,7 @@ class UrlSpaceSharer(object):
         self.log_as_errors = log_as_errors
 
     def __call__(self, environ, start_response):
-        if log_as_errors:
+        if self.log_as_errors:
             environ['wsgi.errors'].write('Orig PATH_INFO: %r ' % environ.get('PATH_INFO'))
             environ['wsgi.errors'].write('Orig SCRIPT_NAME: %r ' % environ.get('SCRIPT_NAME'))
             
@@ -47,7 +47,7 @@ class UrlSpaceSharer(object):
         environ['PATH_INFO'] = new_path
         environ['SCRIPT_NAME'] = ''
 
-        if log_as_errors:
+        if self.log_as_errors:
             environ['wsgi.errors'].write('New PATH_INFO: %r ' % environ.get('PATH_INFO'))
         return self.app(environ, start_response)
 
