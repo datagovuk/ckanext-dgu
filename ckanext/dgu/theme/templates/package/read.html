@@ -145,9 +145,8 @@
     <xi:include href="read_core.html" />
 
     <div>
-      <form name="add-comment" action="/comment/dataset/${c.pkg.id}" method="post">
+      <form name="add-comment" action="/comment/dataset" method="post">
         <input type="hidden" name="id" value="${c.pkg.id}"/>
-        <input type="hidden" name="name" value="${c.pkg.name}"/>
         <input type="hidden" name="title" value="${c.pkg.title}"/>
         <input type="hidden" name="notes_formatted" value="${c.pkg_notes_formatted}"/>
         <input type="hidden" name="dataset_url" value="${h.url_for(controller='package', action='read', id=c.pkg.name)}"/>
