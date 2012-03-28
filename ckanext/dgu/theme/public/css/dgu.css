@@ -78,6 +78,9 @@ body.no-sidebar .main-outer {
 body.no-sidebar .sidebar-outer {
   display: none;
 }
+body.no-minornavigation .minornavigation-outer {
+  display: none;
+}
 
 
 
@@ -302,27 +305,17 @@ body.no-subnav .content-start {
 
 /* Minor Navigation */
 /* ---------------- */
-#minornavigation .nav {
+#minornavigation {
+  margin: 15px -26px;
   background-color: #e2e2e2;
-  background-image: -webkit-gradient(linear, left top, left bottom, from(#f0f0f0), to(#e2e2e2)); 
-  background-image: -webkit-linear-gradient(top, #f0f0f0, #e2e2e2); 
-  background-image:    -moz-linear-gradient(top, #f0f0f0, #e2e2e2); 
-  background-image:     -ms-linear-gradient(top, #f0f0f0, #e2e2e2); 
-  background-image:      -o-linear-gradient(top, #f0f0f0, #e2e2e2); 
-  background-image:         linear-gradient(top, #f0f0f0, #e2e2e2);
-            filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#f0f0f0', EndColorStr='#e2e2e2');
-
-  -moz-background-clip: padding; -webkit-background-clip: padding-box; background-clip: padding-box; 
+  background: #e2e2e2 url('/images/minornavigation.png');
+  height: 46px;
+}
+#minornavigation .nav {
   padding: 2px 4px;
   font-weight: bold;
   margin: 0;
-  border: 1px solid #ccc;
   padding-left: 20px;
-  margin: 15px -26px 10px -26px;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  box-shadow: 0px 4px 3px rgba(0,0,0,0.05);
-
 }
 #minornavigation .nav > li > a {
   border: 1px solid transparent;
@@ -432,7 +425,7 @@ ul.widget-list {
   border-radius: 5px;
   -moz-box-shadow: 0px 2px 6px #bbb;
   -webkit-box-shadow: 0px 2px 6px #bbb;
-  box-shadow: 0px 2px 5px #bbb;
+  box-shadow: 0px 2px 6px #bbb;
   padding: 9px;
   margin-bottom: 10px;
 }
@@ -442,7 +435,10 @@ ul.widget-list {
 .boxed-flush-top {
   border-top-right-radius: 0;
   border-top-left-radius: 0;
-  margin-top: -28px;
+  -moz-box-shadow: 0px 4px 6px #bbb;
+  -webkit-box-shadow: 0px 4px 6px #bbb;
+  box-shadow: 0px 4px 6px #bbb;
+  margin-top: -30px;
 }
 
 
@@ -653,6 +649,27 @@ td.dataset-label {
 #dataset-resources {
   margin-bottom: 20px;
 }
+#dataset-information > table {
+  table-layout: fixed;
+}
+#dataset-information > table td {
+  overflow: hidden;
+  white-space: nowrap;
+}
+#dataset-information > table .dataset-label {
+  width: 180px;
+}
+
+.resource-actions .btn {
+  position: relative;
+  float: right;
+  bottom: 3px;
+  padding: 8px 10px;
+}
+.resource-actions .download img {
+  margin: 0px 4px -4px 0;
+}
+
 
 
 .resources > .search-result {

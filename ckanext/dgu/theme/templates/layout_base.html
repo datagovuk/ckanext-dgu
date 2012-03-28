@@ -112,11 +112,11 @@
   </div>
   <div class="container">
     <ul id="subnav">
-      <li><a href="#">apps</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="#">community</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="#">forum</a></li>
+      <li><a href="${h.url_for(controller='package', action='search')}">data search</a></li>
+      <py:if test="h.check_access('package_create')">
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="${h.url_for(controller='package', action='search')}">add a dataset</a></li>
+      </py:if>
     </ul>
   </div>
 
@@ -133,13 +133,13 @@
           </div>
           </py:with>
           <!-- Page Heading -->
-          <div class="boxed">
+          <div class="boxed minornavigation-outer">
             <py:if test="defined('page_heading')">
               <h1>${page_heading()}</h1>
             </py:if>
             <!-- MinorNavigation -->
             <div id="minornavigation">
-                <minornavigation></minornavigation>
+              <minornavigation></minornavigation>
             </div>
           </div>
           <!-- Content -->
