@@ -378,6 +378,14 @@ ul.widget-list {
   list-style-type: none;
   margin: 0;
 }
+.ckan-link {
+  float: right;
+  text-align: center;
+}
+.ckan-link img {
+  display: block;
+  margin: 4px 0;
+}
 
 /* Boxes */
 /* ----- */
@@ -522,7 +530,6 @@ ul.widget-list {
 .facet-box > ul {
   list-style-type: none;
   margin: 0;
-  font-size: 11px;
   padding: 0 15px;
 }
 .facet-box .lower > ul li {
@@ -534,9 +541,8 @@ ul.widget-list {
 .facet-box .lower > ul li:last-child {
   margin-bottom: 14px;
 }
-.facet-box p {
-  font-size: 11px;
-  line-height: 13px;
+.facet-box .inline-icon {
+  display: none;
 }
 .facet-box img.facets-title {
   height: 22px;
