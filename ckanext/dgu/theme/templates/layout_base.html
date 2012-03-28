@@ -270,9 +270,11 @@
             $(".ckan-logged-out").hide();
             $(".ckan-logged-in").show();
         }
+        <!--! //DR: Not sure what this does 
         $('input[placeholder], textarea[placeholder]').placeholder();
 
 		$(".chzn-select").chosen();
+        -->
     });
   </script>
 
@@ -281,20 +283,6 @@
   </py:if>
 
   ${h.literal(getattr(g, 'template_footer_end', ''))}
-
-  <script type="text/javascript">
-    $(document).ready(function() {
-        var ckan_user = '${c.user}';
-        if (ckan_user) {
-            $(".ckan-logged-out").hide();
-            $(".ckan-logged-in").show();
-        }
-        $('input[placeholder], textarea[placeholder]').placeholder();
-
-		$(".chzn-select").chosen();
-    });
-  </script>
-
 
 </body>
 </html>
