@@ -31,14 +31,11 @@
 
     <h2>Publishers</h2>
     <ul class="facet-options">
-            <li py:for="name, count in h.facet_items(c, 'publishers', limit=10)"
-                py:if="not ('publishers', name) in c.fields">
-                  <a href="${c.drill_down_url(**{'publishers': name})}">
-                  <span py:if="'format' in 'publishers'.lower()">${h.icon(h.format_icon(name))}</span>
-                    ${label(name)}</a>${count_label(count)}
+            <li py:for="name, count in h.facet_items(c, 'publisher', limit=10)">
+                  <a href="/data/search?publisher=${name}">${h.group_name_to_title(name)}</a>(${count})
             </li>
     </ul>
-    <p py:if="not len(h.facet_items(c, 'publishers', limit=10))">No publishers found</p>
+    <p py:if="not len(h.facet_items(c, 'publisher', limit=10))">No publishers found</p>
 
     <h2>UK Location Map Search</h2>
     <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
