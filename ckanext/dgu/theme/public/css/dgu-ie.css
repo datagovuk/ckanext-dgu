@@ -1,9 +1,8 @@
 .facet-box,
 .boxed {
   /* Support box-shadow #000 and border-radius */
-  behavior: url('/css/ie-css3.htc');
-}
-.search-facets .facet {
-  /* Support box-shadow #000 and border-radius */
-  behavior: url('/css/ie-css3.htc');
+  -moz-box-shadow: none;
+  -o-box-shadow: none;
+  box-shadow: none;
+  border: 1px solid #ccc;
 }
