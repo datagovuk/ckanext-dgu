@@ -103,7 +103,7 @@
         <li><a href="#">Apps</a></li>
         <li><a href="#">Location</a></li>
         <li><a href="#">Library</a></li>
-        <li><a href="#">Linked data</a></li>
+        <li><a href="#">Linked Data</a></li>
         <li><a href="#">Lab</a></li>
         <li><a href="#">About</a></li>
       </ul>
@@ -119,24 +119,28 @@
     </ul>
   </div>
 
-  <div class="container">
+  <div class="container content-start">
     <div class="row">
       <div class="span8 main-outer">
         <div id="main">
           <!-- Flash Messages -->
           <py:with vars="messages = list(h._flash.pop_messages())">
           <div class="flash-messages container">
-            <div class="${m.category}" py:for="m in messages">
+            <div class="alert ${m.category}" py:for="m in messages">
               ${h.literal(m)}
             </div>
           </div>
           </py:with>
           <!-- Page Heading -->
-          <h1 py:if="defined('page_heading')" class="page_heading">${page_heading()}</h1>
-          <!-- MinorNavigation -->
-          <div id="minornavigation">
-              <minornavigation></minornavigation>
-          </div>
+          <py:if test="defined('page_heading')">
+            <div class="boxed">
+              <h1>${page_heading()}</h1>
+              <!-- MinorNavigation -->
+              <div id="minornavigation">
+                  <minornavigation></minornavigation>
+              </div>
+            </div>
+          </py:if>
           <!-- Content -->
           <div id="content">
             <py:if test="defined('content')">

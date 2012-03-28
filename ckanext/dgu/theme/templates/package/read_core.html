@@ -5,12 +5,13 @@
   >
   <xi:include href="../_util.html" />
 
-  <div id="dataset" class="dataset">
+  <div id="dataset" class="dataset boxed">
     <!-- Overview Section -->
     <div id="dataset-overview">
 
       <!-- Description -->
       <div class="notes" py:if="str(c.pkg_notes_formatted).strip()">
+        <h3>Description</h3>
         ${c.pkg_notes_formatted}
       </div>
 
@@ -67,13 +68,7 @@
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Value</th>
-        </tr>
-      </thead>
+    <table class="table table-bordered table-striped table-condensed">
       <tbody>
         <tr py:if="c.pkg.url">
           <td class="dataset-label">Source</td>
