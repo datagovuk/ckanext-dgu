@@ -37,10 +37,6 @@
     </ul>
   </li>
 
-  <li py:if="h.check_access('package_update', {'id':c.pkg.id})">
-    <a href="${h.url_for(controller='package', action='edit', id=c.pkg.name)}">Edit</a>
-  </li>
-
   <?python
     from ckan import model
   ?>

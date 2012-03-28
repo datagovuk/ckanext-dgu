@@ -31,10 +31,37 @@
 
     <xi:include href="read_core.html" />
 
-    <div>
-      <a href="/comment/dataset/${c.pkg.id}">Add Comment</a>
+    <div class="boxed">
+      <a style="float:right" class="btn btn-datagov" href="/comment/dataset/${c.pkg.id}">Add Comment</a>
+      <h2>Comments</h2>
+    </div>
+      <!-- TODO insert some comments from database -->
+    <div class="boxed comment-left comment-green">
+      <h4> Barnsley Care Trust Report</h4>
+      Hello i am a spammer commenting on this page
+    </div>
+    <div class="boxed comment-right comment-green">
+      <h4> Barnsley Care Trust Report</h4>
+      Hello i am a spammer commenting on this page
+    </div>
+    <div class="boxed comment-left comment-green">
+      <h4> Barnsley Care Trust Report</h4>
+      Hello i am a spammer commenting on this page
+    </div>
+    <div class="boxed comment-right comment-grey">
+      <h4> Barnsley Care Trust Report</h4>
+      Hello i am a spammer commenting on this page
+    </div>
+    <div class="boxed comment-left comment-grey">
+      <h4> Barnsley Care Trust Report</h4>
+      Hello i am a spammer commenting on this page
+    </div>
+    <div class="boxed comment-right comment-grey">
+      <h4> Barnsley Care Trust Report</h4>
+      Hello i am a spammer commenting on this page
     </div>
   </div>
+
 
   <py:def function="optional_head">
     <py:if test="config.get('rdf_packages')">
