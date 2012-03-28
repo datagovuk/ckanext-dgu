@@ -381,7 +381,7 @@ ul.widget-list {
 
 /* Boxes */
 /* ----- */
-ul.widget-list > li,
+.sidebar-section,
 .facet-box,
 .boxed {
   background: #fff;

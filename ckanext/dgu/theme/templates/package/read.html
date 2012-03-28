@@ -11,128 +11,15 @@
   about=""
   py:strip="">
 
+
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])}
   - Datasets</py:def>
   
   <py:def function="page_heading" property="dc:title">
     ${c.pkg_dict['title']}
   </py:def>
-  
-  <py:match path="primarysidebar">
-  
-    <li py:if="c.pkg.license_id" id="dataset-license" class="sidebar-section">
-      <strong>License:</strong>
-        <py:choose test="">
-          <span py:when="c.pkg.license and c.pkg.license.url"><a
-              href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
-          <span py:when="c.pkg.license" property="dc:rights">${c.pkg.license.title}</span>
-          <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
-        </py:choose>
 
-        <py:if test="c.pkg.isopen()">
-            <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-              <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
-            </a>
-        </py:if>
-        <py:if test="not c.pkg.isopen()">
-            <span class="closed">
-              ${h.icon('lock')}
-            </span>
-        </py:if>
-    </li>
-
-    <li py:if="h.check_access('package_update', {'id':c.pkg.id})">
-      <a href="${h.url_for(controller='package', action='edit', id=c.pkg.name)}">Edit</a>
-    </li>
-
-    <?python
-      from ckan import model
-    ?>
-    <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED">
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete</a>
-    </li>
-
-    <li py:if="c.pkg_dict.get('tags')" class="sidebar-section">
-      <h3>Tags</h3>
-      ${tag_list(c.pkg_dict.get('tags', ''))}
-    </li>
-
-    <li id="social_media">
-      <?python
-        import urllib
-        import urlparse
-        def external_link(domain, path, params):
-          encoded_params = dict((k,unicode.encode(unicode(v), 'utf-8')) for k,v in params.items())
-          return urlparse.urlunparse(('http', domain, path, '', urllib.urlencode(encoded_params), ''))
-      ?>
-      <a href="${external_link('twitter.com', '/home/', {'status': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name')) + ' -- ' + c.pkg_dict.get('title','')})}" rel="nofollow" title="Share this on Twitter" id="service-links-twitter" class="service-links-twitter">
-        <img src="/images/service_links/twitter.png" alt="Twitter" width="20" height="20"/>
-      </a>
-
-      <a href="${external_link('www.facebook.com', '/sharer.php', {'u': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name')), 't': c.pkg_dict.get('title', '')})}" rel="nofollow" title="Share on Facebook" id="service-links-facebook" class="service-links-facebook">
-        <img src="/images/service_links/facebook.png" alt="Facebook" width="20" height="20"/>
-      </a>
-
-      <a href="${external_link('www.google.com', '/buzz/post', {'url': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))})}" rel="nofollow" title="Buzz this post on Google." id="service-links-google-buzz" class="service-links-google-buzz">
-        <img src="/images/service_links/google_buzz.png" alt="Google Buzz" width="23" height="20"/>
-      </a>
-
-
-      <a href="${external_link('www.linkedin.com', '/shareArticle', {'mini': 'true', 'url': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name')), 'title': c.pkg_dict.get('title', ''), 'summary': '', 'source': 'data.gov.uk'})}" rel="nofollow" title="Publish this post to LinkedIn" id="service-links-linkedin" class="service-links-linkedin">
-        <img src="/images/service_links/linkedin.png" alt="LinkedIn" width="20" height="20"/>
-      </a>
-    </li>
-
-    <li id="share_your_app">
-      <a href="${g.site_url}/node/add/apps">Share your app</a>
-    </li>
-    <li id="share_your_idea">
-      <a href="${g.site_url}/node/add/ideas">Share your idea</a>
-    </li>
-    <li id="data_request">
-      <a href="${g.site_url}/data/requests">Request new data</a>
-    </li>
-
-    <li id="feedback" class="instruction-needed" title="How's this implemented currently.  Is it something we need to disintegrate from drupal?">
-      <a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a>
-    </li>
-
-    <li py:if="c.pkg.get_groups('publisher')" class="sidebar-section">
-      <h3>Publishers</h3>
-      <ul class="groups">
-        <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
-            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
-        </li>
-      </ul>
-    </li>
-
-    <li class="sidebar-section">
-    <!-- <li py:if="c.package_relationships" class="sidebar-section"> -->
-      <h3 class="instruction-needed" title="How are these currently generated?  Is it something that we'll migrate over?">Related Datasets</h3>
-      <p>Place holder</p>
-      <ul class="related-datasets">
-        <py:for each="pkg, relationship_str, comment in c.package_relationships">
-          <li>
-            ${h.literal(relationship_str % (h.link_to(pkg.name, h.url_for(controller="package", action="read", id=pkg.name))))}
-            <span py:if="comment is not None and len(comment)" class="relationship_comment">
-                (${comment})
-            </span>
-          </li>
-        </py:for>
-      </ul>
-    </li>
-
-    <!-- <py:if test="not(c.pkg.isopen() and c.pkg.resources)"> -->
-    <!--   <h3 i18n:msg="">This dataset is Not Open</h3>  -->
-    <!--   <p>Either because it is not openly licensed or is missing -->
-    <!--   downloadable resources.</p> -->
-    <!--   <p class="widget_action"> -->
-    <!--     <a href="http://isitopendata.org/enquiry/start/?ckan_dataset=${c.pkg.name}">Start an enquiry on IsItOpenData &raquo;</a> -->
-    <!--   </p> -->
-    <!-- </py:if> -->
-    <!-- </li> -->
-
-  </py:match>
+  <xi:include href="sidebar.html" />
 
   <div py:match="content">
     <py:if test="c.pkg_revision_id">
