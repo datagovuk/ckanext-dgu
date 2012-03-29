@@ -16,19 +16,19 @@ install_dependencies () {
     sudo chown -R "$user" "/var/lib/ckan/std/.ssh"
     sudo chgrp -R "$user" "/var/lib/ckan/std/.ssh"
 
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-csw.git#egg=ckanext-csw
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-harvest.git#egg=ckanext-harvest
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-inspire.git#egg=ckanext-inspire
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-spatial.git#egg=ckanext-spatial
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/owslib.git#egg=owslib
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-qa.git#egg=ckanext-qa
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-archiver.git#egg=ckanext-archiver
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-importlib.git#egg=ckanext-importlib
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/datautildate#egg=datautildate
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+ssh://git@bitbucket.org/dread/ckanext-os.git#egg=ckanext-os
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -r "/var/lib/ckan/$instance/pyenv/src/ckanext-spatial/pip-requirements.txt"
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed pastescript
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed carrot
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-csw.git#egg=ckanext-csw
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-harvest.git#egg=ckanext-harvest
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-inspire.git#egg=ckanext-inspire
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-spatial.git#egg=ckanext-spatial
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/owslib.git#egg=owslib
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-qa.git#egg=ckanext-qa
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-archiver.git#egg=ckanext-archiver
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-importlib.git#egg=ckanext-importlib
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/datautildate#egg=datautildate
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+ssh://git@bitbucket.org/dread/ckanext-os.git#egg=ckanext-os
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -r "/var/lib/ckan/$instance/pyenv/src/ckanext-spatial/pip-requirements.txt"
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed pastescript
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed carrot
 
     # Install the qa and archiver dependencies
     sudo apt-get -y install supervisor
