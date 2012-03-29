@@ -10,6 +10,12 @@ install_dependencies () {
     instance=$1
     user="ckan$instance"
 
+    # Set ownership on the user's .ssh directory (will have been created by root)
+    # This is required so that the private key can be used to authenticate with bitbucket
+    # in order to install ckanext-os
+    sudo chown -R "$user" "/var/lib/ckan/std/.ssh"
+    sudo chgrp -R "$user" "/var/lib/ckan/std/.ssh"
+
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-csw.git#egg=ckanext-csw
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-harvest.git#egg=ckanext-harvest
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install --ignore-installed -e git+https://github.com/okfn/ckanext-inspire.git#egg=ckanext-inspire
