@@ -22,7 +22,8 @@
 
         <div class="facet-box" id="map-based-search">
           <h2>UK Location Map Search</h2>
-          <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
+          <p>
+            <a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></p>
         </div>
 
         ${facet_filters()}

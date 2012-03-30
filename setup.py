@@ -33,8 +33,9 @@ setup(
         dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
         dgu_theme = ckanext.dgu.plugin:ThemePlugin
         dgu_search = ckanext.dgu.plugin:SearchPlugin
-        dgu_publisher_form=ckanext.dgu.forms.publisher_form:PublisherForm
-        dgu_dataset_form=ckanext.dgu.forms.dataset_form:DatasetForm
+        dgu_publisher_form = ckanext.dgu.forms.publisher_form:PublisherForm
+        dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
+        dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load

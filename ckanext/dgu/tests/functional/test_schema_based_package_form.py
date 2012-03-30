@@ -1,8 +1,8 @@
 """
 High-level functional tests for the create/edit package form.
 
-The new package form is being refactored so as not to use sqlalchemy.  These
-are the tests for this form.  For tests based on the sqlalchemy-based form,
+The new package form is being refactored so as not to use formalchemy.  These
+are the tests for this form.  For tests based on the formalchemy-based form,
 see 'test_package_gov3.py'.
 
 TODO:
