@@ -5,40 +5,34 @@
   >
   <xi:include href="../_util.html" />
 
-  <div id="dataset" class="dataset">
+  <div class="boxed boxed-flush-top">
     <!-- Overview Section -->
     <div id="dataset-overview">
 
       <!-- Description -->
       <div class="notes" py:if="str(c.pkg_notes_formatted).strip()">
+        <h3>Description</h3>
         ${c.pkg_notes_formatted}
       </div>
 
       <!-- Resources -->
       <div id="dataset-resources" class="resources subsection">
-        <h3>Resources</h3>
-        <py:for each="res in c.pkg_dict.get('resources', [])">
-          <div class="search-result" id="${res['id']}">
-            <p class="extra-links">
-              <a class="view-more-link" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">View</a>
-            </p>
-            <a class="main-link" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">${h.resource_display_name(res)}</a>
-            &nbsp;&nbsp;
-            <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-            <p class="resource-description" py:if="res.get('description')">${h.markdown_extract(res.get('description'))}</p>
-            <p class="resource-information" py:if="res.get('last_modified')">
-              Last updated: ${h.time_ago_in_words_from_str(res.get('last_modified'), granularity='day')} ago
-            </p>
-            <p class="result-url" rel="dcat:distribution" resource="_:res${res.id}" typeof="dcat:Distribution">
-              <a class="resource-url-analytics" href="${res.get('url', '')}" rel="dcat:accessURL" target="_blank">
-                ${res.get('url', '')}
-              </a>
-              <a py:if="res.get('cache_url')" class="resource-url-cached" href="${res.get('cache_url')}" target="_blank">
-                [cached]
-              </a>
-            </p>
-          </div>
-        </py:for>
+        <h3>Data Files (${str(len(c.pkg_dict.get('resources',[])))})</h3>
+        <ul class="resource-list">
+          <py:for each="res in c.pkg_dict.get('resources', [])">
+          <li>
+            <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              ${h.icon('page_white')}
+              ${h.resource_display_name(res)}
+              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
+            </a>
+            <div class="resource-buttons">
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
+              <a href="${res.get('url', '')}" class="href-action btn btn-small btn-datagov">Download</a>
+            </div>
+            </li>
+          </py:for>
+        </ul>
         <?python
             is_uklp = False
             uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
@@ -58,7 +52,7 @@
         </div>
 
         <py:if test="not len(c.pkg_dict.get('resources', []))">
-          (none)
+          <em>(none)</em>
         </py:if>
       </div>
 
@@ -67,13 +61,7 @@
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Value</th>
-        </tr>
-      </thead>
+    <table class="table table-bordered table-striped table-condensed">
       <tbody>
         <tr py:if="c.pkg.url">
           <td class="dataset-label">Source</td>
@@ -124,11 +112,11 @@
     </div>
 
     <div id="api-information">
-        <h3>${g.site_title} API</h3>
+        <h3>Developer Tools</h3>
         <div>
             <p>
                 This information on this page (the package metadata) is also
-                available programatically via this site's <a
+                available programatically via this site's <!-- TODO HOOK UP THIS ID--> <a
                   href="${h.url_for(controller='api', action='get_api', id=None, ver='2')}">CKAN API</a>.
             </p>
             <dl>

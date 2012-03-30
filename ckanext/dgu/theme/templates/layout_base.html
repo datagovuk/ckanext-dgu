@@ -40,6 +40,7 @@
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.placeholder/jquery.placeholder.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/bootstrap/2.0.2/bootstrap.min.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
 
   <py:if test="defined('optional_head')">
     ${optional_head()}
@@ -111,31 +112,35 @@
   </div>
   <div class="container">
     <ul id="subnav">
-      <li><a href="#">apps</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="#">community</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="#">forum</a></li>
+      <li><a href="${h.url_for(controller='package', action='search')}">data search</a></li>
+      <py:if test="h.check_access('package_create')">
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="${h.url_for(controller='package', action='search')}">add a dataset</a></li>
+      </py:if>
     </ul>
   </div>
 
-  <div class="container">
+  <div class="container content-start">
     <div class="row">
       <div class="span8 main-outer">
         <div id="main">
           <!-- Flash Messages -->
           <py:with vars="messages = list(h._flash.pop_messages())">
           <div class="flash-messages container">
-            <div class="${m.category}" py:for="m in messages">
+            <div class="alert ${m.category}" py:for="m in messages">
               ${h.literal(m)}
             </div>
           </div>
           </py:with>
           <!-- Page Heading -->
-          <h1 py:if="defined('page_heading')" class="page_heading">${page_heading()}</h1>
-          <!-- MinorNavigation -->
-          <div id="minornavigation">
+          <div class="boxed minornavigation-outer">
+            <py:if test="defined('page_heading')">
+              <h1>${page_heading()}</h1>
+            </py:if>
+            <!-- MinorNavigation -->
+            <div id="minornavigation">
               <minornavigation></minornavigation>
+            </div>
           </div>
           <!-- Content -->
           <div id="content">
@@ -231,16 +236,13 @@
         </div>
         <div class="span6">
           <div class="footer-section last">
-            <p id="credits">
-              &copy; 2012
-              <img src="http://assets.okfn.org/images/logo/okf_logo_white_and_green_tiny.png" id="footer-okf-logo" />
-              <a href="http://okfn.org/">Open Knowledge Foundation</a>
-              Licensed under the <a href="http://opendatacommons.org/licenses/odbl/1.0/">Open Database License</a>
-              <a href="http://opendefinition.org/"><img alt="This Content and Data is Open" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" style="border: none ; margin-bottom: -4px;"/></a>
-
-              <br/><br/>
-              Powered by <a href="http://ckan.org">CKAN</a> v${c.__version__}.<br/>
-            </p>
+            <div class="ckan-link">
+              <strong>Powered by:</strong>
+              <a href="http://ckan.org/">
+                <img src="/images/ckan_logo_box_64px_wide.png"/>
+                CKAN v${c.__version__}
+              </a>
+            </div>
           </div><!-- /footer-section -->
         </div>
       </div>

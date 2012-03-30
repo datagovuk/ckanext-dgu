@@ -15,6 +15,6 @@ jQuery(function ($) {
     $('#sub-publisher-toggle').click(function(){
       $('#sub-publishers li.collapsed').toggle();
     });
-   
+
   });
 })
