@@ -172,7 +172,100 @@ number of different scripts at different stages (detailed in the next section).
 Process in detail
 -----------------
 
-1.  Jenkins executes the script ``/home/okfn/create-dgu-instance-wrapper.sh``.
-    I can't remember the reasoning behind this wrapper, in that all it does is 
+Jenkins
+.......
+
+Jenkins calls ``/home/okfn/create-dgu-instance-wrapper.sh``.  The arguments are
+the repo name and the dgu branch to deploy.  After which the rest of the
+process is controller by the various scripts described below...
+
+create-dgu-instance.sh
+......................
+
+``/home/okfn/create-dgu-instance.sh`` is called with the CKAN repo name (eg -
+``ckan-1.6.1``) and the branch on ckanext-dgu to deploy (eg - ``v1.0-dev``).
+
+This script uses buildkit to tear down the old VM, and boot a new one in its
+place.  The new image is based on an archived image found at
+``/var/lib/buildkit/vm/base.qcow2``.  As part of the creation of the VM,
+buildkit copies a number of files onto the new VM:
+
+/home/okfn/.ssh/dgu-buildbot.okfn.org_rsa
+  This is the private key of the ``dgu-buildbot`` account on bitbucket.  This
+  user has read access to the ckanext-os extension, and is used in order that
+  that extension can installed on the new VM.
+
+  It's copied to the home of the ckanstd user.
+
+/home/buildslave/dumps/latest.pg_dump
+  This is a copy of the latest dump of data from the *CKAN* database on DGU.
+
+/home/buildslave/dumps/users.csv
+  This is a copy of the users found on the *Drupal* database on DGU.  It's not
+  generated from the latest backup, so will gradually become more out of date.
+  Although fine for releasetest, this file will obviously need updating for the
+  final production deployemnt.
+
+/home/okfn/new/install_dgu.sh
+  This is the base script for installing CKAN and DGU on the VM.  It's copied
+  over onto the VM, and later invoked over ssh (using fabric).
+
+vm-fabfile.py
+.............
+
+This is just a simple fab file.  The only function that's used is
+``install_dgu``, which just executes the script that was copied across when
+creating the new VM (see `create-dgu-instance`_).
+
+install_dgu.sh
+..............
+
+This script lives on dgu-buildbot.okfn.org: ``/home/okfn/new/install_dgu.sh``.
+It's copied across to the VM upon creation.
+
+It's purpose is to install CKAN; CKAN's dependencies; DGU; restore the database
+and run migrations; configure the DGU installation; and run some
+post-installation scripts.
+
+One thing to note about this script, is that it uses ``source`` to pull in
+further functionality from the script named ``install_dgu_instance``, found in
+the ckanext-dgu repository: ``ckanext-dgu/buildbot/instance_dgu_instance.sh``.
+This second script allows each dgu branch to customise the installation.  For
+example, different branches may need different plugins, or run different
+migrations.
+
+The last thing this script does to is to start some background processes:
+
+* Rebuilding the search index.
+* Starting the harvest import.
+* Starting the QA update.
+
+Another thing to note is that although there's a copy of ``install_dgu.sh`` in
+the ckanext-dgu repository (``ckanext-dgu/buildbot/jenkins/install_dgu.sh``),
+it is for archive purposes only.  And **changing in the repo will not affect
+the build**. (Unlike ``ckanext-du/buildbot/install_dgu_instance.sh``, which
+**will** affect the build if changed in the repo).
+
+install_dgu_instance.sh
+.......................
+
+This script lives in the ckanext-dgu repository, and it implements a number of
+functions which act as hooks into the above `install_dgu.sh`_ script.
+
+install_dependencies()
+  Called by the ``install_dgu()`` function.  This is called immediately after
+  ckanext-dgu has been checked out and installed in the virtualenv.
+
+run_database_migrations()
+  Called by ``restore_database()`` once the database has been restored and is
+  ready by for use.  It's an optional hook.
+
+configure()
+  Called by ``configure_ini_file()`` after the migrations have run.  Use this
+  to add various options to the .ini file.
+
+post_install()
+  Called once the installation is complete, after the deployment
+  is configured,just before apache is restarted.  This is an option hook.
 
 
