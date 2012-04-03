@@ -134,6 +134,16 @@ class DatasetForm(SingletonPlugin):
         else:
             return self.form_to_db_schema()
 
+    def db_to_form_schema_options(self, options={}):
+        context = options.get('context', {})
+        schema = context.get('schema',None)
+        if schema:
+            return schema
+        elif context.get('for_edit', False):
+            return self.db_to_form_schema()
+        else:
+            return default_schema.package_form_schema()
+
     def form_to_db_schema(self, package_type=None):
 
         schema = {
