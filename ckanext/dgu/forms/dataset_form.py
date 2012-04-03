@@ -131,6 +131,12 @@ class DatasetForm(SingletonPlugin):
         schema = options.get('context',{}).get('schema',None)
         if schema:
             return schema
+
+        elif options.get('api'):
+            if options.get('type') == 'create':
+                return default_schema.default_create_package_schema()
+            else:
+                return default_schema.default_update_package_schema()
         else:
             return self.form_to_db_schema()
 

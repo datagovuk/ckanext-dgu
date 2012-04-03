@@ -52,6 +52,12 @@ def dgu_package_update(context, data_dict):
     if Authorizer().is_sysadmin(unicode(user)):
         return {'success': True}
     
+    # Only sysadmins can edit UKLP packages.
+    # Note: the harvest user *is* a sysadmin
+    if package.extras.get('UKLP', '') == 'True':
+        return {'success': False,
+                'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
+
     userobj = model.User.get( user )
     if not userobj or \
        not _groups_intersect( userobj.get_groups('publisher'), package.get_groups('publisher') ):
