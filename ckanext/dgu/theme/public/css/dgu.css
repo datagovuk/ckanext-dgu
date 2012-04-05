@@ -241,13 +241,10 @@ ul#nav {
 /* Subnavigation */
 /* ------------- */
 #subnav {
-  background: #f4f4f4;
-  margin: 0;
-  width: 902px;
   list-style-type: none;
+  margin: 0;
   padding: 6px 18px;
-  border: 1px solid #ccc;
-  border-top: none;
+  border-bottom: 1px solid #ccc;
 }
 #subnav li {
   display: inline;
