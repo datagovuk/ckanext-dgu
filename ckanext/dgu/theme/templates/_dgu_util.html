@@ -69,18 +69,6 @@
 
   <div py:def="facet_filters()" class="datasets">
 
-    <div class="facet-box">
-      <h2>Sort results</h2>
-      <ul>
-        <li py:if="c.sort_by_fields"><a href="${c.sort_by([])}">Relevancy</a></li>
-        <li py:if="not c.sort_by_fields">Relevancy</li>
-        <py:for each="field,title,order in [('titleString','Title','asc'), ('metadata_modified', 'Date Modified', 'desc')]">
-          <li py:if="field not in c.sort_by_fields"><a href="${c.sort_by([(field,order)])}">${title}</a></li>
-          <li py:if="field in c.sort_by_fields">${title}</li>
-        </py:for>
-      </ul>
-    </div>
-
     ${facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
     ${facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
@@ -89,16 +77,23 @@
 
     ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
 
+    <div class="facet-box" id="map-based-search">
+      <h2>UK Location Map Search</h2>
+      <p py:if="True"><!--TODO disable if already a search-->
+        <a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a>
+      </p>
+    </div>
+
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
-      <h2>UKLP Dataset Type</h2>
+      <h2>UK Location Dataset Type</h2>
       <ul py:if="len(h.facet_items(c, 'resource-type'))">
         ${facet_list_items('UKLP', label=lambda n: 'UKLP', if_empty='UKLP')}
         <ul class="facet-options">
           ${facet_list_items('resource-type')}
         </ul>
       </ul>
-      <p py:if="not len(h.facet_items(c, 'resource-type'))">There are no further UKLP filters to apply.</p>
+      <p py:if="not len(h.facet_items(c, 'resource-type'))">There are no further type filters to apply.</p>
     </div>
 
   </div>

@@ -16,5 +16,10 @@ jQuery(function ($) {
       $('#sub-publishers li.collapsed').toggle();
     });
 
+    $('input[name="dataset-results-sort"]').change(function(e){
+      e.preventDefault();
+      window.location = $(this).val()
+    });
   });
 })
+
