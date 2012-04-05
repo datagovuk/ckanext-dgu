@@ -1,9 +1,9 @@
 <?python 
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
-is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None'
-has_errors = bool(error_summary)
-use_wizard = not has_errors and not is_edit_form
+is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' <!--! 'edit' as opposed to 'new'-->
+has_errors = bool(error_summary) <!--! validation errors -->
+use_wizard = not has_errors and not is_edit_form <!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
 is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
 ?>
