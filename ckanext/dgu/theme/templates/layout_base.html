@@ -67,28 +67,33 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
              ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
              ${defined('body_class') and body_class()}
   ">
-  <div id="blackbar">
-    <div class="container">
-      <div id="hm-government-link">
-        <img src="/images/crown.png" />
-        <img src="/images/crown-text.png" alt="HM Government" />
-      </div>
+  <div id="blackbar" py:choose="defined('blackbar_content')">
+    <py:when test="True">
+      ${blackbar_content()}
+    </py:when>
+    <py:otherwise>
+      <div class="container">
+        <div id="hm-government-link">
+          <img src="/images/crown.png" />
+          <img src="/images/crown-text.png" alt="HM Government" />
+        </div>
 
-      <span class="ckan-logged-in" style="display: none;">
-        <div id="login-or-signup">
-          You are logged-in as 
-          <a href="${h.url_for(controller='user',action='me')}">${c.user}</a>.
-          <a href="${h.url_for('/user/logout')}">Logout</a>.
-        </div>
-      </span>
-      <span class="ckan-logged-out">
-        <div id="login-or-signup">
-          <a href="${h.url_for(controller='user',action='login')}">Log in</a>
-          or 
-          <a href="${h.url_for(controller='user',action='register')}">sign up</a>
-        </div>
-      </span>
-    </div>
+        <span class="ckan-logged-in" style="display: none;">
+          <div id="login-or-signup">
+            You are logged-in as 
+            <a href="${h.url_for(controller='user',action='me')}">${c.user}</a>.
+            <a href="${h.url_for('/user/logout')}">Logout</a>.
+          </div>
+        </span>
+        <span class="ckan-logged-out">
+          <div id="login-or-signup">
+            <a href="${h.url_for(controller='user',action='login')}">Log in</a>
+            or 
+            <a href="${h.url_for(controller='user',action='register')}">sign up</a>
+          </div>
+        </span>
+      </div>
+    </py:otherwise>
   </div>
   <div id="blackbar-underlay">
   </div>
