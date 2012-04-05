@@ -131,13 +131,8 @@ body.no-minornavigation .minornavigation-outer {
 }
 #blackbar #hm-government-link {
   float: left;
-  font-size: 18px;
-  margin-top: 8px;
   font-weight: 100;
-}
-#blackbar #hm-government-link img {
-  margin-right: 10px;
-  margin-top: -7px;
+  margin-top: 5px;
 }
 #blackbar #login-or-signup {
   float: right;
@@ -164,33 +159,9 @@ body.no-minornavigation .minornavigation-outer {
 /* Branding space */
 /* -------------- */
 #branding {
-  height: 90px;
-  padding-top: 47px;
-}
-#branding a {
-  display: block;
-  width: 340px;
-  letter-spacing: 1px;
-  color: #333;
-}
-#branding a:hover {
-  text-decoration: none;
-  color: #000;
-}
-#branding #branding-logo {
-  margin-left: 30px;
-  margin-right: 12px;
-  width: 51px;
-  float: left;
-}
-#branding #branding-line1 {
-  font-size: 23px;
-  padding-top: 4px;
-}
-#branding #branding-line2 {
-  font-size: 17px;
-  font-weight: 300;
-  margin-top: 8px;
+  height: 99px;
+  padding-top: 40px;
+  padding-left: 55px;
 }
 
 
@@ -220,13 +191,13 @@ ul#nav {
   background: linear-gradient(top,  rgba(68,68,68,1) 0%,rgba(34,34,34,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#444444', endColorstr='#222222',GradientType=0 ); /* IE6-9 */
 }
-#nav li:first-child {
+#nav li#nav-home {
   width: 115px;
 }
-#nav li:nth-child(7) {
+#nav li#nav-linked-data {
   width: 110px;
 }
-#nav li:last-child {
+#nav li#nav-about {
   width: 115px;
 }
 #nav li a {
