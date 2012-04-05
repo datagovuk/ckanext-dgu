@@ -67,7 +67,8 @@
   <div id="blackbar">
     <div class="container">
       <div id="hm-government-link">
-        <img src="/images/crown.png" />HM Government
+        <img src="/images/crown.png" />
+        <img src="/images/crown-text.png" alt="HM Government" />
       </div>
 
       <span class="ckan-logged-in" style="display: none;">
@@ -91,22 +92,20 @@
   <div id="greenbar">
     <div class="container" id="branding">
       <a href="#">
-        <img id="branding-logo" src="/images/dgu-logo.png" />
-        <div id="branding-line1">DATA.GOV.UK</div>
-        <div id="branding-line2">Opening up Government</div>
+        <img src="/images/dgu-header.png" alt="DATA.GOV.UK - Opening up Government" />
       </a>
     </div>
     <div class="container">
       <ul id="nav">
-        <li><a href="#"><div class="nav-icon"></div>Home</a></li>
-        <li class="active"><a href="${h.url_for(controller='data',action='index')}">Data</a></li>
-        <li><a href="#">Participate</a></li>
-        <li><a href="#">Apps</a></li>
-        <li><a href="#">Location</a></li>
-        <li><a href="#">Library</a></li>
-        <li><a href="#">Linked Data</a></li>
-        <li><a href="#">Lab</a></li>
-        <li><a href="#">About</a></li>
+        <li id="nav-home"><a href="#"><div class="nav-icon"></div>Home</a></li>
+        <li id="nav-data" class="active"><a href="${h.url_for(controller='data',action='index')}">Data</a></li>
+        <li id="nav-participate"><a href="#">Participate</a></li>
+        <li id="nav-apps"><a href="#">Apps</a></li>
+        <li id="nav-location"><a href="#">Location</a></li>
+        <li id="nav-library"><a href="#">Library</a></li>
+        <li id="nav-linked-data"><a href="#">Linked Data</a></li>
+        <li id="nav-lab"><a href="#">Lab</a></li>
+        <li id="nav-about"><a href="#">About</a></li>
       </ul>
     </div>
   </div>
