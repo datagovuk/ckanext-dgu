@@ -111,6 +111,8 @@
   </div>
   <div class="container">
     <ul id="subnav">
+      <li><a href="${h.url_for(controller='package', action='search')}">data</a></li>
+        <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="${h.url_for(controller='package', action='search')}">data search</a></li>
       <py:if test="h.check_access('package_create')">
         <span class="divider">&nbsp;|&nbsp;</span>
