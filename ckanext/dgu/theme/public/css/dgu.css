@@ -154,6 +154,7 @@ body.no-minornavigation .minornavigation-outer {
   background: -ms-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* IE10+ */
   background: linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6ab000', endColorstr='#77b900',GradientType=0 ); /* IE6-9 */
+
 }
 
 /* Branding space */
@@ -244,7 +245,8 @@ ul#nav {
   list-style-type: none;
   margin: 0;
   padding: 6px 18px;
-  border-bottom: 1px solid #ccc;
+  border: 1px solid #ccc;
+  border-top: none;
 }
 #subnav li {
   display: inline;
