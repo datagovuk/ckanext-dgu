@@ -6,13 +6,14 @@
   py:strip="">
 
   <py:def function="page_title">Data API | data.gov.uk</py:def>
+  <py:def function="body_class">no-sidebar no-minornavigation</py:def>
 
   <div py:match="content">
     <h2>Data API</h2>
     <div>
       <p>Developers can access the data catalogue with an API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>
 
-      <p>The base URL for the api is: ${g.site_url}api</p>
+      <p>The base URL for the API is: ${g.site_url}api</p>
 
       <p>The API is provided by the CKAN software and full instructions are provided here: <a href="http://docs.ckan.org/en/latest/api.html">http://docs.ckan.org/en/latest/api.html</a>.</p> 
     </div>

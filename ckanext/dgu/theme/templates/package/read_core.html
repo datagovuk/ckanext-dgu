@@ -17,22 +17,43 @@
 
       <!-- Resources -->
       <div id="dataset-resources" class="resources subsection">
-        <h3>Data Files (${str(len(c.pkg_dict.get('resources',[])))})</h3>
-        <ul class="resource-list">
-          <py:for each="res in c.pkg_dict.get('resources', [])">
-          <li>
-            <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
-              ${h.icon('page_white')}
-              ${h.resource_display_name(res)}
-              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-            </a>
-            <div class="resource-buttons">
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
-              <a href="${res.get('url', '')}" class="href-action btn btn-small btn-datagov">Download</a>
-            </div>
-            </li>
-          </py:for>
-        </ul>
+        <py:if test="c.pkg_dict.get('individual_resources') or not c.pkg_dict.get('timeseries_resources')">
+          <h3>Data Files (${str(len(c.pkg_dict.get('individual_resources',[])))})</h3>
+          <ul class="resource-list">
+            <py:for each="res in c.pkg_dict.get('individual_resources', [])">
+            <li>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+                ${h.icon('page_white')}
+                ${h.resource_display_name(res)}
+                <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
+              </a>
+              <div class="resource-buttons">
+                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
+                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-datagov">Download</a>
+              </div>
+              </li>
+            </py:for>
+          </ul>
+        </py:if>
+        <py:if test="c.pkg_dict.get('timeseries_resources')">
+          <h3>Data Files (${str(len(c.pkg_dict.get('timeseries_resources',[])))} in a time series)</h3>
+          <ul class="resource-list">
+            <py:for each="res in c.pkg_dict.get('timeseries_resources', [])">
+            <li>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+                ${h.icon('page_white')}
+                ${res.get('date')}
+                ${h.resource_display_name(res)}
+                <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
+              </a>
+              <div class="resource-buttons">
+                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
+                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-datagov">Download</a>
+              </div>
+              </li>
+            </py:for>
+          </ul>
+        </py:if>
         <?python
             is_uklp = False
             uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
@@ -50,8 +71,27 @@
                 <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" target="_blank">Formatted GEMINI2 document</a> (HTML)
             </div>
         </div>
+        <py:if test="c.pkg_dict.get('additional_resources')"> 
+          <h3>Additional Links ${str(len(c.pkg_dict.get('additional_resources',[])))})</h3>
+          <ul class="resource-list">
+            <py:for each="res in c.pkg_dict.get('additional_resources', [])">
+            <li>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+                ${h.icon('page_white')}
+                ${res.get('date')}
+                ${h.resource_display_name(res)}
+                <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
+              </a>
+              <div class="resource-buttons">
+                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
+                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-datagov">Download</a>
+              </div>
+              </li>
+            </py:for>
+          </ul>
+        </py:if>
 
-        <py:if test="not len(c.pkg_dict.get('resources', []))">
+        <py:if test="not (is_uklp or c.pkg_dict.get('individual_resources') or c.pkg_dict.get('timeseries_resources') or c.pkg_dict.get('additional_resources'))">
           <em>(none)</em>
         </py:if>
       </div>
@@ -116,8 +156,8 @@
         <div>
             <p>
                 This information on this page (the package metadata) is also
-                available programatically via this site's <!-- TODO HOOK UP THIS ID--> <a
-                  href="${h.url_for(controller='api', action='get_api', id=None, ver='2')}">CKAN API</a>.
+                available programatically via this site's <a
+                  href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}">CKAN API</a>.
             </p>
             <dl>
               <dt>JSON</dt>

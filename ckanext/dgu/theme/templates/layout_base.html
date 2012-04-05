@@ -60,6 +60,9 @@
   ${h.literal(getattr(g, 'template_head_end', ''))}
 </head>
 
+<?python
+data_controller = 'ckanext.dgu.controllers.data:DataController'
+?>
 <body class="${request.environ.get('pylons.routes_dict', {}).get('action')}
              ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
              ${defined('body_class') and body_class()}
@@ -97,8 +100,8 @@
     </div>
     <div class="container">
       <ul id="nav">
-        <li id="nav-home"><a href="#"><div class="nav-icon"></div>Home</a></li>
-        <li id="nav-data" class="active"><a href="${h.url_for(controller='data',action='index')}">Data</a></li>
+        <li id="nav-home"><a href="/"><div class="nav-icon"></div>Home</a></li>
+        <li id="nav-data" class="active"><a href="${h.url_for(controller=data_controller,action='index')}">Data</a></li>
         <li id="nav-participate"><a href="#">Participate</a></li>
         <li id="nav-apps"><a href="#">Apps</a></li>
         <li id="nav-location"><a href="#">Location</a></li>
@@ -111,12 +114,12 @@
   </div>
   <div class="container">
     <ul id="subnav">
-      <li><a href="${h.url_for(controller='package', action='search')}">data</a></li>
+      <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="${h.url_for(controller='package', action='search')}">data search</a></li>
       <py:if test="h.check_access('package_create')">
         <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="${h.url_for(controller='package', action='search')}">add a dataset</a></li>
+        <li><a href="${h.url_for(controller='package', action='new')}">add a dataset</a></li>
       </py:if>
     </ul>
   </div>
