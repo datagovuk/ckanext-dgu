@@ -275,9 +275,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     </select>
     
-    <br/><label for="access_constraints">Access Constraints:</label><br/>
+    <br/><label for="license_extra">Access Constraints:</label><br/>
     <textarea py:if="not license_extra" rows="10" cols="60" id="access_constraints" name="access_constraints">${license_id_other if license_id_other else (license_id if is_other_license else '')}</textarea>
-    <textarea py:if="license_extra" rows="10" cols="60" id="access_constraints" name="access_constraints" disabled="disabled">${license_extra}</textarea>
+    <textarea py:if="license_extra" rows="10" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${license_extra}</textarea>
+    <input py:if="license_extra" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
 
       <p py:if="errors.get('license_id')" class="field_error" style="display: block;">${errors.get('license_id','')}</p>
       <p class="instructions basic">The licence under which the dataset is released.</p>

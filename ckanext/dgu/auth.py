@@ -54,6 +54,8 @@ def dgu_package_update(context, data_dict):
     
     # Only sysadmins can edit UKLP packages.
     # Note: the harvest user *is* a sysadmin
+    # Note: if changing this, check the code and comments in
+    #       ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
     if package.extras.get('UKLP', '') == 'True':
         return {'success': False,
                 'msg': _('User %s not authorized to edit packages in these groups') % str(user)}

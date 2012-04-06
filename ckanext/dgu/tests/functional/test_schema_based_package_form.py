@@ -13,14 +13,18 @@ TODO:
 
 """
 from functools import partial
+import json
 import re
 
 from nose.tools import assert_equal, assert_in, assert_not_in
 from nose.plugins.skip import SkipTest
 
+import paste.fixture
+
 from ckanext.dgu.tests import Gov3Fixtures
 import ckanext.dgu.lib.helpers
 
+import ckan
 from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.field_types import DateType
 import ckan.model as model
@@ -654,6 +658,100 @@ class TestPackageCreation(CommonFixtureMethods):
         assert_equal(package_data['temporal_coverage-to'], _convert_date(pkg.extras['temporal_coverage-to']))
         assert_in('England', pkg.extras['geographic_coverage'])
 
+class TestEditingHarvestedDatasets(CommonFixtureMethods, WsgiAppCase):
+    """
+    Tests based around a sysadmin editing and saving a harvested dataset.
+    """
+
+    def setup(self):
+        """
+        Creates a harvested UKLP dataset.
+        """
+        _drop_sysadmin()
+        self.admin = _create_sysadmin()
+
+        CreateTestData.create_test_user()
+        self.tester = 'tester'
+
+        CreateTestData.create_groups(_EXAMPLE_GROUPS, admin_user_name=self.tester, auth_profile='publisher')
+        CreateTestData.flag_for_deletion(group_names=[g['name'] for g in _EXAMPLE_GROUPS])
+
+        context = {
+            'model': ckan.model,
+            'session': ckan.model.Session,
+            'user': self.admin,
+            'api_version': 2,
+            'schema': ckan.logic.schema.default_package_schema(),
+        }
+        package_dict = _UKLP_DATASET.copy()
+
+        self.uklp_dataset = ckan.logic.get_action('package_create_rest')(context, package_dict)
+
+        CreateTestData.flag_for_deletion(pkg_names=[self.uklp_dataset['name']])
+
+    def teardown(self):
+        CreateTestData.delete()
+        _drop_sysadmin()
+
+    def test_sysadmin_can_edit_UKLP_dataset(self):
+        """Test that a sysadmin can access the edit page of a UKLP dataset"""
+        offset = url_for(controller='package', action='edit', id=self.uklp_dataset['id'])
+        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
+        assert_equal(response.status, 200)
+
+    def test_publisher_cannot_edit_a_UKLP_dataset(self):
+        """Test that a publisher cannot access the edit page of a UKLP dataset"""
+        offset = url_for(controller='package', action='edit', id=self.uklp_dataset['id'])
+
+        response = None
+        try:
+            response = self.app.get(offset, extra_environ={'REMOTE_USER': self.tester})
+        except paste.fixture.AppError, e:
+            assert_in('401 Unauthorized', str(e))
+        assert not response
+
+    def test_sysadmin_can_save_a_UKLP_harvested_dataset(self):
+        """Test sysadmin can save a UKLP dataset.
+
+        The thing to test here is that saving works even when the following
+        form-fields may be invalid or missing (as they cannot easily be populated
+        when harvesting):
+
+        * primary_theme
+        * resource formats
+        * temporal_coverage-{from,to}
+        """
+        client = _PackageFormClient()
+        response = client.post_form({}, id=self.uklp_dataset['id'])
+
+        assert_not_in('Errors in form', response.body)
+        assert_equal(response.response.status_int, 302)
+
+    def test_when_sysadmin_saves_that_no_harvested_data_is_dropped(self):
+        """Test that we don't accidently drop any data that has been harvested."""
+
+        offset = url_for(controller='api',
+                         register='package',
+                         action='show',
+                         id=self.uklp_dataset['id'],
+                         ver='2')
+
+        pkg_before = json.loads(self.app.get(offset).body)
+        
+        # GET and POST the form, without entering any new details.
+        client = _PackageFormClient()
+        client.post_form({'license_id': '__other__'}, id=self.uklp_dataset['id'])
+
+        pkg_after = json.loads(self.app.get(offset).body)
+
+        # The form may add new fields to the package, such as 'mandate'.
+        # But shouldn't change any existing fields.
+        ignored_fields = ['metadata_modified']
+        new_values = dict( (k, pkg_after.get(k,None)) for k in pkg_before.keys()
+                                                      if k not in ignored_fields )
+        for k in new_values.keys():
+            assert_equal(new_values[k], pkg_before[k])
+
 class _PackageFormClient(WsgiAppCase):
     """
     A helper object that provides a single method for POSTing a package create form.
@@ -666,11 +764,15 @@ class _PackageFormClient(WsgiAppCase):
         _drop_sysadmin()
         self.admin = _create_sysadmin()
 
-    def post_form(self, data):
+    def post_form(self, data, id=None):
         """
         GETs the package-create page, fills in the given fields, and POSTs the form.
         """
-        offset = url_for(controller='package', action='new')
+        if id:
+            offset = url_for(controller='package', action='edit', id=id)
+        else:
+            offset = url_for(controller='package', action='new')
+
         response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
         
         # parse the form fields from the html
@@ -684,6 +786,14 @@ class _PackageFormClient(WsgiAppCase):
         # initialise all fields with an empty string, or with the form's pre-filled value
         form_fields = dict( (match.group('field_name'), match.groupdict('').get('field_value')) \
                                 for match in form_field_matches)
+        
+        # match <textarea>s which don't have a value="..." attribute
+        textarea_matches = re.finditer('<textarea [^>]*'
+                                        'name="(?P<field_name>[^"]+)"'
+                                        ' ?[^>]*>(?P<field_value>[^>]*)</textarea>',
+                                        response.body)
+        form_fields.update( dict( (match.group('field_name'), match.groupdict('').get('field_value')) \
+                                    for match in textarea_matches) )
         
         self._assert_not_posting_extra_fields(form_fields.keys(), data.keys())
 
@@ -880,3 +990,5 @@ _EXAMPLE_GROUPS = [
     {'name': 'publisher-2',
      'title': 'Publisher Two'},
 ]
+
+_UKLP_DATASET = json.loads('{"maintainer": null, "maintainer_email": null, "metadata_created": "2011-06-03T12:17:54.351438", "relationships": [], "metadata_modified": "2011-12-22T16:40:15.831307", "author": null, "author_email": null, "state": "active", "version": null, "license_id": null, "type": null, "resources": [], "tags": ["Climate change", "Geological mapping", "Geology", "NERC_DDC"], "groups": [], "name": "1-1-5m-scale-geology-through-climate-change-map-covering-uk-mainland-northern-ireland-and-eire", "isopen": false, "license": null, "notes_rendered": "<p>1:1.5M scale \'Geology Through Climate Change\' map covering UK mainland, Northern Ireland and Eire. This poster map shows the rocks of Britain and Ireland in a new way, grouped and coloured according to the environment under which they were formed. Photographs illustrate modern-day environments, alongside images of the typical rock types which are formed in them. The ages of the rocks are shown in a timeline, which also shows global temperatures and sea levels changing through time. The changing positions of Britain and Ireland as they drifted northwards through geological time are illustrated too. It was jointly produced by the BGS, the Geological Survey of Northern Ireland and the Geological Survey of Ireland. It has been endorsed by a range of teaching organisations including WJEC, OCR, The Association of Teaching Organisations of Ireland and the Earth Science Teachers Association. Although primarily intended as a teaching resource, the poster map will be of interest to anyone seeking to understand the imprint geological time has left in the rocks of our islands. This poster map is free, all you pay is the postage and packing.\\n</p>", "url": null, "ckan_url": "http://releasetest.ckan.org/dataset/1-1-5m-scale-geology-through-climate-change-map-covering-uk-mainland-northern-ireland-and-eire", "notes": "1:1.5M scale \'Geology Through Climate Change\' map covering UK mainland, Northern Ireland and Eire. This poster map shows the rocks of Britain and Ireland in a new way, grouped and coloured according to the environment under which they were formed. Photographs illustrate modern-day environments, alongside images of the typical rock types which are formed in them. The ages of the rocks are shown in a timeline, which also shows global temperatures and sea levels changing through time. The changing positions of Britain and Ireland as they drifted northwards through geological time are illustrated too. It was jointly produced by the BGS, the Geological Survey of Northern Ireland and the Geological Survey of Ireland. It has been endorsed by a range of teaching organisations including WJEC, OCR, The Association of Teaching Organisations of Ireland and the Earth Science Teachers Association. Although primarily intended as a teaching resource, the poster map will be of interest to anyone seeking to understand the imprint geological time has left in the rocks of our islands. This poster map is free, all you pay is the postage and packing.", "license_title": null, "ratings_average": null, "extras": {"bbox-east-long": "180.0000", "temporal_coverage-from": "[]", "resource-type": "dataset", "bbox-north-lat": "90.0000", "coupled-resource": "[]", "guid": "9df8df53-2a24-37a8-e044-0003ba9b0d98", "bbox-south-lat": "-90.0000", "temporal_coverage-to": "[\\"2008\\"]", "spatial-reference-system": "urn:ogc:def:crs:EPSG::4326", "spatial": "{\\"type\\":\\"Polygon\\",\\"coordinates\\":[[[180.0000, -90.0000],[180.0000, 90.0000], [-180.0000, 90.0000], [-180.0000, -90.0000], [180.0000, -90.0000]]]}", "access_constraints": "[\\"copyright: The dataset is made freely available for access, e.g. via the Internet. Either no third party data / information is contained in the dataset or BGS has secured written permission from the owner(s) of any third party data / information contained in the dataset to make the dataset freely accessible.\\", \\"The poster is copyright of NERC, copyright of Geological Survey of Ireland and copyright of Geological Survey of Northern Ireland.\\"]", "contact-email": "enquiries@bgs.ac.uk", "bbox-west-long": "-180.0000", "metadata-date": "2011-12-16T17:19:00", "dataset-reference-date": "[{\\"type\\": \\"publication\\", \\"value\\": \\"2008\\"}]", "published_by": 15004, "frequency-of-update": "asNeeded", "licence": "[]", "harvest_object_id": "56b36936-a369-4991-bd44-9e65e0ae146e", "responsible-party": "British Geological Survey (distributor)", "UKLP": "True", "spatial-data-service-type": "", "metadata-language": "eng"}, "ratings_count": 0, "title": "1:1.5M scale \'Geology Through Climate Change\' Map Covering UK mainland, Northern Ireland and Eire.", "revision_id": "37dfbc09-9d70-4839-86a0-7e33cde8299a"}')
