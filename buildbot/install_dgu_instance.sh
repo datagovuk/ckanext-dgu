@@ -96,13 +96,14 @@ configure () {
              -e '/^\[app:main\]$/ a\
 openid_enabled = False\
 dgu.admin.name = Test Account\
-dgu.admin.email = ian.murray@okfn.org\
+dgu.admin.email = david.read@hackneyworkshop.com\
 search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl publisher\
 ckan.spatial.srid = 4258\
 dgu.xmlrpc_username = CKAN_API\
 dgu.xmlrpc_password = XXX\
 dgu.xmlrpc_domain = 212.110.177.173\
-ckan.enable_call_timing = false' \
+ckan.enable_call_timing = false\
+ckan.datasets_per_page = 10' \
              -i.bak "$ini_file"
 
 }
