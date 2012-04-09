@@ -44,7 +44,7 @@
      </div>
      <button class="btn btn-datagov btn-small preview preview-add">add to preview<img class="preview-stamp" src="/images/stamp.png"/></button>
      <button class="btn btn-datagov btn-small preview preview-map">preview on map<img class="preview-stamp" src="/images/stamp2.png"/></button>
-     <py:if test="package.resources">
+     <py:if test="package.get('resources', [])">
      <h4>Formats:
           <ul class="dataset-formats">
             <py:for each="resource in package.resources">

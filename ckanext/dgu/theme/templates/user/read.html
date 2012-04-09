@@ -4,7 +4,6 @@
 
   <py:def function="page_title">${c.user_dict['display_name']} - User</py:def>
   <py:def function="page_heading">
-    ${h.linked_gravatar(c.user_dict['email_hash'],48)}
     <span class="username">
     ${c.user_dict['name']}
     </span>
@@ -16,7 +15,7 @@
   </py:def>
 
   <div py:match="content" py:strip="">
-    <div class="row summary">
+    <div class="row summary boxed boxed-flush-top">
       <div class="span-12">
         <dl class="vcard">
           <dt>Name</dt>
@@ -59,7 +58,7 @@
 		groups = u.get_groups('publisher' )
 ?>
 
-	<div class="row listing">
+	<div class="row listing boxed">
 		<h2>Publishers</h2>
 		<a py:if="c.user == c.user_dict['name']" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply')}">Add a publisher to your account</a>
 
