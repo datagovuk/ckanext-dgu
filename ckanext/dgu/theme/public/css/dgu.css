@@ -712,3 +712,31 @@ td.dataset-label {
 .resource-list li .resource-buttons .btn {
   margin: 0 0 0 5px;
 }
+
+/* form */
+div#form-tabs a.disabled {
+  color: #a6a6a6;
+  cursor: default;
+}
+
+div#form-tabs a.disabled:hover {
+  background-color: transparent;
+  cursor: default;
+  border-color: transparent;
+}
+
+.fieldset_button_error {
+  background: transparent url(../images/icons/error.png) right center no-repeat;
+}
+
+p.field_error {
+  background: transparent url(../images/icons/error.png) left center no-repeat;
+  padding-left: 20px;
+  color: #FF6666;
+  display: inline;
+}
+
+input.display-error-inside.field_error {
+  padding-left: 20px;
+  background: transparent url(../images/icons/error.png) left center no-repeat;
+}

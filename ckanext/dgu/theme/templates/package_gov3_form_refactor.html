@@ -1,14 +1,14 @@
 <?python 
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
-is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' <!--! 'edit' as opposed to 'new'-->
-has_errors = bool(error_summary) <!--! validation errors -->
-use_wizard = not has_errors and not is_edit_form <!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
+is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' #<!--! 'edit' as opposed to 'new'-->
+has_errors = bool(error_summary) #<!--! validation errors -->
+use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
 is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
 ?>
 
-<form id="package-edit" class="package_create_form ckan" method="post" 
+<form id="package-edit" class="package_create_form ckan form-horizontal" method="post" 
   py:attrs="{'class':'has-errors'} if errors else {}"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:py="http://genshi.edgewall.org/"
@@ -22,70 +22,85 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </ul>
 </div>
 
-<div id="form-tabs">
-  <ul>
-    <li><a id="section-name" href="#section-name" class="active">Name</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-data" href="#section-data">Files</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-description" href="#section-description">Description</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-contacts" href="#section-contacts">Contact details</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-themes" href="#section-themes">Theme &amp; tags</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-additional_resources" href="#section-additional_resources">Additional resources (optional)</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-temporal" href="#section-temporal">Temporal coverage (optional)</a></li>
-    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-geographic" href="#section-geographic">Geographic coverage (optional)</a></li>
-    <li py:if="is_edit_form"><a py:attrs="{'class': 'disabled' if use_wizard else None}" id="section-extra" href="#section-extra">Extras (optional)</a></li>
-  </ul>
-</div>
+<div class="boxed">
 
-<fieldset id="section-name-fields">
+<div id="form-tabs" class="tabbable tabs-left">
+  <ul class="nav nav-tabs ">
+    <li class="active"><a href="#section-name-field" data-toggle="tab">Name</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-data-field" data-toggle="tab">Files</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-description-field" data-toggle="tab">Description</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-contacts-field" data-toggle="tab">Contact details</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-themes-field" data-toggle="tab">Theme &amp; tags</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-additional_resources-field" data-toggle="tab">Additional resources (optional)</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-temporal-field" data-toggle="tab">Temporal coverage (optional)</a></li>
+    <li><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-geographic-field" data-toggle="tab">Geographic coverage (optional)</a></li>
+    <li py:if="is_edit_form"><a py:attrs="{'class': 'disabled' if use_wizard else None}" href="#section-extra-field" data-toggle="tab">Extras (optional)</a></li>
+  </ul>
+  <div class="tab-content span8">
+
+<fieldset class="tab-pane active" id="section-name-field">
 
   <legend>Name</legend>
   <p>Please name your data record</p>
-  <label for="title">Name:</label>
-  <input class="field_req js-title js-tooltip" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
-  <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
+  <div class="control-group">
+    <label class="control-label" for="title">Name:</label>
+    <div class="controls">
+      <input class="field_req js-title js-tooltip input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
+      <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
+    </div>
+  </div>
   
-  <label py:if="not is_edit_form" for="name">Unique identifier for this data record:</label>
-  <input py:if="not is_edit_form" class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
-  <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
-  <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
-  <p py:if="not is_edit_form" class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
-  <p py:if="not is_edit_form">This will locate this data set here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
-  <p py:if="is_edit_form"><b>The dataset is located here: </b><a href="${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}">${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}</a></p>
+  <div class="control-group">
+    <label py:if="not is_edit_form" class="control-label" for="name">Unique identifier for this data record:</label>
+    <div class="controls">
+      <input py:if="not is_edit_form" class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
+      <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
+      <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
+      <p py:if="not is_edit_form" class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
+      <p py:if="not is_edit_form">This will locate this dataset here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
+      <p py:if="is_edit_form"><b>The dataset is located here: </b><a href="${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}">${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}</a></p>
+    </div>
+  </div>
 </fieldset>
 
-<fieldset id="section-data-fields">
+<fieldset class="tab-pane" id="section-data-field">
   <legend>Files</legend>
   <p>In this tab you enter the links to the files you wish to add to this record. Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the 25k spend data, where new data is added to the record monthly).</p>
     <p>This record is:</p>
 
-    <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual" type="radio" name="package_type" value="individual"/>
-    <label for="package_type-individual">A single file record</label>
-    <br/>
-    <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries" type="radio" name="package_type" value="timeseries"/>
-    <label for="package_type-timeseries">A timeseries record</label>
+    <label class="radio">
+      <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual" type="radio" name="package_type" value="individual"/>
+      A single file record
+    </label>
+    <label class="radio">
+      <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries" type="radio" name="package_type" value="timeseries"/>
+      A timeseries record
+    </label>
 
     <!-- The resource fieldset for a timeseries dataset -->
-    <fieldset id="package_type-timeseries">
+    <fieldset id="package_type-timeseries" class="well">
       <legend>Data Files</legend>
 
       <p>For each format you have a copy of your data in, please add a link below. Use the plus button to add more lines.  You can add links to the website or more information in the 'Additional Resources' section.</p>
 
-      <div class="instruction-needed" title="This seemed like a natural place for this.  It implies that update_frequency is not applicable to non-timeseries type datasets.  Is that a reasonable assumption?">
-        <label class="field_opt" for="update_frequency">Update frequency</label>
-        <select class="js-tooltip short" id="update_frequency" name="update_frequency" title="How frequently the dataset is updated with new versions.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
-          <py:for each="freq_name, freq_desc in c.update_frequency">
-            <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
-              ${freq_desc}
-            </option>
-          </py:for>
-          <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
-        </select>
-        <label class="inline" for="update_frequency-other">Other:</label>
-        <input class="short-width" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
+      <div class="form-inline instruction-needed well">
+        <div class="control-group">
+          <label for="update_frequency">Update frequency</label>
+          <select class="js-tooltip span2" id="update_frequency" name="update_frequency" title="How frequently the dataset is updated with new versions.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+              <py:for each="freq_name, freq_desc in c.update_frequency">
+                <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
+                  ${freq_desc}
+                </option>
+              </py:for>
+              <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
+          </select>
+          <label class="inline" for="update_frequency-other">Other:</label>
+            <input class="input-small" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
+        </div>
       </div>
     <dd class="field_error" py:if="errors.get('update_frequency', '')">${errors.get('update_frequency', '')}</dd>
 
-      <table class="flexitable" id="timeseries_resources-table">
+      <table class="flexitable table-striped" id="timeseries_resources-table">
       <thead>
         <tr>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
@@ -111,13 +126,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                       py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
                 <span py:when="col=='url'">
                   <input id="timeseries_resources__${num}__${col}"
                          name="timeseries_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         py:attrs="{'class': 'medium-width field_error display-error-inside' if cell_has_error else 'medium-width display-error-inside'}"/>
+                         py:attrs="{'class': 'input-medium field_error display-error-inside' if cell_has_error else 'input-medium display-error-inside'}"/>
                   <input id="timeseries_resources__${num}__validate-resource-button"
                          type="button"
                          class="validate-resource-button"
@@ -129,13 +144,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+                       py:attrs="{'class': 'input-small field_error' if cell_has_error else 'input-small'}"/>
 
               </py:choose>
             </td>
           </py:for>
           <td class="resource-date">
-            <input id="timeseries_resources__${num}__date" name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="short" />
+            <input id="timeseries_resources__${num}__date" name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="input-small" />
           </td>
           <td class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></td>
           <td class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></td>
@@ -152,7 +167,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     
     <!-- The resource fieldset for an individual dataset -->
-    <fieldset id="package_type-individual">
+    <fieldset id="package_type-individual" class="well">
       <legend>Data Files</legend>
 
       <p>For each format you have a copy of your data in, please add a link below. Use the plus button to add more lines.  You can add links to the website or more information in the 'Additional Resources' section.</p>
@@ -182,13 +197,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-                     py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                     py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
               <span py:when="col=='url'">
                 <input id="individual_resources__${num}__${col}"
                        name="individual_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'medium-width field_error display-error-inside' if cell_has_error else 'medium-width display-error-inside'}"/>
+                       py:attrs="{'class': 'input-medium field_error display-error-inside' if cell_has_error else 'input-medium display-error-inside'}"/>
                 <input id="individual_resources__${num}__validate-resource-button"
                        type="button"
                        class="validate-resource-button"
@@ -199,7 +214,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-                     py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+                     py:attrs="{'class': 'input-small field_error' if cell_has_error else 'input-small'}"/>
             </py:choose>
             </td>
           </py:for>
@@ -229,9 +244,9 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     ?>
 
     <label for="license_id">License:</label>
-    <select id="license_id" name="license_id">
+    <select id="license_id" class="span4" name="license_id">
 
-      <!-- An explanation of what's going on here...
+      <!--! An explanation of what's going on here...
            There are a few cases to handle here:
 
             1. A new (creation) form: the options available to the user are
@@ -275,7 +290,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     </select>
     
-    <br/><label for="access_constraints">Access Constraints:</label><br/>
+    <br/><label for="access_constraints">Access Constraints:</label>
     <textarea py:if="not license_extra" rows="10" cols="60" id="access_constraints" name="access_constraints">${license_id_other if license_id_other else (license_id if is_other_license else '')}</textarea>
     <textarea py:if="license_extra" rows="10" cols="60" id="access_constraints" name="access_constraints" disabled="disabled">${license_extra}</textarea>
 
@@ -286,7 +301,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </fieldset>
 
 
-<fieldset id="section-description-fields">
+<fieldset class="tab-pane" id="section-description-field">
   <legend>Description</legend>
   <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
     <textarea class="field_req" cols="60" id="notes" name="notes" rows="15">${data.get('notes', '')}</textarea>
@@ -294,7 +309,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
 </fieldset>
 
-<fieldset id="section-contacts-fields">
+<fieldset class="tab-pane" id="section-contacts-field">
   <legend>Contact details</legend>
     <?python
 
@@ -327,7 +342,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </select>
     <p class="field_error" py:if="errors.get('groups', '')">Please select a publisher.</p>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
-    <fieldset id="publisher-information">
+    <fieldset id="publisher-information-field">
       <legend>Publisher information</legend>
 
       <p><b>Name: </b> <span id="contact-name-label">${contact_name}</span></p>
@@ -377,7 +392,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </fieldset>
 </fieldset>
 
-<fieldset id="section-themes-fields">
+<fieldset class="tab-pane" id="section-themes-field">
   <legend>Theme &amp; tags</legend>
 
   <?python
@@ -428,7 +443,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
            value="${data.get('tag_string') or ', '.join(free_tags)}" />
 </fieldset>
 
-<fieldset id="section-additional_resources-fields">
+<fieldset class="tab-pane" id="section-additional_resources-field">
   <legend>Additional resources (optional)</legend>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="flexitable" id="additional_resources-table">
@@ -456,13 +471,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        name="additional_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'medium-width field_error' if cell_has_error else 'medium-width'}"/>
+                       py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
                 <span py:when="col=='url'">
                   <input id="additional_resources__${num}__${col}"
                          name="additional_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         py:attrs="{'class': 'medium-width field_error display-error-inside' if cell_has_error else 'medium-width display-error-inside'}"/>
+                         py:attrs="{'class': 'input-medium field_error display-error-inside' if cell_has_error else 'input-medium display-error-inside'}"/>
                   <input id="additional_resources__${num}__validate-resource-button"
                          type="button"
                          class="validate-resource-button"
@@ -473,7 +488,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                        name="additional_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'short field_error' if cell_has_error else 'short'}"/>
+                       py:attrs="{'class': 'input-small field_error' if cell_has_error else 'input-small'}"/>
 
               </py:choose>
             </td>
@@ -496,12 +511,12 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 </fieldset>
 
-<fieldset id="section-temporal-fields">
+<fieldset class="tab-pane" id="section-temporal-field">
   <legend>Time &amp; date (optional)</legend>
     <label class="field_opt" for="temporal_coverage">Temporal coverage</label>
     
-      <input class="medium-width" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
-      <input class="medium-width" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
+      <input class="input-medium" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
+      <input class="input-medium" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
     
     <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
     <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
@@ -511,7 +526,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 </fieldset>
 
-<fieldset id="section-geographic-fields">
+<fieldset class="tab-pane" id="section-geographic-field">
   <legend>Geographic coverage</legend>
 
     <label class="field_opt" for="geographic_coverage">Geographic coverage</label>
@@ -542,7 +557,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
 </fieldset>
 
-<fieldset id="section-extra-fields">
+<fieldset class="tab-pane" id="section-extra-field">
   <legend>Extras</legend>
 
   <div py:if="data.get('url', '')">
@@ -605,7 +620,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <div py:if="data.get('temporal_granularity', '')">
     <label class="field_opt" for="temporal_granularity">Temporal granularity</label>
     
-    <select class="short" id="temporal_granularity" name="temporal_granularity">
+    <select class="span1" id="temporal_granularity" name="temporal_granularity">
       <py:for each="temporal_name, temporal_desc in c.temporal_granularity">
         <option value="${temporal_name}" py:attrs="{'selected': 'selected' if data.get('temporal_granularity', '') == temporal_name else None}" >
           ${temporal_name}
@@ -613,7 +628,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </py:for>
     </select>
     <label class="inline" for="temporal_granularity-other">Other: 
-      <input class="short-width" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
+      <input class="input-small" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="${data.get('temporal_granularity-other', '')}"/>
     </label>
     
     <p class="instructions basic">The lowest level of temporal detail granularity</p>
@@ -623,7 +638,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <div py:if="data.get('geographic_granularity', '')">
     <label class="field_opt" for="geographic_granularity">Geographic granularity</label>
     
-    <select class="short" id="geographic_granularity" name="geographic_granularity">
+    <select class="span1" id="geographic_granularity" name="geographic_granularity">
       <py:for each="geog_name, geog_desc in c.geographic_granularity">
         <option value="${geog_name}" py:attrs="{'selected': 'selected' if data.get('geographic_granularity', '') == geog_name else None}" >
           ${geog_desc}
@@ -631,7 +646,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </py:for>
     </select>
     <label class="inline" for="geographic_granularity-other">Other: 
-      <input class="short-width" id="geographic_granularity-other" 
+      <input class="span1" id="geographic_granularity-other" 
       name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
     </label>
     
@@ -659,8 +674,11 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </fieldset>
   </div>
 
-</fieldset>                                                               
-                                                                          
+</fieldset>
+
+  </div>
+</div>
+</div>                                                                          
 <div id="nav-controls" class="submit">
   <input disabled="disabled" class="nav-button" type="button" id="back-button" value="Back" py:if="not is_edit_form"/>
   <input id="save-button" name="save" type="submit" value="Save" />

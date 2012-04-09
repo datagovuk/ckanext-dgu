@@ -76,7 +76,7 @@
     /* Setup next/back buttons */
     $('#back-button').attr('disabled', 'disabled');
     $('#back-button').attr('onclick', '').click(function(){
-      var activeTab = $('div#form-tabs').find('a.active');
+      var activeTab = $('div#form-tabs').find('li.active').children('a');
       var previousTab = activeTab.parent().prev().children('a');
       if(previousTab) {
         previousTab.first().trigger('click');
@@ -85,7 +85,7 @@
 
     $('#next-button').removeAttr('disabled');
     $('#next-button').attr('onclick', '').click(function(){
-      var activeTab = $('div#form-tabs').find('a.active');
+      var activeTab = $('div#form-tabs').find('li.active').children('a');
       var nextTab = activeTab.parent().next().children('a');
       if(nextTab) {
         nextTab.removeClass('disabled');
@@ -193,7 +193,7 @@ CKAN.Dgu = function($, my) {
       if(button.hasClass('disabled')){ return; }
       $('form#package-edit').children('fieldset').hide();
       $(fieldset).show();
-      $('#form-tabs').find('a').removeClass("active");
+      $('#form-tabs').find('li').removeClass("active");
       $(button).addClass("active");
 
       // Handle the back/next buttons
