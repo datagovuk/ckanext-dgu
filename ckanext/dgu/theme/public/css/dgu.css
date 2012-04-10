@@ -109,6 +109,9 @@ body.no-minornavigation .minornavigation-outer {
 .comment-grey {
   background: #f0f0f0 !important;
 }
+textarea {
+  width: 80%;
+}
 
 
 /* BlackBar */
@@ -713,7 +716,40 @@ td.dataset-label {
   margin: 0 0 0 5px;
 }
 
-/* form */
+/* Publisher Form */
+/* -------------- */
+#package-edit ul.nav,
+#package-edit ul.nav li {
+  width: 210px;
+  margin-right: -1px;
+  background: #fff;
+}
+#package-edit .tab-content > fieldset {
+  border: 1px solid #DDD;
+  padding: 20px;
+  min-height: 320px;
+}
+#package-edit .tab-content {
+  display: block;
+  width: auto;
+}
+#section-description-field p {
+  margin-top: 10px;
+}
+
+#package-edit .nav-backnext {
+  float: right;
+}
+div#form-tabs #disclaimer p,
+div#form-tabs #disclaimer input {
+  display: inline-block;
+  *display: inline;
+  zoom: 1;
+  max-width: 400px;
+  vertical-align: top;
+  margin-left: 10px;
+}
+
 div#form-tabs a.disabled {
   color: #a6a6a6;
   cursor: default;
