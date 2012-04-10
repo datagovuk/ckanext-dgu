@@ -713,7 +713,7 @@ td.dataset-label {
   margin: 0 0 0 5px;
 }
 
-/* form */
+/* Dataset form */
 div#form-tabs a.disabled {
   color: #a6a6a6;
   cursor: default;
@@ -739,4 +739,75 @@ p.field_error {
 input.display-error-inside.field_error {
   padding-left: 20px;
   background: transparent url(../images/icons/error.png) left center no-repeat;
+}
+
+/* Publisher form */
+
+.markdown-editor .button-row {
+  xpadding-right: 40px;
+  text-align: center;
+}
+.markdown-editor div.markdown-preview {
+  background: white;
+  border: 1px solid #CCC;
+  padding: 5px;
+  margin-bottom: 5px;
+  overflow: auto;
+}
+.markdown-editor textarea.markdown-input {
+  margin-bottom: 5px;
+  padding: 5px;
+  display: block;
+  width:95%;
+  height: 6em;
+}
+
+ul.button-row {
+  margin-bottom: 5px;
+}
+ul.button-row li {
+  display: inline;
+  margin-right: 10px;
+}
+
+/* Publisher page */
+
+#sub-publishers li.collapsed {
+    display: none;
+}
+
+/* Harvest pages */
+
+body.harvest #content{
+    width: 95%;
+}
+
+#show-inactive-sources-content{
+    width: 180px !important;
+}
+
+#show-inactive-sources-content label{
+    margin-top: 0 !important;
+}
+
+.harvest-source-title,
+.harvest-source-config{
+    display:none;
+}
+
+/* Data page */
+
+div#tagcloud {
+  clear: both;
+}
+
+div#tagcloud a {
+  text-decoration: none;
+  text-align: center;
+  border: none;
+  vertical-align: middle;
+}
+
+div#tagcloud a:hover {
+  text-decoration: underline;
 }

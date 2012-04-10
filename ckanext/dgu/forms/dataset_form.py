@@ -127,6 +127,13 @@ class DatasetForm(SingletonPlugin):
 
         c.schema_fields = set(self.form_to_db_schema().keys())
 
+    def form_to_db_schema_options(self, options={}):
+        schema = options.get('context',{}).get('schema',None)
+        if schema:
+            return schema
+        else:
+            return self.form_to_db_schema()
+
     def form_to_db_schema(self, package_type=None):
 
         schema = {
