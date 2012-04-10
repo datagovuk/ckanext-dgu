@@ -39,8 +39,8 @@
 
     /* Toggling visibility of time-series/data resources */
     var toggled = function() {
-      var isTimeseries = $('input#package_type-timeseries').is(':checked');
-      var isIndividual = $('input#package_type-individual').is(':checked');
+      var isTimeseries = $('input#package_type-timeseries-radio').is(':checked');
+      var isIndividual = $('input#package_type-individual-radio').is(':checked');
       var fieldsetTimeseries = $('fieldset#package_type-timeseries');
       var fieldsetIndividual = $('fieldset#package_type-individual');
       if(isTimeseries) {
@@ -52,7 +52,7 @@
       }
     };
 
-    $('input#package_type-individual, input#package_type-timeseries').change(toggled);
+    $('input#package_type-individual-radio, input#package_type-timeseries-radio').change(toggled);
     toggled();
 
     /* Handle prev/next buttons */
@@ -155,9 +155,9 @@ var CKAN = CKAN || {};
 CKAN.Dgu = function($, my) {
 
   my.setupEditorDialogs = function() {
+    // Bind to the 'save' button, which writes values back to the document
     $('.dgu-editor-save').click(function(e) {
       var inputs = $(e.target).parents('.dgu-editor').find('input');
-      // Hook up each input with its targets
       $.each(inputs, function(i, input) {
         input = $(input);
         var targetLabel = input.attr('data-label');
@@ -169,6 +169,7 @@ CKAN.Dgu = function($, my) {
       });
     });
 
+    // Reset the modal once it has vanished
     $('.dgu-editor').on('hidden', function(e) {
       var modal = $(e.target);
       var inputs = modal.find('input');

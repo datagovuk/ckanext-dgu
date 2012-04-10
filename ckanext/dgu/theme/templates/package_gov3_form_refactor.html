@@ -70,11 +70,11 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p>This record is:</p>
 
     <label class="radio">
-      <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual" type="radio" name="package_type" value="individual"/>
+      <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
       A single file record
     </label>
     <label class="radio">
-      <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries" type="radio" name="package_type" value="timeseries"/>
+      <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
       A timeseries record
     </label>
 
@@ -473,35 +473,41 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </select>
     <div>
     <p class="field_error" py:if="errors.get('primary_theme', '')">${errors.get('primary_theme', '')}</p>
+    <br/>
     <p>2. Please choose secondary tags with which to tag this data record:</p>
-    <input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health
-    <input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment
-    <input type="checkbox" name="secondary_theme" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education
-    <input type="checkbox" name="secondary_theme" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance
-    <input type="checkbox" name="secondary_theme" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society
-    <input type="checkbox" name="secondary_theme" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence
-    <input type="checkbox" name="secondary_theme" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation
-    <input type="checkbox" name="secondary_theme" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data
-    <input type="checkbox" name="secondary_theme" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data</label>
+    <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government</label>
     </div>
 
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
-    <label class="field_opt" for="tag_string">Tags</label>
-    <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete" 
-           data-tagcomplete-url="/api/2/util/tag/autocomplete"
-           id="tag_string" name="tag_string" size="60" type="text"
-           value="${data.get('tag_string') or ', '.join(free_tags)}" />
+    <div class="control-group">
+      <label class="control-label" for="tag_string">Tags</label>
+      <div class="controls">
+        <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete" 
+             data-tagcomplete-url="/api/2/util/tag/autocomplete"
+             id="tag_string" name="tag_string" size="60" type="text"
+             value="${data.get('tag_string') or ', '.join(free_tags)}" />
+      </div>
+    </div>
 </fieldset>
 
 <fieldset class="tab-pane" id="section-additional_resources-field">
   <h3>Additional resources (optional)</h3>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
-  <table class="flexitable" id="additional_resources-table">
+  <table class="table table-bordered table-striped table-condensed flexitable" id="additional_resources-table">
     <thead>
       <tr>
         <th class="resource-name">Description:</th>
         <th class="field_opt resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
-          <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
+        <th class="field_opt resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -530,7 +536,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
                          py:attrs="{'class': 'input-medium field_error display-error-inside' if cell_has_error else 'input-medium display-error-inside'}"/>
                   <input id="additional_resources__${num}__validate-resource-button"
                          type="button"
-                         class="validate-resource-button"
+                         class="validate-resource-button btn btn-small"
                          value="Check"/>
                 </span>
                 <input py:otherwise=""
@@ -543,30 +549,41 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
               </py:choose>
             </td>
           </py:for>
-          <td><input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/></td>
-          <td><a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
+          <td>
+            <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/>
+            <a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a>
+          </td>
         </tr>
       </py:for>
     </tbody>
     </table>
     <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Additional resource(s) incomplete.</p>
-    <input  class="validate-resources-button" type="button" id="validate-timeseries-button" value="Check all URLs"/>
-    <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
+    <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
+    <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
+    <br/>
+    <br/>
 
-  <label class="field_opt" for="mandate">Mandate</label>
-  <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
+    <div class="control-group">
+      <label class="control-label" for="mandate">Mandate</label>
+      <div class="controls">
+        <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
+      </div>
+    </div>
   <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
   <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
-  <p class="hints">For example Public Record Act s.2 would be: http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</p>
+  <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
 
 </fieldset>
 
 <fieldset class="tab-pane" id="section-temporal-field">
   <h3>Time &amp; date (optional)</h3>
-    <label class="field_opt" for="temporal_coverage">Temporal coverage</label>
-    
+  <div class="control-group">
+    <label class="control-label" for="temporal_coverage">Temporal coverage</label>
+    <div class="controls">
       <input class="input-medium" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
       <input class="input-medium" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
+    </div>
+  </div>
     
     <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
     <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
@@ -581,27 +598,41 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <label class="field_opt" for="geographic_coverage">Geographic coverage</label>
     <p py:with="geographic_coverage=data.get('geographic_coverage', [])">
-      <label for="local_authority">
+      <div class="checkbox">
+        <label for="local_authority">
         <input id="local_authority" name="geographic_coverage" size="40" type="checkbox" 
         value="local_authority" py:attrs="{'checked': 'checked' if 'local_authority' in geographic_coverage else None}"/> Local Authority</label>
-      <label for="england">
+      </div>
+      <div class="checkbox">
+        <label for="england">
         <input id="england" name="geographic_coverage" size="40" type="checkbox" 
         value="england" py:attrs="{'checked': 'checked' if 'england' in geographic_coverage else None}"/> England</label>
-      <label for="scotland">
+      </div>
+      <div class="checkbox">
+        <label for="scotland">
         <input id="scotland" name="geographic_coverage" size="40" type="checkbox" 
         value="scotland" py:attrs="{'checked': 'checked' if 'scotland' in geographic_coverage else None}"/> Scotland</label>
-      <label for="wales">
+      </div>
+      <div class="checkbox">
+        <label for="wales">
         <input id="wales" name="geographic_coverage" size="40" type="checkbox" 
         value="wales" py:attrs="{'checked': 'checked' if 'wales' in geographic_coverage else None}"/> Wales</label>
-      <label for="northern_ireland">
+      </div>
+      <div class="checkbox">
+        <label for="northern_ireland">
         <input id="northern_ireland" name="geographic_coverage" size="40" type="checkbox" 
         value="northern_ireland" py:attrs="{'checked': 'checked' if 'northern_ireland' in geographic_coverage else None}"/> Northern Ireland</label>
-      <label for="overseas">
+      </div>
+      <div class="checkbox">
+        <label for="overseas">
         <input id="overseas" name="geographic_coverage" size="40" type="checkbox" 
         value="overseas" py:attrs="{'checked': 'checked' if 'overseas' in geographic_coverage else None}"/> Overseas</label>
-      <label for="global">
+      </div>
+      <div class="checkbox">
+        <label for="global">
         <input id="global" name="geographic_coverage" size="40" type="checkbox" 
         value="global" py:attrs="{'checked': 'checked' if 'global' in geographic_coverage else None}"/> Global</label>
+      </div>
     </p>
     <p class="instructions basic">The geographic coverage of this dataset.</p>
     <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
