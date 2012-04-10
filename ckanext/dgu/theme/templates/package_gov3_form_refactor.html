@@ -27,16 +27,16 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <div class="boxed">
 
 <div id="form-tabs" class="tabbable tabs-left">
-  <ul class="nav nav-tabs ">
+  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled'} if use_wizard else {'data-toggle':'tab'}">
     <li class="active"><a href="#section-name-fields" data-toggle="tab">Name</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-data-field" data-toggle="tab">Files</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-description-field" data-toggle="tab">Description</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-contacts-field" data-toggle="tab">Contact details</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-themes-field" data-toggle="tab">Theme &amp; tags</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-additional_resources-field" data-toggle="tab">Additional resources (optional)</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-temporal-field" data-toggle="tab">Temporal coverage (optional)</a></li>
-    <li><a class="${'_disabled' if use_wizard else ''}" href="#section-geographic-field" data-toggle="tab">Geographic coverage (optional)</a></li>
-    <li py:if="is_edit_form"><a class="${'disabled' if use_wizard else ''}" href="#section-extra-field" data-toggle="tab">Extras (optional)</a></li>
+    <li><a py:attrs="boilerplate" href="#section-data-field">Files</a></li>
+    <li><a py:attrs="boilerplate" href="#section-description-field">Description</a></li>
+    <li><a py:attrs="boilerplate" href="#section-contacts-field">Contact details</a></li>
+    <li><a py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
+    <li><a py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources (optional)</a></li>
+    <li><a py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage (optional)</a></li>
+    <li><a py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage (optional)</a></li>
+    <li py:if="is_edit_form"><a py:attrs="boilerplate" href="#section-extra-field">Extras (optional)</a></li>
   </ul>
   <div class="tab-content">
 

@@ -82,6 +82,11 @@
       };
     };
 
+    // Correctly handle disabled nav buttons
+    $('a.disabled').click(function(e) { 
+      e.preventDefault();
+    });
+
     $('#back-button').click(function(e) {
         e.preventDefault();
         var activeTab = $('div#form-tabs li.active');
@@ -89,9 +94,15 @@
     });
     $('#next-button').click(function(e) {
         e.preventDefault();
-        var activeTab = $('div#form-tabs li.active');
-        activeTab.next().children('a').click(); 
-        activeTab.next().removeClass('disabled');
+        var nextLink = $('div#form-tabs li.active').next().children('a');
+        if (nextLink.hasClass('disabled')) {
+          // Hook up the link with bootstrap
+          nextLink.attr('data-toggle', 'tab');
+          // Allow it to be clicked
+          nextLink.removeClass('disabled');
+        }
+        // Click it
+        nextLink.click();
     });
 
     /* Tag auto-completion */
@@ -474,7 +485,8 @@ CKAN.Dgu = function($, my) {
         complete: function(){
           $(button).removeAttr('disabled');
           $(button).siblings('span.checking-links-label').hide();
-        }
+        },
+        timeout: 10000
       });
     });
   };
