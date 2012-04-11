@@ -180,12 +180,11 @@ CKAN.Dgu = function($, my) {
       });
     });
 
-    // Reset the modal once it has vanished
-    $('.dgu-editor').on('hidden', function(e) {
+    $('.dgu-editor').on('shown', function(e) {
+
+      // Populate the inputs with the values of their targets.
       var modal = $(e.target);
       var inputs = modal.find('input');
-      // Reset all inputs to match their targets
-      // (These might have been updated by dgu-editor-save)
       $.each(inputs, function(i, input) {
         input = $(input);
         var targetInput = input.attr('data-input');
@@ -193,9 +192,7 @@ CKAN.Dgu = function($, my) {
           input.val($(targetInput).val()); 
         }
       });
-    });
 
-    $('.dgu-editor').on('shown', function(e) {
       // Be nice. Focus the first input when the dialog appears.
       var firstInput = $(e.target).find('input')[0];
       $(firstInput).focus();
