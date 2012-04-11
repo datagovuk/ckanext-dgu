@@ -24,7 +24,7 @@
       var field = $('#'+field_id);
       if (field !== undefined && field.length > 0) {
         var fieldset_id = field.parents('fieldset').last().attr('id');
-        fieldset_id = fieldset_id.replace(/-fields$/, '');
+        fieldset_id = fieldset_id.replace(/-fields?$/, '');
         $('#'+fieldset_id).addClass('fieldset_button_error');
       }
     }

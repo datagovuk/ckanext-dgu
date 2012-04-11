@@ -28,15 +28,15 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
 <div id="form-tabs" class="tabbable tabs-left">
   <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled'} if use_wizard else {'data-toggle':'tab'}">
-    <li class="active"><a href="#section-name-fields" data-toggle="tab">Name</a></li>
-    <li><a py:attrs="boilerplate" href="#section-data-field">Files</a></li>
-    <li><a py:attrs="boilerplate" href="#section-description-field">Description</a></li>
-    <li><a py:attrs="boilerplate" href="#section-contacts-field">Contact details</a></li>
-    <li><a py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
-    <li><a py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources (optional)</a></li>
-    <li><a py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage (optional)</a></li>
-    <li><a py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage (optional)</a></li>
-    <li py:if="is_edit_form"><a py:attrs="boilerplate" href="#section-extra-field">Extras (optional)</a></li>
+    <li class="active"><a id="section-name" href="#section-name-fields" data-toggle="tab">Name</a></li>
+    <li><a id="section-data" py:attrs="boilerplate" href="#section-data-field">Files</a></li>
+    <li><a id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
+    <li><a id="section-contacts" py:attrs="boilerplate" href="#section-contacts-field">Contact details</a></li>
+    <li><a id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
+    <li><a id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources (optional)</a></li>
+    <li><a id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage (optional)</a></li>
+    <li><a id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage (optional)</a></li>
+    <li py:if="is_edit_form"><a id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras (optional)</a></li>
   </ul>
   <div class="tab-content">
 
