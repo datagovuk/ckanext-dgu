@@ -56,7 +56,7 @@
     toggled();
 
     /* Handle prev/next buttons */
-    $('.package_create_form a[data-toggle="tab"]').on('shown', CKAN.Dgu.updatePublisherNav);
+    $('.package_create_form #form-tabs a').on('shown', CKAN.Dgu.updatePublisherNav);
 
     /* Add new rows */
     CKAN.Dgu.copyTableRowOnClick($('#additional_resources-add'), $('#additional_resources-table'));

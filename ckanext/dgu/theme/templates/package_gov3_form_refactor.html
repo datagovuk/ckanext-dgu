@@ -10,8 +10,8 @@ is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
 ?>
 
-<form id="package-edit" class="package_create_form ckan form-horizontal" method="post" 
-  py:attrs="{'class':'has-errors'} if errors else {}"
+<form id="package-edit" method="post"
+  py:attrs="{'class':'has-errors package_create_form ckan form-horizontal'} if errors else {'class':'package_create_form ckan form-horizontal'}"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude">
