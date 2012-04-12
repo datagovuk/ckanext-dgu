@@ -37,18 +37,22 @@
         <div class="boxed">
           <h3>Sort by</h3>
           <div class="controls">
-              <label class="radio">
+              <label class="radio inline">
                 <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
                 relevancy
               </label>
             <py:for each="field,title,order in [('titleString','title','asc'), ('metadata_modified','last updated','desc')]">
-              <label class="radio">
+              <label class="radio inline">
                 <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
                 ${title}
               </label>
             </py:for>
           </div>
         </div>
+
+        <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+          <img src="/images/feed.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+        </a>
 
         ${package_list_from_dict(c.page.items)}
         <div class="boxed">
