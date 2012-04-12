@@ -5,9 +5,35 @@
   >
   <xi:include href="../_util.html" />
 
-  <div class="boxed boxed-flush-top">
+  <div class="boxed boxed-flush-top" id="dataset"><!--! id=dataset for ckanext-spatial -->
     <!-- Overview Section -->
     <div id="dataset-overview">
+
+        <?python
+            # work out the dataset_type
+            pkg_extras = dict(c.pkg_extras)
+            dataset_type = 'form' # default - entered via the form
+            uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
+            if uklp and uklp[0] == 'True':
+                dataset_type = 'uklp'
+                harvest_object_id = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'harvest_object_id']
+                if harvest_object_id:
+                    harvest_object_id = harvest_object_id[0]
+            elif pkg_extras.get('external_reference') == 'ONSHUB':
+                dataset_type = 'ons'
+        ?>
+
+      <!-- Optional logo -->
+      <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
+        <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
+          <img src="/images/national_statistics.gif" />
+        </a>
+      </div>
+      <div py:if="dataset_type == 'uklp'">
+        <a href="/location">
+          <img src="/images/uk_location.gif" />
+        </a>
+      </div>
 
       <!-- Description -->
       <div class="notes" py:if="str(c.pkg_notes_formatted).strip()">
@@ -54,16 +80,7 @@
             </py:for>
           </ul>
         </py:if>
-        <?python
-            is_uklp = False
-            uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
-            if uklp and uklp[0] == 'True':
-                is_uklp = True
-                harvest_object_id = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'harvest_object_id']
-                if harvest_object_id:
-                    harvest_object_id = harvest_object_id[0]
-        ?>
-        <div py:if="is_uklp" id="dataset-gemini-links">
+        <div py:if="dataset_type == 'uklp'" id="dataset-gemini-links">
             <div>
                 <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" target="_blank">Source GEMINI2 document</a> (XML)
             </div>
@@ -91,7 +108,7 @@
           </ul>
         </py:if>
 
-        <py:if test="not (is_uklp or c.pkg_dict.get('individual_resources') or c.pkg_dict.get('timeseries_resources') or c.pkg_dict.get('additional_resources'))">
+        <py:if test="not (dataset_type == 'uklp' or c.pkg_dict.get('individual_resources') or c.pkg_dict.get('timeseries_resources') or c.pkg_dict.get('additional_resources'))">
           <em>(none)</em>
         </py:if>
       </div>
@@ -155,34 +172,26 @@
         <h3>Developer Tools</h3>
         <div>
             <p>
-                This information on this page (the package metadata) is also
-                available programatically via this site's <a
-                  href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}">CKAN API</a>.
-            </p>
-            <dl>
-              <dt>JSON</dt>
-              <dd>
+                This information on this page (the dataset metadata) is also
+                available in JSON format: 
                 <code>
-                  <py:if test="config.get('ckan.api_url')">
-                    <a href="${config.get('ckan.api_url') + h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
-                      ${config.get('ckan.api_url') + h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}</a>
-                  </py:if>                
-                  <py:if test="not config.get('ckan.api_url')">
-                    <a href="${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
-                      ${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}</a>
-    
-                  </py:if>
-                </code>
-              </dd>
-              <dt>URI</dt>
-              <dd>
-                <code>
-                  <a href="${h.url_for(controller='package', action='read', id=c.pkg.name)}">
-                      ${h.url_for(controller='package', action='read', id=c.pkg.name)}
+                  <a href="h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
+                    ${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}
                   </a>
                 </code>
-              </dd>
-            </dl>
+            </p>
+            <p>
+                Read more about this site's CKAN API: <a
+                  href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}">About the API</a>
+            </p>
+            <p>
+                This dataset has a permanent URI:
+                <code>
+                  <a href="${h.url_for(controller='package', action='read', id=c.pkg.name)}">
+                      ${g.site_url}${h.url_for(controller='package', action='read', id=c.pkg.name)}
+                  </a>
+                </code>
+            </p>
         </div>
     </div>
 
