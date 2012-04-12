@@ -266,12 +266,14 @@ class SearchPlugin(SingletonPlugin):
         # Each dataset should have exactly one group of type "publisher".
         # However, this is not enforced in the data model.
         if len(publishers) > 1:
-            log.warning('This dataset seems to have more than one publisher!  '
-                        'Only indexing the first one: %s', repr(publishers))
+            log.warning('Dataset %s seems to have more than one publisher!  '
+                        'Only indexing the first one: %s', \
+                        pkg_dict['name'], repr(publishers))
             publishers = publishers[:1]
         elif len(publishers) == 0:
-            log.warning('This dataset doesn\'t seem to have a publisher!  '
-                        'Unabled to add publisher to index.')
+            log.warning('Dataset %s doesn\'t seem to have a publisher!  '
+                        'Unabled to add publisher to index.',
+                        pkg_dict['name'])
             return pkg_dict
 
         # Publisher names
@@ -291,8 +293,9 @@ class SearchPlugin(SingletonPlugin):
                 publisher = None
             else:
                 if len(parent_publishers) > 1:
-                    log.warning('This publisher has more than one parent publisher. '
-                                'Ignoring all but the first. %s', repr(parent_publishers))
+                    log.warning('Publisher %s has more than one parent publisher. '
+                                'Ignoring all but the first. %s',
+                                publisher, repr(parent_publishers))
                 publisher = parent_publishers[0]
         
 
@@ -300,7 +303,9 @@ class SearchPlugin(SingletonPlugin):
             pkg_dict['parent_publishers'] = [ p.name for p in ancestors ]
         else:
             log.warning('Unable to add "parent_publishers" to index, as the datadict '
-                        'already contains a key of that name')
+                        'already contains a key of that name. '
+                        'Package: %s Parent_publishers: %r', \
+                        pkg_dict['name'], pkg_dict['parent_publishers'])
 
         # Index a harvested dataset's XML content
         # (Given a low priority when searching)

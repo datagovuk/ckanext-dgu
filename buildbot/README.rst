@@ -7,12 +7,12 @@ CKAN apt packages and to deploy to releasetest.ckan.org
 Deployment Process
 ==================
 
-1. Log onto jenkins.ckan.org
 #. Build the CKAN package (optional)
 
-   i)   Select *Package A CKAN Branch* from the main table.
-   ii)  Select *Build Now* from the menu on the left.
-   iii) Fill out the form, and click *Build*
+   i)   Log onto CKAN's jenkins: s031.okserver.org:8080
+   ii)  Select *Package_CKAN* from the main table.
+   iii) Select *Build Now* from the menu on the left.
+   iv)  Fill out the form, and click *Build*
 
         branch_name
           The name of the branch in the repository that should be built, eg.
@@ -38,11 +38,12 @@ Deployment Process
 
 #. Create a new DGU instance
 
-   i)   Select *Create a DGU Instance* from the main table on the home page.
+   i)   Log onto jenkins.ckan.org
+   ii)  Select *Create a DGU Instance* from the main table on the home page.
 
-   ii)  Select *Build Now* from the menu on the left.
+   iii) Select *Build Now* from the menu on the left.
 
-   iii) Fill out the form, and click "Build*
+   iv)  Fill out the form, and click "Build*
 
         repo_name
           This is the name of the CKAN repository to use to install CKAN from.
@@ -53,12 +54,12 @@ Deployment Process
           This is the branch in *ckanext-dgu* repo to use as the basis for the
           release.  eg. ``master``, ``v1.0-dev`` or ``bigbang``.
 
-  vi)   Conosle output can be seen by clicking on the new build in the *Build
+   v)   Conosle output can be seen by clicking on the new build in the *Build
         History* menu on the left, and then clicking *Console Output* in the
         menu on the left.  The build will take quite a while to run (26 minutes
         at the last count).  Mostly due to database migrations.
 
-  v)    Log on to releasetest by first logging into dgu-buildbot.okfn.org, and
+   vi)  Log on to releasetest by first logging into dgu-buildbot.okfn.org, and
         then from there, ssh-ing into ``ubuntu@192.168.100.100``.
 
 #. Install postfix mail server on the new VM.  It isn't installed when the VM
@@ -69,6 +70,31 @@ Deployment Process
    ii)  Install postfix: ``sudo apt-get install postfix``.  Follow
         instructions, select ``Internet Site`` at the *Postfix Configuration*.
         And ``releasetest.ckan.org`` for the *Sytem Mail Name*.
+
+Things that have gone wrong in the past
+---------------------------------------
+
+File size mis-match
+...................
+
+Presented with the following error messages: ::
+
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-pyutilib.component.core/python-pyutilib.component.core_4.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-vdm/python-vdm_0.10+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-autoneg/python-autoneg_0.5+01+lucid-1_all.deb  Hash Sum mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-formalchemy/python-formalchemy_1.4.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-pairtree/python-pairtree_0.7.1-T+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-ofs/python-ofs_0.4.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-apachemiddleware/python-apachemiddleware_0.1.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-markupsafe/python-markupsafe_0.9.2+01+lucid-1_all.deb  Size mismatch
+  E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+
+When migrating apt.ckan.org from dgu-buildbot, and then deploying to
+releasetest, apt-get failed to install ckan as there was a mis-match between
+the file size recorded in the metadata, and that of the actual packages.  It
+turns out, there's an apt-cacher running on dgu-buildbot.  The cached files can
+be found in ``/var/cache/apt-cacher-ng``.  To fix the issue I removed the
+cached ``apt.ckan.org`` directory.
 
 Checking the deployment
 -----------------------

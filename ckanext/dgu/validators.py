@@ -78,14 +78,8 @@ def validate_license(key, data, errors, context):
      access_constraints is DROPPED
 
     """
-    if data[('license_id',)]== '__extra__':
+    if data[('license_id',)]== '__extra__': # harvested dataset
         data[('license_id',)] = None
-        try:
-            del data[('access_constraints',)]
-            del errors[('access_constraints',)]
-        except:
-            pass
-        #data[('extras',)].append({'key': 'licence', 'value': data[('access_constraints',)]})
         return
     
     license_id = bool(data[('license_id',)])
