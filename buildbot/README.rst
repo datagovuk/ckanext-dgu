@@ -71,6 +71,31 @@ Deployment Process
         instructions, select ``Internet Site`` at the *Postfix Configuration*.
         And ``releasetest.ckan.org`` for the *Sytem Mail Name*.
 
+Things that have gone wrong in the past
+---------------------------------------
+
+File size mis-match
+...................
+
+Presented with the following error messages: ::
+
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-pyutilib.component.core/python-pyutilib.component.core_4.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-vdm/python-vdm_0.10+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-autoneg/python-autoneg_0.5+01+lucid-1_all.deb  Hash Sum mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-formalchemy/python-formalchemy_1.4.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-pairtree/python-pairtree_0.7.1-T+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-ofs/python-ofs_0.4.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-apachemiddleware/python-apachemiddleware_0.1.1+01+lucid-1_all.deb  Size mismatch
+  Failed to fetch http://apt.ckan.org/ckan-1.6.1-rc/pool/universe/p/python-markupsafe/python-markupsafe_0.9.2+01+lucid-1_all.deb  Size mismatch
+  E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+
+When migrating apt.ckan.org from dgu-buildbot, and then deploying to
+releasetest, apt-get failed to install ckan as there was a mis-match between
+the file size recorded in the metadata, and that of the actual packages.  It
+turns out, there's an apt-cacher running on dgu-buildbot.  The cached files can
+be found in ``/var/cache/apt-cacher-ng``.  To fix the issue I removed the
+cached ``apt.ckan.org`` directory.
+
 Checking the deployment
 -----------------------
 
