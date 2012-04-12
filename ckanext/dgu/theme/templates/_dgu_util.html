@@ -79,8 +79,13 @@
 
     <div class="facet-box" id="map-based-search">
       <h2>UK Location Map Search</h2>
-      <p py:if="True"><!--TODO disable if already a search-->
-        <a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a>
+      <p>
+        <py:if test="'ext_bbox' not in request.params">
+          <a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a>
+        </py:if>
+        <py:if test="'ext_bbox' in request.params">
+          A Location has already been selected.
+        </py:if>
       </p>
     </div>
 
