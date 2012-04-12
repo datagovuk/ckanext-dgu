@@ -1,7 +1,7 @@
 /* Root Elements */
 /* ------------- */
 body {
-  background: #f4f4f4;
+  background: #f4f4f4 url('/images/bg.png') repeat-x;
 }
 h1 { line-height: 32px; margin-bottom: 10px; }
 h2 { line-height: 26px; margin-bottom: 8px; }
@@ -118,7 +118,6 @@ textarea {
 /* -------- */
 #blackbar-underlay {
   height: 36px;
-  background: #000;
 }
 #blackbar {
   position: fixed;
@@ -145,21 +144,6 @@ textarea {
 }
 #blackbar #login-or-signup a {
   font-weight: bold;
-}
-
-/* Green section */
-/* ------------- */
-#greenbar {
-  /* Gradient */
-  background: #6AB000;
-  background: -moz-linear-gradient(top,  rgba(106,176,0,1) 0%, rgba(119,185,0,1) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(106,176,0,1)), color-stop(100%,rgba(119,185,0,1))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* IE10+ */
-  background: linear-gradient(top,  rgba(106,176,0,1) 0%,rgba(119,185,0,1) 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6ab000', endColorstr='#77b900',GradientType=0 ); /* IE6-9 */
-
 }
 
 /* Branding space */
