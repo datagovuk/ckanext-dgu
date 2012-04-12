@@ -7,7 +7,12 @@
 
   <xi:include href="../facets.html" />
   <py:def function="page_title">Search | data.gov.uk</py:def>
-  <py:def function="body_class">no-sidebar no-minornavigation</py:def>
+  <py:def function="optional_head">
+    <script src="/scripts/dgu-basket.js">
+    </script>
+  </py:def>
+
+ <py:def function="body_class">no-sidebar no-minornavigation</py:def>
 
   <div py:match="content">
     <div class="row">
@@ -18,6 +23,12 @@
     </div>
     <div class="row">
       <div class="span3">
+        <div class="boxed">
+          <h4>Shopping basket</h4>
+          <ul id="shopping-basket">
+          </ul>
+          <button id="shopping-basket-submit" class="btn btn-datagov">View on Map</button>
+        </div>
         <div id="filter-heading">
           <p>You can refine your search results using the filters below</p>
         </div>
