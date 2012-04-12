@@ -23,7 +23,7 @@
           :&nbsp;
             <?python
               groups = package.get('groups', [])
-              publishers = [ g for g in groups if g['type'] == 'publisher' ]
+              publishers = [ g for g in groups if g.get('type') == 'publisher' ]
               publisher = publishers[0] if publishers else {'name':'', 'title': ''}
             ?>
             <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=publisher.get('name', ''))}">
