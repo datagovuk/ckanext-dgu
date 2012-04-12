@@ -41,6 +41,13 @@ $(function() {
     // Update my UI
     parent.find('.preview-add').hide();
     parent.find('.preview-remove').show();
+    var endPoint = '/api/2/util/preview_list/add/'+packageId;
+    $.ajax({
+      url: endPoint,
+      success: function(data) { 
+        console.log(data);
+      }
+    });
     renderBasket();
   };
 
