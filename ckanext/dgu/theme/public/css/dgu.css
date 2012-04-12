@@ -20,35 +20,49 @@ textarea:focus {
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(50, 100, 0, 0.6);
 }
 a.btn {
+  /*
   color: #fff !important;
   font-weight: normal;
+  */
 }
 a.btn-black-text {
+  /*
   color: #000 !important;
+  */
 }
 
 /* Custom Bootstrap */
 /* -----------------*/
+.btn {
+  font-weight: bold;
+}
+.btn-small {
+  font-size: 12px;
+}
 .btn-datagov {
-  background-color: #77aa00;
-  background-image: -moz-linear-gradient(top, #8fc800, #669900);
-  background-image: -ms-linear-gradient(top, #8fc800, #669900);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#8fc800), to(#669900));
-  background-image: -webkit-linear-gradient(top, #8fc800, #669900);
-  background-image: -o-linear-gradient(top, #8fc800, #669900);
-  background-image: linear-gradient(top, #8fc800, #669900);
+  background-color: #99dd22;
+  background-image: -moz-linear-gradient(top, #a5e046, #8cc52a);
+  background-image: -ms-linear-gradient(top, #a5e046, #8cc52a);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#a5e046), to(#8cc52a));
+  background-image: -webkit-linear-gradient(top, #a5e046, #8cc52a);
+  background-image: -o-linear-gradient(top, #a5e046, #8cc52a);
+  background-image: linear-gradient(top, #a5e046, #8cc52a);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#8fc800', endColorstr='#669900', GradientType=0);
-  border-color: #669900 #669900 #335500;
-  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#a5e046', endColorstr='#8cc52a', GradientType=0);
+  border-color: #66aa44;
+  border-top-color: transparent;
+  border-left-color: transparent;
   filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+.btn-primary {
+  font-weight: normal;
 }
 .btn-datagov:hover,
 .btn-datagov:active,
 .btn-datagov.active,
 .btn-datagov.disabled,
 .btn-datagov[disabled] {
-  background-color: #669900;
+  background-color: #8cc52a;
 }
 .btn-datagov:active,
 .btn-datagov.active {
@@ -56,14 +70,13 @@ a.btn-black-text {
 }
 .btn-datagov,
 .btn-datagov:hover {
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  color: #FFFFFF;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
+  color: #333333;
 }
 .btn-datagov.active {
-  color: #FFFFFF;
+  color: #333333;
   color: rgba(255, 255, 255, 0.75);
 }
-
 /* No-sidebar mode */
 /* --------------- */
 body.no-sidebar .main-outer {
@@ -80,10 +93,16 @@ body.no-minornavigation .minornavigation-outer {
 
 /* -- Misc -- */
 /* ---------- */
+button.preview {
+  padding: 5px 42px 5px 26px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
 .preview-stamp {
-  position: absolute; 
-  top: -10px;
-  right: -25px;
+  margin-left: -26px;
+  margin-top: -6px;
+  /* Mozilla hack works in webkit too. Lets you click the button beneath. */
+  pointer-events: none;
 }
 .inline-icon {
   padding-right: 5px;
@@ -509,14 +528,21 @@ ul.widget-list {
   overflow: scroll;
   overflow-x: hidden;
   white-space: nowrap;
-
+  border: 1px solid #ccc;
+  margin-left: 0;
+  padding: 5px 10px;
 }
 #shopping-basket li {
-  list-style: circle;
+  list-style: disc inside;
 }
-
 #shopping-basket li.empty {
+  list-style-type: circle;
   font-style: italic;
+  color: #777;
+}
+#shopping-basket-submit {
+  margin-left: 70px;
+  display: block;
 }
 
 /* Facet Menu */
@@ -603,13 +629,20 @@ ul.datasets .dataset h4 ul li {
   zoom: 1;
   *display: inline;
 }
-ul.datasets .dataset button.preview {
+ul.datasets .dataset .map-buttons {
   float: right;
   margin-top: 12px;
-  margin-right: 25px;
-  position: relative;
-  padding: 5px 26px;
 }
+ul.datasets .dataset button {
+  margin-left: 5px;
+}
+ul.datasets .dataset .preview-add button,
+ul.datasets .dataset .preview-remove button { 
+  width: 160px;
+  padding-left: 0;
+  padding-right: 10px;
+}
+
 
 /* Dataset view page */
 td.dataset-label {

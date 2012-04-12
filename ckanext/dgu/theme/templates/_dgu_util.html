@@ -44,8 +44,15 @@
      </div>
      <span style="display: none;" class="js-data-id">${package.id}</span>
      <span style="display: none;" class="js-data-title">${title}</span>
-     <button data-id="${package.id}" class="btn btn-datagov btn-small preview preview-add">add to preview<img class="preview-stamp" src="/images/stamp.png"/></button>
-     <button data-id="${package.id}" class="btn btn-datagov btn-small preview preview-map">preview on map<img class="preview-stamp" src="/images/stamp2.png"/></button>
+     <div class="map-buttons">
+       <button data-id="${package.id}" class="btn btn-datagov btn-small preview preview-map">preview now</button><img class="preview-stamp" src="/images/compass.png"/>
+       <span class="preview-add">
+         <button data-id="${package.id}" class="btn btn-datagov btn-small preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
+       </span>
+       <span class="preview-remove" style="display: none;">
+         <button data-id="${package.id}" class="btn btn-small preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
+       </span>
+     </div>
      <py:if test="package.get('resources', [])">
      <h4>Formats:
           <ul class="dataset-formats">
