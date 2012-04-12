@@ -48,11 +48,11 @@
               </label>
             </py:for>
           </div>
-        </div>
 
-        <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-          <img src="/images/feed.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
-        </a>
+          <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+            <img src="/images/feed.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+          </a>
+        </div>
 
         ${package_list_from_dict(c.page.items)}
         <div class="boxed">
@@ -62,6 +62,12 @@
     </div>
 
   </div>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets found with custom search: '${c.search_url_params}'"
+    href="${h.url(controller='feed', action='custom')}?${c.search_url_params}" />
+  </py:def>
+
   <xi:include href="layout.html" />
 </html>
 

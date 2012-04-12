@@ -1,7 +1,7 @@
 (function ($) {
   $(document).ready(function () {
 
-    var isDatasetNew = preload_dataset === undefined;
+    var isDatasetNew = (preload_dataset === undefined);
 
     for (field_id in form_errors) {
       
@@ -24,7 +24,7 @@
       var field = $('#'+field_id);
       if (field !== undefined && field.length > 0) {
         var fieldset_id = field.parents('fieldset').last().attr('id');
-        fieldset_id = fieldset_id.replace(/-fields$/, '');
+        fieldset_id = fieldset_id.replace(/-fields?$/, '');
         $('#'+fieldset_id).addClass('fieldset_button_error');
       }
     }
@@ -39,21 +39,24 @@
 
     /* Toggling visibility of time-series/data resources */
     var toggled = function() {
-      var isTimeseries = $('input#package_type-timeseries').is(':checked');
-      var isIndividual = $('input#package_type-individual').is(':checked');
+      var isTimeseries = $('input#package_type-timeseries-radio').is(':checked');
+      var isIndividual = $('input#package_type-individual-radio').is(':checked');
+      var fieldsetTimeseries = $('fieldset#package_type-timeseries');
+      var fieldsetIndividual = $('fieldset#package_type-individual');
       if(isTimeseries) {
-        $('fieldset#package_type-timeseries').slideDown('fast');
-        $('fieldset#package_type-individual').slideUp('fast');
+        fieldsetTimeseries.show();
+        fieldsetIndividual.hide();
       } else {
-        $('fieldset#package_type-timeseries').slideUp('fast');
-        $('fieldset#package_type-individual').slideDown('fast');
+        fieldsetTimeseries.hide();
+        fieldsetIndividual.show();
       }
     };
 
-    $('input#package_type-individual').change(toggled);
-    $('input#package_type-timeseries').change(toggled);
-
+    $('input#package_type-individual-radio, input#package_type-timeseries-radio').change(toggled);
     toggled();
+
+    /* Handle prev/next buttons */
+    $('.package_create_form #form-tabs a').on('shown', CKAN.Dgu.updatePublisherNav);
 
     /* Add new rows */
     CKAN.Dgu.copyTableRowOnClick($('#additional_resources-add'), $('#additional_resources-table'));
@@ -62,36 +65,44 @@
 
     /* Hide field sets */
     $('form#package-edit').children('fieldset').hide();
-    CKAN.Dgu.showTab($('a#section-name'),                 $('fieldset#section-name-fields'));
-    CKAN.Dgu.showTab($('a#section-data'),                 $('fieldset#section-data-fields'));
-    CKAN.Dgu.showTab($('a#section-description'),          $('fieldset#section-description-fields'));
-    CKAN.Dgu.showTab($('a#section-contacts'),             $('fieldset#section-contacts-fields'));
-    CKAN.Dgu.showTab($('a#section-themes'),               $('fieldset#section-themes-fields'));
-    CKAN.Dgu.showTab($('a#section-additional_resources'), $('fieldset#section-additional_resources-fields'));
-    CKAN.Dgu.showTab($('a#section-temporal'),             $('fieldset#section-temporal-fields'));
-    CKAN.Dgu.showTab($('a#section-geographic'),           $('fieldset#section-geographic-fields'));
-    CKAN.Dgu.showTab($('a#section-extra'),                $('fieldset#section-extra-fields'));
     $('fieldset#section-name-fields').show();
 
     /* Setup next/back buttons */
-    $('#back-button').attr('disabled', 'disabled');
-    $('#back-button').attr('onclick', '').click(function(){
-      var activeTab = $('div#form-tabs').find('li.active').children('a');
-      var previousTab = activeTab.parent().prev().children('a');
-      if(previousTab) {
-        previousTab.first().trigger('click');
-      }
+    var clickNav = function(goBack) {
+      return function(e) {
+        e.preventDefault();
+        var activeTab = $('div#form-tabs li.active');
+        if (goBack) { 
+          activeTab.prev().children('a').click(); 
+        }
+        else {
+          activeTab.next().children('a').click(); 
+          activeTab.next().removeClass('disabled');
+        }
+      };
+    };
+
+    // Correctly handle disabled nav buttons
+    $('a.disabled').click(function(e) { 
+      e.preventDefault();
     });
 
-    $('#next-button').removeAttr('disabled');
-    $('#next-button').attr('onclick', '').click(function(){
-      var activeTab = $('div#form-tabs').find('li.active').children('a');
-      var nextTab = activeTab.parent().next().children('a');
-      if(nextTab) {
-        nextTab.removeClass('disabled');
-        nextTab.first().trigger('click');
-        nextTab.removeClass('disabled');
-      }
+    $('#back-button').click(function(e) {
+        e.preventDefault();
+        var activeTab = $('div#form-tabs li.active');
+        activeTab.prev().children('a').click(); 
+    });
+    $('#next-button').click(function(e) {
+        e.preventDefault();
+        var nextLink = $('div#form-tabs li.active').next().children('a');
+        if (nextLink.hasClass('disabled')) {
+          // Hook up the link with bootstrap
+          nextLink.attr('data-toggle', 'tab');
+          // Allow it to be clicked
+          nextLink.removeClass('disabled');
+        }
+        // Click it
+        nextLink.click();
     });
 
     /* Tag auto-completion */
@@ -123,8 +134,7 @@
     });
 
     /* Create dialog boxes for editing the contact and foi information */
-    CKAN.Dgu.setupContactEditDialog($('#contact-dialogbox'));
-    CKAN.Dgu.setupContactEditDialog($('#foi-dialogbox'));
+    CKAN.Dgu.setupEditorDialogs();
 
     /* Hide/Show the access constraints box when selecting the license_id */
     $('#license_id').change(function(){
@@ -155,63 +165,47 @@ var CKAN = CKAN || {};
 
 CKAN.Dgu = function($, my) {
 
-  my.setupContactEditDialog = function(dialogDiv) {
-    var fields = ['name', 'email', 'phone'];
-    var prefix = dialogDiv.attr('id').split('-')[0]; // e.g. 'contact' or 'foi'
-
-    $('#'+prefix+'-edit').click(function(){dialogDiv.dialog("open");});
-
-    dialogDiv.dialog({
-      autoOpen: false,
-      height: 300,
-      width: 350,
-      modal: true,
-      buttons: {
-        "Save": function() {
-          for(var i=0; i<fields.length; i++){
-            var fieldName = fields[i];
-            var fieldId = '#' + prefix + '-' + fieldName;
-            $(fieldId + '-label').text($(fieldId + '-dialog').val());
-            $(fieldId).val($(fieldId + '-dialog').val());
-          }
-          $(this).dialog("close");
-        },
-        "Cancel": function() {
-          for(var i=0; i<fields.length; i++){
-            var fieldName = fields[i];
-            var fieldId = '#' + prefix + '-' + fieldName;
-            $(fieldId + '-dialog').val($(fieldId).val());
-          }
-          $(this).dialog("close");
-        }
-      }
+  my.setupEditorDialogs = function() {
+    // Bind to the 'save' button, which writes values back to the document
+    $('.dgu-editor-save').click(function(e) {
+      var inputs = $(e.target).parents('.dgu-editor').find('input');
+      $.each(inputs, function(i, input) {
+        input = $(input);
+        var targetLabel = input.attr('data-label');
+        var targetInput = input.attr('data-input');
+        // Update the text label in the page
+        if (targetLabel)  {  $(targetLabel).text(input.val()); }
+        // Update the hidden input which stores the true value
+        if (targetInput)  {  $(targetInput).val(input.val());  }
+      });
     });
-  };
 
-  my.showTab = function(button, fieldset) {
-    button.attr('onclick', '').click(function() {
-      if(button.hasClass('disabled')){ return; }
-      $('form#package-edit').children('fieldset').hide();
-      $(fieldset).show();
-      $('#form-tabs').find('li').removeClass("active");
-      $(button).addClass("active");
+    $('.dgu-editor').on('shown', function(e) {
 
-      // Handle the back/next buttons
-      previousTab = $(button).parent().prev();
-      if (previousTab.length > 0) {
-        $('#back-button').removeAttr('disabled');
-      } else {
-        $('#back-button').attr('disabled', 'disabled');
+      // Populate the inputs with the values of their targets.
+      var modal = $(e.target);
+      var inputs = modal.find('input');
+      $.each(inputs, function(i, input) {
+        input = $(input);
+        var targetInput = input.attr('data-input');
+        if (targetInput)  { 
+          input.val($(targetInput).val()); 
+        }
+      });
+
+      // Be nice. Focus the first input when the dialog appears.
+      var firstInput = $(e.target).find('input')[0];
+      $(firstInput).focus();
+    });
+
+    $('.dgu-editor input[type="text"]').bind('keydown', function(e) {
+      // Capture the Enter key
+      if (e.keyCode==13) {
+        // DO NOT SUBMIT THE FORM! (Really annoying!)
+        e.preventDefault();
+        // Instead, confirm the dialog box
+        $(e.target).parents('.dgu-editor').find('.dgu-editor-save').click();
       }
-
-      nextTab = $(button).parent().next();
-      if (nextTab.length > 0) {
-        $('#next-button').removeAttr('disabled');
-      } else {
-        $('#next-button').attr('disabled', 'disabled');
-      }
-      
-      
     });
   };
 
@@ -367,7 +361,27 @@ CKAN.Dgu = function($, my) {
         urlInput.focus();
       });
     }
-  }
+  };
+
+  my.updatePublisherNav = function(e) {
+    var hasPrevious = $(e.target).parent().prev().length > 0;
+    var hasNext = $(e.target).parent().next().length > 0;
+
+    // Handle the back/next buttons
+    if (hasPrevious) {
+      $('#back-button').removeAttr('disabled');
+    } else {
+      $('#back-button').attr('disabled', 'disabled');
+    }
+
+    if (hasNext) {
+      $('#next-button').removeAttr('disabled');
+    } else {
+      $('#next-button').attr('disabled', 'disabled');
+    }
+  };
+
+
 
   my.setupTagAutocomplete = function(elements) {
     elements
@@ -468,7 +482,8 @@ CKAN.Dgu = function($, my) {
         complete: function(){
           $(button).removeAttr('disabled');
           $(button).siblings('span.checking-links-label').hide();
-        }
+        },
+        timeout: 10000
       });
     });
   };
