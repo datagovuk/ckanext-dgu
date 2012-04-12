@@ -10,17 +10,36 @@
     <div id="dataset-overview">
 
         <?python
+            class DatasetDetails:
+                details = ['url', 'author', 'maintainer', 'foi_contact', 'version', 'license', 'contact', 'foi_contact', 'theme', 'mandate', 'temporal_coverage', 'geographic_coverage', 'date_released', 'date_updated'] # default values
+
+                def add(self, details):
+                    self.details_list.extend(details)
+                def add_after(self, detail_to_insert_after, detail_to_insert):
+                    index = self.details_list.find(detail_to_insert_after)
+                    self.details.insert(index, detail_to_insert)
+                def remove(self, details):
+                    for detail in details:
+                        self.details_list.remove(detail)
+            details = DatasetDetails()
+            details_map = {
+                'url': {'label': 'Source', 'value': c.pkg_url_link, 'property': 'foaf:homepage'},
+                'author': {'label': 'Author', 'value': c.pkg_author_link, 'property': 'dc:creator'},
+                'maintainer': {'label': 'Maintainer', 'value': c.pkg_maintainer_link, 'property': 'dc:contributor'},
+                'version': {'label': 'Version', 'value': c.pkg.version},
+            }
             # work out the dataset_type
-            pkg_extras = dict(c.pkg_extras)
             dataset_type = 'form' # default - entered via the form
-            uklp = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'UKLP']
-            if uklp and uklp[0] == 'True':
+            pkg_extras = dict(c.pkg_extras)
+            if pkg_extras.get('UKLP') == 'True':
                 dataset_type = 'uklp'
-                harvest_object_id = [v[1] for i,v in enumerate(c.pkg_extras) if v[0] == 'harvest_object_id']
-                if harvest_object_id:
-                    harvest_object_id = harvest_object_id[0]
+                harvest_object_id = pkg_extras.get('harvest_object_id')
+                details.add(['bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language'])
+                details.add_after('license', 'access_constraints')
+                details.remove(['foi_contact', 'geographic_coverage'])
             elif pkg_extras.get('external_reference') == 'ONSHUB':
                 dataset_type = 'ons'
+                details.add(['national_statistic'])
         ?>
 
       <!-- Optional logo -->
@@ -120,6 +139,9 @@
     <div id="dataset-information">
     <table class="table table-bordered table-striped table-condensed">
       <tbody>
+
+            # TODO Use the 'details' to generate this section!!
+
         <tr py:if="c.pkg.url">
           <td class="dataset-label">Source</td>
           <td class="dataset-details" property="foaf:homepage">${c.pkg_url_link}</td>
