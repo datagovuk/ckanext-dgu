@@ -501,6 +501,24 @@ ul.widget-list {
   font-weight: bold;
 }
 
+/* Shopping Basket */
+/* --------------- */
+#shopping-basket {
+  min-height: 50px;
+  max-height: 150px;
+  overflow: scroll;
+  overflow-x: hidden;
+  white-space: nowrap;
+
+}
+#shopping-basket li {
+  list-style: circle;
+}
+
+#shopping-basket li.empty {
+  font-style: italic;
+}
+
 /* Facet Menu */
 /* ---------- */
 #filter-heading,
