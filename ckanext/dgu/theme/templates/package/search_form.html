@@ -36,7 +36,6 @@ bbox = request.params.get('ext_bbox','')
         </form>
         <div class="search-facets">
           <div class="rss-link">
-            ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
           </div>
           <span py:if="c.fields">Your search:</span>
           <py:for each="(field, value) in c.fields">
