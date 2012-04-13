@@ -6,17 +6,15 @@ from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid, DataError
 from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import missing
-from ckan.controllers.package import PackageController
+import ckan.controllers.package
 
 log = logging.getLogger(__name__)
 
-class PackageGov3Controller(PackageController):
+class PackageController(ckan.controllers.package.PackageController):
 
     def history(self, id):
         """ Auth is different for DGU than for publisher default """
-        if (not c.userobj) or \
-           (len (c.userobj.get_groups('publisher')) == 0 and not c.sysadmin):
-            abort(401, _('Unauthorized to read package history'))
+        # TODO Replace user names with department names
         return super(PackageGov3Controller, self).history(id)
 
     def delete(self, id):

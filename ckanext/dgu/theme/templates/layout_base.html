@@ -1,6 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<!--[if IE 8 ]>    <html class="no-js ie8" lang="en"> <![endif]-->
+  <!--[if IE 8 ]>    <html class="no-js ie8" lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+    > <![endif]-->
   <!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js" lang="en"
       xmlns="http://www.w3.org/1999/xhtml"
       xmlns:i18n="http://genshi.edgewall.org/i18n"
@@ -105,15 +110,15 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
     </div>
     <div class="container">
       <ul id="nav">
-        <li id="nav-home"><a href="/"><div class="nav-icon"></div>Home</a></li>
+        <li id="nav-home"><a href="/home"><div class="nav-icon"></div>Home</a></li>
         <li id="nav-data" class="active"><a href="${h.url_for(controller=data_controller,action='index')}">Data</a></li>
-        <li id="nav-participate"><a href="#">Participate</a></li>
-        <li id="nav-apps"><a href="#">Apps</a></li>
-        <li id="nav-location"><a href="#">Location</a></li>
-        <li id="nav-library"><a href="#">Library</a></li>
-        <li id="nav-linked-data"><a href="#">Linked Data</a></li>
-        <li id="nav-lab"><a href="#">Lab</a></li>
-        <li id="nav-about"><a href="#">About</a></li>
+        <li id="nav-participate"><a href="/participate">Participate</a></li>
+        <li id="nav-apps"><a href="/resources">Apps</a></li>
+        <li id="nav-location"><a href="/location">Location</a></li>
+        <li id="nav-library"><a href="/library">Library</a></li>
+        <li id="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
+        <li id="nav-lab"><a href="/lab">Lab</a></li>
+        <li id="nav-about"><a href="/about">About</a></li>
       </ul>
     </div>
   </div>

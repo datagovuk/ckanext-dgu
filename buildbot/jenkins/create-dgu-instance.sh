@@ -25,7 +25,7 @@ sudo qemu-img convert -f qcow2 -O raw /var/lib/buildkit/vm/base.qcow2 /var/lib/b
 sudo chown -R buildkit:buildkit /var/lib/buildkit/vm/${NEWVMNAME}
 echo "done."
 echo "Starting the command VM with the copy and execute commands set ..."
-sudo buildkit vm start --mem 1512M --cpus 4 --apt-proxy --copy-file="/home/okfn/.ssh/dgu-buildbot.okfn.org_rsa -> /var/lib/ckan/std/.ssh/id_rsa" --copy-file="/home/buildslave/dumps/latest.pg_dump -> /home/ubuntu/dgu_live.pg_dump" --copy-file="/home/buildslave/dumps/users.csv -> /home/ubuntu/users.csv" --tunnel qtap8 --copy-file="${INSTALL_SCRIPT_PATH} -> /home/ubuntu/install_dgu.sh" ${NEWVMNAME}
+sudo buildkit vm start --mem 1512M --cpus 4 --apt-proxy --copy-file="/home/buildslave/dumps/latest.pg_dump -> /home/ubuntu/dgu_live.pg_dump" --copy-file="/home/buildslave/dumps/users.csv -> /home/ubuntu/users.csv" --tunnel qtap8 --copy-file="${INSTALL_SCRIPT_PATH} -> /home/ubuntu/install_dgu.sh" ${NEWVMNAME}
 #--exec-on-boot=". /home/ubuntu/install_dgu.sh $1 std releasetest.ckan.org" ${NEWVMNAME}
 echo "done."
 sleep 10

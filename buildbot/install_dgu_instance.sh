@@ -10,12 +10,6 @@ install_dependencies () {
     instance=$1
     user="ckan$instance"
 
-    # Set ownership on the user's .ssh directory (will have been created by root)
-    # This is required so that the private key can be used to authenticate with bitbucket
-    # in order to install ckanext-os
-    sudo chown -R "$user" "/var/lib/ckan/std/.ssh"
-    sudo chgrp -R "$user" "/var/lib/ckan/std/.ssh"
-
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-csw.git#egg=ckanext-csw
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-harvest.git#egg=ckanext-harvest
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-inspire.git#egg=ckanext-inspire
@@ -25,7 +19,7 @@ install_dependencies () {
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-archiver.git#egg=ckanext-archiver
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/ckanext-importlib.git#egg=ckanext-importlib
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://github.com/okfn/datautildate#egg=datautildate
-    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+ssh://git@bitbucket.org/dread/ckanext-os.git#egg=ckanext-os
+    sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed -e git+https://bitbucket.org/dread/ckanext-os.git#egg=ckanext-os
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed GeoAlchemy==0.6
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M -r "/var/lib/ckan/$instance/pyenv/src/ckanext-spatial/pip-requirements.txt"
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/pip" install -M --ignore-installed pastescript
@@ -100,7 +94,7 @@ configure () {
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
-    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa synchronous_search dgu_search dgu_dataset_form spatial_metadata dataset_extent_map/" \
+    sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_publisher_form dgu_publishers dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api wms_preview spatial_query qa synchronous_search dgu_search dgu_dataset_form spatial_metadata dataset_extent_map os_search os_preview/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e "s/^ckan.gravatar_default =.*/ckan.gravatar_default = mm/" \

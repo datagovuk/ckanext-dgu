@@ -128,11 +128,51 @@ class DatasetForm(SingletonPlugin):
         c.schema_fields = set(self.form_to_db_schema().keys())
 
     def form_to_db_schema_options(self, options={}):
-        schema = options.get('context',{}).get('schema',None)
+        context = options.get('context', {})
+        schema = context.get('schema',None)
         if schema:
             return schema
+
+        elif options.get('api'):
+            if options.get('type') == 'create':
+                return default_schema.default_create_package_schema()
+            else:
+                return default_schema.default_update_package_schema()
+        
+        schema = self.form_to_db_schema()
+
+        # Sysadmins can save UKLP datasets with looser validation
+        # constraints.  This is because UKLP datasets are created using
+        # a custom schema passed in from the harvester.  However, when it
+        # comes to re-saving the dataset via the dataset form, there are
+        # some validation requirements we need to drop.  That's what this
+        # section of code does.
+        pkg = context.get('package')
+        user = context.get('user', '')
+        if Authorizer().is_sysadmin(unicode(user)) and \
+           pkg and pkg.extras.get('UKLP', 'False') == 'True':
+           schema.update(self._uklp_sysadmin_schema_updates)
+
+        return schema
+
+    @property
+    def _uklp_sysadmin_schema_updates(self):
+        return {
+            'primary_theme': [ignore_missing, unicode, convert_to_extras],
+            'temporal_coverage-from': [ignore_missing, unicode, convert_to_extras],
+            'temporal_coverage-to': [ignore_missing, unicode, convert_to_extras],
+            'access_constraints': [ignore_missing, unicode, convert_to_extras],
+        }
+
+    def db_to_form_schema_options(self, options={}):
+        context = options.get('context', {})
+        schema = context.get('schema',None)
+        if schema:
+            return schema
+        elif context.get('for_edit', False):
+            return self.db_to_form_schema()
         else:
-            return self.form_to_db_schema()
+            return default_schema.package_form_schema()
 
     def form_to_db_schema(self, package_type=None):
 

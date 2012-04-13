@@ -93,14 +93,14 @@ class DguForm(SingletonPlugin):
     implements(IConfigurer)
 
     def before_map(self, map):
-        map.connect('/package/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
-        map.connect('/package/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
-        map.connect('/package/delete/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete')
-        map.connect('/package/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
-        map.connect('dataset_new','/dataset/new', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='new')
-        map.connect('dataset_edit','/dataset/edit/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='edit')
-        map.connect('/dataset/delete/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete')
-        map.connect('dataset_history','/dataset/history/{id}', controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='history')
+        dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
+        map.connect('/dataset/{id}.{format}', controller=dgu_package_controller, action='read')
+        map.connect('/dataset/{id}', controller=dgu_package_controller, action='read')
+        map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
+        map.connect('dataset_new','/dataset/new', controller=dgu_package_controller, action='new')
+        map.connect('dataset_edit','/dataset/edit/{id}', controller=dgu_package_controller, action='edit')
+        map.connect('/dataset/delete/{id}', controller=dgu_package_controller, action='delete')
+        map.connect('dataset_history','/dataset/history/{id}', controller=dgu_package_controller, action='history')
         return map
 
     def after_map(self, map):
@@ -267,12 +267,14 @@ class SearchPlugin(SingletonPlugin):
         # Each dataset should have exactly one group of type "publisher".
         # However, this is not enforced in the data model.
         if len(publishers) > 1:
-            log.warning('This dataset seems to have more than one publisher!  '
-                        'Only indexing the first one: %s', repr(publishers))
+            log.warning('Dataset %s seems to have more than one publisher!  '
+                        'Only indexing the first one: %s', \
+                        pkg_dict['name'], repr(publishers))
             publishers = publishers[:1]
         elif len(publishers) == 0:
-            log.warning('This dataset doesn\'t seem to have a publisher!  '
-                        'Unabled to add publisher to index.')
+            log.warning('Dataset %s doesn\'t seem to have a publisher!  '
+                        'Unabled to add publisher to index.',
+                        pkg_dict['name'])
             return pkg_dict
 
         # Publisher names
@@ -292,8 +294,9 @@ class SearchPlugin(SingletonPlugin):
                 publisher = None
             else:
                 if len(parent_publishers) > 1:
-                    log.warning('This publisher has more than one parent publisher. '
-                                'Ignoring all but the first. %s', repr(parent_publishers))
+                    log.warning('Publisher %s has more than one parent publisher. '
+                                'Ignoring all but the first. %s',
+                                publisher, repr(parent_publishers))
                 publisher = parent_publishers[0]
         
 
@@ -301,7 +304,9 @@ class SearchPlugin(SingletonPlugin):
             pkg_dict['parent_publishers'] = [ p.name for p in ancestors ]
         else:
             log.warning('Unable to add "parent_publishers" to index, as the datadict '
-                        'already contains a key of that name')
+                        'already contains a key of that name. '
+                        'Package: %s Parent_publishers: %r', \
+                        pkg_dict['name'], pkg_dict['parent_publishers'])
 
         # Index a harvested dataset's XML content
         # (Given a low priority when searching)
