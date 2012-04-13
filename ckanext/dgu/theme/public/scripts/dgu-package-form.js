@@ -1,7 +1,8 @@
+
 (function ($) {
   $(document).ready(function () {
 
-    var isDatasetNew = (preload_dataset === undefined);
+    var isDatasetNew = $('body.PackageController.new').length > 0;
 
     for (field_id in form_errors) {
       

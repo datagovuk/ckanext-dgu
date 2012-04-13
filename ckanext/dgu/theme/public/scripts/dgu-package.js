@@ -6,6 +6,6 @@ $.ajax({
           $('#comments').html(data);
         },
         error: function(xhr, status, exception) {
-          container.html('There has been an error');
+          $('#comments').html('There has been an error');
         }
       });

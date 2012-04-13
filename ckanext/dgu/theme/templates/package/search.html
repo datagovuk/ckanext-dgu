@@ -46,6 +46,9 @@
           <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
         </py:if>
         <div class="boxed sort-by-controls">
+          <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+            <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+          </a>
           <h4><img src="/images/arrow.png" class="arrow" /> Sort by</h4>
           <label class="radio inline">
             <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
@@ -58,9 +61,6 @@
             </label>
           </py:for>
 
-          <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-            <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
-          </a>
         </div>
 
         ${package_list_from_dict(c.page.items)}

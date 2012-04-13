@@ -283,8 +283,15 @@ body.no-subnav .content-start {
 /* ---------------- */
 #minornavigation {
   margin: 15px -26px;
-  background-color: #e2e2e2;
   background: #e2e2e2 url('/images/minornavigation.png');
+  height: 46px;
+}
+#minornavigation-bg-left {
+  background: url('/images/minornavigation-bg-left.png') no-repeat top left;
+  height: 46px;
+}
+#minornavigation-bg-right {
+  background: url('/images/minornavigation-bg-right.png') no-repeat top right;
   height: 46px;
 }
 #minornavigation .nav {

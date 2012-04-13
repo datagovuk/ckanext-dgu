@@ -11,7 +11,6 @@
   about=""
   py:strip="">
 
-
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])}
   - Datasets</py:def>
   
@@ -19,6 +18,7 @@
     ${c.pkg_dict['title']}
   </py:def>
 
+  <xi:include href="sidebar.html"/>
 
   <div py:match="content">
     <py:if test="c.pkg_revision_id">
