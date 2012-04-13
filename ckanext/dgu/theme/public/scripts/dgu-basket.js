@@ -1,7 +1,7 @@
 $(function() {
 
   var basketUi = $('#shopping-basket');
-  var basketSubmit = $('#shopping-basket-submit');
+  var basketSubmitButton = $('#shopping-basket-submit');
   var basket = [];
 
   var renderBasket = function() {
@@ -16,10 +16,11 @@ $(function() {
     }
   };
 
-  var addToBasket = function(id, title) {
+  var addToBasket = function(id, title, querystring) {
     basket.push({
       id: id,
-      title: title
+      title: title,
+      querystring: querystring
     });
   };
   var removeFromBasket = function(id) {
@@ -37,10 +38,12 @@ $(function() {
     var parent = $(e.target).parents('.dataset');
     var packageId = parent.find('.js-data-id').html();
     var packageTitle = parent.find('.js-data-title').html();
-    addToBasket(packageId,packageTitle);
+    var packageQuerystring = parent.find('.js-data-querystring').html();
+    addToBasket(packageId,packageTitle,packageQuerystring);
     // Update my UI
     parent.find('.preview-add').hide();
     parent.find('.preview-remove').show();
+    /*
     var endPoint = '/api/2/util/preview_list/add/'+packageId;
     $.ajax({
       url: endPoint,
@@ -48,6 +51,7 @@ $(function() {
         console.log(data);
       }
     });
+    */
     renderBasket();
   };
 
@@ -62,12 +66,19 @@ $(function() {
   };
 
   var basketSubmit = function(e) {
-    console.log(basket);
+    e.preventDefault();
+    var href = $(e.target).attr('href');
+    if (basket.length) {
+      $.each(basket, function(i, item) {
+        href += item.querystring + '&';
+      });
+      window.location = href;
+    }
   };
 
   $('.preview-add button').bind('click',previewAdd);
   $('.preview-remove button').bind('click',previewRemove);
-  basketSubmit.bind('click',basketSubmit);
+  basketSubmitButton.bind('click',basketSubmit);
   renderBasket();
 });
 

@@ -100,7 +100,7 @@ body.no-minornavigation .minornavigation-outer {
 .preview-stamp {
   margin-left: -26px;
   margin-top: -6px;
-  /* Mozilla hack works in webkit too. Lets you click the button beneath. */
+  /* Mozilla hack works in webkit too. Lets you click the button beneath the icon */
   pointer-events: none;
 }
 .inline-icon {
