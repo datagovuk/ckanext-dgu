@@ -521,6 +521,11 @@ ul.widget-list {
 
 /* Shopping Basket */
 /* --------------- */
+#shopping-basket-container {
+  display: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
 #shopping-basket {
   min-height: 50px;
   max-height: 150px;
@@ -529,19 +534,18 @@ ul.widget-list {
   white-space: nowrap;
   border: 1px solid #ccc;
   margin-left: 0;
-  padding: 5px 10px;
-}
-#shopping-basket li {
-  list-style: disc inside;
-}
-#shopping-basket li.empty {
-  list-style-type: circle;
-  font-style: italic;
-  color: #777;
+  padding: 5px 10px 5px 4px;
+  list-style-type: none;
 }
 #shopping-basket-submit {
+  margin-top: 5px;
   margin-left: 70px;
   display: block;
+}
+#shopping-basket .x-button {
+  padding: 0 6px;
+  margin-right: 2px;
+  vertical-align: top;
 }
 
 /* Facet Menu */
