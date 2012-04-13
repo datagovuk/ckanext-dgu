@@ -65,7 +65,7 @@
 
         ${package_list_from_dict(c.page.items)}
         <py:with vars="pager = c.page.pager(q=c.q)">
-          <div py:if="pager" class="boxed pager">
+          <div py:if="pager" class="boxed pager-container">
             ${pager}
           </div>
         </py:with>

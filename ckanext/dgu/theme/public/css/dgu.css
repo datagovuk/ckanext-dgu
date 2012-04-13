@@ -133,6 +133,9 @@ textarea {
 img.arrow {
   vertical-align: baseline;
 }
+div.pager-container {
+  text-align: center;
+}
 
 
 /* BlackBar */
