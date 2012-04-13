@@ -1,5 +1,6 @@
 from itertools import dropwhile
 from publisher_node import PublisherNode
+import urllib
 
 def _is_additional_resource(resource):
     """
@@ -94,3 +95,12 @@ def render_tree(groups,  type='publisher'):
                 tree[parent_slug].children.append(tree[slug])
 
     return root.render()
+
+def get_wms_querystring(package):
+    out = []
+    for r in package.get('resources',[]):
+        fmt = r.get('format', '')
+        if fmt.lower() == 'wms':
+            out.append(('url',r.get('url','')))
+    return urllib.urlencode(out)
+

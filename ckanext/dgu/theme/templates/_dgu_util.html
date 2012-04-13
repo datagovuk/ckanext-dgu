@@ -31,12 +31,14 @@
             </a>
      </h4>
      <?python
+              import ckanext.dgu.lib.helpers as dgu_helpers
               display_provider = False
               uklps = [d for d in package.get('extras', {}) if d['key'] == 'UKLP']
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
               providers = [d for d in package.get('extras', {}) if d['key'] == 'provider']
               provider = providers[0]['value'] if len(providers) else ''
               display_provider = is_uklp or bool(provider)
+              wms_querystring = dgu_helpers.get_wms_querystring(package)
      ?>
      <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
      <div class="dataset-description">
@@ -44,13 +46,13 @@
      </div>
      <span style="display: none;" class="js-data-id">${package.id}</span>
      <span style="display: none;" class="js-data-title">${title}</span>
-     <div class="map-buttons">
-       <button data-id="${package.id}" class="btn btn-datagov btn-small preview preview-map">preview now</button><img class="preview-stamp" src="/images/compass.png"/>
+     <div class="map-buttons" py:if="wms_querystring">
+       <a href="/data/evaluate/mapwms?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">preview now</a><img class="preview-stamp" src="/images/compass.png"/>
        <span class="preview-add">
-         <button data-id="${package.id}" class="btn btn-datagov btn-small preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
+         <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
        </span>
        <span class="preview-remove" style="display: none;">
-         <button data-id="${package.id}" class="btn btn-small preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
+         <button data-id="${package.id}" class="btn btn-small btn-preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
        </span>
      </div>
      <py:if test="package.get('resources', [])">

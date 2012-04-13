@@ -90,10 +90,9 @@ body.no-minornavigation .minornavigation-outer {
 }
 
 
-
 /* -- Misc -- */
 /* ---------- */
-button.preview {
+.btn-preview {
   padding: 5px 42px 5px 26px;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
@@ -633,11 +632,11 @@ ul.datasets .dataset .map-buttons {
   float: right;
   margin-top: 12px;
 }
-ul.datasets .dataset button {
+ul.datasets .dataset .btn-preview {
   margin-left: 5px;
 }
-ul.datasets .dataset .preview-add button,
-ul.datasets .dataset .preview-remove button { 
+ul.datasets .dataset .preview-add .btn-preview,
+ul.datasets .dataset .preview-remove .btn-preview { 
   width: 160px;
   padding-left: 0;
   padding-right: 10px;
