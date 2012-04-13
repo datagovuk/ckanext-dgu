@@ -36,6 +36,7 @@ setup(
         dgu_publisher_form = ckanext.dgu.forms.publisher_form:PublisherForm
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
+        dgu_basket = ckanext.dgu.plugin:BasketPlugin
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load
