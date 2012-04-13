@@ -47,7 +47,7 @@
      <span style="display: none;" class="js-data-id">${package.id}</span>
      <span style="display: none;" class="js-data-title">${title}</span>
      <div class="map-buttons" py:if="wms_querystring">
-       <a href="/data/evaluate/mapwms?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">preview now</a><img class="preview-stamp" src="/images/compass.png"/>
+       <a href="/data/map-preview?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">preview now</a><img class="preview-stamp" src="/images/compass.png"/>
        <span class="preview-add">
          <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
        </span>
