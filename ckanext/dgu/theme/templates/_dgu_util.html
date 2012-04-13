@@ -78,19 +78,34 @@
     </li>
   </ul>
 
+  <py:def function="dgu_facet_sidebar(code, limit=5, label=lambda n: n, title=h.facet_title, if_empty=None, count_label=lambda c: ' (%d)'%c)">
+      <div py:if="if_empty is not None or len(h.facet_items(code, limit=limit))" class="facet-box">
+          <h4><img src="/images/arrow.png" class="arrow" /> ${title(code)}</h4>
+          <ul class="facet-options">
+              <li py:for="name, count in h.facet_items(code, limit=limit)"
+                  py:if="not (code, name) in c.fields">
+                    <a href="${c.drill_down_url(**{code: name})}">
+                    <span py:if="'format' in code.lower()">${h.icon(h.format_icon(name))}</span>
+                      ${label(name)}</a>${count_label(count)}
+              </li>
+          </ul>
+          <p py:if="not len(h.facet_items(code, limit=limit))">${if_empty}</p>
+      </div>
+  </py:def>
+
 
   <div py:def="facet_filters()" class="datasets">
 
-    ${facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
+    ${dgu_facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
-    ${facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
+    ${dgu_facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
 
-    ${facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', count_label=lambda c: '')}
+    ${dgu_facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', count_label=lambda c: '')}
 
-    ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
+    ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
 
     <div class="facet-box" id="map-based-search">
-      <h2>UK Location Map Search</h2>
+      <h4><img src="/images/arrow.png" class="arrow"/> UK Location Map Search</h4>
       <p>
         <py:if test="'ext_bbox' not in request.params">
           <a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a>
@@ -103,7 +118,7 @@
 
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
-      <h2>UK Location Dataset Type</h2>
+      <h4><img src="/images/arrow.png" class="arrow"/> UK Location Dataset Type</h4>
       <ul py:if="len(h.facet_items(c, 'resource-type'))">
         ${facet_list_items('UKLP', label=lambda n: 'UKLP', if_empty='UKLP')}
         <ul class="facet-options">

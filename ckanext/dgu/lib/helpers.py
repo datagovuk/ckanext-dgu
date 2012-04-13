@@ -100,7 +100,7 @@ def get_wms_querystring(package):
     out = []
     for r in package.get('resources',[]):
         fmt = r.get('format', '')
-        if True or fmt.lower() == 'wms':
+        if fmt.lower() == 'wms':
             out.append(('url',r.get('url','')))
     return urllib.urlencode(out)
 

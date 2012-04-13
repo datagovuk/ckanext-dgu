@@ -24,7 +24,7 @@
     <div class="row">
       <div class="span3">
         <div class="facet-box" id="shopping-basket-container">
-          <h4>Map Preview</h4>
+          <h4><img src="/images/arrow.png" class="arrow"/> Map Preview</h4>
           <ul id="shopping-basket">
           </ul>
           <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-datagov">Preview All</a>
@@ -45,23 +45,21 @@
         <py:if test="c.page.item_count == 0 and request.params">
           <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
         </py:if>
-        <div class="boxed">
-          <h3>Sort by</h3>
-          <div class="controls">
-              <label class="radio inline">
-                <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
-                relevancy
-              </label>
-            <py:for each="field,title,order in [('titleString','title','asc'), ('metadata_modified','last updated','desc')]">
-              <label class="radio inline">
-                <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
-                ${title}
-              </label>
-            </py:for>
-          </div>
+        <div class="boxed sort-by-controls">
+          <h4><img src="/images/arrow.png" class="arrow" /> Sort by</h4>
+          <label class="radio inline">
+            <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
+            relevancy
+          </label>
+          <py:for each="field,title,order in [('titleString','title','asc'), ('metadata_modified','last updated','desc')]">
+            <label class="radio inline">
+              <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
+              ${title}
+            </label>
+          </py:for>
 
           <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-            <img src="/images/feed.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+            <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
           </a>
         </div>
 

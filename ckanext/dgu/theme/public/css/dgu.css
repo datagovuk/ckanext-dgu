@@ -130,6 +130,9 @@ body.no-minornavigation .minornavigation-outer {
 textarea {
   width: 80%;
 }
+img.arrow {
+  vertical-align: baseline;
+}
 
 
 /* BlackBar */
@@ -518,6 +521,23 @@ ul.widget-list {
   color: #c00;
   font-weight: bold;
 }
+.sort-by-controls {
+}
+.sort-by-controls > * {
+  vertical-align: middle;
+}
+.sort-by-controls h4 {
+  color: #656565;
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  margin: 0;
+  padding: 0;
+  margin-right: 20px;
+}
+.sort-by-controls .feed-icon {
+  float: right;
+}
 
 /* Shopping Basket */
 /* --------------- */
@@ -526,6 +546,9 @@ ul.widget-list {
   overflow: hidden;
   white-space: nowrap;
 }
+#shopping-basket-container h4 {
+  margin-bottom: 0;
+}
 #shopping-basket {
   min-height: 50px;
   max-height: 150px;
@@ -533,18 +556,19 @@ ul.widget-list {
   overflow-x: hidden;
   white-space: nowrap;
   border: 1px solid #ccc;
+  border-top: none;
   margin-left: 0;
   padding: 5px 10px 5px 4px;
   list-style-type: none;
 }
 #shopping-basket-submit {
-  margin-top: 5px;
+  margin-top: 8px;
   margin-left: 70px;
   display: block;
 }
 #shopping-basket .x-button {
   padding: 0 6px;
-  margin-right: 2px;
+  margin-right: 5px;
   vertical-align: top;
 }
 
@@ -554,12 +578,11 @@ ul.widget-list {
 .facet-box {
   margin-bottom: 20px;
 }
-.facet-box h2 {
-  font-size: 14px;
-  line-height: 23px;
+.facet-box h4 {
+  color: #656565;
+  padding-bottom: 3px;
   margin-bottom: 8px;
   border-bottom: 1px solid #ccc;
-  display: block;
 }
 .facet-box > ul {
   list-style-type: none;
