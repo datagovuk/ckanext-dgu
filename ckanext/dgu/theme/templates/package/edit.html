@@ -6,11 +6,10 @@
   <py:def function="page_title">${c.pkg.title or c.pkg.name} - Edit - Datasets</py:def>
   <py:def function="page_heading">Edit: ${c.pkg.title or c.pkg.name}</py:def>
 
-  <py:def function="body_class">no-sidebar no-minornavigation</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
 
   <py:def function="optional_head">
     <script>
-      var preload_dataset = ${c.pkg_json};
       var form_errors = ${c.errors_json};
       var publishers = ${c.publishers_json};
     </script>

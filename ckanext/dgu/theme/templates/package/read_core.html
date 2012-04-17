@@ -41,7 +41,6 @@
                 dataset_type = 'ons'
                 details.add(['national_statistic'])
         ?>
-
       <!-- Optional logo -->
       <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
         <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
@@ -62,10 +61,10 @@
 
       <!-- Resources -->
       <div id="dataset-resources" class="resources subsection">
-        <py:if test="c.pkg_dict.get('individual_resources') or not c.pkg_dict.get('timeseries_resources')">
-          <h3>Data Files (${str(len(c.pkg_dict.get('individual_resources',[])))})</h3>
+        <py:if test="individual_resources or not timeseries_resources">
+          <h3>Data Files (${len(individual_resources)})</h3>
           <ul class="resource-list">
-            <py:for each="res in c.pkg_dict.get('individual_resources', [])">
+            <py:for each="res in individual_resources">
             <li>
               <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
@@ -80,10 +79,10 @@
             </py:for>
           </ul>
         </py:if>
-        <py:if test="c.pkg_dict.get('timeseries_resources')">
-          <h3>Data Files (${str(len(c.pkg_dict.get('timeseries_resources',[])))} in a time series)</h3>
+        <py:if test="timeseries_resources">
+          <h3>Data Files (${len(timeseries_resources)} in a time series)</h3>
           <ul class="resource-list">
-            <py:for each="res in c.pkg_dict.get('timeseries_resources', [])">
+            <py:for each="res in timeseries_resources">
             <li>
               <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
@@ -107,10 +106,10 @@
                 <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" target="_blank">Formatted GEMINI2 document</a> (HTML)
             </div>
         </div>
-        <py:if test="c.pkg_dict.get('additional_resources')"> 
-          <h3>Additional Links ${str(len(c.pkg_dict.get('additional_resources',[])))})</h3>
+        <py:if test="additional_resources"> 
+          <h3>Additional Links ${len(additional_resources)})</h3>
           <ul class="resource-list">
-            <py:for each="res in c.pkg_dict.get('additional_resources', [])">
+            <py:for each="res in additional_resources">
             <li>
               <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
@@ -127,7 +126,7 @@
           </ul>
         </py:if>
 
-        <py:if test="not (dataset_type == 'uklp' or c.pkg_dict.get('individual_resources') or c.pkg_dict.get('timeseries_resources') or c.pkg_dict.get('additional_resources'))">
+        <py:if test="not (dataset_type == 'uklp' or individual_resources or timeseries_resources or additional_resources)">
           <em>(none)</em>
         </py:if>
       </div>

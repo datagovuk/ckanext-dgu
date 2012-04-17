@@ -24,7 +24,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </ul>
 </div>
 
-<div class="boxed">
+<div class="boxed ${'' if c.action=='new' else 'boxed-flush-top'}">
 
 <div id="form-tabs" class="tabbable tabs-left">
   <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled'} if use_wizard else {'data-toggle':'tab'}">

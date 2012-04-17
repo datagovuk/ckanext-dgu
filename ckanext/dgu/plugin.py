@@ -3,6 +3,7 @@ import re
 
 from logging import getLogger
 
+import ckan.config.routing as routing
 from ckan.lib.helpers import flash_notice, _flash
 from ckan.logic import NotFound
 from ckan.plugins import implements, SingletonPlugin
@@ -347,3 +348,34 @@ class SearchPlugin(SingletonPlugin):
         regex = re.compile(r'open government licen[sc]e', re.IGNORECASE)
         return pkg_dict['license_id'] == 'uk-ogl' or \
                bool(regex.search(pkg_dict.get('extras_access_constraints', '')))
+
+class BasketPlugin(SingletonPlugin):
+
+    implements(IRoutes)
+
+    def before_map(self, map):
+        basketController='ckanext.dgu.controllers.basket:BasketController'
+        map.connect('basket_contents',
+                    '/basket',
+                    controller=basketController,
+                    action='contents')
+        map.connect('basket_add',
+                    '/basket/add/:id',
+                    controller=basketController,
+                    #conditions={'method': 'POST'},
+                    action='add_dataset_to_basket')
+        map.connect('basket_contents',
+                    '/basket/delete/:id',
+                    controller=basketController,
+                    #conditions={'method': 'POST'},
+                    action='delete_dataset_from_basket')
+        map.connect('basket_contents',
+                    '/basket/clear',
+                    controller=basketController,
+                    #conditions={'method': 'POST'},
+                    action='clear')
+        return map
+
+    def after_map(self, map):
+        return map
+

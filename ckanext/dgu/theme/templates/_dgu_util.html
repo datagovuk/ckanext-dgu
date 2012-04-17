@@ -11,7 +11,7 @@
 
   <ul py:def="package_list_from_dict(packages)" class="datasets">
    <li py:for="package in packages">
-    <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
+     <div class="dataset boxed js-dataset-${package.id}" py:with="title=package.get('title') or package.get('name')">
      <div class="dataset-header">
        <img class="dataset-icon" src="/images/dataset-icon.png" />
         <h3 class="clearfix">
@@ -31,12 +31,14 @@
             </a>
      </h4>
      <?python
+              import ckanext.dgu.lib.helpers as dgu_helpers
               display_provider = False
               uklps = [d for d in package.get('extras', {}) if d['key'] == 'UKLP']
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
               providers = [d for d in package.get('extras', {}) if d['key'] == 'provider']
               provider = providers[0]['value'] if len(providers) else ''
               display_provider = is_uklp or bool(provider)
+              wms_querystring = dgu_helpers.get_wms_querystring(package)
      ?>
      <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
      <div class="dataset-description">
@@ -44,13 +46,14 @@
      </div>
      <span style="display: none;" class="js-data-id">${package.id}</span>
      <span style="display: none;" class="js-data-title">${title}</span>
-     <div class="map-buttons">
-       <button data-id="${package.id}" class="btn btn-datagov btn-small preview preview-map">preview now</button><img class="preview-stamp" src="/images/compass.png"/>
+     <span style="display: none;" class="js-data-querystring">${wms_querystring}</span>
+     <div class="map-buttons" py:if="wms_querystring">
+       <a href="/data/map-preview?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">preview now</a><img class="preview-stamp" src="/images/compass.png"/>
        <span class="preview-add">
-         <button data-id="${package.id}" class="btn btn-datagov btn-small preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
+         <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
        </span>
        <span class="preview-remove" style="display: none;">
-         <button data-id="${package.id}" class="btn btn-small preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
+         <button data-id="${package.id}" class="btn btn-small btn-preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
        </span>
      </div>
      <py:if test="package.get('resources', [])">
@@ -75,19 +78,34 @@
     </li>
   </ul>
 
+  <py:def function="dgu_facet_sidebar(code, limit=5, label=lambda n: n, title=h.facet_title, if_empty=None, count_label=lambda c: ' (%d)'%c)">
+      <div py:if="if_empty is not None or len(h.facet_items(c, code, limit=limit))" class="facet-box">
+          <h4><img src="/images/arrow.png" class="arrow" /> ${title(code)}</h4>
+          <ul class="facet-options">
+              <li py:for="name, count in h.facet_items(c, code, limit=limit)"
+                  py:if="not (code, name) in c.fields">
+                    <a href="${c.drill_down_url(**{code: name})}">
+                    <span py:if="'format' in code.lower()">${h.icon(h.format_icon(name))}</span>
+                      ${label(name)}</a>${count_label(count)}
+              </li>
+          </ul>
+          <p py:if="not len(h.facet_items(c, code, limit=limit))">${if_empty}</p>
+      </div>
+  </py:def>
+
 
   <div py:def="facet_filters()" class="datasets">
 
-    ${facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
+    ${dgu_facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
-    ${facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
+    ${dgu_facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
 
-    ${facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', count_label=lambda c: '')}
+    ${dgu_facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', count_label=lambda c: '')}
 
-    ${facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
+    ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
 
     <div class="facet-box" id="map-based-search">
-      <h2>UK Location Map Search</h2>
+      <h4><img src="/images/arrow.png" class="arrow"/> UK Location Map Search</h4>
       <p>
         <py:if test="'ext_bbox' not in request.params">
           <a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a>
@@ -100,7 +118,7 @@
 
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
-      <h2>UK Location Dataset Type</h2>
+      <h4><img src="/images/arrow.png" class="arrow"/> UK Location Dataset Type</h4>
       <ul py:if="len(h.facet_items(c, 'resource-type'))">
         ${facet_list_items('UKLP', label=lambda n: 'UKLP', if_empty='UKLP')}
         <ul class="facet-options">

@@ -11,10 +11,10 @@
       <td class="left">
         <div class="result-count">${c.page.item_count if c.page else c.package_count or 0}</div>
         <py:if test="request.params">      
-          <div class="result-count-footer">results</div>
+          <div class="result-count-footer">Results</div>
         </py:if>
         <py:if test="not request.params">      
-          <div class="result-count-footer">datasets</div>
+          <div class="result-count-footer">Datasets</div>
         </py:if>
       </td>
       <td class="right">
@@ -36,7 +36,6 @@ bbox = request.params.get('ext_bbox','')
         </form>
         <div class="search-facets">
           <div class="rss-link">
-            ${h.subnav_link(c, h.icon('atom_feed'), controller='package', action='search', format='atom')} <!-- TODO: Make this work! (id=xyz, etc) -->
           </div>
           <span py:if="c.fields">Your search:</span>
           <py:for each="(field, value) in c.fields">
