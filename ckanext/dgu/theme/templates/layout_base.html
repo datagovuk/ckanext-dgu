@@ -138,18 +138,19 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
     </ul>
   </div>
 
+  <!-- Flash Messages -->
+  <py:with vars="messages = list(h._flash.pop_messages())">
+    <div class="flash-messages container">
+      <div class="alert ${m.category}" py:for="m in messages">
+        ${h.literal(m)}
+      </div>
+    </div>
+  </py:with>
+
   <div class="container content-start">
     <div class="row">
       <div class="span8 main-outer">
         <div id="main">
-          <!-- Flash Messages -->
-          <py:with vars="messages = list(h._flash.pop_messages())">
-          <div class="flash-messages container">
-            <div class="alert ${m.category}" py:for="m in messages">
-              ${h.literal(m)}
-            </div>
-          </div>
-          </py:with>
           <!-- Page Heading -->
           <div class="boxed minornavigation-outer">
             <py:if test="defined('page_heading')">

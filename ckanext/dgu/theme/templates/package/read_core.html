@@ -54,9 +54,11 @@
       </div>
 
       <!-- Description -->
-      <div class="notes" py:if="str(c.pkg_notes_formatted).strip()">
+      <div py:if="str(c.pkg_notes_formatted).strip()">
         <h3>Description</h3>
-        ${c.pkg_notes_formatted}
+        <div class="notes">
+          ${c.pkg_notes_formatted}
+        </div>
       </div>
 
       <!-- Resources -->
@@ -136,7 +138,7 @@
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">
-    <table class="table table-bordered table-striped table-condensed">
+    <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
 
             # TODO Use the 'details' to generate this section!!
