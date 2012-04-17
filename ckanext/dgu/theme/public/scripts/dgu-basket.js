@@ -65,14 +65,11 @@ $(function() {
   };
 
   var catchError = function(error) {
-    if (typeof console !== 'undefined') {
-      console.log('ajax error in basket:');
-      console.log(error);
-    }
+    // Recover from errors by fetching the latest authoritative server state
     var endPoint = '/api/2/util/preview_list';
     $.ajax({
       url: endPoint,
-      success: renderBasket,
+      success: renderBasket
     });
   };
 
