@@ -15,7 +15,7 @@ class PackageController(ckan.controllers.package.PackageController):
     def history(self, id):
         """ Auth is different for DGU than for publisher default """
         # TODO Replace user names with department names
-        return super(PackageGov3Controller, self).history(id)
+        return super(PackageController, self).history(id)
 
     def delete(self, id):
         """Provide a delete action, but only for UKLP datasets"""
