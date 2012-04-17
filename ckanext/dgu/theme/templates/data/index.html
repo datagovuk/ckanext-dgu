@@ -43,7 +43,7 @@
           <h2>Publishers</h2>
           <ul class="facet-options">
             <li py:for="name, count in h.facet_items(c, 'publisher', limit=10)">
-              <a href="/data/search?publisher=${name}">${h.group_name_to_title(name)}</a>(${count})
+              <a href="/data/search?publisher=${name}">${h.group_name_to_title(name)}</a> &nbsp;(${count})
             </li>
           </ul>
           <p py:if="not len(h.facet_items(c, 'publisher', limit=10))">No publishers found</p>
