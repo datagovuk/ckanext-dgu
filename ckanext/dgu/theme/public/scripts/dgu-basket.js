@@ -110,17 +110,13 @@ $(function() {
 
   var clickSubmit = function(e) {
     e.preventDefault();
-    var href = $(e.target).attr('href');
-    console.log(href);
+    var href = '/data/map-preview?';
     if (basketCache.length) {
       $.each(basketCache, function(i, item) {
-        console.log(item);
         href += item.querystring + '&';
-        console.log(href);
       });
-      // window.location = href;
+      window.location = href;
     }
-    return false;
   };
 
   $('.preview-add button').bind('click',clickAdd);
