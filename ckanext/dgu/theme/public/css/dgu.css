@@ -851,6 +851,24 @@ input.display-error-inside.field_error {
   padding-left: 20px;
   background: transparent url(../images/icons/error.png) left center no-repeat;
 }
+.hints {
+  font-style: italic;
+  color: #666;
+  margin-top: 3px;
+  margin-bottom: 0;
+}
+.instructions.basic {
+  margin: 3px 0;
+  line-height: 14px;
+}
+
+.instructions.further {
+  font-size: 11px;
+  line-height: 12px;
+  color: #666;
+  margin: 3px 0 5px 0;
+  width: 80%;
+}
 
 /* Publisher form */
 
