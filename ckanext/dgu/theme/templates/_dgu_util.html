@@ -9,9 +9,9 @@
   <!--! Herein can be found generic helper methods for a whole bunch of common
         templating issues -->
 
-  <ul py:def="package_list_from_dict(packages)" class="datasets">
+  <ul py:def="package_list_from_dict(packages)" py:with="basket=session.get('preview_list',[])" class="datasets">
    <li py:for="package in packages">
-     <div class="dataset boxed js-dataset-${package.id}" py:with="title=package.get('title') or package.get('name')">
+     <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
      <div class="dataset-header">
        <img class="dataset-icon" src="/images/dataset-icon.png" />
         <h3 class="clearfix">
@@ -49,11 +49,13 @@
      <span style="display: none;" class="js-data-querystring">${wms_querystring}</span>
      <div class="map-buttons" py:if="wms_querystring">
        <a href="/data/map-preview?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">preview now</a><img class="preview-stamp" src="/images/compass.png"/>
-       <span class="preview-add">
-         <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
+       <span class="preview-add js-dataset-${package.id}-add" 
+             style="${'display: none' if package.id in basket else ''}">
+             <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview btn-basket"><span>add to list</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
        </span>
-       <span class="preview-remove" style="display: none;">
-         <button data-id="${package.id}" class="btn btn-small btn-preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
+       <span class="preview-remove js-dataset-${package.id}-remove" 
+             style="${'' if package.id in basket else 'display: none;'}">
+             <button data-id="${package.id}" class="btn btn-small btn-preview btn-basket"><span>remove from list</span></button><img class="preview-stamp" src="/images/compass-minus.png"/>
        </span>
      </div>
      <py:if test="package.get('resources', [])">

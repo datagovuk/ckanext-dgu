@@ -174,6 +174,9 @@ h1 .subheading {
   overflow: hidden;
   white-space: nowrap;
 }
+button span {
+  white-space: nowrap;
+}
 
 
 /* BlackBar */
