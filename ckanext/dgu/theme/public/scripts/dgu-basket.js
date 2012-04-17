@@ -1,17 +1,59 @@
 $(function() {
+  var spinConfig = {
+    lines: 9, // The number of lines to draw
+    length: 3, // The length of each line
+    width: 2, // The line thickness
+    radius: 4, // The radius of the inner circle
+    rotate: 3, // The rotation offset
+    color: '#FFF', // #rgb or #rrggbb
+    speed: 2.1, // Rounds per second
+    trail: 43, // Afterglow percentage
+    shadow: true, // Whether to render a shadow
+    hwaccel: false, // Whether to use hardware acceleration
+    className: 'spinner', // The CSS class to assign to the spinner
+    zIndex: 2e9, // The z-index (defaults to 2000000000)
+    top: 'auto', // Top position relative to parent in px
+    left: 'auto' // Left position relative to parent in px
+  };
 
   var basketUiContainer = $('#shopping-basket-container');
   var basketUi = $('#shopping-basket');
   var basketSubmitButton = $('#shopping-basket-submit');
-  var basket = [];
+  var basketCache = [];
+  var spinners = [];
 
-  var renderBasket = function() {
+  var disable = function() {
+    // Disable the UI
+    $.each($('.btn-basket'), function(i, el) {
+      spinners.push(new Spinner(spinConfig).spin(el));
+      $(el).find('span').css('opacity', '0.1');
+      $(el).attr({'disabled': 'disabled'});
+    });
     basketUi.empty();
+    spinners.push(new Spinner(spinConfig).spin(basketUi[0]));
+  };
+
+  var renderBasket = function(basket) {
+    // Enable the UI
+    $.each(spinners, function(i,spinner) {
+      spinner.stop();
+    });
+    spinners = [];
+    $('.btn-basket').removeAttr('disabled');
+    $('.btn-basket span').css('opacity','');
+    // Render the basket
+    basketUi.empty();
+    $('.preview-add').show();
+    $('.preview-remove').hide();
     $.each(basket, function(i,item) {
-      var li = $('<li/>').html(item.title).attr('id',item.id);
+      // The API provides only simple IDs right now. Later it should give a detailed object.
+      var li = $('<li/>').html(item.name).attr('id',item.id);
       var xButton = $('<button/>').addClass('btn').addClass('btn-small').addClass('x-button').html('x');
       xButton.prependTo(li);
       li.appendTo(basketUi);
+      // Update the add/remove buttons on the page
+      $('.js-dataset-'+item.id+'-add').hide();
+      $('.js-dataset-'+item.id+'-remove').show();
     });
     if (basket.length==0 && basketUiContainer.is(':visible')) {
       basketUiContainer.hide('slow')
@@ -19,91 +61,55 @@ $(function() {
     if (basket.length>0 && !basketUiContainer.is(':visible')) {
       basketUiContainer.show('slow')
     }
+    basketCache = basket;
   };
 
-  var addToBasket = function(id, title, querystring) {
-    basket.push({
-      id: id,
-      title: title,
-      querystring: querystring
+  var catchError = function(error) {
+    // Recover from errors by fetching the latest authoritative server state
+    var endPoint = '/api/2/util/preview_list';
+    $.ajax({
+      url: endPoint,
+      success: renderBasket
     });
-  };
-  var removeFromBasket = function(id) {
-    var index = -1;
-    $.each(basket, function(i,item) {
-      if (item.id == id) {
-        index = i;
-      }
-    });
-    if (index==-1) throw "Item not found.";
-    basket.splice(index,1);
   };
 
   var clickAdd = function(e) {
     var parent = $(e.target).parents('.dataset');
     var packageId = parent.find('.js-data-id').html();
-    var packageTitle = parent.find('.js-data-title').html();
-    var packageQuerystring = parent.find('.js-data-querystring').html();
-    addToBasket(packageId,packageTitle,packageQuerystring);
-    // Trial animation
-    /*
-    var fromImg = parent.find('.preview-add img');
-    var from = fromImg.offset();
-    var to = basketUi.offset();
-    to.left += (basketUi.width() / 2)-20;
-    to.top += (basketUi.height() / 2)-20;
-    to.opacity = 0.75;
-    var img = $('<img/>').attr('src','/images/compass.png').css({ 'position':'absolute' }).css(from);
-    img.appendTo($('body'));
-    img.animate(to, 800, "easeOutCubic", function() {
-      img.animate({'opacity':0}, 200, "linear", function() {
-        img.remove();
-      });
-    });
-    */
-    // Update my UI
-    parent.find('.preview-add').hide();
-    parent.find('.preview-remove').show();
-    /*
+    // Inform the server
     var endPoint = '/api/2/util/preview_list/add/'+packageId;
     $.ajax({
       url: endPoint,
-      success: function(data) { 
-        console.log(data);
-      }
+      success: renderBasket,
+      error: catchError
     });
-    */
-    renderBasket();
+    disable();
   };
 
   var clickRemove = function(e) {
     var parent = $(e.target).parents('.dataset');
     var packageId = parent.find('.js-data-id').html();
-    removeFromBasket(packageId);
-    // Update my UI
-    parent.find('.preview-add').show();
-    parent.find('.preview-remove').hide();
-    renderBasket();
+    // Pass the function call through to the X button in the basket
+    basketUi.find('#'+packageId+' .x-button').click();
   };
   
   var clickX = function(e) {
-    var id = $(e.target).parents('li').attr('id');
-    // Find the button within the page
-    var mainButton = $('.js-dataset-'+id+' .preview-remove button');
-    if (mainButton.length) {
-      mainButton.click();
-    }
-    else {
-      removeFromBasket(id);
-      renderBasket();
-    }
+    var packageId = $(e.target).parents('li').attr('id');
+    // Inform the server
+    var endPoint = '/api/2/util/preview_list/remove/'+packageId;
+    $.ajax({
+      url: endPoint,
+      success: renderBasket,
+      error: catchError
+    });
+    disable();
   };
 
   var clickSubmit = function(e) {
     e.preventDefault();
-    var href = $(e.target).attr('href');
-    if (basket.length) {
-      $.each(basket, function(i, item) {
+    var href = '/data/map-preview?';
+    if (basketCache.length) {
+      $.each(basketCache, function(i, item) {
         href += item.querystring + '&';
       });
       window.location = href;
@@ -113,8 +119,8 @@ $(function() {
   $('.preview-add button').bind('click',clickAdd);
   $('.preview-remove button').bind('click',clickRemove);
   basketSubmitButton.bind('click',clickSubmit);
-  renderBasket();
   $('#shopping-basket .x-button').live('click', clickX);
+  renderBasket(preloadBasket);
 });
 
 
