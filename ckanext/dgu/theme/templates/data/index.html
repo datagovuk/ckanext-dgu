@@ -9,43 +9,61 @@
   <py:def function="page_title">Data | data.gov.uk</py:def>
   <py:def function="body_class">no-sidebar no-minornavigation</py:def>
 
-  <div py:match="content">
+  <div py:match="content" class="front-page">
     <!-- <p><strong>${c.package_count}</strong> datasets to search</p> -->
-
-    <h2>Search Datasets</h2>
-    <xi:include href="../package/search_form.html" />
-
-    <h2>Browse tags</h2>
-    <div>
-            <div id="tagcloud">
-              <?python
-                import random
-                tags = h.facet_items(c, 'tags', limit=20)
-                random.shuffle(tags)
-              ?>
-              <py:for each="tag_name, count in tags">
-                <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
-              </py:for>
-            </div>
-            <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags</a>
+    <div class="row">
+      <div class="span6">
+        <div class="boxed">
+          <h2>Search Datasets</h2>
+          <xi:include href="../package/search_form.html" />
+        </div>
+      </div>
+      <div class="span6">
+        <div class="boxed">
+          <h2>Browse tags</h2>
+          <div id="tagcloud">
+            <?python
+              import random
+              tags = h.facet_items(c, 'tags', limit=20)
+              random.shuffle(tags)
+            ?>
+            <py:for each="tag_name, count in tags">
+              <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
+            </py:for>
+          </div>
+          <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags</a>
+        </div>
+      </div>
     </div>
-
-    <h2>Publishers</h2>
-    <ul class="facet-options">
+    <div class="row">
+      <div class="span6">
+        <div class="boxed">
+          <h2>Publishers</h2>
+          <ul class="facet-options">
             <li py:for="name, count in h.facet_items(c, 'publisher', limit=10)">
-                  <a href="/data/search?publisher=${name}">${h.group_name_to_title(name)}</a>(${count})
+              <a href="/data/search?publisher=${name}">${h.group_name_to_title(name)}</a>(${count})
             </li>
-    </ul>
-    <p py:if="not len(h.facet_items(c, 'publisher', limit=10))">No publishers found</p>
-
-    <h2>UK Location Map Search</h2>
-    <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
-
-    <h2>Developers</h2>
-    <div>
-      <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="${g.site_url}/data/dump">CSV or JSON dump</a>.</p>
+          </ul>
+          <p py:if="not len(h.facet_items(c, 'publisher', limit=10))">No publishers found</p>
+        </div>
+      </div>
+      <div class="span6">
+        <div class="boxed">
+          <h2>UK Location Map Search</h2>
+          <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
+        </div>
+      </div>
     </div>
-
+    <div class="row">
+      <div class="span12">
+        <div class="boxed">
+          <h2>Developers</h2>
+          <div>
+            <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="${g.site_url}/data/dump">CSV or JSON dump</a>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <xi:include href="../layout.html" />
 
