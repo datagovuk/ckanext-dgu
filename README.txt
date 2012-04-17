@@ -5,8 +5,6 @@ ckanext-dgu - data.gov.uk extension
 This is an extension to CKAN that provides customisations specifically for the data.gov.uk project:
 
  * DGU's package form - includes a number of custom fields such as temporal_coverage and geographic_coverage.
- * the Form API - exposes in the API the form expressed as HTML for insertion in the Drupal front-end.
- * Harvest Source form, supplied by Form API to the Drupal front-end.
  * Harvest Object inserted into the CKAN package view page.
  * gov_daily - a script (for running daily) that save the database dumps for end-users (JSON/CSV) and backups (SQL).
  * ons_loader - an import script for data from the Office of National Statistics.
@@ -46,6 +44,10 @@ and credentials for HTTP Basic Authentication (if necessary)::
     dgu.xmlrpc_domain = drupal.libre.gov.fr:80
     dgu.xmlrpc_username = ckan
     dgu.xmlrpc_password = letmein
+
+The DGU-version of the SOLR schema is required instead of the CKAN 1.3 SOLR schema. Whether you use a single or mult-core SOLR setup, you'll need a link to the DGU SOLR schema like this::
+
+    sudo ln -s /home/okfn/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml /etc/solr/conf/schema.xml
 
 
 Usage
@@ -108,6 +110,10 @@ Config errors
 * ``DrupalXmlRpcSetupError: Drupal XMLRPC not configured.``
 
 The missing settings that result in this error are to be found in {pyenv}/src/ckanext-dgu/test-core.ini which is also imported into {pyenv}/src/ckanext-dgu/test.ini, so make sure you are specifying either of these config files in your nosetests ``--with-pylons`` parameter.
+
+* ``ckan.lib.search.common.SearchIndexError: HTTP code=400, reason=ERROR: [f752f33380e3eec1379cfb89e0fdded8] multiple values encountered for non multiValued field parent_publishers: [london-borough-of-barnet, local-authorities]``
+
+This is due to SOLR using the CKAN SOLR schema, rather than the specific DGU one. Change it using the ``ln -s`` command above, followed by stopping and starting SOLR.
 
 
 Documentation

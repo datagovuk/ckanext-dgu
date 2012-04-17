@@ -29,23 +29,21 @@
           </ul>
           <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-datagov">Preview All</a>
         </div>
-        <div id="filter-heading">
-          <p>You can refine your search results using the filters below</p>
-        </div>
+        
+        <py:if test="c.page.item_count">
+          <div id="filter-heading">
+            <p>You can refine your search results using the filters below</p>
+          </div>
 
-        ${facet_filters()}
+          ${facet_filters()}
+        </py:if>
       </div>
       <div class="offset1 span8">
         <py:if test="c.query_error">
           <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
               Please try again.</p>
         </py:if>
-        <py:if test="request.params">      
-        </py:if>
-        <py:if test="c.page.item_count == 0 and request.params">
-          <p i18n:msg="">Would you like to <a href="${h.url_for(action='new', id=None)}">create a new dataset?</a></p>
-        </py:if>
-        <div class="boxed sort-by-controls">
+        <div class="boxed sort-by-controls" py:if="c.page.item_count">
           <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
             <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
           </a>
