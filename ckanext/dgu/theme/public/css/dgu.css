@@ -136,6 +136,22 @@ img.arrow {
 div.pager-container {
   text-align: center;
 }
+.tag {
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  padding: 4px 9px;
+  border: 1px solid #ccc;
+  color: #777;
+  margin: 0 5px 3px 0;
+  border-radius: 4px;
+}
+.tag:hover {
+  border-color: #797;
+  color: #252;
+  text-decoration: none;
+}
+
 
 
 /* BlackBar */
@@ -949,15 +965,4 @@ body.harvest #content{
 
 div#tagcloud {
   clear: both;
-}
-
-div#tagcloud a {
-  text-decoration: none;
-  text-align: center;
-  border: none;
-  vertical-align: middle;
-}
-
-div#tagcloud a:hover {
-  text-decoration: underline;
 }

@@ -20,6 +20,9 @@
       </div>
       <div class="span6">
         <div class="boxed">
+          <div style="padding-top: 8px" class="pull-right">
+            <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags &raquo;</a>
+          </div>
           <h2>Browse tags</h2>
           <div id="tagcloud">
             <?python
@@ -31,7 +34,6 @@
               <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
             </py:for>
           </div>
-          <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags</a>
         </div>
       </div>
     </div>
