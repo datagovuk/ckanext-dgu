@@ -48,12 +48,12 @@
      <span style="display: none;" class="js-data-title">${title}</span>
      <span style="display: none;" class="js-data-querystring">${wms_querystring}</span>
      <div class="map-buttons" py:if="wms_querystring">
-       <a href="/data/map-preview?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">preview now</a><img class="preview-stamp" src="/images/compass.png"/>
+       <a href="/data/map-preview?${wms_querystring}" class="btn btn-datagov btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
        <span class="preview-add">
-         <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview">add to list</button><img class="preview-stamp" src="/images/compass-plus.png"/>
+         <button data-id="${package.id}" class="btn btn-datagov btn-small btn-preview">Add to Preview List</button><img class="preview-stamp" src="/images/compass-plus.png"/>
        </span>
        <span class="preview-remove" style="display: none;">
-         <button data-id="${package.id}" class="btn btn-small btn-preview">remove from list</button><img class="preview-stamp" src="/images/compass-minus.png"/>
+         <button data-id="${package.id}" class="btn btn-small btn-preview">Remove from List</button><img class="preview-stamp" src="/images/compass-minus.png"/>
        </span>
      </div>
      <py:if test="package.get('resources', [])">

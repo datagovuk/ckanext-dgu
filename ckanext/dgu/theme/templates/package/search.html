@@ -27,7 +27,7 @@
           <h4><img src="/images/arrow.png" class="arrow"/> Map Preview</h4>
           <ul id="shopping-basket">
           </ul>
-          <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-datagov">Preview All</a>
+          <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-datagov">Preview</a>
         </div>
         
         <py:if test="c.page.item_count">
@@ -63,7 +63,7 @@
 
         ${package_list_from_dict(c.page.items)}
         <py:with vars="pager = c.page.pager(q=c.q)">
-          <div py:if="pager" class="boxed pager-container">
+          <div py:if="pager" class="pager-container">
             ${pager}
           </div>
         </py:with>
