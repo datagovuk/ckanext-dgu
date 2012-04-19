@@ -43,6 +43,10 @@
         </div>
         
         <py:if test="c.page.item_count">
+          <div id="filter-heading">
+            <p>You can refine your search results using the filters below</p>
+          </div>
+
           ${facet_filters()}
         </py:if>
       </div>
