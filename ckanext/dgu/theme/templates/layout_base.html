@@ -153,11 +153,11 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
         <div id="main">
           <!-- Content -->
           <div id="content" class="${(defined('content_class') and content_class()) or 'boxed'}">
-            <py:if test="defined('content')">
-              ${content()}
-            </py:if>
             <py:if test="defined('page_heading')">
               <h1>${page_heading()}</h1>
+            </py:if>
+            <py:if test="defined('content')">
+              ${content()}
             </py:if>
             <content>
               <p>Master content template placeholder &hellip; please replace me.</p>
@@ -167,18 +167,14 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
       </div><!-- /span8 -->
       <div class="span4 sidebar-outer">
         <div id="sidebar">
-          <div class="upper">
-          </div>
-          <div class="lower">
-            <ul class="widget-list">
-              <py:if test="defined('primary_sidebar_extras')">
-                ${primary_sidebar_extras()}
-              </py:if>
-              <primarysidebar>
-                <!-- Primary Side Bar Goes Here -->
-              </primarysidebar>
-            </ul>
-          </div><!--/lower -->
+          <ul class="widget-list">
+            <py:if test="defined('primary_sidebar_extras')">
+              ${primary_sidebar_extras()}
+            </py:if>
+            <primarysidebar>
+              <!-- Primary Side Bar Goes Here -->
+            </primarysidebar>
+          </ul>
         </div><!-- /#sidebar -->
       </div><!-- /span4 -->
     </div><!-- /row -->

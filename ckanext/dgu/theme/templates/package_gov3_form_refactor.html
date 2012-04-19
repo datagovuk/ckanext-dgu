@@ -368,7 +368,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <input id="contact-email" name="contact-email" type="hidden" value="${contact_email}"/>
       <input id="contact-phone" name="contact-phone" type="hidden" value="${contact_phone}"/>
 
-      <a class="btn btn-datagov" data-toggle="modal" href="#edit-contact">Edit</a>
+      <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
       <div style="display: none;" class="modal fade dgu-editor" id="edit-contact">
         <div class="modal-header">
           <a class="close" data-dismiss="modal">x</a>
@@ -396,7 +396,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
           </div>
         </div>
         <div class="modal-footer">
-          <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-datagov">Save Changes</a>
+          <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
           <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
         </div>
       </div>
@@ -413,7 +413,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <input id="foi-email" name="foi-email" type="hidden" value="${foi_email}"/>
       <input id="foi-phone" name="foi-phone" type="hidden" value="${foi_phone}"/>
 
-      <a class="btn btn-datagov" data-toggle="modal" href="#edit-foi">Edit</a>
+      <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
       <div style="display: none;" class="modal fade dgu-editor" id="edit-foi">
         <div class="modal-header">
           <a class="close" data-dismiss="modal">x</a>
@@ -441,7 +441,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
           </div>
         </div>
         <div class="modal-footer">
-          <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-datagov">Save Changes</a>
+          <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
           <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
         </div>
       </div>
@@ -783,8 +783,8 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <div id="nav-controls" class="submit">
     <div class="nav-backnext">
       <py:if test="not is_edit_form">
-        <input disabled="disabled" class="btn btn-datagov" type="button" id="back-button" value="&laquo; Back" />
-        <input                     class="btn btn-datagov" type="button" id="next-button" value="Next &raquo;" />
+        <input disabled="disabled" class="btn btn-primary" type="button" id="back-button" value="&laquo; Back" />
+        <input                     class="btn btn-primary" type="button" id="next-button" value="Next &raquo;" />
       </py:if>
     </div>
   </div>

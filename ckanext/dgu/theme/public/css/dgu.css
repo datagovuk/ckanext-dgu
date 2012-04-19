@@ -39,7 +39,7 @@ a.btn-black-text {
 .btn-small {
   font-size: 12px;
 }
-.btn-datagov {
+.btn-primary {
   background-color: #99dd22;
   background-image: -moz-linear-gradient(top, #a5e046, #8cc52a);
   background-image: -ms-linear-gradient(top, #a5e046, #8cc52a);
@@ -54,29 +54,27 @@ a.btn-black-text {
   border-left-color: transparent;
   filter: progid:dximagetransform.microsoft.gradient(enabled=false);
 }
-.btn-primary {
-  font-weight: normal;
-}
-.btn-datagov:hover,
-.btn-datagov:active,
-.btn-datagov.active,
-.btn-datagov.disabled,
-.btn-datagov[disabled] {
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
   background-color: #8cc52a;
 }
-.btn-datagov:active,
-.btn-datagov.active {
+.btn-primary:active,
+.btn-primary.active {
   background-color: #557700 \9;
 }
-.btn-datagov,
-.btn-datagov:hover {
+.btn-primary,
+.btn-primary:hover {
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
   color: #333333;
 }
-.btn-datagov.active {
+.btn-primary.active {
   color: #333333;
   color: rgba(255, 255, 255, 0.75);
 }
+
 /* No-sidebar mode */
 /* --------------- */
 body.no-sidebar .main-outer {
@@ -634,6 +632,10 @@ ul.widget-list {
 .user-page ul.stats span {
   display: block;
   color: #777;
+}
+body.login #content {
+  width: 450px;
+  margin: 0 auto;
 }
 
 
