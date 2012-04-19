@@ -10,7 +10,6 @@
   <py:def function="body_class">no-sidebar no-minornavigation</py:def>
 
   <div py:match="content" class="front-page">
-    <!-- <p><strong>${c.package_count}</strong> datasets to search</p> -->
     <div class="row">
       <div class="span6">
         <div class="boxed">
@@ -40,6 +39,9 @@
     <div class="row">
       <div class="span6">
         <div class="boxed">
+          <div style="padding-top: 8px" class="pull-right">
+            <a href="/publisher" class="viewall">View all publishers &raquo;</a>
+          </div>
           <h2>Publishers</h2>
           <ul class="facet-options">
             <li py:for="name, count in h.facet_items(c, 'publisher', limit=10)">
@@ -53,11 +55,38 @@
         <div class="boxed">
           <h2>UK Location Map Search</h2>
           <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
+          <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
+          <p>The <a href="/location">UK Location Programme</a> has introduced over
+             1000 location data records into data.gov.uk and tools to support their
+             use. To find which of these datasets cover a particular location, you 
+             can use Map Based Search. Many of these datasets provide a Web Map Service
+             too, and for some a preview of the data is available. Click to find out more
+             <a href="/doc/map-based-search">about Map Based Search</a>
+             and <a href="/doc/map-preview">about Preview on Map</a>.
+          </p>
         </div>
       </div>
     </div>
     <div class="row">
-      <div class="span12">
+      <div class="span6">
+        <div class="boxed">
+          <h2>Cross-Government Data Apps</h2>
+          <ul>
+            <li><a href="/organogram" class="js-tooltip" title="Browse around the organisational structure for each Government department. Details are shown for all Ministers and key Civil Servants.">Who does what in Whitehall?</a></li>
+
+            <li><a href="/openspending" class="js-tooltip" title="Explore the searchable database to view Government expenditure, which can be sorted by department, recipient or value.">How your money is spent</a></li>
+
+            <li><a href="/contractfinder" class="js-tooltip" title="Search and read about all Government opportunities, tenders and contracts worth more than &pound;10,000.">Government contracts in full</a></li>
+
+            <li><a href="/whoslobbying" class="js-tooltip" title="Find out which organisations and industries have met with Ministers from across Government departments.">Who ministers are meeting</a></li>
+
+            <li><a href="/business_plans" class="js-tooltip" title="Check on the Government's progress on implementing its policies. See how every department is performing against its priorities.">Business plans</a></li>
+
+            <li><a href="/crime-spy-uk" class="js-tooltip" title="Use your iPhone to view neighbourhood information and crime stats for the area">Applications</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="span6">
         <div class="boxed">
           <h2>Developers</h2>
           <div>
