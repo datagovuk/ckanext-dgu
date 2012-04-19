@@ -10,7 +10,7 @@
 <py:match path="primarysidebar">
   <li id="dataset-license" class="sidebar-section">
     <div py:if="c.pkg.license_id">
-      &bull;&nbsp; <strong>License:</strong>
+      <h3>Licence</h3>
       <py:choose test="">
         <span py:when="c.pkg.license and c.pkg.license.url"><a
             href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
@@ -29,18 +29,26 @@
           </span>
       </py:if>
     </div>
+  </li>
+
+  <li class="sidebar-section">
     <div>
-      &bull;&nbsp; <a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a>
+      <ul>
+        <li>
+          <a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a>
+        </li>
+      </ul>
     </div>
   </li>
 
   <?python
     from ckan import model
   ?>
-  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED">
+  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="sidebar-section">
+    <h3>Deletion</h3>
     <ul>
       <li>
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete</a>
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a>
       </li>
     </ul>
   </li>
@@ -52,6 +60,7 @@
 
   <li id="social_media" class="sidebar-section">
     <h3>Social</h3>
+    <p>Tell the world about this dataset!</p>
     <?python
       import urllib
       import urlparse
@@ -78,19 +87,22 @@
   </li>
 
   <li class="sidebar-section">
-    <div id="share_your_app">
-      &bull;&nbsp; <a href="${g.site_url}/node/add/apps">Share your app</a>
-    </div>
-    <div id="share_your_idea">
-      &bull;&nbsp; <a href="${g.site_url}/node/add/ideas">Share your idea</a>
-    </div>
-    <div id="data_request">
-      &bull;&nbsp; <a href="${g.site_url}/data/requests">Request new data</a>
-    </div>
+    <h3>Do more with this data</h3>
+    <ul>
+      <li id="share_your_app">
+        <a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a>
+      </li>
+      <li id="share_your_idea">
+        <a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a>
+      </li>
+      <li id="data_request">
+        <a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a>
+      </li>
+    </ul>
   </li>
 
   <li py:if="c.pkg.get_groups('publisher')" class="sidebar-section">
-    <h3>Publishers</h3>
+    <h3>Publisher</h3>
     <ul class="groups">
       <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
@@ -98,21 +110,6 @@
     </ul>
   </li>
 
-  <li class="sidebar-section">
-  <!-- <li py:if="c.package_relationships" class="sidebar-section"> -->
-    <h3 class="instruction-needed" title="How are these currently generated?  Is it something that we'll migrate over?">Related Datasets</h3>
-    <p>Place holder</p>
-    <ul class="related-datasets">
-      <py:for each="pkg, relationship_str, comment in c.package_relationships">
-        <li>
-          ${h.literal(relationship_str % (h.link_to(pkg.name, h.url_for(controller="package", action="read", id=pkg.name))))}
-          <span py:if="comment is not None and len(comment)" class="relationship_comment">
-              (${comment})
-          </span>
-        </li>
-      </py:for>
-    </ul>
-  </li>
 
 </py:match>
 </html>
