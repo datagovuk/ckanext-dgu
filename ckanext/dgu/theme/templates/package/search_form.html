@@ -22,7 +22,7 @@
       <td class="right">
         <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
           <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
-          <input type="submit" value="${_('Search')}" class="btn btn-datagov button" />
+          <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
           <py:for each="(k, v) in c.fields"> 
             <input type="hidden" name="${k}" value="${v}" />  

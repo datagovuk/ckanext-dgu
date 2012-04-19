@@ -8,7 +8,7 @@
 
 
 <py:match path="primarysidebar">
-  <li id="dataset-license" class="sidebar-section">
+  <li id="dataset-license" class="widget-container">
     <div py:if="c.pkg.license_id">
       <h3>Licence</h3>
       <py:choose test="">
@@ -31,7 +31,7 @@
     </div>
   </li>
 
-  <li class="sidebar-section">
+  <li class="widget-container">
     <div>
       <ul>
         <li>
@@ -44,7 +44,7 @@
   <?python
     from ckan import model
   ?>
-  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="sidebar-section">
+  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
     <h3>Deletion</h3>
     <ul>
       <li>
@@ -53,12 +53,12 @@
     </ul>
   </li>
 
-  <li py:if="c.pkg_dict.get('tags')" class="sidebar-section">
+  <li py:if="c.pkg_dict.get('tags')" class="widget-container">
     <h3>Tags</h3>
     ${tag_list(c.pkg_dict.get('tags', ''))}
   </li>
 
-  <li id="social_media" class="sidebar-section">
+  <li id="social_media" class="widget-container">
     <h3>Social</h3>
     <p>Tell the world about this dataset!</p>
     <?python
@@ -86,7 +86,7 @@
     </a>
   </li>
 
-  <li class="sidebar-section">
+  <li class="widget-container">
     <h3>Do more with this data</h3>
     <ul>
       <li id="share_your_app">
@@ -101,7 +101,7 @@
     </ul>
   </li>
 
-  <li py:if="c.pkg.get_groups('publisher')" class="sidebar-section">
+  <li py:if="c.pkg.get_groups('publisher')" class="widget-container">
     <h3>Publisher</h3>
     <ul class="groups">
       <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">

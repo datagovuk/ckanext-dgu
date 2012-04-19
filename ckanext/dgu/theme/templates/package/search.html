@@ -12,7 +12,9 @@
     <script src="/scripts/dgu-basket.js"></script>
   </py:def>
 
- <py:def function="body_class">no-sidebar no-minornavigation</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <py:def function="content_class"><!--unboxed--></py:def>
 
   <py:def function="optional_footer">
     <script type="text/javascript">
@@ -39,7 +41,7 @@
           <h4><img src="/images/arrow.png" class="arrow"/> Map Preview</h4>
           <ul id="shopping-basket">
           </ul>
-          <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-datagov btn-basket"><span>Preview</span></a>
+          <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-primary btn-basket"><span>Preview</span></a>
         </div>
         
         <py:if test="c.page.item_count">

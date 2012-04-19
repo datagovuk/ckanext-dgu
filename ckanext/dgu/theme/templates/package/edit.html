@@ -4,7 +4,6 @@
   py:strip="">
   
   <py:def function="page_title">${c.pkg.title or c.pkg.name} - Edit - Datasets</py:def>
-  <py:def function="page_heading">Edit: ${c.pkg.title or c.pkg.name}</py:def>
 
   <py:def function="body_class">no-sidebar</py:def>
 
@@ -29,6 +28,14 @@
   </py:match>
 
   <div py:match="content" class="dataset-edit-form">
+    <h1>Edit: ${c.pkg.title or c.pkg.name}</h1>
+    <div id="minornavigation">
+      <div id="minornavigation-bg-left">
+      <div id="minornavigation-bg-right">
+        <minornavigation></minornavigation>
+      </div>
+      </div>
+    </div>
     ${c.form}
   </div>
 

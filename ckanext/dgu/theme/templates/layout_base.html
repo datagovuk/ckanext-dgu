@@ -151,22 +151,11 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
     <div class="row">
       <div class="span8 main-outer">
         <div id="main">
-          <!-- Page Heading -->
-          <div class="boxed minornavigation-outer">
+          <!-- Content -->
+          <div id="content" class="${(defined('content_class') and content_class()) or 'boxed'}">
             <py:if test="defined('page_heading')">
               <h1>${page_heading()}</h1>
             </py:if>
-            <!-- MinorNavigation -->
-            <div id="minornavigation">
-              <div id="minornavigation-bg-left">
-              <div id="minornavigation-bg-right">
-                <minornavigation></minornavigation>
-              </div>
-              </div>
-            </div>
-          </div>
-          <!-- Content -->
-          <div id="content">
             <py:if test="defined('content')">
               ${content()}
             </py:if>
@@ -178,18 +167,14 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
       </div><!-- /span8 -->
       <div class="span4 sidebar-outer">
         <div id="sidebar">
-          <div class="upper">
-          </div>
-          <div class="lower">
-            <ul class="widget-list">
-              <py:if test="defined('primary_sidebar_extras')">
-                ${primary_sidebar_extras()}
-              </py:if>
-              <primarysidebar>
-                <!-- Primary Side Bar Goes Here -->
-              </primarysidebar>
-            </ul>
-          </div><!--/lower -->
+          <ul class="widget-list">
+            <py:if test="defined('primary_sidebar_extras')">
+              ${primary_sidebar_extras()}
+            </py:if>
+            <primarysidebar>
+              <!-- Primary Side Bar Goes Here -->
+            </primarysidebar>
+          </ul>
         </div><!-- /#sidebar -->
       </div><!-- /span4 -->
     </div><!-- /row -->
