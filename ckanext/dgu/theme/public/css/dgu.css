@@ -85,13 +85,14 @@ body.no-sidebar .main-outer {
 body.no-sidebar .sidebar-outer {
   display: none;
 }
-body.no-minornavigation .minornavigation-outer {
-  display: none;
-}
 
 
 /* -- Misc -- */
 /* ---------- */
+.flash-messages {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
 .btn-preview {
   padding: 5px 42px 5px 26px;
   border-top-right-radius: 10px;
@@ -293,6 +294,7 @@ ul#nav {
   background: url('/images/home-icon-hover.png');
 }
 
+
 /* Subnavigation */
 /* ------------- */
 #subnav {
@@ -309,9 +311,6 @@ ul#nav {
   color: #bbb;
 }
 
-.content-start {
-  margin-top: 25px;
-}
 /* No-subnav mode */
 body.no-subnav #subnav {
   display: none;
@@ -463,14 +462,6 @@ ul.widget-list {
 .boxed {
   padding: 14px 17px;
 }
-.boxed-flush-top {
-  border-top-right-radius: 0;
-  border-top-left-radius: 0;
-  -moz-box-shadow: 0px 4px 6px #bbb;
-  -webkit-box-shadow: 0px 4px 6px #bbb;
-  box-shadow: 0px 4px 6px #bbb;
-  margin-top: -30px;
-}
 
 
 /* Search box */
@@ -618,6 +609,31 @@ ul.widget-list {
 .front-page .span6 .boxed {
   min-height: 150px;
   margin-bottom: 25px;
+}
+
+
+/* User page */
+/* --------- */
+.user-page .span6 .boxed {
+  min-height: 250px;
+}
+.user-page ul.stats {
+  margin: 0 auto;
+  width: 280px;
+}
+.user-page ul.stats li {
+  width: 100px;
+  list-style-type: none;
+  float: left;
+  padding: 20px;
+  text-align: center
+}
+.user-page ul.stats strong {
+  font-size: 40px;
+}
+.user-page ul.stats span {
+  display: block;
+  color: #777;
 }
 
 
@@ -772,7 +788,7 @@ td.dataset-label {
   padding: 8px 10px;
 }
 .resource-actions .download img {
-  margin: 0px 4px -4px 0;
+  margin-right: 4px;
 }
 
 /* Resources */

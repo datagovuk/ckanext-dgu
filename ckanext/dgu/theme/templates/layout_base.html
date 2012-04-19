@@ -151,24 +151,13 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
     <div class="row">
       <div class="span8 main-outer">
         <div id="main">
-          <!-- Page Heading -->
-          <div class="boxed minornavigation-outer">
-            <py:if test="defined('page_heading')">
-              <h1>${page_heading()}</h1>
-            </py:if>
-            <!-- MinorNavigation -->
-            <div id="minornavigation">
-              <div id="minornavigation-bg-left">
-              <div id="minornavigation-bg-right">
-                <minornavigation></minornavigation>
-              </div>
-              </div>
-            </div>
-          </div>
           <!-- Content -->
-          <div id="content">
+          <div id="content" class="${(defined('content_class') and content_class()) or 'boxed'}">
             <py:if test="defined('content')">
               ${content()}
+            </py:if>
+            <py:if test="defined('page_heading')">
+              <h1>${page_heading()}</h1>
             </py:if>
             <content>
               <p>Master content template placeholder &hellip; please replace me.</p>

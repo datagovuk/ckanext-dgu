@@ -23,29 +23,12 @@
       .recline-query-editor form, .recline-query-editor .text-query {
         height: 28px;
       }
-
       .recline-query-editor .pagination ul {
         margin: 0;
         padding: 0;
       }
     </style>
     <!-- /data preview -->
-    <style type="text/css">
-      .resource-actions {
-        margin-right: 0;
-      }
-      .resource-actions .btn {
-        position: relative;
-        bottom: 3px;
-        padding: 8px 10px;
-      }
-      .resource-actions .download {
-        display: inline;
-      }
-      .resource-actions .download img {
-        margin: 0px 4px -4px 0;
-      }
-    </style>
     <script type="text/javascript">
       var preload_resource = ${h.literal(c.resource_json)};
     </script>
@@ -56,12 +39,20 @@
     ${h.resource_display_name(c.resource)} - Dataset - Resource
   </py:def>
 
-  <py:def function="page_heading">
-    ${h.dataset_link(c.package)}
-    <span class="subheading">&#8627; ${h.resource_display_name(c.resource)}</span>
-  </py:def>
 
-  <div py:match="content" class="boxed boxed-flush-top">
+  <div py:match="content">
+    <h1>${h.dataset_link(c.package)}
+      <span class="subheading">&#8627; ${h.resource_display_name(c.resource)}</span></h1>
+
+    <div id="minornavigation">
+      <div id="minornavigation-bg-left">
+      <div id="minornavigation-bg-right">
+        <minornavigation></minornavigation>
+      </div>
+      </div>
+    </div>
+
+    &nbsp;
     <div class="resource-actions">
       <a py:if="c.resource.get('url')" class="btn btn-primary resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}">
         <py:choose test="c.resource.get('resource_type')">
@@ -121,6 +112,7 @@
       </dl>
     </div>
 
+    <h3>Resource Description</h3>
     <div class="notes" property="rdfs:label">
       <py:if test="c.resource.get('description')">
         <div>

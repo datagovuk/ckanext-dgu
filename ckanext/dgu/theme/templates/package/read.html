@@ -14,23 +14,34 @@
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])}
   - Datasets</py:def>
   
-  <py:def function="page_heading" property="dc:title">
-    ${c.pkg_dict['title']}
-  </py:def>
+  <py:def function="content_class"><!--unboxed--></py:def>
+  <py:def function="stuff">Hello world</py:def>
 
   <xi:include href="sidebar.html"/>
 
   <div py:match="content">
-    <py:if test="c.pkg_revision_id">
-      <div id="revision" class="widget-container">
-        <p py:if="c.pkg_revision_not_latest">This is an old revision of this dataset, as edited <!--!by ${h.linked_user(rev.author)}-->at ${h.render_datetime(c.pkg_revision_timestamp)}. It may differ significantly from the <a href="${h.url(controller='package', action='read', id=c.pkg.name)}">current revision</a>.</p>
-        <p py:if="not c.pkg_revision_not_latest">This is the current revision of this dataset, as edited <!--!by ${h.linked_user(rev.author)}-->at ${h.render_datetime(c.pkg_revision_timestamp)}.</p>
+    <div class="boxed">
+      <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
+
+      <div id="minornavigation">
+        <div id="minornavigation-bg-left">
+        <div id="minornavigation-bg-right">
+          <minornavigation></minornavigation>
+        </div>
+        </div>
       </div>
-    </py:if>
 
-    <xi:include href="read_core.html" />
+      <py:if test="c.pkg_revision_id">
+        <div id="revision" class="widget-container">
+          <p py:if="c.pkg_revision_not_latest">This is an old revision of this dataset, as edited <!--!by ${h.linked_user(rev.author)}-->at ${h.render_datetime(c.pkg_revision_timestamp)}. It may differ significantly from the <a href="${h.url(controller='package', action='read', id=c.pkg.name)}">current revision</a>.</p>
+          <p py:if="not c.pkg_revision_not_latest">This is the current revision of this dataset, as edited <!--!by ${h.linked_user(rev.author)}-->at ${h.render_datetime(c.pkg_revision_timestamp)}.</p>
+        </div>
+      </py:if>
 
-    <div>
+      <xi:include href="read_core.html" />
+    </div>
+
+    <div class="boxed">
       <a style="float:right" class="btn btn-datagov" href="/comment/dataset/${c.pkg.id}">Add Comment</a>
       <h2>Comments</h2>
       <p id="comments">Place holder</p>
