@@ -63,7 +63,7 @@
 
   <div py:match="content" class="boxed boxed-flush-top">
     <div class="resource-actions">
-      <a py:if="c.resource.get('url')" class="btn btn-primary resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}">
+      <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}">
         <py:choose test="c.resource.get('resource_type')">
           <py:when test="'listing'">View</py:when>
           <py:when test="'service'">View</py:when>
@@ -78,10 +78,10 @@
       </a>
       <py:if test="config.get('ckan.datastore.enabled', False)">
         <py:if test="c.resource.get('webstore_url')">
-          <a class="btn btn-success" data-toggle="modal" href=".modal-data-api-help">Data API</a>
+          <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>
         </py:if>
         <py:if test="not c.resource.get('webstore_url')">
-          <a class="btn disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
+          <a class="btn btn-datagov disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
         </py:if>
       </py:if>
     </div>
