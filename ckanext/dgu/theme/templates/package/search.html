@@ -34,7 +34,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="span3">
+      <div class="span4">
         <div class="facet-box" id="shopping-basket-container">
           <h4><img src="/images/arrow.png" class="arrow"/> Map Preview</h4>
           <ul id="shopping-basket">
@@ -43,14 +43,10 @@
         </div>
         
         <py:if test="c.page.item_count">
-          <div id="filter-heading">
-            <p>You can refine your search results using the filters below</p>
-          </div>
-
           ${facet_filters()}
         </py:if>
       </div>
-      <div class="offset1 span8">
+      <div class="span8">
         <py:if test="c.query_error">
           <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
               Please try again.</p>
