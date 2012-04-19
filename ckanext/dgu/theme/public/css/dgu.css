@@ -437,14 +437,14 @@ ul.widget-list {
 
 /* Boxes */
 /* ----- */
-.sidebar-section img {
+.widget-container img {
   margin-top: 0 !important;
   padding-top: 0 !important;
   display: inline !important;
   position: static !important;
   vertical-align: middle !important;
 }
-.sidebar-section,
+.widget-container,
 .facet-box,
 .boxed {
   background: #fff;
