@@ -10,29 +10,25 @@
 <py:match path="primarysidebar">
   <li py:if="c.pkg.license_id" id="dataset-license" class="widget-container">
     <h3>Licence</h3>
+    <ul class="arrow-list">
     <py:choose test="">
-      <span py:when="c.pkg.license and c.pkg.license.url"><a
-          href="${c.pkg.license.url}" rel="dc:rights"><img src="/images/arrow.png" class="arrow"/> "${c.pkg.license.title.split('::')[-1]}"</a></span>
-      <span py:when="c.pkg.license" property="dc:rights"><img src="/images/arrow.png" class="arrow"/> "${c.pkg.license.title}"</span>
-      <span py:when="c.pkg.license_id" property="dc:rights"><img src="/images/arrow.png" class="arrow"/> "${c.pkg.license_id}"</span>
+      <li py:when="c.pkg.license and c.pkg.license.url"><a
+          href="${c.pkg.license.url}" rel="dc:rights">"${c.pkg.license.title.split('::')[-1]}"</a> <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
+      <li py:when="c.pkg.license" property="dc:rights">"${c.pkg.license.title}" <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
+      <li py:when="c.pkg.license_id" property="dc:rights">"${c.pkg.license_id}" <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
     </py:choose>
 
-    <div py:if="c.pkg.isopen()">
-      <img src="/images/arrow.png" class="arrow"/> 
+    <li py:if="c.pkg.isopen()">
       <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
           <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
       </a>
-    </div>
-    <py:if test="not c.pkg.isopen()">
-        <span class="closed">
-          ${h.icon('lock')}
-        </span>
-    </py:if>
+    </li>
+    </ul>
   </li>
 
   <li class="widget-container">
     <h3>Feedback</h3>
-    <img src="/images/arrow.png" class="arrow"/> <a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a>
+    <ul class="arrow-list"><li><a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a></li></ul>
   </li>
 
   <?python
@@ -40,7 +36,7 @@
   ?>
   <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
     <h3>Deletion</h3>
-    <img src="/images/arrow.png" class="arrow"/> <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a>
+    <ul class="arrow-list"><li><a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a></li></ul>
   </li>
 
   <li py:if="c.pkg_dict.get('tags')" class="widget-container">
@@ -78,9 +74,11 @@
 
   <li class="widget-container">
     <h3>Do more with this data</h3>
-    <img src="/images/arrow.png" class="arrow"/> <a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/>
-    <img src="/images/arrow.png" class="arrow"/> <a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/>
-    <img src="/images/arrow.png" class="arrow"/> <a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a>
+    <ul class="arrow-list">
+      <li><a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
+      <li><a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
+      <li><a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
+    </ul>
   </li>
 
   <li py:if="c.pkg.get_groups('publisher')" class="widget-container">

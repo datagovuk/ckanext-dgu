@@ -169,6 +169,9 @@ h1 .subheading {
 button span {
   white-space: nowrap;
 }
+ul.arrow-list {
+  list-style-image: url('/images/arrow.png');
+}
 
 
 /* BlackBar */
