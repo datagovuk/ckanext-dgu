@@ -8,8 +8,8 @@
 
 
 <py:match path="primarysidebar">
-  <li id="dataset-license" class="widget-container">
-    <div py:if="c.pkg.license_id">
+  <li id="dataset-license" class="widget-container" py:if="c.pkg.license_id">
+    <div>
       <h3>Licence</h3>
       <py:choose test="">
         <span py:when="c.pkg.license and c.pkg.license.url"><a
