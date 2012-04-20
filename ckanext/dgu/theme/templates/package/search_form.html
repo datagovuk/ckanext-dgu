@@ -36,21 +36,24 @@ bbox = request.params.get('ext_bbox','')
         <div class="search-facets">
           <div class="rss-link">
           </div>
-          <span py:if="c.fields">Your search:</span>
-          <py:for each="(field, value) in c.fields">
-            <a class="facet" href="${c.remove_field(field, value)}">
-              <span class="name">${h.facet_title(field)}</span>:
-              <span class="value">${value}</span>
-              <span class="x">x</span>
-            </a>
-          </py:for>
-          <py:if test="bbox">
-            <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
-              <span class="name">${h.facet_title('Location')}</span>:
-              <span class="value">${bbox}</span>
-              <span class="x">x</span>
-            </a>
-          </py:if>
+          <div class="pull-left" style="padding-top: 5px;" py:if="c.fields">Your search:</div>
+          <div class="pull-left" style="width: 80%;">
+            <py:for each="(field, value) in c.fields">
+              <a class="facet" href="${c.remove_field(field, value)}">
+                <span class="name">${h.facet_title(field)}</span>:
+                <span class="value">${value}</span>
+                <span class="x">x</span>
+              </a>
+            </py:for>
+            <py:if test="bbox">
+              <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
+                <span class="name">${h.facet_title('Location')}</span>:
+                <span class="value">${bbox}</span>
+                <span class="x">x</span>
+              </a>
+            </py:if>
+          </div>
+          <div class="clearfix"></div>
         </div>
       </td>
     </tr>
