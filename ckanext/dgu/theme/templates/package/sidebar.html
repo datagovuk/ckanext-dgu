@@ -8,37 +8,31 @@
 
 
 <py:match path="primarysidebar">
-  <li id="dataset-license" class="widget-container">
-    <div py:if="c.pkg.license_id">
-      <h3>Licence</h3>
-      <py:choose test="">
-        <span py:when="c.pkg.license and c.pkg.license.url"><a
-            href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
-        <span py:when="c.pkg.license" property="dc:rights">${c.pkg.license.title}</span>
-        <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
-      </py:choose>
+  <li py:if="c.pkg.license_id" id="dataset-license" class="widget-container">
+    <h3>Licence</h3>
+    <py:choose test="">
+      <span py:when="c.pkg.license and c.pkg.license.url"><a
+          href="${c.pkg.license.url}" rel="dc:rights"><img src="/images/arrow.png" class="arrow"/> "${c.pkg.license.title.split('::')[-1]}"</a></span>
+      <span py:when="c.pkg.license" property="dc:rights"><img src="/images/arrow.png" class="arrow"/> "${c.pkg.license.title}"</span>
+      <span py:when="c.pkg.license_id" property="dc:rights"><img src="/images/arrow.png" class="arrow"/> "${c.pkg.license_id}"</span>
+    </py:choose>
 
-      <py:if test="c.pkg.isopen()">
-          <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-            <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
-          </a>
-      </py:if>
-      <py:if test="not c.pkg.isopen()">
-          <span class="closed">
-            ${h.icon('lock')}
-          </span>
-      </py:if>
+    <div py:if="c.pkg.isopen()">
+      <img src="/images/arrow.png" class="arrow"/> 
+      <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+          <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+      </a>
     </div>
+    <py:if test="not c.pkg.isopen()">
+        <span class="closed">
+          ${h.icon('lock')}
+        </span>
+    </py:if>
   </li>
 
   <li class="widget-container">
-    <div>
-      <ul>
-        <li>
-          <a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a>
-        </li>
-      </ul>
-    </div>
+    <h3>Feedback</h3>
+    <img src="/images/arrow.png" class="arrow"/> <a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a>
   </li>
 
   <?python
@@ -46,11 +40,7 @@
   ?>
   <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
     <h3>Deletion</h3>
-    <ul>
-      <li>
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a>
-      </li>
-    </ul>
+    <img src="/images/arrow.png" class="arrow"/> <a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a>
   </li>
 
   <li py:if="c.pkg_dict.get('tags')" class="widget-container">
@@ -88,17 +78,9 @@
 
   <li class="widget-container">
     <h3>Do more with this data</h3>
-    <ul>
-      <li id="share_your_app">
-        <a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a>
-      </li>
-      <li id="share_your_idea">
-        <a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a>
-      </li>
-      <li id="data_request">
-        <a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a>
-      </li>
-    </ul>
+    <img src="/images/arrow.png" class="arrow"/> <a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/>
+    <img src="/images/arrow.png" class="arrow"/> <a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/>
+    <img src="/images/arrow.png" class="arrow"/> <a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a>
   </li>
 
   <li py:if="c.pkg.get_groups('publisher')" class="widget-container">

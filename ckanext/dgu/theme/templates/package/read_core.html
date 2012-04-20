@@ -68,7 +68,7 @@
           <ul class="resource-list">
             <py:for each="res in individual_resources">
             <li>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 ${h.resource_display_name(res)}
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
@@ -86,7 +86,7 @@
           <ul class="resource-list">
             <py:for each="res in timeseries_resources">
             <li>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 ${res.get('date')}
                 ${h.resource_display_name(res)}
@@ -113,7 +113,7 @@
           <ul class="resource-list">
             <py:for each="res in additional_resources">
             <li>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 ${res.get('date')}
                 ${h.resource_display_name(res)}

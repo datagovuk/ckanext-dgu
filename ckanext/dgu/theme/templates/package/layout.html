@@ -6,13 +6,21 @@
   >
   <?python
       if c.pkg_dict:
+          # DGU sometimes provides no resources, just these three objects
           individual_resources = c.pkg_dict.get('individual_resources', [])
           timeseries_resources = c.pkg_dict.get('timeseries_resources', [])
           additional_resources = c.pkg_dict.get('additional_resources', [])
 
+          # Hack. I cannot clearly tell why sometimes the resources are defined by the three keys (above)
+          #   and other times defined by 'resources'. I think a plugin toggles it. Without this line,
+          #   no resources are rendered by read_core.
+          if not individual_resources and not timeseries_resources and not additional_resources:
+              individual_resources = c.pkg_dict.get('resources', [])
+
           # Core CKAN expects a resource dict to render in the navigation
           if not 'resources' in c.pkg_dict:
               c.pkg_dict['resources'] = individual_resources + timeseries_resources + additional_resources
+
   ?>
 
   <py:match path="minornavigation" py:if="c.pkg">
