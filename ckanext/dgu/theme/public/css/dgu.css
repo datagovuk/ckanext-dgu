@@ -608,6 +608,20 @@ ul.widget-list {
   min-height: 150px;
   margin-bottom: 25px;
 }
+.front-page-table {
+  width: 100%;
+}
+.front-page-table td {
+  width: 426px; /* 460px - (17px padding each side) */
+  vertical-align: top;
+}
+.front-page-table tr.gutter td {
+  height: 20px;
+}
+.front-page-table td.gutter {
+  width: 20px;
+  padding: 0;
+}
 
 
 /* User page */
