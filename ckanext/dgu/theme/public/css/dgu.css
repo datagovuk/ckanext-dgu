@@ -184,7 +184,7 @@ ul.arrow-list {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 1;
+  z-index: 99;
   width: 100%;
   background: #333;
   background: rgba(0,0,0,0.8);
@@ -434,6 +434,7 @@ ul.widget-list {
 
 /* Boxes */
 /* ----- */
+.comments-container .comment,
 .widget-container,
 .facet-box,
 .boxed {
@@ -802,6 +803,9 @@ td.dataset-label {
 /* Resources */
 .quick-info {
   margin-top: -20px;
+}
+
+.comments-container .comment {
 }
 
 
