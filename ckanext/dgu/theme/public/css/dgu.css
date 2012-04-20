@@ -145,7 +145,7 @@ a.tag {
 }
 a.tag:hover {
   border-color: #ac9;
-  color: #e7FFe0;
+  background: #e7FFe0;
   text-decoration: none;
 }
 h1 .subheading {
