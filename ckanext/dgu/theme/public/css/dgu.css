@@ -169,6 +169,7 @@ h1 .subheading {
 button span {
   white-space: nowrap;
 }
+.widget-container ul,
 ul.arrow-list {
   list-style-image: url('/images/arrow.png');
 }

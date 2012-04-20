@@ -10,7 +10,7 @@
 <py:match path="primarysidebar">
   <li py:if="c.pkg.license_id" id="dataset-license" class="widget-container">
     <h3>Licence</h3>
-    <ul class="arrow-list">
+    <ul>
     <py:choose test="">
       <li py:when="c.pkg.license and c.pkg.license.url"><a
           href="${c.pkg.license.url}" rel="dc:rights">"${c.pkg.license.title.split('::')[-1]}"</a> <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
@@ -28,7 +28,7 @@
 
   <li class="widget-container">
     <h3>Feedback</h3>
-    <ul class="arrow-list"><li><a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a></li></ul>
+    <ul><li><a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a></li></ul>
   </li>
 
   <?python
@@ -36,7 +36,7 @@
   ?>
   <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
     <h3>Deletion</h3>
-    <ul class="arrow-list"><li><a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a></li></ul>
+    <ul><li><a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a></li></ul>
   </li>
 
   <li py:if="c.pkg_dict.get('tags')" class="widget-container">
@@ -74,7 +74,7 @@
 
   <li class="widget-container">
     <h3>Do more with this data</h3>
-    <ul class="arrow-list">
+    <ul>
       <li><a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
       <li><a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
       <li><a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
