@@ -138,14 +138,14 @@ div.pager-container {
 a.tag {
   display: inline-block;
   padding: 4px 9px;
-  border: 1px solid #ccc;
-  color: #777;
+  border: 1px solid #bd8;
+  background: #F9FFF4;
   margin: 0 5px 3px 0;
   border-radius: 4px;
 }
 a.tag:hover {
-  border-color: #797;
-  color: #252;
+  border-color: #ac9;
+  background: #e7FFe0;
   text-decoration: none;
 }
 h1 .subheading {
@@ -474,6 +474,7 @@ ul.widget-list {
   width: 200px;
   border-right: 1px solid #ccc;
   padding: 8px;
+  vertical-align: middle;
 }
 .search-area .right {
   padding: 15px 8px;
@@ -526,6 +527,7 @@ ul.widget-list {
   color: #333;
   padding: 3px 8px;
   margin-left: 10px;
+  margin-bottom: 5px;
   font-size: 11px;
   color: #777;
   text-shadow: 1px 1px 1px #fff;
@@ -607,6 +609,20 @@ ul.widget-list {
 .front-page .span6 .boxed {
   min-height: 150px;
   margin-bottom: 25px;
+}
+.front-page-table {
+  width: 100%;
+}
+.front-page-table td {
+  width: 426px; /* 460px - (17px padding each side) */
+  vertical-align: top;
+}
+.front-page-table tr.gutter td {
+  height: 20px;
+}
+.front-page-table td.gutter {
+  width: 20px;
+  padding: 0;
 }
 
 

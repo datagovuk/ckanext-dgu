@@ -12,15 +12,16 @@
   <py:def function="content_class"><!--unboxed--></py:def>
 
   <div py:match="content" class="front-page">
-    <div class="row">
-      <div class="span6">
-        <div class="boxed">
+    <!-- Though deeply unfashionable... I'm using a table to create equal-height boxes -->
+    <table class="front-page-table">
+      <tr>
+        <td class="boxed">
           <h2>Search Datasets</h2>
+          <br/>
           <xi:include href="../package/search_form.html" />
-        </div>
-      </div>
-      <div class="span6">
-        <div class="boxed">
+        </td>
+        <td class="gutter"></td>
+        <td class="boxed">
           <div style="padding-top: 8px" class="pull-right">
             <a href="${h.url_for(controller='tag', action='index')}" class="viewall">View all tags &raquo;</a>
           </div>
@@ -35,14 +36,15 @@
               <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
             </py:for>
           </div>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="span6">
-        <div class="boxed">
+        </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="3"></td>
+      </tr>
+      <tr>
+        <td class="boxed">
           <div style="padding-top: 8px" class="pull-right">
-            <a href="/publisher" class="viewall">View all publishers &raquo;</a>
+            <a href="/publisher" class="btn btn-primary">View all publishers &raquo;</a>
           </div>
           <h2>Publishers</h2>
           <ul class="facet-options">
@@ -51,12 +53,14 @@
             </li>
           </ul>
           <p py:if="not len(h.facet_items(c, 'publisher', limit=10))">No publishers found</p>
-        </div>
-      </div>
-      <div class="span6">
-        <div class="boxed">
-          <h2>UK Location Map Search</h2>
-          <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
+        </td>
+        <td class="gutter"></td>
+        <td class="boxed">
+          <div style="padding-top: 8px;" class="pull-right">
+            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct Map Based Search &raquo;</a>
+          </div>
+          <h2>UK Location</h2>
+          <h3>&raquo;&nbsp; Map Search</h3>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
              1000 location data records into data.gov.uk and tools to support their
@@ -67,12 +71,13 @@
              <a href="/doc/map-based-search">about Map Based Search</a>
              and <a href="/doc/map-preview">about Preview on Map</a>.
           </p>
-        </div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="span6">
-        <div class="boxed">
+        </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="3"></td>
+      </tr>
+      <tr>
+        <td class="boxed">
           <h2>Cross-Government Data Apps</h2>
           <ul>
             <li><a href="/organogram" class="js-tooltip" title="Browse around the organisational structure for each Government department. Details are shown for all Ministers and key Civil Servants.">Who does what in Whitehall?</a></li>
@@ -87,17 +92,16 @@
 
             <!--! Removed - not like the rest - looked like a placeholder. <li><a href="/crime-spy-uk" class="js-tooltip" title="Use your iPhone to view neighbourhood information and crime stats for the area">Applications</a></li>-->
           </ul>
-        </div>
-      </div>
-      <div class="span6">
-        <div class="boxed">
+        </td>
+        <td class="gutter"></td>
+        <td class="boxed">
           <h2>Developers</h2>
           <div>
             <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="${g.site_url}/data/dump">CSV or JSON dump</a>.</p>
           </div>
-        </div>
-      </div>
-    </div>
+        </td>
+      </tr>
+    </table>
   </div>
   <xi:include href="../layout.html" />
 
