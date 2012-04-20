@@ -42,7 +42,7 @@
 
   <div py:match="content">
     <h1>${h.dataset_link(c.package)}
-      <span class="subheading">&#8627; ${h.resource_display_name(c.resource)}</span></h1>
+      <span class="subheading"><img src="/images/arrow-down-right.png" style="vertical-align: baseline;"/> ${h.resource_display_name(c.resource)}</span></h1>
 
     <div id="minornavigation">
       <div id="minornavigation-bg-left">
@@ -61,7 +61,7 @@
           <py:when test="'api'">API Endpoint</py:when>
           <py:otherwise>
             <div class="download">
-              <img src="${h.icon_url('arrow-down-16')}"/>
+              <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
               Download
             </div>
           </py:otherwise>
@@ -82,15 +82,17 @@
   </py:if>
 
     <div class="quick-info">
-      <dl>
-        <dt>Last updated</dt>
-        <dd>${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}</dd>
-        <dt>Format</dt>
-        <dd>
-          ${c.resource['format'] or 'Unknown'}
-        </dd>
-        <dt>Licence</dt>
-        <dd>
+      <h4 style="margin-bottom:0;">Last updated</h4>
+      <ul class="arrow-list">
+        <li>${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}</li>
+      </ul>
+      <h4 style="margin-bottom:0;">Format</h4>
+      <ul class="arrow-list">
+        <li>${c.resource['format'] or 'Unknown'}</li>
+      </ul>
+      <h4 style="margin-bottom:0;">Licence</h4>
+      <ul class="arrow-list">
+        <li>
           <py:choose test="">
             <span py:when="c.pkg.license and c.pkg.license.url"><a
                 href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
@@ -98,18 +100,14 @@
             <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
             <span py:when="not(c.pkg.license)">License unknown</span>
           </py:choose>
-          <py:if test="c.pkg.isopen()">
-              <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-                <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
-              </a>
-          </py:if>
-          <py:if test="not c.pkg.isopen()">
-              <span class="closed">
-                ${h.icon('lock')}
-              </span>
-          </py:if>
-        </dd>
-      </dl>
+          <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+        </li>
+        <li py:if="c.pkg.isopen()">
+          <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+            <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+          </a>
+        </li>
+      </ul>
     </div>
 
     <h3>Resource Description</h3>
