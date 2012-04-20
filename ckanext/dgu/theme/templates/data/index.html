@@ -44,7 +44,7 @@
       <tr>
         <td class="boxed">
           <div style="padding-top: 8px" class="pull-right">
-            <a href="/publisher" class="viewall">View all publishers &raquo;</a>
+            <a href="/publisher" class="btn btn-primary">View all publishers &raquo;</a>
           </div>
           <h2>Publishers</h2>
           <ul class="facet-options">
@@ -56,8 +56,11 @@
         </td>
         <td class="gutter"></td>
         <td class="boxed">
-          <h2>UK Location Map Search</h2>
-          <p><a href="${h.url_for('/data/map-based-search')}">Conduct Map Based Search</a></p>
+          <div style="padding-top: 8px;" class="pull-right">
+            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct Map Based Search &raquo;</a>
+          </div>
+          <h2>UK Location</h2>
+          <h3>&raquo;&nbsp; Map Search</h3>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
              1000 location data records into data.gov.uk and tools to support their
