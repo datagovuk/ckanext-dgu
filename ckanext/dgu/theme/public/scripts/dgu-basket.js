@@ -1,3 +1,5 @@
+var debugBasket = null;
+
 $(function() {
   var spinConfig = {
     lines: 9, // The number of lines to draw
@@ -21,6 +23,24 @@ $(function() {
   var basketSubmitButton = $('#shopping-basket-submit');
   var basketCache = [];
   var spinners = [];
+
+  debugBasket = function(e) {
+    renderBasket([
+        { name: 'debug one', id: 1 },
+        { name: 'debug two', id: 2 },
+        { name: 'debug three', id: 3 },
+        { name: 'debug four', id: 4 },
+        { name: 'debug five', id: 5 },
+        { name: 'debug six', id: 6 },
+        { name: 'debug seven', id: 7 },
+        { name: 'debug eight', id: 8 },
+        { name: 'debug nine', id: 9 },
+        { name: 'debug ten', id: 10 },
+        { name: 'debug eleven', id: 11 },
+        { name: 'debug twelve', id: 12 }
+        ]);
+    return false;
+  };
 
   var disable = function() {
     // Disable the UI
