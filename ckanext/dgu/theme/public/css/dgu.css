@@ -679,7 +679,10 @@ body.login #content {
 
 /* Facet Menu */
 /* ---------- */
-#filter-heading,
+#filter-heading {
+  height: 52px;
+  margin-bottom: 10px;
+}
 .facet-box {
   margin-bottom: 20px;
 }
