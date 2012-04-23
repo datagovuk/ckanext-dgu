@@ -41,18 +41,20 @@
       <xi:include href="read_core.html" />
     </div>
 
-    <div class="boxed">
-      <a style="float:right" class="btn btn-primary" href="/comment/dataset/${c.pkg.id}">Add Comment</a>
-      <h2>Comments</h2>
-    </div>
     <div class="comments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
-      <p id="comments">Place holder</p>
+      <p id="comments">
+        <div class="boxed">
+          <h2>Comments</h2>
+          <div style="height: 50px;" class="comments-spinner"></div>
+        </div>
+      </p>
     </div>
   </div>
 
 
   <py:def function="optional_head">
+    <script src="/scripts/spin.min.js"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-package.js')}"></script>
   </py:def>
 
