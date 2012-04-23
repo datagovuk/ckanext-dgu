@@ -160,6 +160,9 @@ button span {
 ul.arrow-list {
   list-style-image: url('/images/arrow.png');
 }
+.pagination ul {
+  background: #fff;
+}
 
 
 /* BlackBar */
