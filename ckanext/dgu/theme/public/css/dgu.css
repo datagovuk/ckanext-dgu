@@ -800,6 +800,11 @@ td.dataset-label {
   margin-top: 1px;
   margin-right: 0px;
 }
+.one-line-link {
+  display: block;
+  word-wrap: break-word;
+  white-space: normal !important;
+}
 
 /* Resources */
 .quick-info {
