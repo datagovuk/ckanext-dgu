@@ -762,6 +762,11 @@ ul.datasets .dataset .preview-remove .btn-preview {
   padding-left: 0;
   padding-right: 10px;
 }
+img.dataset-logo {
+  float: right;
+  padding: 5px;
+  border: 1px solid #ccc;
+}
 
 
 /* Dataset view page */
