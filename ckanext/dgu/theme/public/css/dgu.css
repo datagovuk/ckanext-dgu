@@ -884,6 +884,11 @@ td.dataset-label {
   color: #333;
   float: left;
 }
+.resource-list a.resource-title {
+  max-width: 390px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .resource-list li:hover a.resource-title {
   color: #B22;
 }
