@@ -659,10 +659,16 @@ body.login #content {
   padding: 5px 10px 5px 4px;
   list-style-type: none;
 }
+#shopping-basket-buttons {
+  margin: 10px 0 2px 0;
+}
+#shopping-basket-reset {
+  padding-left: 6px;
+  padding-right: 9px;
+}
 #shopping-basket-submit {
-  display: block;
-  width: 70%;
-  margin: 10px auto 2px auto;
+  margin-left: 20px;
+  width: 180px;
 }
 #shopping-basket .x-button {
   padding: 0 6px;

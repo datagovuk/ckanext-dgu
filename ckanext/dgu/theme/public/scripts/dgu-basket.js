@@ -19,6 +19,7 @@ $(function() {
 
   var basketUiContainer = $('#shopping-basket-container');
   var basketUi = $('#shopping-basket');
+  var basketResetButton = $('#shopping-basket-reset');
   var basketSubmitButton = $('#shopping-basket-submit');
   var basketCache = [];
   var spinners = [];
@@ -93,6 +94,16 @@ $(function() {
     // Pass the function call through to the X button in the basket
     basketUi.find('#'+packageId+' .x-button').click();
   };
+
+  var clickReset = function(e) {
+    e.preventDefault();
+    var endPoint = '/api/2/util/preview_list/reset';
+    $.ajax({
+      url: endPoint,
+      success: renderBasket,
+      error: catchError
+    });
+  };
   
   var clickX = function(e) {
     var packageId = $(e.target).parents('li').attr('id');
@@ -120,6 +131,7 @@ $(function() {
   $('.preview-add button').bind('click',clickAdd);
   $('.preview-remove button').bind('click',clickRemove);
   basketSubmitButton.bind('click',clickSubmit);
+  basketResetButton.bind('click',clickReset);
   $('#shopping-basket .x-button').live('click', clickX);
   renderBasket(preloadBasket);
 });
