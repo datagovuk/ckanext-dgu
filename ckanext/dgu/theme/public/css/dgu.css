@@ -778,6 +778,11 @@ img.dataset-logo {
   padding: 5px;
   border: 1px solid #ccc;
 }
+img.dataset-ribbon {
+  float: right;
+  margin-right: -21px;
+  margin-top: -18px;
+}
 
 
 /* Dataset view page */

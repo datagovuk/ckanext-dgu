@@ -10,10 +10,15 @@
         templating issues -->
 
   <ul py:def="package_list_from_dict(packages)" py:with="basket=session.get('preview_list',[])" class="datasets">
+   <?python
+      import ckanext.dgu.lib.helpers as dgu_helpers
+    ?>
    <li py:for="package in packages">
+     <?python is_service = dgu_helpers.is_service(package) ?>
      <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
+       <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
      <div class="dataset-header">
-       <img class="dataset-icon" src="/images/dataset-icon.png" />
+       <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" />
         <h3 class="clearfix">
           ${h.link_to(title, h.url_for(controller='package', action='read', id=package.get('name')))}
         </h3>
@@ -31,7 +36,6 @@
             </a>
      </h4>
      <?python
-              import ckanext.dgu.lib.helpers as dgu_helpers
               display_provider = False
               uklps = [d for d in package.get('extras', {}) if d['key'] == 'UKLP']
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
