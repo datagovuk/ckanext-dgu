@@ -102,19 +102,6 @@ body.no-sidebar .sidebar-outer {
   box-shadow: 1px 1px 3px #f7f7f7;
   color: #808080;
 }
-.comment-left {
-  width: 520px;
-}
-.comment-right {
-  width: 520px;
-  margin-left: 60px;
-}
-.comment-green {
-  background: #cf9 !important;
-}
-.comment-grey {
-  background: #f0f0f0 !important;
-}
 textarea {
   width: 80%;
 }
@@ -434,7 +421,6 @@ ul.widget-list {
 
 /* Boxes */
 /* ----- */
-.comments-container .comment,
 .widget-container,
 .facet-box,
 .boxed {
@@ -819,11 +805,22 @@ td.dataset-label {
   position: absolute;
   top: 10px;
   right: 10px;
+  padding: 3px;
+  border: 1px solid #ccc;
+  -webkit-box-shadow: 0 0 3px #aaa;
+  -moz-box-shadow: 0 0 3px #aaa;
+  box-shadow: 0 0 3px #aaa;
 }
 .comment .links {
   text-align: right;
   list-style-type: none;
   margin: 0;
+}
+
+.indented {
+  margin-left: 3px;
+  border-left: 2px dashed #ccc;
+  padding-left: 25px;
 }
 
 
