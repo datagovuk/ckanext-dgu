@@ -108,6 +108,7 @@ def is_service(package):
     extras = package.get('extras', [])
     for extra in extras:
         if extra.get('key', '') == 'resource-type':
-            return extra.get('value','') == 'service'
+            value = extra.get('value','').strip('"')
+            return value == 'service'
     return False
 
