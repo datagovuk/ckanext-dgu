@@ -8,7 +8,7 @@
   <table class="search-area">
     <tr>
       <td class="left" py:if="not c.query_error">
-        <div class="result-count">${c.page.item_count if hasattr(c, 'page') else c.package_count or 0}</div>
+        <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
         <py:if test="request.params">      
           <div class="result-count-footer">Results</div>
         </py:if>
