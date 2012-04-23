@@ -124,7 +124,9 @@
             <li>
               <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
-                ${h.resource_display_name(res)}
+                <span class="trimmed-text">
+                  ${h.resource_display_name(res)}
+                </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </a>
               <div class="resource-buttons">
@@ -142,8 +144,10 @@
             <li>
               <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
-                ${res.get('date')}
-                ${h.resource_display_name(res)}
+                <span class="trimmed-text">
+                  ${res.get('date')}
+                  ${h.resource_display_name(res)}
+                </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </a>
               <div class="resource-buttons">
@@ -169,8 +173,10 @@
             <li>
               <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
-                ${res.get('date')}
-                ${h.resource_display_name(res)}
+                <span class="trimmed-text">
+                  ${res.get('date')}
+                  ${h.resource_display_name(res)}
+                </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </a>
               <div class="resource-buttons">

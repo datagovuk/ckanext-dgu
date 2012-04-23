@@ -82,32 +82,31 @@
   </py:if>
 
     <div class="quick-info">
-      <h4 style="margin-bottom:0;">Last updated</h4>
-      <ul class="arrow-list">
-        <li>${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}</li>
-      </ul>
-      <h4 style="margin-bottom:0;">Format</h4>
-      <ul class="arrow-list">
-        <li>${c.resource['format'] or 'Unknown'}</li>
-      </ul>
-      <h4 style="margin-bottom:0;">Licence</h4>
-      <ul class="arrow-list">
-        <li>
-          <py:choose test="">
-            <span py:when="c.pkg.license and c.pkg.license.url"><a
-                href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
-            <span py:when="c.pkg.license" property="dc:rights">${c.pkg.license.title}</span>
-            <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
-            <span py:when="not(c.pkg.license)">License unknown</span>
-          </py:choose>
-          <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
-        </li>
-        <li py:if="c.pkg.isopen()">
+      <div>
+        <h4 style="margin-bottom:0;">Last updated:</h4>
+        ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
+      </div>
+      <div>
+        <h4 style="margin-bottom:0;">Format:</h4>
+        ${c.resource['format'] or 'Unknown'}
+      </div>
+      <div>
+        <h4 style="margin-bottom:0;">Licence:</h4>
+        <py:choose test="">
+          <span py:when="c.pkg.license and c.pkg.license.url"><a
+              href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
+          <span py:when="c.pkg.license" property="dc:rights">${c.pkg.license.title}</span>
+          <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
+          <span py:when="not(c.pkg.license)">License unknown</span>
+        </py:choose>
+        <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+        <py:if test="c.pkg.isopen() or True">
+          <br/>
           <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
             <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
           </a>
-        </li>
-      </ul>
+        </py:if>
+      </div>
     </div>
 
     <h3>Resource Description</h3>

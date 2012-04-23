@@ -805,6 +805,9 @@ td.dataset-label {
 .quick-info {
   margin-top: -20px;
 }
+.quick-info > div {
+  margin-bottom: 9px;
+}
 
 .comment {
   position: relative;
@@ -894,8 +897,11 @@ td.dataset-label {
   color: #333;
   float: left;
 }
-.resource-list a.resource-title {
-  max-width: 390px;
+.resource-list .trimmed-text {
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

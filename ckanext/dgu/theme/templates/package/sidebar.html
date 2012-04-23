@@ -11,18 +11,28 @@
   <li py:if="c.pkg.license_id" id="dataset-license" class="widget-container">
     <h3>Licence</h3>
     <ul>
-    <py:choose test="">
-      <li py:when="c.pkg.license and c.pkg.license.url"><a
-          href="${c.pkg.license.url}" rel="dc:rights">"${c.pkg.license.title.split('::')[-1]}"</a> <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
-      <li py:when="c.pkg.license" property="dc:rights">"${c.pkg.license.title}" <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
-      <li py:when="c.pkg.license_id" property="dc:rights">"${c.pkg.license_id}" <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span></li>
-    </py:choose>
+    <li property="dc:rights">
+      <py:choose test="">
+        <py:when test="c.pkg.license and c.pkg.license.url">
+          <a href="${c.pkg.license.url}" rel="dc:rights">"${c.pkg.license.title.split('::')[-1]}"</a>
+        </py:when>
+        <py:when test="c.pkg.license">
+          "${c.pkg.license.title}" 
+        </py:when>
+        <py:otherwise>
+          "${c.pkg.license_id}" 
+        </py:otherwise>
+      </py:choose>
+      <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+    </li>
 
-    <li py:if="c.pkg.isopen()">
+    <py:if test="c.pkg.isopen()">
+    <li>
       <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
           <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
       </a>
     </li>
+    </py:if>
     </ul>
   </li>
 
