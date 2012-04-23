@@ -37,7 +37,17 @@
   <link rel="stylesheet" href="${h.url_for_static('/css/bootstrap.min.css')}" />
   <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}" />
   <!--[if lt IE 9]>
-    <link rel="stylesheet" href="${h.url_for_static('/css/dgu-ie.css')}" />
+  <style>
+      .widget-container,
+      .facet-box,
+      .boxed {
+        border: 1px solid #ccc !important;
+        /* Support box-shadow #000 and border-radius */
+        -moz-box-shadow: none;
+        -o-box-shadow: none;
+        box-shadow: none;
+      }
+  </style>
   <![endif]-->
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery/1.7.1/jquery.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/underscore/1.1.6/underscore.js')}"></script>
