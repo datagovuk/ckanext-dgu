@@ -785,6 +785,9 @@ td.dataset-label {
 .resource-actions .download img {
   margin-right: 4px;
 }
+.map-buttons { 
+  padding: 7px;
+ }
 
 /* Resources */
 .quick-info {

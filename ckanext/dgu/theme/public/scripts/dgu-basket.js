@@ -74,7 +74,7 @@ $(function() {
   };
 
   var clickAdd = function(e) {
-    var parent = $(e.target).parents('.dataset');
+    var parent = $(e.target).parents('.map-buttons');
     var packageId = parent.find('.js-data-id').html();
     // Inform the server
     var endPoint = '/api/2/util/preview_list/add/'+packageId;
@@ -87,10 +87,15 @@ $(function() {
   };
 
   var clickRemove = function(e) {
-    var parent = $(e.target).parents('.dataset');
+    var parent = $(e.target).parents('.map-buttons');
     var packageId = parent.find('.js-data-id').html();
-    // Pass the function call through to the X button in the basket
-    basketUi.find('#'+packageId+' .x-button').click();
+    var endPoint = '/api/2/util/preview_list/remove/'+packageId;
+    $.ajax({
+      url: endPoint,
+      success: renderBasket,
+      error: catchError
+    });
+    disable();
   };
   
   var clickX = function(e) {

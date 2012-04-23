@@ -9,7 +9,7 @@
   <!--! Herein can be found generic helper methods for a whole bunch of common
         templating issues -->
 
-  <ul py:def="package_list_from_dict(packages)" py:with="basket=session.get('preview_list',[])" class="datasets">
+  <ul py:def="package_list_from_dict(packages)" class="datasets">
    <li py:for="package in packages">
      <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
      <div class="dataset-header">
@@ -38,27 +38,12 @@
               providers = [d for d in package.get('extras', {}) if d['key'] == 'provider']
               provider = providers[0]['value'] if len(providers) else ''
               display_provider = is_uklp or bool(provider)
-              wms_querystring = dgu_helpers.get_wms_querystring(package)
      ?>
      <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
      <div class="dataset-description">
         ${h.markdown_extract(package.notes)}
      </div>
-     <span style="display: none;" class="js-data-id">${package.id}</span>
-     <span style="display: none;" class="js-data-title">${title}</span>
-     <span style="display: none;" class="js-data-querystring">${wms_querystring}</span>
-     <div class="map-buttons" py:if="wms_querystring">
-
-       <a href="/data/map-preview?${wms_querystring}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
-       <span class="preview-add js-dataset-${package.id}-add" 
-             style="${'display: none' if package.id in basket else ''}">
-             <button data-id="${package.id}" class="btn btn-primary btn-small btn-preview btn-basket"><span>Add to Preview List</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
-       </span>
-       <span class="preview-remove js-dataset-${package.id}-remove" 
-             style="${'' if package.id in basket else 'display: none;'}">
-             <button data-id="${package.id}" class="btn btn-small btn-preview btn-basket"><span>Remove from List</span></button><img class="preview-stamp" src="/images/compass-minus.png"/>
-       </span>
-     </div>
+     ${map_preview_buttons(package.id, package)}
      <py:if test="package.get('resources', [])">
      <h4>Formats:
           <ul class="dataset-formats">

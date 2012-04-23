@@ -96,9 +96,9 @@ def render_tree(groups,  type='publisher'):
 
     return root.render()
 
-def get_wms_querystring(package):
+def get_wms_querystring(pkg_dict):
     out = []
-    for r in package.get('resources',[]):
+    for r in pkg_dict.get('resources',[]):
         fmt = r.get('format', '')
         if fmt.lower() == 'wms':
             out.append(('url',r.get('url','')))

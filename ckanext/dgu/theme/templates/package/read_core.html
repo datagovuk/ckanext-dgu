@@ -4,6 +4,7 @@
   py:strip=""
   >
   <xi:include href="../_util.html" />
+  <xi:include href="basket.html" />
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
     <!-- Overview Section -->
@@ -154,16 +155,11 @@
             </py:for>
           </ul>
         </py:if>
-        <div py:if="dataset_type == 'uklp'" id="dataset-gemini-links">
-            <div>
-                <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" target="_blank">Source GEMINI2 document</a> (XML)
-            </div>
-            <div>
-                <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" target="_blank">Formatted GEMINI2 document</a> (HTML)
-            </div>
-        </div>
-        <py:if test="additional_resources"> 
-          <h3>Additional Links ${len(additional_resources)})</h3>
+
+        ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
+
+        <py:if test="additional_resources or dataset_type == 'uklp'"> 
+          <h3>Additional Links (${len(additional_resources)})</h3>
           <ul class="resource-list">
             <py:for each="res in additional_resources">
             <li>
@@ -180,7 +176,31 @@
               </li>
             </py:for>
           </ul>
-        </py:if>
+          <ul class="resource-list">
+              <li>
+                <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" rel="dcat: distribution" target="_blank">
+                  ${h.icon('page_white')}
+                  Source GEMINI2 record
+                  <span class="format-box" property="dc:format">XML</span>
+                  <div class="resource-buttons">
+                    <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">Download</a>
+                  </div>
+                </a>
+
+              </li>
+              <li>
+                <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" rel="dcat: distribution" target="_blank">
+                  ${h.icon('page_white')}
+                  Source GEMINI2 record (formatted)
+                  <span class="format-box" property="dc:format">HTML</span>
+                  <div class="resource-buttons">
+                    <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">View</a>
+                  </div>
+                </a>
+
+              </li>
+          </ul>
+         </py:if>
 
         <py:if test="not (dataset_type == 'uklp' or individual_resources or timeseries_resources or additional_resources)">
           <em>(none)</em>
