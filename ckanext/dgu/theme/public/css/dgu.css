@@ -601,6 +601,10 @@ ul.widget-list {
   width: 20px;
   padding: 0;
 }
+.front-page h2 {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ccc;
+}
 
 
 /* User page */
@@ -656,15 +660,16 @@ body.login #content {
   list-style-type: none;
 }
 #shopping-basket-submit {
-  margin-top: 8px;
-  margin-left: 70px;
   display: block;
+  width: 70%;
+  margin: 10px auto 2px auto;
 }
 #shopping-basket .x-button {
   padding: 0 6px;
   margin-right: 5px;
   vertical-align: top;
 }
+
 
 /* Facet Menu */
 /* ---------- */
@@ -787,8 +792,13 @@ td.dataset-label {
   bottom: 3px;
   padding: 8px 10px;
 }
+.resource-actions .download  {
+  padding-top: 2px;
+  padding-right: 4px;
+}
 .resource-actions .download img {
-  margin-right: 4px;
+  margin-top: 1px;
+  margin-right: 0px;
 }
 
 /* Resources */
