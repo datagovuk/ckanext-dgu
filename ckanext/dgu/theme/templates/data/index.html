@@ -29,8 +29,8 @@
           <div id="tagcloud">
             <?python
               import random
-              tags = h.facet_items(c, 'tags', limit=20)
-              random.shuffle(tags)
+              tags = h.facet_items(c, 'tags', limit=15)
+              #random.shuffle(tags)
             ?>
             <py:for each="tag_name, count in tags">
               <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name} ($count)</a>
