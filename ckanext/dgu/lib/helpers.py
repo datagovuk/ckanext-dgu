@@ -107,11 +107,13 @@ def get_wms_querystring(pkg_dict):
             out.append(('url',r.get('url','')))
     return urllib.urlencode(out)
 
-def is_service(package):
+def get_uklp_package_type(package):
     extras = package.get('extras', [])
     for extra in extras:
         if extra.get('key', '') == 'resource-type':
-            value = extra.get('value','').strip('"')
-            return value == 'service'
-    return False
+            return extra.get('value','').strip('"')
+
+def is_service(package):
+    res_type = get_uklp_package_type(package)
+    return res_type == 'service'
 

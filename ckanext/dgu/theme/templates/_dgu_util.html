@@ -14,11 +14,17 @@
       import ckanext.dgu.lib.helpers as dgu_helpers
     ?>
    <li py:for="package in packages">
-     <?python is_service = dgu_helpers.is_service(package) ?>
+     <?python is_service = dgu_helpers.is_service(package)
+     uklp_type = dgu_helpers.get_uklp_package_type(package)
+     if uklp_type:
+         item_type = '%s (UK Location)' % uklp_type.capitalize()
+     else:
+         item_type = 'Dataset'
+     ?>
      <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
        <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
      <div class="dataset-header">
-       <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" />
+       <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
         <h3 class="clearfix">
           ${h.link_to(title, h.url_for(controller='package', action='read', id=package.get('name')))}
         </h3>
