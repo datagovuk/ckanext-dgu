@@ -125,7 +125,9 @@
             <li>
               <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
-                ${h.resource_display_name(res)}
+                <span class="trimmed-text">
+                  ${h.resource_display_name(res)}
+                </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </a>
               <div class="resource-buttons">
@@ -143,8 +145,10 @@
             <li>
               <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
-                ${res.get('date')}
-                ${h.resource_display_name(res)}
+                <span class="trimmed-text">
+                  ${res.get('date')}
+                  ${h.resource_display_name(res)}
+                </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </a>
               <div class="resource-buttons">
@@ -165,8 +169,10 @@
             <li>
               <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
-                ${res.get('date')}
-                ${h.resource_display_name(res)}
+                <span class="trimmed-text">
+                  ${res.get('date')}
+                  ${h.resource_display_name(res)}
+                </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </a>
               <div class="resource-buttons">
@@ -276,9 +282,9 @@
         <div>
             <p>
                 The information on this page (the dataset metadata) is also
-                available in JSON format:<br/>
-                <code>
-                  <a href="h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
+                available in JSON format:
+                <code class="one-line-link">
+                  <a href="${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
                     ${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}
                   </a>
                 </code>
@@ -288,8 +294,8 @@
                   href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}">About the API</a>
             </p>
             <p>
-                This dataset has a permanent URI:<br/>
-                <code>
+                This dataset has a permanent URI:
+                <code class="one-line-link">
                   <a href="${h.url_for(controller='package', action='read', id=c.pkg.name)}">
                       ${g.site_url}${h.url_for(controller='package', action='read', id=c.pkg.name)}
                   </a>

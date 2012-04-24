@@ -104,3 +104,11 @@ def get_wms_querystring(pkg_dict):
             out.append(('url',r.get('url','')))
     return urllib.urlencode(out)
 
+def is_service(package):
+    extras = package.get('extras', [])
+    for extra in extras:
+        if extra.get('key', '') == 'resource-type':
+            value = extra.get('value','').strip('"')
+            return value == 'service'
+    return False
+

@@ -33,7 +33,7 @@
               random.shuffle(tags)
             ?>
             <py:for each="tag_name, count in tags">
-              <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
+              <a class="tag" rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name} ($count)</a>
             </py:for>
           </div>
         </td>

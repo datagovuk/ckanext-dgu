@@ -1,3 +1,4 @@
+
 $(function() {
   var spinConfig = {
     lines: 9, // The number of lines to draw
@@ -18,6 +19,7 @@ $(function() {
 
   var basketUiContainer = $('#shopping-basket-container');
   var basketUi = $('#shopping-basket');
+  var basketResetButton = $('#shopping-basket-reset');
   var basketSubmitButton = $('#shopping-basket-submit');
   var basketCache = [];
   var spinners = [];
@@ -97,6 +99,16 @@ $(function() {
     });
     disable();
   };
+
+  var clickReset = function(e) {
+    e.preventDefault();
+    var endPoint = '/api/2/util/preview_list/reset';
+    $.ajax({
+      url: endPoint,
+      success: renderBasket,
+      error: catchError
+    });
+  };
   
   var clickX = function(e) {
     var packageId = $(e.target).parents('li').attr('id');
@@ -124,6 +136,7 @@ $(function() {
   $('.preview-add button').bind('click',clickAdd);
   $('.preview-remove button').bind('click',clickRemove);
   basketSubmitButton.bind('click',clickSubmit);
+  basketResetButton.bind('click',clickReset);
   $('#shopping-basket .x-button').live('click', clickX);
   renderBasket(preloadBasket);
 });

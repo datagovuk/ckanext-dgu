@@ -160,6 +160,9 @@ button span {
 ul.arrow-list {
   list-style-image: url('/images/arrow.png');
 }
+.pagination ul {
+  background: #fff;
+}
 
 
 /* BlackBar */
@@ -601,6 +604,10 @@ ul.widget-list {
   width: 20px;
   padding: 0;
 }
+.front-page h2 {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ccc;
+}
 
 
 /* User page */
@@ -655,10 +662,16 @@ body.login #content {
   padding: 5px 10px 5px 4px;
   list-style-type: none;
 }
+#shopping-basket-buttons {
+  margin: 10px 0 2px 0;
+}
+#shopping-basket-reset {
+  padding-left: 6px;
+  padding-right: 9px;
+}
 #shopping-basket-submit {
-  margin-top: 8px;
-  margin-left: 70px;
-  display: block;
+  margin-left: 20px;
+  width: 180px;
 }
 #shopping-basket .x-button {
   padding: 0 6px;
@@ -666,9 +679,13 @@ body.login #content {
   vertical-align: top;
 }
 
+
 /* Facet Menu */
 /* ---------- */
-#filter-heading,
+#filter-heading {
+  height: 52px;
+  margin-bottom: 10px;
+}
 .facet-box {
   margin-bottom: 20px;
 }
@@ -762,6 +779,16 @@ ul.datasets .dataset .preview-remove .btn-preview {
   padding-left: 0;
   padding-right: 10px;
 }
+img.dataset-logo {
+  float: right;
+  padding: 5px;
+  border: 1px solid #ccc;
+}
+img.dataset-ribbon {
+  float: right;
+  margin-right: -21px;
+  margin-top: -18px;
+}
 
 
 /* Dataset view page */
@@ -782,8 +809,18 @@ td.dataset-label {
   bottom: 3px;
   padding: 8px 10px;
 }
+.resource-actions .download  {
+  padding-top: 2px;
+  padding-right: 4px;
+}
 .resource-actions .download img {
-  margin-right: 4px;
+  margin-top: 1px;
+  margin-right: 0px;
+}
+.one-line-link {
+  display: block;
+  word-wrap: break-word;
+  white-space: normal !important;
 }
 .map-buttons { 
   padding: 7px;
@@ -792,6 +829,9 @@ td.dataset-label {
 /* Resources */
 .quick-info {
   margin-top: -20px;
+}
+.quick-info > div {
+  margin-bottom: 9px;
 }
 
 .comment {
@@ -881,6 +921,14 @@ td.dataset-label {
   padding: 5px 10px;
   color: #333;
   float: left;
+}
+.resource-list .trimmed-text {
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .resource-list li:hover a.resource-title {
   color: #B22;

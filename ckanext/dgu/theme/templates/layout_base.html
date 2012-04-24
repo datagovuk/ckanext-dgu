@@ -37,7 +37,17 @@
   <link rel="stylesheet" href="${h.url_for_static('/css/bootstrap.min.css')}" />
   <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}" />
   <!--[if lt IE 9]>
-    <link rel="stylesheet" href="${h.url_for_static('/css/dgu-ie.css')}" />
+  <style>
+      .widget-container,
+      .facet-box,
+      .boxed {
+        border: 1px solid #ccc !important;
+        /* Support box-shadow #000 and border-radius */
+        -moz-box-shadow: none;
+        -o-box-shadow: none;
+        box-shadow: none;
+      }
+  </style>
   <![endif]-->
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery/1.7.1/jquery.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/underscore/1.1.6/underscore.js')}"></script>
@@ -122,19 +132,24 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
       </ul>
     </div>
   </div>
-  <!--[if lt ie 9]>
-  according to the conditional comment this is ie lower than 9<br />
-  <![endif]-->
   <div class="container">
     <ul id="subnav">
       <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a href="${h.url_for(controller='package', action='search')}">data search</a></li>
+      <li><a href="${h.url_for(controller='package', action='search')}">search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')}">publishers</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="${h.url(controller='tag', action='index')}">tags</a></li>
       <py:if test="h.check_access('package_create')">
         <span class="divider">&nbsp;|&nbsp;</span>
         <li><a href="${h.url_for(controller='package', action='new')}">add a dataset</a></li>
+      </py:if>
+      <py:if test="c.is_sysadmin">
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="${h.url(controller='user', action='index')}">user admin</a></li>
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="${h.url_for('ckanadmin_index')}">site admin</a></li>
       </py:if>
     </ul>
   </div>
@@ -187,61 +202,23 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
       <div class="row">
         <div class="span3">
           <div class="footer-section">
-            <div class="textwidget">
-              <ul>
-                  <li>${h.link_to(_('About'), h.url_for(controller='home', action='about'))}</li>
-                <li>
-                  <a href="http://twitter.com/ckanproject">Twitter @ckanproject</a>
-                </li>
-                  <li>${h.link_to(_('API'), h.url_for(controller='api', action='get_api', ver=1))}</li>
-                  <li>${h.link_to(_('API Docs'), 'http://wiki.ckan.net/API')}</li>
-                <li>
-                  <a href="http://ckan.org/contact/">Contact Us</a>
-                </li>
-                <li>
-                  <a href="http://okfn.org/privacy-policy/">Privacy Policy</a>
-                </li>
-              </ul>
-            </div>
+            <ul class="links">
+              <li><a href="/terms-and-conditions" title="Terms / Privacy" accesskey="8">Terms and conditions</a></li> 
+              <li><a href="/code-conduct" title="Code of conduct">Code of conduct</a></li> 
+              <li><a href="/faq" title="FAQ" accesskey="5">FAQ</a></li> 
+              <li><a href="/contact" title="Contact Us" accesskey="9">Contact us</a></li> 
+            </ul>
           </div><!-- /footer-section -->
         </div>
         <div class="span3">
           <div class="footer-section">
-            <div class="textwidget">
-              <ul>
-                <li>
-                  <a href="${h.url(controller='user', action='index')}">
-                    Users
-                  </a>
-                </li>
-                <li>
-                  <a href="${h.url(controller='tag', action='index')}">
-                    Tags
-                  </a>
-                </li>
-                <li py:if="'stats' in config.get('ckan.plugins','').split(' ')">
-                  <a href="${h.url('stats')}">
-                    Statistics
-                  </a>
-                </li>
-                <li>
-                  <a href="${h.url(controller='revision', action='index')}">
-                    Revisions
-                  </a>
-                </li>
-                <li>
-                  <a href="${h.url(controller='authorization_group', action='index')}">
-                    Authorization Groups
-                  </a>
-                </li>
-                <li>
-                  <a href="${h.url_for('ckanadmin_index')}">
-                    Site Admin
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div><!-- /footer-section -->
+            <ul>
+              <li><a href="/accessibility-statement" title="Accessibility Statement" accesskey="0">Accessibility</a></li> 
+              <li><a href="/moderation-policy" title="Moderation policy">Moderation policy</a></li> 
+              <li><a href="/privacy" title="Privacy">Privacy</a></li> 
+              <li><a href="/opendataconsultation-closed" title="">Consultation</a></li> 
+            </ul>
+          </div>
         </div>
         <div class="span6">
           <div class="footer-section last">
