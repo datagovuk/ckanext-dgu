@@ -12,7 +12,7 @@
   <py:def function="content_class"><!--unboxed--></py:def>
 
   <div py:match="content" class="front-page">
-    <!-- Though deeply unfashionable... I'm using a table to create equal-height boxes -->
+    <!--! Though deeply unfashionable... I'm using a table to create equal-height boxes -->
     <table class="front-page-table">
       <tr>
         <td class="boxed">
@@ -60,12 +60,11 @@
             <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct Map Based Search &raquo;</a>
           </div>
           <h2>UK Location</h2>
-          <h3>&raquo;&nbsp; Map Search</h3>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
              1000 location data records into data.gov.uk and tools to support their
              use. To find which of these datasets cover a particular location, you 
-             can use Map Based Search.</p>
+             can use <a href="${h.url_for('/data/map-based-search')}">Map Based Search</a>.</p>
              <p>Many of these datasets provide a Web Map Service
              too, and for some a preview of the data is available. Click to find out more
              <a href="/doc/map-based-search">about Map Based Search</a>
