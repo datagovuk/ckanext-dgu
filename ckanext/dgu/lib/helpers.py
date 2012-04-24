@@ -99,8 +99,11 @@ def render_tree(groups,  type='publisher'):
 def get_wms_querystring(pkg_dict):
     out = []
     for r in pkg_dict.get('resources',[]):
-        fmt = r.get('format', '')
-        if fmt.lower() == 'wms':
+        # plenty of WMS resources have res['format']='' so
+        # also search for WMS in the url
+        url = r.get('url', '')
+        format = r.get('format', '')
+        if 'wms' in url.lower() or format.lower() == 'wms':
             out.append(('url',r.get('url','')))
     return urllib.urlencode(out)
 
