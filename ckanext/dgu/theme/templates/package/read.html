@@ -15,13 +15,22 @@
   - Datasets</py:def>
   
   <py:def function="content_class"><!--unboxed--></py:def>
-  <py:def function="stuff">Hello world</py:def>
 
   <xi:include href="sidebar.html"/>
 
   <div py:match="content">
     <div class="boxed">
-      <!-- TODO insert .dataset-logo img here -->
+      <!-- Optional logo -->
+      <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
+        <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
+          <img class="dataset-logo" src="/images/national_statistics.gif" />
+        </a>
+      </div>
+      <div py:if="dataset_type == 'uklp'">
+        <a href="/location">
+          <img class="dataset-logo" src="/images/uk_location.gif" />
+        </a>
+      </div>
 
       <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
       <div class="clearfix"></div>

@@ -10,104 +10,6 @@
     <!-- Overview Section -->
     <div id="dataset-overview">
 
-        <?python
-            class DatasetFieldNames:
-                def __init__(self):
-                    self._field_names = ['url', 'author', 'maintainer', 'foi_contact', 'version', 'country', 'license', 'contact', 'theme', 'mandate', 'temporal_coverage', 'geographic_coverage', 'date_released', 'date_updated']
-                def add(self, field_names):
-                    self._field_names.extend(field_names)
-                def add_after(self, field_name_to_insert_after, field_name_to_insert):
-                    index = self._field_names.index(field_name_to_insert_after)
-                    self._field_names.insert(index, field_name_to_insert)
-                def remove(self, field_names):
-                    for field_name in field_names:
-                        self._field_names.remove(field_name)
-                def __iter__(self):
-                    for field_name in self._field_names:
-                        yield field_name
-
-            class DatasetFields:
-                def __init__(self, field_names):
-                    self.fields = []
-                    for field_name in field_names:
-                        value_dict = field_value_map.get(field_name, {})
-                        value_dict['name'] = field_name
-                        self.fields.append(value_dict)
-                    # move blank values last
-                    blank_values = []
-                    for field in self.fields[:]:
-                        if not field.get('value'):
-                            blank_values.append(field)
-                            self.fields.remove(field)
-                    self.fields.extend(blank_values)
-                def __iter__(self):
-                    for field in self.fields:
-                        value_attributes = {'property': field.get('property')} if 'property' in field else {}
-                        label_attributes = {'title': field['label_title']} if 'label_title' in field else {}
-                        yield (field, label_attributes, value_attributes)
-
-            field_names = DatasetFieldNames()
-            # work out the dataset_type
-            dataset_type = 'form' # default - entered via the form
-            pkg_extras = dict(c.pkg_extras)
-            if pkg_extras.get('UKLP') == 'True' or pkg_extras.get('INSPIRE') == 'True':
-                dataset_type = 'uklp'
-                harvest_object_id = pkg_extras.get('harvest_object_id')
-                field_names.add(['harvest_source', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language'])
-                field_names.add_after('license', 'access_constraints')
-                field_names.remove(['foi_contact', 'geographic_coverage', 'country'])
-            elif pkg_extras.get('external_reference') == 'ONSHUB':
-                dataset_type = 'ons'
-                field_names.add(['national_statistic'])
-                field_names.remove(['country'])
-            if h.check_access('package_update',{'id':c.pkg.id}):
-                field_names.add(['state'])
-
-            field_value_map = {
-                # field_name : {display info}
-                'url': {'label': 'Source', 'value': c.pkg_url_link, 'property': 'foaf:homepage'},
-                'author': {'label': 'Author', 'value': c.pkg_author_link, 'property': 'dc:creator'},
-                'maintainer': {'label': 'Maintainer', 'value': c.pkg_maintainer_link, 'property': 'dc:contributor'},
-                'version': {'label': 'Version', 'value': c.pkg.version},
-                'foi_contact': {'label': 'FOI Contact', 'label_title': 'Contact details for requests under the Freedom of Information Act', 'value': pkg_extras.get('foi_contact')},
-                'country': {'label': 'Country', 'value': 'h.code_to_country(c.eu_country)'},
-                'state': {'label': 'State', 'value': c.pkg.state},
-                'harvest_source': {'label': 'Harvest Source', 'value': '<a href="%s">Dataset page</a> on <a href="%s">%s</a>' % (c.harvest_dataset_url, c.harvest_catalogue_url, c.harvest_catalogue_name)},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-                '': {'label': '', 'value': ''},
-            }
-
-            # calculate displayable field values
-            fields = DatasetFields(field_names)
-        ?>
-      <!-- Optional logo -->
-      <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
-        <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
-          <img src="/images/national_statistics.gif" />
-        </a>
-      </div>
-      <div py:if="dataset_type == 'uklp'">
-        <a href="/location">
-          <img src="/images/uk_location.gif" />
-        </a>
-      </div>
-
       <!-- Description -->
       <div py:if="str(c.pkg_notes_formatted).strip()">
         <h3>Description</h3>
@@ -162,8 +64,8 @@
 
         ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
 
-        <py:if test="additional_resources or dataset_type == 'uklp'"> 
-          <h3>Additional Links (${len(additional_resources)})</h3>
+        <py:if test="additional_resources or gemini_resources"> 
+          <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
           <ul class="resource-list">
             <py:for each="res in additional_resources">
             <li>
@@ -182,29 +84,17 @@
               </li>
             </py:for>
           </ul>
-          <ul class="resource-list">
-              <li>
-                <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" rel="dcat: distribution" target="_blank">
+          <ul class="resource-list" py:if="gemini_resources">
+            <li py:for="gemini_resource in gemini_resources">
+              <a class="resource-title">
                   ${h.icon('page_white')}
-                  Source GEMINI2 record
-                  <span class="format-box" property="dc:format">XML</span>
+                  ${gemini_resource['title']}
+                  <span class="format-box" property="dc:format">${gemini_resource['type']}</span>
                   <div class="resource-buttons">
-                    <a href="/api/2/rest/harvestobject/${harvest_object_id}/xml" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">Download</a>
+                    <a href="${gemini_resource['url']}" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
                   </div>
-                </a>
-
-              </li>
-              <li>
-                <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" rel="dcat: distribution" target="_blank">
-                  ${h.icon('page_white')}
-                  Source GEMINI2 record (formatted)
-                  <span class="format-box" property="dc:format">HTML</span>
-                  <div class="resource-buttons">
-                    <a href="/api/2/rest/harvestobject/${harvest_object_id}/html" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">View</a>
-                  </div>
-                </a>
-
-              </li>
+              </a>
+            </li>
           </ul>
          </py:if>
 
