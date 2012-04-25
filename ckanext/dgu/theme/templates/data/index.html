@@ -40,6 +40,14 @@
               <a rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
             </py:for>
           </div>
+          <script type="text/javascript" charset="utf-8">
+    /* Tag cloud */
+    $.fn.tagcloud.defaults = {
+      size: {start: 8, end: 24, unit: "pt"}, 
+      color: {start: '#bbb', end: '#66aa44'}
+    };
+    $('#tagcloud a').tagcloud();
+        </script>
         </td>
       </tr>
       <tr class="gutter">

@@ -222,10 +222,18 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
         </div>
         <div class="span6">
           <div class="footer-section last">
-            <div class="ckan-link">
+            <div class="credit">
               <strong>Powered by:</strong>
               <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
                 <img src="/images/ckan_logo_box_64px_wide.png"/>
+              </a>
+            </div>
+          </div><!-- /footer-section -->
+          <div py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')" class="footer-section last">
+            <div class="credit">
+              <strong>Map tools by:</strong>
+              <a href="/location" title="UK Location Programme">
+                <img src="/images/uk_location.gif"/>
               </a>
             </div>
           </div><!-- /footer-section -->

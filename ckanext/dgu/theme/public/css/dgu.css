@@ -413,13 +413,13 @@ ul.widget-list {
   list-style-type: none;
   margin: 0;
 }
-.ckan-link {
+.credit {
   float: left;
   text-align: center;
 }
-.ckan-link img {
+.credit img {
   display: block;
-  margin: 4px 0;
+  margin: 4px 20px 0;
 }
 
 /* Boxes */
