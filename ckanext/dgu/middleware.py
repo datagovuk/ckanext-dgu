@@ -75,9 +75,8 @@ class AuthAPIMiddleware(object):
             else:
                 user = query.one()
 
-            # We want to store values in the user's cookie, so
-            # prepare the response header with this value,
-            # using auth_tkt to sign it.
+            # Auth_tkt will store the login info and it returns the
+            # auth_tkt cookie template which will go in the response.
             new_header = environ['repoze.who.plugins']['auth_tkt'].remember(
                 environ,
                 {

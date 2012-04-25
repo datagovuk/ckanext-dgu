@@ -20,6 +20,13 @@ jQuery(function ($) {
       e.preventDefault();
       window.location = $(this).val()
     });
+
+    /* Tag cloud */
+    $.fn.tagcloud.defaults = {
+      size: {start: 8, end: 24, unit: "pt"}, 
+      color: {start: '#bbb', end: '#66aa44'}
+    };
+    $("#tagcloud a").tagcloud();
   });
 })
 
