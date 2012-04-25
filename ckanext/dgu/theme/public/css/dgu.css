@@ -1107,3 +1107,8 @@ div#tagcloud {
   margin: 25px auto;
   text-align: center;
 }
+
+/* Tag page */
+.pagination-alphabet a { 
+        padding: 0 10px;
+}

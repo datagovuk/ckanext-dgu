@@ -9,6 +9,8 @@
   <!--! Herein can be found generic helper methods for a whole bunch of common
         templating issues -->
 
+  <xi:include href="package/basket.html" />  
+
   <ul py:def="package_list_from_dict(packages)" class="datasets">
    <?python
       import ckanext.dgu.lib.helpers as dgu_helpers
@@ -125,5 +127,13 @@
     </div>
 
   </div>
+
+  <!--! List of tags: pass in a list of tag name and this renders the standard
+        tag listing -->
+  <py:def function="tag_list_from_name(tags)" class="tags clearfix">
+    <py:for each="tag in tags">
+      ${h.link_to(tag, h.url_for(controller='tag', action='read', id=tag), class_="tag")}
+    </py:for>
+  </py:def>
 
 </html>
