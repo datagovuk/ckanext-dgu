@@ -1093,6 +1093,7 @@ div#tagcloud {
   display: inline-block;
   vertical-align: middle;
   line-height: 0.9;
+  //line-height: 1.2; /* Fixes clipping on IE7. The "//" is ignored by IE7 */
 }
 
 #tagcloud a {
@@ -1104,7 +1105,7 @@ div#tagcloud {
 }
 
 #tagcloud {
-  margin: 25px auto;
+  margin: 10px auto;
   text-align: center;
 }
 
