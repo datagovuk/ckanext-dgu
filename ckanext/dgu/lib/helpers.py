@@ -112,6 +112,8 @@ def get_wms_info(pkg_dict):
         # also search for WMS in the url
         url = r.get('url', '')
         format = r.get('format', '')
+        # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
+
         if 'wms' in url.lower() or format.lower() == 'wms':
             urls.append(('url', r.get('url','')))
     # Extent
