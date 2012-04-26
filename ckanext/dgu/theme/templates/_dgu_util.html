@@ -121,7 +121,6 @@
         <ul class="facet-options">
           ${facet_list_items('resource-type')}
         </ul>
-        <li><a href="${c.drill_down_url(**{'resource-type': 'non-uklp'})}">Non UK Location (TODO)</a></li>
       </ul>
       <p py:if="not len(h.facet_items(c, 'resource-type'))">There are no further type filters to apply.</p>
     </div>
