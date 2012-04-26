@@ -125,10 +125,31 @@ $(function() {
   var clickSubmit = function(e) {
     e.preventDefault();
     var href = '/data/map-preview?';
+    var extent = {};
     if (basketCache.length) {
       $.each(basketCache, function(i, item) {
         href += item.querystring + '&';
+        // Expand extent to include this item's extent
+        var item_extent = item.extent;
+        $.each('nwes', function(i, direction) {
+                 if (extent[direction]) {
+                   if (direction == 'n' || direction == 'e') {
+                     extent[direction] = Math.max(extent[direction], item_extent[i]);
+                   } else {
+                     extent[direction] = Math.min(extent[direction], item_extent[i]);
+                   }
+                 } else {
+                   extent[direction] = item_extent[i];
+                 }
+        });
       });
+      if (extent['n'] && extent['w'] && extent['e'] && extent['s']) {
+        $.each('nwes', function(i, direction) {
+                 if (extent[direction]) {
+                   href += '&' + direction + '=' + extent[direction];
+                 }
+               })
+          }
       window.location = href;
     }
   };

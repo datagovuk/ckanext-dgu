@@ -1,6 +1,10 @@
-from itertools import dropwhile
-from publisher_node import PublisherNode
+import logging
 import urllib
+from itertools import dropwhile
+
+from publisher_node import PublisherNode
+
+log = logging.getLogger(__name__)
 
 def _is_additional_resource(resource):
     """
@@ -96,22 +100,51 @@ def render_tree(groups,  type='publisher'):
 
     return root.render()
 
-def get_wms_querystring(pkg_dict):
-    out = []
+def get_wms_info(pkg_dict):
+    '''For a given package, extracts all the urls and spatial extent.
+    Returns (urls, extent) where:
+    * urls is a list of tuples like ('url', 'http://geog.com?wms')
+    * extent is a tuple of (N, W, E, S) representing max extent
+    '''
+    urls = []
     for r in pkg_dict.get('resources',[]):
         # plenty of WMS resources have res['format']='' so
         # also search for WMS in the url
         url = r.get('url', '')
         format = r.get('format', '')
         if 'wms' in url.lower() or format.lower() == 'wms':
-            out.append(('url',r.get('url','')))
-    return urllib.urlencode(out)
+            urls.append(('url', r.get('url','')))
+    # Extent
+    extras = pkg_dict['extras']
+    extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
+              'e': get_from_flat_dict(extras, 'bbox-east-long', ''),
+              'w': get_from_flat_dict(extras, 'bbox-west-long', ''),
+              's': get_from_flat_dict(extras, 'bbox-south-lat', '')}
+    extent_list = []
+    for direction in 'nwes':
+        if extent[direction] in (None, ''):
+            extent_list = []
+            break
+        try:
+            # check it is a number
+            float(extent[direction])
+        except ValueError, e:
+            log.error('Package %r has invalid bbox value %r: %s' %
+                      (pkg_dict.get('name'), extent[direction], e))
+        extent_list.append(extent[direction])
+    return urllib.urlencode(urls), tuple(extent_list)
+
+def get_from_flat_dict(list_of_dicts, key, default=None):
+    '''Extract data from a list of dicts with keys 'key' and 'value'
+    e.g. pkg_dict['extras'] = [{'key': 'language', 'value': '"french"'}, ... ]
+    '''
+    for dict_ in list_of_dicts:
+        if dict_.get('key', '') == key:
+            return dict_.get('value', default).strip('"')
+    return default
 
 def get_uklp_package_type(package):
-    extras = package.get('extras', [])
-    for extra in extras:
-        if extra.get('key', '') == 'resource-type':
-            return extra.get('value','').strip('"')
+    return get_from_flat_dict(package.get('extras', []), 'resource-type', '')
 
 def is_service(package):
     res_type = get_uklp_package_type(package)
