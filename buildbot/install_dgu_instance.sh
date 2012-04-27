@@ -98,6 +98,7 @@ configure () {
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU Release Test/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e "s/^ckan.gravatar_default =.*/ckan.gravatar_default = mm/" \
+             -e "s/^who.config_file =.*/who.config_file = %(here)s/src/ckanext-dgu/ckanext/dgu/who.ini/" \
              -e '/^\[app:main\]$/ a\
 openid_enabled = False\
 dgu.admin.name = Test Account\
