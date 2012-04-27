@@ -1,203 +1,120 @@
-#
-# Drupal integration code
-#
-
 import Cookie
+import logging
+
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
      DrupalRequestError
 from xmlrpclib import ServerProxy
 
-def drupal_extract_cookie(cookie_string):
-    cookies = Cookie.SimpleCookie()
-    cookies.load(str(cookie_string))
-    for cookie in cookies:
-        if cookie.startswith('SESS'):
-            return cookies[cookie].value
-    return None
+log = logging.getLogger(__name__)
 
-def is_ckan_signed_in(cookie_string):
-    cookies = Cookie.SimpleCookie()
-    cookies.load(str(cookie_string))
-    if not 'auth_tkt' in cookies:
-        return False
-    return True
-
-class AuthAPIMiddleware(object):
+class DrupalAuthMiddleware(object):
+    '''Allows CKAN user to login via Drupal. It looks for the Drupal cookie
+    and gets user details from Drupal using XMLRPC. 
+    so works side-by-side with normal CKAN logins.'''
 
     def __init__(self, app, app_conf):
         self.app = app
         self.drupal_client = None
 
-    def __call__(self, environ, start_response):
-        if self.drupal_client is None:
-            self.drupal_client = DrupalClient()
-
-        # establish from the cookie whether ckan and drupal are signed in
-        ckan_signed_in = [False]
-        drupal_signed_in = [False]
+    def _parse_cookies(self, environ):
+        is_ckan_cookie = [False]
+        drupal_session_id = [False]
         for k, v in environ.items():
             key = k.lower()
             if key  == 'http_cookie':
-                ckan_signed_in[0] = is_ckan_signed_in(v)
-                drupal_signed_in[0] = drupal_extract_cookie(v)
-        ckan_signed_in = ckan_signed_in[0]
-        drupal_signed_in = drupal_signed_in[0]
+                is_ckan_cookie[0] = self._is_this_a_ckan_cookie(v)
+                drupal_session_id[0] = self._drupal_cookie_parse(v)
+        is_ckan_cookie = is_ckan_cookie[0]
+        drupal_session_id = drupal_session_id[0]
+        return is_ckan_cookie, drupal_session_id
 
-        environ['drupal.uid'] = None
-        environ['drupal.publishers'] = None
+    def _drupal_cookie_parse(self, cookie_string):
+        '''Returns the Drupal Session ID from the cookie string.'''
+        cookies = Cookie.SimpleCookie()
+        cookies.load(str(cookie_string))
+        for cookie in cookies:
+            if cookie.startswith('SESS'):
+                log.debug('Drupal cookie found')
+                return cookies[cookie].value
+        return None
+
+    def _is_this_a_ckan_cookie(self, cookie_string):
+        cookies = Cookie.SimpleCookie()
+        cookies.load(str(cookie_string))
+        if not 'auth_tkt' in cookies:
+            return False
+        return True
+
+    def _munge_drupal_id_to_ckan_user_name(self, drupal_id):
+        drupal_id.lower().replace(' ', '_')
+        return u'drupal_%s' % drupal_id
+
+    def __call__(self, environ, start_response):
+        is_ckan_cookie, drupal_session_id = self._parse_cookies()
+
         new_start_response = start_response
-        if drupal_signed_in and not ckan_signed_in:
-            # get info about the user from drupal and store in environ for
-            # use by main CKAN app
-            user_id = self.drupal_client.get_user_id_from_session_id(drupal_signed_in)
-            res = self.drupal_client.get_user_properties(user_id)
-            environ['drupal.uid'] = res['uid']
-            environ['drupal.publishers'] = res['publishers']
-            environ['drupal.name'] = res['name']
+        # only think about doing this Drupal login if CKAN is not already
+        # logged in (i.e. presence of an auth_tkt cookie, which indicates
+        # user has logged in either normally or from this function already)
+        if drupal_session_id and not is_ckan_cookie:
+            # ask drupal for the drupal_user_id for this session
+            drupal_user_id = self.drupal_client.get_user_id_from_session_id(drupal_session_id)
+            if drupal_user_id:
+                # see if user already exists in CKAN
+                ckan_user_name = self._munge_drupal_id_to_ckan_user_name(drupal_user_id)
+                from ckan import model
+                from ckan.model.meta import Session
+                query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
+                if not query.count():
+                    # need to add this user to CKAN
 
-            from ckan import model
-            from ckan.model.meta import Session
+                    # ask drupal about this user
+                    user_properties = self.drupal_client.get_user_properties(drupal_user_id)
 
-            def munge(username):
-                username.lower().replace(' ', '_')
-                return username
+                    user = model.User(
+                        name=ckan_user_name, 
+                        fullname=unicode(user_properties['name']), 
+                        about=u'Drupal auto-generated user',
+                        #email too would be good but is not provided
+                    )
+                    Session.add(user)
+                    Session.commit()
+                    log.debug('Drupal user added to CKAN as: %s', user.name)
+                else:
+                    user = query.one()
+                    log.debug('Drupal user found in CKAN: %s', user.name)
 
-            # Add the new Drupal user if they don't already exist.
-            query = Session.query(model.User).filter_by(name=unicode(environ['drupal.uid']))
-            if not query.count():
-                user = model.User(
-                    name=munge(unicode(environ['drupal.uid'])), 
-                    fullname=unicode(environ['drupal.name']), 
-                    about=u'Drupal auto-generated user',
+                # Ask auth_tkt to remember this user so that subsequent requests
+                # will be authenticated by auth_tkt.
+                # auth_tkt cookie template needs to also go in the response.
+                new_header = environ['repoze.who.plugins']['auth_tkt'].remember(
+                    environ,
+                    {
+                        'repoze.who.userid': environ['drupal.uid'],
+                        'tokens': '',
+                        'userdata': '',
+                    }
                 )
-                Session.add(user)
-                Session.commit()
+                # e.g. new_header = [('Set-Cookie', 'bob=ab48fe; Path=/;')]
+                cookie_template = new_header[0][1].split('; ')
+
+                # @@@ Need to add the headers to the request too so that the rest of the stack can sign the user in.
+
+    #Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESS9854522e7c5dba5831db083c5372623c=4160a72a4d6831abec1ac57d7b5a59eb; auth_tkt="a578c4a0d21bdbde7f80cd271d60b66f4ceabc3f4466!"; ckan_apikey="3a51edc6-6461-46b8-bfe2-57445cbdeb2b"; ckan_display_name="James Gardner"; ckan_user="4466"
+
+                # There is a bug(/feature?) in line 628 of Cookie.py that means
+                # it can't load from unicode strings. This causes Beaker to fail
+                # unless the value here is a string
+                if not environ.get('HTTP_COOKIE'):
+                    environ['HTTP_COOKIE'] += str(cookie_string)
+                else:
+                    environ['HTTP_COOKIE'] = str(cookie_string[2:])
+
+                def cookie_setting_start_response(status, headers, exc_info=None):
+                    headers += new_header
+                    return start_response(status, headers, exc_info)
+                new_start_response = cookie_setting_start_response
             else:
-                user = query.one()
-
-            # Auth_tkt will store the login info and it returns the
-            # auth_tkt cookie template which will go in the response.
-            new_header = environ['repoze.who.plugins']['auth_tkt'].remember(
-                environ,
-                {
-                    'repoze.who.userid': environ['drupal.uid'],
-                    'tokens': '',
-                    'userdata': '',
-                }
-            )
-            # e.g. new_header = [('Set-Cookie', 'bob=ab48fe; Path=/;')]
-            cookie_template = new_header[0][1].split('; ')
-
-            cookie_string = ''
-            for name, value in [
-                ('ckan_apikey', user.apikey),
-                ('ckan_display_name', user.fullname),
-                ('ckan_user', user.name),
-            ]: 
-                cookie_string += '; %s="%s"'%(name, value)
-                new_cookie = cookie_template[:]
-                new_cookie[0] = '%s="%s"'%(name, value)
-                new_header.append(('Set-Cookie', str('; '.join(new_cookie))))
-
-            # Also need these cookies to work too:
-
-            # ckan_apikey
-            # Value	"3a51edc6-6461-46b8-bfe2-57445cbdeb2b"
-            # Host	catalogue.dev.dataco.coi.gov.uk
-            # Path	/
-            # Secure	No
-            # Expires	At End Of Session
-            # 
-            # 
-            # Name	ckan_display_name
-            # Value	"James Gardner"
-            # Host	catalogue.dev.dataco.coi.gov.uk
-            # Path	/
-            # Secure	No
-            # Expires	At End Of Session
-            # 
-            # 
-            # Name	ckan_user
-            # Value	"4466"
-            # Host	catalogue.dev.dataco.coi.gov.uk
-            # Path	/
-            # Secure	No
-            # Expires	At End Of Session
-
-
-            # @@@ Need to add the headers to the request too so that the rest of the stack can sign the user in.
-
-#Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESS9854522e7c5dba5831db083c5372623c=4160a72a4d6831abec1ac57d7b5a59eb; auth_tkt="a578c4a0d21bdbde7f80cd271d60b66f4ceabc3f4466!"; ckan_apikey="3a51edc6-6461-46b8-bfe2-57445cbdeb2b"; ckan_display_name="James Gardner"; ckan_user="4466"
-
-            # There is a bug(/feature?) in line 628 of Cookie.py that means
-            # it can't load from unicode strings. This causes Beaker to fail
-            # unless the value here is a string
-            if not environ.get('HTTP_COOKIE'):
-                environ['HTTP_COOKIE'] += str(cookie_string)
-            else:
-                environ['HTTP_COOKIE'] = str(cookie_string[2:])
-
-            def cookie_setting_start_response(status, headers, exc_info=None):
-                headers += new_header
-                return start_response(status, headers, exc_info)
-            new_start_response = cookie_setting_start_response
+                log.info('Drupal disowned the session ID found in the cookie.')
         return self.app(environ, new_start_response)
 
-#    # Configure the Pylons environment
-#    load_environment(global_conf, app_conf)
-#
-#    # The Pylons WSGI app
-#    app = PylonsApp()
-#
-#    # Routing/Session/Cache Middleware
-#    app = RoutesMiddleware(app, config['routes.map'])
-#    app = SessionMiddleware(app, config)
-#    app = CacheMiddleware(app, config)
-#    
-#    # CUSTOM MIDDLEWARE HERE (filtered by error handling middlewares)
-#    #app = QueueLogMiddleware(app)
-#    
-#    if asbool(full_stack):
-#        # Handle Python exceptions
-#        app = ErrorHandler(app, global_conf, **config['pylons.errorware'])
-#
-#        # Display error documents for 401, 403, 404 status codes (and
-#        # 500 when debug is disabled)
-#        if asbool(config['debug']):
-#            app = StatusCodeRedirect(app)
-#        else:
-#            app = StatusCodeRedirect(app, [400, 401, 403, 404, 500])
-#    app = AuthAPIMiddleware(app, app_conf)
-#    # Initialize repoze.who
-#    who_parser = WhoConfig(global_conf['here'])
-#    who_parser.parse(open(app_conf['who.config_file']))
-#    app = PluggableAuthenticationMiddleware(app,
-#                    who_parser.identifiers,
-#                    who_parser.authenticators,
-#                    who_parser.challengers,
-#                    who_parser.mdproviders,
-#                    who_parser.request_classifier,
-#                    who_parser.challenge_decider,
-#                    logging.getLogger('repoze.who'),
-#                    logging.WARN, # ignored
-#                    who_parser.remote_user_key,
-#               )
-#    
-#    # Establish the Registry for this application
-#    app = RegistryManager(app)
-#
-#    if asbool(static_files):
-#        # Serve static files
-#        static_app = StaticURLParser(config['pylons.paths']['static_files'])
-#        static_parsers = [static_app, app]
-#
-#        # Configurable extra static file paths
-#        extra_public_paths = config.get('extra_public_paths')
-#        if extra_public_paths:
-#            static_parsers = [StaticURLParser(public_path) \
-#                              for public_path in \
-#                              extra_public_paths.split(',')] + static_parsers
-#            
-#        app = Cascade(static_parsers)
-#    
-#    return app
