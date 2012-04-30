@@ -29,7 +29,7 @@ setup(
     entry_points="""
         [ckan.plugins]
         dgu_form = ckanext.dgu.plugin:DguForm
-        dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin
+        dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
         dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
         dgu_theme = ckanext.dgu.plugin:ThemePlugin
         dgu_search = ckanext.dgu.plugin:SearchPlugin

@@ -13,12 +13,13 @@ from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
 from ckan.plugins import ISession
-from ckanext.dgu.middleware import AuthAPIMiddleware
+from ckanext.dgu.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
                              dgu_package_update, dgu_extra_fields_editable, \
                              dgu_dataset_delete
 from ckan.lib.helpers import url_for
 import ckanext.dgu
+from ckan.config.routing import SubMapper
 
 log = getLogger(__name__)
 
@@ -63,18 +64,36 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/search', controller='package', action='search')
         map.connect('/data/api', controller='ckanext.dgu.controllers.data:DataController', action='api')
 
+        # Map /user* to /data/user/ because Drupal uses /user
+        with SubMapper(map, controller='user') as m:
+            m.connect('/data/user/edit', action='edit')
+            m.connect('/data/user/edit/{id:.*}', action='edit')
+            m.connect('/data/user/reset/{id:.*}', action='perform_reset')
+            m.connect('/data/user/register', action='register')
+            m.connect('/data/user/login', action='login')
+            m.connect('/data/user/_logout', action='logout')
+            m.connect('/data/user/logged_in', action='logged_in')
+            m.connect('/data/user/logged_out', action='logged_out')
+            m.connect('/data/user/logged_out_redirect', action='logged_out_page')
+            m.connect('/data/user/reset', action='request_reset')
+            m.connect('/data/user/me', action='me')
+            m.connect('/data/user/set_lang/{lang}', action='set_lang')
+            m.connect('/data/user/{id:.*}', action='read')
+            m.connect('/data/user', action='index')
+
+
         return map
 
     def after_map(self, map):
         return map
 
-class AuthApiPlugin(SingletonPlugin):
+class DrupalAuthPlugin(SingletonPlugin):
 
     implements(IAuthFunctions, inherit=True)
     implements(IMiddleware,    inherit=True)
 
     def make_middleware(self, app, config):
-        return AuthAPIMiddleware(app, config)
+        return DrupalAuthMiddleware(app, config)
 
     def get_auth_functions(self):
         return {

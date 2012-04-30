@@ -15,6 +15,7 @@ class DrupalAuthMiddleware(object):
     def __init__(self, app, app_conf):
         self.app = app
         self.drupal_client = None
+        self._user_name_prefix = 'drupal_'
 
     def _parse_cookies(self, environ):
         is_ckan_cookie = [False]
@@ -47,7 +48,7 @@ class DrupalAuthMiddleware(object):
 
     def _munge_drupal_id_to_ckan_user_name(self, drupal_id):
         drupal_id.lower().replace(' ', '_')
-        return u'drupal_%s' % drupal_id
+        return u'%s%s' % (self._user_name_prefix, drupal_id)
 
     def __call__(self, environ, start_response):
         is_ckan_cookie, drupal_session_id = self._parse_cookies()
@@ -87,14 +88,10 @@ class DrupalAuthMiddleware(object):
                 # Ask auth_tkt to remember this user so that subsequent requests
                 # will be authenticated by auth_tkt.
                 # auth_tkt cookie template needs to also go in the response.
-                new_header = environ['repoze.who.plugins']['auth_tkt'].remember(
-                    environ,
-                    {
-                        'repoze.who.userid': environ['drupal.uid'],
-                        'tokens': '',
-                        'userdata': '',
-                    }
-                )
+                identity = {'repoze.who.userid': environ['drupal.uid'],
+                            'tokens': '',
+                            'userdata': ''}
+                new_header = environ['repoze.who.plugins']['auth_tkt'].remember(environ, identity)
                 # e.g. new_header = [('Set-Cookie', 'bob=ab48fe; Path=/;')]
                 cookie_template = new_header[0][1].split('; ')
 
@@ -116,5 +113,25 @@ class DrupalAuthMiddleware(object):
                 new_start_response = cookie_setting_start_response
             else:
                 log.info('Drupal disowned the session ID found in the cookie.')
+
+        # The case when we were logged in with Drupal and the cookie was
+        # deleted (probably because Drupal logged out)
+        if not drupal_session_id and is_ckan_cookie:
+            # Is the logged in user a Drupal user?
+            user_name = request.environ.get('REMOTE_USER', '')
+            if user_name.startswith(self._user_name_prefix):
+                # don't progress the user info for this request
+                request['REMOTE_USER'] = None
+                # tell auth_tkt to logout whilst adding the header to tell
+                # the browser to delete the cookie
+                identity = {'repoze.who.userid': environ['drupal.uid'],
+                            'tokens': '',
+                            'userdata': ''}
+                new_header = environ['repoze.who.plugins']['auth_tkt'].forget(environ, identity)
+                def cookie_setting_start_response(status, headers, exc_info=None):
+                    headers += new_header
+                    return start_response(status, headers, exc_info)
+                new_start_response = cookie_setting_start_response
+                
         return self.app(environ, new_start_response)
 
