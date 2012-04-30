@@ -68,7 +68,7 @@ class DrupalAuthMiddleware(object):
         self.do_drupal_login_logout(environ, new_headers)
         
         def cookie_setting_start_response(status, headers, exc_info=None):
-            headers.extend(new_headers)
+            tuple(headers.extend(new_headers))
             return start_response(status, headers, exc_info)
         new_start_response = cookie_setting_start_response
                 
