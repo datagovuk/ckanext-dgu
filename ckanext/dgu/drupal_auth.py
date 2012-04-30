@@ -51,13 +51,15 @@ class DrupalAuthMiddleware(object):
         return u'%s%s' % (self._user_name_prefix, drupal_id)
 
     def __call__(self, environ, start_response):
-        is_ckan_cookie, drupal_session_id = self._parse_cookies()
+        is_ckan_cookie, drupal_session_id = self._parse_cookies(environ)
 
         new_start_response = start_response
         # only think about doing this Drupal login if CKAN is not already
         # logged in (i.e. presence of an auth_tkt cookie, which indicates
         # user has logged in either normally or from this function already)
         if drupal_session_id and not is_ckan_cookie:
+            if self.drupal_client is None:
+                self.drupal_client = DrupalClient()
             # ask drupal for the drupal_user_id for this session
             drupal_user_id = self.drupal_client.get_user_id_from_session_id(drupal_session_id)
             if drupal_user_id:
@@ -88,7 +90,7 @@ class DrupalAuthMiddleware(object):
                 # Ask auth_tkt to remember this user so that subsequent requests
                 # will be authenticated by auth_tkt.
                 # auth_tkt cookie template needs to also go in the response.
-                identity = {'repoze.who.userid': environ['drupal.uid'],
+                identity = {'repoze.who.userid': ckan_user_name,
                             'tokens': '',
                             'userdata': ''}
                 new_header = environ['repoze.who.plugins']['auth_tkt'].remember(environ, identity)
@@ -102,10 +104,10 @@ class DrupalAuthMiddleware(object):
                 # There is a bug(/feature?) in line 628 of Cookie.py that means
                 # it can't load from unicode strings. This causes Beaker to fail
                 # unless the value here is a string
-                if not environ.get('HTTP_COOKIE'):
-                    environ['HTTP_COOKIE'] += str(cookie_string)
-                else:
-                    environ['HTTP_COOKIE'] = str(cookie_string[2:])
+                #if not environ.get('HTTP_COOKIE'):
+                #    environ['HTTP_COOKIE'] += str(cookie_string)
+                #else:
+                #    environ['HTTP_COOKIE'] = str(cookie_string[2:])
 
                 def cookie_setting_start_response(status, headers, exc_info=None):
                     headers += new_header
@@ -113,20 +115,17 @@ class DrupalAuthMiddleware(object):
                 new_start_response = cookie_setting_start_response
             else:
                 log.info('Drupal disowned the session ID found in the cookie.')
-
         # The case when we were logged in with Drupal and the cookie was
         # deleted (probably because Drupal logged out)
-        if not drupal_session_id and is_ckan_cookie:
+        elif not drupal_session_id and is_ckan_cookie:
             # Is the logged in user a Drupal user?
-            user_name = request.environ.get('REMOTE_USER', '')
+            user_name = environ.get('REMOTE_USER', '')
             if user_name.startswith(self._user_name_prefix):
                 # don't progress the user info for this request
-                request['REMOTE_USER'] = None
+                environ['REMOTE_USER'] = None
                 # tell auth_tkt to logout whilst adding the header to tell
                 # the browser to delete the cookie
-                identity = {'repoze.who.userid': environ['drupal.uid'],
-                            'tokens': '',
-                            'userdata': ''}
+                identity = {}
                 new_header = environ['repoze.who.plugins']['auth_tkt'].forget(environ, identity)
                 def cookie_setting_start_response(status, headers, exc_info=None):
                     headers += new_header
