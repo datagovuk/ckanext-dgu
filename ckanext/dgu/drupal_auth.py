@@ -58,15 +58,25 @@ class DrupalAuthMiddleware(object):
         # tell auth_tkt to logout whilst adding the header to tell
         # the browser to delete the cookie
         identity = {}
-        new_header = environ['repoze.who.plugins']['auth_tkt'].forget(environ, identity)
-        new_headers.append(new_header)
-        log.debug('Logging out Drupal user')
+        headers = environ['repoze.who.plugins']['auth_tkt'].forget(environ, identity)
+        if headers:
+            new_headers.extend(headers)
+        # Remove cookie from request, so that if we are doing a login again in this request then
+        # it is aware of the cookie removal
+        log.debug('Removing cookies from request: %r', environ.get('HTTP_COOKIE', ''))
+        cookies = environ.get('HTTP_COOKIE', '').split('; ')
+        cookies = '; '.join([cookie for cookie in cookies if not cookie.startswith('auth_tkt=')])
+        environ['HTTP_COOKIE'] = cookies
+        log.debug('Cookies in request now: %r', environ['HTTP_COOKIE'])
+
+        log.debug('Logged out Drupal user')
 
     def __call__(self, environ, start_response):
         new_headers = []
 
         self.do_drupal_login_logout(environ, new_headers)
-        
+       
+	log.debug('New headers: %r', new_headers) 
         def cookie_setting_start_response(status, headers, exc_info=None):
             tuple(headers.extend(new_headers))
             return start_response(status, headers, exc_info)
@@ -79,15 +89,12 @@ class DrupalAuthMiddleware(object):
         to a Drupal user.'''
         is_ckan_cookie, drupal_session_id = self._parse_cookies(environ)
 
-        # only think about doing this Drupal login if CKAN is not already
-        # logged in (i.e. presence of an auth_tkt cookie, which indicates
-        # user has logged in either normally or from this function already)
-
         # Is there a Drupal cookie? We may want to do a log-in for it.
         if drupal_session_id:
             # Look at any authtkt logged in user details
-            authtkt_identity = environ['repoze.who.identity']
+            authtkt_identity = environ.get('repoze.who.identity')
             if authtkt_identity:
+                log.debug('AuthTkt identity = %r', authtkt_identity.items())
                 authtkt_user_name = authtkt_identity['repoze.who.userid'] #same as environ.get('REMOTE_USER', '')
                 authtkt_drupal_session_id = authtkt_identity['userdata']
             else:
@@ -104,10 +111,19 @@ class DrupalAuthMiddleware(object):
                 if authtkt_drupal_session_id != drupal_session_id:
                     # Drupal cookie session has changed, so tell authkit to forget the old one
                     # before we do the new login
-                    self._log_out()
+                    log.debug('Drupal cookie session has changed from %r to %r.', authtkt_drupal_session_id, drupal_session_id)
+                    self._log_out(environ, new_headers)
+		    # since we are about to login again, we need to get rid of the headers like
+                    # ('Set-Cookie', 'auth_tkt="INVALID"...' since we are about to set them again in this
+                    # same request.)
+                    new_headers[:] = [(key, value) for (key, value) in new_headers \
+                                   if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
+                    log.debug('Headers reduced to: %r', new_headers)                    
                     self._do_drupal_login(environ, drupal_session_id, new_headers)
+                    log.debug('Headers on log-out log-in result: %r', new_headers)
                     return
                 else:
+	            log.debug('Drupal cookie session stayed as %r.', authtkt_drupal_session_id)
                     # Drupal cookie session matches the authtkt - leave user logged in
                     return
             else:
@@ -122,7 +138,8 @@ class DrupalAuthMiddleware(object):
             # Is the logged in user a Drupal user?
             user_name = environ.get('REMOTE_USER', '')
             if user_name.startswith(self._user_name_prefix):
-                self._log_out()
+                log.debug('Was logged in as Drupal user %r but Drupal cookie no longer there.', user_name)
+                self._log_out(environ, new_headers)
 
                 
     def _do_drupal_login(self, environ, drupal_session_id, new_headers):
@@ -159,11 +176,16 @@ class DrupalAuthMiddleware(object):
             # Ask auth_tkt to remember this user so that subsequent requests
             # will be authenticated by auth_tkt.
             # auth_tkt cookie template needs to also go in the response.
-            identity = {'repoze.who.userid': ckan_user_name,
+            identity = {'repoze.who.userid': str(ckan_user_name),
                         'tokens': '',
-                        'userdata': 'DrupalSession: %s' % drupal_session_id}
-            new_header = environ['repoze.who.plugins']['auth_tkt'].remember(environ, identity)
-            new_headers.append(new_header)
+                        'userdata': drupal_session_id}
+            headers = environ['repoze.who.plugins']['auth_tkt'].remember(environ, identity)
+            if headers:
+                new_headers.extend(headers)
+
+	    # Tell app during this request that the user is logged in
+	    environ['REMOTE_USER'] = user.name
+            log.debug('Set REMOTE_USER = %r', user.name)
 
             # e.g. new_header = [('Set-Cookie', 'bob=ab48fe; Path=/;')]
             #cookie_template = new_header[0][1].split('; ')
