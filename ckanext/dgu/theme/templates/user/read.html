@@ -19,14 +19,17 @@
     <div class="span6">
       <div class="boxed">
         <h1>
-          <span class="username">${c.user_dict['name']}</span>
           <py:if test="c.user_dict['fullname']">
-          <span class="fullname">
-            (${c.user_dict['fullname']})
-          </span>
-          </py:if></h1>
+            <span>${c.user_dict['fullname']}</span>
+          </py:if>
+          <py:if test="not c.user_dict['fullname']">
+            <span>${c.user_dict['name']}</span>
+          </py:if>
+        </h1>
         <dl class="vcard">
-          <dt>Name</dt>
+          <dt>ID</dt>
+          <dd>${c.user_dict['name']}</dd>
+          <dt>Full Name</dt>
           <dd>${c.user_dict['fullname'] or 'No name provided'}</dd>
           <dt>Email</dt>
           <dd>
@@ -37,7 +40,7 @@
             No email
             </py:if>
           </dd>
-          <dt>Member since</dt>
+          <dt>Registered since</dt>
           <dd>${h.render_datetime(c.user_dict['created'])}</dd>
           <py:if test="unicode(c.about_formatted)">
           <dt>About</dt>

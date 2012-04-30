@@ -15,7 +15,7 @@ class DrupalAuthMiddleware(object):
     def __init__(self, app, app_conf):
         self.app = app
         self.drupal_client = None
-        self._user_name_prefix = 'drupal_'
+        self._user_name_prefix = 'user_d'
 
     def _parse_cookies(self, environ):
         is_ckan_cookie = [False]
@@ -73,12 +73,13 @@ class DrupalAuthMiddleware(object):
 
                     # ask drupal about this user
                     user_properties = self.drupal_client.get_user_properties(drupal_user_id)
-
+                    date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
                     user = model.User(
                         name=ckan_user_name, 
                         fullname=unicode(user_properties['name']), 
-                        about=u'Drupal auto-generated user',
-                        #email too would be good but is not provided
+                        about=u'User account imported from Drupal system.',
+                        email=user_properties['mail'],
+                        created=date_created,
                     )
                     Session.add(user)
                     Session.commit()
