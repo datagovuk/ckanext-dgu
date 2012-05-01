@@ -71,7 +71,8 @@ $(function() {
     var endPoint = '/api/2/util/preview_list';
     $.ajax({
       url: endPoint,
-      success: renderBasket
+      success: renderBasket,
+      cache: false
     });
   };
 
@@ -159,7 +160,7 @@ $(function() {
   basketSubmitButton.bind('click',clickSubmit);
   basketResetButton.bind('click',clickReset);
   $('#shopping-basket .x-button').live('click', clickX);
-  renderBasket(preloadBasket);
+  catchError(); // refreshes basket from session
 });
 
 

@@ -5,16 +5,6 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <py:def function="basket_footer">
-    <script type="text/javascript">
-      <?python 
-        import json 
-        preload_basket = json.dumps(session.get('preview_list', []));
-      ?>
-      var preloadBasket = $preload_basket;
-    </script>
-  </py:def>
-
   <py:def function="map_preview_buttons(package_id, pkg_dict)">
   <!--!package_id is for the same package as pkg_dict-->
 <?python
