@@ -136,20 +136,24 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
     <ul id="subnav">
       <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a href="${h.url_for(controller='package', action='search')}">search</a></li>
+      <li><a href="${h.url_for(controller='package', action='search')}">Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')}">publishers</a></li>
+      <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')}">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="${h.url(controller='tag', action='index')}">tags</a></li>
+      <li><a href="${h.url(controller='tag', action='index')}">Tags</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="/organogram">Public Roles &amp; Salaries</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="/openspending">Spend Browser</a></li>
       <py:if test="h.check_access('package_create')">
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="${h.url_for(controller='package', action='new')}">add a dataset</a></li>
+        <span class="divider">&nbsp;| Publisher: &nbsp;</span>
+        <li><a href="${h.url_for(controller='package', action='new')}">Add a Dataset</a></li>
       </py:if>
       <py:if test="c.is_sysadmin">
+        <span class="divider">&nbsp;| Sysadmin: &nbsp;</span>
+        <li><a href="${h.url(controller='user', action='index')}">User Admin</a></li>
         <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="${h.url(controller='user', action='index')}">user admin</a></li>
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="${h.url_for('ckanadmin_index')}">site admin</a></li>
+        <li><a href="${h.url_for('ckanadmin_index')}">Site Admin</a></li>
       </py:if>
     </ul>
   </div>
