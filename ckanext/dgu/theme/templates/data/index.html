@@ -33,11 +33,11 @@
           <div id="tagcloud">
             <?python
               import random
-              tags = h.facet_items(c, 'tags', limit=20)
+              tags = h.unselected_facet_items('tags', limit=20)
               random.shuffle(tags)
             ?>
-            <py:for each="tag_name, count in tags">
-              <a rel="${count}" title="${count}" href="/data/search?tags=${tag_name}">${tag_name}</a>
+            <py:for each="tag_dict in tags">
+              <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
             </py:for>
           </div>
           <script type="text/javascript" charset="utf-8">
@@ -60,11 +60,11 @@
           </div>
           <h2>Publishers</h2>
           <ul class="facet-options">
-            <li py:for="name, count in h.facet_items(c, 'publisher', limit=10)">
-              <a href="/data/search?publisher=${name}">${h.group_name_to_title(name)}</a> &nbsp;(${count})
+            <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
+              <a href="/data/search?publisher=${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
             </li>
           </ul>
-          <p py:if="not len(h.facet_items(c, 'publisher', limit=10))">No publishers found</p>
+          <p py:if="not len(h.unselected_facet_items('publisher', limit=1))">No publishers found</p>
         </td>
         <td class="gutter"></td>
         <td class="boxed">
@@ -97,7 +97,7 @@
 
             <li><a href="/contractfinder" class="js-tooltip" title="Search and read about all Government opportunities, tenders and contracts worth more than &pound;10,000.">Government contracts in full</a></li>
 
-            <li><a href="/whoslobbying" class="js-tooltip" title="Find out which organisations and industries have met with Ministers from across Government departments.">Who's Lobbying</a> - Who ministers are meeting</li>
+            <li><a href="/whoslobbying" class="js-tooltip" title="Find out which organisations and industries have met with Ministers from across Government departments.">Who's Lobbying</a> - whom ministers are meeting</li>
 
             <li><a href="/business_plans" class="js-tooltip" title="Check on the Government's progress on implementing its policies. See how every department is performing against its priorities.">Business plans</a></li>
 

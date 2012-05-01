@@ -3,7 +3,7 @@ import re
 
 from logging import getLogger
 
-from ckan.lib.helpers import flash_notice, _flash
+from ckan.lib.helpers import flash_notice
 from ckan.logic import NotFound
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
@@ -157,7 +157,7 @@ class PublisherPlugin(SingletonPlugin):
                 except TypeError:
                     # Raised when there is no session registered, and this is
                     # the case when using the paster commands.
-                    log.warning('Failed to add a flash message due to a missing session')
+                    log.warning('Failed to add a flash message due to a missing session: %s' % msg)
 
 
     def before_map(self, map):

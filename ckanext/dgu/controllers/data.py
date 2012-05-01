@@ -29,8 +29,10 @@ class DataController(BaseController):
             # package search
             context = {'model': model, 'session': model.Session,
                        'user': c.user or c.author}
+            fq = 'capacity:"public"'
             data_dict = {
                 'q':'*:*',
+                'fq':fq,
                 'facet.field':g.facets,
                 'rows':0,
                 'start':0,
@@ -38,6 +40,7 @@ class DataController(BaseController):
             query = ckan.logic.get_action('package_search')(context,data_dict)
             c.package_count = query['count']
             c.facets = query['facets']
+            c.search_facets = query['search_facets']
 
             # group search
             data_dict = {'order_by': 'packages', 'all_fields': 1}
