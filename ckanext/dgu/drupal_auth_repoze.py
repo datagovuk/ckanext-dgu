@@ -16,12 +16,18 @@ class DrupalAuthPlugin(object):
     implements(IIdentifier, IAuthenticator)
 
     drupal_client = None
+    _user_name_prefix = 'user_d'
 
     # IIdentifier
     def identify(self, environ):
         # check for Drupal cookie exists or not
         drupal_session_id = self.get_drupal_session_id_from_cookie(environ)
-        return {'drupal_session_id': drupal_session_id} if drupal_session_id else None
+        if drupal_session_id:
+            identity = {'userdata': str(drupal_session_id)}
+        else:
+            identity = None
+        log.info('Identify returned: %r', identity)
+        return identity
 
     def get_drupal_session_id_from_cookie(self, environ):
         drupal_session_id = [False]
@@ -57,13 +63,14 @@ class DrupalAuthPlugin(object):
 
     # IAuthenticator
     def authenticate(self, environ, identity):
-        if not identity.get('drupal_session_id'):
+        log.debug('authenticating identity: %r', identity)
+        if not identity.get('userdata'):
             return
         
         # get info about the user from drupal
         if self.drupal_client is None:
             self.drupal_client = DrupalClient()
-        drupal_user_id = self.drupal_client.get_user_id_from_session_id(identity['drupal_session_id'])
+        drupal_user_id = self.drupal_client.get_user_id_from_session_id(identity['userdata'])
         if not drupal_user_id:
             log.info('Drupal disowned the session ID found in the cookie.')
             return None
@@ -80,7 +87,7 @@ class DrupalAuthPlugin(object):
 
         def munge_drupal_id_to_ckan_user_name(drupal_id):
             drupal_id.lower().replace(' ', '_')
-            return u'drupal_%s' % drupal_id
+            return u'%s%s' % (self._user_name_prefix, drupal_id)
         ckan_user_name = munge_drupal_id_to_ckan_user_name(user_properties['uid'])
 
         # Add the new Drupal user if they don't already exist.
@@ -99,4 +106,4 @@ class DrupalAuthPlugin(object):
             user = query.one()
             log.debug('Drupal user found in CKAN: %s', user.name)
         
-        return user.name
+        return str(user.name)
