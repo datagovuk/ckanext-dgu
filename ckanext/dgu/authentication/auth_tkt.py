@@ -9,6 +9,8 @@ import logging
 
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 
+log = getLogger(__name__)
+
 class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
     # IIdentifier
     def remember(self, environ, identity):
