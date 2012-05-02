@@ -9,7 +9,7 @@ import logging
 
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin
 
-log = getLogger(__name__)
+log = logging.getLogger(__name__)
 
 class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
     # IIdentifier
