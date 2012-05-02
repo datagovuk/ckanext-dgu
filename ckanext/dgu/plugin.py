@@ -90,10 +90,10 @@ class ThemePlugin(SingletonPlugin):
 class DrupalAuthPlugin(SingletonPlugin):
 
     implements(IAuthFunctions, inherit=True)
-    implements(IMiddleware,    inherit=True)
+#    implements(IMiddleware,    inherit=True)
 
-    def make_middleware(self, app, config):
-        return DrupalAuthMiddleware(app, config)
+#    def make_middleware(self, app, config):
+#        return DrupalAuthMiddleware(app, config)
 
     def get_auth_functions(self):
         return {
