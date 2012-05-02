@@ -78,7 +78,10 @@ class DrupalAuthMiddleware(object):
        
 	log.debug('New headers: %r', new_headers) 
         def cookie_setting_start_response(status, headers, exc_info=None):
-            tuple(headers.extend(new_headers))
+            if headers:
+                headers.extend(new_headers)
+            else:
+                headers = new_headers
             return start_response(status, headers, exc_info)
         new_start_response = cookie_setting_start_response
                 
