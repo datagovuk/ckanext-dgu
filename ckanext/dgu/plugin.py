@@ -13,7 +13,7 @@ from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
 from ckan.plugins import ISession
-from ckanext.dgu.drupal_auth import DrupalAuthMiddleware
+from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.auth import dgu_group_update, dgu_group_create, \
                              dgu_package_update, dgu_extra_fields_editable, \
                              dgu_dataset_delete
@@ -90,10 +90,10 @@ class ThemePlugin(SingletonPlugin):
 class DrupalAuthPlugin(SingletonPlugin):
 
     implements(IAuthFunctions, inherit=True)
-#    implements(IMiddleware,    inherit=True)
+    implements(IMiddleware,    inherit=True)
 
-#    def make_middleware(self, app, config):
-#        return DrupalAuthMiddleware(app, config)
+    def make_middleware(self, app, config):
+        return DrupalAuthMiddleware(app, config)
 
     def get_auth_functions(self):
         return {
