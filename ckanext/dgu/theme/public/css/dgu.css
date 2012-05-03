@@ -915,7 +915,7 @@ td.dataset-label {
 .resource-list li:last-child {
   border-bottom-color: transparent;
 }
-.resource-list li a {
+.resource-list li .resource {
   display: block;
   padding: 5px 10px;
   color: #333;

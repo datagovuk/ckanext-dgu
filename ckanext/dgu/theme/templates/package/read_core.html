@@ -24,7 +24,7 @@
           <ul class="resource-list">
             <py:for each="res in individual_resources">
             <li>
-              <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
                   ${h.resource_display_name(res)}
@@ -44,7 +44,7 @@
           <ul class="resource-list">
             <py:for each="res in timeseries_resources">
             <li>
-              <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
                   ${res.get('date')}
@@ -68,7 +68,7 @@
           <ul class="resource-list">
             <py:for each="res in additional_resources">
             <li>
-              <a class="resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
                   ${res.get('date')}
@@ -85,14 +85,14 @@
           </ul>
           <ul class="resource-list" py:if="gemini_resources">
             <li py:for="gemini_resource in gemini_resources">
-              <a class="resource-title">
+              <span class="resource">
                   ${h.icon('page_white')}
                   ${gemini_resource['title']}
                   <span class="format-box" property="dc:format">${gemini_resource['type']}</span>
-                  <div class="resource-buttons">
+              </span>
+              <div class="resource-buttons">
                     <a href="${gemini_resource['url']}" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
-                  </div>
-              </a>
+              </div>
             </li>
           </ul>
          </py:if>
