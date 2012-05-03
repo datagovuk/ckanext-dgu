@@ -98,7 +98,7 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
             You are logged-in as 
-            <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">${c.userobj.fullname if c.userobj else c.user}</a>.
+            <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
             <a href="${'/logout' if is_drupal_auth else h.url_for('/data/user/logout')}">Log out</a>.
           </div>
         </span>

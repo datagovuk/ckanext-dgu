@@ -15,20 +15,26 @@ log = logging.getLogger(__name__)
 class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
     # IIdentifier
     def remember(self, environ, identity):
-        caller = self.who_called_me(2)
-        if caller == ('drupal_auth.py', '_do_drupal_login'):
-            # Remember Drupal logins
-            log.info('Remembering Drupal identity')
-            return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
-        elif caller == ('middleware.py', '__call__'):
-            user_id = dict(identity)['repoze.who.userid']
-            if user_id.startswith('user_d'):
-                log.info('Ignoring middleware request to remember Drupal login: %r', user_id)
-            else:
-                log.info('Remembering non-Drupal identity %r', user_id)
+        from pylons import config
+        if 'dgu_drupal_auth' in config['ckan.plugins']:
+            caller = self.who_called_me(2)
+            if caller == ('drupal_auth.py', '_do_drupal_login'):
+                # Remember Drupal logins
+                log.info('Remembering Drupal identity')
                 return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
+            elif caller == ('middleware.py', '__call__'):
+                user_id = dict(identity)['repoze.who.userid']
+                if user_id.startswith('user_d'):
+                    log.info('Ignoring middleware request to remember Drupal login: %r', user_id)
+                else:
+                    log.info('Remembering non-Drupal identity %r', user_id)
+                    return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
+            else:
+                log.error('I do not recognise the caller %r, so not remembering identity', caller)
         else:
-            log.error('I do not recognise the caller %r, so not remembering identity', caller)
+            log.info('Drupal auth disabled')
+            return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
+            
 
     def who_called_me(self, n=0):
         frame = sys._getframe(n)
