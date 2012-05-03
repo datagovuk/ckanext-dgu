@@ -1204,3 +1204,6 @@ div.new-comment-link a {
   float: right;
 }
 
+div.comment-content h3 a {
+  color: #000;
+}
