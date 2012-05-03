@@ -63,6 +63,9 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/tag/{id}', controller='tag', action='read')
         map.connect('/data/search', controller='package', action='search')
         map.connect('/data/api', controller='ckanext.dgu.controllers.data:DataController', action='api')
+        map.connect('/comment/get/{id}',
+                    controller='ckanext.dgu.controllers.package:CommentProxy',
+                    action='get_comments')
 
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:

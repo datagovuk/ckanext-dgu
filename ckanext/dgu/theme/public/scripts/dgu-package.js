@@ -23,11 +23,8 @@ $(function() {
   var contortDrupal = function(data) {
     var dom = $(data);
     dom.find('#comment-add').addClass('btn').addClass('btn-primary').css({'float':'right'});
-    dom.find('.new-comment-link').addClass('boxed').css({'margin-top':'30px'});
     dom.find('.comment').addClass('boxed');
     dom.find('ul.links a').addClass('btn').addClass('btn-primary');
-    var title = $('<h2/>').html('Comments');
-    dom.find('.new-comment-link').append(title);
     return dom;
   };
 
@@ -37,12 +34,12 @@ $(function() {
           dataType: 'html',
           success: function(data, textStatus, xhr) {
             commentsSpinner.stop();
-            $('#comments').html('');
-            $('#comments').append(contortDrupal(data));
+            $('#comments-container').html('');
+            $('#comments-container').append(contortDrupal(data));
           },
           error: function(xhr, status, exception) {
             commentsSpinner.stop();
-            $('#comments').html('Error loading comments.');
+            $('#comments-container').append('Error loading comments.');
           }
         });
 });

@@ -1,5 +1,9 @@
+import urllib2
 import logging
-from ckan.lib.base import render, c, model, abort, request, _, h
+from urllib import quote
+from urllib2 import HTTPError, URLError
+
+from ckan.lib.base import render, c, model, abort, request, response, _, h, BaseController
 from ckan.logic import NotFound, NotAuthorized, ValidationError
 from ckan.logic import get_action, check_access
 from ckan.lib.field_types import DateType, DateConvertError
@@ -54,3 +58,26 @@ class PackageController(ckan.controllers.package.PackageController):
         package_type = self._get_package_type(id)
         self._setup_template_variables(context, {'id': id}, package_type=package_type)
         return render('package/delete.html')
+
+class CommentProxy(BaseController):
+    '''A proxy to Drupal on another server to provide comment HTML. Useful only
+    for test purposes, when Drupal is not present locally.
+    '''
+    def get_comments(self, id):
+        return self._read_url('http://dgu-dev.okfn.org/comment/get/%s' % quote(id))
+
+    def _read_url(self, url, post_data=None, content_type=None):
+        headers = {'Content-Type': content_type} if content_type else {}
+        request = urllib2.Request(url, post_data, headers)
+        try:
+            f = urllib2.urlopen(request)
+        except HTTPError, e:
+            response.status_int = 400
+            return 'Proxied server returned %s: %s' % (e.code, e.msg)
+        except URLError, e:
+            err = str(e)
+            if 'Connection timed out' in err:
+                response.status_int = 504
+                return 'Proxied server timed-out: %s' % err
+            raise e # Send an exception email to handle it better
+        return f.read()

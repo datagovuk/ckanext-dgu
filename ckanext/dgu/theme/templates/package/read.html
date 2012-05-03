@@ -19,22 +19,11 @@
   <xi:include href="sidebar.html"/>
 
   <div py:match="content">
-    <div class="boxed">
-      <!-- Optional logo -->
-      <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
-        <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
-          <img class="dataset-logo" src="/images/national_statistics.gif" />
-        </a>
-      </div>
-      <div py:if="dataset_type == 'uklp'">
-        <a href="/location">
-          <img class="dataset-logo" src="/images/uk_location.gif" />
-        </a>
-      </div>
+    <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
 
-      <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
       <div class="clearfix"></div>
 
+    <div class="boxed">
       <div id="minornavigation">
         <div id="minornavigation-bg-left">
         <div id="minornavigation-bg-right">
@@ -53,14 +42,14 @@
       <xi:include href="read_core.html" />
     </div>
 
-    <div class="comments-container">
+    <div id="comments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
-      <p id="comments">
+      <div id="comments">
         <div class="boxed">
           <h2>Comments</h2>
           <div style="height: 50px;" class="comments-spinner"></div>
         </div>
-      </p>
+      </div>
     </div>
   </div>
 

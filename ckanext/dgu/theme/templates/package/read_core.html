@@ -12,6 +12,17 @@
       <!-- Description -->
       <div py:if="str(c.pkg_notes_formatted).strip()">
         <h3>Description</h3>
+        <!--! Optional logo -->
+        <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
+          <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
+            <img class="dataset-logo" src="/images/national_statistics.gif" />
+          </a>
+        </div>
+        <div py:if="dataset_type == 'uklp'">
+          <a href="/location">
+            <img class="dataset-logo" src="/images/uk_location.gif" />
+          </a>
+        </div>
         <div class="notes">
           ${c.pkg_notes_formatted}
         </div>
