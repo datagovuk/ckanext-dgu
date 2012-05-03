@@ -18,7 +18,7 @@ class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
         caller = self.who_called_me(2)
         if caller == ('drupal_auth.py', '_do_drupal_login'):
             # Remember Drupal logins
-            log.info('Remembering Drupal identity %r', identity)
+            log.info('Remembering Drupal identity')
             return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
         elif caller == ('middleware.py', '__call__'):
             user_id = dict(identity)['repoze.who.userid']
@@ -28,7 +28,7 @@ class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
                 log.info('Remembering non-Drupal identity %r', user_id)
                 return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
         else:
-            log.error('I do not recognise the caller %r, so not remembering %r', caller, identity)
+            log.error('I do not recognise the caller %r, so not remembering identity', caller)
 
     def who_called_me(self, n=0):
         frame = sys._getframe(n)

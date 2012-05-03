@@ -63,11 +63,11 @@ class DrupalAuthMiddleware(object):
             new_headers.extend(headers)
         # Remove cookie from request, so that if we are doing a login again in this request then
         # it is aware of the cookie removal
-        log.debug('Removing cookies from request: %r', environ.get('HTTP_COOKIE', ''))
+        #log.debug('Removing cookies from request: %r', environ.get('HTTP_COOKIE', ''))
         cookies = environ.get('HTTP_COOKIE', '').split('; ')
         cookies = '; '.join([cookie for cookie in cookies if not cookie.startswith('auth_tkt=')])
         environ['HTTP_COOKIE'] = cookies
-        log.debug('Cookies in request now: %r', environ['HTTP_COOKIE'])
+        #log.debug('Cookies in request now: %r', environ['HTTP_COOKIE'])
 
         log.debug('Logged out Drupal user')
 
@@ -76,7 +76,7 @@ class DrupalAuthMiddleware(object):
 
         self.do_drupal_login_logout(environ, new_headers)
        
-	log.debug('New headers: %r', new_headers) 
+	#log.debug('New headers: %r', new_headers) 
         def cookie_setting_start_response(status, headers, exc_info=None):
             if headers:
                 headers.extend(new_headers)
@@ -113,19 +113,20 @@ class DrupalAuthMiddleware(object):
                 if authtkt_drupal_session_id != drupal_session_id:
                     # Drupal cookie session has changed, so tell authkit to forget the old one
                     # before we do the new login
-                    log.debug('Drupal cookie session has changed from %r to %r.', authtkt_drupal_session_id, drupal_session_id)
+                    log.debug('Drupal cookie session has changed.')
+                    #log.debug('Drupal cookie session has changed from %r to %r.', authtkt_drupal_session_id, drupal_session_id)
                     self._log_out(environ, new_headers)
 		    # since we are about to login again, we need to get rid of the headers like
                     # ('Set-Cookie', 'auth_tkt="INVALID"...' since we are about to set them again in this
                     # same request.)
                     new_headers[:] = [(key, value) for (key, value) in new_headers \
                                    if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
-                    log.debug('Headers reduced to: %r', new_headers)                    
+                    #log.debug('Headers reduced to: %r', new_headers)                    
                     self._do_drupal_login(environ, drupal_session_id, new_headers)
-                    log.debug('Headers on log-out log-in result: %r', new_headers)
+                    #log.debug('Headers on log-out log-in result: %r', new_headers)
                     return
                 else:
-	            log.debug('Drupal cookie session stayed as %r.', authtkt_drupal_session_id)
+	            log.debug('Drupal cookie session stayed the same.')
                     # Drupal cookie session matches the authtkt - leave user logged in
                     return
             else:
