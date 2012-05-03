@@ -96,15 +96,15 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
             You are logged-in as 
-            <a href="${h.url_for(controller='user',action='me')}">${c.userobj.fullname if c.userobj else c.user}</a>.
-            <a href="${h.url_for('/data/user/logout')}">Log out</a>.
+            <a href="/user">${c.userobj.fullname if c.userobj else c.user}</a>.
+            <a href="/logout">Log out</a>.
           </div>
         </span>
         <span class="ckan-logged-out">
           <div id="login-or-signup">
-            <a href="${h.url_for(controller='user',action='login')}">Log in</a>
+            <a href="/user">Log in</a>
             or 
-            <a href="${h.url_for(controller='user',action='register')}">sign up</a>
+            <a href="/user/register">sign up</a>
           </div>
         </span>
       </div>
