@@ -6,6 +6,7 @@ DGU modifications:
 '''
 import sys
 import logging
+import os
 
 from repoze.who.plugins.auth_tkt import AuthTktCookiePlugin, _bool
 
@@ -14,14 +15,25 @@ log = logging.getLogger(__name__)
 class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
     # IIdentifier
     def remember(self, environ, identity):
-        log.warn('WHO CALLED %r', self.who_called_me(1))
-        log.warn('IDENTITY %r', identity)
-        AuthTktCookiePlugin.remember(environ, identity)
+        caller = self.who_called_me(2)
+        if caller == ('drupal_auth.py', '_do_drupal_login'):
+            # Remember Drupal logins
+            log.info('Remembering Drupal identity %r', identity)
+            return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
+        elif caller == ('middleware.py', '__call__'):
+            user_id = dict(identity)['repoze.who.userid']
+            if user_id.startswith('user_d'):
+                log.info('Ignoring middleware request to remember Drupal login: %r', user_id)
+            else:
+                log.info('Remembering non-Drupal identity %r', user_id)
+                return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
+        else:
+            log.error('I do not recognise the caller %r, so not remembering %r', caller, identity)
 
     def who_called_me(self, n=0):
         frame = sys._getframe(n)
         c = frame.f_code
-        return c.co_filename, c.co_name
+        return os.path.basename(c.co_filename), c.co_name
 
 def make_plugin(secret=None,
                 secretfile=None,
