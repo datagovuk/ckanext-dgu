@@ -2,6 +2,9 @@ from ckan.controllers.tag import TagController as BaseTagController
 from ckan import model
 from ckan.lib.helpers import AlphaPage, Page
 from ckanext.dgu.plugins_toolkit import render, c, request, _, ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access
+from ckan.lib.base import h
+
+LIMIT = 25
 
 class TagController(BaseTagController):
     def index(self):
