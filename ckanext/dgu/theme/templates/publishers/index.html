@@ -5,7 +5,7 @@
 
   <xi:include href="publisher_util.html" />
 
-  <py:def function="page_title">Publisher</py:def>
+  <py:def function="page_title">Publishers</py:def>
   <py:def function="page_heading">Publishers</py:def>
 
   <py:match path="primarysidebar">
@@ -28,7 +28,7 @@
           ${publisher_list(c.page.items)}
         </div>
         <div class="tab-pane" id="publisherhierarchy">
-          <div id="publisher-tree" class="" style="background-color: white;">
+          <div id="publisher-tree">
             ${publisher_tree( c.all_groups )}
           </div>
         </div>
