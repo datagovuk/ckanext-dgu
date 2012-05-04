@@ -57,12 +57,14 @@ class ThemePlugin(SingletonPlugin):
         """
         Make "/data" the homepage.
         """
+        data_controller = 'ckanext.dgu.controllers.data:DataController'
+        tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         map.redirect('/', '/data')
-        map.connect('/data', controller='ckanext.dgu.controllers.data:DataController', action='index')
-        map.connect('/data/tag', controller='tag', action='index')
-        map.connect('/data/tag/{id}', controller='tag', action='read')
+        map.connect('/data', controller=data_controller, action='index')
+        map.connect('/data/tag', controller=tag_controller, action='index')
+        map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('/data/search', controller='package', action='search')
-        map.connect('/data/api', controller='ckanext.dgu.controllers.data:DataController', action='api')
+        map.connect('/data/api', controller=data_controller, action='api')
         map.connect('/comment/get/{id}',
                     controller='ckanext.dgu.controllers.package:CommentProxy',
                     action='get_comments')

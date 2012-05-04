@@ -1097,6 +1097,12 @@ div#tagcloud {
 .pagination-alphabet a { 
         padding: 0 10px;
 }
+.tags ul li { 
+ display: inline;
+}
+.tags li { 
+  border: 1px;
+}
 
 /* Ribbon */
 /* ------ */
