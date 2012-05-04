@@ -1040,6 +1040,9 @@ ul.button-row li {
 .tab-pane .pagination-alphabet a { 
   padding: 0 5px;
 }
+table.groups th { 
+  text-align: left;
+}
 
 /* Harvest pages */
 /* ------------- */

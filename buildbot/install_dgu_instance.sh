@@ -87,10 +87,11 @@ post_install () {
 
 configure () {
     # Configure the dgu instance.
-    # Takes two arguments: the instance name and the domain name
+    # Takes three arguments: the instance name, the domain name, xmlrpc password
 
     instance=$1
     domain=$2
+    xmlrpc_password=$3
     ini_file="/etc/ckan/$instance/$instance.ini"
 
     # Configures the ini file settings
@@ -106,8 +107,8 @@ dgu.admin.email = david.read@hackneyworkshop.com\
 search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl publisher\
 ckan.spatial.srid = 4258\
 dgu.xmlrpc_username = CKAN_API\
-dgu.xmlrpc_password = XXX\
-dgu.xmlrpc_domain = 212.110.177.173\
+dgu.xmlrpc_password = $xmlrpc_password\
+dgu.xmlrpc_domain = $domain\
 ckan.enable_call_timing = false\
 ckan.datasets_per_page = 10
 ckan.spatial.dataset_extent_map.routes = ckanext.dgu.controllers.package:PackageController/read
