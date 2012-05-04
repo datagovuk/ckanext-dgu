@@ -3,9 +3,8 @@ import logging
 from urllib import quote
 from urllib2 import HTTPError, URLError
 
-from ckan.lib.base import render, c, model, abort, request, response, _, h, BaseController
-from ckan.logic import NotFound, NotAuthorized, ValidationError
-from ckan.logic import get_action, check_access
+from ckan.lib.base import model, abort, response, h, BaseController
+from ckanext.dgu.plugins_toolkit import render, c, request, _, ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access
 from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid, DataError
 from ckanext.dgu.schema import GeoCoverageType
@@ -40,7 +39,7 @@ class PackageController(ckan.controllers.package.PackageController):
                 self._form_save_redirect(package_name, 'edit')
             except NotAuthorized:
                 abort(401, _('Unauthorized to read package %s') % id)
-            except NotFound, e:
+            except ObjectNotFound, e:
                 abort(404, _('Package not found'))
             except DataError:
                 abort(400, _(u'Integrity Error'))

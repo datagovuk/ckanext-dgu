@@ -4,7 +4,7 @@ import re
 from logging import getLogger
 
 from ckan.lib.helpers import flash_notice
-from ckan.logic import NotFound
+from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
@@ -91,12 +91,16 @@ class ThemePlugin(SingletonPlugin):
         return map
 
 class DrupalAuthPlugin(SingletonPlugin):
-
-    implements(IAuthFunctions, inherit=True)
+    '''Reads Drupal login cookies to log user in.'''
     implements(IMiddleware,    inherit=True)
 
     def make_middleware(self, app, config):
         return DrupalAuthMiddleware(app, config)
+
+class AuthApiPlugin(SingletonPlugin):
+    '''Adds functions that work out if the user is allowed to do
+    certain edits.'''
+    implements(IAuthFunctions, inherit=True)
 
     def get_auth_functions(self):
         return {
@@ -333,7 +337,7 @@ class SearchPlugin(SingletonPlugin):
         # (Given a low priority when searching)
         if pkg_dict.get('UKLP', '') == 'True':
             import ckan
-            from ckan.logic import get_action
+            from ckan.plugins.toolkit import get_action
 
             context = {'model': ckan.model,
                        'session': ckan.model.Session,
@@ -344,7 +348,7 @@ class SearchPlugin(SingletonPlugin):
             try:
                 harvest_object = get_action('harvest_object_show')(context, data_dict)
                 pkg_dict['extras_harvest_document_content'] = harvest_object.get('content', '')
-            except NotFound:
+            except ObjectNotFound:
                 log.warning('Unable to find harvest object "%s" '
                             'referenced by dataset "%s"',
                             data_dict['id'], pkg_dict['id'])

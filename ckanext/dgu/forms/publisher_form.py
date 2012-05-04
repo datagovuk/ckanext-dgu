@@ -4,14 +4,13 @@ import ckan.logic.action.create as create
 import ckan.logic.action.update as update
 import ckan.logic.action.get as get
 from ckan.logic.converters import date_to_db, date_to_form, convert_to_extras, convert_from_extras
-from ckan.logic import NotFound, NotAuthorized, ValidationError
 from ckan.logic import tuplize_dict, clean_dict, parse_params
 import ckan.logic.schema as default_schema
 from ckan.logic.schema import group_form_schema
 from ckan.logic.schema import package_form_schema
 import ckan.logic.validators as val
-from ckan.lib.base import BaseController, render, c, model, abort, request
-from ckan.lib.base import redirect, _, config, h
+from ckan.lib.base import BaseController, model, abort
+from ckan.lib.base import redirect, config, h
 from ckan.lib.package_saver import PackageSaver
 from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid
@@ -19,7 +18,7 @@ from ckan.lib.navl.dictization_functions import validate, missing
 from ckan.lib.navl.dictization_functions import DataError, flatten_dict, unflatten
 from ckan.plugins import IDatasetForm, IGroupForm, IConfigurer
 from ckan.plugins import implements, SingletonPlugin
-from ckan.logic import check_access
+from ckanext.dgu.plugins_toolkit import c, request, render, ValidationError, NotAuthorized, _, check_access
 
 from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,

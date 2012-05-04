@@ -3,14 +3,14 @@ from nose.tools import assert_equal
 
 from ckan.lib.package_saver import PackageSaver
 from ckan.lib.create_test_data import CreateTestData
-from ckan.lib.base import render, c, h, g
-from ckan.logic import get_action
+from ckan.lib.base import h, g
 from ckan import model
 
 from ckan.tests import TestController as ControllerTestCase
 from ckan.tests.pylons_controller import PylonsTestCase
 from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.tests import HarvestFixture
+from ckanext.dgu.plugins_toolkit import render, c, get_action
 
 class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
                         ControllerTestCase, HarvestFixture):

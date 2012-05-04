@@ -2,15 +2,14 @@ import logging
 from urllib import urlencode
 
 from sqlalchemy.orm import eagerload_all
-from ckan.lib.base import BaseController, c, model, request, render, h, g
-from ckan.lib.base import ValidationException, abort, gettext
-from pylons.i18n import get_lang, _
+from ckanext.dgu.plugins_toolkit import c, request, render, ValidationException, _, ObjectNotFound, NotAuthorized, ValidationError, check_access, get_action
+from ckan.lib.base import BaseController, model, h, g
+from ckan.lib.base import abort, gettext
+from pylons.i18n import get_lang,
 import ckan.authz as authz
 from ckan.lib.alphabet_paginate import AlphaPage
 from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
 from ckan.authz import Authorizer
-from ckan.logic import NotFound, NotAuthorized, ValidationError
-from ckan.logic import check_access, get_action
 from ckan.logic import tuplize_dict, clean_dict, parse_params
 from ckan.lib.dictization.model_dictize import package_dictize
 from ckan.controllers.group import GroupController
@@ -230,7 +229,7 @@ class PublisherController(GroupController):
         try:
             c.group_dict = get_action('group_show')(context, data_dict)
             c.group = context['group']
-        except NotFound:
+        except ObjectNotFound:
             abort(404, _('Group not found'))
         except NotAuthorized:
             abort(401, _('Unauthorized to read group %s') % id)

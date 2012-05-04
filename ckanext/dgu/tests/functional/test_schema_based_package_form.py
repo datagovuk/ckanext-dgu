@@ -30,6 +30,7 @@ from ckan.lib.field_types import DateType
 import ckan.model as model
 from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for
 from ckan.tests.html_check import HtmlCheckMethods
+from ckanext.dgu.plugins_toolkit import get_action
 
 class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     """
@@ -685,7 +686,7 @@ class TestEditingHarvestedDatasets(CommonFixtureMethods, WsgiAppCase):
         }
         package_dict = _UKLP_DATASET.copy()
 
-        self.uklp_dataset = ckan.logic.get_action('package_create_rest')(context, package_dict)
+        self.uklp_dataset = get_action('package_create_rest')(context, package_dict)
 
         CreateTestData.flag_for_deletion(pkg_names=[self.uklp_dataset['name']])
 
