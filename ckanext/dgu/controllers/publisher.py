@@ -2,10 +2,10 @@ import logging
 from urllib import urlencode
 
 from sqlalchemy.orm import eagerload_all
-from ckanext.dgu.plugins_toolkit import c, request, render, ValidationException, _, ObjectNotFound, NotAuthorized, ValidationError, check_access, get_action
+from ckanext.dgu.plugins_toolkit import c, request, render, _, ObjectNotFound, NotAuthorized, ValidationError, check_access, get_action
 from ckan.lib.base import BaseController, model, h, g
 from ckan.lib.base import abort, gettext
-from pylons.i18n import get_lang,
+from pylons.i18n import get_lang
 import ckan.authz as authz
 from ckan.lib.alphabet_paginate import AlphaPage
 from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
@@ -50,7 +50,7 @@ class PublisherController(GroupController):
             collection=c.all_groups,
             page=request.params.get('page', 'A'),
             alpha_attribute='title',
-            other_text=_('-'),
+            other_text=_('Other'),
         )
 
         return render('publishers/index.html')

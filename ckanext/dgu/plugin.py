@@ -170,28 +170,28 @@ class PublisherPlugin(SingletonPlugin):
     def before_map(self, map):
         pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
         map.connect('publisher_index',
-                    '/publisher',
+                    '/data/publisher',
                     controller=pub_ctlr, action='index')
         map.connect('publisher_edit',
-                    '/publisher/edit/:id',
+                    '/data/publisher/edit/:id',
                     controller='group', action='edit' )
         map.connect('publisher_apply',
-                    '/publisher/apply/:id',
+                    '/data/publisher/apply/:id',
                     controller=pub_ctlr, action='apply' )
         map.connect('publisher_apply_empty',
-                    '/publisher/apply',
+                    '/data/publisher/apply',
                     controller=pub_ctlr, action='apply' )
         map.connect('publisher_users',
-                    '/publisher/users/:id',
+                    '/data/publisher/users/:id',
                     controller=pub_ctlr, action='users' )
         map.connect('publisher_new',
-                    '/publisher/new',
+                    '/data/publisher/new',
                     controller=pub_ctlr, action='new'  )
         map.connect('publisher_report',
-                    '/publisher/report',
+                    '/data/publisher/report',
                     controller=pub_ctlr, action='report' )
         map.connect('publisher_read',
-                    '/publisher/:id',
+                    '/data/publisher/:id',
                     controller=pub_ctlr, action='read' )
         return map
 
@@ -211,7 +211,7 @@ class SearchPlugin(SingletonPlugin):
 
     One thing DGU specific about the search is that DGU facets on
     whether a dataset's license_id is OGL (Open Government License) or not.
-    Since this is calcuable from the license_id, but is not a facet over the
+    Since this is calculable from the license_id, but is not a facet over the
     whole set of possible license_id values (ie. 'ukcrown', 'other' etc. should
     all be grouped together under the 'non-ogl' facet), we index on a field
     that doesn't exist on the dataset itself.  See `SearchPlugin.before_index`.

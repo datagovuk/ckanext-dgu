@@ -1032,7 +1032,13 @@ ul.button-row li {
 /* -------------- */
 
 #sub-publishers li.collapsed {
-    display: none;
+  display: none;
+}
+#publisher-tree.div {
+  background-color: white;
+ }
+.tab-pane .pagination-alphabet a { 
+  padding: 0 5px;
 }
 
 /* Harvest pages */
