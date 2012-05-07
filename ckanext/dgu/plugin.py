@@ -173,29 +173,29 @@ class PublisherPlugin(SingletonPlugin):
     def before_map(self, map):
         pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
         map.connect('publisher_index',
-                    '/data/publisher',
+                    '/publisher',
                     controller=pub_ctlr, action='index')
         map.connect('publisher_edit',
-                    '/data/publisher/edit/:id',
+                    '/publisher/edit/:id',
                     controller='group', action='edit' )
         map.connect('publisher_apply',
-                    '/data/publisher/apply/:id',
+                    '/publisher/apply/:id',
                     controller=pub_ctlr, action='apply' )
         map.connect('publisher_apply_empty',
-                    '/data/publisher/apply',
+                    '/publisher/apply',
                     controller=pub_ctlr, action='apply' )
         map.connect('publisher_users',
-                    '/data/publisher/users/:id',
+                    '/publisher/users/:id',
                     controller=pub_ctlr, action='users' )
         map.connect('publisher_new',
-                    '/data/publisher/new',
+                    '/publisher/new',
                     controller=pub_ctlr, action='new'  )
-        map.connect('/data/publisher/report_groups_without_admins',
+        map.connect('/publisher/report_groups_without_admins',
                     controller=pub_ctlr, action='report_groups_without_admins' )
-        map.connect('/data/publisher/report_users_not_assigned_to_groups',
+        map.connect('/publisher/report_users_not_assigned_to_groups',
                     controller=pub_ctlr, action='report_users_not_assigned_to_groups' )
         map.connect('publisher_read',
-                    '/data/publisher/:id',
+                    '/publisher/:id',
                     controller=pub_ctlr, action='read' )
         return map
 

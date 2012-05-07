@@ -16,7 +16,7 @@ class PublisherNode:
     def linkify(self):
         # Should use
         # h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=self.slug)
-        return "<a href='/data/publisher/%s'>%s</a>" % (self.slug,self.title)
+        return "<a href='/publisher/%s'>%s</a>" % (self.slug,self.title)
 
     def render(self):
         """

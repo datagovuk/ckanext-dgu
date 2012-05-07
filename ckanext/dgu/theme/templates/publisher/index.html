@@ -70,7 +70,7 @@ import json
 
               $.each(data, function(idx, groupobj) {
           var tpl =   '<tr><td>' +
-                  '<a href="/data/publisher/' + groupobj.name + '">' + groupobj.title +
+                  '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
                 '</a></td></tr>';
           $("#search_results").append( tpl );
               });

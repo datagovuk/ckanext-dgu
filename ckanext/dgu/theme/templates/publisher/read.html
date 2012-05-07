@@ -40,12 +40,7 @@
 
     </div>
 
-    <div py:if="c.is_sysadmin" class="facet-box" style="padding:8px; text-align: center;">
-      <h3>System Administrator Tools</h3>
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report')}">Publisher report</a>
-    </div>
-
-    <div py:if="sub_groups" class="facet-box">
+    <div class="facet-box">
       <h3>Sub-Publishers</h3>
       <py:if test="sub_groups">
         <ul id="sub-publishers">
@@ -60,7 +55,9 @@
           <a id="sub-publisher-toggle" href="#" py:if="sub_groups[15:]">(${len(sub_groups[15:])} hidden)</a>
         </div>
       </py:if>
-      <p py:if="sub_groups">No publishers in the hierarchy underneath this one</p>
+      <py:if test="not sub_groups">
+        <p>There are no publishers in the hierarchy underneath this one</p>
+      </py:if>
     </div>
 
     ${facet_filters()}
