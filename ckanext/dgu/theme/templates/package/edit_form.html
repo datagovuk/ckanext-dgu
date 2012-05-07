@@ -1,6 +1,11 @@
+<form id="package-edit" method="post"
+  py:attrs="{'class':'has-errors package_create_form ckan form-horizontal'} if errors else {'class':'package_create_form ckan form-horizontal'}"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+
 <?python 
-# NOTE: I think these are scoped more clearly if we use py:with... 
-# otherwise these values persist beyond this template? 
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
 is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' #<!--! 'edit' as opposed to 'new'-->
@@ -9,12 +14,6 @@ use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you 
 is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
 ?>
-
-<form id="package-edit" method="post"
-  py:attrs="{'class':'has-errors package_create_form ckan form-horizontal'} if errors else {'class':'package_create_form ckan form-horizontal'}"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude">
 
 <div class="error-explanation" py:if="error_summary">
 <h2>Errors in form</h2>
@@ -85,7 +84,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <div class="form-inline instruction-needed well">
         <div class="control-group">
           <label for="update_frequency">Update frequency</label>
-          <select class="js-tooltip span2" id="update_frequency" name="update_frequency" title="How frequently the dataset is updated with new versions.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+          <select class="js-tooltip span2" id="update_frequency" name="update_frequency" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
               <py:for each="freq_name, freq_desc in c.update_frequency">
                 <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
                   ${freq_desc}
@@ -480,7 +479,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <div>
     <p class="field_error" py:if="errors.get('primary_theme', '')">${errors.get('primary_theme', '')}</p>
     <br/>
-    <p>2. Please choose secondary tags with which to tag this data record:</p>
+    <p>2. If there are other themes in this data, select them here:</p>
     <div class="well">
       <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health</label>
       <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment</label>

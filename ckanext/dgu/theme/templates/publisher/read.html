@@ -25,9 +25,6 @@
       <p py:if="not c.administrators.count()">No-one assigned</p>
 
       <h4>Editors:</h4>
-<?python
-import pdb; pdb.set_trace()
-?>
       <ul class="property-list" py:for="editor in c.editors">
         <li>${h.linked_user(editor)}</li>
       </ul>
