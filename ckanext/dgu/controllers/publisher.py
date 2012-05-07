@@ -53,7 +53,7 @@ class PublisherController(GroupController):
             other_text=_('Other'),
         )
 
-        return render('publishers/index.html')
+        return render('publisher/index.html')
 
 
 
@@ -125,8 +125,8 @@ class PublisherController(GroupController):
         data.update(request.params)
 
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
-        c.form = render('publishers/apply_form.html', extra_vars=vars)
-        return render('publishers/apply.html')
+        c.form = render('publisher/apply_form.html', extra_vars=vars)
+        return render('publisher/apply.html')
 
 
     def _add_publisher_list(self):
@@ -208,9 +208,9 @@ class PublisherController(GroupController):
                                 for user in c.group.members_of_type( model.User, 'editor' ).all() )
 
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
-        c.form = render('publishers/users_form.html', extra_vars=vars)
+        c.form = render('publisher/users_form.html', extra_vars=vars)
 
-        return render('publishers/users.html')
+        return render('publisher/users.html')
 
 
 
@@ -364,7 +364,7 @@ class PublisherController(GroupController):
         parent_groups = c.group.get_groups('publisher')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
 
-        return render('publishers/read.html')
+        return render('publisher/read.html')
 
 
     def report(self):
@@ -387,7 +387,7 @@ class PublisherController(GroupController):
         c.non_admin = model.Session.query(model.Group).from_statement(g_query).all()
         c.non_admin_count = len(c.non_admin)
 
-        return render('publishers/report.html')
+        return render('publisher/report.html')
 
 
     def new(self, data=None, errors=None, error_summary=None):
