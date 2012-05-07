@@ -61,7 +61,7 @@
           <h2>Publishers</h2>
           <ul class="facet-options">
             <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
-              <a href="/data/search?publisher=${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
+              <a href="/publisher/${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
             </li>
           </ul>
           <p py:if="not len(h.unselected_facet_items('publisher', limit=1))">No publishers found</p>
