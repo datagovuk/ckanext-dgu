@@ -1028,7 +1028,7 @@ ul.button-row li {
   margin-right: 10px;
 }
 
-/* Publisher page */
+/* Publishers page */
 /* -------------- */
 
 #sub-publishers li.collapsed {
@@ -1043,6 +1043,14 @@ div#publisher-tree {
 table.groups th { 
   text-align: left;
 }
+
+/* Publisher read page */
+/* ------------------- */
+
+#dataset-search-thin input[type="text"] {
+  width: 460px;
+}
+
 
 /* Harvest pages */
 /* ------------- */
