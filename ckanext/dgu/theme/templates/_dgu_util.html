@@ -131,7 +131,7 @@
         tag listing -->
   <py:def function="tag_list_from_name(tags)" class="tags clearfix">
     <py:for each="tag in tags">
-      ${h.link_to(tag, h.url_for(controller='ckanext.dgu.controllers.tag:TagController', action='read', id=tag), class_="tag")}
+      <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
     </py:for>
   </py:def>
 

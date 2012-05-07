@@ -142,7 +142,7 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='index')}">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="${h.url(controller='tag', action='index')}">Tags</a></li>
+      <li><a href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="/organogram">Public Roles &amp; Salaries</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
@@ -174,16 +174,18 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
       <div class="span8 main-outer">
         <div id="main">
           <!-- Content -->
-          <div id="content" class="${(defined('content_class') and content_class()) or 'boxed'}">
+          <div id="content">
             <py:if test="defined('page_heading')">
               <h1>${page_heading()}</h1>
             </py:if>
-            <py:if test="defined('content')">
-              ${content()}
-            </py:if>
-            <content>
-              <p>Master content template placeholder &hellip; please replace me.</p>
-            </content>
+            <div class="${content_class() if defined('content_class') else 'boxed'}">
+              <div py:if="defined('content')">
+                ${content()}
+              </div>
+              <content>
+                <p>Master content template placeholder &hellip; please replace me.</p>
+              </content>
+            </div>
           </div>
         </div><!-- /main -->
       </div><!-- /span8 -->

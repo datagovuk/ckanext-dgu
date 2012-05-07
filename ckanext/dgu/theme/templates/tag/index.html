@@ -4,11 +4,10 @@
   py:strip="">
   
   <py:def function="page_title">Tags</py:def>
+  <py:def function="page_heading">Tags</py:def>
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <h2>Tags</h2>
-
     <table class="search-area">
      <tr>
       <td class="left" py:if="not c.query_error">
@@ -32,8 +31,6 @@
       </td>
      </tr>
     </table>
-    
-    <hr />
     
     ${c.page.pager(q=c.q)}
     <div class="clearfix"></div>

@@ -1,10 +1,11 @@
 from ckan.controllers.tag import TagController as BaseTagController
 from ckan import model
-from ckan.lib.helpers import AlphaPage, Page
+from ckan.lib.helpers import Page
+from ckanext.dgu.lib.alphabet_paginate_large import AlphaPageLarge
 from ckanext.dgu.plugins_toolkit import render, c, request, _, ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access
 from ckan.lib.base import h
 
-LIMIT = 20
+LIMIT = 50
 
 class TagController(BaseTagController):
     def index(self):
@@ -25,7 +26,7 @@ class TagController(BaseTagController):
             data_dict['limit'] = LIMIT
             data_dict['offset'] = (page-1)*LIMIT
             data_dict['return_objects'] = True
-               
+
             result_dict = get_action('tag_search')(context, data_dict)
 
             def pager_url(q=None, page=None):
@@ -41,7 +42,7 @@ class TagController(BaseTagController):
         else:
             results = get_action('tag_list')(context, data_dict)
 
-            c.page = AlphaPage(
+            c.page = AlphaPageLarge(
                 collection=results,
                 page=request.params.get('page', 'A'),
                 alpha_attribute='name',
