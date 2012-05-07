@@ -122,13 +122,13 @@ class DguForm(SingletonPlugin):
 
     def before_map(self, map):
         dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
-        map.connect('/dataset/{id}.{format}', controller=dgu_package_controller, action='read')
-        map.connect('/dataset/{id}', controller=dgu_package_controller, action='read')
-        map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
         map.connect('dataset_new','/dataset/new', controller=dgu_package_controller, action='new')
         map.connect('dataset_edit','/dataset/edit/{id}', controller=dgu_package_controller, action='edit')
         map.connect('/dataset/delete/{id}', controller=dgu_package_controller, action='delete')
         map.connect('dataset_history','/dataset/history/{id}', controller=dgu_package_controller, action='history')
+        map.connect('/dataset/{id}.{format}', controller=dgu_package_controller, action='read')
+        map.connect('/dataset/{id}', controller=dgu_package_controller, action='read')
+        map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
         return map
 
     def after_map(self, map):

@@ -150,7 +150,7 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
       <py:if test="h.check_access('package_create')">
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Publisher tools:</span>
-        <li><a href="${h.url_for(controller='package', action='new')}">Add a Dataset</a></li>
+        <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
       </py:if>
 <?python
 import ckan.authz

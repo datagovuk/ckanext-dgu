@@ -103,9 +103,8 @@ class DatasetForm(SingletonPlugin):
     def package_types(self):
         return ["dgu"]
 
-    # TODO: rename this back, or to something better
     def package_form(self, package_type=None):
-        return 'package_gov3_form_refactor.html'
+        return 'package/edit_form.html'
 
     def setup_template_variables(self, context, data_dict=None, package_type=None):
         c.licenses = model.Package.get_license_options()
