@@ -82,7 +82,7 @@ class PublisherForm(SingletonPlugin):
         Returns a string representing the location of the template to be
         rendered.  e.g. "forms/group_form.html".
         """
-        return 'publisher_form.html'
+        return 'publisher/edit_form.html'
 
     def group_types(self):
         """

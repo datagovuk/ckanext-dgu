@@ -65,6 +65,7 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('/data/search', controller='package', action='search')
         map.connect('/data/api', controller=data_controller, action='api')
+        map.connect('/data/system_dashboard', controller=data_controller, action='system_dashboard')
         map.connect('/comment/get/{id}',
                     controller='ckanext.dgu.controllers.package:CommentProxy',
                     action='get_comments')
@@ -189,9 +190,10 @@ class PublisherPlugin(SingletonPlugin):
         map.connect('publisher_new',
                     '/data/publisher/new',
                     controller=pub_ctlr, action='new'  )
-        map.connect('publisher_report',
-                    '/data/publisher/report',
-                    controller=pub_ctlr, action='report' )
+        map.connect('/data/publisher/report_groups_without_admins',
+                    controller=pub_ctlr, action='report_groups_without_admins' )
+        map.connect('/data/publisher/report_users_not_assigned_to_groups',
+                    controller=pub_ctlr, action='report_users_not_assigned_to_groups' )
         map.connect('publisher_read',
                     '/data/publisher/:id',
                     controller=pub_ctlr, action='read' )

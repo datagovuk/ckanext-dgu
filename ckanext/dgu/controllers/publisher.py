@@ -248,7 +248,7 @@ class PublisherController(GroupController):
 
         context['return_query'] = True
 
-        limit = 20
+        limit = 10
         try:
             page = int(request.params.get('page', 1))
         except ValueError, e:
@@ -353,7 +353,7 @@ class PublisherController(GroupController):
                     {'id': c.group_dict['id']})
 
         c.body_class = "group view"
-        c.is_superuser_or_groupmember = c.userobj and \
+        c.is_sysadmin_or_groupmember = c.userobj and \
                                         (Authorizer().is_sysadmin(unicode(c.user)) or \
                             len( set([c.group]).intersection( set(c.userobj.get_groups('publisher','admin')) ) ) > 0 )
 
@@ -367,7 +367,7 @@ class PublisherController(GroupController):
         return render('publisher/read.html')
 
 
-    def report(self):
+    def report_users_not_assigned_to_groups(self):
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author}
         try:
@@ -376,10 +376,21 @@ class PublisherController(GroupController):
             abort(401, _('Not authorized to see this page'))
 
         query = """SELECT * FROM public.user WHERE id NOT IN
-                (SELECT table_id FROM public.member WHERE table_name='user');"""
+                (SELECT table_id FROM public.member WHERE table_name='user')
+                ORDER BY created desc;"""
         c.unassigned_users = model.Session.query(model.User).from_statement(query).all()
         c.unassigned_users_count = len(c.unassigned_users)
 
+        return render('publisher/report_users_not_assigned_to_groups.html')
+
+
+    def report_groups_without_admins(self):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author}
+        try:
+            check_access('group_create', context)
+        except NotAuthorized:
+            abort(401, _('Not authorized to see this page'))
 
         g_query = """SELECT g.* FROM public.group g WHERE id NOT IN
                     (SELECT group_id FROM public.member WHERE capacity='admin')
@@ -387,7 +398,7 @@ class PublisherController(GroupController):
         c.non_admin = model.Session.query(model.Group).from_statement(g_query).all()
         c.non_admin_count = len(c.non_admin)
 
-        return render('publisher/report.html')
+        return render('publisher/report_groups_without_admins.html')
 
 
     def new(self, data=None, errors=None, error_summary=None):
