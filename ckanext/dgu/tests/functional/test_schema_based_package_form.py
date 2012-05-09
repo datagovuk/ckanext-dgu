@@ -34,7 +34,7 @@ from ckanext.dgu.plugins_toolkit import get_action
 
 class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     """
-    Tests that the various fields are represeted correctly in the form.
+    Test that the various fields are represented correctly in the form.
     """
 
     # Fields we expect to see on the rendered form.
@@ -73,8 +73,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'foi-phone':                (None, 'input'),
 
         # Themes and tags section
-        'primary_theme':        (None, 'select'),
-        'secondary_theme':      (None, 'input'),
+        'theme-primary':        (None, 'select'),
+        'theme-secondary':      (None, 'input'),
         'tag_string':           ('Tags', 'input'),
         'mandate':              ('Mandate', 'input'),
         'license_id':           ('License:', 'select'),
@@ -631,10 +631,10 @@ class TestPackageCreation(CommonFixtureMethods):
         assert_equal(package_data['foi-phone'], pkg.extras['foi-phone'])
 
         # Themes and tags
-        assert_equal(package_data['primary_theme'], pkg.extras['primary_theme'])
+        assert_equal(package_data['theme-primary'], pkg.extras['theme-primary'])
 
-        assert_equal(set(package_data['secondary_theme']),
-                     set(pkg.extras['secondary_theme']))
+        assert_equal(set(package_data['theme-secondary']),
+                     set(pkg.extras['theme-secondary']))
 
         # Health and Education are from the primary and secondary themes, which
         # end up in the tags
@@ -718,7 +718,7 @@ class TestEditingHarvestedDatasets(CommonFixtureMethods, WsgiAppCase):
         form-fields may be invalid or missing (as they cannot easily be populated
         when harvesting):
 
-        * primary_theme
+        * theme-primary
         * resource formats
         * temporal_coverage-{from,to}
         """
@@ -924,8 +924,8 @@ _EXAMPLE_FORM_DATA = {
         ],
 
         # Themes and tags
-        'primary_theme'         : 'Health',
-        'secondary_theme'       : 'Education', # TODO: check multiple boxes
+        'theme-primary'         : 'Health',
+        'theme-secondary'       : 'Education', # TODO: check multiple boxes
         'tag_string'            : 'tag1, tag2, a multi word tag',
 
         # The rest

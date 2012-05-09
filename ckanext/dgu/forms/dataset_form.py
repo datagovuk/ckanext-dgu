@@ -157,7 +157,7 @@ class DatasetForm(SingletonPlugin):
     @property
     def _uklp_sysadmin_schema_updates(self):
         return {
-            'primary_theme': [ignore_missing, unicode, convert_to_extras],
+            'theme-primary': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-from': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-to': [ignore_missing, unicode, convert_to_extras],
             'access_constraints': [ignore_missing, unicode, convert_to_extras],
@@ -222,8 +222,8 @@ class DatasetForm(SingletonPlugin):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'primary_theme': [not_empty, unicode, val.tag_string_convert, convert_to_extras],
-            'secondary_theme': [ignore_missing, val.tag_string_convert, convert_to_extras],
+            'theme-primary': [not_empty, unicode, val.tag_string_convert, convert_to_extras],
+            'theme-secondary': [ignore_missing, val.tag_string_convert, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
             '__extras': [ignore],
@@ -271,8 +271,8 @@ class DatasetForm(SingletonPlugin):
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
-            'primary_theme': [convert_from_extras, ignore_missing],
-            'secondary_theme': [convert_from_extras, ignore_missing],
+            'theme-primary': [convert_from_extras, ignore_missing],
+            'theme-secondary': [convert_from_extras, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],

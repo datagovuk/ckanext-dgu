@@ -453,43 +453,43 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <?python
     import re
     all_tags = [t['name'] for t in data.get('tags', [])]
-    primary_theme = data.get('primary_theme', '')
-    secondary_themes_raw = data.get('secondary_theme', '')
+    theme-primary = data.get('theme-primary', '')
+    secondary_themes_raw = data.get('theme-secondary', '')
     if isinstance(secondary_themes_raw, basestring):
-      secondary_themes= set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('secondary_theme', '')).split(',')))
+      secondary_themes= set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
     else:
       secondary_themes = set(secondary_themes_raw)
-    free_tags = set(all_tags) - set([primary_theme]) - secondary_themes
+    free_tags = set(all_tags) - set([theme-primary]) - secondary_themes
   ?>
 
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
-      <select id="primary_theme" name="primary_theme">
-        <option value="" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == '' else None}">Please select a primary theme...</option>
-        <option value="Health" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Health' else None}">Health</option>
-        <option value="Environment" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Environment' else None}">Environment</option>
-        <option value="Education" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Education' else None}">Education</option>
-        <option value="Finance" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Finance' else None}">Finance</option>
-        <option value="Society" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Society' else None}">Society</option>
-        <option value="Defence" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Defence' else None}">Defence</option>
-        <option value="Transportation" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Transportation' else None}">Transportation</option>
-        <option value="Location" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Location' else None}">Location</option>
-        <option value="Administration" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Administration' else None}">Administration</option>
-        <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('primary_theme', '') == 'Spending Data' else None}">Spending Data</option>
+      <select id="theme-primary" name="theme-primary">
+        <option value="" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == '' else None}">Please select a primary theme...</option>
+        <option value="Health" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Health' else None}">Health</option>
+        <option value="Environment" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Environment' else None}">Environment</option>
+        <option value="Education" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Education' else None}">Education</option>
+        <option value="Finance" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Finance' else None}">Finance</option>
+        <option value="Society" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Society' else None}">Society</option>
+        <option value="Defence" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Defence' else None}">Defence</option>
+        <option value="Transportation" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Transportation' else None}">Transportation</option>
+        <option value="Location" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Location' else None}">Location</option>
+        <option value="Administration" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Administration' else None}">Administration</option>
+        <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Spending Data' else None}">Spending Data</option>
       </select>
     <div>
-    <p class="field_error" py:if="errors.get('primary_theme', '')">${errors.get('primary_theme', '')}</p>
+    <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
     <br/>
     <p>2. If there are other themes in this data, select them here:</p>
     <div class="well">
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data</label>
-      <label class="checkbox"><input type="checkbox" name="secondary_theme" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government</label>
     </div>
     </div>
 
