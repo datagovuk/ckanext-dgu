@@ -1,5 +1,6 @@
 from genshi.input import HTML
 from nose.tools import assert_equal
+import pylons
 
 from ckan.lib.package_saver import PackageSaver
 from ckan.lib.create_test_data import CreateTestData
@@ -45,7 +46,8 @@ class FilterTestCase(PylonsTestCase, HtmlCheckMethods,
         # (filter should not be called on this occasion)
         PackageSaver().render_package(c.pkg_dict,
                                       context)
-        cls.pkg_page = render('package/read.html')
+        cls.pkg_page = render('package/read.html',
+                              extra_vars={'session': pylons.session})
 
         # Expected URLs
         harvest_object_id = c.pkg.extras.get('harvest_object_id')

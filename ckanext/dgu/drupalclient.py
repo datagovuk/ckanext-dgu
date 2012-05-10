@@ -1,3 +1,4 @@
+import re
 import logging
 import socket
 from xmlrpclib import ServerProxy, Fault, ProtocolError
@@ -24,6 +25,9 @@ class DrupalClient(object):
         up in the pylons config.'''
         if xmlrpc_settings and xmlrpc_settings.get('xmlrpc_url'):
             xmlrpc_url = xmlrpc_settings['xmlrpc_url']
+            xmlrpc_url_log_safe = re.sub(':([^@])[^@]*@', r':\1xxx@',
+                                         xmlrpc_url)
+
         else:
             if xmlrpc_settings:
                 domain = xmlrpc_settings.get('xmlrpc_domain')

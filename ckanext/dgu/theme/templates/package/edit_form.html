@@ -453,13 +453,13 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <?python
     import re
     all_tags = [t['name'] for t in data.get('tags', [])]
-    theme-primary = data.get('theme-primary', '')
+    theme_primary = data.get('theme-primary', '')
     secondary_themes_raw = data.get('theme-secondary', '')
     if isinstance(secondary_themes_raw, basestring):
-      secondary_themes= set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
+      secondary_themes = set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
     else:
       secondary_themes = set(secondary_themes_raw)
-    free_tags = set(all_tags) - set([theme-primary]) - secondary_themes
+    free_tags = set(all_tags) - set([theme_primary]) - secondary_themes
   ?>
 
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
@@ -506,7 +506,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </fieldset>
 
 <fieldset class="tab-pane" id="section-additional_resources-field">
-  <h3>Additional resources (optional)</h3>
+  <h3>Additional resources</h3>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="table table-bordered table-striped table-condensed flexitable" id="additional_resources-table">
     <thead>
@@ -583,7 +583,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </fieldset>
 
 <fieldset class="tab-pane" id="section-temporal-field">
-  <h3>Time &amp; date (optional)</h3>
+  <h3>Time &amp; date</h3>
   <div class="control-group">
     <label class="control-label" for="temporal_coverage">Temporal coverage</label>
     <div class="controls">
@@ -665,7 +665,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     </div>
   </div>
   
-  <div class="control-group">
+  <div class="control-group" py:if="data.get('national_statistic', '')">
     <label class="control-label" for="national_statistic">National Statistic</label>
     <div class="controls">
       <div class="checkbox">

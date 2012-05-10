@@ -30,7 +30,8 @@ class DrupalAuthMiddleware(object):
         drupal_session_id = drupal_session_id[0]
         return is_ckan_cookie, drupal_session_id
 
-    def _drupal_cookie_parse(self, cookie_string):
+    @staticmethod
+    def _drupal_cookie_parse(cookie_string):
         '''Returns the Drupal Session ID from the cookie string.'''
         cookies = Cookie.SimpleCookie()
         cookies.load(str(cookie_string))
@@ -40,7 +41,8 @@ class DrupalAuthMiddleware(object):
                 return cookies[cookie].value
         return None
 
-    def _is_this_a_ckan_cookie(self, cookie_string):
+    @staticmethod
+    def _is_this_a_ckan_cookie(cookie_string):
         cookies = Cookie.SimpleCookie()
         cookies.load(str(cookie_string))
         if not 'auth_tkt' in cookies:

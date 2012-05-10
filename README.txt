@@ -82,7 +82,7 @@ To run the tests::
 
 or run them from another directory by specifying the test.ini::
 
-    nosetests {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/ --ckan --with-pylons={pyenv}/src/ckanext-dgu/test.ini {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/
+    nosetests --ckan --with-pylons={pyenv}/src/ckanext-dgu/test.ini {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/
 
 You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see http://docs.ckan.org/en/latest/install-from-source.html . 
 

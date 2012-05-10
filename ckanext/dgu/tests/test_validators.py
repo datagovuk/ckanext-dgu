@@ -25,7 +25,7 @@ class TestMergeResources(object):
         flattened_data = flatten_dict(data)
 
         ignored = {}
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         merge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
 
@@ -57,7 +57,7 @@ class TestMergeResources(object):
         flattened_data = flatten_dict(data)
 
         ignored = {}
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         merge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
 
@@ -120,7 +120,7 @@ class TestMergeResources(object):
         }
         flattened_data = flatten_dict(data)
 
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         # Add some extra fields into errors
         errors[('additional_resources', 0, 'resource_type')] = []
         errors[('additional_resources', 1, 'resource_type')] = []
@@ -163,7 +163,7 @@ class TestUnmergeResources(object):
         flattened_data = flatten_dict(data)
 
         ignored = {}
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         unmerge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
 
@@ -196,7 +196,7 @@ class TestUnmergeResources(object):
         flattened_data = flatten_dict(data)
 
         ignored = {}
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         unmerge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
 
@@ -234,7 +234,7 @@ class TestUnmergeResources(object):
         flattened_data = flatten_dict(data)
 
         ignored = {}
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         unmerge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
 
@@ -268,7 +268,7 @@ class TestUnmergeResources(object):
         flattened_data = flatten_dict(data)
 
         ignored = {}
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         unmerge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
 
@@ -305,7 +305,7 @@ class TestUnmergeResources(object):
         }
         flattened_data = flatten_dict(data)
 
-        errors = {k:[] for k in flattened_data.keys()}
+        errors = dict([(k, []) for k in flattened_data.keys()])
         # Add some extra fields into errors
         errors[('resources', 0, 'foo')] = []
         errors[('resources', 1, 'foo')] = []

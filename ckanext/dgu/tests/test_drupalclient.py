@@ -8,8 +8,9 @@ from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 class TestDrupalConnection(MockDrupalCase):
     def test_get_url(self):
         assert config['dgu.xmlrpc_domain']
-        url = DrupalClient.get_xmlrpc_url()
+        url, url_logsafe = DrupalClient.get_xmlrpc_url()
         assert_equal(url, MOCK_DRUPAL_URL)
+        assert_equal(url_logsafe, MOCK_DRUPAL_URL) # because there's no password
 
     def test_get_user_properties(self):
         drupal_config = get_mock_drupal_config()

@@ -16,7 +16,7 @@ from functools import partial
 import json
 import re
 
-from nose.tools import assert_equal, assert_in, assert_not_in
+from nose.tools import assert_equal
 from nose.plugins.skip import SkipTest
 
 import paste.fixture
@@ -28,7 +28,7 @@ import ckan
 from ckan.lib.create_test_data import CreateTestData
 from ckan.lib.field_types import DateType
 import ckan.model as model
-from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for
+from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for, assert_in, assert_not_in
 from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.plugins_toolkit import get_action
 
@@ -77,7 +77,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'theme-secondary':      (None, 'input'),
         'tag_string':           ('Tags', 'input'),
         'mandate':              ('Mandate', 'input'),
-        'license_id':           ('License:', 'select'),
+        'license_id':           ('Licence:', 'select'),
         'access_constraints':   (None, 'textarea'),
 
         # Additional resources section
@@ -89,7 +89,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'temporal_coverage':            ('Temporal coverage', 'input'),
 
         # Geographic coverage section
-        'geographic_coverage':          ('Geographic coverage', 'input'),
+        'geographic_coverage':          (None, 'input'),
     }
     
     # Fields that shouldn't appear in the form
