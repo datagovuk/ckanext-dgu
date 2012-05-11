@@ -44,7 +44,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p>Please name your data record.</p>
     <label class="control-label" for="title">Name:</label>
     <div class="controls">
-      <input class="field_req js-title js-tooltip input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop."/>
+      <span class="js-tooltip" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop.">
+        <input class="field_req js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+        <img src="/images/information.png"/>
+      </span>
       <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
     </div>
   </div>
@@ -52,7 +55,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
   <div class="control-group">
     <label py:if="not is_edit_form" class="control-label" for="name">Unique identifier for this data record:</label>
     <div class="controls">
-      <input py:if="not is_edit_form" class="field_req js-url-input js-tooltip" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow"/>
+      <span py:if="not is_edit_form" class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
+        <input class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
+        <img src="/images/information.png"/>
+      </span>
       <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
       <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
       <p py:if="not is_edit_form" class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
@@ -108,10 +114,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
       <thead>
         <tr>
-          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
-          <th class="resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
-          <th class="resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
-          <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date:</th>
+          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
+          <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
+          <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
+          <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date: <img src="/images/information-grey.png"/></th>
           <th></th>
         </tr>
       </thead>
@@ -181,9 +187,9 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       <table class="flexitable table table-bordered table-condensed table-striped" id="individual_resources-table">
       <thead>
         <tr>
-          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
-          <th class="resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
-          <th class="resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
+          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
+          <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
+          <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
           <th></th>
         </tr>
       </thead>
