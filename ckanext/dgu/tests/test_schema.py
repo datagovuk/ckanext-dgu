@@ -9,14 +9,13 @@ class TestGeoCoverageType:
     def setup_class(cls):
         cls.expected_data = [
             # str, form, db
-            ('England', ['england'], u'1000000: England'),
-            ('England and Wales', ['england', 'wales'], u'1010000: England, Wales'),
-            ('Scotland', ['scotland'], u'0100000: Scotland'),
-            ('Northern Ireland', ['northern_ireland'], u'0001000: Northern Ireland'),
-            ('GB', ['england', 'scotland', 'wales'], u'1110000: Great Britain (England, Scotland, Wales)'),
-            ('UK', ['england', 'scotland', 'wales', 'northern_ireland'], u'1111000: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
-            ('Not Specified', None, u'0000000: '),
-            ('Local Authority', ['local_authority'], u'0000001: Local Authority'),
+            ('England', ['england'], u'100000: England'),
+            ('England and Wales', ['england', 'wales'], u'101000: England, Wales'),
+            ('Scotland', ['scotland'], u'010000: Scotland'),
+            ('Northern Ireland', ['northern_ireland'], u'000100: Northern Ireland'),
+            ('GB', ['england', 'scotland', 'wales'], u'111000: Great Britain (England, Scotland, Wales)'),
+            ('UK', ['england', 'scotland', 'wales', 'northern_ireland'], u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
+            ('Not Specified', None, u'000000: '),
         ]
             
     def test_str_to_db(self):

@@ -65,6 +65,8 @@ run_database_migrations () {
 
     echo "Tidying resource formats..."
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_resource_types.py" --config "/etc/ckan/$instance/$instance.ini"
+    echo "Tidying package fields..."
+    "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_package_fields.py" --config "/etc/ckan/$instance/$instance.ini"
     echo "Finished tidying resource formats."
 }
 
