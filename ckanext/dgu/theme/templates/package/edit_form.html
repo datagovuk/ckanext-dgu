@@ -26,9 +26,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 <div id="form-tabs" class="tabbable tabs-left">
   <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled'} if use_wizard else {'data-toggle':'tab'}">
     <li class="active"><a id="section-name" href="#section-name-fields" data-toggle="tab">Name</a></li>
-    <li><a id="section-data" py:attrs="boilerplate" href="#section-data-field">Files</a></li>
+    <li><a id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
     <li><a id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
-    <li><a id="section-contacts" py:attrs="boilerplate" href="#section-contacts-field">Contact details</a></li>
+    <li><a id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
+    <li><a id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
     <li><a id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
     <li><a id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
     <li><a id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
@@ -62,8 +63,10 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 </fieldset>
 
 <fieldset class="tab-pane" id="section-data-field">
-  <h3>Files</h3>
-  <p>In this tab you enter the links to the files you wish to add to this record. Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the 25k spend data, where new data is added to the record monthly).</p>
+  <h3>Data Files</h3>
+  <p>In this tab you enter the links to the files containing the actual data at the heart of this record.</p>
+
+  <p>Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the &pound;25k spend data, where a new data file is added to the record monthly).</p>
     <p>This record is:</p>
 
     <label class="radio">
@@ -77,9 +80,9 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <!-- The resource fieldset for a timeseries dataset -->
     <fieldset id="package_type-timeseries" class="well">
-      <h3>Data Files</h3>
+      <p>If your data comes in multiple formats, use a line for each.</p>
 
-      <p>For each format you have a copy of your data in, please add a link below. Use the plus button to add more lines.  You can add links to the website or more information in the 'Additional Resources' section.</p>
+      <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
 
       <div class="form-inline instruction-needed well">
         <div class="control-group">
@@ -104,7 +107,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title:</th>
           <th class="resource-url js-tooltip" title="Where the file is already hosted">URL:</th>
           <th class="resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
-          <th class="resource-date">Date:</th>
+          <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date:</th>
           <th></th>
         </tr>
       </thead>
@@ -167,9 +170,9 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     
     <!-- The resource fieldset for an individual dataset -->
     <fieldset id="package_type-individual" class="well">
-      <h3>Data Files</h3>
+      <p>If your data comes in multiple formats, use a line for each.</p>
 
-      <p>For each format you have a copy of your data in, please add a link below. Use the plus button to add more lines.  You can add links to the website or more information in the 'Additional Resources' section.</p>
+      <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
 
       <table class="flexitable table table-bordered table-condensed table-striped" id="individual_resources-table">
       <thead>
@@ -234,6 +237,20 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+
+</fieldset>
+
+
+<fieldset class="tab-pane" id="section-description-field">
+  <h3>Description</h3>
+  <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
+    <textarea class="field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
+    <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
+    <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
+</fieldset>
+
+<fieldset class="tab-pane" id="section-licence-field">
+  <h3>Licence</h3>
     <?python
       license_id = data.get('license_id', 'uk-ogl')
       license_id_other = data.get('access_constraints', '')
@@ -294,33 +311,24 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
 
     </select>
     <p class="instructions basic">The licence under which the dataset is released.</p>
-    <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the licence in the "Licence detail" box provided.</p>
+    <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
     </div>
     </div>
     
     <div class="control-group">
       <label class="control-label" for="license_extra">Licence (other):</label>
       <div class="controls">
-        <textarea py:if="not license_extra" rows="10" cols="60" id="access_constraints" name="access_constraints">${license_id_other if license_id_other else (license_id if is_other_license else '')}</textarea>
+        <textarea py:if="not license_extra" rows="1" cols="60" id="access_constraints" name="access_constraints">${license_id_other if license_id_other else (license_id if is_other_license else '')}</textarea>
         <textarea py:if="license_extra" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${license_extra}</textarea>
-        <input py:if="license_extra" rows="1" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
+        <input py:if="license_extra" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
 
         <p py:if="errors.get('license_id')" class="field_error" style="display: block;">${errors.get('license_id','')}</p>
       </div>
     </div>
 </fieldset>
 
-
-<fieldset class="tab-pane" id="section-description-field">
-  <h3>Description</h3>
-  <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
-    <textarea class="field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
-    <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
-    <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
-</fieldset>
-
-<fieldset class="tab-pane" id="section-contacts-field">
-  <h3>Contact details</h3>
+<fieldset class="tab-pane" id="section-publisher-field">
+  <h3>Publisher</h3>
     <?python
 
       if not data.get('groups'):
@@ -355,6 +363,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         <p class="field_error" py:if="errors.get('groups', '')">Please select a publisher.</p>
       </div>
     </div>
+  <h3>Contact details</h3>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
     <fieldset id="publisher-information-field" class="well" >
       <h3>Publisher information</h3>
