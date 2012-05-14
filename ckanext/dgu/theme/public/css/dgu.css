@@ -441,6 +441,68 @@ ul.widget-list {
   padding: 14px 17px;
 }
 
+/* Ribbon */
+/* ------ */
+.ribbon-header,
+.ribbon-footer {
+  background-color: #42474B;
+  color: #FFF;
+  min-height: 25px;
+  padding: 0 10px 20px 0;
+  position: relative;
+  -moz-box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+  -webkit-box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.ribbon-header {
+  -moz-border-top-left-radius: 5px;
+  -webkit-border-top-left-radius: 5px;
+  -moz-border-top-right-radius: 5px;
+  -webkit-border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.ribbon-footer {
+  -moz-border-bottom-left-radius: 5px;
+  -webkit-border-bottom-left-radius: 5px;
+  -moz-border-bottom-right-radius: 5px;
+  -webkit-border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  margin: -50px 0 20px 0;
+}
+
+div.node div.ribbon-header {
+  height: 30px;
+  padding: 20px 10px;
+  margin-bottom: 65px;
+}
+div.ribbon-header h2,
+div.block div.ribbon-header h2 {
+  color: #FFF;
+  font-size: 18px;
+  line-height: 24px;
+  padding: 10px 0 0 10px;
+  border: none;
+  background: none;
+}
+
+div.block div.ribbon-header div.feed-icon {
+  position: absolute;
+  right: 10px;
+  top: 14px;
+}
+
+div.first-box-in-ribbon {
+  padding: 10px;
+  margin-top: -30px;
+  position: relative;
+  z-index: 10;
+}
+
+
 
 /* Search box */
 /* ---------- */
@@ -555,12 +617,17 @@ ul.widget-list {
   font-weight: bold;
 }
 .sort-by-controls {
+  padding: 6px 20px 30px 20px;
+  color: #fff;
+}
+.sort-by-controls label {
+  color: #fff;
 }
 .sort-by-controls > * {
   vertical-align: middle;
 }
 .sort-by-controls h4 {
-  color: #656565;
+  white-space: nowrap;
   display: inline-block;
   zoom: 1;
   *display: inline;
@@ -731,7 +798,10 @@ body.login #content {
 /* ------- */
 ul.datasets {
   list-style-type: none;
-  margin: 0;
+  width: 97%;
+  margin: -24px auto 0 auto;0;
+  position: relative;
+  z-index: 1;
 }
 ul.datasets .dataset {
   margin-bottom: 30px;
@@ -1110,68 +1180,6 @@ div#tagcloud {
 }
 .tags li { 
   border: 1px;
-}
-
-/* Ribbon */
-/* ------ */
-
-.ribbon-header,
-.ribbon-footer {
-  background-color: #42474B;
-  color: #FFF;
-  min-height: 25px;
-  padding: 0 10px 20px 0;
-  position: relative;
-  -moz-box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
-  -webkit-box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-.ribbon-header {
-  -moz-border-top-left-radius: 5px;
-  -webkit-border-top-left-radius: 5px;
-  -moz-border-top-right-radius: 5px;
-  -webkit-border-top-right-radius: 5px;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-}
-
-.ribbon-footer {
-  -moz-border-bottom-left-radius: 5px;
-  -webkit-border-bottom-left-radius: 5px;
-  -moz-border-bottom-right-radius: 5px;
-  -webkit-border-bottom-right-radius: 5px;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  margin: -50px 0 20px 0;
-}
-
-div.node div.ribbon-header {
-  height: 30px;
-  padding: 20px 10px;
-  margin-bottom: 65px;
-}
-div.ribbon-header h2,
-div.block div.ribbon-header h2 {
-  color: #FFF;
-  font-size: 18px;
-  line-height: 24px;
-  padding: 10px 0 0 10px;
-  border: none;
-  background: none;
-}
-
-div.block div.ribbon-header div.feed-icon {
-  position: absolute;
-  right: 10px;
-  top: 14px;
-}
-
-div.first-box-in-ribbon {
-  padding: 10px;
-  margin-top: -30px;
-  position: relative;
-  z-index: 10;
 }
 
 /* Comments */

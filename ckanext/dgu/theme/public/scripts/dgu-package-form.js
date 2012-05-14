@@ -142,14 +142,15 @@
       var selectedLicense = $(this).val();
       if(selectedLicense == "uk-ogl"){
         $('#access_constraints').val('');
-        $('#access_constraints').hide();
-        $('label[for="access_constraints"]').hide();
+        $('.choose-other-licence').hide();
       } else {
-        $('#access_constraints').show();
-        $('label[for="access_constraints"]').show();
+        $('.choose-other-licence').show();
       }
     });
     $('#license_id').change();
+
+    /* Can't switch between timeseries/individual if you've got any resources */
+    CKAN.Dgu.setupResourcesToggle();
 
     /* Validate resource buttons */
     $('.validate-resources-button').each(function(index, e){ // validate all resources
@@ -208,6 +209,32 @@ CKAN.Dgu = function($, my) {
         $(e.target).parents('.dgu-editor').find('.dgu-editor-save').click();
       }
     });
+  };
+
+  my.setupResourcesToggle = function() {
+    var elements = $('#package_type-timeseries input[type="text"], #package_type-individual input[type="text"]');
+    /* If any inputs contain text, then disable the radio toggles */
+    var updateToggle = function(e) {
+      var allEmpty = true;
+      $.each(elements, function(i, el) {
+        var v = el.value;
+        if (v.length) {
+          allEmpty = false;
+        }
+      });
+      if (allEmpty) {
+        $('#package_type-individual-radio').removeAttr('disabled');
+        $('#package_type-timeseries-radio').removeAttr('disabled');
+        $('.record-type-disabled').hide();
+      }
+      else {
+        $('#package_type-individual-radio').attr({'disabled':'disabled'});
+        $('#package_type-timeseries-radio').attr({'disabled':'disabled'});
+        $('.record-type-disabled').show();
+      }
+    };
+    elements.change(updateToggle);
+    updateToggle();
   };
 
   my.copyTableRowOnClick = function(button, table) {
