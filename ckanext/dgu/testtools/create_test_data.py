@@ -228,7 +228,18 @@ Alternative title: GDP and Labour Market coherence""",
                 log.debug('No need to make "%s" %s for "%s"', user_name, capacity, publisher_name)                    
                 
         model.Session.commit()        
+
+    @classmethod
+    def create_roles(cls, roles):
+        '''This is just a basic version for CKAN 1.7.1 - the full version
+        will be in CKAN 1.8.'''
+        for subj, role, obj in roles:
+            assert role, obj == ('admin', 'system')
+
+            subj = model.User.by_name(unicode(subj))
+            model.add_user_to_role(subj, model.Role.ADMIN, model.System())
             
+        model.repo.commit_and_remove()
 
     @classmethod
     def create_dgu_test_data(cls):
