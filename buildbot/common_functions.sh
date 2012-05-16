@@ -279,6 +279,7 @@ flush_database () {
 
 create_test_admin_user () {
 
+    local $instance = $1
     local user="ckan$instance"
 
     echo "Creating admin user"
