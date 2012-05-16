@@ -172,7 +172,7 @@ configure () {
              -e "s/^ckan.spatial.dataset_extent_map.routes = .*//" \
              -e "s/^ckan.spatial.dataset_extent_map.map_type = .*//" \
 \
-             -e '/^\[app:main\]$/ a\
+             -e "/^\[app:main\]$/ a\
 openid_enabled = False\
 dgu.admin.name = Test Account\
 dgu.admin.email = david.read@hackneyworkshop.com\
@@ -185,7 +185,7 @@ ckan.enable_call_timing = false\
 ckan.datasets_per_page = 10\
 ckan.spatial.dataset_extent_map.routes = ckanext.dgu.controllers.package:PackageController/read\
 ckan.spatial.dataset_extent_map.map_type = os\
-' \
+" \
              -i.bak "$ini_file"
 
 }

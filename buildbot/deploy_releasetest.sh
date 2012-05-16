@@ -4,7 +4,7 @@
 # Fresh deployment on a new VM
 #############################################################
 
-if [ $# -ne 5 ]
+if [ $# -ne 4 ]
 then
     echo "Usage: `basename $0` repo-name ckan-instance-name domain dgu-branch xmlrpc-password"
     echo "\teg: `basename $0` ckan-1.5.1 std releasetest.ckan.org master super-secret-pass"
@@ -15,9 +15,11 @@ REPO=$1
 INSTANCE=$2
 DOMAIN=$3
 BRANCH=$4
-XMLRPC_PASSWORD=$5
 
 source ./common_functions.sh
+
+# Import $XMLRPC_PASSWORD
+source /home/ubuntu/deployment/xmlrpc.sh
 
 install_ckan $REPO $INSTANCE $DOMAIN
 install_dgu $INSTANCE $BRANCH
