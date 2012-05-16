@@ -147,12 +147,14 @@ configure () {
     local xmlrpc_password=$3
     local ini_file="/etc/ckan/$instance/$instance.ini"
 
+    sudo mv "/etc/ckan/$instance/who.ini" "/etc/ckan/$instance/who.ini.bak"
+    sudo ln -s "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/ckanext/dgu/who.ini" "/etc/ckan/$instance/who.ini"
+
     # Configures the ini file settings
     sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_publisher_form dgu_publishers dgu_drupal_auth dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api spatial_query qa synchronous_search dgu_search dgu_dataset_form spatial_metadata dataset_extent_map os_search os_preview/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU - $instance/" \
              -e "s/^ckan.site_url =.*/ckan.site_url = http:\/\/$domain/" \
              -e "s/^ckan.gravatar_default =.*/ckan.gravatar_default = mm/" \
-             -e "s/^who.config_file =.*/who.config_file = %(here)s\/src\/ckanext-dgu\/ckanext\/dgu\/who.ini/" \
 \
              -e "s/^openid_enabled = .*//" \
              -e "s/^dgu.admin.name = .*//" \
