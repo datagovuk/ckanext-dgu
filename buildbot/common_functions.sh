@@ -190,9 +190,9 @@ flush_database () {
     #
     # Requires 1 argument: the ckan instance name
     
-    if [ $# -ne 2 ]
+    if [ $# -ne 3 ]
     then
-        echo "restore_database() expects 2 arguments: instance dump-fil-location"
+        echo "restore_database() expects 3 arguments: instance dump-fil-location users-file-location"
         exit 1
     fi
 
@@ -204,6 +204,13 @@ flush_database () {
     then
         echo "Can't restore database, dumpfile does not exist: $dump_file"
         exit 1
+    fi
+
+    local users_file=$3
+    if [ ! -e $users_file ]
+    then
+      echo "Can't restore database, users file does not exist: $users_file"
+      exit 1
     fi
 
     local instance=$1
@@ -266,6 +273,9 @@ flush_database () {
 }
 
 create_test_admin_user () {
+
+    local user="ckan$instance"
+
     echo "Creating admin user"
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckan user add test_admin password=password --config=/etc/ckan/$instance/$instance.ini
     sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckan sysadmin add test_admin --config=/etc/ckan/$instance/$instance.ini
