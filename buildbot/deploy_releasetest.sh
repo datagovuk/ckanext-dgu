@@ -21,7 +21,7 @@ source ./common_functions.sh
 
 install_ckan $REPO $INSTANCE $DOMAIN
 install_dgu $INSTANCE $BRANCH
-flush_database $INSTANCE "/home/ubuntu/dgu_live.pg_dump"
+flush_database $INSTANCE "/home/ubuntu/deployment/dgu_live.pg_dump"
 configure $INSTANCE $DOMAIN $XMLRPC_PASSWORD
 create_test_admin_user $INSTANCE
 
