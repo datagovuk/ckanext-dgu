@@ -639,8 +639,8 @@ div.first-box-in-ribbon {
   float: right;
 }
 
-/* Front page */
-/*----------- */
+/* Front page (Data Page) */
+/* ---------------------- */
 .front-page .search-area .left {
   /* Override search form size */
   width: 100px;
@@ -675,7 +675,34 @@ div.first-box-in-ribbon {
   padding-bottom: 8px;
   border-bottom: 1px solid #ccc;
 }
+h2.front-page-no-body {
+  padding-bottom: 0;
+  border-bottom: none;
+}
 
+div#tagcloud {
+  clear: both;
+}
+
+#tagcloud * {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0.9;
+  //line-height: 1.15; /* Fixes clipping on IE7. The "//" is ignored by IE7 */
+}
+
+#tagcloud a {
+  text-decoration: none;
+}
+
+#tagcloud a:hover {
+  text-decoration: underline;
+}
+
+#tagcloud {
+  margin: 10px auto;
+  text-align: center;
+}
 
 /* User page */
 /* --------- */
@@ -1140,33 +1167,6 @@ body.harvest #content{
 .harvest-source-title,
 .harvest-source-config{
     display:none;
-}
-
-/* Data page */
-/* --------- */
-
-div#tagcloud {
-  clear: both;
-}
-
-#tagcloud * {
-  display: inline-block;
-  vertical-align: middle;
-  line-height: 0.9;
-  //line-height: 1.15; /* Fixes clipping on IE7. The "//" is ignored by IE7 */
-}
-
-#tagcloud a {
-  text-decoration: none;
-}
-
-#tagcloud a:hover {
-  text-decoration: underline;
-}
-
-#tagcloud {
-  margin: 10px auto;
-  text-align: center;
 }
 
 /* Tag page */

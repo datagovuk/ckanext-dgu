@@ -13,13 +13,45 @@ has_errors = bool(error_summary) #<!--! validation errors -->
 use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
 is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
+
+if has_errors:
+  # DGU uses different words for things compared to CKAN, so adjust
+  # the language of errors using mappings:
+  field_name_map = {
+        'Groups': 'Publisher',
+        'Individual resources': 'Data Files',
+        'Title': 'Name',
+        'Name': 'Unique identifier',
+        'Notes': 'Description',
+  }
+  field_error_key_map = {
+        'group': 'publisher',
+        'description': 'title',
+  }
+  field_error_value_map = {
+        'That group name or ID does not exist.': 'Missing value',
+  }
+  form_errors_str = []
+  for key, err in error_summary.items():
+    key = field_name_map.get(key, key)
+    if isinstance(err, dict):
+      for map_from, map_to in field_error_key_map.items():
+        if map_from in err.keys():
+          val = err[map_from]
+          err[map_to] = val
+          del err[map_from]
+      for map_from, map_to in field_error_value_map.items():
+        for error_key, error_value in err.items():
+          if error_value == map_from:
+            err[error_key] = map_to
+    form_errors_str.append('%s: %s' % (key, str(err).replace("u'", "'")))
 ?>
 
-<div class="error-explanation" py:if="error_summary">
+<div class="error-explanation" py:if="has_errors">
 <h2>Errors in form</h2>
 <p>The form contains invalid entries:</p>
 <ul>
-  <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+  <li py:for="error_str in form_errors_str">${error_str}</li>
 </ul>
 </div>
 
@@ -44,7 +76,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <p>Please name your data record.</p>
     <label class="control-label" for="title">Name:</label>
     <div class="controls">
-      <span class="js-tooltip" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. It is not a description - save that for the Abstract element. Do not give a trailing full stop.">
+      <span class="js-tooltip" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
         <input class="field_req js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
         <img src="/images/information.png"/>
       </span>
@@ -92,7 +124,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
     <fieldset id="package_type-timeseries" class="well">
       <p>If your data comes in multiple formats, use a line for each.</p>
 
-      <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
+      <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional resources' section.</p>
 
       <div class="form-inline instruction-needed well">
         <div class="control-group">
@@ -172,7 +204,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </tbody>
       </table>
 
-      <p class="field_error" py:if="errors.get('timeseries_resources', '')">Package resource(s) incomplete.</p>
+      <p class="field_error" py:if="errors.get('timeseries_resources', '')">Row(s) partially filled.</p>
       <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
@@ -240,12 +272,12 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
         </py:for>
       </tbody>
       </table>
-      <p class="field_error" py:if="errors.get('individual_resources', '')">Package resource(s) incomplete.</p>
+      <p class="field_error" py:if="errors.get('individual_resources', '')">Row(s) partially filled.</p>
       <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
-    <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
+    <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
 
 </fieldset>
@@ -583,7 +615,7 @@ is_individual_dataset = bool(data.get('individual_resources',[]))
       </py:for>
     </tbody>
     </table>
-    <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Additional resource(s) incomplete.</p>
+    <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Row(s) partially filled.</p>
     <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
     <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
     <br/>

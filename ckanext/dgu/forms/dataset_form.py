@@ -53,8 +53,21 @@ temporal_granularity = [("",""),
                        ("point","point"),
                        ("other","other - please specify")]
 
-def additional_resource_schema():
+def resources_schema():
     schema = default_schema.default_resource_schema()
+    # don't convert values to ints - that doesn't work for extensions
+    # (see conversation with John Glover)
+    schema.update({
+        'created': [ignore_missing],
+        'position': [ignore_missing],
+        'last_modified': [ignore_missing],
+        'cache_last_updated': [ignore_missing],
+        'webstore_last_updated': [ignore_missing]
+    })
+    return schema
+
+def additional_resource_schema():
+    schema = resources_schema()
     schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_additional_resource_types)
     schema['url'] = [not_empty]
@@ -62,7 +75,7 @@ def additional_resource_schema():
     return schema
 
 def individual_resource_schema():
-    schema = default_schema.default_resource_schema()
+    schema = resources_schema()
     schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
     schema['url'] = [not_empty]
@@ -70,7 +83,7 @@ def individual_resource_schema():
     return schema
 
 def timeseries_resource_schema():
-    schema = default_schema.default_resource_schema()
+    schema = resources_schema()
     schema['date'] = [not_empty, unicode, convert_to_extras]
     schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
@@ -168,10 +181,8 @@ class DatasetForm(SingletonPlugin):
         schema = context.get('schema',None)
         if schema:
             return schema
-        elif context.get('for_edit', False):
-            return self.db_to_form_schema()
         else:
-            return default_schema.package_form_schema()
+            return self.db_to_form_schema()
 
     def form_to_db_schema(self, package_type=None):
 
@@ -246,7 +257,7 @@ class DatasetForm(SingletonPlugin):
             'temporal_coverage-to': [convert_from_extras, ignore_missing, date_to_form],
             'taxonomy_url': [convert_from_extras, ignore_missing],
 
-            'resources': default_schema.default_resource_schema(),
+            'resources': resources_schema(),
             'extras': {
                 'key': [],
                 'value': [],

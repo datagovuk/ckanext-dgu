@@ -1,14 +1,7 @@
 """
 High-level functional tests for the create/edit package form.
 
-The new package form is being refactored so as not to use formalchemy.  These
-are the tests for this form.  For tests based on the formalchemy-based form,
-see 'test_package_gov3.py'.
-
 TODO:
-
-[X] Assert all fields are being filled with data correctly
-[X] Test validation of the resource_types: disallow 'docs' for example.
 [ ] Sub-themes
 
 """
@@ -17,7 +10,6 @@ import json
 import re
 
 from nose.tools import assert_equal
-from nose.plugins.skip import SkipTest
 
 import paste.fixture
 
@@ -31,6 +23,7 @@ import ckan.model as model
 from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for, assert_in, assert_not_in
 from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.plugins_toolkit import get_action
+from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 
 class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     """
@@ -106,7 +99,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     # Fields that are still part of the package, but we only
     # expect them to appear on an edit-form, and only then if they
     # have a non-empty value
-    _ignored_fields = (
+    _deprecated_fields = (
         'url',
         'taxonomy_url',
         'date_released',
@@ -192,9 +185,9 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         response = form_client.post_form(package_data)
 
         # Sanity check that the form failed to submit due to the name being missing.
-        assert_in('Name: Missing value', response)
+        assert_in('Unique identifier: Missing value', response)
 
-        # Check the notes fiels separately as it contains a newline character
+        # Check the notes field separately as it contains a newline character
         # in its value.  And the `self.check_named_element()` method doesn't
         # use multi-line regular expressions.
         self.check_named_element(response.body.replace('\n', '__newline__'),
@@ -256,7 +249,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                        'temporal_coverage-to',
                        )
         for field_name in date_fields:
-            expected_field_values[field_name] = _convert_date(expected_field_values[field_name])
+            expected_field_values[field_name] = DateType.db_to_form(expected_field_values[field_name])
 
         # TODO: fix these fields
         del expected_field_values['published_by']
@@ -284,7 +277,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
 
         for field_name, expected_value in expected_field_values.items():
 
-            if field_name not in self._ignored_fields or expected_value:
+            if field_name not in self._deprecated_fields or expected_value:
                 self.check_named_element(response.body,
                                         '(input|textarea|select)',
                                         'name="%s"' % field_name,
@@ -353,24 +346,26 @@ class TestFormValidation(object):
     A suite of tests that check validation of the various form fields.
     """
 
-    def __init__(self):
-        self._form_client = _PackageFormClient()
+    @classmethod
+    def setup_class(cls):
+        cls._form_client = _PackageFormClient()
+        DguCreateTestData.create_dgu_test_data()
 
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         _drop_sysadmin()
 
     def test_title_non_empty(self):
         """Asserts that the title cannot be empty"""
         data = {'title': ''}
         response = self._form_client.post_form(data)
-        assert 'Title: Missing value' in response.body
+        assert 'Name: Missing value' in response.body
 
     def test_name_non_empty(self):
         """Asserts that the name (uri identifier) is non-empty"""
         data = {'name': ''}
         response = self._form_client.post_form(data)
-        assert 'Name: Missing value' in response.body
+        assert 'Unique identifier: Missing value' in response.body
 
     def test_name_rejects_non_alphanumeric_names(self):
         """Asserts that the name (uri identifier) does not allow punctuation"""
@@ -396,14 +391,14 @@ class TestFormValidation(object):
         """Asserts that the abstract cannot be empty"""
         data = {'notes': ''}
         response = self._form_client.post_form(data)
-        assert 'Notes: Missing value' in response.body
+        assert 'Description: Missing value' in response.body
 
     def test_individual_resource_url_non_empty(self):
         """Asserts that individual resources must have url defined"""
         data = {'individual_resources__0__description': 'description with no url',
                 'individual_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Individual resources: {\'url\': [u\'Missing value\']}' in response.body
+        assert 'Data Files: {\'url\': [\'Missing value\']}' in response.body
 
     def test_timeseries_resource_url_non_empty(self):
         """Asserts that timeseries resources must have url defined"""
@@ -411,21 +406,21 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no url',
                 'timeseries_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert_in('Timeseries resources: {\'url\': [u\'Missing value\']}', response.body, response.body)
+        assert_in('Timeseries resources: {\'url\': [\'Missing value\']}', response.body, response.body)
 
     def test_additional_resource_url_non_empty(self):
         """Asserts that additional resources must have url defined"""
         data = {'additional_resources__0__description': 'description with no url',
                 'additional_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Additional resources: {\'url\': [u\'Missing value\']}' in response.body
+        assert 'Additional resources: {\'url\': [\'Missing value\']}' in response.body
 
     def test_individual_resource_description_non_empty(self):
         """Asserts that individual resources must have description defined"""
         data = {'individual_resources__0__url': 'url with no description',
                 'individual_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Individual resources: {\'description\': [u\'Missing value\']}' in response.body
+        assert 'Data Files: {\'title\': [\'Missing value\']}' in response.body
 
     def test_timeseries_resource_description_non_empty(self):
         """Asserts that timeseries resources must have description defined"""
@@ -433,14 +428,15 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no description',
                 'timeseries_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Timeseries resources: {\'description\': [u\'Missing value\']}' in response.body
+        assert 'Timeseries resources: {\'title\': [\'Missing value\']}' in response.body
 
     def test_additional_resource_description_non_empty(self):
         """Asserts that additional resources must have description defined"""
         data = {'additional_resources__0__url': 'url with no description',
                 'additional_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Additional resources: {\'description\': [u\'Missing value\']}' in response.body
+        assert 'Additional resources: {\'title\': [\'Missing value\']}' in response.body, response.body
+        assert 'Row(s) partially filled' in response.body, response.body
 
     def test_timeseries_resource_date_non_empty(self):
         """Asserts that timeseries resources must have date defined"""
@@ -448,40 +444,45 @@ class TestFormValidation(object):
                 'timeseries_resources__0__url': 'url with no date',
                 'timeseries_resources__0__format': 'format with no date',}
         response = self._form_client.post_form(data)
-        assert 'Timeseries resources: {\'date\': [u\'Missing value\']}' in response.body
+        assert 'Timeseries resources: {\'date\': [\'Missing value\']}' in response.body
+
+    def assert_accepts_date(self, field_name, date_str):
+        data = {field_name: date_str}
+        response = self._form_client.post_form(data, id=DguCreateTestData.form_package().id)
+        assert not ("Cannot parse form date" in response.body or\
+                    "Date error reading in format" in response.body), response.body
+
+    def assert_rejects_date(self, field_name, date_str):
+        data = {field_name: date_str}
+        response = self._form_client.post_form(data, id=DguCreateTestData.form_package().id)
+        assert "Cannot parse form date" in response.body or \
+               "Date error reading in format" in response.body, response.body
 
     def test_date_released_only_accepts_well_formed_dates(self):
         """
         Asserts that date_released only accepts dates.
-        
-        TODO: what's the granularity of this field meant to be?  Schema indicates
-              it's very loose, e.g. "Dec/2011", whereas form help indicates it's
-              to the day.
-        TODO: are these even on the new form?
         """
-        raise SkipTest('date_released field needs spec.')
+        self.assert_accepts_date('date_released', '30/12/12')
+        self.assert_accepts_date('date_released', '12/2012')
+        self.assert_accepts_date('date_released', '20-12-2012')
+
+        self.assert_rejects_date('date_released', '2012/12/30')
+        self.assert_rejects_date('date_released', '2012-12-30')
+        self.assert_rejects_date('date_released', '2012-12')
 
     def test_date_updated_only_accepts_well_formed_dates(self):
         """
         Asserts that date_updated only accepts dates.
-        
-        TODO: what's the granularity of this field meant to be?  Schema indicates
-              it's very loose, e.g. "Dec/2011", whereas form help indicates it's
-              to the day.
-        TODO: are these even on the new form?
         """
-        raise SkipTest('date_updated field needs spec.')
+        self.assert_accepts_date('date_updated', '30/12/12')
+        self.assert_rejects_date('date_updated', '2012/12/30')
 
     def test_date_update_future_only_accepts_well_formed_dates(self):
         """
         Asserts that date_update_future only accepts dates.
-        
-        TODO: what's the granularity of this field meant to be?  Schema indicates
-              it's very loose, e.g. "Dec/2011", whereas form help indicates it's
-              to the day.
-        TODO: are these even on the new form?
         """
-        raise SkipTest('date_update_future field needs spec.')
+        self.assert_accepts_date('date_update_future', '30/12/12')
+        self.assert_rejects_date('date_update_future', '2012/12/30')
 
     def test_both_timeseries_and_individual_resources_cannot_be_specified(self):
         """
@@ -655,8 +656,8 @@ class TestPackageCreation(CommonFixtureMethods):
         assert_equal(package_data['mandate'], pkg.extras['mandate'])
         assert_equal(package_data['access_constraints'], pkg.license_id)
 
-        assert_equal(package_data['temporal_coverage-from'], _convert_date(pkg.extras['temporal_coverage-from']))
-        assert_equal(package_data['temporal_coverage-to'], _convert_date(pkg.extras['temporal_coverage-to']))
+        assert_equal(package_data['temporal_coverage-from'], DateType.db_to_form(pkg.extras['temporal_coverage-from']))
+        assert_equal(package_data['temporal_coverage-to'], DateType.db_to_form(pkg.extras['temporal_coverage-to']))
         assert_in('England', pkg.extras['geographic_coverage'])
 
 class TestEditingHarvestedDatasets(CommonFixtureMethods, WsgiAppCase):
@@ -873,14 +874,6 @@ def _flatten_resource_dict(d):
         except:
             pass
     return to_return
-
-def _convert_date(datestring):
-    """
-    Converts a date-string to that rendered by the form.
-
-    It does this by converting to db format, and then back to a string.
-    """
-    return DateType.db_to_form(datestring)
 
 def _create_sysadmin():
     model.repo.new_revision()
