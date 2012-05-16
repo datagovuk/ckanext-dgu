@@ -131,7 +131,7 @@ install_dgu () {
         sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.ckan
     fi
 
-    sudo cp "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml" /etc/solr/conf/schema.xml
+    sudo cp "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.4-dgu.xml" /etc/solr/conf/schema.xml
     sudo /etc/init.d/jetty start
 }
 

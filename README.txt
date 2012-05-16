@@ -45,9 +45,9 @@ and credentials for HTTP Basic Authentication (if necessary)::
     dgu.xmlrpc_username = ckan
     dgu.xmlrpc_password = letmein
 
-The DGU-version of the SOLR schema is required instead of the CKAN 1.3 SOLR schema. Whether you use a single or mult-core SOLR setup, you'll need a link to the DGU SOLR schema like this::
+The DGU-version of the SOLR schema is required instead of the CKAN 1.4 SOLR schema. Whether you use a single or mult-core SOLR setup, you'll need a link to the DGU SOLR schema like this::
 
-    sudo ln -s /home/okfn/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml /etc/solr/conf/schema.xml
+    sudo ln -s /home/okfn/pyenv/src/ckanext-dgu/config/solr/schema-1.4-dgu.xml /etc/solr/conf/schema.xml
 
 
 Usage
