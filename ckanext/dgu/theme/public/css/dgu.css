@@ -513,7 +513,7 @@ div.first-box-in-ribbon {
   width: 100%;
 }
 .search-area .left {
-  width: 200px;
+  width: 280px;
   border-right: 1px solid #ccc;
   padding: 8px;
   vertical-align: middle;
@@ -549,7 +549,7 @@ div.first-box-in-ribbon {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2d3035', endColorstr='#212121',GradientType=0 ); /* IE6-9 */
 }
 .form-search input[type="text"] {
-  width: 486px;
+  width: 480px;
 }
 .form-search input[type="submit"] {
   width: 80px;
