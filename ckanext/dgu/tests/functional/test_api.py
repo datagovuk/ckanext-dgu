@@ -23,9 +23,9 @@ class TestRestApi(ControllerTestCase):
         cls.context = {'model': model, 'session': model.Session,
                        'user': ''}
 
-    def get_package_fixture(self, name):
+    def get_package_fixture(self, name_to_give_the_package):
         pkg = copy.deepcopy(DguCreateTestData._packages[0])
-        pkg['name'] = munge_title_to_name(name)
+        pkg['name'] = munge_title_to_name(name_to_give_the_package)
         return pkg
         
     def test_get_package(self):
@@ -36,26 +36,24 @@ class TestRestApi(ControllerTestCase):
         res = json.loads(result.body)
         assert_equal(res['name'], self.pkg_name)
         assert_equal(res['id'], self.pkg_id)
-        assert_equal(res['notes'], 'Cabinet Office head office energy use updated from on-site meters showing use, cost and carbon impact.')
+        assert_equal(res['notes'], u'Ratings for all articles on the Directgov website.  One data file is available per day. Sets of files are organised by month on the download page')
         assert_equal(res['license_id'], 'uk-ogl')
         assert_equal(res['license'], u'UK Open Government Licence (OGL)')
-        assert_equal(set(res['tags']), set(("cabinet-office", "consumption", "energy", "energy-consumption", "energy-use", "hq-building", "live-data-page", "real-time")))
+        assert_equal(set(res['tags']), set(["article", "cota", "directgov", "information", "ranking", "rating"]))
         assert_equal(res['groups'], ['cabinet-office'])
         extras = res['extras']
         expected_extra_keys = set((
-            'agency', 'categories', 'department', 'date_released',
-            'date_updated', 'date_update_future', 'external_reference',
-            'geographic_coverage', 'geographic_granularity',
-            'national_statistic', 'published_via', 'precision',
-            'temporal_coverage-to', 'temporal_coverage-from',
-            'temporal_granularity', 'taxonomy_url', 'update_frequency'))
+            'access_constraints', 'contact-email', 'contact-name', 'contact-phone',
+            'foi-email', 'foi-name', 'foi-phone', 'geographic_coverage',
+            'mandate', 'temporal_coverage-to', 'temporal_coverage-from',
+            'temporal_granularity'))
         assert set(extras.keys()) >= expected_extra_keys, set(extras.keys()) - expected_extra_keys
-        assert_equal(extras.get('date_released'), '2010-07-30')
+        assert_equal(extras.get('temporal_coverage-from'), '2010-01-01')
         assert_equal(len(res['resources']), 1)
         resource = res['resources'][0]
-        assert_equal(resource['description'], "70 Whitehall energy data")
-        assert_equal(resource['url'], "http://data.carbonculture.net/orgs/cabinet-office/70-whitehall/reports/elec00.csv")
-        assert_equal(resource['format'], "CSV")
+        assert_equal(resource['description'], "Directgov Article Ratings")
+        assert_equal(resource['url'], "http://innovate-apps.direct.gov.uk/cota/")
+        assert_equal(resource['format'], "HTML")
 
     def test_create_package(self):
         test_pkg = self.get_package_fixture('test1')
@@ -70,7 +68,7 @@ class TestRestApi(ControllerTestCase):
         assert_equal(res['title'], test_pkg['title'])
         assert_equal(res['license_id'], test_pkg['license_id'])
         assert_equal(res['groups'], test_pkg['groups'])
-        assert_equal(res['extras'].get('date_released'), test_pkg['extras']['date_released'])
+        assert_equal(res['extras'].get('temporal_coverage-to'), test_pkg['extras']['temporal_coverage-to'])
         assert_equal(res['resources'][0].get('description'), test_pkg['resources'][0]['description'])
         assert_equal(set(res['tags']), set(test_pkg['tags']))
 
@@ -80,7 +78,7 @@ class TestRestApi(ControllerTestCase):
         assert_equal(pkg.name, test_pkg['name'])
         assert_equal(pkg.title, test_pkg['title'])
         assert_equal([grp['name'] for grp in pkg_dict['groups']], test_pkg['groups'])
-        assert_equal(pkg.extras.get('date_released'), test_pkg['extras']['date_released'])
+        assert_equal(pkg.extras.get('temporal_coverage-to'), test_pkg['extras']['temporal_coverage-to'])
         assert_equal(pkg.resources[0].description, test_pkg['resources'][0]['description'])
         assert_equal(set([tag['name'] for tag in pkg_dict['tags']]), set(test_pkg['tags']))
 

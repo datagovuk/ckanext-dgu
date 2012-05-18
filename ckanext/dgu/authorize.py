@@ -62,20 +62,11 @@ def dgu_package_create(context, data_dict):
         # publishers do this
         return {'success': bool(user_publishers)}
 
-    package = get_package_object(context, data_dict)
-    
-    # Only sysadmins can create UKLP packages.
-    # Note: the harvest user *is* a sysadmin
-    # Note: if changing this, check the code and comments in
-    #       ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
-    if package.extras.get('UKLP', '') == 'True':
-        return {'success': False,
-                'msg': _('User %s not authorized to create packages in these groups') % str(user)}
-
     if not user_obj or \
-       not _groups_intersect( user_publishers, package.get_groups('publisher') ):
+       not _groups_intersect( [pub.name for pub in user_publishers],
+                              [pub['name'] for pub in data_dict['groups']] ):
         return {'success': False, 
-                'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
+                'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
 
     return {'success': True}
 
@@ -84,7 +75,7 @@ def dgu_package_update(context, data_dict):
     user = context.get('user')
     user_obj = model.User.get( user )
     package = get_package_object(context, data_dict)
-    
+
     if Authorizer().is_sysadmin(user_obj):
         return {'success': True}
     
@@ -99,7 +90,7 @@ def dgu_package_update(context, data_dict):
     if not user_obj or \
        not _groups_intersect( user_obj.get_groups('publisher'), package.get_groups('publisher') ):
         return {'success': False, 
-                'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
+                'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
 
     return {'success': True}
 

@@ -9,7 +9,7 @@ from functools import partial
 import json
 import re
 
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_raises
 
 import paste.fixture
 
@@ -764,33 +764,36 @@ class TestAuthorization(WsgiAppCase):
     def teardown_class(cls):
         _drop_sysadmin()
 
-    def assert_create(self, user_name, allowed=True):
-        package_data = _EXAMPLE_TIMESERIES_DATA.copy()
-        package_data['name'] = 'tstcreate' + user_name
-        package_data['groups__0__name'] = 'nhs'
-        response = self._form_client.post_form(package_data)
-        assert_equal(response.status, 302)
+    def assert_create_or_edit(self, create_or_edit, user_name, allowed=True):
+        if create_or_edit == 'create':
+            package_data = _EXAMPLE_TIMESERIES_DATA.copy()
+            package_data['name'] = 'tstcreate' + user_name
+            package_data['groups__0__name'] = 'nhs'
+            package_name = package_data['name']
+            package_id = None
+        else:
+            package_data = {}
+            package_id = DguCreateTestData.form_package().id
+            package_name = DguCreateTestData.form_package().name
+        response = self._form_client.post_form(package_data, id=package_id, user_name=user_name, use_sysadmin_to_get_form=True, abort_on_bad_status=False)
         redirect = response.header_dict.get('Location', '')
-        dataset_read_path = '/dataset/%s' % package_data['name']
+        dataset_read_path = '/dataset/%s' % package_name
         if allowed:
+            # 200 means there are form errors
+            assert response.status != 200, response.body
+            # 302 is what is wanted - a redirect to the package read page
+            assert_equal(response.status, 302)
             assert dataset_read_path in redirect, redirect
         else:
+            assert_equal(response.status, 401)
             assert dataset_read_path not in redirect, redirect
+            # also assert that you couldn't get the form in the first place
+            assert_raises(paste.fixture.AppError, self._form_client.post_form, package_data, user_name=user_name, use_sysadmin_to_get_form=False, abort_on_bad_status=False)
 
+    def assert_create(self, user_name, allowed=True):
+        self.assert_create_or_edit('create', user_name, allowed)
     def assert_edit(self, user_name, allowed=True):
-        package_data = {'notes': 'new notes'}
-        package_data['groups__0__name'] = 'nhs'
-        package_name = DguCreateTestData.form_package().name
-        package_id = DguCreateTestData.form_package().id
-        response = self._form_client.post_form(package_data, id=package_id)
-        import pdb; pdb.set_trace()
-        assert_equal(response.status, 302)
-        redirect = response.header_dict.get('Location', '')
-        dataset_read_path = '/dataset/%s' % package_data_name
-        if allowed:
-            assert dataset_read_path in redirect, redirect
-        else:
-            assert dataset_read_path not in redirect, redirect
+        self.assert_create_or_edit('edit', user_name, allowed)
 
     def test_create_by_sysadmin(self):
         self.assert_create('sysadmin', allowed=True)
@@ -822,43 +825,45 @@ class _PackageFormClient(WsgiAppCase):
         _drop_sysadmin()
         self.admin = _create_sysadmin()
 
-    def post_form(self, data, id=None):
+    def post_form(self, data, id=None, user_name=None, use_sysadmin_to_get_form=False,
+                  abort_on_bad_status=True):
         """
         GETs the package-create or package-edit page, fills in the given fields, and POSTs the form.
+        id - package id if you want to edit (otherwise it will create)
+        user_name - of the user you want to do this as (default = sysadmin)
+        abort_on_bad_status - you may not want this, to check the error response details
         """
         if id:
             offset = url_for(controller='package', action='edit', id=id)
         else:
             offset = url_for(controller='package', action='new')
 
-        response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
+        response = self.app.get(offset,
+                                extra_environ={'REMOTE_USER': self.admin if use_sysadmin_to_get_form else (user_name or self.admin)},
+                                )
         
-        # parse the form fields from the html
-        # TODO: there's an obvious deficiency: this will only pick up field
-        #       values if they are declared *after* the field name.
-        form_field_matches = re.finditer('<(input|select|textarea) [^>]*'
-                                         'name="(?P<field_name>[^"]+)"'
-                                         '( [^>]*value="(?P<field_value>[^"]+)")?',
-                                         response.body)
+        # get the form fields and values from the html
+        form = response.forms['package-edit']
+        form_fields = {}
+        for field_name, field_value_obj in form.fields.items():
+            if not field_name:
+                continue
+            form_fields[field_name] = field_value_obj[0].value
 
-        # initialise all fields with an empty string, or with the form's pre-filled value
-        form_fields = dict( (match.group('field_name'), match.groupdict('').get('field_value')) \
-                                for match in form_field_matches)
-        
-        # match <textarea>s which don't have a value="..." attribute
-        textarea_matches = re.finditer('<textarea [^>]*'
-                                        'name="(?P<field_name>[^"]+)"'
-                                        ' ?[^>]*>(?P<field_value>[^>]*)</textarea>',
-                                        response.body)
-        form_fields.update( dict( (match.group('field_name'), match.groupdict('').get('field_value')) \
-                                    for match in textarea_matches) )
-        
         self._assert_not_posting_extra_fields(form_fields.keys(), data.keys())
 
         # and fill in the form with the data provided
         form_fields.update(data)
+
         self._add_generated_fields(form_fields, data.keys())
-        return self.app.post(offset, params=form_fields, extra_environ={'REMOTE_USER': self.admin})
+
+        allowed_status = [200, 201, 302]
+        if not abort_on_bad_status:
+            allowed_status.append(401)
+
+        return self.app.post(offset, params=form_fields,
+                             extra_environ={'REMOTE_USER': user_name or self.admin},
+                             status=allowed_status)
 
     def _add_generated_fields(self, form_fields, keys):
         """
