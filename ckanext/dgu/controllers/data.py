@@ -42,15 +42,15 @@ class DataController(BaseController):
             c.search_facets = query['search_facets']
 
             # group search
-            data_dict = {'order_by': 'packages', 'all_fields': 1}
-            c.groups = get_action('group_list')(context, data_dict)
+            #data_dict = {'order_by': 'packages', 'all_fields': 1}
+            #c.groups = get_action('group_list')(context, data_dict)
         except SearchError, se:
             c.package_count = 0
             c.groups = []
 
-        c.recently_changed_packages_activity_stream = \
-            get_action('recently_changed_packages_activity_list_html')(
-                    context, {})
+        #c.recently_changed_packages_activity_stream = \
+        #    get_action('recently_changed_packages_activity_list_html')(
+        #            context, {})
 
         return render('data/index.html')
 

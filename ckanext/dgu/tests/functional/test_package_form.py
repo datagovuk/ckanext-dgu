@@ -754,6 +754,62 @@ class TestEditingHarvestedDatasets(CommonFixtureMethods, WsgiAppCase):
         for k in new_values.keys():
             assert_equal(new_values[k], pkg_before[k])
 
+class TestAuthorization(WsgiAppCase):
+    @classmethod
+    def setup_class(cls):
+        cls._form_client = _PackageFormClient()
+        DguCreateTestData.create_dgu_test_data()
+        
+    @classmethod
+    def teardown_class(cls):
+        _drop_sysadmin()
+
+    def assert_create(self, user_name, allowed=True):
+        package_data = _EXAMPLE_TIMESERIES_DATA.copy()
+        package_data['name'] = 'tstcreate' + user_name
+        package_data['groups__0__name'] = 'nhs'
+        response = self._form_client.post_form(package_data)
+        assert_equal(response.status, 302)
+        redirect = response.header_dict.get('Location', '')
+        dataset_read_path = '/dataset/%s' % package_data['name']
+        if allowed:
+            assert dataset_read_path in redirect, redirect
+        else:
+            assert dataset_read_path not in redirect, redirect
+
+    def assert_edit(self, user_name, allowed=True):
+        package_data = {'notes': 'new notes'}
+        package_data['groups__0__name'] = 'nhs'
+        package_name = DguCreateTestData.form_package().name
+        package_id = DguCreateTestData.form_package().id
+        response = self._form_client.post_form(package_data, id=package_id)
+        import pdb; pdb.set_trace()
+        assert_equal(response.status, 302)
+        redirect = response.header_dict.get('Location', '')
+        dataset_read_path = '/dataset/%s' % package_data_name
+        if allowed:
+            assert dataset_read_path in redirect, redirect
+        else:
+            assert dataset_read_path not in redirect, redirect
+
+    def test_create_by_sysadmin(self):
+        self.assert_create('sysadmin', allowed=True)
+    def test_create_by_nhsadmin(self):
+        self.assert_create('nhsadmin', allowed=True)
+    def test_create_by_nhseditor(self):
+        self.assert_create('nhseditor', allowed=True)
+    def test_create_by_user(self):
+        self.assert_create('user', allowed=False)
+
+    def test_edit_by_sysadmin(self):
+        self.assert_edit('sysadmin', allowed=True)
+    def test_edit_by_nhsadmin(self):
+        self.assert_edit('nhsadmin', allowed=True)
+    def test_edit_by_nhseditor(self):
+        self.assert_edit('nhseditor', allowed=True)
+    def test_edit_by_user(self):
+        self.assert_edit('user', allowed=False)
+
 class _PackageFormClient(WsgiAppCase):
     """
     A helper object that provides a single method for POSTing a package create form.
@@ -768,7 +824,7 @@ class _PackageFormClient(WsgiAppCase):
 
     def post_form(self, data, id=None):
         """
-        GETs the package-create page, fills in the given fields, and POSTs the form.
+        GETs the package-create or package-edit page, fills in the given fields, and POSTs the form.
         """
         if id:
             offset = url_for(controller='package', action='edit', id=id)

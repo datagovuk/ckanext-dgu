@@ -15,7 +15,8 @@ from ckan.plugins import IPackageController
 from ckan.plugins import ISession
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import dgu_group_update, dgu_group_create, \
-                             dgu_package_update, dgu_extra_fields_editable, \
+                             dgu_package_create, dgu_package_update, \
+                             dgu_extra_fields_editable, \
                              dgu_dataset_delete
 from ckan.lib.helpers import url_for
 import ckanext.dgu
@@ -109,6 +110,7 @@ class AuthApiPlugin(SingletonPlugin):
         return {
             'group_update' : dgu_group_update,
             'group_create' : dgu_group_create,
+            'package_create' : dgu_package_create,
             'package_update' : dgu_package_update,
             'package_extra_fields_editable' : dgu_extra_fields_editable,
             'package_delete': dgu_dataset_delete,

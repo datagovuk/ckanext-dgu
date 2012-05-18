@@ -116,3 +116,6 @@ class TestRestApi(ControllerTestCase):
         
     def test_edit_permissions(self):
         pass
+
+#TODO
+# Check non-allowed theme-primary/secondary

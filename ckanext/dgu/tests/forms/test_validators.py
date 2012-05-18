@@ -2,9 +2,9 @@ from nose.tools import assert_equal, assert_raises
 
 from ckan.lib.navl.dictization_functions import flatten_dict, unflatten, Invalid
 
-from ckanext.dgu.validators import merge_resources, unmerge_resources, \
-                                   validate_additional_resource_types, \
-                                   validate_data_resource_types
+from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
+     validate_additional_resource_types, \
+     validate_data_resource_types
 
 class TestMergeResources(object):
     """

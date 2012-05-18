@@ -19,13 +19,13 @@ import ckan.logic.validators as val
 from ckan.plugins import implements, IDatasetForm, SingletonPlugin
 
 from ckanext.dgu.schema import GeoCoverageType
-from ckanext.dgu.validators import merge_resources, unmerge_resources, \
-                                   validate_resources, \
-                                   validate_additional_resource_types, \
-                                   validate_data_resource_types, \
-                                   validate_license, \
-                                   drop_if_same_as_publisher, \
-                                   populate_from_publisher_if_missing
+from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
+     validate_resources, \
+     validate_additional_resource_types, \
+     validate_data_resource_types, \
+     validate_license, \
+     drop_if_same_as_publisher, \
+     populate_from_publisher_if_missing
 
 geographic_granularity = [('', ''),
                           ('national', 'national'),

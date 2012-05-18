@@ -52,7 +52,37 @@ class DguCreateTestData(CreateTestData):
         ('nhseditor', 'editor', 'nhs'),
         ]
     _packages = [
-        # Form-entered package (form from before June2012)
+        # Package edited on new form (June 2012)
+        {'name': "directgov-cota",
+         'title': "Directgov Article Ratings",
+         'notes': "Ratings for all articles on the Directgov website.  One data file is available per day. Sets of files are organised by month on the download page",
+         'license_id': 'uk-ogl',
+         'tags': ["article", "cota", "directgov", "information", "ranking", "rating"],
+         'groups': ['cabinet-office'],
+         'extras': {
+             'access_constraints': '',
+             'contact-email': '',
+             'contact-name': '',
+             'contact-phone': '',
+             'foi-email': '',
+             'foi-name': '',
+             'foi-phone': '',
+             'geographic_coverage': "000000: ",
+             'mandate': '',
+             'temporal_coverage-to': "",
+             'temporal_coverage-from': "",
+             'temporal_granularity': "",
+             'theme-primary': "Society",
+             'theme-secondary': "",
+             },
+         'resources': [
+             {'url': "http://innovate-apps.direct.gov.uk/cota/",
+              'format': 'HTML',
+              'description': "Directgov Article Ratings",
+              },
+             ]
+         },
+        # Package entered with Old Form (form from before June2012)
         {'name': 'cabinet-office-energy-use',
          'title': 'Cabinet Office 70 Whitehall energy use',
          'notes': """Cabinet Office head office energy use updated from on-site meters showing use, cost and carbon impact.""",
@@ -170,8 +200,65 @@ Alternative title: GDP and Labour Market coherence""",
                   },
               }
              ]
-           }
-        ]
+           },
+        # UKLP dataset
+        {'name': 'cadastreni-wms',
+         'title': "CadastreNI (WMS)",
+         'notes': "WMS",
+         'license_id': None,
+         'extras': {
+             'bbox-east-long': "-5.40566902640608",
+             'temporal_coverage-from': "[]",
+             'resource-type': "service",
+             'bbox-north-lat': "55.3184340550243",
+             'coupled-resource': '[{"href": ["http://webservices.spatialni.gov.uk/arcgis/services/LPS/CadastreNI/MapServer/WMSServer"], "uuid": ["http://webservices.spatialni.gov.uk/arcgis/services/LPS/CadastreNI/MapServer/WMSServer"], "title": []}]',
+             'guid': "5b850805-8c62-4521-9dec-a448dfabe7f3",
+             'bbox-south-lat': "54.0295252443606",
+             'temporal_coverage-to': "[]",
+             'spatial-reference-system': "CRS:84",
+             'spatial': '{"type":"Polygon","coordinates":[[[-5.40566902640608, 54.0295252443606],[-5.40566902640608, 55.3184340550243], [-8.17548890898914, 55.3184340550243], [-8.17548890898914, 54.0295252443606], [-5.40566902640608, 54.0295252443606]]]}',
+             'access_constraints': '["no limitations"]',
+             'contact-email': "suzanne.mclaughlin@dfpni.gov.uk",
+             'bbox-west-long': "-8.17548890898914",
+             'metadata-date': "2012-02-02",
+             'dataset-reference-date': '[{"type": "creation", "value": "2007-05-01"}]',
+             'published_by': 33627,
+             'frequency-of-update': "",
+             'licence': "[]",
+             'harvest_object_id': "55189d47-b1ea-4266-96b1-68cd10a3d0fd",
+             'responsible-party': "LPS (pointOfContact)",
+             'INSPIRE': "True",
+             'spatial-data-service-type': "view",
+             'metadata-language': "eng"             
+            },
+         'resources': [
+             {'hash': "",
+              'description': "Resource locator",
+              'format': "WMS",
+              'mimetype_inner': None,
+              #'webstore_last_updated': None,
+              #'size': None,
+              'mimetype': None,
+              'cache_url': None,
+              'name': "",
+              'url': "http://webservices.spatialni.gov.uk/arcgis/services/LPS/CadastreNI/MapServer/WMSServer",
+              #'cache_last_updated': None,
+              'webstore_url': None,
+              #'last_modified': None,
+              'resource_type': None,
+              'extras': {
+                  'verified_date': "2012-02-23T15:59:18.736889",
+                  'verified': "True",
+                  'resource_locator_function': "",
+                  'resource_locator_protocol': "",
+                  'ckan_recommended_wms_preview': "True",
+                  }
+              },
+             ]
+         },
+        
+         ]     
+             
 
     @classmethod
     def create_publishers(cls, publishers):
@@ -255,5 +342,9 @@ Alternative title: GDP and Labour Market coherence""",
         return model.Package.by_name(u'gdp_and_the_labour_market_')
 
     @classmethod
-    def form_package(cls):
+    def old_form_package(cls):
         return model.Package.by_name(u'cabinet-office-energy-use')
+
+    @classmethod
+    def form_package(cls):
+        return model.Package.by_name(u'directgov-cota')
