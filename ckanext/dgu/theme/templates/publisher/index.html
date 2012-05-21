@@ -68,29 +68,33 @@ import json
 
       $("#search_results").empty();
       $("#search_results").css("display", "block");
-          $.getJSON(url, function(data) {
-
-              $.each(data, function(idx, groupobj) {
-          var tpl =   '<tr><td>' +
-                  '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
-                '</a></td></tr>';
+      $.getJSON(url, function(data) {
+        $.each(data, function(idx, groupobj) {
+          var tpl = '<tr><td>' +
+                    '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
+                    '</a></td></tr>';
           $("#search_results").append( tpl );
-              });
-          });
+        });
+      });
       return false;
     }
 
     $(document).ready(function() {
-      $( "#tabs" ).tabs( {
-        show: function(e, ui) { if ( ui.index == 2 ) { $("#q").focus(); } }
-      });
-
-      $("#publisher-tree").jstree(
-         {"plugins" : ["themes","html_data","ui"]}
-      ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
-
       $("#q").keypress(function(e) {  if (e.which == 13) publisher_search(); });
       $('#q').on('change', function (e) { publisher_search(); })
+
+      $('a[data-toggle="tab"]').on('shown', function (e) {
+        if (e.target.hash == '#publishersearch') {
+          $("#q").focus();
+        };
+      });
+
+      $("#publisher-tree").jstree( {
+       "themes" : {
+         "icons" : false
+        },
+       "plugins" : ["themes","html_data","ui"]}
+      ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
     });
   </script>
   </py:def>
