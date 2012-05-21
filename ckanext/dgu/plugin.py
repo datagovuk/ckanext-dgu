@@ -1,5 +1,4 @@
 import os
-import re
 
 from logging import getLogger
 
@@ -20,6 +19,7 @@ from ckanext.dgu.authorize import dgu_group_update, dgu_group_create, \
                              dgu_dataset_delete
 from ckan.lib.helpers import url_for
 import ckanext.dgu
+from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
 
 log = getLogger(__name__)
@@ -273,110 +273,10 @@ class SearchPlugin(SingletonPlugin):
         Dynamically creates a license_id-is-ogl field to index on, and clean
         up resource formats prior to indexing.
         """
-        from ckan.model.group import Group
-
-        # Dynamically create the license_id-is-ogl field.
-        if not pkg_dict.has_key('license_id-is-ogl'):
-            is_ogl = self._is_ogl(pkg_dict)
-            pkg_dict['license_id-is-ogl'] = is_ogl
-            pkg_dict['extras_license_id-is-ogl'] = is_ogl
-
-        # Clean the resource formats prior to indexing
-        pkg_dict['res_format'] = [ self._clean_format(f) for f in pkg_dict.get('res_format', []) ]
-
-        # Populate group related fields
-        groups = [Group.get(g) for g in pkg_dict['groups']]
-        publishers = [g for g in groups if g.type == 'publisher']
-
-        # Group titles 
-        if not pkg_dict.has_key('group_titles'):
-            pkg_dict['group_titles'] = [g.title for g in groups]
-        else:
-            log.warning('Unable to add "group_titles" to index, as the datadict '
-                        'already contains a key of that name')
-
-        # Each dataset should have exactly one group of type "publisher".
-        # However, this is not enforced in the data model.
-        if len(publishers) > 1:
-            log.warning('Dataset %s seems to have more than one publisher!  '
-                        'Only indexing the first one: %s', \
-                        pkg_dict['name'], repr(publishers))
-            publishers = publishers[:1]
-        elif len(publishers) == 0:
-            log.warning('Dataset %s doesn\'t seem to have a publisher!  '
-                        'Unabled to add publisher to index.',
-                        pkg_dict['name'])
-            return pkg_dict
-
-        # Publisher names
-        if not pkg_dict.has_key('publisher'):
-            pkg_dict['publisher'] = [p.name for p in publishers]
-        else:
-            log.warning('Unable to add "publisher" to index, as the datadict '
-                        'already contains a key of that name')
-
-        # Ancestry of publishers
-        ancestors = []
-        publisher = publishers[0]
-        while(publisher is not None):
-            ancestors.append(publisher)
-            parent_publishers = publisher.get_groups('publisher')
-            if len(parent_publishers) == 0:
-                publisher = None
-            else:
-                if len(parent_publishers) > 1:
-                    log.warning('Publisher %s has more than one parent publisher. '
-                                'Ignoring all but the first. %s',
-                                publisher, repr(parent_publishers))
-                publisher = parent_publishers[0]
-        
-
-        if not pkg_dict.has_key('parent_publishers'):
-            pkg_dict['parent_publishers'] = [ p.name for p in ancestors ]
-        else:
-            log.warning('Unable to add "parent_publishers" to index, as the datadict '
-                        'already contains a key of that name. '
-                        'Package: %s Parent_publishers: %r', \
-                        pkg_dict['name'], pkg_dict['parent_publishers'])
-
-        # Index a harvested dataset's XML content
-        # (Given a low priority when searching)
-        if pkg_dict.get('UKLP', '') == 'True':
-            import ckan
-            from ckan.plugins.toolkit import get_action
-
-            context = {'model': ckan.model,
-                       'session': ckan.model.Session,
-                       'ignore_auth': True}
-
-            data_dict = {'id': pkg_dict.get('harvest_object_id', '')}
-
-            try:
-                harvest_object = get_action('harvest_object_show')(context, data_dict)
-                pkg_dict['extras_harvest_document_content'] = harvest_object.get('content', '')
-            except ObjectNotFound:
-                log.warning('Unable to find harvest object "%s" '
-                            'referenced by dataset "%s"',
-                            data_dict['id'], pkg_dict['id'])
-
+        SearchIndexing.add_field__is_ogl(pkg_dict)
+        SearchIndexing.resource_format_cleanup(pkg_dict)
+        SearchIndexing.add_field__group_titles(pkg_dict)
+        SearchIndexing.add_field__publisher(pkg_dict)
+        SearchIndexing.add_field__harvest_document(pkg_dict)
         return pkg_dict
-
-    _disallowed_characters = re.compile(r'[^a-z]')
-    def _clean_format(self, format_string):
-        if isinstance(format_string, basestring):
-            return re.sub(self._disallowed_characters, '', format_string.lower())
-        else:
-            return format_string
-
-    def _is_ogl(self, pkg_dict):
-        """
-        Returns true iff the represented dataset has an OGL license
-
-        A dataset has an OGL license if the license_id == "uk-ogl"
-        or if it's a UKLP dataset with "Open Government License" in the
-        access_contraints extra field.
-        """
-        regex = re.compile(r'open government licen[sc]e', re.IGNORECASE)
-        return pkg_dict['license_id'] == 'uk-ogl' or \
-               bool(regex.search(pkg_dict.get('extras_access_constraints', '')))
 

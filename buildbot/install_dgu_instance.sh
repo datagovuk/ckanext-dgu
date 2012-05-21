@@ -115,6 +115,7 @@ ckan.enable_call_timing = false\
 ckan.datasets_per_page = 10
 ckan.spatial.dataset_extent_map.routes = ckanext.dgu.controllers.package:PackageController/read
 ckan.spatial.dataset_extent_map.map_type = os
+dgu.resource_formats = CSV CSV/Zip XLS ODS RDF RDF/XML HTML+RDFa PPT ODP SHP KML XBRL SDMX TXT DOC JSON iCal SQL SQL/Zip PDF HTML
 ' \
              -i.bak "$ini_file"
 

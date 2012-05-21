@@ -117,7 +117,7 @@
     <div class="facet-box">
       <h4>UK Location Dataset Type</h4>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
-        ${facet_li('UKLP', label_function=lambda n: 'UKLP', if_empty='UK Location')}
+        ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
         <ul class="facet-options">
           ${facet_li('resource-type')}
         </ul>

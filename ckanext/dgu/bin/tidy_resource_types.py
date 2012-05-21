@@ -17,6 +17,7 @@ from pylons import config
 
 import ckan
 from ckan import model
+from ckanext.dgu.lib.resource_formats import match
 from running_stats import StatsList
 
 def load_config(path):
@@ -26,49 +27,28 @@ def load_config(path):
             conf.local_conf)
 
 res_type_map = {
-    'xls': 'XLS',
-    '.xls': 'XLS',
-    '.XLS': 'XLS',
     'application/x-msexcel': 'XLS',
     'Excel': 'XLS',
-    'excel': 'XLS',
     'ecel': 'XLS',
     'Excel (xls)': 'XLS',
     'Excel (.xls)': 'XLS',
     'osd': 'ODS',
-    'csv': 'CSV',
     'cvs': 'CSV',
     'Zipped CSV': 'CSV/Zip',
     'CSV Zip': 'CSV/Zip',
     'CSV Zipped': 'CSV/Zip',
     '.csv zipped': 'CSV/Zip',
-    '.html': 'HTML',
-    'html': 'HTML',
     'web': 'HTML',
     'Web link': 'HTML',
-    'rdf/xml': 'RDF/XML',
-    'rdf': 'RDF',
-    '.rdf': 'RDF',
-    '.RDF': 'RDF',
     'Portable Document File': 'PDF',
-    'pdf': 'PDF',
-    'PDF ': 'PDF',
-    'pdf file': 'PDF',
     'Adobe PDF': 'PDF',
-    'ppt': 'PPT',
-    'odp': 'ODP',
     'Shapefile': 'SHP',
-    'shp': 'SHP',
-    'kml': 'KML',
     'RDFa': 'HTML+RDFa',
     'plain text': 'txt',
     'doc': 'DOC',
     'Word': 'DOC',
-    'word': 'DOC',
     'Word doc': 'DOC',
-    'zip': 'ZIP',
     'Unverified': '',
-    'json': 'JSON',
     'iCalendar': 'iCal',
     'HTML/iCalendar': 'iCal',
     'HTML/iCal': 'iCal',
@@ -91,6 +71,9 @@ def command(dry_run=False):
             improved_fmt = res_type_map[canonised_fmt]
         else:
             improved_fmt = tidy(res.format)
+        match_ = match(improved_fmt)
+        if match_:
+            improved_fmt = match_
         if (improved_fmt or '') != (res.format or ''):
             if not dry_run:
                 res.format = improved_fmt

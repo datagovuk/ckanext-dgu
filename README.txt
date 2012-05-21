@@ -49,6 +49,9 @@ The DGU-version of the SOLR schema is required instead of the CKAN 1.3 SOLR sche
 
     sudo ln -s /home/okfn/pyenv/src/ckanext-dgu/config/solr/schema-1.3-dgu.xml /etc/solr/conf/schema.xml
 
+You can configure the 'approved' resource formats. These appear in the dataset edit form, and variations on these are standardised when doing search indexing:: 
+
+    dgu.resource_formats = CSV CSV/Zip XLS ODS RDF RDF/XML HTML+RDFa PPT ODP SHP KML TXT DOC JSON iCal SQL SQL/Zip PDF HTML
 
 Usage
 =====

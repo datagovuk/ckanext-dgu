@@ -160,6 +160,9 @@
       CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
     });
 
+    /* Resource format autocomplete */
+    $('.format-typeahead').typeahead({source: DGU_RESOURCE_FORMATS, items:5});
+
   });
 }(jQuery));
 
@@ -482,7 +485,8 @@ CKAN.Dgu = function($, my) {
           for(var i=0; i<data.length; i++){
             // Populate the format field (if it isn't "htm" or "html")
             var formatField = $(this[i]).find('input[id$="__format"]');
-            if(formatField.val().trim() == "" && !data[i].inner_format.match(/^html?$/) ){
+            var fmt = data[i].inner_format
+            if(formatField.val().trim() == "" && !fmt.match(/^html?$/) ){
               formatField.val(data[i].inner_format);
             }
 

@@ -254,6 +254,14 @@ if has_errors:
                        class="validate-resource-button btn btn-small"
                        value="Check"/>
               </span>
+              <input py:when="col=='format'"
+                     id="individual_resources__${num}__${col}"
+                     name="individual_resources__${num}__${col}"
+                     type="text"
+                     value="${res.get(col, '')}"
+                     data-provider="typeahead"
+                     data-items="8"
+                     py:attrs="{'class': 'input-small format-typeahead field_error' if cell_has_error else 'input-small format-typeahead'}"/>
               <input py:otherwise=""
                      id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
