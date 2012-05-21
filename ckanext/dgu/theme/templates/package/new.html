@@ -26,6 +26,14 @@
 
 <head py:match="head">
     ${select('*')}
+      <script type="text/javascript">
+<?python
+from ckanext.dgu.lib.resource_formats import get_all
+import json
+resource_formats = json.dumps(get_all())
+?>
+        DGU_RESOURCE_FORMATS = ${resource_formats}
+      </script>
     <script type="text/javascript" src="/scripts/dgu-package-form.js"></script>
     <script type="text/javascript" src="/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js"></script>
 </head>
