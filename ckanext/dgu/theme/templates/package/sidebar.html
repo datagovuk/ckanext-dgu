@@ -8,33 +8,67 @@
 
 
 <py:match path="primarysidebar">
-  <li py:if="c.pkg.license_id" id="dataset-license" class="widget-container">
+<?python
+if c.pkg.license and c.pkg.license.url:
+  license_url = c.pkg.license.url
+else:
+  license_url = None
+
+licenses = [] # (title, isopen)
+if c.pkg.license:
+  licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
+licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
+if licence_extra:
+  licenses.append(((licence_extra, True) if 'OGL' in licence_extra else None))
+access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
+?>
+  <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
     <h3>Licence</h3>
-    <ul>
-    <li property="dc:rights">
+    <div property="dc:rights">
+     <ul>
       <py:choose test="">
-        <py:when test="c.pkg.license and c.pkg.license.url">
-          <a href="${c.pkg.license.url}" rel="dc:rights">"${c.pkg.license.title.split('::')[-1]}"</a>
+        <py:when test="license_url and licenses">
+          <li py:for="license, isopen in licenses">
+            <a href="${license_url}" rel="dc:rights">${license}</a>
+            <py:if test="isopen">
+              <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+                <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+              </a> 
+            </py:if>
+            <py:if test="isopen == False">
+              <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+            </py:if>
+          </li>
         </py:when>
-        <py:when test="c.pkg.license">
-          "${c.pkg.license.title}" 
+        <py:when test="licenses">
+          <li py:for="license, isopen in licenses">
+            ${license}
+            <py:if test="isopen">
+              <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+                <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+              </a> 
+            </py:if>
+            <py:if test="isopen == False">
+              <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+            </py:if>
+          </li>
+        </py:when>
+        <py:when test="c.pkg.license_id">
+          <li>${c.pkg.license_id}</li>
         </py:when>
         <py:otherwise>
-          "${c.pkg.license_id}" 
+          <li>No licence specified</li>
         </py:otherwise>
       </py:choose>
-      <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
-    </li>
-
-    <py:if test="c.pkg.isopen()">
-    <li>
-      <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-          <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
-      </a>
-    </li>
-    </py:if>
-    </ul>
-  </li>
+      <py:if test="access_constraints">
+        <li> 
+          Access constraints: 
+          ${c.pkg.extras.get('access_constraints').strip('"[]')}
+        </li>
+      </py:if>
+     </ul>
+    </div>
+  </div>
 
   <li class="widget-container">
     <h3>Feedback</h3>

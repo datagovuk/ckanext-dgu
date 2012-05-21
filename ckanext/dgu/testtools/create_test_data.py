@@ -206,6 +206,7 @@ Alternative title: GDP and Labour Market coherence""",
          'title': "CadastreNI (WMS)",
          'notes': "WMS",
          'license_id': None,
+         # no groups (!)
          'extras': {
              'bbox-east-long': "-5.40566902640608",
              'temporal_coverage-from': "[]",

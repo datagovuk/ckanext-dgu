@@ -20,6 +20,10 @@ jQuery(function ($) {
       e.preventDefault();
       window.location = $(this).val()
     });
+    $('input[name="publisher-results-include-subpub"]').change(function(e){
+      e.preventDefault();
+      window.location = $(this).val()
+    });
   });
 })
 

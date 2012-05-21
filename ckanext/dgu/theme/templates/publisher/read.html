@@ -3,7 +3,8 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <xi:include href="../facets.html" />
+  <xi:include href="publisher_util.html" />
+
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">${c.group.display_name}
   <py:def function="content_class"><!--unboxed--></py:def>
@@ -42,26 +43,34 @@
 
     </div>
 
-    <div class="facet-box">
+    <div class="boxed">
       <h3>Publisher Hierarchy</h3>
+      <div id="publisher-tree">
+<?python
+from ckanext.dgu.lib.helpers import render_mini_tree
+?>
+       ${Markup(render_mini_tree(c.parent_publisher, c.group, sub_groups))}
+      </div>
+
+      <br/>
       <div py:if="c.parent_publisher">
           <a href="${h.url_for('publisher_read', id=c.parent_publisher.name)}">
             ${c.parent_publisher.title}
           </a>
           <br />
-          |_
+          <i class="icon-arrow-up indent1"></i>
           <br />
       </div>
 
-      <div>
+      <div class="indent1">
             <strong>${c.group.title}</strong>
       </div>
             
       <py:if test="sub_groups">
-          |_
+          <i class="icon-arrow-up indent2"></i>
           <br />
-        <ul id="sub-publishers">
-          <li py:for='g in sub_groups[:15]'>
+        <ul id="sub-publishers" class="arrow-list indent2">
+          <li py:for='g in sub_groups[:15]' class="indent2">
             <a href="${h.url_for('publisher_read', id=g.name)}">${g.title}</a>
           </li>
           <li py:for="g in sub_groups[15:]" class="collapsed">
@@ -94,11 +103,10 @@
     </div>
 
     <div class="group-dataset-list">
-      <h3>Datasets</h3>
       <div class="boxed search-area-box">
 
           <form id="dataset-search-thin" class="form-search dataset-search" method="GET">
-            <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+            <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />
 
             <py:for each="(k, v) in c.fields">
               <input type="hidden" name="${k}" value="${v}" />
@@ -107,16 +115,27 @@
           </form>
 
           <div>
-            <a py:if="not c.restricted_to_publisher" href="${c.drill_down_url(publisher=c.group.name)}">[x] Show datasets from sub-publishers (in addition to those from ${c.group.title})</a>
-            <a py:if="c.restricted_to_publisher"  href="${c.remove_field('publisher', c.group.name)}">[ ] Show datasets from sub-publishers (in addition to those from ${c.group.title})</a>
+            <form action="">
+              <label class="checkbox">
+                <input type="checkbox" name="publisher-results-include-subpub" value="${c.drill_down_url(publisher=c.group.name) if not c.restricted_to_publisher else c.remove_field('publisher', c.group.name)}" class="inline" py:attrs="{'checked': 'checked'} if not c.restricted_to_publisher else {}"/>
+                Include datasets from sub-publishers
+              </label>
+            </form>
           </div>
 
           <p><span py:if="c.q">You searched for "${c.q}". </span>${c.page.item_count} datasets found.</p>
 
       </div>
 
-      ${package_list_from_dict(c.page.items)}
-      ${c.page.pager()}
+      <div py:if="c.page.items">
+        <h3>Datasets:</h3>
+        <!--!<div class="clearfix">&nbsp;</div>-->
+        <div class="ribbon-header" />
+        ${package_list_from_dict(c.page.items)}
+        <div class="ribbon-footer" />
+        ${c.page.pager()}
+
+      </div>
     </div>
   </py:match>
 
@@ -125,6 +144,23 @@
     href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
   <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History"
     href="${h.url_for(controller='revision', action='list', format='atom', days=1)}" />
+  </py:def>
+
+  <py:def function="optional_footer">
+    <script src="${g.site_url}/scripts/vendors/jstree/jquery.jstree.js"></script>
+    <link rel="stylesheet" href="/scripts/vendors/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#publisher-tree").jstree(
+           {"plugins" : ["themes","html_data","ui"],
+            "core": {
+                "load_open" : true,
+                "initially_open" : ["node_${c.parent_publisher.name if c.parent_publisher else ''}", "node_${c.group.name}"]
+            }
+           }
+        ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
+      });
+    </script>
   </py:def>
 
   <xi:include href="../layout.html" />

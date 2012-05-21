@@ -63,7 +63,7 @@
         </div>
 
         ${package_list_from_dict(c.page.items)}
-        <div class="ribbon-footer"></div>
+        <div class="ribbon-footer" py:if="c.page.item_count"></div>
         <py:with vars="pager = c.page.pager(q=c.q)">
           <div py:if="pager" class="pager-container">
             ${pager}

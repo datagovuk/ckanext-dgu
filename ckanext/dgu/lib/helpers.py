@@ -61,6 +61,10 @@ def render_tree(groups,  type='publisher'):
     root = PublisherNode( "root", "root")
     tree = { root.slug : root }
 
+    # Get all the member objects between groups.
+    # For each member:
+    #    .group_id is the group
+    #    .table_id is the parent group
     members = model.Session.query(model.Member).\
                 join(model.Group, model.Member.group_id == model.Group.id).\
                 filter(model.Group.type == 'publisher').\
@@ -98,6 +102,35 @@ def render_tree(groups,  type='publisher'):
                     tree[parent_slug] = PublisherNode('', '')
                 tree[parent_slug].children.append(tree[slug])
 
+    return root.render()
+
+def render_mini_tree(parent_group, this_group, subgroups):
+    '''Render a tree, but a special case, where there is one 'parent' (optional),
+    the current group and any number of subgroups under it.'''
+    from ckan import model
+
+    root = PublisherNode( "root", "root")
+    tree = { root.slug : root }
+    current_parent = root
+
+    def add_node(parent_node, group, tree, bold=False):
+        slug, title = group.name, group.title
+        if bold:
+            title = '<strong>%s</strong>' % title
+        node = PublisherNode(slug, title)
+        tree[slug] = node
+        parent_node.children.append(node)
+        return node
+
+    if parent_group:
+        current_parent = add_node(root, parent_group, tree)
+
+    this_group_node = add_node(current_parent, this_group, tree, bold=True)
+
+    if subgroups:
+        for group_ in subgroups:
+            add_node(this_group_node, group_, tree)
+    
     return root.render()
 
 def get_wms_info(pkg_dict):
