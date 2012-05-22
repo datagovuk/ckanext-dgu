@@ -921,6 +921,11 @@ td.dataset-label {
 .map-buttons { 
   padding: 7px;
  }
+#spatial-map {
+  height: 220px;
+  width: 400px;
+}
+
 
 /* Resources */
 /* --------- */

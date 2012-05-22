@@ -71,8 +71,16 @@
             </py:for>
           </ul>
         </py:if>
-
-        ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
+ 
+        <div py:if="pkg_extras.get('spatial')" class="subsection">
+          <br />
+          <h3>Dataset Extent</h3>
+          <div id='spatial-map'/>
+          <div class="right">
+            ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
+          </div>
+          <br/>
+        </div>
 
         <py:if test="additional_resources or gemini_resources"> 
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
