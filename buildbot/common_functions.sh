@@ -173,18 +173,18 @@ configure () {
              -e "s/^ckan.spatial.dataset_extent_map.map_type = .*//" \
 \
              -e "/^\[app:main\]$/ a\
-openid_enabled = False\
-dgu.admin.name = Test Account\
-dgu.admin.email = david.read@hackneyworkshop.com\
-search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl publisher\
-ckan.spatial.srid = 4258\
-dgu.xmlrpc_username = CKAN_API\
-dgu.xmlrpc_password = $xmlrpc_password\
-dgu.xmlrpc_domain = $domain\
-ckan.enable_call_timing = false\
-ckan.datasets_per_page = 10\
-ckan.spatial.dataset_extent_map.routes = ckanext.dgu.controllers.package:PackageController/read\
-ckan.spatial.dataset_extent_map.map_type = os\
+openid_enabled = False\\
+dgu.admin.name = Test Account\\
+dgu.admin.email = david.read@hackneyworkshop.com\\
+search.facets = groups tags res_format license resource-type UKLP license_id-is-ogl publisher\\
+ckan.spatial.srid = 4258\\
+dgu.xmlrpc_username = CKAN_API\\
+dgu.xmlrpc_password = $xmlrpc_password\\
+dgu.xmlrpc_domain = $domain\\
+ckan.enable_call_timing = false\\
+ckan.datasets_per_page = 10\\
+ckan.spatial.dataset_extent_map.routes = ckanext.dgu.controllers.package:PackageController/read\\
+ckan.spatial.dataset_extent_map.map_type = os\\
 " \
              -i.bak "$ini_file"
 
@@ -279,7 +279,7 @@ flush_database () {
 
 create_test_admin_user () {
 
-    local $instance = $1
+    local instance=$1
     local user="ckan$instance"
 
     echo "Creating admin user"
