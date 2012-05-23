@@ -115,7 +115,7 @@ class SearchIndexing(object):
            (Given a low priority when searching)'''
         if pkg_dict.get('UKLP', '') == 'True':
             import ckan
-            from ckan.plugins.toolkit import get_action
+            from ckanext.dgu.plugins_toolkit import get_action
 
             context = {'model': ckan.model,
                        'session': ckan.model.Session,
