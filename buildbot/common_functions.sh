@@ -145,6 +145,7 @@ configure () {
     local instance=$1
     local domain=$2
     local xmlrpc_password=$3
+    local tiles_apikey=$4
     local ini_file="/etc/ckan/$instance/$instance.ini"
 
     sudo mv "/etc/ckan/$instance/who.ini" "/etc/ckan/$instance/who.ini.bak"
@@ -176,6 +177,7 @@ configure () {
              -e "s/^ckan.datasets_per_page = .*//" \
              -e "s/^ckan.spatial.dataset_extent_map.routes = .*//" \
              -e "s/^ckan.spatial.dataset_extent_map.map_type = .*//" \
+             -e "s/^ckanext-os.tiles.apikey = .*//" \
 \
              -e "/^\[app:main\]$/ a\
 openid_enabled = False\\
@@ -190,6 +192,7 @@ ckan.enable_call_timing = false\\
 ckan.datasets_per_page = 10\\
 ckan.spatial.dataset_extent_map.routes = ckanext.dgu.controllers.package:PackageController/read\\
 ckan.spatial.dataset_extent_map.map_type = os\\
+ckanext-os.tiles.apikey = $tiles_apikey\\
 " \
              -i.bak "$ini_file"
 
