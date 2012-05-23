@@ -818,6 +818,9 @@ body.login #content {
   vertical-align: top;
   margin-right: 8px;
 }
+ul.property-list {
+  margin-bottom: 10px;
+}
 
 
 
@@ -1142,6 +1145,12 @@ table.groups th {
   /* Override search form size */
   width: 200px;
 }
+/* Hacks from jstree.com to allow word wrapping on publisher tree lines. */
+.jstree-wordwrap a { white-space:normal !important; height: auto !important; padding:1px 2px; }
+.jstree-wordwrap li { overflow: hidden; overflow-y: visible; }
+.jstree-wordwrap li > ins { vertical-align:top; }
+.jstree-wordwrap .jstree-hovered, #demo4 .jstree-clicked { border:0; }
+
 
 /* Publisher read page */
 /* ------------------- */
