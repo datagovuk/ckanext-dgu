@@ -85,17 +85,16 @@ if has_errors:
   </div>
   
   <div class="control-group">
-    <label py:if="not is_edit_form" class="control-label" for="name">Unique identifier for this data record:</label>
+    <label class="control-label" for="name">Unique identifier for this data record:</label>
     <div class="controls">
-      <span py:if="not is_edit_form" class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
-        <input class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
+      <span class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
+        <div class="input-prepend">
+          <span class="add-on">/dataset/</span><input py:attrs="{'disabled':'disabled'} if is_edit_form else {}" class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
+        </div>
         <img src="/images/information-grey.png"/>
       </span>
-      <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
       <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
-      <p py:if="not is_edit_form" class="js-url-is-valid"><span style="font-weight: bold; color: #0c0">This URL is available!</span></p>
-      <p py:if="not is_edit_form">This will locate this dataset here: <span class="js-url-text url-text" id="package_url">${g.site_url}/dataset/<span class="js-url-suffix"></span></span></p>
-      <p py:if="is_edit_form"><b>The dataset is located here: </b><a href="${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}">${g.site_url}${h.url_for(controller='package', action='read', id=data.get('name'))}</a></p>
+      <p py:if="not is_edit_form" class="js-url-is-valid">&nbsp;</p>
     </div>
   </div>
 </fieldset>

@@ -1114,6 +1114,16 @@ ul.button-row li {
 /* Publishers page */
 /* -------------- */
 
+hr.extras-divider {
+  border: none;
+  border-bottom: 1px dashed #ddd;
+  width: 65%;
+}
+span.extras-label {
+  display: inline-block;
+  min-width: 50px;
+  text-align: right;
+}
 #sub-publishers li.collapsed {
   display: none;
 }

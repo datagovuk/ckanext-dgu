@@ -33,7 +33,7 @@
     /* URL auto-completion */
     if (isDatasetNew) {
       // Set up magic URL slug editor
-      var urlEditor = CKAN.Dgu.UrlEditor({ 'slugType': 'package'});
+      var urlEditor = new CKAN.Dgu.UrlEditor({ 'slugType': 'package'});
       $("#title").focus();
     }
 

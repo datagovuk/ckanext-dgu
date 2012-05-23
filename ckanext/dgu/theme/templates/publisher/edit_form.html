@@ -1,9 +1,14 @@
-
 <form id="publisher-edit" action="" method="post"
+    class="form-horizontal"
     py:attrs="{'class':'has-errors'} if errors else {}"
     xmlns:i18n="http://genshi.edgewall.org/i18n"
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude">
+    <script>
+      $(function() {
+        new CKAN.Dgu.UrlEditor({slugType:'group'});
+      });
+    </script>
 
 <div class="error-explanation" py:if="error_summary">
 <h2>Errors in form</h2>
@@ -18,157 +23,169 @@
 
 
 <fieldset id="basic-information">
-  <dl>
-    <dt><label class="field_opt" for="name">Publisher name</label></dt>
-    <dd>
-		<input py:if="not c.group or c.is_sysadmin" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
-		<span py:if="c.group and not c.is_sysadmin" class="js-title">
-			${data.get('title', '')}
-		</span>
+  <div class="control-group">
+    <label class="control-label" for="name">Publisher name asdf</label>
+    <div class="controls">
+      <input py:if="not c.group or c.is_sysadmin" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+      <span py:if="c.group and not c.is_sysadmin" class="js-title">
+        ${data.get('title', '')}
+      </span>
+      <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
+    </div>
+  </div>
 
-	</dd>
-
-
-        <dd class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</dd>
-
-    <dt><label class="field_opt" for="title">Url</label></dt>
-    <dd class="name-field">
-      <span class="js-url-text url-text">${g.site_url+h.url_for('publisher_index')+'/'}<span class="js-url-viewmode js-url-suffix">&nbsp;</span><a style="display: none;" href="#" class="url-edit js-url-editlink js-url-viewmode">(edit)</a></span>
-      <input style="display: none;" id="name" maxlength="100" name="name" type="text" class="url-input js-url-editmode js-url-input" value="${data.get('name', '')}" />
+  <div class="control-group">
+    <label class="control-label" for="title">Url</label>
+    <div class="controls name-field">
+      <div class="input-prepend">
+        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" />
+      </div>
       <p class="js-url-is-valid">&nbsp;</p>
-    </dd>
-    <dd style="display: none;" class="js-url-editmode instructions basic">2+ chars, lowercase, using only 'a-z0-9' and '-_'</dd>
+      <p>2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
+      <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
+    </div>
+  </div>
 
+  <div class="control-group">
+    <label class="control-label" for="title">Publisher Description</label>
+    <div class="controls description-field">
+      <textarea style="width: 350px;" rows="3" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
+    </div>
+  </div>
 
-    <dt class="description-label"><label class="field_opt" for="title">Publisher Description</label></dt>
-    <dd class="description-field"><div class="markdown-editor">
-      <ul class="button-row">
-        <li><button class="pretty-button js-markdown-edit depressed">Edit</button></li>
-        <li><button class="pretty-button js-markdown-preview">Preview</button></li>
-      </ul>
-      <textarea class="markdown-input" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
-      <div class="markdown-preview" style="display: none;"></div>
-      <span class="hints">You can use <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown formatting</a> here.</span>
-    </div></dd>
+  <div class="control-group">
+    <label py:if="c.is_superuser_or_groupadmin" class="control-label" for="parent">Parent publisher</label>
+    <div class="controls">
+      <py:if test="c.group and not c.is_sysadmin">
+        <span py:if="c.parent is not None" class="js-title">
+          ${c.parent.title}
+        </span>
+        <span py:if="c.parent is None" class="js-title">
+          No parent publisher
+        </span>
+      </py:if>
+      <py:if test="c.is_sysadmin" class="parent-field">
+        <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
+          <option value=""></option>
+          <py:for each="pg in c.possible_parents">
+            <option py:attrs="{'selected': 'selected' if c.parent and pg.id == c.parent.id else None}" value="${pg.id}">${pg.title}</option>
+          </py:for>
+        </select>
+      </py:if>
+    </div>
+  </div>
 
-    <dt class="parent-label" py:if="c.is_superuser_or_groupadmin">
-		<label class="field_opt" for="parent">Parent publisher</label>
-	</dt>
-
-	<dd py:if="c.group and not c.is_sysadmin">
-		<span py:if="c.parent is not None" class="js-title">
-			${c.parent.title}
-		</span>
-		<span py:if="c.parent is None" class="js-title">
-			No parent publisher
-		</span>
-	</dd>
-
-    <dd py:if="c.is_sysadmin" class="parent-field">
-		<select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
-			<option value=""></option>
-    		<py:for each="pg in c.possible_parents">
-				<option py:attrs="{'selected': 'selected' if c.parent and pg.id == c.parent.id else None}" value="${pg.id}">${pg.title}</option>
-			</py:for>
-		</select>
-	</dd>
-
-
-
-    <dt class="state-label" py:if="c.is_sysadmin or c.auth_for_change_state"><label class="field_opt" for="state">State</label></dt>
-    <dd class="state-field" py:if="c.is_sysadmin or c.auth_for_change_state">
-    <select id="state" name="state" class="chzn-select" style="width:100px;">
-      <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
-      <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
-    </select>
-    </dd>
-  </dl>
+  <div class="control-group">
+    <label class="control-label" for="state">State</label>
+    <div class="controls state-field">
+      <py:if test="c.is_sysadmin or c.auth_for_change_state">
+        <select id="state" name="state" style="width:100px;">
+          <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
+          <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
+        </select>
+      </py:if>
+    </div>
+  </div>
 </fieldset>
 
 <fieldset id="contact-details">
   <h3>Contact Details</h3>
-  <dt><label for="contact-name">Name</label></dt>
-  <dd>
-<input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
-  </dd>
 
-  <dt><label for="contact-email">Email</label></dt>
-  <dd>
-<input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
-  </dd>
-
-  <dt><label for="contact-name">Telephone</label></dt>
-  <dd>
-<input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
-  </dd>
-
-
+  <div class="control-group">
+    <label class="control-label" for="contact-name">Name</label>
+    <div class="controls">
+      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="contact-email">Email</label>
+    <div class="controls">
+      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="contact-name">Telephone</label>
+    <div class="controls">
+      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
+    </div>
+  </div>
 </fieldset>
 <fieldset id="foi-details">
   <h3>FOI Details</h3>
-  <dt><label for="foi-name">Name</label></dt>
-  <dd>
-<input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
-  </dd>
-
-  <dt><label for="foi-email">Email</label></dt>
-  <dd>
-<input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
-  </dd>
-
-  <dt><label for="foi-name">Telephone</label></dt>
-  <dd>
-<input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
-  </dd>
+  <div class="control-group">
+    <label class="control-label" for="foi-name">Name</label>
+    <div class="controls">
+      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="foi-email">Email</label>
+    <div class="controls">
+      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="foi-name">Telephone</label>
+    <div class="controls">
+      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
+    </div>
+  </div>
 </fieldset>
 <fieldset id="extras">
   <h3>Extras</h3>
-  <dl>
-    <py:with vars="extras = data.get('extras', [])">
-    <py:for each="num, extra in enumerate(data.get('extras', []))">
-    <dt py:if="not extra.get('key') in c.schema_fields"><label for="extras__${num}__value">${extra.get('key')}</label></dt>
-    <dd py:if="not extra.get('key') in c.schema_fields">
+  <py:with vars="extras = data.get('extras', [])">
+  <py:for each="num, extra in enumerate(data.get('extras', []))">
+  <div class="control-group">
+    <label class="control-label" for="extras__${num}__value">${extra.get('key')}</label>
+    <div class="controls">
       <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
       <input id="extras__${num}__value" name="extras__${num}__value" type="text" value="${extra.get('value')}" />
-      <input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}">Delete</input>
-    </dd>
-    </py:for>
-
-    <py:for each="num in range(len(extras), len(extras) + 4)">
-    <dt><label for="extras__${num}__key">New key</label></dt>
-    <dd>
-      <input class="medium-width" id="extras__${num}__key" name="extras__${num}__key" type="text" />
-      with value
-      <input class="medium-width" id="extras__${num}__value" name="extras__${num}__value" type="text" />
-    </dd>
-    </py:for>
-    </py:with>
-  </dl>
+      <label class="checkbox" style="display: inline-block;">
+        <input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}" />Delete
+      </label>
+    </div>
+  </div>
+  </py:for>
+  <hr py:if="len(extras)" class="extras-divider" />
+  <py:for each="num in range(len(extras), len(extras) + 4)">
+    <div class="control-group">
+      <label class="control-label" for="extras__${num}__key"><b>Add...</b></label>
+      <div class="controls">
+        <label>
+          <span class="extras-label">Key =</span>
+          <input class="medium-width" id="extras__${num}__key" name="extras__${num}__key" type="text" />
+        </label>
+        <label>
+          <span class="extras-label">Value =</span>
+          <input class="medium-width" id="extras__${num}__value" name="extras__${num}__value" type="text" />
+        </label>
+      </div>
+    </div>
+  </py:for>
+  </py:with>
 </fieldset>
 
 <fieldset id="users">
   <h3>Users <span py:if="c.users">(${len(c.users.all())})</span></h3>
 <a py:if="c.group" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Manage users</a>
-
-
   <dl py:if="c.users">
     <py:for each="user in c.users">
-		<dd>
-			<label>${user['name']}</label>
-		</dd>
+    <dd>
+      <label>${user['name']}</label>
+    </dd>
     </py:for>
   </dl>
   <p py:if="not c.users or not c.users.all()">There are no users currently in this publisher.</p>
 </fieldset>
 
-<fieldset id="datasets">
+<fieldset id="datasets" style="display: none;">
   <h3>Datasets <span py:if="data.get('packages')">(${len(data.get('packages'))})</span></h3>
   <dl py:if="data.get('packages')">
     <py:for each="num, package in enumerate(data.get('packages'))">
-      <dt><input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/></dt>
-      <dd>
-        <label for="packages__${num}__name">${package['title']}</label>
-      </dd>
+      <label class="checkbox" for="packages__${num}__name">
+        <input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/>
+        ${package['title']}
+      </label>
     </py:for>
   </dl>
   <p py:if="not data.get('packages')">There are no datasets currently in this publisher.</p>
@@ -185,10 +202,10 @@
   </dl>
 </fieldset>
 
-<div class="form-submit">
-  <input id="save" class="pretty-button primary" name="save" type="submit" value="${_('Save Changes')}" />
+<div class="form-submit form-actions">
+  <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save Changes')}" />
   <py:if test="c.group">
-    <input id="cancel" class="pretty-button href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
   </py:if>
 </div>
 
