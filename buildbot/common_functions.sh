@@ -47,6 +47,13 @@ install_ckan () {
     sudo apt-get install -y ckan postgresql-8.4 solr-jetty postgis postgresql-8.4-postgis rabbitmq-server
     sudo ckan-setup-solr
 
+    echo "Enabling apache proxy module..."
+    sudo a2enmod proxy_http
+    sudo /etc/init.d/apache2 restart
+
+    echo "Enabling proxy..."
+    sed -e 's/Deny from all/Allow from all/' -i /etc/apache2/mods-enabled/proxy.conf
+
     echo "Creating new CKAN instance \"$instance\" on \"$domain\""
     sudo ckan-create-instance "$instance" releasetest.ckan.org yes
 }
