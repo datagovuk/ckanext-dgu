@@ -348,6 +348,57 @@ start_qa_daemon () {
     echo "Started the update"
 }
 
+install_joint_drupal_apache_config () {
+    INSTANCE=$1
+    DOMAIN=$2
+    cat << EOF > /etc/apache2/sites-available/${INSTANCE}-with-drupal
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        ServerName ${DOMAIN}
+        ServerAlias ${INSTANCE}.okfn.org
+
+        # Drupal
+        DocumentRoot /var/www/current/public_html
+        <Directory /var/www/current/public_html>
+                FileETag MTime Size
+                Options Indexes FollowSymLinks MultiViews
+                AllowOverride All
+                Order allow,deny
+                allow from all
+        </Directory>
+
+        # CKAN
+        WSGIScriptAlias /data /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /dataset /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /publisher /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /css /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /images /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /scripts /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /api /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /geoserver /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /harvest /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /ckanext /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /ckan-admin /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /qa /var/lib/ckan/${INSTANCE}/wsgi.py
+
+        # CKAN / OS Widget map tile proxy
+        ProxyPass /geoserver/ http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/
+        ProxyPassReverse /geoserver/ http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/
+
+        # pass authorization info on (needed for rest api)
+        WSGIPassAuthorization On
+
+        ErrorLog /var/log/apache2/${INSTANCE}.error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog /var/log/apache2/${INSTANCE}.access.log combined
+</VirtualHost>
+EOF
+}
+
 ## install_ckan $REPO $INSTANCE $DOMAIN
 ## install_dgu $INSTANCE $BRANCH
 ## restore_database $INSTANCE
