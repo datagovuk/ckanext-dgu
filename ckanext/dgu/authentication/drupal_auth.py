@@ -153,6 +153,9 @@ class DrupalAuthMiddleware(object):
         # ask drupal for the drupal_user_id for this session
         drupal_user_id = self.drupal_client.get_user_id_from_session_id(drupal_session_id)
         if drupal_user_id:
+            # ask drupal about this user
+	    user_properties = self.drupal_client.get_user_properties(drupal_user_id)
+
             # see if user already exists in CKAN
             ckan_user_name = self._munge_drupal_id_to_ckan_user_name(drupal_user_id)
             from ckan import model
@@ -161,8 +164,6 @@ class DrupalAuthMiddleware(object):
             if not query.count():
                 # need to add this user to CKAN
 
-                # ask drupal about this user
-                user_properties = self.drupal_client.get_user_properties(drupal_user_id)
                 date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
                 user = model.User(
                     name=ckan_user_name, 
@@ -178,7 +179,7 @@ class DrupalAuthMiddleware(object):
                 user = query.one()
                 log.debug('Drupal user found in CKAN: %s', user.name)
 
-            self.set_roles(ckan_user_name, user['roles'].keys())
+            self.set_roles(ckan_user_name, user_properties['roles'].values())
 
             # Ask auth_tkt to remember this user so that subsequent requests
             # will be authenticated by auth_tkt.
@@ -209,11 +210,14 @@ class DrupalAuthMiddleware(object):
                3   'administrator' - total control
                11  'package admin' - admin of datasets
         '''
+        from ckan import model
+        from ckan.authz import Authorizer
         needs_commit = False
         user = model.User.by_name(user_name)
 
         # Sysadmin or not
-        should_be_sysadmin = bool(set(('administrator', 'package admin')) && set(drupal_roles))
+        log.debug('User roles in Drupal: %r', drupal_roles)
+        should_be_sysadmin = bool(set(('administrator', 'package admin')) & set(drupal_roles))
         is_sysadmin = Authorizer().is_sysadmin(user)
         if should_be_sysadmin and not is_sysadmin:
             # Make user a sysadmin
