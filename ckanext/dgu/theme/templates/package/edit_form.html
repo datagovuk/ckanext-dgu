@@ -78,7 +78,7 @@ if has_errors:
     <div class="controls">
       <span class="js-tooltip" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
         <input class="field_req js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
-        <img src="/images/information.png"/>
+        <img src="/images/information-grey.png"/>
       </span>
       <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
     </div>
@@ -89,7 +89,7 @@ if has_errors:
     <div class="controls">
       <span py:if="not is_edit_form" class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
         <input class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
-        <img src="/images/information.png"/>
+        <img src="/images/information-grey.png"/>
       </span>
       <input py:if="is_edit_form" id="name" name="name" type="hidden" value="${data.get('name', '')}" />
       <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
@@ -129,14 +129,19 @@ if has_errors:
       <div class="form-inline instruction-needed well">
         <div class="control-group">
           <label for="update_frequency">Update frequency</label>
-          <select class="js-tooltip span2" id="update_frequency" name="update_frequency" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
-              <py:for each="freq_name, freq_desc in c.update_frequency">
-                <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
-                  ${freq_desc}
-                </option>
-              </py:for>
-              <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
-          </select>
+          <span class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+              <select class="span2" id="update_frequency" name="update_frequency">
+                  <py:for each="freq_name, freq_desc in c.update_frequency">
+                    <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
+                      ${freq_desc}
+                    </option>
+                  </py:for>
+                  <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
+              </select>
+              <img src="/images/information-grey.png" />
+          </span>
+          &nbsp;
+          &nbsp;
           <label class="inline" for="update_frequency-other">Other:</label>
             <input class="input-small" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
         </div>
@@ -293,10 +298,10 @@ if has_errors:
 
 <fieldset class="tab-pane" id="section-description-field">
   <h3>Description</h3>
-  <p>Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
-    <textarea class="field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
-    <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
-    <p class="instructions further instruction-needed" title="This is from the current form.  Does it need re-wording?  I think I'll put this in some sort of help tooltip.">It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users.</p>
+  <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
+  <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
+  <textarea class="field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
+  <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
 <fieldset class="tab-pane" id="section-licence-field">
@@ -571,8 +576,8 @@ if has_errors:
     <thead>
       <tr>
         <th class="resource-name">Description:</th>
-        <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link:</th>
-        <th class="resource-url js-tooltip" title="The file format of the linked resource">Format:</th>
+        <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
+        <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
         <th></th>
       </tr>
     </thead>
