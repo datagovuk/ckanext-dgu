@@ -84,10 +84,10 @@ def command():
             publishers[ int(row[0]) ] = munge_title_to_name(row[1])
 
     with open(sys.argv[3], 'rU') as f:
-        reader = csv.reader( f)
+        reader = csv.reader(f)
         reader.next() # skip headers
         for row in reader:
-            oldid, name,email, role, oldpubid = row
+            oldid, name, email, role, oldpubid = row
 
             # create a new user
             uname, u = _add_new_user( name, email, role )
