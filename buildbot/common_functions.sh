@@ -153,6 +153,11 @@ configure () {
     # Some entries in who.ini (which lives in /etc/ckan), expect to be in /var/lib/ckan/$instance
     sudo sed -e "s,%(here)s,/var/lib/ckan/$instance,g" -i "/etc/ckan/$instance/who.ini"
 
+    # Create a new password for each deployment
+    local WHO_SECRET=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c30`
+    sed -e "/^secret =/ s/^secret =.*/secret = $WHO_SECRET/" \
+        -i "/etc/ckan/$instance/who.ini"
+
     # Configures the ini file settings
     sudo sed -e "s/ckan.plugins =.*$/ckan.plugins = dgu_publisher_form dgu_publishers dgu_drupal_auth dgu_auth_api dgu_form dgu_theme cswserver harvest gemini_harvester gemini_doc_harvester gemini_waf_harvester inspire_api spatial_query qa synchronous_search dgu_search dgu_dataset_form spatial_metadata dataset_extent_map os_search os_preview/" \
              -e "s/^ckan.site_title =.*/ckan.site_title = DGU - $instance/" \
