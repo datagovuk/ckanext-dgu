@@ -1003,7 +1003,7 @@ td.dataset-label {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.resource-list li:hover a.resource-title {
+.resource-list li:hover .resource-title {
   color: #B22;
 }
 .resource-list li:hover {

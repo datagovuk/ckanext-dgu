@@ -71,8 +71,42 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
   </div>
 
   <li class="widget-container">
-    <h3>Feedback</h3>
-    <ul><li><a href="${h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))}/feedback">Give feedback to department</a></li></ul>
+    <h3>Contact</h3>
+    <ul>
+      <li py:if="dataset_type=='uklp'">Email: 
+        <?python
+           email = pkg_extras.get('contact-email')
+        ?>
+        <py:if test="email"><a href="mailto:${email}">${email}</a></py:if>
+        <py:if test="not email">None supplied</py:if>
+      </li>
+      <py:if test="dataset_type=='form'">
+        <?python
+          if pkg_extras.get('contact-name') or pkg_extras.get('contact-email') or pkg_extras.get('contact-phone'):
+            level = 'Dataset'
+            name = pkg_extras.get('contact-name')
+            email = pkg_extras.get('contact-email')
+            phone = pkg_extras.get('contact-phone')
+          else:
+            level = 'Publisher'
+            publishers = c.pkg.get_groups('publisher')
+            if publishers:
+              name = publishers[0].get('contact-name')
+              email = publishers[0].get('contact-email')
+              phone = publishers[0].get('contact-phone')
+            else:
+              name = email = phone = None
+        ?>
+        ${level} Contact: ${name}
+        <li py:if="email">Email:
+          <a href="mailto:${email}">${email}</a>
+        </li>
+        <li py:if="phone">Phone:
+          ${phone}
+        </li>
+        <li py:if="not (email or phone)">No details supplied</li>
+      </py:if>
+    </ul>
   </li>
 
   <?python

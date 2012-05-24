@@ -24,7 +24,7 @@
 
 <fieldset id="basic-information">
   <div class="control-group">
-    <label class="control-label" for="name">Publisher name asdf</label>
+    <label class="control-label" for="name">Publisher name</label>
     <div class="controls">
       <input py:if="not c.group or c.is_sysadmin" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
       <span py:if="c.group and not c.is_sysadmin" class="js-title">
@@ -90,11 +90,13 @@
 
 <fieldset id="contact-details">
   <h3>Contact Details</h3>
+  <p>These provide the default contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.</p>
 
   <div class="control-group">
     <label class="control-label" for="contact-name">Name</label>
     <div class="controls">
       <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
+      <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
     </div>
   </div>
   <div class="control-group">
@@ -111,11 +113,13 @@
   </div>
 </fieldset>
 <fieldset id="foi-details">
-  <h3>FOI Details</h3>
+  <h3>FOI Requst Details</h3>
+  <p>These provide the default Freedom of Information request contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.</p>
   <div class="control-group">
     <label class="control-label" for="foi-name">Name</label>
     <div class="controls">
       <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
+      <p class="help-block">e.g. DfT FOI Enquiry Service</p>
     </div>
   </div>
   <div class="control-group">
@@ -132,22 +136,22 @@
   </div>
 </fieldset>
 <fieldset id="extras">
-  <h3>Extras</h3>
+<!--!  <h3>Extras</h3> -->
   <py:with vars="extras = data.get('extras', [])">
   <py:for each="num, extra in enumerate(data.get('extras', []))">
-  <div class="control-group">
-    <label class="control-label" for="extras__${num}__value">${extra.get('key')}</label>
-    <div class="controls">
+<!--!  <div class="control-group"> -->
+    <!--! <label class="control-label" for="extras__${num}__value">${extra.get('key')}</label> -->
+<!--!    <div class="controls"> -->
       <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
-      <input id="extras__${num}__value" name="extras__${num}__value" type="text" value="${extra.get('value')}" />
-      <label class="checkbox" style="display: inline-block;">
-        <input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}" />Delete
-      </label>
-    </div>
-  </div>
+      <input id="extras__${num}__value" name="extras__${num}__value" type="hidden" value="${extra.get('value')}" />
+<!--!      <label class="checkbox" style="display: inline-block;"> -->
+        <!--!<input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}" />Delete-->
+<!--!      </label> -->
+<!--!    </div> -->
+<!--!  </div> -->
   </py:for>
   <hr py:if="len(extras)" class="extras-divider" />
-  <py:for each="num in range(len(extras), len(extras) + 4)">
+<!--!  <py:for each="num in range(len(extras), len(extras) + 4)">
     <div class="control-group">
       <label class="control-label" for="extras__${num}__key"><b>Add...</b></label>
       <div class="controls">
@@ -161,7 +165,7 @@
         </label>
       </div>
     </div>
-  </py:for>
+  </py:for> -->
   </py:with>
 </fieldset>
 

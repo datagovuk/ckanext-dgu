@@ -35,16 +35,19 @@
           <ul class="resource-list">
             <py:for each="res in individual_resources">
             <li>
-              <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <span class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
                   ${h.resource_display_name(res)}
                 </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-              </a>
+              </span>
               <div class="resource-buttons">
                 <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
-                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">Download</a>
+                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">
+                  <py:if test="dataset_type!='uklp'">Download</py:if>
+                  <py:if test="dataset_type=='uklp'">Link</py:if>
+                </a>
               </div>
               </li>
             </py:for>

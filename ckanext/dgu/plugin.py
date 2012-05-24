@@ -179,7 +179,7 @@ class PublisherPlugin(SingletonPlugin):
                     controller=pub_ctlr, action='index')
         map.connect('publisher_edit',
                     '/publisher/edit/:id',
-                    controller='group', action='edit' )
+                    controller=pub_ctlr, action='edit' )
         map.connect('publisher_apply',
                     '/publisher/apply/:id',
                     controller=pub_ctlr, action='apply' )
