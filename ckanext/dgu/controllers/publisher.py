@@ -25,7 +25,7 @@ from ckan.lib.navl.validators import (ignore_missing,
 
 log = logging.getLogger(__name__)
 
-report_limit = 4
+report_limit = 20
 
 class PublisherController(GroupController):
 

@@ -28,7 +28,7 @@ from ckan.authz import Authorizer
 ?>
       <py:for each="u in c.page.items">
         <tr>
-          <td><a href="/user/${u.name}">${u.display_name}</a></td>
+          <td><a href="/data/user/${u.name}">${u.display_name}</a></td>
           <td>${u.email}</td>
           <td>${u.number_administered_packages()}</td>
           <td>${u.number_of_edits()}</td>
