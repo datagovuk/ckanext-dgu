@@ -521,6 +521,18 @@ div.first-box-in-ribbon {
 .search-area .right {
   padding: 15px 8px;
 }
+.small-search .search-area .left {
+  /* Override search form size */
+  width: 100px;
+}
+.small-search .form-search {
+  /* Override search form size */
+  margin-bottom: 0;
+}
+.small-search .form-search input[type="text"] {
+  /* Override search form size */
+  width: 180px;
+}
 .result-count {
   font-size: 40px;
   text-align: center;
@@ -641,18 +653,6 @@ div.first-box-in-ribbon {
 
 /* Front page (Data Page) */
 /* ---------------------- */
-.front-page .search-area .left {
-  /* Override search form size */
-  width: 100px;
-}
-.front-page .form-search {
-  /* Override search form size */
-  margin-bottom: 0;
-}
-.front-page .form-search input[type="text"] {
-  /* Override search form size */
-  width: 180px;
-}
 .front-page .span6 .boxed {
   min-height: 150px;
   margin-bottom: 25px;

@@ -32,14 +32,24 @@
             ${publisher_tree( c.all_groups )}
           </div>
         </div>
-        <div class="tab-pane" id="publishersearch">
+        <div class="tab-pane small-search" id="publishersearch">
 <?python
 import json
 ?>
-        <form id="dataset-search" class="form-search dataset-search" action="">
-          <input type="text" class="input-medium" data-provide="typeahead" data-items="5" data-source="${json.dumps([group.title for group in c.all_groups])}" id="q" value="${c.q}" autocomplete="off" placeholder="Search..."/>
-          <button id="search_button" class="btn btn-primary button" onclick="return publisher_search();">Search...</button>
-        </form>
+          <table class="search-area">
+            <tr>
+              <td class="left">
+                <div class="result-count" style="color: #ccc;">99+</div>
+                <div class="result-count-footer" style="color: #ccc;">Publishers</div>
+              </td>
+              <td class="right">
+                <form id="publisher-search" class="form-search dataset-search" action="">
+                  <input type="text" class="input-medium" data-provide="typeahead" data-items="5" data-source="${json.dumps([group.title for group in c.all_groups])}" id="q" value="${c.q}" autocomplete="off" placeholder="Search..."/>
+                  <input type="submit" class="btn btn-primary button" value="Search..."/>
+                </form>
+              </td>
+            </tr>
+          </table>
           <table id="search_results" class="groups" style="display:none;">
           </table>
 
@@ -61,14 +71,18 @@ import json
     </style>
   <![endif]-->
 
+
   <script type="text/javascript">
     function publisher_search() {
       var term = $("#q").val();
       var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=publisher&amp;q=' + escape(term);
 
-      $("#search_results").empty();
+      $("#search_results").html('<h4>Results:</h4>');
       $("#search_results").css("display", "block");
       $.getJSON(url, function(data) {
+
+        $(".result-count").html(data.length);
+        $(".result-count, .result-count-footer").css('color','#000');
         $.each(data, function(idx, groupobj) {
           var tpl = '<tr><td>' +
                     '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
@@ -80,8 +94,11 @@ import json
     }
 
     $(document).ready(function() {
-      $("#q").keypress(function(e) {  if (e.which == 13) publisher_search(); });
-      $('#q').on('change', function (e) { publisher_search(); })
+        $('#publisher-search').bind('submit',function(e) { 
+          if (e.preventDefault) e.preventDefault();
+          publisher_search();
+        });
+        $('#q').change(publisher_search);
 
       $('a[data-toggle="tab"]').on('shown', function (e) {
         if (e.target.hash == '#publishersearch') {
