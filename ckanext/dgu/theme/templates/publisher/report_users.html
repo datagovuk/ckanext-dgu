@@ -16,8 +16,8 @@
       <tr>
         <th>Name</th>
         <th>Email</th>
-        <th>Datasets created</th>
-        <th>Edits made</th>
+        <th>Datasets created (in CKAN)</th>
+        <th>Edits made (in CKAN)</th>
         <th>Rights</th>
         <th>Created</th>
       </tr>
@@ -44,7 +44,9 @@ from ckan.authz import Authorizer
         </tr>
       </py:for>
     </table>
+    ${c.page.pager()}
   </div>
+
 
   <xi:include href="../layout.html" />
 
