@@ -88,17 +88,18 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit)
                     <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
                       ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
               </li>
-              <py:if test="more_button and len(items) > limit">
-                <a id="${more_button}">More >></a>
+          </ul>
+          <py:if test="more_button and len(items) > limit">
+            <a id="${more_button}" class="more-button">More >></a>
+            <ul class="facet-options" id="${more_button}-items" style="display: None">
                 <li py:for="facet_item in items[limit:]"
-                  py:if="not (code, facet_item['name']) in c.fields" 
-                  id="${more_button}-items" style="display: None">
+                  py:if="not (code, facet_item['name']) in c.fields">
                     <a href="${c.drill_down_url(**{code: facet_item['name']})}">
                     <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
                       ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
                 </li>
-              </py:if>
-          </ul>
+            </ul>
+          </py:if>
           <p py:if="not items">${if_empty}</p>
       </div>
   </py:def>

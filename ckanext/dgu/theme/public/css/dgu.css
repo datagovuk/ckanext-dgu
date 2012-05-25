@@ -821,6 +821,9 @@ body.login #content {
 ul.property-list {
   margin-bottom: 10px;
 }
+.facet-box .more-button {
+  cursor: pointer; cursor: hand; /* both to be cross-browsers */
+}
 
 
 
