@@ -38,6 +38,12 @@ jQuery(function ($) {
       e.preventDefault();
       window.location = $(this).val()
     });
+
+    // Buttons with href-action should navigate when clicked
+    $('input.href-action').click(function(e) {
+      e.preventDefault();
+      window.location = ($(e.target).attr('action'));
+    });
   });
 
 });

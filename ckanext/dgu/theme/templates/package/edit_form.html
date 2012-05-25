@@ -106,18 +106,23 @@ if has_errors:
   <p>Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the &pound;25k spend data, where a new data file is added to the record monthly).</p>
     <p>This record is:</p>
 
-    <div style="float: left; width: 30%;">
-      <label class="radio">
-        <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
-        A single file record
-      </label>
-      <label class="radio">
-        <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
-        A timeseries record
-      </label>
-    </div>
-    <div style="float: left;" class="record-type-disabled"><code>Delete all resource data to change the type of this record.</code></div>
-    <div class="clearfix"></div>
+    <table>
+      <tr>
+        <td style="width: 30%;">
+          <label class="radio">
+            <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
+            A single file record
+          </label>
+          <label class="radio">
+            <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
+            A timeseries record
+          </label>
+        </td>
+        <td class="record-type-disabled">
+          <code>Delete all resource data to change the type of this record.</code>
+        </td>
+      </tr>
+    </table>
 
     <!-- The resource fieldset for a timeseries dataset -->
     <fieldset id="package_type-timeseries" class="well">
