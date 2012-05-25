@@ -400,7 +400,7 @@ EOF
 
     a2dissite "${INSTANCE}"
     a2ensite "${INSTANCE}-with-drupal"
-
+    sudo /etc/init.d/apache2 reload
 }
 
 ## install_ckan $REPO $INSTANCE $DOMAIN
