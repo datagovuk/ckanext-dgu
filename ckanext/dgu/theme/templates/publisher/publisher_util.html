@@ -18,10 +18,9 @@
       from ckanext.dgu.lib.helpers import render_tree
 ?>
 
- <table py:def="publisher_tree(groups)" class="groups">
-	<!-- Top level departments -->
+ <py:def function="publisher_tree(groups)">
 	${ Markup( render_tree( groups ))  }
- </table>
+ </py:def>
 
 
 </html>
