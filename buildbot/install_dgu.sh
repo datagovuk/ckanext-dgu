@@ -16,7 +16,7 @@ INSTANCE=$2
 DOMAIN=$3
 BRANCH=$4
 
-DB_DUMP_FILE="../../dgu_liv.pg_dump"
+DB_DUMP_FILE="../../dgu_live.pg_dump"
 USERS_FILE="../../users.csv"
 SECRETS_FILE="../../secrets.sh"
 
