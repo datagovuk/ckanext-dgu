@@ -194,6 +194,10 @@ class PublisherPlugin(SingletonPlugin):
                     controller=pub_ctlr, action='new'  )
         map.connect('/publisher/report_groups_without_admins',
                     controller=pub_ctlr, action='report_groups_without_admins' )
+        map.connect('/publisher/report_publishers_and_users',
+                    controller=pub_ctlr, action='report_publishers_and_users' )
+        map.connect('/publisher/report_users',
+                    controller=pub_ctlr, action='report_users' )
         map.connect('/publisher/report_users_not_assigned_to_groups',
                     controller=pub_ctlr, action='report_users_not_assigned_to_groups' )
         map.connect('publisher_read',

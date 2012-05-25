@@ -25,7 +25,7 @@ from ckan.lib.navl.validators import (ignore_missing,
 
 log = logging.getLogger(__name__)
 
-
+report_limit = 4
 
 class PublisherController(GroupController):
 
@@ -400,6 +400,46 @@ class PublisherController(GroupController):
 
         return render('publisher/report_groups_without_admins.html')
 
+    def report_publishers_and_users(self):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author}
+        try:
+            check_access('group_create', context)
+        except NotAuthorized:
+            abort(401, _('Not authorized to see this page'))
+
+        q = model.Group.all('publisher')
+
+        c.count = q.count()
+
+        c.page = h.Page(
+            collection=q,
+            page=int(request.params.get('page', 1)),
+            url=h.pager_url,
+            items_per_page=report_limit,
+            )
+
+        return render('publisher/report_publishers_and_users.html')
+
+    def report_users(self):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author}
+        try:
+            check_access('group_create', context)
+        except NotAuthorized:
+            abort(401, _('Not authorized to see this page'))
+
+        q = model.Session.query(model.User).order_by(model.User.created.desc())
+        c.count = q.count()
+
+        c.page = h.Page(
+            collection=q,
+            page=int(request.params.get('page', 1)),
+            url=h.pager_url,
+            items_per_page=report_limit,
+            )
+
+        return render('publisher/report_users.html')
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"

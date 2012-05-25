@@ -10,10 +10,8 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <h3>Publishers without admins (${ c.non_admin_count})
-      <a id="admin_toggle" py:if="c.non_admin_count" style="float:right;margin-right:10px;color:white;" href="#" onclick="$('#admins').slideToggle('slow');return false;">Show</a>
-    </h3>
-    <table id="admins" py:if="c.non_admin_count > 0">
+    <h3>Publishers without admins (${ c.non_admin_count})</h3>
+    <table id="admins" py:if="c.non_admin_count > 0" class="table table-bordered table-striped">
       <tr>
         <th>Publisher</th>
       </tr>

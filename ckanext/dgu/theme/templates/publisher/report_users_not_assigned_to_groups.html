@@ -10,10 +10,8 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <h3>Users not attached to a publisher (${ c.unassigned_users_count })
-      <a py:if="c.unassigned_users_count" style="float:right;margin-right:10px;color:white;" href="#" onclick="$('#users').slideToggle('slow');return false;">Show</a>
-    </h3>
-    <table id="users" py:if="c.unassigned_users_count > 0" width="100%">
+    <h3>Users not attached to a publisher (${ c.unassigned_users_count })</h3>
+    <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered table-striped">
       <tr>
         <th>Full Name</th>
         <th>Username</th>
