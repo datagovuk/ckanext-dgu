@@ -58,6 +58,9 @@
     <script src="/scripts/spin.min.js"></script>
     <script src="/scripts/dgu-basket.js"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-package.js')}"></script>
+    <script type="text/javascript">
+      var DATASET_ID = '${c.pkg_dict.get('id')}';
+    </script>
   </py:def>
 
   <py:def function="optional_feed">

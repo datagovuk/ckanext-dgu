@@ -28,8 +28,9 @@ $(function() {
     return dom;
   };
 
+  var url = '/comment/get/'+DATASET_ID;
   $.ajax({
-          url: '/comment/get/3266d22c-9d0f-4ebe-b0bc-ea622f858e15',
+          url: url,
           data: '',
           dataType: 'html',
           success: function(data, textStatus, xhr) {
@@ -39,7 +40,10 @@ $(function() {
           },
           error: function(xhr, status, exception) {
             commentsSpinner.stop();
-            $('#comments-container').append('Error loading comments.');
+            $(spinDiv).hide();
+            $('#comments .boxed')
+              .append('Error loading comments: <code>'+url+'</code><br/><br/>')
+              .append($('<pre>').text(JSON.stringify(exception)));
           }
         });
 });
