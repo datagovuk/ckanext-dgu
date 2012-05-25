@@ -21,7 +21,7 @@
       </td>
       <td class="right">
         <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
-          <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+          <input id="q" data-provide="typeahead" type="text" class="input-medium" name="q" value="${c.q}" results="0" placeholder="${_('Search...')}" />
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
           <py:for each="(k, v) in c.fields"> 
@@ -61,5 +61,36 @@ bbox = request.params.get('ext_bbox','')
       </td>
     </tr>
   </table>
+
+  <script src="/scripts/bootstrap-typeahead.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      var input = $('#dataset-search #q');
+      var url = '/api/2/util/dataset/autocomplete';
+      var sourceFunction = function (typeahead, query) {
+        if (!query) {
+          return [];
+        }
+        return $.ajax({
+          url: url, 
+          data: { incomplete: query }, 
+          success: function (data) {
+            var array = data.ResultSet.Result;
+            var out = [];
+            var i=0;
+            while (!(i==array.length)) {
+              out.push(array[i++].title);
+            }
+            typeahead.process(out);
+          }
+
+
+        });
+      };
+      input.typeahead({
+        source: sourceFunction
+      });
+    });
+  </script>
 
 </html>
