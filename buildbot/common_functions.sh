@@ -351,6 +351,24 @@ start_qa_daemon () {
 install_joint_drupal_apache_config () {
     INSTANCE=$1
     DOMAIN=$2
+
+    cat << EOF > /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+import os
+instance_dir = '/var/lib/ckan/${INSTANCE}/pyenv'
+config_dir = '/etc/ckan/${INSTANCE}'
+config_file = '${INSTANCE}.ini'
+pyenv_bin_dir = os.path.join(instance_dir, 'bin')
+activate_this = os.path.join(pyenv_bin_dir, 'activate_this.py')
+execfile(activate_this, dict(__file__=activate_this))
+from paste.deploy import loadapp
+config_filepath = os.path.join(config_dir, config_file)
+from paste.script.util.logging_config import fileConfig
+fileConfig(config_filepath)
+application = loadapp('config:%s' % config_filepath)
+from ckanext.dgu.bin.url_space_sharer import UrlSpaceSharer
+application = UrlSpaceSharer(application)
+EOF
+
     cat << EOF > /etc/apache2/sites-available/${INSTANCE}-with-drupal
 <VirtualHost *:80>
         ServerAdmin webmaster@localhost
@@ -368,18 +386,18 @@ install_joint_drupal_apache_config () {
         </Directory>
 
         # CKAN
-        WSGIScriptAlias /data /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /dataset /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /publisher /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /css /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /images /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /scripts /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /api /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /geoserver /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /harvest /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /ckanext /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /ckan-admin /var/lib/ckan/${INSTANCE}/wsgi.py
-        WSGIScriptAlias /qa /var/lib/ckan/${INSTANCE}/wsgi.py
+        WSGIScriptAlias /data /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /dataset /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /publisher /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /css /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /images /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /scripts /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /api /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /geoserver /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /harvest /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /ckanext /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /ckan-admin /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
+        WSGIScriptAlias /qa /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
 
         # CKAN / OS Widget map tile proxy
         ProxyPass /geoserver/ http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/
