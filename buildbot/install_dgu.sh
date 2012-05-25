@@ -4,9 +4,9 @@
 # Fresh installation of dgu
 #############################################################
 
-if [ $# -ne 5 ]
+if [ $# -ne 4 ]
 then
-    echo "Usage: `basename $0` repo-name ckan-instance-name domain dgu-branch alongside-drupal"
+    echo "Usage: `basename $0` repo-name ckan-instance-name domain dgu-branch"
     echo "\teg: `basename $0` ckan-dgu1 std releasetest.ckan.org master"
     exit 1
 fi
