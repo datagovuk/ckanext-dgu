@@ -77,7 +77,7 @@ class PublisherController(GroupController):
 
         if not recipients:
             h.flash_error(_("There is a problem with the system configuration"))
-            errors = {"reason": ["No group administrator exists"]}
+            errors = {"reason": ["%s does not have an administrator user to contact" % group.name]}
             return self.apply(group.id, data=data, errors=errors,
                               error_summary=error_summary(errors))
 

@@ -1161,11 +1161,9 @@ table.groups th {
 #dataset-search-thin input[type="text"] {
   width: 460px;
 }
-.indent1 {
-  margin-left: 15px;
-}
-.indent2 {
-  margin-left: 30px;
+.admin-button {
+  padding: 8px;
+  text-align: center;
 }
 
 /* Harvest pages */

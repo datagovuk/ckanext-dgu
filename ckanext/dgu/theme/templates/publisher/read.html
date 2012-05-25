@@ -33,16 +33,20 @@
       </ul>
       <p py:if="not c.editors.count()">No-one assigned</p>
 
-      <div py:if="not c.userobj in c.administrators and not c.userobj in c.editors" style="padding:8px; text-align: center;">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}" class="btn btn-primary">Request priviledges for this publisher</a>
+      <div py:if="not c.userobj in c.administrators and not c.userobj in c.editors" class="admin-button">
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}" class="btn btn-primary">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
       </div>
 
-      <div py:if="(c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember" class="facet-box" style="padding:8px; text-align: center;">
-        <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset with this publisher</a>
+      <div py:if="c.userobj in c.administrators or c.is_sysadmin" class="admin-button">
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}" class="btn btn-primary">Edit user permissions</a>
       </div>
 
-      <div py:if="c.userobj in c.administrators or c.is_sysadmin" style="padding:8px; text-align: center;">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}" class="btn btn-primary">Edit this publisher</a>
+      <div py:if="(c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember" class="admin-button">
+        <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+      </div>
+
+      <div py:if="c.userobj in c.administrators or c.is_sysadmin" class="admin-button">
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}" class="btn btn-primary">Edit publisher properties</a>
       </div>
 
     </div>
