@@ -151,8 +151,11 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="/openspending">Spend Browser</a></li>
     </ul>
-    <ul id="subnav">
-      <py:if test="h.check_access('package_create')">
+<?python
+can_create_package = h.check_access('package_create')
+?>
+    <ul id="subnav" py:if="c.is_sysadmin or can_create_package"> 
+      <py:if test="can_create_package">
         <span class="divider-section">Publisher tools:</span>
         <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
       </py:if>
