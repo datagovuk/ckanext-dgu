@@ -32,11 +32,12 @@
   </py:if>
   <p py:if="not data.get('users')">There are no users currently in this publisher.</p>
 
-	  <h3>Add users</h3>
-	  <div class="control-group">
-	    <label class="control-label" for="users__${len(data.get('users', []))}__name">User</label>
+  <h3>Add users</h3>
+  <div class="added-users"></div>
+  <div class="control-group">
+    <label class="control-label" for="users__${len(data.get('users', []))}__name">User</label>
       <div class="controls">
-        <input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" />
+        <input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" autocomplete="off"/>
       </div>
 	  </div>
 </fieldset>
@@ -45,23 +46,23 @@
 <div class="form-actions">
   <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save')}" />
   <py:if test="c.group">
-    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}#users" />
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
   </py:if>
 </div>
 
 <script type="text/javascript">
 	function delete_user(btn) {
 		var btn = $(btn)[0];
-		var dd = $(btn).parents('dd');
-		var chk = $(dd).find(":checkbox");
+		var user_controls = $(btn).parent('div');
+		var chk = $(user_controls).find(":checkbox");
         chk.prop('checked', !chk.prop('checked'));
 		chk.trigger('change');
 
 		if ( chk.prop('checked') ) {
-			$(dd).css({ opacity: 1 });
+			$(user_controls).children("label").css({ opacity: 1 });
 			$(btn).html('Delete');
 		} else {
-			$(dd).css({ opacity: 0.5 });
+			$(user_controls).children("label").css({ opacity: 0.5 });
 			$(btn).html('Cancel');
 		}
 		return false;

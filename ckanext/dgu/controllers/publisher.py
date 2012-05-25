@@ -172,7 +172,7 @@ class PublisherController(GroupController):
         group_member_save(context, data_dict, 'users')
         model.Session.commit()
 
-        h.redirect_to( 'publisher_edit', id=group.name)
+        h.redirect_to('/publisher/%s' % str(group.name))
 
 
     def users(self, id, data=None, errors=None, error_summary=None):

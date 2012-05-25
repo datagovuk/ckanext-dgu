@@ -42,7 +42,7 @@
       </div>
 
       <div py:if="(c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember" class="admin-button">
-        <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+        <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}" class="btn btn-primary">Add a new dataset</a>
       </div>
 
       <div py:if="c.userobj in c.administrators or c.is_sysadmin" class="admin-button">

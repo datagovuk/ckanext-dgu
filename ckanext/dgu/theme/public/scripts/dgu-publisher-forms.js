@@ -31,7 +31,7 @@ CKAN.Dgu = function($, my) {
        select: function(event, ui) {
         var input_box = $(this);
         input_box.val('');
-        var parent_dd = input_box.parent('dd');
+           var added_users = $('.added-users');
         var old_name = input_box.attr('name');
         var field_name_regex = /^(\S+)__(\d+)__(\S+)$/;
         var split = old_name.match(field_name_regex);
@@ -41,7 +41,7 @@ CKAN.Dgu = function($, my) {
         input_box.attr('id', new_name)
         
         var capacity = $("input:radio[name=add-user-capacity]:checked").val();
-        parent_dd.before(
+        added_users.after(
           '<input type="hidden" name="' + old_name + '" value="' + ui.item.value + '">' +
           '<input type="hidden" name="' + old_name.replace('__name','__capacity') + '" value="' + capacity + '">' +          
           '<dd>' + ui.item.label + '</dd>'
@@ -78,7 +78,7 @@ CKAN.Dgu = function($, my) {
       , select: function(event, ui) {
         var input_box = $(this);
         input_box.val('');
-        var parent_dd = input_box.parent('dd');
+          var added_users = $('.added-users');
         var old_name = input_box.attr('name');
         var field_name_regex = /^(\S+)__(\d+)__(\S+)$/;
         var split = old_name.match(field_name_regex);
@@ -88,7 +88,7 @@ CKAN.Dgu = function($, my) {
         input_box.attr('name', new_name)
         input_box.attr('id', new_name)
 
-        parent_dd.before(
+        added_users.after(
           '<input type="hidden" name="' + old_name + '" value="' + ui.item.value + '">' +
           '<dd>' + ui.item.label + '</dd>'
         );
