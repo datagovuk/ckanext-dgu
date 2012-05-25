@@ -397,6 +397,10 @@ install_joint_drupal_apache_config () {
         CustomLog /var/log/apache2/${INSTANCE}.access.log combined
 </VirtualHost>
 EOF
+
+    a2dissite "${INSTANCE}"
+    a2ensite "${INSTANCE}-with-drupal"
+
 }
 
 ## install_ckan $REPO $INSTANCE $DOMAIN
