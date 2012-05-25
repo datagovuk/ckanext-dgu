@@ -330,7 +330,7 @@ rebuild_search_index () {
     local instance=$1
     local user="ckan$instance"
     echo "Rebuilding the index in the background..."
-    nohup sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckan search-index rebuild --config=/etc/ckan/$instance/$instance.ini &> /home/ubuntu/solr_output.log &
+    nohup sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckan search-index rebuild --config=/etc/ckan/$instance/$instance.ini &> ./solr_output.log &
     echo "Started the indexer"
 }
 
@@ -338,7 +338,7 @@ start_harvest_import_daemon () {
     local instance=$1
     local user="ckan$instance"
     echo "Starting the harvester import in the background..."
-    nohup sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckanext-harvest harvester import --config=/etc/ckan/$instance/$instance.ini &> /home/ubuntu/harvester_output.log &
+    nohup sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckanext-harvest harvester import --config=/etc/ckan/$instance/$instance.ini &> ./harvester_output.log &
     echo "Started the import"
 }
 
@@ -346,7 +346,7 @@ start_qa_daemon () {
     local instance=$1
     local user="ckan$instance"
     echo "Starting the qa update in the background..."
-    nohup sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckanext-qa qa update --config=/etc/ckan/$instance/$instance.ini &> /home/ubuntu/qa_output.log &
+    nohup sudo -u "$user" "/var/lib/ckan/$instance/pyenv/bin/paster" --plugin=ckanext-qa qa update --config=/etc/ckan/$instance/$instance.ini &> ./qa_output.log &
     echo "Started the update"
 }
 
