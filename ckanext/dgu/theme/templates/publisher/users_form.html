@@ -1,4 +1,4 @@
-<form id="publisher-edit" action="" method="post"
+<form id="publisher-edit" action="" method="post" class="form-horizontal"
     py:attrs="{'class':'has-errors'} if errors else {}"
     xmlns:i18n="http://genshi.edgewall.org/i18n"
     xmlns:py="http://genshi.edgewall.org/"
@@ -16,36 +16,36 @@
 
 <fieldset id="users">
   <h3>Users</h3>
-  <dl py:if="data.get('users')">
+  <py:if test="data.get('users')">
     <py:for each="num, user in enumerate(data.get('users'))">
-	      <dd>
-	<input checked="checked" id="users__${num}__name" name="users__${num}__name" type="checkbox" value="${user['name']}" style="display:none;"/>
+      <div class="control-group">
 
-	        <label for="users__${num}__name">${user['name']}</label>
-		     <div style="float:right;margin-right: 20px;">
-			  <input type="radio" name="users__${num}__capacity" value="admin"  py:attrs="{'checked': 'checked' if user['capacity'] == 'admin' else None}"> Admin</input>
-			  <input type="radio" name="users__${num}__capacity" value="editor" py:attrs="{'checked': 'checked' if user['capacity'] in ['editor','member'] else None}"> Editor</input>
-
-				<button onclick="return delete_user(this);">Delete</button>
-				</div>
-		  </dd>
+        <label class="control-label" for="users__${num}__name"><h5>${user['name']}</h5></label>
+        <div class="controls form-inline">
+          <input checked="checked" id="users__${num}__name" name="users__${num}__name" type="checkbox" value="${user['name']}" style="display:none;"/>
+          <label class="radio"><input type="radio" name="users__${num}__capacity" value="admin"  py:attrs="{'checked': 'checked' if user['capacity'] == 'admin' else None}"></input> Admin</label>&nbsp;&nbsp;&nbsp;&nbsp;
+          <label class="radio"><input type="radio" name="users__${num}__capacity" value="editor" py:attrs="{'checked': 'checked' if user['capacity'] in ['editor','member'] else None}"></input> Editor</label>&nbsp;&nbsp;&nbsp;&nbsp;
+          <button class="btn btn-danger btn-small" onclick="return delete_user(this);">Delete</button>
+        </div>
+      </div>
     </py:for>
-  </dl>
+  </py:if>
   <p py:if="not data.get('users')">There are no users currently in this publisher.</p>
 
 	  <h3>Add users</h3>
-	  <dl>
-	    <dt><label class="field_opt" for="users__${len(data.get('users', []))}__name">User</label></dt>
-
-	    <dd><input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" /></dd>
-	  </dl>
+	  <div class="control-group">
+	    <label class="control-label" for="users__${len(data.get('users', []))}__name">User</label>
+      <div class="controls">
+        <input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" />
+      </div>
+	  </div>
 </fieldset>
 
 
-<div class="form-submit">
-  <input id="save" class="pretty-button primary" name="save" type="submit" value="${_('Save')}" />
+<div class="form-actions">
+  <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save')}" />
   <py:if test="c.group">
-    <input id="cancel" class="pretty-button href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}#users" />
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}#users" />
   </py:if>
 </div>
 
