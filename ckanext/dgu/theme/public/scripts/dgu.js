@@ -16,6 +16,20 @@ jQuery(function ($) {
       $('#sub-publishers li.collapsed').toggle();
     });
 
+    /* Reveal in search results facets */
+    $('#more-publishers-button').click(function(){
+        $('#more-publishers-button-items').toggle();
+        $('#more-publishers-button').remove();
+    });  
+    $('#more-tags-button').click(function(){
+        $('#more-tags-button-items').toggle();
+        $('#more-tags-button').remove();
+    });  
+    $('#more-formats-button').click(function(){
+        $('#more-formats-button-items').toggle();
+        $('#more-formats-button').remove();
+    });  
+
     $('input[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
       window.location = $(this).val()

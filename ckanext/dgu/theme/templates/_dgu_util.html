@@ -75,18 +75,31 @@
     </li>
   </ul>
 
-  <py:def function="dgu_facet_sidebar(code, limit=5, label=lambda n: n, title=h.facet_title, if_empty=None, count_label=lambda c: ' (%d)'%c)">
+  <py:def function="dgu_facet_sidebar(code, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, count_label=lambda c: ' (%d)'%c)">
       <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">
           <h4>${title(code)}</h4>
           <ul class="facet-options">
-              <li py:for="facet_item in h.unselected_facet_items(code, limit=limit)"
+<?python
+items = h.unselected_facet_items(code, limit=100 if more_button else limit)
+?>
+              <li py:for="facet_item in items[:limit]"
                   py:if="not (code, facet_item['name']) in c.fields">
                     <a href="${c.drill_down_url(**{code: facet_item['name']})}">
                     <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
                       ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
               </li>
+              <py:if test="more_button and len(items) > limit">
+                <a id="${more_button}">More >></a>
+                <li py:for="facet_item in items[limit:]"
+                  py:if="not (code, facet_item['name']) in c.fields" 
+                  id="${more_button}-items" style="display: None">
+                    <a href="${c.drill_down_url(**{code: facet_item['name']})}">
+                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
+                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+                </li>
+              </py:if>
           </ul>
-          <p py:if="not len(h.unselected_facet_items(code, limit=limit))">${if_empty}</p>
+          <p py:if="not items">${if_empty}</p>
       </div>
   </py:def>
 
@@ -95,11 +108,11 @@
 
     ${dgu_facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
-    ${dgu_facet_sidebar('tags', if_empty='There are no further tag filters to apply.')}
+    ${dgu_facet_sidebar('tags', if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
 
-    ${dgu_facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.')}
+    ${dgu_facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
 
-    ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', limit=5)}
+    ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
 
     <div class="facet-box" id="map-based-search">
       <h4>UK Location Map Search</h4>
