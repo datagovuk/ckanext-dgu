@@ -55,7 +55,7 @@ install_ckan () {
     sed -e 's/Deny from all/Allow from all/' -i /etc/apache2/mods-enabled/proxy.conf
 
     echo "Creating new CKAN instance \"$instance\" on \"$domain\""
-    sudo ckan-create-instance "$instance" releasetest.ckan.org yes
+    sudo ckan-create-instance "$instance" "$domain" yes
 }
 
 update_ckan () {
