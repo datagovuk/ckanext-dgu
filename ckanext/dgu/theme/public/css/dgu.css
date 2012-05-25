@@ -1148,22 +1148,17 @@ table.groups th {
   /* Override search form size */
   width: 200px;
 }
-/* Hacks from jstree.com to allow word wrapping on publisher tree lines. */
-.jstree-wordwrap a { 
-  white-space:normal !important; 
-  height: auto !important; 
-  padding:1px 2px; 
+.jstree.jstree-overflows {
+  overflow: visible !important;
 }
-.jstree-wordwrap li { 
-  overflow: hidden; 
-  overflow-y: visible; 
+.jstree.jstree-overflows li {
+  overflow: hidden;
 }
-.jstree-wordwrap li > ins { 
-  vertical-align:top; 
+.jstree.jstree-overflows li:hover {
+  overflow: visible;
 }
-.jstree-wordwrap .jstree-hovered, 
-#demo4 .jstree-clicked { 
-  border:0; 
+.jstree.jstree-overflows li a {
+  background: #fff !important;
 }
 
 
@@ -1267,3 +1262,4 @@ div.new-comment-link a {
 div.comment-content h3 a {
   color: #000;
 }
+
