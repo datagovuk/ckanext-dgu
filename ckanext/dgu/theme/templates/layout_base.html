@@ -172,6 +172,8 @@ groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Sys Admin:</span>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
+          <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
       </py:if>
     </ul>
   </div>
