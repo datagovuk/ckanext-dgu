@@ -45,7 +45,7 @@
      </h4>
      <?python
               display_provider = False
-              uklps = [d for d in package.get('extras', {}) if d['key'] == 'UKLP']
+              uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
               providers = [d for d in package.get('extras', {}) if d['key'] == 'provider']
               provider = providers[0]['value'] if len(providers) else ''
@@ -77,7 +77,10 @@
 
   <py:def function="dgu_facet_sidebar(code, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, count_label=lambda c: ' (%d)'%c)">
       <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">
-          <h4>${title(code)}</h4>
+          <h4>
+            <img src="/images/arrow.png" class="arrow" />
+            ${title(code)}
+          </h4>
           <ul class="facet-options">
 <?python
 items = h.unselected_facet_items(code, limit=100 if more_button else limit)
@@ -116,7 +119,10 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit)
     ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
 
     <div class="facet-box" id="map-based-search">
-      <h4>UK Location Map Search</h4>
+      <h4>
+        <img src="/images/arrow.png" class="arrow" />
+        UK Location Map Search
+      </h4>
       <ul class="facet-options">
         <py:if test="'ext_bbox' not in request.params">
           <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></li>
@@ -129,7 +135,10 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit)
 
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
-      <h4>UK Location Dataset Type</h4>
+      <h4>
+        <img src="/images/arrow.png" class="arrow" />
+        UK Location Dataset Type
+      </h4>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
         ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
         <ul class="facet-options">
