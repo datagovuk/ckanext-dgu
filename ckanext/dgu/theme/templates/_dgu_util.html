@@ -158,4 +158,26 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit)
     </py:for>
   </py:def>
 
+  <!--! Contact details -->
+  <py:def function="contact_details(name, email, phone, web_url, web_name)">
+        <py:choose test="">
+          <li py:when="email and '@' in email">Email:
+            <a href="mailto:${email}">${email}</a>
+          </li>
+          <li py:when="email and 'http' in email">Web contact form:
+            <a href="${email}">${email}</a>
+          </li>
+          <li py:when="email">Email:
+            ${email}
+          </li>
+        </py:choose>
+        <li py:if="phone">Phone:
+          ${phone}
+        </li>
+        <li py:if="web_url">Web:
+          <a href="${web_url}">${web_name or web_url}</a>
+        </li>
+        <li py:if="not (email or phone or web_url)">No details supplied</li>
+  </py:def>
+
 </html>

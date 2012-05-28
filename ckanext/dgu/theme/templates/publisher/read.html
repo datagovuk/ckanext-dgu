@@ -52,6 +52,34 @@
     </div>
 
     <div class="facet-box">
+      <h4>Contacts</h4>
+      Transparency enquiries:
+      <ul class="arrow-list">
+<?python
+name = c.group_extras.get('contact-name')
+email = c.group_extras.get('contact-email')
+phone = c.group_extras.get('contact-phone')
+web_url = c.group_extras.get('website-url')
+web_name = c.group_extras.get('website-name')
+?>
+        ${name}
+        ${contact_details(name, email, phone, web_url, web_name)}
+      </ul>
+      <br/>
+      Freedom of Information requests:
+      <ul class="arrow-list">
+<?python
+name = c.group_extras.get('foi-name')
+email = c.group_extras.get('foi-email')
+phone = c.group_extras.get('foi-phone')
+# reuse web url
+?>
+        ${name}
+        ${contact_details(name, email, phone, web_url, web_name)}
+      </ul>
+    </div>
+
+    <div class="facet-box">
       <h4>Publisher Hierarchy</h4>
       <div id="publisher-tree" class="jstree-overflows">
 <?python
@@ -75,6 +103,7 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 
 
   <py:match path="content">
+    <h3 py:if="c.group_extras.get('abbreviation')">(${c.group_extras.get('abbreviation')})</h3>
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
     <div class="notes" py:if="str(c.description_formatted).strip()">
       ${c.description_formatted}

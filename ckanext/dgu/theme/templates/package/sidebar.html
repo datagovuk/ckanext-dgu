@@ -83,12 +83,10 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
       <py:if test="dataset_type=='form'">
         <?python
           if pkg_extras.get('contact-name') or pkg_extras.get('contact-email') or pkg_extras.get('contact-phone'):
-            level = 'Dataset'
             name = pkg_extras.get('contact-name')
             email = pkg_extras.get('contact-email')
             phone = pkg_extras.get('contact-phone')
           else:
-            level = 'Publisher'
             publishers = c.pkg.get_groups('publisher')
             if publishers:
               name = publishers[0].get('contact-name')
@@ -97,14 +95,8 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
             else:
               name = email = phone = None
         ?>
-        ${level} Contact: ${name}
-        <li py:if="email">Email:
-          <a href="mailto:${email}">${email}</a>
-        </li>
-        <li py:if="phone">Phone:
-          ${phone}
-        </li>
-        <li py:if="not (email or phone)">No details supplied</li>
+        ${name}
+        ${contact_details(name, email, phone, web_url, web_name)}
       </py:if>
     </ul>
   </li>

@@ -286,6 +286,7 @@ flush_database () {
 
     local pyenv_root="/var/lib/ckan/$instance/pyenv"
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/import_publishers.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/dgupub.csv"
+    "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/import_publisher_contacts.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/dgu_pub_contacts.csv"
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/publisher_datasets_assoc.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/nodepublishermap.csv" | sudo -u postgres psql "$instance"
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/user_import.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/nodepublishermap.csv" "$users_file"
 

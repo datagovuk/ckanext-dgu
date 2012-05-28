@@ -23,7 +23,8 @@ from nose.tools import assert_equal
 # These publishers must be created by mistake
 ignore_publishers = (28266, #'Hazel Lee'
                      28267, #'George Wilson'
-                     11606, # ONS repeat, sub-pub of the other
+                     16267, # "Office OF" repeats ONS, sub-pub of the other
+                     11606, # ONS repeat
                      20054, # Met Office repeat, falsely under MoD
                      33036, # "Royal Borough of Windsor and Maidenhead" repeat
                      32619, # "Monmouthshire County Council" under Welsh Government
@@ -81,6 +82,8 @@ def command(config_ini, drupal_csv):
             g.extras['foi-email'] = ''
             g.extras['foi-phone'] = ''
             g.extras['abbreviation'] = field_acronym_value or ''
+            g.extras['website-url'] = field_pub_web_url or ''
+            g.extras['website-name'] = field_pub_web_title or ''
             g.extras[''] = field_acronym_value or ''
             model.Session.add(g)
             model.Session.commit()

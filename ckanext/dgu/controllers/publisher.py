@@ -15,6 +15,7 @@ from ckan.lib.dictization.model_dictize import package_dictize
 from ckan.controllers.group import GroupController
 import ckan.forms
 import ckan.model as model
+from ckan.lib.helpers import json
 from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,
                                       empty,
@@ -363,6 +364,15 @@ class PublisherController(GroupController):
         c.restricted_to_publisher = 'publisher' in request.params
         parent_groups = c.group.get_groups('publisher')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
+
+        c.group_extras = []
+        for extra in sorted(c.group_dict.get('extras',[]), key=lambda x:x['key']):
+            if extra.get('state') == 'deleted':
+                continue
+            k, v = extra['key'], extra['value']
+            v = json.loads(v)
+            c.group_extras.append((k, v))
+        c.group_extras = dict(c.group_extras)
 
         return render('publisher/read.html')
 
