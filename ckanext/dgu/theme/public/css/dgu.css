@@ -830,8 +830,13 @@ body.login #content {
 ul.property-list {
   margin-bottom: 10px;
 }
-.facet-box .more-button {
-  cursor: pointer; cursor: hand; /* both to be cross-browsers */
+.more-button {
+  height: 16px;
+  padding: 4px;
+  padding-top: 0px;
+  width: 95%;
+  margin: 10px auto 0 auto;
+  display: block;
 }
 
 
