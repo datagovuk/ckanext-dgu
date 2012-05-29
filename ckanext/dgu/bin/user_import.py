@@ -1,49 +1,71 @@
-##############################################################################
-# Uses the publisher node lookup csv and a new user csv to create users and
-# associate them with the appropriate publishers.
-#
-# SELECT U.uid, U.name, U.mail, R.name AS 'role_name',
-#        A.nid AS 'old_publisher_id'
-# FROM users U
-# INNER JOIN users_roles AS UR ON UR.uid = U.uid
-# INNER JOIN role AS R ON R.rid = UR.rid
-# LEFT OUTER JOIN acl_user AS AU ON AU.uid= U.uid
-# LEFT OUTER JOIN acl_node AS A ON AU.acl_id = A.acl_id
-# WHERE R.name in ('publishing user', 'publisher admin')
-# AND A.nid IS NOT NULL LIMIT 100000;
-#
-##############################################################################
+'''
+Uses the publisher node lookup csv and a new user csv to create users and
+associate them with the appropriate publishers.
+
+To create the users.csv:
+
+mysql -uroot dgu -e "
+SELECT U.uid, U.name, U.mail,
+       A.nid AS 'old_publisher_id'
+FROM users U
+LEFT OUTER JOIN acl_user AS AU ON AU.uid= U.uid
+LEFT OUTER JOIN acl_node AS A ON AU.acl_id = A.acl_id
+WHERE A.nid IS NOT NULL LIMIT 100000
+INTO OUTFILE '/tmp/users.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '\"'
+LINES TERMINATED BY '\n';"
+
+To create nodepublishermap.csv see publisher_datasets_assoc.py
+
+'''
 
 import os
 import logging
 import sys
 import csv
 import re
-import ckan
 import uuid
-from ckan import model
-from ckan.lib.search import rebuild
-from ckan.lib.munge import munge_title_to_name
+import warnings as warnings_
 from sqlalchemy import engine_from_config
-from ckan.logic.schema import user_new_form_schema
-from ckan.logic import get_action, tuplize_dict, clean_dict, parse_params
-from pylons import config
+from pylons import config, translator
+import paste.deploy
+from paste.registry import Registry
 
 publishers = {}
 
 def load_config(path):
-    import paste.deploy
     conf = paste.deploy.appconfig('config:' + path)
+
+    import ckan
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
-def _add_new_user(username, email, role):
+def get_ckan_username_from_drupal_id(node_id):
+    return 'user_d%i' % node_id
+
+def _add_new_user(node_id, username, email):
+    '''Tries to create a user based on the parameters.
+    Returns (username, ckan_user_id)
+    '''
     from ckan.logic.validators import name_validator
+    from ckan.lib.navl.dictization_functions import Invalid
+    from ckan import model
+    from ckan.logic.schema import user_new_form_schema
+    from ckan.logic import get_action
+
+    name = get_ckan_username_from_drupal_id(node_id)
 
     try:
-        name_validator(username, {})
-    except:
-        username =munge_title_to_name( username)
+        name_validator(name, {})
+    except Invalid, e:
+        log.error('Name does not validate %r - not created user.', username)
+        return name, None
+
+    existing_user = model.User.by_name(name)
+    if existing_user:
+        log.info('User %r already exists', name)
+        return name, existing_user.id
 
     ctx = {
             'session': model.Session,
@@ -54,82 +76,98 @@ def _add_new_user(username, email, role):
             'schema' : user_new_form_schema()
     }
     data = {
-        'password1': u'123123',
+        'password1': u'123123', # we use drupal for auth
         'password2': u'123123',
-        'name': username,
-        'fullname' : u'',
+        'name': name,
+        'fullname' : unicode(username),
         'save': u'',
         'email': email
     }
     try:
         user = get_action('user_create')(ctx, data)
     except Exception as e:
+        warn('Could not create user: %r %s', e, e)
         return username, None
 
-    return username, user
+    return username, user['id']
 
 
 
-def command():
-    load_config( os.path.abspath( sys.argv[1] ) )
-    engine = engine_from_config(config,'sqlalchemy.')
+def command(config_ini, nodepublisher_csv, users_csv):
+    load_config(os.path.abspath(config_ini))
+    engine = engine_from_config(config, 'sqlalchemy.')
+
+    from ckan import model
+    from ckan.lib.munge import munge_title_to_name
+    
+    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
+    global log
+    log = logging.getLogger(__name__)
 
     model.init_model(engine)
-    model.repo.new_revision()
 
-    with open(sys.argv[2], 'rU') as f:
+    # Register a translator in this thread so that
+    # the _() functions in logic layer can work
+    from ckan.lib.cli import MockTranslator
+    registry=Registry()
+    registry.prepare()
+    translator_obj=MockTranslator() 
+    registry.register(translator, translator_obj) 
+
+    with open(nodepublisher_csv, 'rU') as f:
         reader = csv.reader( f)
-        reader.next() # skip headers
         for row in reader:
             publishers[ int(row[0]) ] = munge_title_to_name(row[1])
+    log.info('Opened list of %i publishers', reader.line_num)
 
-    with open(sys.argv[3], 'rU') as f:
+    warnings_.filterwarnings('ignore', '.*flash message.*')
+    with open(users_csv, 'rU') as f:
         reader = csv.reader(f)
-        reader.next() # skip headers
         for row in reader:
-            oldid, name, email, role, oldpubid = row
+            model.repo.new_revision()
+            node_id, name, email, publisher_id = row
 
             # create a new user
-            uname, u = _add_new_user( name, email, role )
-            if not u:
-                try:
-                    u = model.Session.query(model.User).\
-                             filter(model.User.name == uname).all()[0]
-                    u = u.as_dict()
-                except:
-                    print 'Failed to find user ', name
-                    continue
+            uname, user_id = _add_new_user(int(node_id), name, email)
+            if not user_id:
+                # validation error. warning already printed
+                continue
 
-            # Find the publisher and add them as admin/editor
-            if oldpubid and role:
-                ids = model.Session.query("id")\
-                            .from_statement("select id from public.group where name='%s'" %
-                                             publishers[ int(oldpubid) ]).all()
-                publisher_id = ids[0][0]
+            # Find the publisher and add them as admin
+            if node_id:
+                publisher_name = publishers[int(publisher_id)]
+                publisher = model.Group.by_name(publisher_name)
 
-                capacity = None
-                if role == 'publisher admin':
-                    capacity = 'admin'
-                elif role == 'publishing user':
-                    capacity = 'editor'
+                capacity = 'admin'
 
-                if capacity:
-                    # Check for Member where table_name is u['id']
-                    res = model.Session.query(model.Member).\
-                            from_statement(MEMBER_LOOKUP).\
-                            params(userid=u['id'], groupid=publisher_id).all()
-                    if len(res) == 0:
-                        m = model.Member(group_id=publisher_id, table_id=u['id'],
-                                         table_name='user', capacity=capacity)
-                        model.Session.add( m )
+                # Check for Member where table_name is u['id']
+                res = model.Session.query(model.Member).\
+                      from_statement(MEMBER_LOOKUP).\
+                      params(userid=user_id, groupid=publisher.id).all()
+                if len(res) == 0:
+                    m = model.Member(group_id=publisher.id, table_id=user_id,
+                                     table_name='user', capacity=capacity)
+                    model.Session.add(m)
+                    log.info('Made %r admin for %r', name, publisher_name)
+                else:
+                    log.info('%r already admin for %r', name, publisher_name)
 
             # Update harvest_source user_id field to new user id.
-            userid = u['id']
-            model.Session.execute(HARVEST_QUERY,params={'uid':userid, 'oldid': str(oldid)})
+            model.Session.execute(HARVEST_QUERY,params={'uid':user_id, 'node_id': str(node_id)})
             model.Session.commit()
+    log.info('Processed list of %i users', reader.line_num)
 
+    log.info('Warnings (%i): %r', len(warnings), warnings)
 
-HARVEST_QUERY = "UPDATE harvest_source set user_id=:uid WHERE user_id=:oldid"
+warnings = []
+log = None
+def warn(msg, *params):
+    global warnings
+    warnings.append(msg % params)
+    log.warn(msg, *params)
+
+HARVEST_QUERY = "UPDATE harvest_source set user_id=:uid WHERE user_id=:node_id"
 MEMBER_LOOKUP = "select * from public.member where table_id=:userid and group_id=:groupid"
 
 def usage():
@@ -143,5 +181,6 @@ Usage:
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         usage()
-        sys.exit(0)
-    command()
+        sys.exit(1)
+    cmd, config_ini, nodepublisher_csv, users_csv = sys.argv
+    command(config_ini, nodepublisher_csv, users_csv)

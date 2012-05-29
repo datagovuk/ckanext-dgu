@@ -209,6 +209,9 @@ class DrupalAuthMiddleware(object):
         where sysadmin roles are:
                3   'administrator' - total control
                11  'package admin' - admin of datasets
+                   'publisher admin' - admin of publishers
+        other roles:
+                   'publishing user' - anyone who has registered - includes spammers
         '''
         from ckan import model
         from ckan.authz import Authorizer
@@ -217,7 +220,7 @@ class DrupalAuthMiddleware(object):
 
         # Sysadmin or not
         log.debug('User roles in Drupal: %r', drupal_roles)
-        should_be_sysadmin = bool(set(('administrator', 'package admin')) & set(drupal_roles))
+        should_be_sysadmin = bool(set(('administrator', 'package admin', 'publisher admin')) & set(drupal_roles))
         is_sysadmin = Authorizer().is_sysadmin(user)
         if should_be_sysadmin and not is_sysadmin:
             # Make user a sysadmin

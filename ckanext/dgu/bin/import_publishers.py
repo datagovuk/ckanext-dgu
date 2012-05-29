@@ -1,15 +1,23 @@
 '''
-Imports the DGU Publisher hierarchy from Drupal\'s hierarchy of publishers. This is obtained in CSV format using query:
-    SELECT r.title, 
+Imports the DGU Publisher hierarchy from Drupal\'s hierarchy of publishers. This is obtained in CSV format using command:
+
+To create dgupub.csv:
+
+mysql -uroot dgu -e "
+SELECT r.title, 
        p.nid,
-       (SELECT title FROM dgu_drupal.node_revisions AS rr WHERE rr.nid = p.field_pub_parent_nid ) AS 'parent_title',
+       (SELECT title FROM node_revisions AS rr WHERE rr.nid = p.field_pub_parent_nid ) AS 'parent_title',
        p.field_pub_parent_nid, 
        p.field_acronym_value, 
        p.field_pub_email_display_email, 
        p.field_pub_web_url, 
        p.field_pub_web_title
-    FROM dgu_drupal.content_type_publisher AS p
-    INNER JOIN dgu_drupal.node_revisions AS r ON r.vid = p.vid;
+FROM content_type_publisher AS p
+INNER JOIN node_revisions AS r ON r.vid = p.vid
+INTO OUTFILE '/tmp/dgupub.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '\"'
+LINES TERMINATED BY '\n';"
 '''
 
 import os
@@ -20,14 +28,17 @@ import csv
 from pylons import config
 from nose.tools import assert_equal
 
-# These publishers must be created by mistake
+# These publishers must have been created by mistake - don't transfer to CKAN
 ignore_publishers = (28266, #'Hazel Lee'
                      28267, #'George Wilson'
-                     16267, # "Office OF" repeats ONS, sub-pub of the other
+                     16268, # "Office OF" repeats ONS, sub-pub of correct 11408
                      11606, # ONS repeat
                      20054, # Met Office repeat, falsely under MoD
                      33036, # "Royal Borough of Windsor and Maidenhead" repeat
                      32619, # "Monmouthshire County Council" under Welsh Government
+                     36487, # 'Paul Lyons'
+                     36488, # 'Barbara Lennards'
+                     34613, # 'Iain Sharp'
                      )
 
 def load_config(path):
@@ -55,8 +66,6 @@ def command(config_ini, drupal_csv):
 
     with open(drupal_csv, 'rU') as drupal_csv_f:
         reader = csv.reader(drupal_csv_f)
-        headers = reader.next()
-        assert_equal(headers, ['title', 'nid', 'parent_title', 'field_pub_parent_nid', 'field_acronym_value', 'field_pub_email_display_email', 'field_pub_web_url', 'field_pub_web_title'])
         for row in reader:
             title, nid, parent_title, field_pub_parent_nid, field_acronym_value, field_pub_email_display_email, field_pub_web_url, field_pub_web_title = row
             title = title.strip()
@@ -64,7 +73,7 @@ def command(config_ini, drupal_csv):
             if title == 'title':
                 # header row
                 continue
-            if nid in ignore_publishers:
+            if int(nid) in ignore_publishers:
                 log.info('Publisher ignored: %s (%s)', title, nid)
                 continue
             
@@ -100,7 +109,7 @@ def command(config_ini, drupal_csv):
             if title == 'title':
                 # header row
                 continue
-            if nid in ignore_publishers:
+            if int(nid) in ignore_publishers:
                 log.info('Publisher ignored: %s (%s)', title, nid)
                 continue
 

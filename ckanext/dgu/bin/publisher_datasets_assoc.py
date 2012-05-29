@@ -1,67 +1,95 @@
-###############################################################################
-# Uses a CSV export from DGU Drupal to determine which datasets are owned by
-# which publishers.
-#
-# Iterates through all of the published_via extras for packages and then if it
-# is empty tries the published_by for that package.  Assuming we find something we
-# lookup the ID of the publisher (using the CSV instead of trusting the name) and
-# associate them.
-#
-# CSV is generated with:
-#
-# SELECT
-#  distinct
-#  DI.ckan_id as 'dataset_id',
-#  (SELECT title FROM dgu_drupal.node_revisions
-#  AS rr
-#  WHERE rr.nid = K.field_publisher_nid ) AS 'publisher_title'
-# FROM dgu_drupal.content_type_ckan_package as K
-# INNER JOIN dgu_drupal.ckan_package as DI ON DI.nid = K.nid
-# ORDER BY 'publisher_title'
-# LIMIT 100000;
-#
-###############################################################################
+'''
+Uses a CSV export from DGU Drupal to determine which datasets are owned by
+which publishers.
+
+Iterates through all of the published_via extras for packages and then if it
+is empty tries the published_by for that package.  Assuming we find something we
+lookup the ID of the publisher (using the CSV instead of trusting the name) and
+associate them.
+
+This script produces SQL that needs to be run on the DGU/CKAN database.
+
+It logs to publisher_datasets_assoc.log and errors are also written to errors.csv.
+
+To create nodepublishermap.csv:
+mysql -uroot dgu -e "
+select nid, title from node where type='publisher'
+ORDER BY 'nid'
+LIMIT 100000
+INTO OUTFILE '/tmp/nodepublishermap.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '\"'
+LINES TERMINATED BY '\n';"
+
+To create ???:
+mysql -uroot dgu -e "
+SELECT
+  distinct
+  DI.ckan_id as 'dataset_id',
+  (SELECT title FROM node_revisions
+  AS rr
+  WHERE rr.nid = K.field_publisher_nid ) AS 'publisher_title'
+FROM content_type_ckan_package as K
+INNER JOIN ckan_package as DI ON DI.nid = K.nid
+ORDER BY 'publisher_title'
+LIMIT 100000
+INTO OUTFILE '/tmp/dunno.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '\"'
+LINES TERMINATED BY '\n';"
+'''
+
 
 import os
 import logging
 import sys
 import csv
 import re
-import ckan
 import uuid
-from ckan import model
-from ckan.lib.search import rebuild
-from ckan.lib.munge import munge_title_to_name
 from sqlalchemy import engine_from_config
 from pylons import config
 
-publishers = {}
+log = logging.getLogger(__name__)
+publishers = {} # nid:publisher_name (munged)
 
 def load_config(path):
     import paste.deploy
     conf = paste.deploy.appconfig('config:' + path)
+    import ckan
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
-
-def command():
-    load_config( os.path.abspath( sys.argv[1] ) )
+def command(config_ini, nodepublisher_csv):
+    load_config(os.path.abspath(config_ini))
     engine = engine_from_config(config,'sqlalchemy.')
+
+    from ckan import model
+    from ckan.lib.munge import munge_title_to_name
+
+    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
+    logging.basicConfig(filename='publisher_datasets_assoc.log',
+                        format=FORMAT, level=logging.INFO)
+    global log
+    log = logging.getLogger(__name__)
 
     model.init_model(engine)
     model.repo.new_revision()
 
-    with open(sys.argv[2], 'rU') as f:
+    with open(nodepublisher_csv, 'rU') as f:
         reader = csv.reader( f)
-        reader.next() # skip headers
         for row in reader:
-            publishers[ int(row[0]) ] = munge_title_to_name(row[1])
+            nid, title = row
+            publishers[ int(nid) ] = munge_title_to_name(title)
 
     generate_harvest_publishers()
     update_datasets()
 
+    log.info('Warnings: %r', warnings)
+
 
 def log_missing_data( id, name, package, first=False ):
+    warn('Missing data. DGU_Publisher_ID=%s Extra=%s Package=%s missing_initial=%s',
+         id, name, package, first)
     mode = 'wb' if first else 'ab'
     with open('errors.csv', mode) as f:
         if first:
@@ -69,6 +97,9 @@ def log_missing_data( id, name, package, first=False ):
         f.write( '%s, %s, "%s"\r\n' % (id, name, package,) )
 
 def generate_harvest_publishers():
+    '''Generates SQL that converts the harvest_source.publisher_id from the
+    Drupal node ID to CKAN publisher ID.'''
+    from ckan import model
     data = model.Session.query("id","publisher_id")\
                 .from_statement("SELECT id,publisher_id FROM harvest_source").all()
     for i,p in data:
@@ -83,6 +114,12 @@ def generate_harvest_publishers():
 
 
 def update_datasets():
+    '''Generates SQL that makes every package a member of the appropriate
+    group (publisher). It uses publisher_via and published_by to determine
+    the group. If a package has both fields, then it is a member of
+    published_via group, and published_by value becomes 'provider' extra.
+    Any packages with neither values are logged.'''
+    from ckan import model
     with_name = re.compile("^.*\[(\d+)\].*$")
 
     missing_initial = True
@@ -161,6 +198,13 @@ def update_datasets():
             model.Session.commit()
         print ''
 
+warnings = []
+log = None
+def warn(msg, *params):
+    global warnings
+    warnings.append(msg % params)
+    log.warn(msg, *params)
+
 # Not currently deleting extras as it means this import cannot be run again
 # and if we do it after we've generated the SQL it takes an excessively long
 # time to clean up the revisions etc.
@@ -211,4 +255,5 @@ if __name__ == '__main__':
     if len(sys.argv) != 3:
         usage()
         sys.exit(0)
-    command()
+    cmd, config_ini, nodepublisher_csv = sys.argv
+    command(config_ini, nodepublisher_csv)

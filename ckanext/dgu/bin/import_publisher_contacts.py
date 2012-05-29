@@ -6,12 +6,12 @@ Imports the DGU Publisher hierarchy from a manually assembled list of department
 import os
 import logging
 import sys
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, or_
 import csv
 from pylons import config
 from nose.tools import assert_equal
 
-expected_columns = ('Department', 'Name', 'E-mail', 'Type', 'FOI Contact', 'Transparency Contact')
+expected_columns = ('Department', 'Name', 'E-mail', 'Main dept contact', 'Type', 'FOI Contact', 'Transparency Contact')
 
 def load_config(path):
     import paste.deploy
@@ -37,6 +37,7 @@ def command(config_ini, contacts_csv):
     model.repo.new_revision()
 
     # Collate all the publisher abbreviations
+    log.info('Collating publisher abbreviations')
     publisher_abbreviations = {} # {abbrev:name}
     publishers_with_no_abbreviation = []
     for group in model.Group.all(group_type='publisher'):
@@ -56,8 +57,8 @@ def command(config_ini, contacts_csv):
         assert_equal(tuple(headers), expected_columns)
         for row in reader:
             row = dict(zip(expected_columns, row))
-            publisher = row['Department'].strip()
 
+            publisher = row['Department'].strip()
             if not publisher:
                 warn('Ignoring row without publisher: %r', row)
                 continue
@@ -65,7 +66,8 @@ def command(config_ini, contacts_csv):
             if publisher.lower() in publisher_abbreviations:
                 g = model.Group.get(publisher_abbreviations[publisher.lower()])
             else:
-                q = model.Group.search_by_name_or_title(publisher)
+                q = model.Group.all('publisher').filter(or_((model.Group.name==publisher),
+                                                            (model.Group.title==publisher)))
                 if q.count() == 0:
                     warn('Cannot find publisher: %r', publisher)
                     continue
@@ -76,15 +78,23 @@ def command(config_ini, contacts_csv):
                     g = q.one()
 
             model.repo.new_revision()
-            if row['Type'].strip() in ('Practitioner', 'Both'):
+            edited = False
+            if '*' in row['Main dept contact']:
+                if row['Type'].strip() not in ('Practitioner', 'Both', 'Sub-Practitioner'):
+                    warn('Surprised to see that the main dept contact %r has role %r', row['E-mail'], row['Type'])
                 g.extras['contact-email'] = row['E-mail']
                 log.info('%s has contact %r', g.name, row['E-mail'])
+                edited = True
+            else:
+                log.info('Ignoring non-asterisked contact: %r', (row['Department'], row['Name']))
             if row.get('FOI Contact').strip():
                 g.extras['foi-email'] = row['FOI Contact'].strip()
+                edited = True
                 log.info('%s has FOI email %r', g.name, g.extras['foi-email'])
             model.Session.commit()
             title_and_abbreviation = '%s (%s)' % (g.title, row['Department']) if row['Department'] else g.title
-            log.info('Edited publisher contact: %s', title_and_abbreviation)
+            if edited:
+                log.info('Edited publisher contact: %s', title_and_abbreviation)
 
     log.info('Processed rows: %i', reader.line_num)
     log.info('Warnings: %r', warnings)
