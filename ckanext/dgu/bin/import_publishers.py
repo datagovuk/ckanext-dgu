@@ -39,6 +39,8 @@ ignore_publishers = (28266, #'Hazel Lee'
                      36487, # 'Paul Lyons'
                      36488, # 'Barbara Lennards'
                      34613, # 'Iain Sharp'
+                     11539, # 'None'
+                     12662, # 'NHS' (duplicate of fuller title)
                      )
 
 def load_config(path):
