@@ -93,7 +93,7 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit)
               </li>
           </ul>
           <py:if test="more_button and len(items) > limit">
-            <a id="${more_button}" class="more-button">More >></a>
+            <a id="${more_button}" class="btn more-button"><img src="/images/chevron-down.png"/></a>
             <ul class="facet-options" id="${more_button}-items" style="display: None">
                 <li py:for="facet_item in items[limit:]"
                   py:if="not (code, facet_item['name']) in c.fields">

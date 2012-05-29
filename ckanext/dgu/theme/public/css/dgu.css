@@ -542,6 +542,15 @@ div.first-box-in-ribbon {
   padding-top: 15px;
   text-align: center;
 }
+.search-spinner {
+  width: 20px;
+  height: 20px;
+  margin-left: -40px;
+  margin-right: 20px;
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+}
 
 .form-search {
   padding: 9px;
@@ -821,8 +830,13 @@ body.login #content {
 ul.property-list {
   margin-bottom: 10px;
 }
-.facet-box .more-button {
-  cursor: pointer; cursor: hand; /* both to be cross-browsers */
+.more-button {
+  height: 16px;
+  padding: 4px;
+  padding-top: 0px;
+  width: 96%;
+  margin: 10px auto 0 auto;
+  display: block;
 }
 
 
