@@ -47,7 +47,8 @@ import csv
 import re
 import uuid
 from sqlalchemy import engine_from_config
-from pylons import config
+from pylons import config, translator
+from paste.registry import Registry
 
 log = logging.getLogger(__name__)
 publishers = {} # nid:publisher_name (munged)
@@ -73,6 +74,15 @@ def command(config_ini, nodepublisher_csv):
     log = logging.getLogger(__name__)
 
     model.init_model(engine)
+
+    # Register a translator in this thread so that
+    # the _() functions in logic layer can work
+    from ckan.lib.cli import MockTranslator
+    registry=Registry()
+    registry.prepare()
+    translator_obj=MockTranslator() 
+    registry.register(translator, translator_obj) 
+
     model.repo.new_revision()
 
     with open(nodepublisher_csv, 'rU') as f:
@@ -107,9 +117,15 @@ def generate_harvest_publishers():
             old_id = int(p)
 
             if old_id in publishers:
-                ids = model.Session.query("id")\
-                            .from_statement("select id from public.group where name='%s'" % publishers[old_id]).all()
-                publisher_id = ids[0][0]
+                pub_name = publishers[old_id]
+                publisher = model.Group.by_name(pub_name)
+                if not publisher:
+                    warn('Could not find publisher named %r. Cannot updating harvested records for that publisher.', pub_name)
+                    continue
+                #ids = model.Session.query("id")\
+                #            .from_statement("select id from public.group where name='%s'" % publishers[old_id]).all()
+                #publisher_id = ids[0][0]
+                publisher_id = publisher.id
                 print HARVEST_UPDATE % (publisher_id,i,)
 
 
@@ -178,6 +194,13 @@ def update_datasets():
 
         # We could optimise here, but seeing as the script currently runs adequately fast
         # we won't bother with caching the name->id lookup
+        pub_name = publishers[value]
+	publisher = model.Group.by_name(pub_name)
+        if not publisher:
+	    pkg = model.Package.get(pid)
+            warn('Could not find publisher named %r. Cannot put package %s under a publisher.', pub_name, pkg.name)
+            continue
+
         ids = model.Session.query("id")\
                     .from_statement("select id from public.group where name='%s'" % publishers[value]).all()
         publisher_id = ids[0][0]
