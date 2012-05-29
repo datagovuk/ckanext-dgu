@@ -30,7 +30,6 @@ $(function() {
     }
   };
 
-  var input = $('#dataset-search #q');
   var url = '/api/2/search/dataset';
 
   var pollApi = function(typeahead,query) {
@@ -50,23 +49,31 @@ $(function() {
     });
   };
 
-  var runningTimeout = null;
+  // Allow only one timeout callback at a time
+  var timer = null;
 
+  // Called when the user types in the search box
   var sourceFunction = function (typeahead, query) {
-    if (runningTimeout) {
-      clearTimeout(runningTimeout);
-      runningTimeout = null;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
     }
     if (!query) {
       SearchSpinner.stop();
       return [];
     }
     SearchSpinner.start();
-    runningTimeout = setTimeout(function() { pollApi(typeahead,query); }, 200);
+    // Don't poll the API immediately. Spam crazy!
+    timer = setTimeout(function() { pollApi(typeahead,query); }, 200);
   };
+  var onSelect = function() {
+    $('form#dataset-search').submit();
+  }
 
-  input.typeahead({
-    source: sourceFunction
+  // Attach typeahead function to the input textbox
+  $('#dataset-search #q').typeahead({
+    source: sourceFunction,
+    onselect: onSelect
   });
 
 });
