@@ -89,14 +89,14 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
           else:
             publishers = c.pkg.get_groups('publisher')
             if publishers:
-              name = publishers[0].get('contact-name')
-              email = publishers[0].get('contact-email')
-              phone = publishers[0].get('contact-phone')
+              name = publishers[0].extras.get('contact-name')
+              email = publishers[0].extras.get('contact-email')
+              phone = publishers[0].extras.get('contact-phone')
             else:
               name = email = phone = None
         ?>
         ${name}
-        ${contact_details(name, email, phone, web_url, web_name)}
+        ${contact_details(name, email, phone, None, None)}
       </py:if>
     </ul>
   </li>

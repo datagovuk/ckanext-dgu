@@ -167,6 +167,10 @@ groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
         <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+        <py:if test="groups">
+          <span class="divider">&nbsp;|&nbsp;</span>
+          <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+        </py:if>
       </py:if>
       <py:if test="c.is_sysadmin">
         <span class="divider">&nbsp;|&nbsp;</span>

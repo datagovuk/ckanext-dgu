@@ -38,7 +38,10 @@
               <span class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
-                  ${h.resource_display_name(res)}
+<?python
+import ckanext.dgu.lib.helpers as dgu_helpers
+?>
+                  ${dgu_helpers.resource_display_name(res)}
                 </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </span>
@@ -75,15 +78,7 @@
           </ul>
         </py:if>
  
-        <div py:if="pkg_extras.get('spatial')" class="subsection">
-          <br />
-          <h3>Dataset Extent</h3>
-          <div id='spatial-map'/>
-          <div class="right">
-            ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
-          </div>
-          <br/>
-        </div>
+        ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
 
         <py:if test="additional_resources or gemini_resources"> 
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>

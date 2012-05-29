@@ -185,3 +185,18 @@ def is_service(package):
     res_type = get_uklp_package_type(package)
     return res_type == 'service'
 
+# variant of core ckan method of same name
+# but displays better string if no resource there
+def resource_display_name(resource_dict):
+    name = resource_dict.get('name')
+    description = resource_dict.get('description')
+    if name and name != 'None':
+        return name
+    elif description and description != 'None':
+        description = description.split('.')[0]
+        max_len = 60;
+        if len(description)>max_len: description = description[:max_len]+'...'
+        return description
+    else:
+        noname_string = 'File'
+        return '[%s] %s' % (noname_string, resource_dict['id'])
