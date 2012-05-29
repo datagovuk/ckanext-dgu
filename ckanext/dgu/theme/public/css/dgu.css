@@ -834,7 +834,7 @@ ul.property-list {
   height: 16px;
   padding: 4px;
   padding-top: 0px;
-  width: 95%;
+  width: 96%;
   margin: 10px auto 0 auto;
   display: block;
 }
@@ -1154,10 +1154,11 @@ div#publisher-tree {
 #publisher-tree-wrapper {
   position: relative;
   max-height: 240px;
-  overflow: hidden;
+  overflow-y: hidden;
 }
 #publisher-tree-expand {
   position: absolute;
+  right: 0; /* All the better to cover the text */
   top: 208px; /* 18px per line */
   z-index: 1;
 }
