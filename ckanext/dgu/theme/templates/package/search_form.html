@@ -99,13 +99,9 @@ bbox = request.params.get('ext_bbox','')
 
       var input = $('#dataset-search #q');
       var url = '/api/2/search/dataset';
-      var sourceFunction = function (typeahead, query) {
-        if (!query) {
-          SearchSpinner.stop();
-          return [];
-        }
-        SearchSpinner.start();
-        return $.ajax({
+
+      var pollApi = function(typeahead,query) {
+        $.ajax({
           url: url, 
           data: { fl: 'title', q: query }, 
           success: function (data) {
@@ -120,9 +116,26 @@ bbox = request.params.get('ext_bbox','')
           }
         });
       };
+
+      var runningTimeout = null;
+
+      var sourceFunction = function (typeahead, query) {
+        if (runningTimeout) {
+          clearTimeout(runningTimeout);
+          runningTimeout = null;
+        }
+        if (!query) {
+          SearchSpinner.stop();
+          return [];
+        }
+        SearchSpinner.start();
+        runningTimeout = setTimeout(function() { pollApi(typeahead,query); }, 200);
+      };
+
       input.typeahead({
         source: sourceFunction
       });
+
     });
   </script>
 
