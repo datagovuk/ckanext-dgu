@@ -16,7 +16,7 @@ $(function() {
 
   jstree.bind('loaded.jstree', function() { 
     var li = $('.jstree li');
-    var max = 2;
+    var max = 15;
     if (li.length>max) {
       var treeWrapper = $('#publisher-tree-wrapper');
       var treeButton = $('#publisher-tree-expand');
