@@ -21,6 +21,7 @@ $(function() {
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
 
   var contortDrupal = function(data) {
+    data = data || '<div class="boxed"><h2>Comments</h2>(no data)</div>';
     var dom = $(data);
     dom.find('#comment-add').addClass('btn').addClass('btn-primary').css({'float':'right'});
     dom.find('.comment').addClass('boxed');
