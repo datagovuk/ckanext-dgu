@@ -1151,17 +1151,6 @@ div#publisher-tree {
   background-color: white;
   overflow: auto;
 }
-#publisher-tree-wrapper {
-  position: relative;
-  max-height: 240px;
-  overflow-y: hidden;
-}
-#publisher-tree-expand {
-  position: absolute;
-  right: 0; /* All the better to cover the text */
-  top: 208px; /* 18px per line */
-  z-index: 1;
-}
 .tab-pane .pagination-alphabet a { 
   padding: 0 5px;
 }

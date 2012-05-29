@@ -88,7 +88,7 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 ?>
        ${Markup(render_mini_tree(c.parent_publisher, c.group, sub_groups))}
       </div>
-      <a id="publisher-tree-expand" class="btn more-button"><img src="/images/chevron-down.png"/></a>
+      <a style="display:none;" id="publisher-tree-expand" class="btn more-button"><img src="/images/chevron-down.png"/></a>
       </div>
 
           <br />
@@ -157,31 +157,14 @@ from ckanext.dgu.lib.helpers import render_mini_tree
   </py:def>
 
   <py:def function="optional_footer">
-    <script src="${g.site_url}/scripts/vendors/jstree/jquery.jstree.js"></script>
     <link rel="stylesheet" href="/scripts/vendors/jstree/themes/default/style.css" type="text/css" media="screen" />
-    <script type="text/javascript">
-      $(document).ready(function() {
-        var treeWrapper = $('#publisher-tree-wrapper');
-        var treeButton = $('#publisher-tree-expand');
-        treeButton.click(function() {
-          treeWrapper.css('max-height','none');
-          treeButton.remove();
-        });
-
-        $("#publisher-tree").jstree(
-           {
-            "themes" : {
-                "icons" : false
-            },
-            "plugins" : ["themes","html_data","ui"],
-            "core": {
-                "load_open" : true,
-                "initially_open" : ["node_${c.parent_publisher.name if c.parent_publisher else ''}", "node_${c.group.name}"]
-            }
-           }
-          ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
-      });
+    <script src="${g.site_url}/scripts/vendors/jstree/jquery.jstree.js"></script>
+    <script>
+      // Pollute the global namespace
+      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
+      PUBLISHER_GROUP  = "node_${c.group.name}";
     </script>
+    <script src="/scripts/dgu-publisher.js"></script>
   </py:def>
 
   <xi:include href="../layout.html" />
