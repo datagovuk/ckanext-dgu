@@ -14,17 +14,15 @@ from sqlalchemy import engine_from_config
 from optparse import OptionParser
 
 from pylons import config
-
-import ckan
-from ckan import model
-from ckanext.dgu.lib.resource_formats import match
-from running_stats import StatsList
+from pylons import config, translator
+from paste.registry import Registry
 
 def load_config(path):
     import paste.deploy
     conf = paste.deploy.appconfig('config:' + path)
+    import ckan
     ckan.config.environment.load_environment(conf.global_conf,
-            conf.local_conf)
+                                             conf.local_conf)
 
 res_type_map = {
     'application/x-msexcel': 'XLS',
@@ -56,6 +54,18 @@ res_type_map = {
     }
 
 def command(dry_run=False):
+    from ckan import model
+    from ckanext.dgu.lib.resource_formats import match
+    from running_stats import StatsList
+
+    # Register a translator in this thread so that
+    # the _() functions in logic layer can work
+    from ckan.lib.cli import MockTranslator
+    registry=Registry()
+    registry.prepare()
+    translator_obj=MockTranslator() 
+    registry.register(translator, translator_obj) 
+
     if not dry_run:
         model.repo.new_revision()
 
@@ -109,9 +119,11 @@ if __name__ == '__main__':
         config_path = os.path.abspath(options.config)
         if not os.path.exists(config_path):
             print 'Config file does not exist: %s' % config_path
-            sys.exit(1)            
+            sys.exit(1)
+            
         load_config(config_path)
         engine = engine_from_config(config, 'sqlalchemy.')
+        from ckan import model
         model.init_model(engine)
             
     command(dry_run=options.dry_run)
