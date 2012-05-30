@@ -20,7 +20,7 @@ if c.pkg.license:
 licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
 if licence_extra:
   licenses.append((licence_extra, True if 'OGL' in licence_extra else None))
-access_constraints = c.pkg.extras.get('access_constraints').strip('"[]') or ''
+access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
 if access_constraints:
   licenses.append((access_constraints, True if 'OGL' in licence_extra else None))
 ?>
