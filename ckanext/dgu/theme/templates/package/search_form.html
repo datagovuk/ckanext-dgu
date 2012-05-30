@@ -21,7 +21,7 @@
       </td>
       <td class="right">
         <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
-          <input id="q" type="text" class="input-medium" name="q" value="${c.q}" results="0" placeholder="${_('Search...')}" />
+          <input id="q" data-provide="typeahead" type="text" class="input-medium" name="q" value="${c.q}" results="0" placeholder="${_('Search...')}" />
           <div class="search-spinner">&nbsp;</div>
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
@@ -63,7 +63,7 @@ bbox = request.params.get('ext_bbox','')
     </tr>
   </table>
 
-  <script src="/scripts/bootstrap-typeahead.js"></script>
-  <script src="/scripts/dgu-autocomplete.js"></script>
+  <!-- <script src="/scripts/bootstrap-typeahead.js"></script> -->
+  <!-- <script src="/scripts/dgu-autocomplete.js"></script> -->
 
 </html>
