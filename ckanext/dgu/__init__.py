@@ -23,7 +23,7 @@ def dgu_linked_user(user):  # Overwrite h.linked_user
         _icon = gravatar(None, 20)
         return _icon + link_to(_name,
                        url_for(controller='user', action='read', id=_name))
-
-from ckan.lib.base import h
-h.linked_user = dgu_linked_user
+#Disabled for now as it borks install
+#from ckan.lib.base import h
+#h.linked_user = dgu_linked_user
 
