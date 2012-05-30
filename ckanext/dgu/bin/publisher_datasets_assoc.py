@@ -9,7 +9,7 @@ associate them.
 
 This script produces SQL that needs to be run on the DGU/CKAN database.
 
-It logs to publisher_datasets_assoc.log and errors are also written to errors.csv.
+It logs to publisher_datasets_assoc.log.
 
 To create nodepublishermap.csv:
 mysql -uroot dgu -e "
@@ -91,20 +91,10 @@ def command(config_ini, nodepublisher_csv):
             nid, title = row
             publishers[ int(nid) ] = munge_title_to_name(title)
 
-    generate_harvest_publishers()
     update_datasets()
+    generate_harvest_publishers()
 
     log.info('Warnings: %r', warnings)
-
-
-def log_missing_data( id, name, package, first=False ):
-    warn('Missing data. DGU_Publisher_ID=%s Extra=%s Package=%s missing_initial=%s',
-         id, name, package, first)
-    mode = 'wb' if first else 'ab'
-    with open('errors.csv', mode) as f:
-        if first:
-            f.write( 'DGU_Publisher_ID,Extra,Package\r\n' )
-        f.write( '%s, %s, "%s"\r\n' % (id, name, package,) )
 
 def generate_harvest_publishers():
     '''Generates SQL that converts the harvest_source.publisher_id from the
@@ -136,9 +126,8 @@ def update_datasets():
     published_via group, and published_by value becomes 'provider' extra.
     Any packages with neither values are logged.'''
     from ckan import model
-    with_name = re.compile("^.*\[(\d+)\].*$")
+    publisher_name_and_id_regex = re.compile("^(.*)\s\[(\d+)\].*$")
 
-    missing_initial = True
     package_ids = model.Session.query("id")\
                     .from_statement("SELECT id FROM package").all()
     package_ids = [p[0] for p in package_ids]
@@ -166,53 +155,44 @@ def update_datasets():
 
                 provider = provider.replace("'", "\\'")
 
-        # Use the with_name regex to strip out the number from something
-        # of the format "Name of the publisher [extra_id]"
-        if value:
-            try:
-                g = with_name.match(str(value))
-                if g:
-                    value = g.groups(0)[0]
-            except:
-                print value
-                raise
-        # We want to use ints for the lookup, just because
-        value = int(value or 0)
-
-        # We don't handle unknown publishers but these should not exist as
-        # we are looking from a shared datasource (i.e. publishers published
-        # from same list).
-        if not value or not value in publishers:
-            log_missing_data(value, via_value or by_value, pid, first=missing_initial)
-            missing_initial = False
+        # Use the publisher_name_and_id_regex to extract the publisher nama and node_id from
+        # value, which has format "Name of the publisher [node_id]"
+        try:
+            g = publisher_name_and_id_regex.match(str(value))
+            if g:
+                publisher_name, publisher_node_id = g.groups(0)
+        except:
+            warn('Could not extract id from the publisher name: %r. Skipping package %s', value, pid)
             continue
+
+        # Lookup publisher object
+        publisher_q = model.Group.all('publisher').filter_by(title=publisher_name)
+        if publisher_q.count() == 1:
+            publisher = publisher_q.one()
+        elif publisher_q.count() == 0:
+            warn('Could not find publisher %r. package=%s published_by=%r published_via=%r',
+                 publisher_name, model.Package.get(pid).name, by_value, via_value)
+            continue
+        elif publisher_q.count() > 1:
+            warn('Multiple matches for publisher %r: %r. package=%s published_by=%r published_via=%r',
+                 publisher_name, [(pub.id, pub.title) for pub in publisher_q.all()],
+                 model.Package.get(pid).name, by_value, via_value)
+            continue
+        publisher_id = publisher.id
 
         member_id          = unicode(uuid.uuid4())
         member_revision_id = unicode(uuid.uuid4())
         revision_id        = unicode(uuid.uuid4())
         provider_id        = unicode(uuid.uuid4())
 
-        # We could optimise here, but seeing as the script currently runs adequately fast
-        # we won't bother with caching the name->id lookup
-        pub_name = publishers[value]
-	publisher = model.Group.by_name(pub_name)
-        if not publisher:
-	    pkg = model.Package.get(pid)
-            warn('Could not find publisher named %r. Cannot put package %s under a publisher.', pub_name, pkg.name)
-            continue
-
-        ids = model.Session.query("id")\
-                    .from_statement("select id from public.group where name='%s'" % publishers[value]).all()
-        publisher_id = ids[0][0]
-
-        memberq      = MEMBER_QUERY.strip() % \
+        member_q      = MEMBER_QUERY.strip() % \
                         (member_id, pid, publisher_id, revision_id)
         member_rev_q = MEMBER_REVISION_QUERY.strip() % \
-                        (member_id, pid, publisher_id, revision_id, member_id)
+                        (member_revision_id, pid, publisher_id, revision_id, member_id)
         revision_q   = REVISION_QUERY.strip() % (revision_id,)
 
         print revision_q
-        print memberq
+        print member_q
         print member_rev_q
         if provider:
             p = model.PackageExtra(id=unicode(uuid.uuid4()), package_id=pid,
@@ -245,12 +225,12 @@ HARVEST_UPDATE = "UPDATE public.harvest_source SET publisher_id='%s' WHERE id='%
 
 MEMBER_QUERY = """
 INSERT INTO public.member(id, table_id,group_id, state,revision_id, table_name, capacity)
-    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'member');
+    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'public');
 """
 MEMBER_REVISION_QUERY = """
 INSERT INTO public.member_revision(id, table_id, group_id, state, revision_id, table_name,
                                       capacity, revision_timestamp, current, continuity_id, expired_timestamp)
-    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'member',
+    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'public',
             '2012-02-17',  true, '%s', '9999-12-31');
 """
 REVISION_QUERY = """
