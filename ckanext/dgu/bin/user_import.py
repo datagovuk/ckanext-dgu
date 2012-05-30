@@ -138,6 +138,10 @@ def command(config_ini, nodepublisher_csv, users_csv):
             if node_id:
                 publisher_name = publishers[int(publisher_id)]
                 publisher = model.Group.by_name(publisher_name)
+		if not publisher:
+                    warn('Could not find publisher %r so skipping making %r admin for it.', 
+                         publisher_name, name)
+                    continue
 
                 capacity = 'admin'
 
