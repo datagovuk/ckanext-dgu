@@ -290,9 +290,8 @@ flush_database () {
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/publisher_datasets_assoc.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/nodepublishermap.csv" | sudo -u postgres psql "$instance"
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/user_import.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/nodepublishermap.csv" "$users_file"
 
-    echo "Tidying package fields..."
-    "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_package_fields.py" --config "/etc/ckan/$instance/$instance.ini"
-    echo "Finished tidying resource formats."
+    "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_resource_formats.py" --config "/etc/ckan/$instance/$instance.ini"
+    #"$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_package_fields.py" --config "/etc/ckan/$instance/$instance.ini"
 }
 
 create_test_admin_user () {

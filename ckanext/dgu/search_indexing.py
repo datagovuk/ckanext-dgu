@@ -62,7 +62,7 @@ class SearchIndexing(object):
     @classmethod
     def add_field__publisher(cls, pkg_dict):
         '''Adds the 'publisher' based on group.'''
-        groups = [Group.get(g) for g in pkg_dict['groups']]
+        groups = set([Group.get(g) for g in pkg_dict['groups']])
         publishers = [g for g in groups if g.type == 'publisher']
 
         # Each dataset should have exactly one group of type "publisher".

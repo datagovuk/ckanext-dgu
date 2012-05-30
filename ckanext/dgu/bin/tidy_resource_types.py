@@ -14,17 +14,15 @@ from sqlalchemy import engine_from_config
 from optparse import OptionParser
 
 from pylons import config
-
-import ckan
-from ckan import model
-from ckanext.dgu.lib.resource_formats import match
-from running_stats import StatsList
+from pylons import config, translator
+from paste.registry import Registry
 
 def load_config(path):
     import paste.deploy
     conf = paste.deploy.appconfig('config:' + path)
+    import ckan
     ckan.config.environment.load_environment(conf.global_conf,
-            conf.local_conf)
+                                             conf.local_conf)
 
 res_type_map = {
     'application/x-msexcel': 'XLS',
@@ -38,13 +36,15 @@ res_type_map = {
     'CSV Zip': 'CSV/Zip',
     'CSV Zipped': 'CSV/Zip',
     '.csv zipped': 'CSV/Zip',
+    'csvzipped': 'CSV/Zip',
     'web': 'HTML',
     'Web link': 'HTML',
+    'Webpage': 'HTML',
     'Portable Document File': 'PDF',
     'Adobe PDF': 'PDF',
     'Shapefile': 'SHP',
     'RDFa': 'HTML+RDFa',
-    'plain text': 'txt',
+    'plain text': 'TXT',
     'doc': 'DOC',
     'Word': 'DOC',
     'Word doc': 'DOC',
@@ -52,10 +52,29 @@ res_type_map = {
     'iCalendar': 'iCal',
     'HTML/iCalendar': 'iCal',
     'HTML/iCal': 'iCal',
+    'gztxt': 'TXT/Zip'
+    'Other XML': 'XML'
     ' ': '',
     }
 
 def command(dry_run=False):
+    from ckan import model
+    from ckanext.dgu.lib.resource_formats import match
+    from running_stats import StatsList
+
+    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
+    global log
+    log = logging.getLogger(__name__)
+
+    # Register a translator in this thread so that
+    # the _() functions in logic layer can work
+    from ckan.lib.cli import MockTranslator
+    registry=Registry()
+    registry.prepare()
+    translator_obj=MockTranslator() 
+    registry.register(translator, translator_obj) 
+
     if not dry_run:
         model.repo.new_revision()
 
@@ -65,7 +84,11 @@ def command(dry_run=False):
 
     stats = StatsList()
 
-    for res in model.Session.query(model.Resource):
+    res_query = model.Session.query(model.Resource)
+    log.info('Tidying formats. Resources=%i Canonised formats=%i',
+             res_query.count(), len(set(res_type_map.values())))
+
+    for res in res_query:
         canonised_fmt = canonise(res.format or '')
         if canonised_fmt in res_type_map:
             improved_fmt = res_type_map[canonised_fmt]
@@ -84,13 +107,23 @@ def command(dry_run=False):
     if not dry_run:
         model.repo.commit_and_remove()
 
+    log.info('Stats report: %r', stats.report())
     print stats.report()
+
+    log.info('Warnings (%i): %r', len(warnings), warnings)
 
 def canonise(format_):
     return tidy(format_).lower()
 
 def tidy(format_):
     return format_.strip().lstrip('.')
+
+warnings = []
+log = None
+def warn(msg, *params):
+    global warnings
+    warnings.append(msg % params)
+    log.warn(msg, *params)
 
 if __name__ == '__main__':
     usage = '''usage: %prog [options]
@@ -109,9 +142,11 @@ if __name__ == '__main__':
         config_path = os.path.abspath(options.config)
         if not os.path.exists(config_path):
             print 'Config file does not exist: %s' % config_path
-            sys.exit(1)            
+            sys.exit(1)
+            
         load_config(config_path)
         engine = engine_from_config(config, 'sqlalchemy.')
+        from ckan import model
         model.init_model(engine)
             
     command(dry_run=options.dry_run)
