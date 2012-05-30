@@ -19,7 +19,7 @@ if c.pkg.license:
   licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
 licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
 if licence_extra:
-  licenses.append(((licence_extra, True) if 'OGL' in licence_extra else None))
+  licenses.append((licence_extra, True if 'OGL' in licence_extra else False))
 access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
 ?>
   <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
