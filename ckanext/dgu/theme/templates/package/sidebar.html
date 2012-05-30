@@ -19,8 +19,10 @@ if c.pkg.license:
   licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
 licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
 if licence_extra:
-  licenses.append((licence_extra, True if 'OGL' in licence_extra else False))
-access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
+  licenses.append((licence_extra, True if 'OGL' in licence_extra else None))
+access_constraints = c.pkg.extras.get('access_constraints').strip('"[]') or ''
+if access_constraints:
+  licenses.append((access_constraints, True if 'OGL' in licence_extra else None))
 ?>
   <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
     <h3>Licence</h3>
@@ -36,7 +38,7 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
               </a> 
             </py:if>
             <py:if test="isopen == False">
-              <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+              <span class="closed">${h.icon('lock')}</span>
             </py:if>
           </li>
         </py:when>
@@ -60,12 +62,6 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
           <li>No licence specified</li>
         </py:otherwise>
       </py:choose>
-      <py:if test="access_constraints">
-        <li> 
-          Access constraints: 
-          ${c.pkg.extras.get('access_constraints').strip('"[]')}
-        </li>
-      </py:if>
      </ul>
     </div>
   </div>
