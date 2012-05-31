@@ -133,6 +133,16 @@ from ckanext.dgu.lib.helpers import render_mini_tree
             </form>
           </div>
 
+          <?python 
+            from ckan.controllers.package import search_url
+            from ckan.lib.base import request
+            params = dict(request.params)
+            if not 'publisher' in params:
+                params['parent_publishers'] = c.group.name
+            advanced = search_url(params.items())
+          ?>
+          <a style="float:right;" class="btn btn-primary" href="${advanced}">Go to Advanced Search &raquo;</a>
+
           <p><span py:if="c.q">You searched for "${c.q}". </span>${c.page.item_count} datasets found.</p>
 
       </div>
