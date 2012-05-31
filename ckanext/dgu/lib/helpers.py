@@ -137,7 +137,6 @@ def get_resource_wms(resource_dict):
     '''For a given resource, return the WMS url if it is a WMS data type.'''
     # plenty of WMS resources have res['format']='' so
     # also search for WMS in the url
-    print "RES_DICT", resource_dict
     url = resource_dict.get('url') or ''
     format = resource_dict.get('format') or ''
     # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
