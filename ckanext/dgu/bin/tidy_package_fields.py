@@ -13,56 +13,119 @@ import sys
 from sqlalchemy import engine_from_config
 from optparse import OptionParser
 
-from pylons import config
+from pylons import config, translator
+from paste.registry import Registry
 
-import ckan
-from ckan import model
 from running_stats import StatsList
 
 def load_config(path):
     import paste.deploy
     conf = paste.deploy.appconfig('config:' + path)
+    import ckan
+
+
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
 field_map = {
     # ('existing_field1', 'existing_field2', ...): 'destination_field_name'),
-    (),
+    ('author', 'maintainer'): 'contact-name',
+    ('author_email', 'maintainer_email'): 'contact-email',
+    ('geographical_granularity',): 'geographic_granularity',
+    ('temporal_coverage_from',): 'temporal_coverage-from',
+    ('temporal_coverage_to',): 'temporal_coverage-to',
 }
+delete_fields = ('agency', 'department', 'date_released', 'temporal_coverage_from ', 'temporal_coverage_to ', 'update_frequency ')
 
 def command(dry_run=False):
-    if not dry_run:
-        model.repo.new_revision()
+    # Logging
+    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
+    global log
+    log = logging.getLogger(__name__)
 
-    # Add canonised formats to map
-    for format_ in res_type_map.keys():
-        res_type_map[canonise(format_)] = res_type_map[format_]
+    from ckan import model
+
+    # Register a translator in this thread so that
+    # the _() functions in logic layer can work
+    from ckan.lib.cli import MockTranslator
+    registry=Registry()
+    registry.prepare()
+    translator_obj=MockTranslator() 
+    registry.register(translator, translator_obj) 
 
     stats = StatsList()
 
-    for res in model.Session.query(model.Resource):
-        canonised_fmt = canonise(res.format or '')
-        if canonised_fmt in res_type_map:
-            improved_fmt = res_type_map[canonised_fmt]
-        else:
-            improved_fmt = tidy(res.format)
-        if (improved_fmt or '') != (res.format or ''):
+    if not dry_run:
+        rev = model.repo.new_revision()
+        rev.message = 'Package fields migration'
+
+    for pkg in model.Session.query(model.Package):
+        # field map
+        for existing_fields, destination_field in field_map.items():
+            value = pkg.extras.get(destination_field)
+            if value:
+                continue
+            for existing_field in existing_fields:
+                if hasattr(pkg, existing_field):
+                    value = getattr(pkg, existing_field)
+                else:
+                    value = pkg.extras.get(existing_field)
+                if value:
+                    value = value.strip()
+                    if value:
+                        # take the first hit
+                        continue
             if not dry_run:
-                res.format = improved_fmt
-            stats.add(improved_fmt, res.format)
+                pkg.extras[destination_field] = value or ''
+                # delete existing field values
+                for existing_field in existing_fields:
+                    if hasattr(pkg, existing_field):
+                        setattr(pkg, existing_field, '')
+                    elif existing_field in pkg.extras:
+                        del pkg.extras[existing_field]
+            if value:
+                stats.add('Merged to field "%s"' % destination_field, pkg.name)
+            else:
+                stats.add('Not merged to field "%s"' % destination_field, pkg.name)
+
+        # move url to additional resource
+        if pkg.url:
+            stats.add('Url moved to additional resource', value)
+            if not dry_run:
+                model.Resource(format='html', resource_type='documentation',
+                               url=pkg.url, description='Web page about the data')
+                pkg.url = ''
+            stats.add('URL moved to additional resource', pkg.name)
         else:
-            stats.add('No change', res.format)
+            stats.add('No URL to move to additional resource', pkg.name)
+
+        # delete fields
+        for field in delete_fields:
+            if field in pkg.extras:
+                if not dry_run:
+                    del pkg.extras[field]
+                stats.add('Deleted field "%s"' % field, pkg.name)
+            else:
+                stats.add('No field to delete "%s"' % field, pkg.name)
 
     if not dry_run:
         model.repo.commit_and_remove()
 
-    print stats.report()
+    log.info(stats.report())
 
 def canonise(format_):
     return tidy(format_).lower()
 
 def tidy(format_):
     return format_.strip().lstrip('.')
+
+warnings = []
+log = None
+def warn(msg, *params):
+    global warnings
+    warnings.append(msg % params)
+    log.warn(msg, *params)
 
 if __name__ == '__main__':
     usage = '''usage: %prog [options]
@@ -84,6 +147,7 @@ if __name__ == '__main__':
             sys.exit(1)            
         load_config(config_path)
         engine = engine_from_config(config, 'sqlalchemy.')
+        from ckan import model
         model.init_model(engine)
             
     command(dry_run=options.dry_run)

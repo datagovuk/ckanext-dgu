@@ -291,7 +291,7 @@ flush_database () {
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/user_import.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/nodepublishermap.csv" "$users_file"
 
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_resource_formats.py" --config "/etc/ckan/$instance/$instance.ini"
-    #"$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_package_fields.py" --config "/etc/ckan/$instance/$instance.ini"
+    "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/tidy_package_fields.py" --config "/etc/ckan/$instance/$instance.ini"
 }
 
 create_test_admin_user () {
