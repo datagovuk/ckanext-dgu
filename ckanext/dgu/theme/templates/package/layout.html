@@ -122,6 +122,10 @@ if c.pkg_dict:
     # Core CKAN expects a resource dict to render in the navigation
     if not 'resources' in c.pkg_dict:
         c.pkg_dict['resources'] = individual_resources + timeseries_resources + additional_resources + gemini_resources
+
+    if c.resource:
+        from ckanext.dgu.lib.helpers import get_resource_wms
+        is_wms = bool(get_resource_wms(c.resource))
 ?>
 
   <py:match path="minornavigation" py:if="c.pkg">
