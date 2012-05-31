@@ -1276,3 +1276,22 @@ div.comment-content h3 a {
   color: #000;
 }
 
+/* Autocomplete dialog */
+ul.ui-autocomplete {
+    -moz-box-shadow: 0 2px 9px #777;
+    -webkit-box-shadow: 0 2px 9px #777;
+    box-shadow: 0 2px 9px #777;
+}
+ul.ui-autocomplete li a {
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    color: #555;
+    font-size: 13px;
+}
+ul.ui-autocomplete li a:hover {
+    cursor: pointer;
+}
+ul.ui-autocomplete li a.ui-state-hover{
+    background: #9D2;
+    border-color: #690;
+}
+
