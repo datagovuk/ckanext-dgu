@@ -281,8 +281,8 @@ flush_database () {
 
     sudo -u postgres psql -c "UPDATE package_extra SET key = 'UKLP' WHERE key = 'INSPIRE';" "$instance"
     sudo -u postgres psql -c "UPDATE package_extra_revision SET key = 'UKLP' WHERE key = 'INSPIRE';" "$instance"
-    sudo -u postgres psql -c "UPDATE resource SET format = NULL where format = 'Unverified';" "$instance"
-    sudo -u postgres psql -c "UPDATE resource_revision SET format = NULL where format = 'Unverified';" "$instance"
+    sudo -u postgres psql -c "UPDATE resource SET format = '' where format = 'Unverified';" "$instance"
+    sudo -u postgres psql -c "UPDATE resource_revision SET format = '' where format = 'Unverified';" "$instance"
 
     local pyenv_root="/var/lib/ckan/$instance/pyenv"
     "$pyenv_root/bin/python" "$pyenv_root/src/ckanext-dgu/ckanext/dgu/bin/import_publishers.py" "/etc/ckan/$instance/$instance.ini" "$pyenv_root/src/ckanext-dgu/buildbot/fixtures/dgupub.csv"
