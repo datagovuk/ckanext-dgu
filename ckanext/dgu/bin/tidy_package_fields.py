@@ -93,9 +93,12 @@ def command(dry_run=False):
         if pkg.url:
             stats.add('Url moved to additional resource', value)
             if not dry_run:
-                model.Resource(format='html', resource_type='documentation',
-                               url=pkg.url, description='Web page about the data')
-                pkg.url = ''
+                res_group = pkg.resource_groups[0]
+                res = model.Resource(format='html', resource_type='documentation',
+                                     url=pkg.url, description='Web page about the data')
+                res_group.resources.append(res)
+                model.Session.add(res)
+                #pkg.url = ''
             stats.add('URL moved to additional resource', pkg.name)
         else:
             stats.add('No URL to move to additional resource', pkg.name)
