@@ -31,6 +31,7 @@
           </span>
 <?python
 bbox = request.params.get('ext_bbox','')
+subpub = request.params.get('parent_publishers','')
 ?>
           <py:if test="bbox">
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="${bbox}" />
@@ -53,6 +54,13 @@ bbox = request.params.get('ext_bbox','')
               <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
                 <span class="name">${h.facet_title('Location')}</span>:
                 <span class="value">${bbox}</span>
+                <span class="x">x</span>
+              </a>
+            </py:if>
+            <py:if test="subpub">
+              <?python from ckanext.dgu.lib.helpers import search_without_subpub ?>
+              <a class="facet" href="${search_without_subpub()}">
+                <span class="name">Including sub-publishers</span>
                 <span class="x">x</span>
               </a>
             </py:if>

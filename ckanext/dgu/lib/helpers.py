@@ -206,3 +206,21 @@ def resource_display_name(resource_dict):
     else:
         noname_string = 'File'
         return '[%s] %s' % (noname_string, resource_dict['id'])
+
+def _search_with_filter(k_search,k_replace):
+    from ckan.lib.base import request
+    from ckan.controllers.package import search_url
+    # most search operations should reset the page counter:
+    params_nopage = [(k, v) for k,v in request.params.items() if k != 'page']
+    params = set(params_nopage)
+    params_filtered = set()
+    for (k,v) in params:
+        if k==k_search: k=k_replace
+        params_filtered.add((k,v))
+    return search_url(params_filtered)
+
+def search_with_subpub():
+    return _search_with_filter('publisher','parent_publishers')
+
+def search_without_subpub():
+    return _search_with_filter('parent_publishers','publisher')
