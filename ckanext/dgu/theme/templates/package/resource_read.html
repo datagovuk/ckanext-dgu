@@ -44,6 +44,20 @@
       .header .recline-query-editor .input-prepend {
         vertical-align: top;
       }
+
+      /** Re-style the data viewer to remove controls,
+        * column menus, row menus, and the leading
+        * (control) column.
+        */
+      .recline-data-explorer .header,
+      .recline-data-explorer .column-header-menu,
+      .recline-data-explorer .root-header-menu,
+      .recline-data-explorer .row-header-menu,
+      .recline-data-explorer td:first-child,
+      .recline-data-explorer th:first-child {
+        display: none;
+      }
+
     </style>
     <!-- /data preview -->
     <script py:if="not is_wms" type="text/javascript">
@@ -163,8 +177,8 @@
 from ckanext.dgu.lib.helpers import get_resource_wms
 is_wms = bool(get_resource_wms(c.resource))
 ?>
-        <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
-        <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+        <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+        <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
         <py:if test="is_wms"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
           ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
         </py:if>
