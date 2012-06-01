@@ -190,7 +190,7 @@ if c.pkg_dict:
         try:
             context = {'model': model, 'session': model.Session}
             harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':c.pkg.id})
-            harvest_url = harvest_source.url
+            harvest_url = harvest_source['url']
         except NotFound:
             harvest_url = 'Metadata not available'
         harvest_object_id = pkg_extras.get('harvest_object_id')

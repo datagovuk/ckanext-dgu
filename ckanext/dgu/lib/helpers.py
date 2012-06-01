@@ -225,7 +225,7 @@ def search_without_subpub():
     return _search_with_filter('parent_publishers','publisher')
 
 def predict_if_resource_will_preview(resource_dict):
-    format = resource_dict['format']
+    format = resource_dict.get('format')
     if not format:
         return False
     normalised_format = format.lower().split('/')[-1]
