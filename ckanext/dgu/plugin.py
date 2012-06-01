@@ -48,6 +48,26 @@ class ThemePlugin(SingletonPlugin):
     implements(IConfigurer)
     implements(IRoutes)
 
+    def dgu_linked_user(user):  # Overwrite h.linked_user
+        from ckan import model
+        from ckan.lib.base import h
+        if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
+            return user
+        if not isinstance(user, model.User):
+            user_name = unicode(user)
+            user = model.User.get(user_name)
+            if not user:
+                return '(no id)'
+        if user:
+            _name = user.id
+            link_text = user.id if len(user.id)<13 else user.id[:13]+'...'
+            _icon = h.gravatar(None, 20)
+            return _icon + ' ' + h.link_to(_name[:13]+'...',h.url_for(controller='user', action='read', id=_name))
+
+    # [Monkey patch] Replace h.linked_user with a version to hide usernames
+    from ckan.lib.base import h
+    h.linked_user = dgu_linked_user
+
     def update_config(self, config):
         configure_template_directory(config, 'theme/templates')
         configure_public_directory(config, 'theme/public')

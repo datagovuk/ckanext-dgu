@@ -44,7 +44,7 @@ import json
               </td>
               <td class="right">
                 <form id="publisher-search" class="form-search dataset-search" action="">
-                  <input type="text" class="input-medium" data-provide="typeahead" data-items="5" data-source="${json.dumps([group.title for group in c.all_groups])}" id="q" value="${c.q}" autocomplete="off" placeholder="Search..."/>
+                  <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
                   <input type="submit" class="btn btn-primary button" value="Search..."/>
                 </form>
               </td>
@@ -63,6 +63,7 @@ import json
   <py:def function="optional_footer">
     <script src="${g.site_url}/scripts/vendors/jstree/jquery.jstree.js"></script>
     <link rel="stylesheet" href="${g.site_url}/scripts/vendors/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
 
   <!--[if IE 7]>
     <style>
@@ -90,6 +91,7 @@ import json
           $("#search_results").append( tpl );
         });
       });
+      $('#q').autocomplete('close');
       return false;
     }
 
@@ -98,7 +100,6 @@ import json
           if (e.preventDefault) e.preventDefault();
           publisher_search();
         });
-        $('#q').change(publisher_search);
 
       $('a[data-toggle="tab"]').on('shown', function (e) {
         if (e.target.hash == '#publishersearch') {
@@ -113,6 +114,13 @@ import json
        "plugins" : ["themes","html_data","ui"]}
       ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
     });
+    var autocomplete_source = ${json.dumps([group.title for group in c.all_groups])};
+    $('#q').autocomplete({
+      source: autocomplete_source,
+      minLength: 1,
+      select: function() { $('#publisher-search').submit();  }
+    });
+
   </script>
   </py:def>
 

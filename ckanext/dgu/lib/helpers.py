@@ -137,7 +137,6 @@ def get_resource_wms(resource_dict):
     '''For a given resource, return the WMS url if it is a WMS data type.'''
     # plenty of WMS resources have res['format']='' so
     # also search for WMS in the url
-    print "RES_DICT", resource_dict
     url = resource_dict.get('url') or ''
     format = resource_dict.get('format') or ''
     # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
@@ -206,3 +205,21 @@ def resource_display_name(resource_dict):
     else:
         noname_string = 'File'
         return '[%s] %s' % (noname_string, resource_dict['id'])
+
+def _search_with_filter(k_search,k_replace):
+    from ckan.lib.base import request
+    from ckan.controllers.package import search_url
+    # most search operations should reset the page counter:
+    params_nopage = [(k, v) for k,v in request.params.items() if k != 'page']
+    params = set(params_nopage)
+    params_filtered = set()
+    for (k,v) in params:
+        if k==k_search: k=k_replace
+        params_filtered.add((k,v))
+    return search_url(params_filtered)
+
+def search_with_subpub():
+    return _search_with_filter('publisher','parent_publishers')
+
+def search_without_subpub():
+    return _search_with_filter('parent_publishers','publisher')
