@@ -148,7 +148,7 @@ class TestOnsImporter(MockDrupalCase):
                 ])]),
             ('extras', OrderedDict([
                 ('geographic_coverage', u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
-                ('geographical_granularity', u'UK and GB'),
+                ('geographic_granularity', u'UK and GB'),
                 ('external_reference', u'ONSHUB'),
                 ('temporal_granularity', u''),
                 ('date_updated', u''),

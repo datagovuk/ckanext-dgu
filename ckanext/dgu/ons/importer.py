@@ -72,7 +72,7 @@ class OnsImporter(PackageImporter):
             'temporal_granularity': u'',
             'date_updated': u'',
             'precision': u'',
-            'geographical_granularity': u'',
+            'geographic_granularity': u'',
             'temporal_coverage-from': u'',
             'temporal_coverage-to': u'',
             'national_statistic': u'',
@@ -95,7 +95,7 @@ class OnsImporter(PackageImporter):
         extras['categories'] = item['hub:theme']
         extras['geographic_coverage'] = self._parse_geographic_coverage(item['hub:coverage'])
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
-        extras['geographical_granularity'] = item['hub:geographic-breakdown']
+        extras['geographic_granularity'] = item['hub:geographic-breakdown']
         extras['external_reference'] = u'ONSHUB'
         extras['series'] = title if release else u''
         for update_frequency_suggestion in schema.update_frequency_options:

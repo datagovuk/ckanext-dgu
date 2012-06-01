@@ -255,6 +255,14 @@ class GeoCoverageType(object):
     def munge(region):
         return region.lower().replace(' ', '_')
 
+    @staticmethod
+    def strip_off_binary(coverage):
+        '''e.g. "110000: England and Wales" -> "England and Wales"'''
+        if not ':' in coverage:
+            return coverage
+        binary, words = coverage.split(':')
+        return words.strip()
+
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
