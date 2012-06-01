@@ -60,6 +60,7 @@ class ThemePlugin(SingletonPlugin):
             return user
         if not isinstance(user, model.User):
             user_name = unicode(user)
+            print 'USER', user_name
             user = model.User.get(user_name)
             if not user:
                 # may be in the format "NHS North Staffordshire (uid 6107 )"
