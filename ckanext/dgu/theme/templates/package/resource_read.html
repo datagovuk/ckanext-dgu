@@ -180,7 +180,14 @@ is_wms = bool(get_resource_wms(c.resource))
           <py:for each="i, key in enumerate(sorted(c.resource.keys()))">
             <tr py:if="not key=='description'">
               <td class="dataset-label" property="rdfs:label">${_(key)}</td>
-              <td class="dataset-details" property="rdf:value">${c.resource[key]}</td>
+              <py:choose test="key">
+                <py:when test="'cache_url'">
+                  <td class="dataset-details" property="rdf:value"><a href="${c.resource[key]}">${c.resource[key]}</a></td>
+                </py:when>
+                <py:otherwise>
+                  <td class="dataset-details" property="rdf:value">${c.resource[key]}</td>
+                </py:otherwise>
+              </py:choose>
             </tr>
           </py:for>
         </tbody>
