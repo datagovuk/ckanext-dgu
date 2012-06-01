@@ -97,7 +97,7 @@ def command(dry_run=False):
                     res_group = model.ResourceGroup(label="default")
                     pkg.resource_groups.append(res_group)
                 res_group = pkg.resource_groups[0]
-                res = model.Resource(format='html', resource_type='documentation',
+                res = model.Resource(format='HTML', resource_type='documentation',
                                      url=pkg.url, description='Web page about the data')
                 res_group.resources.append(res)
                 model.Session.add(res)
