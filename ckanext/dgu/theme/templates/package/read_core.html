@@ -46,7 +46,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </span>
               <div class="resource-buttons">
-                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
+                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
                 <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">
                   <py:if test="dataset_type!='uklp'">Download</py:if>
                   <py:if test="dataset_type=='uklp'">Link</py:if>
@@ -124,6 +124,151 @@ import ckanext.dgu.lib.helpers as dgu_helpers
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">
+<?python
+import re
+from ckan.lib.field_types import DateType
+from ckanext.dgu.schema import GeoCoverageType
+if c.pkg_dict:
+    class DatasetFieldNames:
+        # For building a list of the fields to display and their order
+        def __init__(self):
+            # core fields
+            self._field_names = ['theme', 'mandate', 'temporal_coverage', 'geographic_coverage', 'geographic_granularity', 'date-added-computed', 'date-updated-computed']
+            # Never display: 'name', 'version', 'maintainer', 'maintainer_email', 'url', 'author', 'author_email', 'published_by', 'published_via'
+            # Displayed elsewhere in templates: 'title', 'license', 'contact', 'foi_contact', 'notes', 'tags', 'groups'
+        def add(self, field_names):
+            self._field_names.extend(field_names)
+        def add_after(self, field_name_to_insert_after, field_name_to_insert):
+            index = self._field_names.index(field_name_to_insert_after)
+            self._field_names.insert(index, field_name_to_insert)
+        def remove(self, field_names):
+            for field_name in field_names:
+                self._field_names.remove(field_name)
+        def __iter__(self):
+            for field_name in self._field_names:
+                yield field_name
+    
+    class DatasetFields:
+        # For collecting the key and value to display each field
+        def __init__(self, field_names):
+            self.fields = []
+            for field_name in field_names:
+                value_dict = field_value_map.get(field_name, {})
+                value_dict['name'] = field_name
+                if not 'label' in value_dict:
+                   value_dict['label'] = re.sub('[-_]', ' ', field_name).capitalize()
+                   value_dict['value'] = pkg_extras.get(field_name)
+                self.fields.append(value_dict)
+            # move blank values last
+            blank_values = []
+            for field in self.fields[:]:
+                if not field.get('value'):
+                    blank_values.append(field)
+                    self.fields.remove(field)
+            self.fields.extend(blank_values)
+        def __iter__(self):
+            for field in self.fields:
+                value_attributes = {'property': field.get('property')} if 'property' in field else {}
+                if 'value_title' in field:
+                    value_attributes['title'] = field['value_title']
+                label_attributes = {'title': field['label_title']} if 'label_title' in field else {}
+                yield (field, label_attributes, value_attributes)
+    
+    field_names = DatasetFieldNames()
+    field_names_display_only_if_value = ['openness', 'date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'date_updated', 'date_released'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    if c.is_an_official:
+        field_names_display_only_if_value.append('external_reference')
+    # work out the dataset_type
+    pkg_extras = dict(c.pkg_extras)
+    harvest_date = harvest_guid = harvest_url = None
+    if dataset_type == 'uklp':
+        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language', 'coupled-resource', 'resource-type'])
+        field_names.remove(['geographic_coverage', 'mandate'])
+        from ckan.logic import get_action, NotFound
+        from ckan import model
+        from ckanext.harvest.model import HarvestObject
+        try:
+            context = {'model': model, 'session': model.Session}
+            harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':c.pkg.id})
+            harvest_url = harvest_source.url
+        except NotFound:
+            harvest_url = 'Metadata not available'
+        harvest_object_id = pkg_extras.get('harvest_object_id')
+        if harvest_object_id:
+            harvest_object = HarvestObject.get(harvest_object_id)
+            if harvest_object:
+                harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
+            else:
+                harvest_date = 'Metadata not available'
+            harvest_guid = pkg_extras.get('guid')
+    elif dataset_type == 'ons':
+        field_names.add(['national_statistic', 'categories'])
+        field_names.remove(['mandate'])
+        if c.is_an_official:
+            field_names.add(['external_reference', 'import_source'])
+    if c.is_an_official:
+        field_names.add(['state'])
+    
+    openness_score = pkg_extras.get('openness_score')
+    if openness_score:
+        if str(openness_score) == '4':
+            openness_score = '4 or 5'
+        openness_score = '%s/5 stars' % openness_score
+        last_checked_date = pkg_extras.get('openness_score_last_checked')
+        if last_checked_date:
+            try:
+                import dateutil.parser
+                last_checked_date = dateutil.parser.parse(last_checked_date).strftime("%d/%m/%Y")
+            except Exception:
+                pass
+                
+        openness_detail = 'Reason for the score: %s.\nScore last updated: %s' % (pkg_extras.get('openness_score_reason') or 'not given', last_checked_date or 'Not known')
+    else:
+        openness_score = openness_detail = ''
+
+    temporal_coverage_from = pkg_extras.get('temporal_coverage_from')
+    temporal_coverage_to = pkg_extras.get('temporal_coverage_to')
+    if temporal_coverage_from and temporal_coverage_to:
+        temporal_coverage = '%s - %s' % (temporal_coverage_from, temporal_coverage_to)
+    elif temporal_coverage_from or temporal_coverage_to:
+        temporal_coverage = temporal_coverage_from or temporal_coverage_to
+    else:
+        temporal_coverage = ''
+
+    field_value_map = {
+        # field_name : {display info}
+        'state': {'label': 'State', 'value': c.pkg.state},
+        'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
+        'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
+        'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
+        'bbox': {'label': 'Extent', 'value': h.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
+        'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
+        'date-added-computed': {'label': 'Date added', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
+        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
+        'openness': {'label': 'Five Stars of Openness', 'value': openness_score, 'value_title': openness_detail},
+        'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
+        'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
+        'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
+        'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
+        'resource-type': {'label': 'Gemini2 Resource Type', 'value': pkg_extras.get('resource-type')},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+    }
+    
+    # add in fields that only display if they have a value
+    for field_name in field_names_display_only_if_value:
+        if pkg_extras.get(field_name):
+            field_names.add([field_name])
+
+    # calculate displayable field values
+    fields = DatasetFields(field_names)
+
+?>
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
         <tr py:for="field_dict, label_attributes, value_attributes in fields">

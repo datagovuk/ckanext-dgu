@@ -158,6 +158,7 @@ if 'is_sysadmin' not in dir(c):
     c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
 can_create_package = h.check_access('package_create')
 c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
+c.is_an_official = bool(c.groups or c.is_sysadmin)
 ?>
     <ul id="subnav" py:if="c.is_sysadmin or can_create_package"> 
       <py:if test="can_create_package">
