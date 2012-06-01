@@ -9,8 +9,9 @@ if c.pkg_dict:
     class DatasetFieldNames:
         def __init__(self):
             # core fields
-            self._field_names = ['foi_contact', 'version', 'country', 'license', 'contact', 'theme', 'mandate', 'temporal_coverage', 'geographic_coverage', 'date_released', 'date_updated']
-            # Never display: 'maintainer', 'maintainer_email', 'url', 'author', 'author_email'
+            self._field_names = ['country', 'theme', 'mandate', 'temporal_coverage', 'geographic_coverage', 'date_released', 'date_updated']
+            # Never display: 'name', 'version', 'maintainer', 'maintainer_email', 'url', 'author', 'author_email', 'published_by', 'published_via'
+            # Displayed elsewhere in templates: 'title', 'license', 'contact', 'foi_contact', 'notes', 'tags', 'groups'
         def add(self, field_names):
             self._field_names.extend(field_names)
         def add_after(self, field_name_to_insert_after, field_name_to_insert):
@@ -44,21 +45,23 @@ if c.pkg_dict:
                 yield (field, label_attributes, value_attributes)
     
     field_names = DatasetFieldNames()
+    fields_display_only_if_value = ['date_update_future', 'precision'] # deprecated fields, but display values anyway
     # work out the dataset_type
     dataset_type = 'form' # default - entered via the form
     pkg_extras = dict(c.pkg_extras)
     if pkg_extras.get('UKLP') == 'True' or pkg_extras.get('INSPIRE') == 'True':
         dataset_type = 'uklp'
         harvest_object_id = pkg_extras.get('harvest_object_id')
-        field_names.add(['harvest_source', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language', 'contact-email'])
-        field_names.add_after('license', 'access_constraints')
-        field_names.remove(['foi_contact', 'geographic_coverage', 'country'])
+        field_names.add(['harvest_source', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language', 'coupled-resource', 'resource-type'])
+        field_names.remove(['geographic_coverage', 'country', 'mandate'])
+        if h.check_access('package_update',{'id':c.pkg.id}):
+             field_names.add(('guid', 'harvest_object'))
     elif pkg_extras.get('external_reference') == 'ONSHUB':
         dataset_type = 'ons'
         field_names.add(['national_statistic', 'categories'])
-        field_names.remove(['country'])
+        field_names.remove(['country', 'mandate'])
     if h.check_access('package_update',{'id':c.pkg.id}):
-        field_names.add(['state'])
+        field_names.add(['state', 'external_reference', 'import_source'])
     
     field_value_map = {
         # field_name : {display info}
@@ -122,6 +125,10 @@ if c.pkg_dict:
     # Core CKAN expects a resource dict to render in the navigation
     if not 'resources' in c.pkg_dict:
         c.pkg_dict['resources'] = individual_resources + timeseries_resources + additional_resources + gemini_resources
+
+    if c.resource:
+        from ckanext.dgu.lib.helpers import get_resource_wms
+        is_wms = bool(get_resource_wms(c.resource))
 ?>
 
   <py:match path="minornavigation" py:if="c.pkg">

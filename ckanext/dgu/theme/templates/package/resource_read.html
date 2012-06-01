@@ -46,10 +46,14 @@
       }
     </style>
     <!-- /data preview -->
-    <script type="text/javascript">
+    <script py:if="not is_wms" type="text/javascript">
       var preload_resource = ${h.literal(c.resource_json)};
       <!--!var embedPath = "${g.site_url+h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.package.id, resource_id=c.resource.id)}";-->
     </script>
+    <py:if test="is_wms">
+      <script src="/scripts/spin.min.js"></script>
+      <script src="/scripts/dgu-basket.js"></script>
+    </py:if>
   </py:def>
 
   <py:def function="page_title">
@@ -154,8 +158,15 @@
     <div class="resource-preview">
       <div class="preview-header">
         <h3>Preview</h3>
+<?python
+from ckanext.dgu.lib.helpers import get_resource_wms
+is_wms = bool(get_resource_wms(c.resource))
+?>
         <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
-        <a py:if="not c.pkg.is_private" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+        <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+        <py:if test="is_wms"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
+          ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
+        </py:if>
       </div>
       <div id="ckanext-datapreview"></div>
     </div>
@@ -180,7 +191,7 @@
     <span class="insert-comment-thread"></span>
   </div>
 
-  <py:def function="optional_footer">
+  <py:def py:if="not is_wms" function="optional_footer">
     <!-- data preview -->
     <script type="text/javascript" src="/scripts/application.js"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.mustache/jquery.mustache.js')}"></script>

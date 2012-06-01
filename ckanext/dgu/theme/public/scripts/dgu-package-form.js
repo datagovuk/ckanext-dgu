@@ -161,7 +161,7 @@
     });
 
     /* Resource format autocomplete */
-    $('.format-typeahead').typeahead({source: DGU_RESOURCE_FORMATS, items:5});
+    $('.format-typeahead').autocomplete({source: DGU_RESOURCE_FORMATS, items:5});
 
   });
 }(jQuery));

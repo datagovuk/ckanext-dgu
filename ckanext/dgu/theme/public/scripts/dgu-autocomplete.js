@@ -32,10 +32,10 @@ $(function() {
 
   var url = '/api/2/search/dataset';
 
-  var pollApi = function(typeahead,query) {
+  var pollApi = function(request,response) {
     $.ajax({
       url: url, 
-      data: { fl: 'title', q: query }, 
+      data: { fl: 'title', q: request.term }, 
       success: function (data) {
         var array = data.results;
         var out = [];
@@ -43,7 +43,7 @@ $(function() {
         while (!(i==array.length)) {
           out.push(array[i++].title);
         }
-        typeahead.process(out);
+        response(out);
         SearchSpinner.stop();
       }
     });
@@ -53,27 +53,28 @@ $(function() {
   var timer = null;
 
   // Called when the user types in the search box
-  var sourceFunction = function (typeahead, query) {
+  var sourceFunction = function (request, response) {
     if (timer) {
       clearTimeout(timer);
       timer = null;
     }
-    if (!query) {
+    if (!request) {
       SearchSpinner.stop();
-      return [];
+      response([]);
     }
     SearchSpinner.start();
     // Don't poll the API immediately. Spam crazy!
-    timer = setTimeout(function() { pollApi(typeahead,query); }, 200);
+    timer = setTimeout(function() { pollApi(request,response); }, 200);
   };
   var onSelect = function() {
     $('form#dataset-search').submit();
   }
 
-  // Attach typeahead function to the input textbox
-  $('#dataset-search #q').typeahead({
+  // Attach jQueryUI autocomplete function to the input textbox
+  $('#dataset-search #q').autocomplete({
     source: sourceFunction,
-    onselect: onSelect
+    minLength: 2,
+    select: onSelect
   });
 
 });

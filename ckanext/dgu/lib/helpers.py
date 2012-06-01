@@ -133,6 +133,16 @@ def render_mini_tree(parent_group, this_group, subgroups):
     
     return root.render()
 
+def get_resource_wms(resource_dict):
+    '''For a given resource, return the WMS url if it is a WMS data type.'''
+    # plenty of WMS resources have res['format']='' so
+    # also search for WMS in the url
+    url = resource_dict.get('url') or ''
+    format = resource_dict.get('format') or ''
+    # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
+    if 'wms' in url.lower() or format.lower() == 'wms':
+        return url
+
 def get_wms_info(pkg_dict):
     '''For a given package, extracts all the urls and spatial extent.
     Returns (urls, extent) where:
@@ -141,14 +151,9 @@ def get_wms_info(pkg_dict):
     '''
     urls = []
     for r in pkg_dict.get('resources',[]):
-        # plenty of WMS resources have res['format']='' so
-        # also search for WMS in the url
-        url = r.get('url') or ''
-        format = r.get('format') or ''
-        # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
-
-        if 'wms' in url.lower() or format.lower() == 'wms':
-            urls.append(('url', r.get('url','')))
+        wms_url = get_resource_wms(r)
+        if wms_url:
+            urls.append(('url', wms_url))
     # Extent
     extras = pkg_dict['extras']
     extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
@@ -200,3 +205,21 @@ def resource_display_name(resource_dict):
     else:
         noname_string = 'File'
         return '[%s] %s' % (noname_string, resource_dict['id'])
+
+def _search_with_filter(k_search,k_replace):
+    from ckan.lib.base import request
+    from ckan.controllers.package import search_url
+    # most search operations should reset the page counter:
+    params_nopage = [(k, v) for k,v in request.params.items() if k != 'page']
+    params = set(params_nopage)
+    params_filtered = set()
+    for (k,v) in params:
+        if k==k_search: k=k_replace
+        params_filtered.add((k,v))
+    return search_url(params_filtered)
+
+def search_with_subpub():
+    return _search_with_filter('publisher','parent_publishers')
+
+def search_without_subpub():
+    return _search_with_filter('parent_publishers','publisher')

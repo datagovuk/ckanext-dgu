@@ -154,6 +154,9 @@ if access_constraints:
       <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
       </li>
+      <li py:if="dataset_type == 'uklp' and c.pkg_extras.get('responsible-party')">
+        Responsible Party: ${c.pkg_extras.get('responsible-party')}
+      </li>
     </ul>
   </li>
 

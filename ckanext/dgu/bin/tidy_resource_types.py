@@ -13,7 +13,6 @@ import sys
 from sqlalchemy import engine_from_config
 from optparse import OptionParser
 
-from pylons import config
 from pylons import config, translator
 from paste.registry import Registry
 
