@@ -199,9 +199,8 @@ def unmerge_resources(key, data, errors, context):
                 error_key = ('%s_resources'%resource_type, index, field)
                 errors[error_key] = []
     
-    for d in (data, errors):
-        for key in ( key for key in d.keys() if key[0] == 'resources' ):
-            del d[key]
+    for key in ( key for key in errors.keys() if key[0] == 'resources' ):
+        del errors[key]
 
 def _validate_resource_types(allowed_types, default=None):
     """

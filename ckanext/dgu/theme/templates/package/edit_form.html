@@ -89,7 +89,7 @@ if has_errors:
     <div class="controls">
       <span class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
         <div class="input-prepend" style="zoom:1; *display:inline;">
-          <span class="add-on">/dataset/</span><input py:attrs="{'disabled':'disabled'} if is_edit_form else {}" class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
+          <span class="add-on">/dataset/</span><input py:attrs="{'readonly':'readonly'} if is_edit_form else {}" class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
         </div>
         <img src="/images/information-grey.png"/>
       </span>

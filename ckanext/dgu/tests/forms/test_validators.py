@@ -173,6 +173,7 @@ class TestUnmergeResources(object):
                 {'description': 'Description 2', 'url': 'Url2', 'resource_type': 'documentation'}
             ]
         }
+        expected_data.update(data)
         
         assert_equal(result_data, expected_data)
 
@@ -212,6 +213,7 @@ class TestUnmergeResources(object):
                  'date': '2011-11-25'}
             ]
         }
+        expected_data.update(data)
         
         assert_equal(result_data, expected_data)
 
@@ -249,6 +251,7 @@ class TestUnmergeResources(object):
                  'resource_type': 'api'},
             ]
         }
+        expected_data.update(data)
         
         assert_equal(result_data, expected_data)
 
@@ -282,6 +285,7 @@ class TestUnmergeResources(object):
                 {'description': 'Description 3', 'url': 'Url3', 'resource_type': 'file'},
             ]
         }
+        expected_data.update(data)
         
         assert_equal(result_data, expected_data)
 
