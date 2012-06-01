@@ -60,19 +60,18 @@ class ThemePlugin(SingletonPlugin):
             return user
         if not isinstance(user, model.User):
             user_name = unicode(user)
-            print 'USER', user_name
             user = model.User.get(user_name)
             if not user:
                 # may be in the format "NHS North Staffordshire (uid 6107 )"
                 match = re.match('.*\(uid (\d+)\s?\)', user_name)
                 if match:
                     drupal_user_id = match.groups()[0]
-                    user = model.User('user_d%i' % drupal_user_id)
+                    user = model.User.get('user_d%s' % drupal_user_id)
 
             if (c.groups or c.is_sysadmin):
                 # only officials can see the actual user name
                 if user:
-                    publisher = [group.title for group in user.groups].join(', ')
+                    publisher = ', '.join([group.title for group in user.get_groups('publisher')])
 
                     display_name = '%s (%s)' % (user.fullname, publisher)
                     link_text = webhelpers.text.truncate(user.id, length=16)
@@ -83,14 +82,18 @@ class ThemePlugin(SingletonPlugin):
             else:
                 # joe public just gets a link to the user's publisher(s)
                 if user:
-                    return [h.link_to(webhelpers.text.truncate(group.title, length=16),
-                                      h.url_for(controller='group', action='read', id=group.id)) \
-                            for group in user.groups].join(' ')
+                    groups = user.get_groups('publisher')
+                    if groups:
+                        return ' '.join([h.link_to(webhelpers.text.truncate(group.title, length=16),
+                                                   h.url_for(controller='group', action='read', id=group.id)) \
+                                         for group in groups])
+                    else:
+                        return 'System user'
                 else:
                     if match:
                         return user_name
                     else:
-                        return 'Unknown user'
+                        return 'System user'
         else:
             return 'Unknown user'
 
