@@ -223,3 +223,14 @@ def search_with_subpub():
 
 def search_without_subpub():
     return _search_with_filter('parent_publishers','publisher')
+
+def predict_if_resource_will_preview(resource_dict):
+    format = resource_dict['format']
+    if not format:
+        return False
+    normalised_format = format.lower().split('/')[-1]
+    return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml', 
+                                  'xml', 'n-triples', 'turtle', 'plain',
+                                  'txt', 'atom', 'tsv', 'rss'))
+    # list of formats is copied from recline js
+

@@ -46,7 +46,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </span>
               <div class="resource-buttons">
-                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
+                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
                 <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">
                   <py:if test="dataset_type!='uklp'">Download</py:if>
                   <py:if test="dataset_type=='uklp'">Link</py:if>
