@@ -157,17 +157,17 @@ from ckanext.dgu.plugins_toolkit import c
 if 'is_sysadmin' not in dir(c):
     c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
 can_create_package = h.check_access('package_create')
-groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
+c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
 ?>
     <ul id="subnav" py:if="c.is_sysadmin or can_create_package"> 
       <py:if test="can_create_package">
         <span class="divider-section">Publisher tools:</span>
-        <py:for each="group in groups">
+        <py:for each="group in c.groups">
           <li><a href="/publisher/${group.name}">${group.display_name}</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
         <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
-        <py:if test="groups">
+        <py:if test="c.groups">
           <span class="divider">&nbsp;|&nbsp;</span>
           <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
         </py:if>
