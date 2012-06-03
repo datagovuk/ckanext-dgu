@@ -20,12 +20,12 @@ REBUILD_DATABASE=$6
 
 source ./common_functions.sh
 
-update_ckan $REPO $INSTANCE $DOMAIN
+update_ckan $REPO
 install_dgu $INSTANCE $BRANCH
 
 if [[ $REBUILD_DATABASE == "yes" ]];
 then
-    flush_database $INSTANCE
+    clean_and_load_database $INSTANCE
     create_test_admin_user $INSTANCE
 fi
 

@@ -17,7 +17,7 @@
 #############################################################
 
 install_ckan () {
-    # Installs CKAN and its dependencies
+    # Installs CKAN software and its dependencies
     # Takes 3 arguments:
     #
     #   $1 : the repository name. e.g. "ckan-1.5.1"
@@ -28,13 +28,11 @@ install_ckan () {
 
     if [ $# -ne 3 ]
     then
-        echo "install_ckan() expects 3 arguments: repo, instance, domain"
+        echo "install_ckan() expects 1 argument: repo"
         exit 1
     fi
 
     local repo=$1
-    local instance=$2
-    local domain=$3
 
     echo "Updating repositories from http://apt.ckan.org/$repo"
     sudo apt-get update
@@ -53,9 +51,6 @@ install_ckan () {
 
     echo "Enabling proxy..."
     sed -e 's/Deny from all/Allow from all/' -i /etc/apache2/mods-enabled/proxy.conf
-
-    echo "Creating new CKAN instance \"$instance\" on \"$domain\""
-    sudo ckan-create-instance "$instance" "$domain" yes
 }
 
 update_ckan () {
@@ -162,7 +157,7 @@ configure () {
     # Some entries in who.ini (which lives in /etc/ckan), expect to be in /var/lib/ckan/$instance
     sudo sed -e "s,%(here)s,/var/lib/ckan/$instance,g" -i "/etc/ckan/$instance/who.ini"
 
-    # Create a new password for each deployment
+    # repoze.who needs a random number to seed its session generation
     local WHO_SECRET=`< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c30`
     sed -e "/^secret =/ s/^secret =.*/secret = $WHO_SECRET/" \
         -i "/etc/ckan/$instance/who.ini"
@@ -219,7 +214,7 @@ ckan.cache_url_root = http://$domain/resource_cache/\\
 
 }
 
-flush_database () {
+clean_and_load_database () {
     # Wipes and rebuilds the database from a pg_dump file located at /home/okfn/dgu_live.pg_dump
     #
     # Requires 1 argument: the ckan instance name
@@ -362,6 +357,10 @@ start_qa_daemon () {
     echo "Started the update"
 }
 
+function pause () {
+   read -p "$* (Press [Enter] to continue)"
+}
+
 install_joint_drupal_apache_config () {
     INSTANCE=$1
     DOMAIN=$2
@@ -383,62 +382,7 @@ from ckanext.dgu.bin.url_space_sharer import UrlSpaceSharer
 application = UrlSpaceSharer(application)
 EOF
 
-    cat << EOF > /etc/apache2/sites-available/${INSTANCE}-with-drupal
-<VirtualHost *:80>
-        ServerAdmin webmaster@localhost
-        ServerName ${DOMAIN}
-        ServerAlias ${INSTANCE}.okfn.org
-
-        # Drupal
-        DocumentRoot /var/www/current/public_html
-        <Directory /var/www/current/public_html>
-                FileETag MTime Size
-                Options Indexes FollowSymLinks MultiViews
-                AllowOverride All
-                Order allow,deny
-                allow from all
-        </Directory>
-
-        # Cached resources
-        Alias /resource_cache /var/lib/ckan/${INSTANCE}/resource_cache
-        <Directory /var/lib/ckan/${INSTANCE}/resource_cache>
-                FileETag MTime Size
-                Options Indexes FollowSymLinks MultiViews
-                AllowOverride All
-                Order allow,deny
-                allow from all
-        </Directory>
-
-        # CKAN
-        WSGIScriptAlias /data /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /dataset /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /publisher /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /css /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /images /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /scripts /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /api /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /geoserver /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /harvest /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /ckanext /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /ckan-admin /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-        WSGIScriptAlias /qa /var/lib/ckan/${INSTANCE}/wsgi_with_drupal.py
-
-        # CKAN / OS Widget map tile proxy
-        ProxyPass /geoserver/ http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/
-        ProxyPassReverse /geoserver/ http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/
-
-        # pass authorization info on (needed for rest api)
-        WSGIPassAuthorization On
-
-        ErrorLog /var/log/apache2/${INSTANCE}.error.log
-
-        # Possible values include: debug, info, notice, warn, error, crit,
-        # alert, emerg.
-        LogLevel warn
-
-        CustomLog /var/log/apache2/${INSTANCE}.access.log combined
-</VirtualHost>
-EOF
+    # (Apache config not set up - now checked into dgu repo)
 
     a2dissite "${INSTANCE}"
     a2ensite "${INSTANCE}-with-drupal"
