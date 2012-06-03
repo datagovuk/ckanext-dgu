@@ -18,6 +18,7 @@ BRANCH=$4
 
 DB_DUMP_FILE="../../dgu_live.pg_dump"
 USERS_FILE="../../users.csv"
+PUBLISHER_CONTACTS_FILE="../../dgu_pub_contacts.csv"
 SECRETS_FILE="../../secrets.sh"
 
 if [ ! -f $DB_DUMP_FILE ]
@@ -29,6 +30,12 @@ fi
 if [ ! -f $USERS_FILE ]
 then
     echo "Missing users file: $USERS_FILE"
+    exit 1
+fi
+
+if [ ! -f $PUBLISHER_CONTACTS_FILE ]
+then
+    echo "Missing publisher contacts file: $PUBLISHER_CONTACTS_FILE"
     exit 1
 fi
 
