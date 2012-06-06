@@ -138,9 +138,9 @@ if access_constraints:
   <li class="widget-container">
     <h3>Do more with this data</h3>
     <ul>
-      <li><a href="${g.site_url}/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
-      <li><a href="${g.site_url}/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
-      <li><a href="${g.site_url}/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
+      <li><a href="/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
+      <li><a href="/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
+      <li><a href="/data/requests?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
       <li><a href="#developer-tools">Developer tools</a></li>
     </ul>
   </li>
@@ -150,6 +150,9 @@ if access_constraints:
     <ul class="groups">
       <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
+      </li>
+      <li py:if="pkg_extras.get('provider')">
+        Provider: ${pkg_extras.get('provider')}
       </li>
       <li py:if="dataset_type == 'uklp' and pkg_extras.get('responsible-party')">
         Responsible Party: ${pkg_extras.get('responsible-party')}
