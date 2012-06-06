@@ -61,17 +61,17 @@ def load_config(path):
             conf.local_conf)
 
 def command(config_ini, nodepublisher_csv):
-    load_config(os.path.abspath(config_ini))
+    config_ini_filepath = os.path.abspath(config_ini)
+    load_config(config_ini_filepath)
     engine = engine_from_config(config,'sqlalchemy.')
 
     from ckan import model
     from ckan.lib.munge import munge_title_to_name
 
-    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
-    logging.basicConfig(filename='publisher_datasets_assoc.log',
-                        format=FORMAT, level=logging.INFO)
-    global log
-    log = logging.getLogger(__name__)
+    logging.config.fileConfig(config_ini_filepath)
+    log = logging.getLogger(os.path.basename(__file__))
+    global global_log
+    global_log = log
 
     model.init_model(engine)
 
@@ -90,6 +90,13 @@ def command(config_ini, nodepublisher_csv):
         for row in reader:
             nid, title = row
             publishers[ int(nid) ] = munge_title_to_name(title)
+    # Mappings where we are getting rid of duplicate publishers
+    publishers[16268] = publishers[11408] # UKSA -> ONS
+    publishers[11606] = publishers[11408] # ONS
+    publishers[20054] = publishers[16248] # Met Office
+    publishers[33036] = publishers[15255] # Windsor & Maidenhead
+    publishers[32619] = publishers[33245] # Monmouthshire
+    publishers[12662] = publishers[11567] # NHS
 
     update_datasets()
     generate_harvest_publishers()
@@ -127,7 +134,8 @@ def update_datasets():
     Any packages with neither values are logged.'''
     from ckan import model
     publisher_name_and_id_regex = re.compile("^(.*)\s\[(\d+)\].*$")
-
+    publisher_id_regex = re.compile("^(\d+)$")
+    
     package_ids = model.Session.query("id")\
                     .from_statement("SELECT id FROM package").all()
     package_ids = [p[0] for p in package_ids]
@@ -155,23 +163,39 @@ def update_datasets():
 
                 provider = provider.replace("'", "\\'")
 
-        # Use the publisher_name_and_id_regex to extract the publisher nama and node_id from
+        # Use the publisher_name_and_id_regex to extract the publisher name and node_id from
         # value, which has format "Name of the publisher [node_id]"
-        try:
-            g = publisher_name_and_id_regex.match(str(value))
-            if g:
-                publisher_name, publisher_node_id = g.groups(0)
-        except:
-            warn('Could not extract id from the publisher name: %r. Skipping package %s', value, pid)
-            continue
-
+        group_match = publisher_name_and_id_regex.match(str(value))
+        if group_match:
+            publisher_name, publisher_node_id = group_match.groups(0)
+            publisher_node_id = int(publisher_node_id)
+        else:
+            group_match = publisher_id_regex.match(str(value))
+            if group_match:
+                publisher_name = None
+                publisher_node_id = int(group_match.groups(0)[0])
+            else:
+                warn('Could not extract id from the publisher name: %r. Skipping package %s', value, pid)
+                continue
+        
         # Lookup publisher object
-        publisher_q = model.Group.all('publisher').filter_by(title=publisher_name)
+        if publisher_name:
+            publisher_q = model.Group.all('publisher').filter_by(title=publisher_name)
+        else:
+            publisher_q = None
+        if not publisher_q or publisher_q.count() == 0:
+            # alternatively search by node_id mapping
+            pub_name = publishers.get(publisher_node_id)
+            if not pub_name:
+                warn('Could not find publisher for node ID %r. Skipping package=%s published_by=%r published_via=%r state=%s',
+                     publisher_node_id, model.Package.get(pid).name, by_value, via_value, model.Package.get(pid).state)
+                continue
+            publisher_q = model.Group.all('publisher').filter_by(name=pub_name)
         if publisher_q.count() == 1:
             publisher = publisher_q.one()
         elif publisher_q.count() == 0:
-            warn('Could not find publisher %r. package=%s published_by=%r published_via=%r',
-                 publisher_name, model.Package.get(pid).name, by_value, via_value)
+            warn('Could not find publisher %r. Skipping package=%s published_by=%r published_via=%r state=',
+                 publisher_name, model.Package.get(pid).name, by_value, via_value, model.Package.get(pid).state)
             continue
         elif publisher_q.count() > 1:
             warn('Multiple matches for publisher %r: %r. package=%s published_by=%r published_via=%r',
@@ -185,8 +209,18 @@ def update_datasets():
         revision_id        = unicode(uuid.uuid4())
         provider_id        = unicode(uuid.uuid4())
 
-        member_q      = MEMBER_QUERY.strip() % \
-                        (member_id, pid, publisher_id, revision_id)
+        log.info('Adding dataset %r to publisher %r',
+                 model.Package.get(pid).name, publisher_name)
+
+        membership_q = model.Session.query(model.Member).filter_by(table_id=pid,
+                                                                 capacity='public',
+                                                                 group_id=publisher_id)
+        if membership_q.count():
+            log.warn('Membership already added')
+            continue
+        
+        member_q     = MEMBER_QUERY.strip() % \
+                       (member_id, pid, publisher_id, revision_id)
         member_rev_q = MEMBER_REVISION_QUERY.strip() % \
                         (member_revision_id, pid, publisher_id, revision_id, member_id)
         revision_q   = REVISION_QUERY.strip() % (revision_id,)
@@ -202,11 +236,11 @@ def update_datasets():
         print ''
 
 warnings = []
-log = None
+global_log = None
 def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
-    log.warn(msg, *params)
+    global_log.warn(msg, *params)
 
 # Not currently deleting extras as it means this import cannot be run again
 # and if we do it after we've generated the SQL it takes an excessively long
@@ -224,8 +258,8 @@ def warn(msg, *params):
 HARVEST_UPDATE = "UPDATE public.harvest_source SET publisher_id='%s' WHERE id='%s';"
 
 MEMBER_QUERY = """
-INSERT INTO public.member(id, table_id,group_id, state,revision_id, table_name, capacity)
-    VALUES ('%s', '%s', '%s', 'active', '%s', 'package', 'public');
+INSERT INTO public.member(id, table_id,group_id, state,   revision_id, table_name, capacity)
+                 VALUES ('%s', '%s',   '%s',    'active', '%s',        'package',  'public');
 """
 MEMBER_REVISION_QUERY = """
 INSERT INTO public.member_revision(id, table_id, group_id, state, revision_id, table_name,

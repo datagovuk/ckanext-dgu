@@ -51,17 +51,19 @@ def load_config(path):
             conf.local_conf)
 
 def command(config_ini, drupal_csv):
-    load_config(os.path.abspath(config_ini))
+    config_ini_filepath = os.path.abspath(config_ini)
+    load_config(config_ini_filepath)
     engine = engine_from_config(config, 'sqlalchemy.')
 
     from ckan import model
     from ckan.lib.munge import munge_title_to_name
 
-    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
-    log = logging.getLogger(__name__)
+    logging.config.fileConfig(config_ini_filepath)
+    log = logging.getLogger(os.path.basename(__file__))
     global global_log
     global_log = log
+    # NB By default, logs are sent to stderr, not stdout, so won't be sent on pipe
+    #    to psql.
 
     model.init_model(engine)    
     model.repo.new_revision()
@@ -99,7 +101,7 @@ def command(config_ini, drupal_csv):
             model.Session.add(g)
             model.Session.commit()
             title_and_abbreviation = '%s (%s)' % (title, field_acronym_value) if field_acronym_value else title
-            log.info('Added publisher: %s', title_and_abbreviation)
+            log.info('Added publisher: %s <%s>', title_and_abbreviation, nid)
 
         # Run through drupal_csv again to use parent info - make publishers members of
         # their parents
@@ -112,24 +114,24 @@ def command(config_ini, drupal_csv):
                 # header row
                 continue
             if int(nid) in ignore_publishers:
-                log.info('Publisher ignored: %s (%s)', title, nid)
+                log.info('Publisher ignored: %s <%s>', title, nid)
                 continue
 
             if not parent_title:
-                log.info('Publisher has no parent: %s', title)
+                log.info('Publisher has no parent: %s <%s>', title, nid)
                 continue
 
             slug = munge_title_to_name( title )
             g = model.Group.get( slug )
             if not g:
-                warn('Could not find group for "%s": %r', slug, row)
+                warn('Could not find group for "%s": %r <%s>', slug, row, nid)
                 continue
 
             parent_slug = munge_title_to_name( parent_title )
             parent = model.Group.get( parent_slug )
 
             if not parent:
-                warn('Could not find parent "%s" for "%s"', parent, g.name)
+                warn('Could not find parent "%s" for "%s" <%s>', parent, g.name, nid)
                 continue
 
             if model.Session.query(model.Member).\

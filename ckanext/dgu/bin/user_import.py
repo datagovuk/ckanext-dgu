@@ -94,16 +94,16 @@ def _add_new_user(node_id, username, email):
 
 
 def command(config_ini, nodepublisher_csv, users_csv):
-    load_config(os.path.abspath(config_ini))
+    config_ini_filepath = os.path.abspath(config_ini)
+    load_config(config_ini_filepath)
     engine = engine_from_config(config, 'sqlalchemy.')
 
     from ckan import model
     from ckan.lib.munge import munge_title_to_name
     
-    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
+    logging.config.fileConfig(config_ini_filepath)
     global log
-    log = logging.getLogger(__name__)
+    log = logging.getLogger(os.path.basename(__file__))
 
     model.init_model(engine)
 
