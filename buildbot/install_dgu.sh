@@ -6,7 +6,7 @@
 
 if [ $# -ne 4 ]
 then
-    echo "Usage: `basename $0` repo-name ckan-instance-name domain dgu-branch"
+    echo "Usage: `basename $0` apt-repo-name ckan-instance-name domain dgu-branch"
     echo "\teg: `basename $0` ckan-dgu1 std releasetest.ckan.org master"
     exit 1
 fi

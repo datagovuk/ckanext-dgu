@@ -20,13 +20,13 @@ install_ckan () {
     # Installs CKAN software and its dependencies
     # Takes 3 arguments:
     #
-    #   $1 : the repository name. e.g. "ckan-1.5.1"
+    #   $1 : the apt repository name. e.g. "ckan-1.5.1"
     #   $2 : the instance name. e.g. "std"
     #   $3 : the domain name. e.g. "releasetest.ckan.org"
     #
     # This is only intended to be used once when the server is deployed.
 
-    if [ $# -ne 3 ]
+    if [ $# -ne 1 ]
     then
         echo "install_ckan() expects 1 argument: repo"
         exit 1
@@ -34,23 +34,28 @@ install_ckan () {
 
     local repo=$1
 
-    echo "Updating repositories from http://apt.ckan.org/$repo"
+    pause "Updating repositories from http://apt.ckan.org/$repo"
     sudo apt-get update
     sudo apt-get install -y wget
     sudo echo "deb http://apt.ckan.org/$repo lucid universe" | sudo tee /etc/apt/sources.list.d/okfn.list
     sudo wget -qO- "http://apt.ckan.org/packages_public.key" | sudo apt-key add -
     sudo apt-get update
 
-    echo "Installing CKAN and dependencies"
-    sudo apt-get install -y ckan postgresql-8.4 solr-jetty postgis postgresql-8.4-postgis rabbitmq-server
-    sudo ckan-setup-solr
+    pause "Installing CKAN"
+    sudo apt-get install -y ckan 
 
-    echo "Enabling apache proxy module..."
+    pause "Installing CKAN/DGU dependencies"
+    sudo apt-get install -y postgresql-9.1 postgis solr-jetty rabbitmq-server
+
+    # Now need multicore sol
+    #sudo ckan-setup-solr
+
+    pause "Enabling apache proxy module..."
     sudo a2enmod proxy_http
     sudo /etc/init.d/apache2 restart
 
-    echo "Enabling proxy..."
-    sed -e 's/Deny from all/Allow from all/' -i /etc/apache2/mods-enabled/proxy.conf
+    pause "Enabling proxy..."
+    sudo sed -e 's/Deny from all/Allow from all/' -i /etc/apache2/mods-enabled/proxy.conf
 }
 
 update_ckan () {
@@ -124,18 +129,19 @@ install_dgu () {
         -e "/^command/ s,/path/to/pyenv/bin/paster,/var/lib/ckan/$instance/pyenv/bin/paster," \
         -e "/^command/ s,/path/to/config/$instance.ini,/etc/ckan/$instance/$instance.ini," | tee /etc/supervisor/conf.d/ckan_harvesting-$instance.conf
 
+    # SOLR need to be multicore
     # Link to the solr schema file
-    echo "Replacing solr schema file"
-    sudo /etc/init.d/jetty stop
+    #echo "Replacing solr schema file"
+    #sudo /etc/init.d/jetty stop
 
     # Backup ckan original file if it doesn't already have a backup
-    if [[ ! -f /etc/solr/conf/schema.xml.ckan ]];
-    then
-        sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.ckan
-    fi
+    #if [[ ! -f /etc/solr/conf/schema.xml.ckan ]];
+    #then
+    #    sudo mv /etc/solr/conf/schema.xml /etc/solr/conf/schema.xml.ckan
+    #fi
 
-    sudo cp "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.4-dgu.xml" /etc/solr/conf/schema.xml
-    sudo /etc/init.d/jetty start
+    #sudo cp "/var/lib/ckan/$instance/pyenv/src/ckanext-dgu/config/solr/schema-1.4-dgu.xml" /etc/solr/conf/schema.xml
+    #sudo /etc/init.d/jetty start
 }
 
 configure () {
