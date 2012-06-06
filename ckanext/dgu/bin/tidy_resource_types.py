@@ -76,7 +76,7 @@ def command(dry_run=False):
     for format_ in res_type_map.keys():
         res_type_map[canonise(format_)] = res_type_map[format_]
 
-    global_log.info('Tidying resource types')
+    log.info('Tidying resource types')
 
     stats = StatsList()
 
