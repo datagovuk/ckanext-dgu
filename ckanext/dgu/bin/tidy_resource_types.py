@@ -51,8 +51,8 @@ res_type_map = {
     'iCalendar': 'iCal',
     'HTML/iCalendar': 'iCal',
     'HTML/iCal': 'iCal',
-    'gztxt': 'TXT/Zip'
-    'Other XML': 'XML'
+    'gztxt': 'TXT/Zip',
+    'Other XML': 'XML',
     ' ': '',
     }
 
@@ -60,11 +60,6 @@ def command(dry_run=False):
     from ckan import model
     from ckanext.dgu.lib.resource_formats import match
     from running_stats import StatsList
-
-    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
-    global log
-    log = logging.getLogger(__name__)
 
     # Register a translator in this thread so that
     # the _() functions in logic layer can work
@@ -80,6 +75,8 @@ def command(dry_run=False):
     # Add canonised formats to map
     for format_ in res_type_map.keys():
         res_type_map[canonise(format_)] = res_type_map[format_]
+
+    global_log.info('Tidying resource types')
 
     stats = StatsList()
 
@@ -148,4 +145,8 @@ if __name__ == '__main__':
         from ckan import model
         model.init_model(engine)
             
+        logging.config.fileConfig(config_path)
+        global log
+        log = logging.getLogger(os.path.basename(__file__))
+        
     command(dry_run=options.dry_run)

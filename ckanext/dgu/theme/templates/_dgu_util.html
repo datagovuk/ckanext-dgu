@@ -49,7 +49,7 @@
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
               providers = [d for d in package.get('extras', {}) if d['key'] == 'provider']
               provider = providers[0]['value'] if len(providers) else ''
-              display_provider = is_uklp or bool(provider)
+              display_provider = is_uklp
      ?>
      <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
      <div class="dataset-description">

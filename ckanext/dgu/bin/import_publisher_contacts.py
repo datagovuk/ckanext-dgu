@@ -21,15 +21,15 @@ def load_config(path):
             conf.local_conf)
 
 def command(config_ini, contacts_csv):
-    load_config(os.path.abspath(config_ini))
+    config_ini_filepath = os.path.abspath(config_ini)
+    load_config(config_ini_filepath)
     engine = engine_from_config(config, 'sqlalchemy.')
 
     from ckan import model
     from ckan.lib.munge import munge_title_to_name
 
-    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
-    log = logging.getLogger(__name__)
+    logging.config.fileConfig(config_ini_filepath)
+    log = logging.getLogger(os.path.basename(__file__))
     global global_log
     global_log = log
 

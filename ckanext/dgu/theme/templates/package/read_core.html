@@ -175,7 +175,7 @@ if c.pkg_dict:
                 yield (field, label_attributes, value_attributes)
     
     field_names = DatasetFieldNames()
-    field_names_display_only_if_value = ['openness', 'date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'date_updated', 'date_released'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['openness_score', 'date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'date_updated', 'date_released'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if c.is_an_official:
         field_names_display_only_if_value.append('external_reference')
     # work out the dataset_type
@@ -245,7 +245,7 @@ if c.pkg_dict:
         'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
         'date-added-computed': {'label': 'Date added', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
         'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
-        'openness': {'label': 'Five Stars of Openness', 'value': openness_score, 'value_title': openness_detail},
+        'openness_score': {'label': 'Openness', 'label_title': 'Using the Five Stars of Openness scale put forward by Tim Berners-Lee', 'value': openness_score, 'value_title': openness_detail},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},

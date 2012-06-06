@@ -23,7 +23,6 @@ def load_config(path):
     conf = paste.deploy.appconfig('config:' + path)
     import ckan
 
-
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
@@ -38,12 +37,6 @@ field_map = {
 delete_fields = ('agency', 'department', 'date_released ', 'temporal_coverage_from ', 'temporal_coverage_to ', 'update_frequency ')
 
 def command(dry_run=False):
-    # Logging
-    FORMAT = '%(asctime)-7s %(levelname)s %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.INFO)
-    global log
-    log = logging.getLogger(__name__)
-
     from ckan import model
 
     # Register a translator in this thread so that
@@ -53,6 +46,8 @@ def command(dry_run=False):
     registry.prepare()
     translator_obj=MockTranslator() 
     registry.register(translator, translator_obj) 
+
+    global_log.info('Tidying package fields')
 
     stats = StatsList()
 
@@ -118,7 +113,7 @@ def command(dry_run=False):
     if not dry_run:
         model.repo.commit_and_remove()
 
-    log.info(stats.report())
+    global_log.info(stats.report())
 
 def canonise(format_):
     return tidy(format_).lower()
@@ -127,11 +122,12 @@ def tidy(format_):
     return format_.strip().lstrip('.')
 
 warnings = []
-log = None
+global global_log
+global_log = None
 def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
-    log.warn(msg, *params)
+    global_log.warn(msg, *params)
 
 if __name__ == '__main__':
     usage = '''usage: %prog [options]
@@ -155,5 +151,8 @@ if __name__ == '__main__':
         engine = engine_from_config(config, 'sqlalchemy.')
         from ckan import model
         model.init_model(engine)
-            
+
+        logging.config.fileConfig(config_path)
+        global_log = logging.getLogger(os.path.basename(__file__))
+
     command(dry_run=options.dry_run)
