@@ -89,6 +89,10 @@
     </div>
 
     &nbsp;
+<?python
+from ckanext.dgu.lib.helpers import get_resource_wms
+is_wms = bool(get_resource_wms(c.resource))
+?>
     <div class="resource-actions">
       <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}">
         <py:choose test="c.resource.get('resource_type')">
@@ -97,8 +101,13 @@
           <py:when test="'api'">API Endpoint</py:when>
           <py:otherwise>
             <div class="download">
-              <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
-              Download
+              <py:if test="not is_wms">
+                <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
+                Download
+              </py:if>
+              <py:if test="is_wms">
+                Link
+              </py:if>
             </div>
           </py:otherwise>
         </py:choose>
@@ -172,11 +181,8 @@
     <div class="recline-read-only resource-preview">
       <div class="preview-header">
         <h3>Preview</h3>
-        <p>This preview function only works on files such as CSV, spreadsheets and plain text at the moment.</p>
-<?python
-from ckanext.dgu.lib.helpers import get_resource_wms
-is_wms = bool(get_resource_wms(c.resource))
-?>
+        <p py:if="not is_wms">This preview function only works on files such as CSV, spreadsheets and plain text at the moment.</p>
+
         <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
         <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
         <py:if test="is_wms"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->

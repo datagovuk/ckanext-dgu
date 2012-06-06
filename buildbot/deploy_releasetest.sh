@@ -21,9 +21,10 @@ source ./common_functions.sh
 # Import secrets: $XMLRPC_PASSWORD and $OS_TILES_API_KEY
 source /home/ubuntu/deployment/secrets.sh
 
-install_ckan $REPO $INSTANCE $DOMAIN
+install_ckan $REPO 
+ckan-create-instance $INSTANCE $DOMAIN yes
 install_dgu $INSTANCE $BRANCH
-flush_database $INSTANCE "/home/ubuntu/deployment/dgu_live.pg_dump" "/home/ubuntu/deployment/users.csv"
+clean_and_load_database $INSTANCE "/home/ubuntu/deployment/dgu_live.pg_dump" "/home/ubuntu/deployment/users.csv"
 configure $INSTANCE $DOMAIN $XMLRPC_PASSWORD $OS_TILES_API_KEY
 create_test_admin_user $INSTANCE
 

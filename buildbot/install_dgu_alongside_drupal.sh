@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #############################################################
-# Fresh installation of dgu with drupal-ckan apache config
+# Configures an existing install of CKAN-DGU to sit next to
+# Drupal
 #############################################################
 
 if [ $# -ne 4 ]

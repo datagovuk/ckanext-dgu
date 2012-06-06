@@ -1,6 +1,9 @@
 import logging
+import re
 import urllib
 from itertools import dropwhile
+
+from webhelpers.text import truncate
 
 from publisher_node import PublisherNode
 
@@ -225,7 +228,7 @@ def search_without_subpub():
     return _search_with_filter('parent_publishers','publisher')
 
 def predict_if_resource_will_preview(resource_dict):
-    format = resource_dict['format']
+    format = resource_dict.get('format')
     if not format:
         return False
     normalised_format = format.lower().split('/')[-1]
@@ -234,3 +237,45 @@ def predict_if_resource_will_preview(resource_dict):
                                   'txt', 'atom', 'tsv', 'rss'))
     # list of formats is copied from recline js
 
+def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
+    from ckan import model
+    from ckan.lib.base import h
+    from ckanext.dgu.plugins_toolkit import c
+
+    if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
+        return user
+    if not isinstance(user, model.User):
+        user_name = unicode(user)
+        user = model.User.get(user_name)
+        if not user:
+            # may be in the format "NHS North Staffordshire (uid 6107 )"
+            match = re.match('.*\(uid (\d+)\s?\)', user_name)
+            if match:
+                drupal_user_id = match.groups()[0]
+                user = model.User.get('user_d%s' % drupal_user_id)
+
+        if (c.is_an_official):
+            # only officials can see the actual user name
+            if user:
+                publisher = ', '.join([group.title for group in user.get_groups('publisher')])
+
+                display_name = '%s (%s)' % (user.fullname, publisher)
+                link_text = truncate(user.name, length=maxlength)
+                return h.link_to(link_text,
+                                 h.url_for(controller='user', action='read', id=user.name))
+            else:
+                return truncate(user_name, length=maxlength)
+        else:
+            # joe public just gets a link to the user's publisher(s)
+            if user:
+                groups = user.get_groups('publisher')
+                if groups:
+                    return ' '.join([h.link_to(truncate(group.title, length=maxlength),
+                                               h.url_for(controller='group', action='read', id=group.id)) \
+                                     for group in groups])
+                else:
+                    return 'System user'
+            else:
+                return 'Staff'
+    else:
+        return 'Unknown user'

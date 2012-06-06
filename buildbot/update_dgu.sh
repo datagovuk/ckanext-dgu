@@ -45,7 +45,7 @@ source $SECRETS_FILE
 
 update_ckan $REPO
 install_dgu $INSTANCE $BRANCH
-flush_database $INSTANCE $DB_DUMP_FILE $USERS_FILE
+clean_and_load_database $INSTANCE $DB_DUMP_FILE $USERS_FILE
 configure $INSTANCE $DOMAIN $XMLRPC_PASSWORD $OS_TILES_API_KEY
 ## create_test_admin_user $INSTANCE
 
