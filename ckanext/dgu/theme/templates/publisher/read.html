@@ -7,10 +7,11 @@
 
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">${c.group.display_name}
+    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+    <a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+  </py:def>
   <py:def function="content_class"><!--unboxed--></py:def>
 
-	<a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
-  </py:def>
 
 <?python
     from ckan import model
@@ -54,7 +55,7 @@
     <div class="facet-box">
       <h4>Contacts</h4>
       Transparency enquiries:
-      <ul class="arrow-list">
+      <ul style="margin-bottom: 5px;">
 <?python
 name = c.group_extras.get('contact-name')
 email = c.group_extras.get('contact-email')
@@ -65,9 +66,8 @@ web_name = c.group_extras.get('website-name')
         ${name}
         ${contact_details(name, email, phone, web_url, web_name)}
       </ul>
-      <br/>
       Freedom of Information requests:
-      <ul class="arrow-list">
+      <ul>
 <?python
 name = c.group_extras.get('foi-name')
 email = c.group_extras.get('foi-email')
@@ -88,7 +88,7 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 ?>
        ${Markup(render_mini_tree(c.parent_publisher, c.group, sub_groups))}
       </div>
-      <a style="display:none;" id="publisher-tree-expand" class="btn more-button"><img src="/images/chevron-down.png"/></a>
+      <a style="display:none;" id="publisher-tree-expand" class="btn more-button"><img src="/images/chevron-down-small.png"/></a>
       </div>
 
           <br />
@@ -106,14 +106,13 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 
 
   <py:match path="content">
-    <h3 py:if="c.group_extras.get('abbreviation')">(${c.group_extras.get('abbreviation')})</h3>
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
-    <div class="notes" py:if="str(c.description_formatted).strip()">
-      ${c.description_formatted}
-    </div>
 
     <div class="group-dataset-list">
       <div class="boxed search-area-box">
+        <div class="notes" py:if="str(c.description_formatted).strip()">
+          ${c.description_formatted}
+        </div>
 
           <form id="dataset-search-thin" class="form-search dataset-search" method="GET">
             <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />

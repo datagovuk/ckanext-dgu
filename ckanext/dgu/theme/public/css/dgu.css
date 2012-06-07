@@ -145,6 +145,9 @@ h1 .subheading {
 .notes p:last-child {
   margin-bottom: 0;
 }
+h1 .abbreviation {
+  color: #888;
+}
 
 .table-dgu-fixed-size {
   table-layout: fixed;
@@ -152,6 +155,10 @@ h1 .subheading {
 .table-dgu-fixed-size td {
   overflow: hidden;
   white-space: nowrap;
+}
+.table-dgu-fixed-size td.dataset-details {
+  white-space: normal;
+  word-wrap: break-word;
 }
 button span {
   white-space: nowrap;
@@ -831,10 +838,10 @@ ul.property-list {
   margin-bottom: 10px;
 }
 .more-button {
-  height: 16px;
-  padding: 4px;
-  padding-top: 0px;
-  width: 96%;
+  height: 12px;
+  padding: 1px;
+  width: 40px;
+  line-height: 10px;
   margin: 10px auto 0 auto;
   display: block;
 }
@@ -1118,6 +1125,16 @@ input.display-error-inside.field_error {
   color: #666;
   margin: 3px 0 5px 0;
   width: 80%;
+}
+
+/* History page */
+/* ------------ */
+.history-table tr.selected td {
+  background: #ffa !important;
+}
+.history-table td.compare {
+  text-align: center;
+  width: 50px;
 }
 
 /* Publisher form */
