@@ -55,7 +55,7 @@
     <div class="facet-box">
       <h4>Contacts</h4>
       Transparency enquiries:
-      <ul class="arrow-list">
+      <ul style="margin-bottom: 5px;">
 <?python
 name = c.group_extras.get('contact-name')
 email = c.group_extras.get('contact-email')
@@ -66,9 +66,8 @@ web_name = c.group_extras.get('website-name')
         ${name}
         ${contact_details(name, email, phone, web_url, web_name)}
       </ul>
-      <br/>
       Freedom of Information requests:
-      <ul class="arrow-list">
+      <ul>
 <?python
 name = c.group_extras.get('foi-name')
 email = c.group_extras.get('foi-email')
