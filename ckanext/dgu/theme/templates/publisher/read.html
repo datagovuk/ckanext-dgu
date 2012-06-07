@@ -7,10 +7,11 @@
 
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">${c.group.display_name}
+    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+    <a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+  </py:def>
   <py:def function="content_class"><!--unboxed--></py:def>
 
-	<a py:if="c.is_superuser_or_groupmember" style="font-size:16px;float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
-  </py:def>
 
 <?python
     from ckan import model
@@ -106,14 +107,13 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 
 
   <py:match path="content">
-    <h3 py:if="c.group_extras.get('abbreviation')">(${c.group_extras.get('abbreviation')})</h3>
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
-    <div class="notes" py:if="str(c.description_formatted).strip()">
-      ${c.description_formatted}
-    </div>
 
     <div class="group-dataset-list">
       <div class="boxed search-area-box">
+        <div class="notes" py:if="str(c.description_formatted).strip()">
+          ${c.description_formatted}
+        </div>
 
           <form id="dataset-search-thin" class="form-search dataset-search" method="GET">
             <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />
