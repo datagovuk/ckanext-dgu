@@ -34,15 +34,19 @@ def command(config_file):
     ckan_instance_name = os.path.basename(config_file).replace('.ini', '')
     if ckan_instance_name != 'development':
         default_dump_dir = '/var/lib/ckan/%s/static/dump' % ckan_instance_name
+        default_analysis_dir = '/var/lib/ckan/%s/static/dump_analysis' % ckan_instance_name
         default_backup_dir = '/var/backups/ckan/%s' % ckan_instance_name
         default_log_dir = '/var/log/ckan/%s' % ckan_instance_name
     else:
         # test purposes
         default_dump_dir = '~/dump'
+        default_analysis_dir = '~/dump_analysis'
         default_backup_dir = '~/backups'
         default_log_dir = '~'
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
                                              default_dump_dir))
+    analysis_dir = os.path.expanduser(config.get('ckan.dump_analysis_dir',
+                                             default_analysis_dir))
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir',
                                                default_backup_dir))
     log_dir = os.path.expanduser(config.get('ckan.log_dir',
@@ -99,9 +103,12 @@ def command(config_file):
 
     # Dump analysis
     logging.info('Creating dump analysis')
-    json_dump_filepath = os.path.join(dump_dir, '%s.json.zip' % dump_file_base)
-    txt_filepath = os.path.join(dump_dir, dump_analysis_filebase + '.txt')
-    csv_filepath = os.path.join(dump_dir, dump_analysis_filebase + '.csv')
+    if not os.path.exists(analysis_dir):
+        logging.info('Creating dump analysis dir: %s' % analysis_dir)
+        os.makedirs(analysis_dir)
+    json_dump_filepath = os.path.join(analysis_dir, '%s.json.zip' % dump_file_base)
+    txt_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.txt')
+    csv_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.csv')
     run_info = get_run_info()
     options = DumpAnalysisOptions(analyse_by_source=True)
     analysis = DumpAnalysis(json_dump_filepath, options)
