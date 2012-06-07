@@ -27,15 +27,15 @@
       
       <input type="hidden" name="pkg_name" value="${c.pkg_dict['name']}"/>
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table class="history-table table table-striped table-bordered table-condensed">
         <tr>
           <th>Compare</th><th>Timestamp</th><th>Author</th><th>Description of Change</th>
         </tr>
         <py:for each="index, rev in enumerate(c.pkg_revisions)">
-          <tr>
-            <td nowrap="nowrap">
-              <input class="js-compare" type="checkbox"/>
-              <div style="background: #fcf; padding: 5px;">
+          <tr id="row_${rev.id}">
+            <td nowrap="nowrap" class="compare">
+              <input class="js-compare" type="checkbox" id="checkbox_${rev.id}" />
+              <div style="display: none;">
                 ${h.radio("selected1", rev.id, checked=(index == 0))}
                 ${h.radio("selected2", rev.id, checked=(index == len(c.pkg_revisions)-1))}
               </div>
@@ -57,4 +57,5 @@
   </py:def>
 
   <xi:include href="layout.html" />
+  <script src="/scripts/dgu-history.js"></script>
 </html>

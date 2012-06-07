@@ -1120,6 +1120,16 @@ input.display-error-inside.field_error {
   width: 80%;
 }
 
+/* History page */
+/* ------------ */
+.history-table tr.selected td {
+  background: #ffa !important;
+}
+.history-table td.compare {
+  text-align: center;
+  width: 50px;
+}
+
 /* Publisher form */
 /* -------------- */
 
