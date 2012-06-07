@@ -156,6 +156,10 @@ h1 .abbreviation {
   overflow: hidden;
   white-space: nowrap;
 }
+.table-dgu-fixed-size td.dataset-details {
+  white-space: normal;
+  word-wrap: break-word;
+}
 button span {
   white-space: nowrap;
 }
