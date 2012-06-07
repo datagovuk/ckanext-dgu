@@ -9,17 +9,7 @@ import traceback
 import datetime
 import re
 
-# Import ckan as it changes the dependent packages imported
-import ckan
-
-from dump_analysis import get_run_info, TxtAnalysisFile, CsvAnalysisFile, DumpAnalysisOptions, DumpAnalysis
-
-def load_config(path):
-    import paste.deploy
-    conf = paste.deploy.appconfig('config:' + path)
-    import ckan
-    ckan.config.environment.load_environment(conf.global_conf,
-            conf.local_conf)
+from common import load_config, register_translator
 
 start_time = datetime.datetime.today()
 def report_time_taken():
@@ -34,20 +24,10 @@ def get_db_config(config): # copied from fabfile
     db_details = db_details_match.groupdict()
     return db_details
 
-def command():
-    USAGE = '''Daily script for government
-    Usage: python %s [config.ini]
-    ''' % sys.argv[0]
-    if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
-        err = 'Error: Please specify config file.'
-        print USAGE, err
-        logging.error('%s\n%s' % (USAGE, err))
-        sys.exit(1)
-    config_file = sys.argv[1]
-    path = os.path.abspath(config_file)
-
-    load_config(path)
-
+def command(config_file):
+    # Import ckan as it changes the dependent packages imported
+    from dump_analysis import get_run_info, TxtAnalysisFile, CsvAnalysisFile, DumpAnalysisOptions, DumpAnalysis
+    
     from pylons import config
 
     # settings
@@ -74,7 +54,7 @@ def command():
     backup_filebase = config.get('ckan.backup_filename_base',
                                  ckan_instance_name + '.%Y-%m-%d.pg_dump')
     log_filepath = os.path.join(log_dir, 'gov-daily.log')
-    print 'Logging to: %s' % log_filepath
+    #print 'Logging to: %s' % log_filepath
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
 
     logging.basicConfig(filename=log_filepath, level=logging.INFO)
@@ -161,7 +141,8 @@ def command():
         logging.info('Backup successful: %s' % pg_dump_filepath)
         logging.info('Zipping up backup')
         pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
-        cmd = 'gzip %s' % pg_dump_filepath
+        # -f to overwrite any existing file, instead of prompt Yes/No
+        cmd = 'gzip -f %s' % pg_dump_filepath 
         logging.info('Zip command: %s' % cmd)
         ret = os.system(cmd)
         if ret == 0:
@@ -177,4 +158,18 @@ def command():
     logging.info('----------------------------')
 
 if __name__ == '__main__':
-    command()
+    USAGE = '''Daily script for government
+    Usage: python %s [config.ini]
+    ''' % sys.argv[0]
+    if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
+        err = 'Error: Please specify config file.'
+        print USAGE, err
+        logging.error('%s\n%s' % (USAGE, err))
+        sys.exit(1)
+    config_file = sys.argv[1]
+    path = os.path.abspath(config_file)
+
+    load_config(path)
+    register_translator()
+    
+    command(config_file)
