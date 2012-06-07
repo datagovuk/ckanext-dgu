@@ -831,10 +831,10 @@ ul.property-list {
   margin-bottom: 10px;
 }
 .more-button {
-  height: 16px;
-  padding: 4px;
-  padding-top: 0px;
-  width: 96%;
+  height: 12px;
+  padding: 1px;
+  width: 40px;
+  line-height: 10px;
   margin: 10px auto 0 auto;
   display: block;
 }
