@@ -97,6 +97,10 @@ if access_constraints:
     </ul>
   </li>
 
+  <?python
+    from ckan import model
+  ?>
+
   <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
     <h3>Deletion</h3>
     <ul><li><a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a></li></ul>
