@@ -62,13 +62,30 @@ def dgu_package_create(context, data_dict):
         # publishers do this
         return {'success': bool(user_publishers)}
 
-    if not user_obj or \
-       not _groups_intersect( [pub.name for pub in user_publishers],
-                              [pub['name'] for pub in data_dict['groups']] ):
+    if not user_obj:
+        return {'success': False, 
+                'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
+
+    user_publisher_names = [pub.name for pub in user_publishers]
+    if data_dict['groups'] and isinstance(data_dict['groups'][0], dict):
+        package_group_names = [pub['name'] for pub in data_dict['groups']]
+    else:
+        # Just get the group name in the rest interface
+        package_group_names = data_dict['groups']
+
+    if not _groups_intersect(user_publisher_names, package_group_names):
         return {'success': False, 
                 'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
 
     return {'success': True}
+
+def dgu_package_create_rest(context, data_dict):
+    model = context['model']
+    user = context['user']
+    if user in (model.PSEUDO_USER__VISITOR, ''):
+        return {'success': False, 'msg': _('Valid API key needed to create a package')}
+
+    return dgu_package_create(context, data_dict)
 
 def dgu_package_update(context, data_dict):
     model = context['model']
@@ -93,6 +110,15 @@ def dgu_package_update(context, data_dict):
                 'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
 
     return {'success': True}
+
+def dgu_package_update_rest(context, data_dict):
+    model = context['model']
+    user = context['user']
+
+    if user in (model.PSEUDO_USER__VISITOR, ''):
+        return {'success': False, 'msg': _('Valid API key needed to edit a package')}
+
+    return dgu_package_update(context, data_dict)
 
 def dgu_dataset_delete(context, data_dict):
     """
