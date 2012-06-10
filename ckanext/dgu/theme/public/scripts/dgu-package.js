@@ -23,6 +23,14 @@ $(function() {
   var contortDrupal = function(data) {
     data = data || '<div class="boxed"><h2>Comments</h2>(no data)</div>';
     var dom = $(data);
+    if (dom.find('#comments').length==0) {
+        /* Push the entire thing inside a #comments div */
+        dom = $('<div id="comments" />').append(dom);
+    }
+    if (dom.find('.new-comment-link').length==0) {
+        var button = dom.find('#comment-add').remove();
+        dom.prepend( $('<div class="new-comment-link"/>').append(button) );
+    }
     dom.find('#comment-add').addClass('btn').addClass('btn-primary').css({'float':'right'});
     dom.find('.comment').addClass('boxed');
     dom.find('ul.links a').addClass('btn').addClass('btn-primary');
@@ -36,8 +44,7 @@ $(function() {
           dataType: 'html',
           success: function(data, textStatus, xhr) {
             commentsSpinner.stop();
-            $('#comments-container').html('');
-            $('#comments-container').append(contortDrupal(data));
+            $('#comments-container').html(contortDrupal(data));
           },
           error: function(xhr, status, exception) {
             commentsSpinner.stop();
