@@ -871,8 +871,10 @@ ul.datasets .dataset-header {
   margin-bottom: 12px;
   border-bottom: 1px solid #aaa;
 }
-ul.datasets .dataset-header a       { color: #666; }
-ul.datasets .dataset-header a:hover { color: #000; text-decoration: none; }
+ul.datasets .dataset .dataset-header h3 a       { color: #666; }
+ul.datasets .dataset .dataset-header h3 a:hover { color: #000; text-decoration: none; }
+ul.datasets .dataset .dataset-header h3 a:hover { color: #000; text-decoration: none; }
+ul.datasets .dataset .dataset-header h4         { margin-top: 0; }
 ul.datasets .dataset h4 {
   color: #666;
   margin: 4px 0;

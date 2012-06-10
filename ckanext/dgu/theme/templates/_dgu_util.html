@@ -27,9 +27,12 @@
        <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
      <div class="dataset-header">
        <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
-        <h3 class="clearfix">
+         <h3>
           ${h.link_to(title, h.url_for(controller='package', action='read', id=package.get('name')))}
         </h3>
+        <h4>
+          ${h.link_to('View &raquo;', h.url_for(controller='package', action='read', id=package.get('name')))}
+        </h4>
      </div>
      <h4>
           <strong>Publisher</strong> 
