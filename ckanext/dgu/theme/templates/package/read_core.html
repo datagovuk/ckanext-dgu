@@ -4,6 +4,7 @@
   py:strip=""
   >
   <xi:include href="../_util.html" />
+  <xi:include href="field_helpers.html" />
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
     <!-- Overview Section -->
@@ -97,7 +98,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
                 <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
                 <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">Download</a>
               </div>
-              </li>
+            </li>
             </py:for>
           </ul>
           <ul class="resource-list" py:if="gemini_resources">
@@ -129,50 +130,6 @@ import re
 from ckan.lib.field_types import DateType
 from ckanext.dgu.schema import GeoCoverageType
 if c.pkg_dict:
-    class DatasetFieldNames:
-        # For building a list of the fields to display and their order
-        def __init__(self):
-            # core fields
-            self._field_names = ['theme', 'mandate', 'temporal_coverage', 'geographic_coverage', 'geographic_granularity', 'date-added-computed', 'date-updated-computed']
-            # Never display: 'name', 'version', 'maintainer', 'maintainer_email', 'url', 'author', 'author_email', 'published_by', 'published_via'
-            # Displayed elsewhere in templates: 'title', 'license', 'contact', 'foi_contact', 'notes', 'tags', 'groups'
-        def add(self, field_names):
-            self._field_names.extend(field_names)
-        def add_after(self, field_name_to_insert_after, field_name_to_insert):
-            index = self._field_names.index(field_name_to_insert_after)
-            self._field_names.insert(index, field_name_to_insert)
-        def remove(self, field_names):
-            for field_name in field_names:
-                self._field_names.remove(field_name)
-        def __iter__(self):
-            for field_name in self._field_names:
-                yield field_name
-    
-    class DatasetFields:
-        # For collecting the key and value to display each field
-        def __init__(self, field_names):
-            self.fields = []
-            for field_name in field_names:
-                value_dict = field_value_map.get(field_name, {})
-                value_dict['name'] = field_name
-                if not 'label' in value_dict:
-                   value_dict['label'] = re.sub('[-_]', ' ', field_name).capitalize()
-                   value_dict['value'] = pkg_extras.get(field_name)
-                self.fields.append(value_dict)
-            # move blank values last
-            blank_values = []
-            for field in self.fields[:]:
-                if not field.get('value'):
-                    blank_values.append(field)
-                    self.fields.remove(field)
-            self.fields.extend(blank_values)
-        def __iter__(self):
-            for field in self.fields:
-                value_attributes = {'property': field.get('property')} if 'property' in field else {}
-                if 'value_title' in field:
-                    value_attributes['title'] = field['value_title']
-                label_attributes = {'title': field['label_title']} if 'label_title' in field else {}
-                yield (field, label_attributes, value_attributes)
     
     field_names = DatasetFieldNames()
     field_names_display_only_if_value = ['openness_score', 'date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'date_updated', 'date_released'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
@@ -266,7 +223,7 @@ if c.pkg_dict:
             field_names.add([field_name])
 
     # calculate displayable field values
-    fields = DatasetFields(field_names)
+    fields = DisplayableFields(field_names)
 
 ?>
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
@@ -274,54 +231,6 @@ if c.pkg_dict:
         <tr py:for="field_dict, label_attributes, value_attributes in fields">
           <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
           <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
-      <tbody>
-        <tr py:if="c.pkg.url">
-          <td class="dataset-label">Source</td>
-          <td class="dataset-details" property="foaf:homepage">${c.pkg_url_link}</td>
-        </tr>
-
-        <tr py:if="c.pkg_author_link">
-          <td class="dataset-label">Author</td>
-          <td class="dataset-details" property="dc:creator">${c.pkg_author_link}</td>
-        </tr>
-
-        <tr py:if="c.pkg_maintainer_link">
-          <td class="dataset-label">Maintainer</td>
-          <td class="dataset-details" property="dc:contributor">${c.pkg_maintainer_link}</td>
-        </tr>
-
-        <tr py:if="c.pkg.version">
-          <td class="dataset-label">Version</td>
-          <td class="dataset-details">${c.pkg.version}</td>
-        </tr>
-
-        <tr py:if="c.eu_country">
-          <td class="dataset-label">Country</td>
-          <td class="dataset-details"><!--{h.code_to_country(c.eu_country)}--></td>
-        </tr>
-
-        <tr py:if="h.check_access('package_update',{'id':c.pkg.id})">
-          <td class="dataset-label">State</td>
-          <td class="dataset-details">${c.pkg.state}</td>
-        </tr>
-
-        <tr py:if="c.harvest_catalogue_name">
-          <td class="dataset-label">Harvest Source</td>
-          <td class="dataset-details">
-            <a href="${c.harvest_dataset_url}">Dataset page</a> on 
-            <a href="${c.harvest_catalogue_url}">${c.harvest_catalogue_name}</a>
-          </td>
-        </tr>
-
-        <tr py:for="i, (key, value) in enumerate(c.pkg_extras)"
-          rel="dc:relation" resource="_:extra${i}">
-          <td class="dataset-label" property="rdfs:label">${_(key)}</td>
-          <td class="dataset-details" property="rdf:value">${value}</td>
         </tr>
       </tbody>
     </table>

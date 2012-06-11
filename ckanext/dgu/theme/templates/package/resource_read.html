@@ -14,8 +14,8 @@
   <xi:include href="../_snippet/data-api-help.html" />
   <xi:include href="../snippets/data-viewer-embed-dialog.html" />
 
-
   <xi:include href="sidebar.html"/>
+  <xi:include href="field_helpers.html" />
 
   <py:def function="optional_head">
     <!-- data preview -->
@@ -129,7 +129,7 @@ is_wms = bool(get_resource_wms(c.resource))
  ${data_viewer_embed_dialog()}
 
     <div class="quick-info">
-      <div>
+      <div py:if="c.resource['last_modified']">
         <h4 style="margin-bottom:0;">Last updated:</h4>
         ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
       </div>
@@ -195,29 +195,57 @@ is_wms = bool(get_resource_wms(c.resource))
     <br/>
     <div class="resource-information">
       <h3>Additional Information</h3>
-      <div>
-      <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
-        <tbody>
-          <py:for each="i, key in enumerate(sorted(c.resource.keys()))">
-            <tr py:if="not key=='description'">
-              <td class="dataset-label" property="rdfs:label">${_(key)}</td>
-              <py:choose test="key">
-                <py:when test="'cache_url'">
-                  <td class="dataset-details" property="rdf:value"><a href="${c.resource[key]}">${c.resource[key]}</a></td>
-                </py:when>
-                <py:otherwise>
-                  <td class="dataset-details" property="rdf:value">${c.resource[key]}</td>
-                </py:otherwise>
-              </py:choose>
+      <div id="dataset-information">
+<?python
+import re
+import datetime
+if c.pkg_dict:
+    
+    field_names = ResourceFieldNames()
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+    res_dict = dict(c.resource)
+    
+    import pdb; pdb.set_trace()
+    try:
+        date_updated = datetime.datetime(*map(int, re.split('[^\d]', res_dict.get('revision_timestamp'))[:-1])).strftime('%d/%m/%Y')
+    except Exception:
+        date_updated = None
+
+    field_value_map = {
+        # field_name : {display info}
+        'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
+        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': date_updated},
+        'content_type': {'label': 'Content Type', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+    }
+    
+    # add in fields that only display if they have a value
+    for field_name in field_names_display_only_if_value:
+        if pkg_extras.get(field_name):
+            field_names.add([field_name])
+
+    # calculate displayable field values
+    fields = DisplayableFields(field_names)
+
+?>
+        <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
+            <tbody>
+            <tr py:for="field_dict, label_attributes, value_attributes in fields">
+              <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
+              <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
             </tr>
-          </py:for>
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+        </div>
+
+        <span class="insert-comment-thread"></span>
       </div>
     </div>
-
-    <span class="insert-comment-thread"></span>
-  </div>
 
   <py:def py:if="not is_wms" function="optional_footer">
     <!-- data preview -->
