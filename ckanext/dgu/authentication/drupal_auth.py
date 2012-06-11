@@ -151,7 +151,11 @@ class DrupalAuthMiddleware(object):
         if self.drupal_client is None:
             self.drupal_client = DrupalClient()
         # ask drupal for the drupal_user_id for this session
-        drupal_user_id = self.drupal_client.get_user_id_from_session_id(drupal_session_id)
+        try:
+            drupal_user_id = self.drupal_client.get_user_id_from_session_id(drupal_session_id)
+        except DrupalRequestError, e:
+            log.error('Error checking session with Drupal: %s', e)
+            return
         if drupal_user_id:
             # ask drupal about this user
 	    user_properties = self.drupal_client.get_user_properties(drupal_user_id)
@@ -196,7 +200,7 @@ class DrupalAuthMiddleware(object):
             log.debug('Set REMOTE_USER = %r', user.name)
 
         else:
-            log.info('Drupal disowned the session ID found in the cookie.')
+            log.warn('Drupal disowned the session ID found in the cookie.')
 
     def set_roles(self, user_name, drupal_roles):
         '''Sets CKAN user roles based on the drupal roles.
