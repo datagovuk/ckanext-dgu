@@ -448,34 +448,27 @@ class TestFormValidation(object):
 
     def assert_accepts_date(self, field_name, date_str):
         data = {field_name: date_str}
-        response = self._form_client.post_form(data, id=DguCreateTestData.form_package().id)
+        response = self._form_client.post_form(data, id=DguCreateTestData.old_form_package().id)
         assert not ("Cannot parse form date" in response.body or\
                     "Date error reading in format" in response.body), response.body
 
     def assert_rejects_date(self, field_name, date_str):
         data = {field_name: date_str}
-        response = self._form_client.post_form(data, id=DguCreateTestData.form_package().id)
+        response = self._form_client.post_form(data, id=DguCreateTestData.old_form_package().id)
         assert "Cannot parse form date" in response.body or \
                "Date error reading in format" in response.body, response.body
-
-    def test_date_released_only_accepts_well_formed_dates(self):
-        """
-        Asserts that date_released only accepts dates.
-        """
-        self.assert_accepts_date('date_released', '30/12/12')
-        self.assert_accepts_date('date_released', '12/2012')
-        self.assert_accepts_date('date_released', '20-12-2012')
-
-        self.assert_rejects_date('date_released', '2012/12/30')
-        self.assert_rejects_date('date_released', '2012-12-30')
-        self.assert_rejects_date('date_released', '2012-12')
 
     def test_date_updated_only_accepts_well_formed_dates(self):
         """
         Asserts that date_updated only accepts dates.
         """
         self.assert_accepts_date('date_updated', '30/12/12')
+        self.assert_accepts_date('date_updated', '12/2012')
+        self.assert_accepts_date('date_updated', '20-12-2012')
+
         self.assert_rejects_date('date_updated', '2012/12/30')
+        self.assert_rejects_date('date_updated', '2012-12-30')
+        self.assert_rejects_date('date_updated', '2012-12')
 
     def test_date_update_future_only_accepts_well_formed_dates(self):
         """

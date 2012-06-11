@@ -174,6 +174,11 @@ class DatasetForm(SingletonPlugin):
             'temporal_coverage-from': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-to': [ignore_missing, unicode, convert_to_extras],
             'access_constraints': [ignore_missing, unicode, convert_to_extras],
+            'groups': {
+                'name': [ignore_missing, validate_group_id_or_name_exists_if_not_blank, unicode],
+                'id': [ignore_missing, unicode],
+            },
+            
         }
 
     def db_to_form_schema_options(self, options={}):
@@ -384,3 +389,7 @@ def convert_geographic_to_form(value, context):
 
     return GeoCoverageType.get_instance().db_to_form(value)
 
+def validate_group_id_or_name_exists_if_not_blank(value, context):
+    if not value.strip():
+        return True
+    return val.group_id_or_name_exists(value, context)

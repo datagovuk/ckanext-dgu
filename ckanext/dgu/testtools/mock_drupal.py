@@ -21,7 +21,8 @@ def get_mock_drupal_config():
                               'uid': '62',
                               'publishers': test_organisation_names,
                               'created': '1319119762', #(2011, 10, 20, 15, 9, 22)
-                              'mail': 'joe@dept.gov.uk'}
+                              'mail': 'joe@dept.gov.uk',
+                              'roles': {'14': 'publishing user'}}
                        },
         'test_sessions': {'4160a72a4d6831abec1ac57d7b5a59eb': '62'}
         }
