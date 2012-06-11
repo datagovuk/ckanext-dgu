@@ -55,9 +55,14 @@
      </div>
      ${map_preview_buttons(package.id, package)}
      <py:if test="package.get('resources', [])">
-     <h4>Formats:
+<?python
+formats = set([res.get('format') for res in package['resources']])
+if None in formats:
+    formats.remove(None)
+?>
+     <h4 py:if="formats">Formats:
           <ul class="dataset-formats">
-            <py:for each="format in set([res.get('format') for res in package.resources])">
+            <py:for each="format in formats">
               <li>${format}</li>
             </py:for>
           </ul>
