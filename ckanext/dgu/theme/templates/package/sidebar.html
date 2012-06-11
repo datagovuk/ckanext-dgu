@@ -108,7 +108,7 @@ if access_constraints:
 
   <li py:if="c.pkg_dict['tags']" class="widget-container">
     <h3>Tags</h3>
-    ${tag_list(c.pkg_dict['tags'])}
+    ${tag_list_from_dicts(c.pkg_dict['tags'])}
   </li>
 
   <li id="social_media" class="widget-container">
