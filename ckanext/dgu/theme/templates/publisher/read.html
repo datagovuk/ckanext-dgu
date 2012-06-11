@@ -54,7 +54,7 @@
 
     <div class="facet-box">
       <h4>Contacts</h4>
-      Transparency enquiries:
+      Enquiries:
       <ul style="margin-bottom: 5px;">
 <?python
 name = c.group_extras.get('contact-name')
@@ -66,7 +66,7 @@ web_name = c.group_extras.get('website-name')
         ${name}
         ${contact_details(name, email, phone, web_url, web_name)}
       </ul>
-      Freedom of Information requests:
+      <span class="js-tooltip" title="Use the Freedom of Information Act to request more information from the body holding the data">FOI requests</span>:
       <ul>
 <?python
 name = c.group_extras.get('foi-name')

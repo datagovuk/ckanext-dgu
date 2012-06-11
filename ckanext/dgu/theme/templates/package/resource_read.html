@@ -205,7 +205,6 @@ if c.pkg_dict:
     field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
     res_dict = dict(c.resource)
     
-    import pdb; pdb.set_trace()
     try:
         date_updated = datetime.datetime(*map(int, re.split('[^\d]', res_dict.get('revision_timestamp'))[:-1])).strftime('%d/%m/%Y')
     except Exception:
