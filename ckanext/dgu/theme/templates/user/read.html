@@ -14,6 +14,15 @@
       u = model.User.get(c.user_dict['id'])
       if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or Authorizer().is_sysadmin(c.user):
         groups = u.get_groups('publisher' )
+
+      # Non-sysadmins cannot see personally identifiable information
+      if not c.is_myself and not Authorizer().is_sysadmin(c.user):
+          c.user_dict['about']        = ''
+          c.about_formatted           = ''
+          c.user_dict['display_name'] = c.user_dict['name']
+          c.user_dict['fullname']     = None
+          c.user_dict['email']        = None
+          c.user_dict['openid']       = None
     ?>
   <div class="row">
     <div class="span6">

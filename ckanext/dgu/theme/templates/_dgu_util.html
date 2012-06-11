@@ -25,12 +25,10 @@
      ?>
      <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
        <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
-     <div class="dataset-header">
-       <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
-        <h3 class="clearfix">
-          ${h.link_to(title, h.url_for(controller='package', action='read', id=package.get('name')))}
-        </h3>
-     </div>
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
+         <h3><span class="underlined">${title}</span><span class="suffix">&nbsp;&raquo;</span></h3>
+       </a>
      <h4>
           <strong>Publisher</strong> 
           :&nbsp;
