@@ -267,14 +267,17 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
                 return truncate(user_name, length=maxlength)
         else:
             # joe public just gets a link to the user's publisher(s)
+            import ckan.authz
             if user:
                 groups = user.get_groups('publisher')
                 if groups:
-                    return ' '.join([h.link_to(truncate(group.title, length=maxlength),
-                                               h.url_for(controller='group', action='read', id=group.id)) \
-                                     for group in groups])
+                    return h.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
+                                                       h.url_for(controller='group', action='read', id=group.id)) \
+                                             for group in groups]))
+                elif ckan.authz.Authorizer().is_sysadmin(user):
+                    return 'System Administrator'
                 else:
-                    return 'System user'
+                    return 'Staff'
             else:
                 return 'Staff'
     else:
