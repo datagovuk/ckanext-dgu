@@ -136,9 +136,6 @@ h1 .subheading {
   text-overflow: ellipsis;
 }
 .notes {
-  background: url('../images/ldquo.png') no-repeat top left #f7f7f7;
-  border: 1px solid #eee;
-  border-radius: 5px;
   margin-bottom: 10px;
   padding: 8px;
 }
