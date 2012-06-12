@@ -162,7 +162,7 @@ button span {
 }
 .widget-container ul,
 ul.arrow-list {
-  list-style-image: url('/images/arrow.png');
+  list-style-image: url('/images/arrow-list.png');
 }
 .pagination ul {
   background: #fff;
@@ -945,8 +945,9 @@ td.dataset-label {
   word-wrap: break-word;
   white-space: normal !important;
 }
-.map-buttons { 
-  padding: 7px;
+.resources .map-buttons { 
+  padding: 12px 7px;
+  text-align: right;
  }
 #spatial-map {
   height: 220px;
