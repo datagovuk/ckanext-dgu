@@ -927,11 +927,14 @@ td.dataset-label {
   width: 180px;
 }
 
-.resource-actions .btn {
+div.resource-actions {
   position: relative;
   float: right;
+}
+div.resource-actions .btn{
   bottom: 3px;
   padding: 8px 10px;
+  margin: 0 0 0 7px;
 }
 .resource-actions .download  {
   padding-top: 2px;

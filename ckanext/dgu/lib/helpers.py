@@ -2,6 +2,7 @@ import logging
 import re
 import urllib
 from itertools import dropwhile
+import datetime
 
 from webhelpers.text import truncate
 
@@ -282,3 +283,12 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
                 return 'Staff'
     else:
         return 'Unknown user'
+
+def render_datestamp(datestamp_str, format='%d/%m/%Y'):
+    # e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+    if not datestamp_str:
+        return ''
+    try:
+        return datetime.datetime(*map(int, re.split('[^\d]', datestamp_str)[:-1])).strftime(format)
+    except Exception:
+        return ''

@@ -90,8 +90,8 @@
 
     &nbsp;
 <?python
-from ckanext.dgu.lib.helpers import get_resource_wms
-is_wms = bool(get_resource_wms(c.resource))
+from ckanext.dgu.lib import helpers as dgu_helpers
+is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
 ?>
     <div class="resource-actions">
       <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}">
@@ -111,6 +111,14 @@ is_wms = bool(get_resource_wms(c.resource))
             </div>
           </py:otherwise>
         </py:choose>
+      </a>
+      <a py:if="c.resource.get('cache_url', '').replace('None', '') and not is_wms" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('cache_url')}">
+        <div class="download js-tooltip" title="Cached by data.gov.uk on date: ${dgu_helpers.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
+          <py:if test="not is_wms">
+            <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
+            Cached
+          </py:if>
+        </div>
       </a>
       <py:if test="config.get('ckan.datastore.enabled', False)">
         <py:if test="c.resource.get('webstore_url')">
@@ -199,21 +207,18 @@ is_wms = bool(get_resource_wms(c.resource))
 <?python
 import re
 import datetime
+import ckanext.dgu.lib.helpers as dgu_helpers
+
 if c.pkg_dict:
     
     field_names = ResourceFieldNames()
     field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
     res_dict = dict(c.resource)
     
-    try:
-        date_updated = datetime.datetime(*map(int, re.split('[^\d]', res_dict.get('revision_timestamp'))[:-1])).strftime('%d/%m/%Y')
-    except Exception:
-        date_updated = None
-
     field_value_map = {
         # field_name : {display info}
         'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
-        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': date_updated},
+        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': dgu_helpers.render_datestamp(res_dict.get('revision_timestamp'))},
         'content_type': {'label': 'Content Type', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},

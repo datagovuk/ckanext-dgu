@@ -80,6 +80,8 @@ class DguCreateTestData(CreateTestData):
              {'url': "http://innovate-apps.direct.gov.uk/cota/",
               'format': 'HTML',
               'description': "Directgov Article Ratings",
+              'cache_last_updated': '2012-06-12T17:33:02.884649',
+              'cache_url': 'http://data.gov.uk/data/resource_cache/89471cf8-013f-4695-ad56-12c028e167b7/cota.html',
               },
              ]
          },
