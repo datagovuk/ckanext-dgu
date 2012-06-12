@@ -405,28 +405,22 @@ ul.widget-list {
   padding-top: 20px;
   padding-bottom: 40px;
 }
-.footer .footer-section {
-  border-right: 1px solid #ccc;
-}
-.footer .footer-section.last {
-  border-right: none;
-  text-align: right;
-  padding-left: 30px;
-}
-.footer a {
-  color: #666;
-}
-.footer ul {
+.footer .links li {
+  display: inline;
   list-style-type: none;
-  margin: 0;
+  padding: 0 0 0 10px;
 }
-.credit {
-  float: left;
+.footer .credits {
+  border-top: 1px solid #ccc;
+}
+.footer .credit {
+  float: right;
+  margin: 20px;
   text-align: center;
 }
-.credit img {
+.footer .credit img {
   display: block;
-  margin: 4px 20px 0;
+  margin: 0 auto;
 }
 
 /* Boxes */

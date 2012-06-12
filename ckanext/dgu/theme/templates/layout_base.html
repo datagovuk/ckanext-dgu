@@ -230,46 +230,33 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
 
   <div class="footer">
     <footer class="container">
-      <div class="row">
-        <div class="span3">
-          <div class="footer-section">
-            <ul class="links">
-              <li><a href="/terms-and-conditions" title="Terms / Privacy" accesskey="8">Terms and conditions</a></li> 
-              <li><a href="/code-conduct" title="Code of conduct">Code of conduct</a></li> 
-              <li><a href="/faq" title="FAQ" accesskey="5">FAQ</a></li> 
-              <li><a href="/contact" title="Contact Us" accesskey="9">Contact us</a></li> 
-            </ul>
-          </div><!-- /footer-section -->
-        </div>
-        <div class="span3">
-          <div class="footer-section">
-            <ul>
-              <li><a href="/accessibility-statement" title="Accessibility Statement" accesskey="0">Accessibility</a></li> 
-              <li><a href="/moderation-policy" title="Moderation policy">Moderation policy</a></li> 
-              <li><a href="/privacy" title="Privacy">Privacy</a></li> 
-              <li><a href="/opendataconsultation-closed" title="">Consultation</a></li> 
-            </ul>
-          </div>
-        </div>
-        <div class="span6">
-          <div class="footer-section last">
-            <div class="credit">
-              <strong>Powered by:</strong>
-              <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
-                <img src="/images/ckan_logo_box_64px_wide.png"/>
-              </a>
-            </div>
-          </div><!-- /footer-section -->
-          <div py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')" class="footer-section last">
-            <div class="credit">
-              <strong>Map tools by:</strong>
-              <a href="/location" title="UK Location Programme">
-                <img src="/images/uk_location.gif"/>
-              </a>
-            </div>
-          </div><!-- /footer-section -->
-        </div>
+    <div id="footer-menu" class="container">
+      <ul class="links">
+        <li class="menu-52070 first"><a href="/search/apachesolr_search/transparency%20board%20minutes" title="">Transparancy Board Minutes</a></li>
+        <li class="menu-52071 active-trail active"><a href="/" title="" class="active">Cookies</a></li>
+        <li class="menu-39423"><a href="/accessibility-statement" title="">Accessibility</a></li>
+        <li class="menu-39426"><a href="/code-conduct" title="">Code of conduct</a></li>
+        <li class="menu-39427"><a href="/contact" title="">Contact us</a></li>
+        <li class="menu-39425"><a href="/faq" title="">FAQ</a></li>
+        <li class="menu-39421"><a href="/moderation-policy" title="">Moderation</a></li>
+        <li class="menu-39424"><a href="/privacy" title="">Privacy</a></li>
+        <li class="menu-39422 last"><a href="/project" title="">Project info</a></li>
+      </ul>        
+    </div>
+    <div class="credits">
+      <div class="credit">
+        <strong>Map tools by:</strong>
+        <a href="/location" title="UK Location Programme">
+          <img src="/images/uk_location.gif" />
+        </a>
       </div>
+      <div class="credit">
+        <strong>Powered by:</strong>
+        <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
+          <img src="/images/ckan_logo_box_64px_wide.png"/>
+        </a>
+      </div>
+    </div>
     </footer>
   </div> <!-- /footer -->
 
