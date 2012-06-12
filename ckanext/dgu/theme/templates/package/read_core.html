@@ -52,7 +52,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
                   <py:if test="dataset_type!='uklp'">Download</py:if>
                   <py:if test="dataset_type=='uklp'">Link</py:if>
                 </a>
-                <a py:if="res.get('cache_url', '').replace('None', '')" href="${res['cache_url']}" class="href-action btn btn-small">
+                <a py:if="dgu_helpers.get_cache_url(res)" href="${res['cache_url']}" class="href-action btn btn-small">
                   <span class="js-tooltip" title="Cached by data.gov.uk on date: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown'}">Cached</span>
                 </a>
               </div>

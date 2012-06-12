@@ -112,7 +112,7 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
           </py:otherwise>
         </py:choose>
       </a>
-      <a py:if="c.resource.get('cache_url', '').replace('None', '') and not is_wms" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('cache_url')}">
+      <a py:if="dgu_helpers.get_cache_url(c.resource) and not is_wms" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('cache_url')}">
         <div class="download js-tooltip" title="Cached by data.gov.uk on date: ${dgu_helpers.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
           <py:if test="not is_wms">
             <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>

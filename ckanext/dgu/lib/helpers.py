@@ -292,3 +292,9 @@ def render_datestamp(datestamp_str, format='%d/%m/%Y'):
         return datetime.datetime(*map(int, re.split('[^\d]', datestamp_str)[:-1])).strftime(format)
     except Exception:
         return ''
+
+def get_cache_url(resource_dict):
+    url = resource_dict.get('cache_url')
+    if not url:
+        return
+    return url.strip().replace('None', '')
