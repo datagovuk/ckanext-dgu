@@ -19,40 +19,42 @@
 ?>
 
   <py:match path="primarysidebar">
-    <div py:if="c.userobj" class="facet-box">
+    <div py:if="c.userobj" class="widget-container">
       <h4>Publisher Administration</h4>
+      <ul>
+        <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
+          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
+        </li>
 
-      <h5>Administrators:</h5>
+        <li py:if="c.userobj in c.administrators or c.is_sysadmin">
+          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Edit user permissions</a>
+        </li>
+
+        <li py:if="(c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember">
+          <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+        </li>
+
+        <li py:if="c.userobj in c.administrators or c.is_sysadmin">
+          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}">Edit publisher properties</a>
+        </li>
+      </ul>
+    </div>
+    <div py:if="c.userobj" class="widget-container">
+      <h4>Administrators:</h4>
       <ul class="property-list" py:for="admin in c.administrators">
         <li>${h.linked_user(admin)}</li>
       </ul>
       <p py:if="not c.administrators.count()">No-one assigned</p>
 
-      <h5>Editors:</h5>
+      <h4>Editors:</h4>
       <ul class="property-list" py:for="editor in c.editors">
         <li>${h.linked_user(editor)}</li>
       </ul>
       <p py:if="not c.editors.count()">No-one assigned</p>
 
-      <div py:if="not c.userobj in c.administrators and not c.userobj in c.editors" class="admin-button">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}" class="btn btn-primary">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
-      </div>
-
-      <div py:if="c.userobj in c.administrators or c.is_sysadmin" class="admin-button">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}" class="btn btn-primary">Edit user permissions</a>
-      </div>
-
-      <div py:if="(c.userobj in c.administrators or c.userobj in c.editors) or c.is_superuser_or_groupmember" class="admin-button">
-        <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}" class="btn btn-primary">Add a new dataset</a>
-      </div>
-
-      <div py:if="c.userobj in c.administrators or c.is_sysadmin" class="admin-button">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}" class="btn btn-primary">Edit publisher properties</a>
-      </div>
-
     </div>
 
-    <div class="facet-box">
+    <div class="widget-container">
       <h4>Contacts</h4>
       Enquiries:
       <ul style="margin-bottom: 5px;">
@@ -79,7 +81,7 @@ phone = c.group_extras.get('foi-phone')
       </ul>
     </div>
 
-    <div class="facet-box">
+    <div class="widget-container">
       <h4>Publisher Hierarchy</h4>
       <div id="publisher-tree-wrapper">
       <div id="publisher-tree" class="jstree-overflows">
@@ -140,7 +142,7 @@ from ckanext.dgu.lib.helpers import render_mini_tree
                 params['parent_publishers'] = c.group.name
             advanced = search_url(params.items())
           ?>
-          <a style="float:right;" class="btn btn-primary" href="${advanced}">Go to Advanced Search &raquo;</a>
+          <a style="float:right;" href="${advanced}">Go to Advanced Search &raquo;</a>
 
           <p><span py:if="c.q">You searched for "${c.q}". </span>${c.page.item_count} datasets found.</p>
 

@@ -112,7 +112,7 @@ img.open-data {
   vertical-align: top;
   margin-top: 1px;
 }
-div.pager-container {
+.pagination {
   text-align: center;
 }
 a.tag {
@@ -790,6 +790,7 @@ body.login #content {
 .facet-box {
   margin-bottom: 20px;
 }
+.widget-container h4,
 .facet-box h4 {
   color: #656565;
   padding-bottom: 3px;
