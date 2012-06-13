@@ -143,3 +143,33 @@ class DrupalClient(object):
                 raise DrupalRequestError('Drupal returned protocol error for organisation_name %r: %r' % (organisation_name, e))
         log.info('Obtained organisation id %r from name %r', organisation_id, organisation_name)
         return organisation_id
+
+    def get_organisation_list(self):
+        try:
+            organisations = self.drupal.publisher.list()
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal returned error: %r' % (e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal returned protocol error: %r' % (e))
+        log.info('Obtained organisation list %r', organisations)
+        return organisations
+
+    def get_organisation_details(self, organisation_id):
+        try:
+            organisation = self.drupal.publisher.details(organisation_id or u'')
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
+        except Fault, e:
+            if e.faultCode == 404:
+                raise DrupalKeyError(organisation_id)
+            else:
+                raise DrupalRequestError('Drupal returned error for organisation_id %r: %r' % (organisation_id, e))
+        except ProtocolError, e:
+            if e.errcode == 404:
+                raise DrupalKeyError(organisation_id)
+            else:
+                raise DrupalRequestError('Drupal returned protocol error for organisation_id %r: %r' % (organisation_id, e))
+        log.info('Obtained organisation details %r from name %r', organisation, organisation_id)
+        return organisation
