@@ -230,21 +230,8 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
 
   <div class="footer">
     <footer class="container">
-    <div id="footer-menu" class="container">
-      <ul class="links">
-        <li class="menu-52070 first"><a href="/search/apachesolr_search/transparency%20board%20minutes" title="">Transparancy Board Minutes</a></li>
-        <li class="menu-52071 active-trail active"><a href="/" title="" class="active">Cookies</a></li>
-        <li class="menu-39423"><a href="/accessibility-statement" title="">Accessibility</a></li>
-        <li class="menu-39426"><a href="/code-conduct" title="">Code of conduct</a></li>
-        <li class="menu-39427"><a href="/contact" title="">Contact us</a></li>
-        <li class="menu-39425"><a href="/faq" title="">FAQ</a></li>
-        <li class="menu-39421"><a href="/moderation-policy" title="">Moderation</a></li>
-        <li class="menu-39424"><a href="/privacy" title="">Privacy</a></li>
-        <li class="menu-39422 last"><a href="/project" title="">Project info</a></li>
-      </ul>        
-    </div>
     <div class="credits">
-      <div class="credit">
+      <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
         <strong>Map tools by:</strong>
         <a href="/location" title="UK Location Programme">
           <img src="/images/uk_location.gif" />
@@ -256,6 +243,19 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
           <img src="/images/ckan_logo_box_64px_wide.png"/>
         </a>
       </div>
+    </div>
+    <div id="footer-menu" class="container">
+      <ul class="links">
+        <li><a href="/search/apachesolr_search/transparency%20board%20minutes" title="">Transparency Board Minutes</a></li>
+        <li><a href="/" title="" class="active">Cookies</a></li>
+        <li><a href="/accessibility-statement" title="">Accessibility</a></li>
+        <li><a href="/code-conduct" title="">Code of conduct</a></li>
+        <li><a href="/contact" title="">Contact us</a></li>
+        <li><a href="/faq" title="">FAQ</a></li>
+        <li><a href="/moderation-policy" title="">Moderation</a></li>
+        <li><a href="/privacy" title="">Privacy</a></li>
+        <li><a href="/project" title="">Project info</a></li>
+      </ul>        
     </div>
     </footer>
   </div> <!-- /footer -->

@@ -18,19 +18,19 @@
   <div py:match="content">
     <div class="tabbable">
       <ul class="nav nav-tabs">
-        <li class="active"><a href="#publisherlist" data-toggle="tab">Publisher list</a></li>
-        <li><a href="#publisherhierarchy" data-toggle="tab">Publisher hierarchy</a></li>
+        <li class="active"><a href="#publisherhierarchy" data-toggle="tab">Publisher hierarchy</a></li>
+        <li><a href="#publisherlist" data-toggle="tab">Publisher list</a></li>
         <li><a href="#publishersearch" data-toggle="tab">Publisher search</a></li>
       </ul>
       <div class="tab-content">
-        <div class="tab-pane active" id="publisherlist">
-          ${c.page.pager()}
-          ${publisher_list(c.page.items)}
-        </div>
-        <div class="tab-pane" id="publisherhierarchy">
+        <div class="tab-pane active" id="publisherhierarchy">
           <div id="publisher-tree">
             ${publisher_tree( c.all_groups )}
           </div>
+        </div>
+        <div class="tab-pane" id="publisherlist">
+          ${c.page.pager()}
+          ${publisher_list(c.page.items)}
         </div>
         <div class="tab-pane small-search" id="publishersearch">
 <?python

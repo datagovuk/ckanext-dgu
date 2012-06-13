@@ -407,12 +407,14 @@ ul.widget-list {
   list-style-type: none;
   padding: 0 0 0 10px;
 }
+.footer .links a {
+  color: #666;
+}
 .footer .credits {
-  border-top: 1px solid #ccc;
+  float: right;
 }
 .footer .credit {
-  float: right;
-  margin: 20px;
+  margin: 0 10px 0 10px;
   text-align: center;
 }
 .footer .credit img {
@@ -1140,6 +1142,9 @@ input.display-error-inside.field_error {
 .history-table td.compare {
   text-align: center;
   width: 50px;
+}
+.history-table {
+  margin-top: 15px;
 }
 
 /* Publisher form */
