@@ -43,6 +43,12 @@ def configure_served_directory(config, relative_path, config_var):
         else:
             config[config_var] = absolute_path
 
+def after(instance, action, **params):
+    from pylons import response
+    instance._set_cors()
+    response.headers['Vary'] = 'Cookie'
+
+
 class ThemePlugin(SingletonPlugin):
     '''
     DGU Visual Theme for a CKAN install embedded in dgu/Drupal.
@@ -50,9 +56,12 @@ class ThemePlugin(SingletonPlugin):
     implements(IConfigurer)
     implements(IRoutes)
 
+    from ckan.lib.base import h, BaseController
     # [Monkey patch] Replace h.linked_user with a version to hide usernames
-    from ckan.lib.base import h
     h.linked_user = dgu_linked_user
+    # [Monkey patch] Replace BaseController.__after__ to allow us to add more
+    # headers for caching
+    BaseController.__after__ = after
 
     def update_config(self, config):
         configure_template_directory(config, 'theme/templates')
