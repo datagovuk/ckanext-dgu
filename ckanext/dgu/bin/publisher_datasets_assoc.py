@@ -85,6 +85,7 @@ def command(config_ini, nodepublisher_csv):
 
     model.repo.new_revision()
 
+    log.info('Reading %s', nodepublisher_csv)
     with open(nodepublisher_csv, 'rU') as f:
         reader = csv.reader( f)
         for row in reader:
@@ -139,8 +140,13 @@ def update_datasets():
     package_ids = model.Session.query("id")\
                     .from_statement("SELECT id FROM package").all()
     package_ids = [p[0] for p in package_ids]
-    for pid in package_ids:
+    for pkg in model.Session.query(model.Package):
+        pid = pkg.id
+        pkg_str = pkg.name
+        if pkg.state != 'active':
+            pkg_str += ' (%s)' % pkg.state
         provider = ""
+
         via = model.Session.query("id","value")\
                     .from_statement(DATASET_EXTRA_QUERY_VIA).params(package_id=pid).all()
 
@@ -152,6 +158,12 @@ def update_datasets():
         if not via_value:
             if by_value:
                 value = by_value
+            else:
+                if pkg.state == 'active':
+                    info('Dataset %s has no published_by/via - skipping.', pkg_str)
+                else:
+                    warn('Dataset %s has no published_by/via - skipping.', pkg_str)
+                continue
         else:
             value = via_value
             # We have a value but we should check against the BY query
@@ -175,7 +187,7 @@ def update_datasets():
                 publisher_name = None
                 publisher_node_id = int(group_match.groups(0)[0])
             else:
-                warn('Could not extract id from the publisher name: %r. Skipping package %s', value, pid)
+                warn('Could not extract id from the publisher name: %r. Skipping package %s', value, pkg_str)
                 continue
         
         # Lookup publisher object
@@ -187,20 +199,20 @@ def update_datasets():
             # alternatively search by node_id mapping
             pub_name = publishers.get(publisher_node_id)
             if not pub_name:
-                warn('Could not find publisher for node ID %r. Skipping package=%s published_by=%r published_via=%r state=%s',
-                     publisher_node_id, model.Package.get(pid).name, by_value, via_value, model.Package.get(pid).state)
+                warn('Could not find publisher for node ID %r. Skipping package=%s published_by=%r published_via=%r',
+                     publisher_node_id, pkg_str, by_value, via_value)
                 continue
             publisher_q = model.Group.all('publisher').filter_by(name=pub_name)
         if publisher_q.count() == 1:
             publisher = publisher_q.one()
         elif publisher_q.count() == 0:
-            warn('Could not find publisher %r. Skipping package=%s published_by=%r published_via=%r state=',
-                 publisher_name, model.Package.get(pid).name, by_value, via_value, model.Package.get(pid).state)
+            warn('Could not find publisher %r. Skipping package=%s published_by=%r published_via=%r',
+                 publisher_name, pkg_str, by_value, via_value)
             continue
         elif publisher_q.count() > 1:
             warn('Multiple matches for publisher %r: %r. package=%s published_by=%r published_via=%r',
                  publisher_name, [(pub.id, pub.title) for pub in publisher_q.all()],
-                 model.Package.get(pid).name, by_value, via_value)
+                 pkg_str, by_value, via_value)
             continue
         publisher_id = publisher.id
 
