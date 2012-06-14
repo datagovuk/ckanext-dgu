@@ -10,6 +10,7 @@ from sqlalchemy import engine_from_config, or_
 import csv
 from pylons import config
 from nose.tools import assert_equal
+from webhelpers.text import truncate
 
 expected_columns = ('Department', 'Name', 'E-mail', 'Main dept contact', 'Type', 'FOI Contact', 'Transparency Contact')
 
@@ -25,18 +26,23 @@ def command(config_ini, contacts_csv):
     load_config(config_ini_filepath)
     engine = engine_from_config(config, 'sqlalchemy.')
 
-    from ckan import model
-    from ckan.lib.munge import munge_title_to_name
-
     logging.config.fileConfig(config_ini_filepath)
     log = logging.getLogger(os.path.basename(__file__))
     global global_log
     global_log = log
 
+    from ckan import model
     model.init_model(engine)    
-    model.repo.new_revision()
+
+    import_contacts()
+    report()
+
+def import_contacts():
+    from ckan import model
+    from ckan.lib.munge import munge_title_to_name
 
     # Collate all the publisher abbreviations
+    log = global_log
     log.info('Collating publisher abbreviations')
     publisher_abbreviations = {} # {abbrev:name}
     publishers_with_no_abbreviation = []
@@ -50,6 +56,7 @@ def command(config_ini, contacts_csv):
     log.info('Publishers abbreviations: %i with, %i without', len(publisher_abbreviations), len(publishers_with_no_abbreviation))
 
     # Go through the CSV and edit Groups
+    model.repo.new_revision()
     with open(contacts_csv, 'rU') as contacts_csv_f:
         reader = csv.reader(contacts_csv_f)
         title = reader.next() #ignore
@@ -99,6 +106,30 @@ def command(config_ini, contacts_csv):
     log.info('Processed rows: %i', reader.line_num)
     log.info('Warnings: %r', warnings)
 
+def report():
+    # report on top level publishers
+    from ckan import model
+    log = global_log
+    log.info('Summary of top level publishers:')
+    publishers = without_contact = without_foi = 0
+    for publisher in model.Group.all('publisher'):
+        parent_groups = publisher.get_groups('publisher')
+        if parent_groups:
+            continue
+        group_extras = publisher.extras
+        contact_details = group_extras['contact-email'] or group_extras['contact-phone']
+        foi_details = group_extras['foi-email'] or group_extras['foi-phone']
+        print '%s: Contact: %s Foi: %s' % (publisher.title,
+                                           truncate(contact_details, 15) or 'NONE',
+                                           truncate(foi_details, 15) or 'NONE')
+        publishers += 1 
+        without_contact += 1 if not contact_details else 0
+        without_foi += 1 if not foi_details else 0
+    print 'Total top level publishers: %i' % publishers
+    print 'Total without contact details: %i' % without_contact
+    print 'Total without FOI details: %i' % without_foi
+                 
+    
 warnings = []
 global_log = None
 def warn(msg, *params):
