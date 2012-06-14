@@ -38,7 +38,7 @@ class ImportPublishers(object):
                 conf.local_conf)
 
     @classmethod
-    def command(cls, config_ini, xmlrpc_password):
+    def command(cls, config_ini):
         config_ini_filepath = os.path.abspath(config_ini)
         cls.load_config(config_ini_filepath)
         engine = engine_from_config(config, 'sqlalchemy.')
@@ -56,7 +56,7 @@ class ImportPublishers(object):
 
         cls.drupal_client = DrupalClient({'xmlrpc_domain': 'data.gov.uk',
                                           'xmlrpc_username': 'CKAN_API',
-                                          'xmlrpc_password': xmlrpc_password})
+                                          'xmlrpc_password': config.get('dgu.xmlrpc_password')})
         publisher_dicts = cls.drupal_client.get_organisation_list()
 
         for publisher_dict in publisher_dicts:
@@ -94,10 +94,13 @@ class ImportPublishers(object):
         g = model.Group.get(slug) 
         if g:
             global_log.info('Publisher already exists in db: %s', slug)
-            return
+        else:
+            g = model.Group(name=slug)
+            model.Session.add(g)
 
-        g = model.Group(name=slug, title=title, type='publisher',
-                        description=pub['body'])
+        g.title=title
+        g.type='publisher'
+        g.description=pub['body']
         field_pub_web_title = pub['field_pub_web'][0]['title'] if pub['field_pub_web'] else ''
         g.extras['contact-name'] = '%s contact' % field_pub_web_title if field_pub_web_title else ''
         g.extras['contact-email'] = pub['field_pub_email_display'][0]['email'] if pub['field_pub_email_display'] else ''
@@ -109,10 +112,9 @@ class ImportPublishers(object):
         g.extras['abbreviation'] = acronym or ''
         g.extras['website-url'] = (pub['field_pub_web'][0]['url'] or '') if pub['field_pub_web'] else ''
         g.extras['website-name'] = (pub['field_pub_web'][0]['title'] or '') if pub['field_pub_web'] else ''
-        model.Session.add(g)
         model.Session.commit()
         title_and_abbreviation = '%s (%s)' % (title, acronym) if acronym else title
-        global_log.info('Added publisher: %s <%s>', title_and_abbreviation, publisher_nid)
+        global_log.info('Added/edited publisher: %s <%s>', title_and_abbreviation, publisher_nid)
 
         if pub.get('parent_node'):
             parent_pub_title = cls.get_cached_publisher_details(pub['parent_node'])['title']
@@ -121,7 +123,8 @@ class ImportPublishers(object):
                 parent = cls.add_publisher(pub['parent_node'])
 
             if model.Session.query(model.Member).\
-                filter(model.Member.group==parent and model.Member.table_id==g.id).count() == 0:
+                filter(model.Member.group==parent).\
+                filter(model.Member.table_id==g.id).count() == 0:
                 m = model.Member(group=parent, table_id=g.id, table_name='group')                 
                 model.Session.add(m)
                 global_log.info('%s is parent of %s', parent.name, g.name)
@@ -145,12 +148,12 @@ def usage():
 Imports publishers from the specified CSV file.
 Usage:
 
-    python import_publishers.py <CKAN config ini filepath> <XMLRPC password>
+    python import_publishers.py <CKAN config ini filepath>
     """
     
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         usage()
         sys.exit(0)
-    cmd, config_ini, xmlrpc_password = sys.argv
-    ImportPublishers.command(config_ini, xmlrpc_password)
+    cmd, config_ini= sys.argv
+    ImportPublishers.command(config_ini)
