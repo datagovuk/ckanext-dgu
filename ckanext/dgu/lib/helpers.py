@@ -295,4 +295,7 @@ def get_cache_url(resource_dict):
     url = resource_dict.get('cache_url')
     if not url:
         return
-    return url.strip().replace('None', '')
+    url = url.strip().replace('None', '')
+    # strip off the domain, in case this is running in test
+    # on a machine other than data.gov.uk
+    return url.replace('http://data.gov.uk/', '/')
