@@ -8,6 +8,7 @@ class DguCreateTestDataCommand(ckan.lib.cli.CkanCommand):
     '''Create DGU test data in the database
 
     create-test-data - creates test data
+    create-test-data users - creates test users only
 
     '''
     summary = __doc__.split('\n')[0]
@@ -26,5 +27,16 @@ class DguCreateTestDataCommand(ckan.lib.cli.CkanCommand):
         plugins.load('synchronous_search') # so packages get indexed
         self.log = logging.getLogger(__name__)
 
-        DguCreateTestData.create_dgu_test_data()
+        if self.args:
+            cmd = self.args[0]
+        else:
+            cmd = 'basic'
+        if cmd == 'basic':
+            DguCreateTestData.create_dgu_test_data()
+        elif cmd == 'users':
+            DguCreateTestData.create_dgu_test_users()
+        else:
+            print 'Command %s not recognized' % cmd
+            raise NotImplementedError
+        
         self.log.info('Created DGU test data successfully')

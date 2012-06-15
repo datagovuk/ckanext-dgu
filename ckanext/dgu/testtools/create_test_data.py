@@ -18,6 +18,9 @@ class DguCreateTestData(CreateTestData):
         {'name': 'nhseditor',
          'fullname': 'NHS Editor',
          'password': 'pass'},
+        {'name': 'user_d101',
+         'fullname': 'NHS Editor imported from Drupal',
+         'password': 'pass'},
         {'name': 'user',
          'fullname': 'John Doe - a public user',
          'password': 'pass'},
@@ -26,18 +29,18 @@ class DguCreateTestData(CreateTestData):
         {'name': 'dept-health',
          'title': 'Department of Health',
          'contact-email': 'contact@doe.gov.uk'},
-        {'name': 'nhs',
+        {'name': 'national-health-service',
          'title': 'National Health Service',
          'contact-email': 'contact@nhs.gov.uk',
          'parent': 'dept-health'},
-        {'name': 'barnsley-pct',
+        {'name': 'barnsley-primary-care-trust',
          'title': 'Barnsley Primary Care Trust',
          'contact-email': 'contact@barnsley.nhs.gov.uk',
-         'parent': 'nhs'},
-        {'name': 'newport-pct',
-         'title': 'Newport Primary Care Trust',
-         'contact-email': 'contact@newport.nhs.gov.uk',
-         'parent': 'nhs'},
+         'parent': 'national-health-service'},
+        {'name': 'newham-primary-care-trust',
+         'title': 'Newham Primary Care Trust',
+         'contact-email': 'contact@newham.nhs.gov.uk',
+         'parent': 'national-health-service'},
         {'name': 'ons',
          'title': 'Office for National Statistics',
          'contact-email': 'contact@ons.gov.uk'},
@@ -48,8 +51,9 @@ class DguCreateTestData(CreateTestData):
     _roles = [('sysadmin', 'admin', 'system'),
               ]
     _user_publisher_memberships = [
-        ('nhsadmin', 'admin', 'nhs'),
-        ('nhseditor', 'editor', 'nhs'),
+        ('nhsadmin', 'admin', 'national-health-service'),
+        ('nhseditor', 'editor', 'national-health-service'),
+        ('user_d101', 'editor', 'national-health-service'),
         ]
     _packages = [
         # Package edited on new form (June 2012)
@@ -58,7 +62,7 @@ class DguCreateTestData(CreateTestData):
          'notes': "Ratings for all articles on the Directgov website.  One data file is available per day. Sets of files are organised by month on the download page",
          'license_id': 'uk-ogl',
          'tags': ["article", "cota", "directgov", "information", "ranking", "rating"],
-         'groups': ['nhs'],
+         'groups': ['national-health-service'],
          'extras': {
              'access_constraints': '',
              'contact-email': '',
@@ -138,7 +142,7 @@ class DguCreateTestData(CreateTestData):
          "notes": "A monthly updated list of all financial transactions over \u00a325k made by NHS Barnsley as part of the government's commitment to transparency in expenditure.",
          "license_id": "uk-ogl",
          "tags": ["barnsley", "department", "disclosure", "financial", "health", "invoices", "nhs", "pct", "spend", "transactions", "transparency"],
-         "groups": ["barnsley-pct"],
+         "groups": ["barnsley-primary-care-trust"],
          "url": "http://www.barnsley.nhs.uk/2010-Pages/Your-NHS-Barnsley/Buying-and-Procurement/invoices-over-25k.htm",
          "extras": {
                 "contact-name": "Finance Department",
@@ -443,7 +447,16 @@ Alternative title: GDP and Labour Market coherence""",
         cls.create_roles(cls._roles)
         cls.create_user_publisher_memberships(cls._user_publisher_memberships)
         cls.create_arbitrary(cls._packages)
- 
+
+    @classmethod
+    def create_dgu_test_users(cls):
+        # and their rights (assumes publishers are created already)
+        ckan.lib.activity.logger.disabled = 1
+        cls.create_users(cls._users)
+        model.repo.commit_and_remove() # due to bug in create_users
+        cls.create_roles(cls._roles)
+        cls.create_user_publisher_memberships(cls._user_publisher_memberships)
+
     @classmethod
     def ons_package(cls):
         return model.Package.by_name(u'gdp_and_the_labour_market_')

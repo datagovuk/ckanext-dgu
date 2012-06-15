@@ -761,7 +761,7 @@ class TestAuthorization(WsgiAppCase):
         if create_or_edit == 'create':
             package_data = _EXAMPLE_TIMESERIES_DATA.copy()
             package_data['name'] = 'tstcreate' + user_name
-            package_data['groups__0__name'] = 'nhs'
+            package_data['groups__0__name'] = 'national-health-service'
             package_name = package_data['name']
             package_id = None
         else:

@@ -248,41 +248,39 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
     if not isinstance(user, model.User):
         user_name = unicode(user)
         user = model.User.get(user_name)
-        if not user:
-            # may be in the format "NHS North Staffordshire (uid 6107 )"
-            match = re.match('.*\(uid (\d+)\s?\)', user_name)
-            if match:
-                drupal_user_id = match.groups()[0]
-                user = model.User.get('user_d%s' % drupal_user_id)
+    if not user:
+        # may be in the format "NHS North Staffordshire (uid 6107 )"
+        match = re.match('.*\(uid (\d+)\s?\)', user_name)
+        if match:
+            drupal_user_id = match.groups()[0]
+            user = model.User.get('user_d%s' % drupal_user_id)
 
-        if (c.is_an_official):
-            # only officials can see the actual user name
-            if user:
-                publisher = ', '.join([group.title for group in user.get_groups('publisher')])
+    if (c.is_an_official):
+        # only officials can see the actual user name
+        if user:
+            publisher = ', '.join([group.title for group in user.get_groups('publisher')])
 
-                display_name = '%s (%s)' % (user.fullname, publisher)
-                link_text = truncate(user.name, length=maxlength)
-                return h.link_to(link_text,
-                                 h.url_for(controller='user', action='read', id=user.name))
-            else:
-                return truncate(user_name, length=maxlength)
+            display_name = '%s (%s)' % (user.fullname, publisher)
+            link_text = truncate(user.fullname or user.name, length=maxlength)
+            return h.link_to(link_text,
+                             h.url_for(controller='user', action='read', id=user.name))
         else:
-            # joe public just gets a link to the user's publisher(s)
-            import ckan.authz
-            if user:
-                groups = user.get_groups('publisher')
-                if groups:
-                    return h.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
-                                                         '/publisher/%s' % group.name) \
-                                             for group in groups]))
-                elif ckan.authz.Authorizer().is_sysadmin(user):
-                    return 'System Administrator'
-                else:
-                    return 'Staff'
+            return truncate(user_name, length=maxlength)
+    else:
+        # joe public just gets a link to the user's publisher(s)
+        import ckan.authz
+        if user:
+            groups = user.get_groups('publisher')
+            if groups:
+                return h.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
+                                                     '/publisher/%s' % group.name) \
+                                         for group in groups]))
+            elif ckan.authz.Authorizer().is_sysadmin(user):
+                return 'System Administrator'
             else:
                 return 'Staff'
-    else:
-        return 'Unknown user'
+        else:
+            return 'Staff'
 
 def render_datestamp(datestamp_str, format='%d/%m/%Y'):
     # e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'

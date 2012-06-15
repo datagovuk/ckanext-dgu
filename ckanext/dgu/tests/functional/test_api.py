@@ -41,7 +41,7 @@ class TestRestApi(ControllerTestCase):
         assert_equal(res['license_id'], 'uk-ogl')
         assert_equal(res['license'], u'UK Open Government Licence (OGL)')
         assert_equal(set(res['tags']), set(["article", "cota", "directgov", "information", "ranking", "rating"]))
-        assert_equal(res['groups'], ['nhs'])
+        assert_equal(res['groups'], ['national-health-service'])
         extras = res['extras']
         expected_extra_keys = set((
             'access_constraints', 'contact-email', 'contact-name', 'contact-phone',
@@ -132,20 +132,20 @@ class TestRestApi(ControllerTestCase):
             assert_create(user_name, publisher_name, 201)
         def assert_cannot_create(user_name, publisher_name):
             assert_create(user_name, publisher_name, 403)
-        assert_can_create('sysadmin', 'nhs')
+        assert_can_create('sysadmin', 'national-health-service')
         assert_can_create('sysadmin', '')
-        assert_can_create('nhseditor', 'nhs')
+        assert_can_create('nhseditor', 'national-health-service')
         assert_cannot_create('nhseditor', 'dept-health')
-        assert_cannot_create('nhseditor', 'barnsley-pct')
-        assert_can_create('nhsadmin', 'nhs')
+        assert_cannot_create('nhseditor', 'barnsley-primary-care-trust')
+        assert_can_create('nhsadmin', 'national-health-service')
         assert_cannot_create('nhsadmin', 'dept-health')
-        assert_cannot_create('nhsadmin', 'barnsley-pct')
-        assert_cannot_create('user', 'nhs')
+        assert_cannot_create('nhsadmin', 'barnsley-primary-care-trust')
+        assert_cannot_create('user', 'national-health-service')
         assert_cannot_create('user', 'dept-health')
-        assert_cannot_create('user', 'barnsley-pct')
+        assert_cannot_create('user', 'barnsley-primary-care-trust')
         assert_cannot_create('user', '')
         assert_cannot_create('', '')
-        assert_cannot_create('', 'nhs')
+        assert_cannot_create('', 'national-health-service')
         
     def test_edit_permissions(self):
         def assert_edit(user_name, publisher_name, status=200):
@@ -169,20 +169,20 @@ class TestRestApi(ControllerTestCase):
             assert_edit(user_name, publisher_name, 200)
         def assert_cannot_edit(user_name, publisher_name):
             assert_edit(user_name, publisher_name, 403)
-        assert_can_edit('sysadmin', 'nhs')
+        assert_can_edit('sysadmin', 'national-health-service')
         assert_can_edit('sysadmin', '')
-        assert_can_edit('nhseditor', 'nhs')
+        assert_can_edit('nhseditor', 'national-health-service')
         assert_cannot_edit('nhseditor', 'dept-health')
-        assert_cannot_edit('nhseditor', 'barnsley-pct')
-        assert_can_edit('nhsadmin', 'nhs')
+        assert_cannot_edit('nhseditor', 'barnsley-primary-care-trust')
+        assert_can_edit('nhsadmin', 'national-health-service')
         assert_cannot_edit('nhsadmin', 'dept-health')
-        assert_cannot_edit('nhsadmin', 'barnsley-pct')
-        assert_cannot_edit('user', 'nhs')
+        assert_cannot_edit('nhsadmin', 'barnsley-primary-care-trust')
+        assert_cannot_edit('user', 'national-health-service')
         assert_cannot_edit('user', 'dept-health')
-        assert_cannot_edit('user', 'barnsley-pct')
+        assert_cannot_edit('user', 'barnsley-primary-care-trust')
         assert_cannot_edit('user', '')
         assert_cannot_edit('', '')
-        assert_cannot_edit('', 'nhs')
+        assert_cannot_edit('', 'national-health-service')
 
 #TODO
 # Check non-allowed theme-primary/secondary
