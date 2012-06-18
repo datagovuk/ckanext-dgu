@@ -24,6 +24,8 @@ access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
 if access_constraints:
   licenses.append((access_constraints, True if 'OGL' in licence_extra else None))
 ?>
+        ${basket()}
+
   <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
     <h4>Licence</h4>
     <div property="dc:rights">
