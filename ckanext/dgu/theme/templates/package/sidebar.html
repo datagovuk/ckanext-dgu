@@ -117,29 +117,8 @@ if access_constraints:
   <li id="social_media" class="widget-container">
     <h4>Social</h4>
     <p>Tell the world about this dataset!</p>
-    <?python
-      import urllib
-      import urlparse
-      def external_link(domain, path, params):
-        encoded_params = dict((k,unicode.encode(unicode(v), 'utf-8')) for k,v in params.items())
-        return urlparse.urlunparse(('http', domain, path, '', urllib.urlencode(encoded_params), ''))
-    ?>
-    <a href="${external_link('twitter.com', '/home/', {'status': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name')) + ' -- ' + c.pkg_dict.get('title','')})}" rel="nofollow" title="Share this on Twitter" id="service-links-twitter" class="service-links-twitter">
-      <img src="/images/service_links/twitter.png" alt="Twitter" width="20" height="20"/>
-    </a>
-
-    <a href="${external_link('www.facebook.com', '/sharer.php', {'u': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name')), 't': c.pkg_dict.get('title', '')})}" rel="nofollow" title="Share on Facebook" id="service-links-facebook" class="service-links-facebook">
-      <img src="/images/service_links/facebook.png" alt="Facebook" width="20" height="20"/>
-    </a>
-
-    <a href="${external_link('www.google.com', '/buzz/post', {'url': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name'))})}" rel="nofollow" title="Buzz this post on Google." id="service-links-google-buzz" class="service-links-google-buzz">
-      <img src="/images/service_links/google_buzz.png" alt="Google Buzz" width="23" height="20"/>
-    </a>
-
-
-    <a href="${external_link('www.linkedin.com', '/shareArticle', {'mini': 'true', 'url': g.site_url + h.url_for(controller='package', action='read', id=c.pkg_dict.get('name')), 'title': c.pkg_dict.get('title', ''), 'summary': '', 'source': 'data.gov.uk'})}" rel="nofollow" title="Publish this post to LinkedIn" id="service-links-linkedin" class="service-links-linkedin">
-      <img src="/images/service_links/linkedin.png" alt="LinkedIn" width="20" height="20"/>
-    </a>
+    <!--! Uses ckanext-social extension -->
+    ${h.social_sharethis()}
   </li>
 
   <li class="widget-container">

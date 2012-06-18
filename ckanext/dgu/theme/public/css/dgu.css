@@ -959,7 +959,9 @@ div.resource-actions .btn{
   height: 220px;
   width: 400px;
 }
-
+#social_media span.stButton {
+  margin-bottom: 5px;
+}
 
 /* Resources */
 /* --------- */
