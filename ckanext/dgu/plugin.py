@@ -20,6 +20,7 @@ from ckanext.dgu.authorize import dgu_group_update, dgu_group_create, \
                              dgu_dataset_delete
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
+from ckanext.dgu.lib.search import solr_escape
 import ckanext.dgu
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
@@ -273,14 +274,15 @@ class SearchPlugin(SingletonPlugin):
     def before_search(self, search_params):
         """
         Modify the search query.
-
-        Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
-        tuned for DGU.
-
-        If a dismax query is run, then these will be the fields that are searched
-        within.
         """
+        # Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
+        # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
+        # within.
         search_params['qf'] = 'title^4 name^3 notes^2 text tags^0.3 group_titles^0.3 extras_harvest_document_content^0.2'
+
+        # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
+        # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
+        search_params['q'] = solr_escape(search_params['q'])
         return search_params
 
     def after_search(self, search_results, search_params):
