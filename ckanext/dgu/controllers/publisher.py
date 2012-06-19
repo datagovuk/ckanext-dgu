@@ -225,6 +225,7 @@ class PublisherController(GroupController):
                    'schema': self._form_to_db_schema(group_type=type)}
         data_dict = {'id': id}
         q = c.q = request.params.get('q', '') # unicode format (decoded from utf8)
+        fq = ''
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
 
         try:
@@ -236,7 +237,7 @@ class PublisherController(GroupController):
             abort(401, _('Unauthorized to read group %s') % id)
 
         # Search within group
-        q += ' parent_publishers: "%s"' % c.group_dict.get('name')
+        fq += ' parent_publishers: "%s"' % c.group_dict.get('name')
 
         description = c.group_dict.get('description','').replace('&amp;', '&')
         try:
@@ -318,12 +319,13 @@ class PublisherController(GroupController):
                         and len(value) and not param.startswith('_'):
                     if not param.startswith('ext_'):
                         c.fields.append((param, value))
-                        q += ' %s: "%s"' % (param, value)
+                        fq += ' %s: "%s"' % (param, value)
                     else:
                         search_extras[param] = value
 
             data_dict = {
                 'q':q,
+                'fq':fq,
                 'facet.field':g.facets,
                 'rows':limit,
                 'start':(page-1)*limit,

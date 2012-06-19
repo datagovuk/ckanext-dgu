@@ -30,7 +30,7 @@ class DataController(BaseController):
                        'user': c.user or c.author}
             fq = 'capacity:"public"'
             data_dict = {
-                'q':'*:*',
+                'q':'',
                 'fq':fq,
                 'facet.field':g.facets,
                 'rows':0,
