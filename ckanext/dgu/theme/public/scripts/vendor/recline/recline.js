@@ -1,3 +1,24 @@
+//IE7 hack
+if (!Array.prototype.map)
+{
+  Array.prototype.map = function(fun /*, thisp*/)
+  {
+    var len = this.length;
+    if (typeof fun != "function")
+      throw new TypeError();
+
+    var res = new Array(len);
+    var thisp = arguments[1];
+    for (var i = 0; i < len; i++)
+    {
+      if (i in this)
+        res[i] = fun.call(thisp, this[i], i, this);
+    }
+
+    return res;
+  };
+}
+
 // adapted from https://github.com/harthur/costco. heather rules
 
 var costco = function() {
@@ -1072,7 +1093,7 @@ my.Graph = Backbone.View.extend({
   addSeries: function (idx) {
     var data = _.extend({
       seriesIndex: idx,
-      seriesName: String.fromCharCode(idx + 64 + 1),
+      seriesName: String.fromCharCode(idx + 64 + 1)
     }, this.model.toTemplateJSON());
 
     var htmls = $.mustache(this.templateSeriesEditor, data);
@@ -1097,7 +1118,7 @@ my.Graph = Backbone.View.extend({
 
   toggleHelp: function() {
     this.el.find('.editor-info').toggleClass('editor-hide-info');
-  },
+  }
 });
 
 })(jQuery, recline.View);
@@ -2330,21 +2351,21 @@ my.DataExplorer = Backbone.View.extend({
         view: new my.Grid({
           model: this.model,
           state: this.state.get('view-grid')
-        }),
+        })
       }, {
         id: 'graph',
         label: 'Graph',
         view: new my.Graph({
           model: this.model,
           state: this.state.get('view-graph')
-        }),
+        })
       }, {
         id: 'map',
         label: 'Map',
         view: new my.Map({
           model: this.model,
           state: this.state.get('view-map')
-        }),
+        })
       }];
     }
     // these must be called after pageViews are created
@@ -3216,7 +3237,7 @@ this.recline.Backend = this.recline.Backend || {};
       } else if (method === 'delete') {
         if (model.__type__ == 'Document') {
           var url = this._getESUrl(model.dataset);
-          return this.delete(model.id, url);
+          return this.delete_(model.id, url);
         }
       }
     },
@@ -3249,7 +3270,7 @@ this.recline.Backend = this.recline.Backend || {};
     // @param {Object} id id of object to delete
     // @param {string} url (optional) url for ElasticSearch endpoint (if not
     // provided called this._getESUrl()
-    delete: function(id, url) {
+    delete_: function(id, url) {
       url = url ? url : this._getESUrl();
       url += '/' + id;
       return this._makeRequest({
