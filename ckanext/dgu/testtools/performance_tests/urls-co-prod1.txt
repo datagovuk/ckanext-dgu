@@ -1,0 +1,107 @@
+site=http://co-prod1.dh.bytemark.co.uk
+
+# keyword search
+$site/data/search
+$site/data/search?q=&sort=metadata_modified+desc
+$site/data/search?q=&sort=titleString+asc
+$site/data/search?q=flood
+$site/data/search?q=pollution
+$site/data/search?q=care
+$site/data/search?q=health
+$site/data/search?q=school
+$site/data/search?q=photos
+$site/data/search?q=alkaline
+$site/data/search?q=aquifers
+$site/data/search?q=arsenic
+$site/data/search?q=office+of+budgetary
+$site/data/search?q=military+spend
+$site/data/search?q=oil
+$site/data/search?q=hospital+guidelines
+$site/data/search?q=hospital+waiting lists
+$site/data/search?q=hospital+waiting+times
+$site/data/search?q=phosphate+levels
+$site/data/search?q=river+quality
+$site/data/search?q=nitrate+concentrations
+$site/data/search?q=rain
+
+# facet search
+$site/data/search?res_format=CSV
+$site/data/search?res_format=CSV&tags=transparency
+$site/data/search?res_format=CSV&tags=transparency&license_id-is-ogl=true
+$site/data/search?res_format=CSV&tags=transparency&license_id-is-ogl=true&tags=disclosure
+$site/data/search?res_format=CSV&publisher=worcestershire-acute-hospitals-nhs-trust&tags=transparency&license_id-is-ogl=true&tags=disclosure
+$site/data/search?q=flood&resource-type=dataset
+
+# map search
+$site/data/map-based-search
+$site/data/search_proxy?t=gz&q=london
+$site/data/search_proxy?t=pc&q=eh99%201sp
+$site/data/search?ext_bbox=-6.02,54.55,-5.82,54.67
+$site/data/search?ext_bbox=-29.64,48.81,3.13,63.47
+$site/data/search?ext_bbox=-2.14,53.48,-1.91,53.73
+
+# publishers
+$site/publisher
+$site/api/2/util/group/autocomplete?type=publisher&amp;q=cab
+$site/api/2/util/group/autocomplete?type=publisher&amp;q=cabin
+$site/api/2/util/group/autocomplete?type=publisher&amp;q=cabinet%20off
+$site/publisher/environment-agency
+$site/publisher/met-office
+$site/publisher/cabinet-office
+$site/publisher/centre-for-ecology-hydrology
+$site/publisher/department-of-health
+$site/publisher/national-health-service
+$site/publisher/airedale-nhs-foundation-trust
+$site/publisher/isd-scotland
+$site/publisher/audit-commission
+$site/publisher/department-for-business-innovation-and-skills
+$site/publisher/office-for-national-statistics
+
+# tags
+$site/data/search
+$site/data/tag
+$site/data/tag?page=S
+$site/data/tag?page=Other
+$site/data/tag?q=acid
+$site/data/search?tags=transparency
+$site/data/search?tags=health
+$site/data/search?tags=spend-transactions
+$site/data/search?tags=NERC_DDC
+$site/data/search?tags=children
+$site/data/search?tags=disclosure
+
+# datasets
+$site/dataset/business-plan-quarterly-data-summary
+$site/dataset/cabinet-office-departmental-structure
+$site/dataset/cabinet-office-energy-use
+$site/dataset/cabinet-office-payroll-costs-non-consolidated-pay
+$site/dataset/a_generational_accounts_approach_to_long_term_public_finance_in_the_uk
+$site/dataset/accommodation_type_and_car_or_van_availability_by_number_of_people_aged_17_or_over_in_the_household
+$site/dataset/adoptions_in_england_and_wales
+$site/dataset/adults_with_a_psychotic_disorder_living_in_private_households
+$site/dataset/aerospace_and_electronic_cost_indices
+$site/dataset/1-1-5m-scale-geology-through-climate-change-map-covering-uk-mainland-northern-ireland-and-eire
+$site/dataset/bgs-geoscience-thesaurus
+$site/dataset/the-bgs-rock-classification-scheme
+$site/dataset/bgs-photograph-collection
+
+# dataset history
+$site/dataset/history/ecological-impacts-of-air-pollution
+$site/dataset/history/business-plan-quarterly-data-summary
+$site/dataset/history/weekly_fuel_prices
+$site/revision/diff/ecological-impacts-of-air-pollution?diff_entity=package&oldid=3f1a981b-31d8-473b-b357-b4b8bc0285bd&diff=0d387ed5-25ea-4ca2-b256-294ef8e2bfe1
+$site/dataset/ecological-impacts-of-air-pollution%402011-06-06T13%3A28%3A33.898023
+
+
+# resources
+$site/dataset/5-day-payment-performance-national-institute-for-health-and-clinical-excellence/resource/4bf1772b-16d1-471b-989c-d44d9d286d63
+$site/dataset/ac-organogram-at-30-sept-11/resource/65c5c28b-c269-4fe4-bd61-16cee1d23f04
+$site/dataset/ac-organogram-at-30-sept-11/resource/e6129b51-c965-459a-9a8c-618ffa251ab7
+$site/dataset/ac-organogram-at-30-sept-11/resource/5110fd1a-e151-4c2b-9b65-b237cebfa931
+$site/api/2/rest/harvestobject/faaec84f-a0b9-4557-a7a4-2ed6fa6086b3/xml
+$site/api/2/rest/harvestobject/faaec84f-a0b9-4557-a7a4-2ed6fa6086b3/html
+
+# map preview
+$site/data/map-preview?url=http%3A%2F%2Fwebservices.spatialni.gov.uk%2Farcgis%2Fservices%2FLPS%2FCadastreNI%2FMapServer%2FWMSServer&n=55.3184340550243&w=-8.17548890898914&e=-5.40566902640608&s=54.0295252443606
+$site/data/map-preview?url=http%3A%2F%2Fsedsh13.sedsh.gov.uk%2FArcGIS%2Fservices%2FHS%2FGardens_and_Designed_Landscapes%2FMapServer%2FWMSServer%3Frequest%3DGetCapabilities%26service%3DWMS&n=60.825695&w=-9.179154&e=-0.76324&s=54.516712
+$site/data/map-preview?url=http%3A%2F%2Fwebservices.spatialni.gov.uk%2Farcgis%2Fservices%2FLPS%2FCadastreNI%2FMapServer%2FWMSServer&url=http%3A%2F%2Fsedsh13.sedsh.gov.uk%2FArcGIS%2Fservices%2FHS%2FGardens_and_Designed_Landscapes%2FMapServer%2FWMSServer%3Frequest%3DGetCapabilities%26service%3DWMS&url=http%3A%2F%2Fsedsh13.sedsh.gov.uk%2FArcGIS%2Fservices%2FHS%2FScheduled_Monuments%2FMapServer%2FWMSServer%3Frequest%3DGetCapabilities%26service%3DWMS&&n=60.825695&w=-9.179154&e=-0.76324&s=54.0295252443606

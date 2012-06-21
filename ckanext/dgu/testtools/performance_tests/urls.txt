@@ -1,0 +1,7 @@
+site=http://data.gov.uk
+$site/data
+$site/data
+$site/data
+$site/search/apachesolr_search/flood?filters=type:ckan_package
+$site/dataset/flood-map-flood-zone-2-wms
+$site/data/evaluate/mapwms?url=http%3A%2F%2Fwww.geostore.com%2FOGC%2FOGCInterface%3FINTERFACE%3DENVIRONMENT%26UID%3DUDATAGOV2011%26PASSWORD%3Ddatagov2011%26LC%3D10000%26service%3DWMS%26request%3DGetCapabilities%26&n=60.8433&w=-8.17167&e=1.74944&s=49.9553
