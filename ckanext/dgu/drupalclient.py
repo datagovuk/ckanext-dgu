@@ -2,6 +2,7 @@ import re
 import logging
 import socket
 from xmlrpclib import ServerProxy, Fault, ProtocolError
+from xml.parsers.expat import ExpatError
 
 log = logging.getLogger(__name__)
 
@@ -83,6 +84,8 @@ class DrupalClient(object):
             raise DrupalRequestError('Drupal returned error for session_id %r: %r' % (session_id, e))
         except ProtocolError, e:
             raise DrupalRequestError('Drupal returned protocol error for session_id %r: %r' % (session_id, e))
+        except ExpatError, e:
+            raise DrupalRequestError('Drupal return value not XML: %r' % (session_id, e))
         log.info('Obtained Drupal session for session ID %r...: %r', session_id[:4], session)
         return session
 
