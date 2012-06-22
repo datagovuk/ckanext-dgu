@@ -164,6 +164,12 @@ button span {
 ul.arrow-list {
   list-style-image: url('/images/arrow-list.png');
 }
+.widget-container ul.tags,
+.widget-container ul.groups {
+ list-style-image: none;
+ list-style: none;
+ margin-left: 0;
+}
 .pagination ul {
   background: #fff;
 }
@@ -411,11 +417,12 @@ ul.widget-list {
   color: #666;
 }
 .footer .credits {
-  float: right;
-}
+  padding-right: 12%;
+  }
 .footer .credit {
-  margin: 0 10px 0 10px;
   text-align: center;
+  width: 150px;
+  float: right;
 }
 .footer .credit img {
   display: block;
@@ -1003,7 +1010,7 @@ div.resource-actions .btn{
 .resource-list {
   list-style-type: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 15px 0;
 }
 .resource-list li {
   background: #fff;
@@ -1019,7 +1026,7 @@ div.resource-actions .btn{
   overflow: hidden;
   font-weight: bold;
 }
-.resource-list li:last-child {
+.resource-list li.last-child {
   border-bottom-color: transparent;
 }
 .resource-list li .resource {

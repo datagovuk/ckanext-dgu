@@ -255,6 +255,20 @@ if c.pkg_dict:
     <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
     <script src="${h.url_for_static('/scripts/vendor/recline/recline.js')}"></script>
+    <script>
+      // Monkey-patch broken functionality in Recline. 
+      // We aren't using maps, havent loaded Leaflet, so do not try to use it.
+      recline.View.Map.prototype._setupMap = function() {};
+    </script>
+    <!--[if lt IE 8]>
+    <script>
+      CKAN.DataPreview.loadPreviewDialog = function(x){};
+      $(function() {
+        // Kill the data preview
+        $('<div/>').text('Preview requires Internet Explorer 8 or higher.').addClass('alert').addClass('alert-info').appendTo($('#ckanext-datapreview'));
+      });
+    </script>
+    <![endif]-->
 
     <script type="text/javascript">
       CKAN.DataPreview.loadPreviewDialog(preload_resource);

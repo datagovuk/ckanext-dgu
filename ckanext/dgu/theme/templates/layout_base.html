@@ -230,20 +230,6 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
 
   <div class="footer">
     <footer class="container">
-    <div class="credits">
-      <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
-        <strong>Map tool by:</strong>
-        <a href="/location" title="UK Location Programme">
-          <img src="/images/uk_location.gif" />
-        </a>
-      </div>
-      <div class="credit">
-        <strong>Powered by:</strong>
-        <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
-          <img src="/images/ckan_logo_box_64px_wide.png"/>
-        </a>
-      </div>
-    </div>
     <div id="footer-menu" class="container">
       <ul class="links">
         <li><a href="/search/apachesolr_search/transparency%20board%20minutes" title="">Transparency Board Minutes</a></li>
@@ -256,6 +242,20 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
         <li><a href="/privacy" title="">Privacy</a></li>
         <li><a href="/project" title="">Project info</a></li>
       </ul>        
+      <div class="credits">
+        <div class="credit">
+          <strong>Powered by:</strong>
+          <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
+            <img src="/images/ckan_logo_box_64px_wide.png"/>
+          </a>
+        </div>
+        <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
+          <strong>Map tool by:</strong>
+          <a href="/location" title="UK Location Programme">
+            <img src="/images/uk_location.gif" />
+          </a>
+        </div>
+      </div>
     </div>
     </footer>
   </div> <!-- /footer -->

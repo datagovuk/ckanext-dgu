@@ -35,7 +35,8 @@
           <h3>Data Resources (${len(individual_resources)})</h3>
           <ul class="resource-list">
             <py:for each="res in individual_resources">
-            <li>
+            <?python li_class="last-child" if res==individual_resources[-1] else ""?>
+            <li class="$li_class">
               <span class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
@@ -64,7 +65,8 @@ import ckanext.dgu.lib.helpers as dgu_helpers
           <h3>Data Resources (${len(timeseries_resources)} in a time series)</h3>
           <ul class="resource-list">
             <py:for each="res in timeseries_resources">
-            <li>
+            <?python li_class="last-child" if res==timeseries_resources[-1] else ""?>
+            <li class="$li_class">
               <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
@@ -88,7 +90,8 @@ import ckanext.dgu.lib.helpers as dgu_helpers
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
           <ul class="resource-list">
             <py:for each="res in additional_resources">
-            <li>
+            <?python li_class="last-child" if res==additional_resources[-1] else ""?>
+            <li class="$li_class">
               <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
                 ${h.icon('page_white')}
                 <span class="trimmed-text">
@@ -105,7 +108,9 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             </py:for>
           </ul>
           <ul class="resource-list" py:if="gemini_resources">
-            <li py:for="gemini_resource in gemini_resources">
+            <py:for each="gemini_resource in gemini_resources">
+            <?python li_class="last-child" if gemini_resource==gemini_resources[-1] else ""?>
+            <li class="$li_class">
               <span class="resource">
                   ${h.icon('page_white')}
                   ${gemini_resource['title']}
@@ -115,6 +120,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
                     <a href="${gemini_resource['url']}" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
               </div>
             </li>
+            </py:for>
           </ul>
          </py:if>
 
