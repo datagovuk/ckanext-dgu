@@ -160,7 +160,7 @@ def update_datasets():
                 value = by_value
             else:
                 if pkg.state == 'active':
-                    info('Dataset %s has no published_by/via - skipping.', pkg_str)
+                    log.info('Dataset %s has no published_by/via - skipping.', pkg_str)
                 else:
                     warn('Dataset %s has no published_by/via - skipping.', pkg_str)
                 continue
