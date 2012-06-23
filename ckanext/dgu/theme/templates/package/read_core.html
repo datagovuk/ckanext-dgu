@@ -177,7 +177,7 @@ if c.pkg_dict:
     
     openness_checked = pkg_extras.get('openness_score_last_checked')
     openness_reason = pkg_extras.get('openness_score_reason')
-    openness_int = int( pkg_extras.get('openness_score') )
+    openness_int = int( pkg_extras.get('openness_score') or 0 )
 
     from ckanext.dgu.lib import helpers
     openness_stars = helpers.render_stars(openness_int, openness_reason, openness_checked)
