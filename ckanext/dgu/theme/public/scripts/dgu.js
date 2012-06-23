@@ -29,7 +29,6 @@ jQuery(function ($) {
     $('.js-more-button').click(function(e){
       e.preventDefault();
       var id = $(e.target).attr('id');
-      console.log( id );
       $(e.target).remove();
       $('#'+id+'-items').toggle();
     });  
