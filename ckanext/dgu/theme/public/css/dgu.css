@@ -500,12 +500,6 @@ div.block div.ribbon-header h2 {
   background: none;
 }
 
-div.block div.ribbon-header div.feed-icon {
-  position: absolute;
-  right: 10px;
-  top: 14px;
-}
-
 div.first-box-in-ribbon {
   padding: 10px;
   margin-top: -30px;
@@ -513,7 +507,19 @@ div.first-box-in-ribbon {
   z-index: 10;
 }
 
-
+.publisher-header {
+  text-align: right;
+  padding-top: 4px;
+  padding-right: 10px;
+  height: 30px;
+}
+.feed-title {
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 12px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
 
 /* Search box */
 /* ---------- */

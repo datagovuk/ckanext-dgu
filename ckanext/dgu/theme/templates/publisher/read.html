@@ -153,7 +153,16 @@ from ckanext.dgu.lib.helpers import render_mini_tree
       <div py:if="c.page.items">
         <h3>Datasets:</h3>
         <!--!<div class="clearfix">&nbsp;</div>-->
-        <div class="ribbon-header" />
+        <div class="ribbon-header publisher-header">
+          <span class="feed-title">Dataset Feed:</span>
+          <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+            <img src="/images/rss-on-white.png" width="16" height="16"/>
+          </a>
+          <span class="feed-title">Revision History:</span>
+          <a class="feed-icon" href="${h.url_for(controller='revision', action='list', format='atom', days=1)}" title="${g.site_title} - Recent Revision History">
+            <img src="/images/rss-on-white.png" width="16" height="16"/>
+          </a>
+        </div>
         ${package_list_from_dict(c.page.items)}
         <div class="ribbon-footer" />
         ${c.page.pager()}
