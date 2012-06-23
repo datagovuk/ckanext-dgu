@@ -34,6 +34,12 @@ $(function() {
     dom.find('#comment-add').addClass('btn').addClass('btn-primary').css({'float':'right'});
     dom.find('.comment').addClass('boxed');
     dom.find('ul.links a').addClass('btn').addClass('btn-primary');
+    dom.find('.comment-content h3 a').each(function(i, el) {
+      el = $(el);
+      var link = el.attr('href');
+      link = link.substr( link.indexOf('#') );
+      el.attr('href',link);
+    });
     return dom;
   };
 
