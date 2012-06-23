@@ -1331,3 +1331,24 @@ ul.ui-autocomplete li a.ui-state-hover{
     border-color: #690;
 }
 
+/* Hover-for-help */
+.star-rating > .tooltip {
+  display: none;
+}
+.star-rating-entry {
+  text-align: left;
+  padding: 2px 0;
+}
+.star-rating-entry.fail {
+  color: #999;
+}
+.star-rating > a {
+  color: #333;
+}
+.star-rating > a:hover {
+  text-decoration: none;
+}
+.star-rating .last-updated {
+  font-size: 10px;
+}
+

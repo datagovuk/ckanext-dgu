@@ -4,7 +4,9 @@ import urllib
 from itertools import dropwhile
 import datetime
 
+from webhelpers.html import literal
 from webhelpers.text import truncate
+from ckan.lib.helpers import icon
 
 from publisher_node import PublisherNode
 
@@ -299,3 +301,38 @@ def get_cache_url(resource_dict):
     # strip off the domain, in case this is running in test
     # on a machine other than data.gov.uk
     return url.replace('http://data.gov.uk/', '/')
+
+def render_stars(stars,reason,last_checked_date):
+
+    stars_html = stars * icon('star')
+
+    if stars==0: 
+        if last_checked_date:
+            try:
+                import dateutil.parser
+                last_checked_date = dateutil.parser.parse(last_checked_date).strftime("%d/%m/%Y")
+            except Exception:
+                pass
+        stars_html = '[%s].<br/><span class="last-updated">Score last updated: %s</span>' % (reason or 'not given', last_checked_date or 'Not known')
+    if stars==4:
+        stars_html += icon('star-half')
+        stars = 5
+
+    captions = [
+        'Available under an open license.',
+        'Available as structured data (eg. Excel instead of a scanned table).',
+        'Uses non-proprietary formats (e.g., CSV instead of Excel).',
+        'Uses URIs to identify things, so that people can link to it.',
+        'Linked to other data to provide context.'
+        ]
+
+    caption = ""
+    for i in range(5,0,-1):
+        classname = 'fail' if (i > stars) else ''
+        text_stars = i * '&#9733'
+        caption += literal('<div class="star-rating-entry %s">%s&nbsp; "%s"</div>' % (classname, text_stars, captions[i-1]))
+
+    return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
+
+
+

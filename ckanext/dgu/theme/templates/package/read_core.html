@@ -175,22 +175,12 @@ if c.pkg_dict:
     if c.is_an_official:
         field_names.add(['state'])
     
-    openness_score = pkg_extras.get('openness_score')
-    if openness_score:
-        if str(openness_score) == '4':
-            openness_score = '4 or 5'
-        openness_score = '%s/5 stars' % openness_score
-        last_checked_date = pkg_extras.get('openness_score_last_checked')
-        if last_checked_date:
-            try:
-                import dateutil.parser
-                last_checked_date = dateutil.parser.parse(last_checked_date).strftime("%d/%m/%Y")
-            except Exception:
-                pass
-                
-        openness_detail = 'Reason for the score: %s.\nScore last updated: %s' % (pkg_extras.get('openness_score_reason') or 'not given', last_checked_date or 'Not known')
-    else:
-        openness_score = openness_detail = ''
+    openness_checked = pkg_extras.get('openness_score_last_checked')
+    openness_reason = pkg_extras.get('openness_score_reason')
+    openness_int = int( pkg_extras.get('openness_score') )
+
+    from ckanext.dgu.lib import helpers
+    openness_stars = helpers.render_stars(openness_int, openness_reason, openness_checked)
 
     temporal_coverage_from = pkg_extras.get('temporal_coverage_from')
     temporal_coverage_to = pkg_extras.get('temporal_coverage_to')
@@ -211,7 +201,7 @@ if c.pkg_dict:
         'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
         'date-added-computed': {'label': 'Date added', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
         'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
-        'openness_score': {'label': 'Openness', 'label_title': 'Using the Five Stars of Openness scale put forward by Tim Berners-Lee', 'value': openness_score, 'value_title': openness_detail},
+        'openness_score': {'label': 'Openness', 'label_title': 'Using the Five Stars of Openness scale put forward by Tim Berners-Lee', 'value': openness_stars},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
