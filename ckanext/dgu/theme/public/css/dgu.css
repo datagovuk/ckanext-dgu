@@ -108,6 +108,10 @@ textarea {
 img.arrow {
   vertical-align: baseline;
 }
+h4 img.arrow {
+  padding-right: 3px;
+  padding-bottom: 1px;
+}
 img.open-data {
   vertical-align: top;
   margin-top: 1px;
