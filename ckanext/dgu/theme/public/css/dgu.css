@@ -542,6 +542,11 @@ div.first-box-in-ribbon {
   /* Override search form size */
   width: 100px;
 }
+
+/* /pubisher/user/[name] */
+#publisher-edit #users > dd {
+  margin-bottom: 8px;
+}
 .small-search .form-search {
   /* Override search form size */
   margin-bottom: 0;
