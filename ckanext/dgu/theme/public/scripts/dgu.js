@@ -19,24 +19,19 @@ jQuery(function ($) {
         placement: 'right' 
       });
     });
-    
+
     /* Toggle visibility of sub-publishers on the publisher/read.html page */
     $('#sub-publisher-toggle').click(function(){
       $('#sub-publishers li.collapsed').toggle();
     });
 
     /* Reveal in search results facets */
-    $('#more-publishers-button').click(function(){
-        $('#more-publishers-button-items').toggle();
-        $('#more-publishers-button').remove();
-    });  
-    $('#more-tags-button').click(function(){
-        $('#more-tags-button-items').toggle();
-        $('#more-tags-button').remove();
-    });  
-    $('#more-formats-button').click(function(){
-        $('#more-formats-button-items').toggle();
-        $('#more-formats-button').remove();
+    $('.js-more-button').click(function(e){
+      e.preventDefault();
+      var id = $(e.target).attr('id');
+      console.log( id );
+      $(e.target).remove();
+      $('#'+id+'-items').toggle();
     });  
 
     $('input[name="dataset-results-sort"]').change(function(e){

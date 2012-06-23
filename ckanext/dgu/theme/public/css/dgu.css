@@ -844,11 +844,11 @@ ul.property-list {
 }
 .more-button {
   height: 12px;
-  padding: 1px;
-  width: 40px;
-  line-height: 10px;
-  margin: 10px auto 0 auto;
+  padding: 4px 0;
+  margin: 0 auto;
+  width: 100%;
   display: block;
+  text-align: center;
 }
 
 
