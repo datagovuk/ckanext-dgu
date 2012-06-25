@@ -10,6 +10,8 @@
 <?python
 from ckanext.dgu.lib import helpers as dgu_helpers
 wms_urls, wms_extent = dgu_helpers.get_wms_info(pkg_dict)
+wms_extent_params = '&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % wms_extent if wms_extent else ''
+print "WMS %r %r %r" % (wms_urls, wms_extent, wms_extent_params)
 basket = session.get('preview_list',[])
 ?>
     <div py:if="wms_urls" class="map-buttons">
@@ -17,7 +19,7 @@ basket = session.get('preview_list',[])
      <span style="display: none;" class="js-data-title">${pkg_dict.get('title')}</span>
      <span style="display: none;" class="js-data-querystring">${wms_urls}</span>
      <span style="display: none;" class="js-data-extent">${','.join(wms_extent)}</span>
-       <a href="/data/map-preview?${wms_urls}&amp;n=${wms_extent[0]}&amp;w=${wms_extent[1]}&amp;e=${wms_extent[2]}&amp;s=${wms_extent[3]}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
+       <a href="/data/map-preview?${wms_urls}${wms_extent_params}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
        <span class="preview-add js-dataset-${package_id}-add" 
              style="${'display: none' if package_id in basket else ''}">
              <button data-id="${package_id}" class="btn btn-primary btn-small btn-preview btn-basket"><span>Add to Preview List</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
