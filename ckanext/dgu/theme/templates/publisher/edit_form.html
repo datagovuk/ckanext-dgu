@@ -21,6 +21,10 @@
 <input type="hidden" id="type" name="type" value="publisher" />
 <input type="hidden" id="approval_status" name="approval_status" value="pending" />
 
+<?python
+publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
+                         for extra_dict in data['extras']])
+?>
 
 <fieldset id="basic-information">
   <div class="control-group">
@@ -95,20 +99,20 @@
   <div class="control-group">
     <label class="control-label" for="contact-name">Name</label>
     <div class="controls">
-      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
+      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${publisher_extras.get('contact-name', '')}" />
       <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="contact-email">Email</label>
     <div class="controls">
-      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
+      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${publisher_extras.get('contact-email', '')}" />
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="contact-name">Telephone</label>
     <div class="controls">
-      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
+      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${publisher_extras.get('contact-phone', '')}" />
     </div>
   </div>
 </fieldset>
@@ -118,22 +122,38 @@
   <div class="control-group">
     <label class="control-label" for="foi-name">Name</label>
     <div class="controls">
-      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
+      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${publisher_extras.get('foi-name', '')}" />
       <p class="help-block">e.g. DfT FOI Enquiry Service</p>
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="foi-email">Email</label>
     <div class="controls">
-      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
+      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${publisher_extras.get('foi-email', '')}" />
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="foi-name">Telephone</label>
     <div class="controls">
-      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
+      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${publisher_extras.get('foi-phone', '')}" />
     </div>
   </div>
+</fieldset>
+<?python
+users = data.get('users', [])
+?>
+<fieldset id="users" style="display: none;">
+  <h3>Users <span py:if="users">(${len(users)})</span></h3>
+  <dl py:if="users">
+    <py:for each="num, user in enumerate(users)">
+    <dd>
+      <label>${user['name']}</label>
+      <input type="hidden" name="users__${num}__name" value="${user['name']}"/>
+      <input type="hidden" name="users__${num}__capacity" value="${user['capacity']}"/>
+  </dd>
+    </py:for>
+  </dl>
+  <p py:if="not users">There are no users currently in this publisher.</p>
 </fieldset>
 <fieldset id="extras" style="display: none;">
 <!--!  <h3>Extras</h3> -->

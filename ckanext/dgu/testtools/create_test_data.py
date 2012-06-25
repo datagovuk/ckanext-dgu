@@ -382,7 +382,8 @@ Alternative title: GDP and Labour Market coherence""",
         for publisher in publishers:
             group = copy.deepcopy(publisher)
             group['type'] = 'publisher'
-            group['parent'] = None
+            if 'parent' in group:
+                del group['parent']
             groups.append(group)
         cls.create_groups(groups, auth_profile='publisher')
 
