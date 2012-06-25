@@ -11,7 +11,6 @@
 from ckanext.dgu.lib import helpers as dgu_helpers
 wms_urls, wms_extent = dgu_helpers.get_wms_info(pkg_dict)
 wms_extent_params = '&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % wms_extent if wms_extent else ''
-print "WMS %r %r %r" % (wms_urls, wms_extent, wms_extent_params)
 basket = session.get('preview_list',[])
 ?>
     <div py:if="wms_urls" class="map-buttons">
