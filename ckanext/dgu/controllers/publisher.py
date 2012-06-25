@@ -201,18 +201,17 @@ class PublisherController(GroupController):
         error_summary = error_summary or {}
 
         data['users'] = []
-        data['users'].extend( { "name": user.name,
-                                "capacity": "admin" }
-                                for user in c.group.members_of_type( model.User, "admin"  ).all() )
-        data['users'].extend( { "name": user.name,
-                                "capacity": "editor" }
-                                for user in c.group.members_of_type( model.User, 'editor' ).all() )
+        for capacity in ('admin', 'editor'):
+            data['users'].extend(
+                { "name": user.name,
+                  "fullname": user.fullname,
+                  "capacity": capacity }
+                for user in c.group.members_of_type(model.User, capacity).all() )
 
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
         c.form = render('publisher/users_form.html', extra_vars=vars)
 
         return render('publisher/users.html')
-
 
 
     def read(self, id):

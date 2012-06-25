@@ -18,10 +18,11 @@ CKAN.Dgu = function($, my) {
         var url = '/api/2/util/user/autocomplete?q=' + request.term;
         $.getJSON(url, function(data) {
           $.each(data, function(idx, userobj) {
-            var label = userobj.name;
+            var label = '';userobj.name;
             if (userobj.fullname) {
-              label += ' [' + userobj.fullname + ']';
+              label += userobj.fullname;
             }
+            label += ' [' + userobj.name + ']';
             userobj.label = label;
             userobj.value = userobj.name;
           });
