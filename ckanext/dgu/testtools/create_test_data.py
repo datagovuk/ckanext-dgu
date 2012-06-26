@@ -14,7 +14,8 @@ class DguCreateTestData(CreateTestData):
          'password': 'pass'},
         {'name': 'nhsadmin',
          'fullname': 'NHS Admin',
-         'password': 'pass'},
+         'password': 'pass',
+         'email': 'admin@nhs.gov.uk'},
         {'name': 'nhseditor',
          'fullname': 'NHS Editor',
          'password': 'pass'},
@@ -28,7 +29,7 @@ class DguCreateTestData(CreateTestData):
     _publishers = [
         {'name': 'dept-health',
          'title': 'Department of Health',
-         'contact-email': 'contact@doe.gov.uk'},
+         'contact-email': 'contact@doh.gov.uk'},
         {'name': 'national-health-service',
          'title': 'National Health Service',
          'contact-email': 'contact@nhs.gov.uk',

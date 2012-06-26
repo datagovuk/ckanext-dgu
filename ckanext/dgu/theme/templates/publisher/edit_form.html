@@ -23,8 +23,10 @@
 
 <?python
 publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
-                         for extra_dict in data['extras']])
+                         for extra_dict in data.get('extras', {})])
 ?>
+
+<p>Details about the organisation that publishes data on data.gov.uk</p>
 
 <fieldset id="basic-information">
   <div class="control-group">

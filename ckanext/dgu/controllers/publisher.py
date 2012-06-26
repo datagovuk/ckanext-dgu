@@ -22,6 +22,7 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       ignore,
                                       keep_extras,
                                      )
+from ckanext.dgu.lib.publisher import go_up_tree
 
 
 log = logging.getLogger(__name__)
@@ -71,24 +72,38 @@ class PublisherController(GroupController):
             return self.apply(group.id, errors=errors,
                               error_summary=error_summary(errors))
 
-        admins = group.members_of_type( model.User, 'admin' ).all()
-        recipients = [(u.fullname,u.email) for u in admins] if admins else \
-                     [(config.get('dgu.admin.name', "DGU Admin"),
-                       config.get('dgu.admin.email', None), )]
-
+        # look for publisher admins up the tree
+        recipients = []
+        recipient_publisher = None
+        for publisher in go_up_tree(group):
+            admins = publisher.members_of_type(model.User, 'admin').all()
+            if admins:
+                recipients = [(u.fullname,u.email) for u in admins]
+                recipient_publisher = publisher.title
+                break
         if not recipients:
-            h.flash_error(_("There is a problem with the system configuration"))
-            errors = {"reason": ["%s does not have an administrator user to contact" % group.name]}
-            return self.apply(group.id, data=data, errors=errors,
-                              error_summary=error_summary(errors))
+            if not config.get('dgu.admin.email'):
+                log.error('User "%s" prevented from applying for publisher access for "%s" '
+                          'because: dgu.admin.email is not setup in CKAN config.',
+                          c.user, group.name)
+                h.flash_error(_("There is a problem with the system configuration"))
+                errors = {"reason": ["%s does not have an administrator user to contact" % group.name]}
+                return self.apply(group.id, data=data, errors=errors,
+                                  error_summary=error_summary(errors))                
+            recipients = [(config.get('dgu.admin.name', "DGU Admin"),
+                           config['dgu.admin.email'])]
+            recipient_publisher = 'data.gov.uk admin'
 
+            
+        log.debug('User "%s" requested publisher access for "%s" which was sent to admin %s (%r) with reason: %r',
+                  c.user, group.name, recipient_publisher, recipients, reason)
         extra_vars = {
             'group'    : group,
             'requester': c.userobj,
             'reason'   : reason
         }
         email_msg = render("email/join_publisher_request.txt", extra_vars=extra_vars,
-                         loader_class=NewTextTemplate)
+                           loader_class=NewTextTemplate)
 
         try:
             for (name,recipient) in recipients:
@@ -96,25 +111,29 @@ class PublisherController(GroupController):
                                recipient,
                                "Publisher request",
                                email_msg)
-        except:
+        except Exception, e:
             h.flash_error(_("There is a problem with the system configuration"))
             errors = {"reason": ["No mail server was found"]}
+            log.error('User "%s" prevented from applying for publisher access for "%s" because of mail configuration error: %s',
+                      c.user, group.name, e)
             return self.apply(group.id, errors=errors,
                               error_summary=error_summary(errors))
 
-        h.flash_success(_("Your application has been submitted"))
+        h.flash_success("Your application has been submitted to administrator for: %s" % recipient_publisher)
         h.redirect_to( 'publisher_read', id=group.name)
 
     def apply(self, id=None, data=None, errors=None, error_summary=None):
         """
-        A user has requested access to this publisher and so we will send an
-        email to any admins within the publisher.
+        Form for a user to request to be an editor for a publisher.
+        It sends an email to a suitable admin.
         """
         if 'parent' in request.params and not id:
             id = request.params['parent']
 
         if id:
             c.group = model.Group.get(id)
+            if not c.group:
+                abort(404, _('Publisher not found'))
             if 'save' in request.params and not errors:
                 return self._send_application(c.group, request.params.get('reason', None))
 
