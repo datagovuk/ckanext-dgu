@@ -28,8 +28,9 @@ jQuery(function ($) {
     /* Reveal in search results facets */
     $('.js-more-button').click(function(e){
       e.preventDefault();
-      var id = $(e.target).attr('id');
-      $(e.target).remove();
+      var target = $(e.delegateTarget); // Using e.target might accidently catch the <img>
+      var id = target.attr('id');
+      target.remove();
       $('#'+id+'-items').toggle();
     });  
 
