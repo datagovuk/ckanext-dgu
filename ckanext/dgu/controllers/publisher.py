@@ -136,7 +136,7 @@ class PublisherController(GroupController):
                filter(model.Group.type == 'publisher').\
                order_by(model.Group.title).all()
 
-    def _add_users( self, group, parameters  ):
+    def _add_users(self, group, parameters):
         from ckan.logic.schema import default_group_schema
         from ckan.logic.action import error_summary
         from ckan.lib.dictization.model_save import group_member_save
@@ -155,7 +155,12 @@ class PublisherController(GroupController):
         # Temporary fix for strange caching during dev
         l = data_dict['users']
         for d in l:
-            if d['capacity'] == 'undefined':
+            # Form javascript creates d['capacity'] == 'undefined' for
+            # newly added users.
+            # If javascript in users form is not working (such as in tests)
+            # it will not create a capacity value.
+            if 'capacity' not in d or d['capacity'] == 'undefined':
+                # default to 'editor'
                 d['capacity'] = 'editor'
 
         context = {

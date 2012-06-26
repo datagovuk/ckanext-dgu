@@ -15,17 +15,11 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         DguCreateTestData.create_dgu_test_data()
         cls.publisher_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
 
-        # create a test package
-        cls.packagename = u'test-pkg'
-        model.repo.new_revision()
-        model.Session.add(model.Package(name=cls.packagename))
-        model.repo.commit_and_remove()
-
     @classmethod
     def teardown_class(cls):
         model.repo.rebuild_db()
 
-    def test_1_edit(self):
+    def test_1_edit_publisher(self):
         # Load form
         publisher_name = 'national-health-service'
         group = model.Group.by_name(publisher_name)
@@ -70,7 +64,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         publisher.name = 'national-health-service'
         model.repo.commit_and_remove()
 
-    def test_2_edit_does_not_affect_others(self):
+    def test_2_edit_publisher_does_not_affect_others(self):
         publisher_name = 'national-health-service'
         def check_related_publisher_properties():
             group = model.Group.by_name(publisher_name)
@@ -105,12 +99,12 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
 
         check_related_publisher_properties()
 
-    def test_edit_non_existent(self):
+    def test_3_edit_non_existent_publisher(self):
         name = u'group_does_not_exist'
         offset = url_for(controller=self.publisher_controller, action='edit', id=name)
         res = self.app.get(offset, status=404)
 
-    def test_delete(self):
+    def test_4_delete_publisher(self):
         group_name = 'deletetest'
         CreateTestData.create_groups([{'name': group_name,
                                        'packages': [self.packagename]}],
@@ -133,3 +127,47 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         res = self.app.get(offset, status=302)
         res = res.follow()
         assert 'login' in res.request.url, res.request.url
+
+    def test_5_appoint_editor(self):
+        publisher_name = 'national-health-service'
+        def check_related_publisher_properties():
+            group = model.Group.by_name(publisher_name)
+            # datasets
+            assert_equal(set([grp.name for grp in group.active_packages()]),
+                         set([u'directgov-cota']))
+            # parents
+            child_groups = set([grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')])
+            assert publisher_name in child_groups
+
+        check_related_publisher_properties()
+
+        DguCreateTestData.create_user(name='test_user')
+        assert model.User.by_name(u'test_user')
+        # Load form
+        group = model.Group.by_name(unicode(publisher_name))
+        offset = url_for('/publisher/users/%s' % publisher_name)
+        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
+        assert 'Users: %s' % group.title in res, res
+        form = res.forms['publisher-edit']
+        assert_equal(form['users__0__name'].value, 'nhsadmin')
+        assert_equal(form['users__0__capacity'].value, 'admin')
+        assert_equal(form['users__1__name'].value, 'nhseditor')
+        assert_equal(form['users__1__capacity'].value, 'editor')
+        assert_equal(form['users__2__name'].value, 'user_d101')
+        assert_equal(form['users__2__capacity'].value, 'editor')
+        assert_equal(form['users__3__name'].value, '')
+        
+        # Edit the form
+        form['users__3__name'] = 'test_user'
+        res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'nhsadmin'})
+        assert_equal(res.header_dict['Location'], 'http://localhost/publisher/national-health-service')
+
+        # Check saved object
+        group = model.Group.by_name(unicode(publisher_name))
+        assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='admin')]),
+                     set(('nhsadmin',)))
+        assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='editor')]),
+                     set(('nhseditor', 'user_d101', 'test_user')))
+
+        check_related_publisher_properties()
+        
