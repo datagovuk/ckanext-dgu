@@ -15,7 +15,7 @@ ignore_publishers = (28266, #'Hazel Lee'
                      28267, #'George Wilson'
                      16268, # "Office OF" repeats ONS, sub-pub of correct 11408
                      11606, # ONS repeat
-                     20054, # Met Office repeat, falsely under MoD
+                     20054, # Met Office repeat of 16248, falsely under MoD
                      33036, # "Royal Borough of Windsor and Maidenhead" repeat
                      32619, # "Monmouthshire County Council" under Welsh Government
                      36487, # 'Paul Lyons'
@@ -23,6 +23,7 @@ ignore_publishers = (28266, #'Hazel Lee'
                      34613, # 'Iain Sharp'
                      11539, # 'None'
                      12662, # 'NHS' (duplicate of fuller title)
+                     38309, # 'Ian Parfitt'
                      )
 
 class ImportPublishers(object):
@@ -60,7 +61,9 @@ class ImportPublishers(object):
         publisher_dicts = cls.drupal_client.get_organisation_list()
 
         for publisher_dict in publisher_dicts:
-            if not (publisher_dict['status'] == '1'):
+            if not (publisher_dict['status'] == '1' or \
+                    publisher_dict['nid'] == '16248'):
+                # Make an exception for 16248 - Met Office under BIS is correct
                 log.info('Ignoring unpublished publisher with status %r: %r',
                          publisher_dict['status'], publisher_dict)
                 continue
@@ -83,7 +86,8 @@ class ImportPublishers(object):
         from ckan.lib.munge import munge_title_to_name
 
         if int(publisher_nid) in ignore_publishers:
-            global_log.info('Publisher ignored: %s (%s)', publisher_nid)
+            global_log.info('Publisher ignored: %s (%s)', publisher_nid,
+                            cls.get_cached_publisher_details(publisher_nid))
             return
 
         pub = cls.get_cached_publisher_details(publisher_nid)

@@ -100,6 +100,7 @@ def command(config_ini, nodepublisher_csv, users_csv):
 
     from ckan import model
     from ckan.lib.munge import munge_title_to_name
+    import ckanext.dgu.plugin
     
     logging.config.fileConfig(config_ini_filepath)
     global log
@@ -121,7 +122,10 @@ def command(config_ini, nodepublisher_csv, users_csv):
             publishers[ int(row[0]) ] = munge_title_to_name(row[1])
     log.info('Opened list of %i publishers', reader.line_num)
 
+    # get rid of flash message warnings
     warnings_.filterwarnings('ignore', '.*flash message.*')
+    ckanext.dgu.plugin.log.disabled = True
+
     with open(users_csv, 'rU') as f:
         reader = csv.reader(f)
         for row in reader:
@@ -134,16 +138,16 @@ def command(config_ini, nodepublisher_csv, users_csv):
                 # validation error. warning already printed
                 continue
 
-            # Find the publisher and add them as admin
+            # Find the publisher and add them as editor
             if node_id:
                 publisher_name = publishers[int(publisher_id)]
                 publisher = model.Group.by_name(publisher_name)
 		if not publisher:
-                    warn('Could not find publisher %r so skipping making %r admin for it.', 
+                    warn('Could not find publisher %r so skipping making %r editor for it.', 
                          publisher_name, name)
                     continue
 
-                capacity = 'admin'
+                capacity = 'editor'
 
                 # Check for Member where table_name is u['id']
                 res = model.Session.query(model.Member).\
@@ -153,9 +157,9 @@ def command(config_ini, nodepublisher_csv, users_csv):
                     m = model.Member(group_id=publisher.id, table_id=user_id,
                                      table_name='user', capacity=capacity)
                     model.Session.add(m)
-                    log.info('Made %r admin for %r', name, publisher_name)
+                    log.info('Made %r editor for %r', name, publisher_name)
                 else:
-                    log.info('%r already admin for %r', name, publisher_name)
+                    log.info('%r already editor for %r', name, publisher_name)
 
             # Update harvest_source user_id field to new user id.
             model.Session.execute(HARVEST_QUERY,params={'uid':user_id, 'node_id': str(node_id)})

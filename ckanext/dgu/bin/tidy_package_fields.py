@@ -34,7 +34,7 @@ field_map = {
     ('temporal_coverage_from',): 'temporal_coverage-from',
     ('temporal_coverage_to',): 'temporal_coverage-to',
 }
-delete_fields = ('agency', 'department', 'date_released ', 'temporal_coverage_from ', 'temporal_coverage_to ', 'update_frequency ')
+delete_fields = ('agency', 'department', 'date_released ', 'temporal_coverage_from ', 'temporal_coverage_to ', 'update_frequency ', 'openness_score', 'openness_score_last_checked')
 
 def command(dry_run=False):
     from ckan import model
