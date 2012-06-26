@@ -142,6 +142,20 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
         <h4 style="margin-bottom:0;">Format:</h4>
         ${c.resource.get('format') or 'Unknown'}
       </div>
+      <?python
+      from ckanext.dgu.lib import helpers
+      from ckanext.qa import reports
+      resource_id = c.resource['id']
+      report = reports.resource_five_stars(resource_id)
+      stars = report.get('openness_score', -1)
+      stars_text = str(stars) + "/5"
+      if (stars==4):
+          stars_text = "4/5 or 5/5"
+      ?>
+      <div py:if="stars >= 0">
+        <h4 style="margin-bottom:5px;">Quality: &nbsp;$stars_text</h4>
+        ${helpers.render_stars(stars, report.get('openness_score_reason'))}
+      </div>
       <div>
         <h4 style="margin-bottom:0;">Licence:</h4>
         <py:choose test="">

@@ -1350,6 +1350,23 @@ ul.ui-autocomplete li a.ui-state-hover{
 .star-rating > .tooltip {
   display: none;
 }
+.star-rating .inline-icon {
+  padding: 0;
+}
+.star-rating-tooltip {
+  opacity: 1 !important;
+}
+.star-rating-tooltip > .tooltip-inner {
+  background: #444;
+}
+.star-rating-tooltip > .tooltip-arrow {
+  border-right-color: #444 !important;
+}
+.star-rating-reason {
+  margin-bottom: 2px;
+  border-bottom: 1px solid #999;
+}
+.star-rating-reason,
 .star-rating-entry {
   text-align: left;
   padding: 2px 0;
