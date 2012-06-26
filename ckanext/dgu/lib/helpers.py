@@ -302,7 +302,7 @@ def get_cache_url(resource_dict):
     # on a machine other than data.gov.uk
     return url.replace('http://data.gov.uk/', '/')
 
-def render_stars(stars,reason):
+def render_stars(stars,reason,last_updated):
 
     stars_html = stars * icon('star')
 
@@ -325,6 +325,8 @@ def render_stars(stars,reason):
         classname = 'fail' if (i > stars) else ''
         text_stars = i * '&#9733'
         caption += literal('<div class="star-rating-entry %s">%s&nbsp; "%s"</div>' % (classname, text_stars, captions[i-1]))
+
+    caption += literal('<div class="star-rating-last-updated"><b>Last Updated: </b>%s</div>' % last_updated)
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
 

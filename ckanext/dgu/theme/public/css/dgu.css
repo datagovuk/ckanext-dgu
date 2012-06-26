@@ -1366,6 +1366,12 @@ ul.ui-autocomplete li a.ui-state-hover{
   margin-bottom: 2px;
   border-bottom: 1px solid #999;
 }
+.star-rating-last-updated {
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid #999;
+  text-align: left;
+}
 .star-rating-reason,
 .star-rating-entry {
   text-align: left;
