@@ -290,7 +290,7 @@ ul#nav {
   vertical-align: top;
 }
 #nav li:hover a .nav-icon {
-  background: url('/images/home-icon-hover.png');
+  background-position: -21px 0;
 }
 
 
