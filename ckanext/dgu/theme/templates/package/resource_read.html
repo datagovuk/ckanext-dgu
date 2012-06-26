@@ -142,6 +142,20 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
         <h4 style="margin-bottom:0;">Format:</h4>
         ${c.resource.get('format') or 'Unknown'}
       </div>
+      <?python
+      from ckanext.dgu.lib import helpers
+      from ckanext.qa import reports
+      resource_id = c.resource['id']
+      report = reports.resource_five_stars(resource_id)
+      stars = report.get('openness_score', -1)
+      stars_text = str(stars) + "/5"
+      if (stars==4):
+          stars_text = "4/5 or 5/5"
+      ?>
+      <div py:if="stars >= 0">
+        <h4 style="margin-bottom:5px;">Quality: &nbsp;$stars_text</h4>
+        ${helpers.render_stars(stars, report.get('openness_score_reason'), report.get('openness_last_updated'))}
+      </div>
       <div>
         <h4 style="margin-bottom:0;">Licence:</h4>
         <py:choose test="">
@@ -186,7 +200,7 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
     <div class="recline-read-only resource-preview">
       <div class="preview-header">
         <h3>Preview</h3>
-        <p py:if="not is_wms">This preview function only works on files such as CSV, spreadsheets and plain text at the moment.</p>
+        <p py:if="not is_wms">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
 
         <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
         <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->

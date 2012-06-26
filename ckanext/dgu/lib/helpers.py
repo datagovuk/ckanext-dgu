@@ -302,18 +302,12 @@ def get_cache_url(resource_dict):
     # on a machine other than data.gov.uk
     return url.replace('http://data.gov.uk/', '/')
 
-def render_stars(stars,reason,last_checked_date):
+def render_stars(stars,reason,last_updated):
 
     stars_html = stars * icon('star')
 
-    if stars==0: 
-        if last_checked_date:
-            try:
-                import dateutil.parser
-                last_checked_date = dateutil.parser.parse(last_checked_date).strftime("%d/%m/%Y")
-            except Exception:
-                pass
-        stars_html = '[%s].<br/><span class="last-updated">Score last updated: %s</span>' % (reason or 'not given', last_checked_date or 'Not known')
+    if stars==0:
+        stars_html = 5 * icon('star-grey')
     if stars==4:
         stars_html += icon('star-half')
         stars = 5
@@ -326,11 +320,13 @@ def render_stars(stars,reason,last_checked_date):
         'Linked to other data to provide context.'
         ]
 
-    caption = ""
+    caption = literal('<div class="star-rating-reason"><b>Reason: </b>"%s"</div>' % reason)
     for i in range(5,0,-1):
         classname = 'fail' if (i > stars) else ''
         text_stars = i * '&#9733'
         caption += literal('<div class="star-rating-entry %s">%s&nbsp; "%s"</div>' % (classname, text_stars, captions[i-1]))
+
+    caption += literal('<div class="star-rating-last-updated"><b>Last Updated: </b>%s</div>' % last_updated)
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
 

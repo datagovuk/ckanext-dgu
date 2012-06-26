@@ -16,7 +16,11 @@ jQuery(function ($) {
       el = $(el);
       el.tooltip({ 
         title: el.find('.tooltip').html(), 
-        placement: 'right' 
+        placement: 'right',
+        template: '<div class="tooltip star-rating-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+        delay: 0,
+        animation: false
+
       });
     });
 
@@ -28,8 +32,9 @@ jQuery(function ($) {
     /* Reveal in search results facets */
     $('.js-more-button').click(function(e){
       e.preventDefault();
-      var id = $(e.target).attr('id');
-      $(e.target).remove();
+      var target = $(e.delegateTarget); // Using e.target might accidently catch the <img>
+      var id = target.attr('id');
+      target.remove();
       $('#'+id+'-items').toggle();
     });  
 
