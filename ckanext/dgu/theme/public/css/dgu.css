@@ -1212,6 +1212,9 @@ table.groups th {
   /* Override search form size */
   width: 200px;
 }
+.jstree ul {
+  list-style-image: none;
+}
 .jstree.jstree-overflows {
   overflow: visible !important;
 }
