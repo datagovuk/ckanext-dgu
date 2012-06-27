@@ -63,6 +63,12 @@ textarea:focus {
   color: #333333;
   color: rgba(255, 255, 255, 0.75);
 }
+.btn-primary .caret {
+  border-top-color: #333;
+}
+.btn-group .btn-primary.dropdown-toggle {
+  border-left: 1px solid #7b2;
+}
 
 /* No-sidebar mode */
 /* --------------- */
@@ -1025,57 +1031,53 @@ div.resource-actions .btn{
   padding: 0;
   margin: 0 0 15px 0;
 }
-.resource-list li {
+.resource-list > li {
   background: #fff;
   border: 0;
   border: 1px solid #eee;
   border-top-color: transparent;
   border-left-color: transparent;
   border-right: 0;
-  position: relative;
-  margin: 0 20px 0 0;
-  z-index: 1;
-  white-space: nowrap;
-  overflow: hidden;
   font-weight: bold;
-}
-.resource-list li.last-child {
-  border-bottom-color: transparent;
-}
-.resource-list li .resource {
   display: block;
   padding: 5px 10px;
   color: #333;
-  float: left;
+  position: relative;
 }
-.resource-list .trimmed-text {
-  display: inline-block;
-  zoom: 1;
-  *display: inline;
-  max-width: 300px;
+.resource-list > li > .trimmed-text {
   overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 338px;
 }
-.resource-list li:hover .resource-title {
-  color: #B22;
+.resource-list > li.last-child {
+  border-bottom-color: transparent;
 }
-.resource-list li:hover {
-  background-color: #f7f7f7;
+.resource-list > li > .btn-group {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
 }
-.resource-list a:hover {
-  text-decoration: none;
+.resource-list > li > .btn {
+  position: absolute;
+  right: 115px;
+  top: 0;
+  z-index: 1;
 }
-.resource-list li.active {
-  border-color: #888;
-  background-color: #f9f9f9;
-  margin-right: 0;
+.resource-list > li > .format-box {
+  position: absolute;
+  background: #fff;
+  right: 195px;
+  top: 2px;
+  z-index: 1;
 }
-.resource-list li .resource-buttons {
-  float: right;
+.resource-list .dropdown-menu a.disabled {
+  color: #666;
 }
-.resource-list li .resource-buttons .btn {
-  margin: 0 0 0 5px;
+.resource-list .dropdown-menu a.disabled:hover {
+  background: transparent;
 }
+
 
 /* Package Edit Form */
 /* ----------------- */
