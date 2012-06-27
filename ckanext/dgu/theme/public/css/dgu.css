@@ -420,12 +420,10 @@ ul.widget-list {
 .footer .links a {
   color: #666;
 }
-.footer .credits {
-  padding-right: 12%;
-  }
 .footer .credit {
   text-align: center;
-  width: 150px;
+  width: 120px;
+  margin-top: 10px;
   float: right;
 }
 .footer .credit img {
