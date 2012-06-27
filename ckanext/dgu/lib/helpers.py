@@ -326,7 +326,8 @@ def render_stars(stars,reason,last_updated):
         text_stars = i * '&#9733'
         caption += literal('<div class="star-rating-entry %s">%s&nbsp; "%s"</div>' % (classname, text_stars, captions[i-1]))
 
-    caption += literal('<div class="star-rating-last-updated"><b>Last Updated: </b>%s</div>' % last_updated)
+    datestamp = render_datestamp(last_updated)
+    caption += literal('<div class="star-rating-last-updated"><b>Last Updated: </b>%s</div>' % datestamp)
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
 
