@@ -154,7 +154,7 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
       ?>
       <div py:if="stars >= 0">
         <h4 style="margin-bottom:5px;">Quality: &nbsp;$stars_text</h4>
-        ${helpers.render_stars(stars, report.get('openness_score_reason'), report.get('openness_last_updated'))}
+        ${helpers.render_stars(stars, report.get('openness_score_reason'), report.get('openness_updated'))}
       </div>
       <div>
         <h4 style="margin-bottom:0;">Licence:</h4>
