@@ -205,7 +205,7 @@ def resource_display_name(resource_dict):
         return name
     elif description and description != 'None':
         description = description.split('.')[0]
-        max_len = 60;
+        max_len = 50;
         if len(description)>max_len: description = description[:max_len]+'...'
         return description
     else:

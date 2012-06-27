@@ -1033,7 +1033,6 @@ div.resource-actions .btn{
   border-left-color: transparent;
   border-right: 0;
   position: relative;
-  margin: 0 20px 0 0;
   z-index: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -1061,12 +1060,17 @@ div.resource-actions .btn{
   background-color: #f9f9f9;
   margin-right: 0;
 }
-.resource-list li .resource-buttons {
+.resource-list li > a {
+  vertical-align: middle;
+}
+.resource-list li > .btn {
   float: right;
 }
-.resource-list li .resource-buttons .btn {
-  margin: 0 0 0 5px;
+.resource-list li > .btn-group {
+  float: right;
+  margin: 0 4px 0 0 ;
 }
+
 
 /* Package Edit Form */
 /* ----------------- */

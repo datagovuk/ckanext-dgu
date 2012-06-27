@@ -47,16 +47,21 @@ import ckanext.dgu.lib.helpers as dgu_helpers
                 </span>
                 <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </span>
-              <div class="resource-buttons">
-                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
-                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-primary">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <span class="btn-group">
+                <a href="${res.get('url', '')}" class="btn">
                   <py:if test="dataset_type!='uklp'">Download</py:if>
                   <py:if test="dataset_type=='uklp'">Link</py:if>
                 </a>
-                <a py:if="dgu_helpers.get_cache_url(res)" href="${dgu_helpers.get_cache_url(res)}" class="href-action btn btn-small">
-                  <span class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">Cached</span>
-                </a>
-              </div>
+                <py:if test="dgu_helpers.get_cache_url(res)">
+                  <a href="${dgu_helpers.get_cache_url(res)}" class="btn">
+                    <span class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">Cached</span>
+                  </a>
+                </py:if>
+                <py:if test="not dgu_helpers.get_cache_url(res)">
+                  <a disabled="disabled" class="btn">Cached</a>
+                </py:if>
+              </span>
               </li>
             </py:for>
           </ul>
