@@ -303,6 +303,9 @@ class DatasetForm(SingletonPlugin):
         if Authorizer().is_sysadmin(c.user):
             groups = Group.all(group_type='publisher')
         elif c.userobj:
+            # need to get c.userobj again as it may be detached from the
+            # session since the last time we called get_groups (it caches)
+            c.userobj = model.User.by_name(c.user)
             groups = c.userobj.get_groups('publisher')
         else: # anonymous user shouldn't have access to this page anyway.
             groups = []

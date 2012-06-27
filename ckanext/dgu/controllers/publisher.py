@@ -380,12 +380,13 @@ class PublisherController(GroupController):
                     {'id': c.group_dict['id']})
 
         c.body_class = "group view"
-        c.is_sysadmin_or_groupmember = c.userobj and \
-                                        (Authorizer().is_sysadmin(unicode(c.user)) or \
-                            len( set([c.group]).intersection( set(c.userobj.get_groups('publisher','admin')) ) ) > 0 )
 
         c.administrators = c.group.members_of_type(model.User, 'admin')
         c.editors = c.group.members_of_type(model.User, 'editor')
+        if c.user:
+            c.is_sysadmin = Authorizer().is_sysadmin(unicode(c.user))
+            c.can_admin = c.is_sysadmin or c.userobj in c.administrators
+            c.can_edit = c.can_admin or c.userobj in c.editors
 
         c.restricted_to_publisher = 'publisher' in request.params
         parent_groups = c.group.get_groups('publisher')
