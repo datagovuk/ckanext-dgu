@@ -3,6 +3,7 @@ import re
 
 from ckan.model.group import Group
 from ckanext.dgu.lib.resource_formats import ResourceFormats
+from ckanext.dgu.plugins_toolkit import ObjectNotFound
 
 log = getLogger(__name__)
 
