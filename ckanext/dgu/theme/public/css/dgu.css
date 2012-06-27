@@ -1074,6 +1074,12 @@ div.resource-actions .btn{
 .resource-list .dropdown-menu a.disabled:hover {
   background: transparent;
 }
+.gemini-resource-list > li > .btn {
+  width: 80px;
+}
+.gemini-resource-list > li > .format-box {
+  right: 120px;
+}
 
 
 /* Package Edit Form */
