@@ -45,8 +45,6 @@
                   ?>
                   ${dgu_helpers.resource_display_name(res)} 
               </div>
-              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
               <div class="btn-group">
                 <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
                 <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
@@ -71,6 +69,8 @@
                   </li>
                 </ul>
               </div>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </li>
             </py:for>
           </ul>

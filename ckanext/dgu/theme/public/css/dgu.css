@@ -1043,6 +1043,7 @@ div.resource-actions .btn{
   padding: 0;
   color: #333;
   height: 29px;
+  position: relative;
 }
 .resource-list > li.last-child {
   border-bottom-color: transparent;
@@ -1051,18 +1052,21 @@ div.resource-actions .btn{
   overflow: hidden;
   padding-left: 10px;
   white-space: nowrap;
-  width: 325px;
   padding-top: 5px;
-  float: left;
+  position: absolute;
+  width: 375px;
 }
 .resource-list > li > .btn,
 .resource-list > li > .btn-group {
   margin-left: 4px;
-  float: left;
+  float: right;
 }
 .resource-list > li > .format-box {
-  margin-top: 2px;
-  float: left;
+  position: absolute;
+  right: 194px;
+  top: 2px;
+  background: #fff;
+  box-shadow: -2px 0 2px #fff;
 }
 .resource-list .dropdown-menu a.disabled {
   color: #666;
