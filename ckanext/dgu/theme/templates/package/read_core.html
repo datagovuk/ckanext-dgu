@@ -45,11 +45,11 @@
                   ?>
                   ${dgu_helpers.resource_display_name(res)} 
               </div>
-              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
               <div class="btn-group">
                 <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
-                <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                <button class="btn btn-primary dropdown-toggle" 
+                  data-toggle="dropdown" 
+                  py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
@@ -61,8 +61,8 @@
                   </li>
                   <li>
                     <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="btn">
-                        <span class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">Cached</span>
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                        Cached
                       </a>
                     </py:if>
                     <py:if test="not dgu_helpers.get_cache_url(res)">
@@ -71,6 +71,8 @@
                   </li>
                 </ul>
               </div>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </li>
             </py:for>
           </ul>
@@ -81,18 +83,42 @@
             <py:for each="res in timeseries_resources">
             <?python li_class="last-child" if res==timeseries_resources[-1] else ""?>
             <li class="$li_class">
-              <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
-                ${h.icon('page_white')}
-                <span class="trimmed-text">
-                  ${res.get('date')}
-                  ${h.resource_display_name(res)}
-                </span>
-                <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-              </a>
-              <div class="resource-buttons">
-                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
-                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">Download</a>
+              <div class="trimmed-text">
+                ${h.resource_icon(res)}
+                <?python
+                import ckanext.dgu.lib.helpers as dgu_helpers
+                ?>
+                ${res.get('date')}
+                ${dgu_helpers.resource_display_name(res)}
               </div>
+              <div class="btn-group">
+                <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
+                <button class="btn btn-primary dropdown-toggle" 
+                  data-toggle="dropdown" 
+                  py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="${res.get('url', '')}">
+                      <py:if test="dataset_type!='uklp'">Download</py:if>
+                      <py:if test="dataset_type=='uklp'">Link</py:if>
+                    </a>
+                  </li>
+                  <li>
+                    <py:if test="dgu_helpers.get_cache_url(res)">
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                        Cached
+                      </a>
+                    </py:if>
+                    <py:if test="not dgu_helpers.get_cache_url(res)">
+                      <a class="disabled">(no cache available)</a>
+                    </py:if>
+                  </li>
+                </ul>
+              </div>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </li>
             </py:for>
           </ul>
@@ -106,33 +132,56 @@
             <py:for each="res in additional_resources">
             <?python li_class="last-child" if res==additional_resources[-1] else ""?>
             <li class="$li_class">
-              <a class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
-                ${h.icon('page_white')}
-                <span class="trimmed-text">
+              <div class="trimmed-text">
+                  ${h.resource_icon(res)}
+                  <?python
+                  import ckanext.dgu.lib.helpers as dgu_helpers
+                  ?>
                   ${res.get('date')}
-                  ${h.resource_display_name(res)}
-                </span>
-                <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-              </a>
-              <div class="resource-buttons">
-                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="href-action btn btn-small btn-black-text">Details</a>
-                <a href="${res.get('url', '')}" class="href-action btn btn-small btn-primary">Download</a>
+                  ${dgu_helpers.resource_display_name(res)} 
               </div>
+
+              <div class="btn-group">
+                <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
+                <button class="btn btn-primary dropdown-toggle" 
+                  data-toggle="dropdown" 
+                  py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="${res.get('url', '')}">
+                      <py:if test="dataset_type!='uklp'">Download</py:if>
+                      <py:if test="dataset_type=='uklp'">Link</py:if>
+                    </a>
+                  </li>
+                  <li>
+                    <py:if test="dgu_helpers.get_cache_url(res)">
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                        Cached
+                      </a>
+                    </py:if>
+                    <py:if test="not dgu_helpers.get_cache_url(res)">
+                      <a class="disabled">(no cache available)</a>
+                    </py:if>
+                  </li>
+                </ul>
+              </div>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
             </li>
             </py:for>
           </ul>
-          <ul class="resource-list" py:if="gemini_resources">
+          <ul class="resource-list gemini-resource-list" py:if="gemini_resources">
             <py:for each="gemini_resource in gemini_resources">
             <?python li_class="last-child" if gemini_resource==gemini_resources[-1] else ""?>
             <li class="$li_class">
-              <span class="resource">
-                  ${h.icon('page_white')}
-                  ${gemini_resource['title']}
-                  <span class="format-box" property="dc:format">${gemini_resource['type']}</span>
-              </span>
-              <div class="resource-buttons">
-                    <a href="${gemini_resource['url']}" class="href-action btn btn-small btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
+              <div class="trimmed-text">
+                ${h.icon('page_white')}
+                ${gemini_resource['title']}
               </div>
+              <a href="${gemini_resource['url']}" class="btn btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
+              <span class="format-box" property="dc:format">${gemini_resource['type']}</span>
             </li>
             </py:for>
           </ul>

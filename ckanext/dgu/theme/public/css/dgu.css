@@ -1040,42 +1040,45 @@ div.resource-actions .btn{
   border-right: 0;
   font-weight: bold;
   display: block;
-  padding: 5px 10px;
+  padding: 0;
   color: #333;
+  height: 29px;
   position: relative;
-}
-.resource-list > li > .trimmed-text {
-  overflow: hidden;
-  white-space: nowrap;
-  width: 338px;
 }
 .resource-list > li.last-child {
   border-bottom-color: transparent;
 }
-.resource-list > li > .btn-group {
+.resource-list > li > .trimmed-text {
+  overflow: hidden;
+  padding-left: 10px;
+  white-space: nowrap;
+  padding-top: 5px;
   position: absolute;
-  right: 0;
-  top: 0;
-  z-index: 1;
+  width: 375px;
 }
-.resource-list > li > .btn {
-  position: absolute;
-  right: 115px;
-  top: 0;
-  z-index: 1;
+.resource-list > li > .btn,
+.resource-list > li > .btn-group {
+  margin-left: 4px;
+  float: right;
 }
 .resource-list > li > .format-box {
   position: absolute;
-  background: #fff;
-  right: 195px;
+  right: 194px;
   top: 2px;
-  z-index: 1;
+  background: #fff;
+  box-shadow: -2px 0 2px #fff;
 }
 .resource-list .dropdown-menu a.disabled {
   color: #666;
 }
 .resource-list .dropdown-menu a.disabled:hover {
   background: transparent;
+}
+.gemini-resource-list > li > .btn {
+  width: 80px;
+}
+.gemini-resource-list > li > .format-box {
+  right: 120px;
 }
 
 
