@@ -222,7 +222,7 @@ if c.pkg_dict:
 ?>
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
-        <tr>
+        <tr py:if="stars_data">
           <td class="dataset-label">Data Quality:</td>
           <td class="dataset-details">
             ${helpers.render_stars(stars_data.value, None, stars_data.last_updated)}
