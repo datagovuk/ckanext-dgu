@@ -216,9 +216,18 @@ if c.pkg_dict:
     # calculate displayable field values
     fields = DisplayableFields(field_names)
 
+    # Handle ckanext-qa integration
+    from ckanext.dgu.lib import helpers
+    stars_data = helpers.get_stars_aggregate(c.pkg.id)
 ?>
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
+        <tr>
+          <td class="dataset-label">Data Quality:</td>
+          <td class="dataset-details">
+            ${helpers.render_stars(stars_data.value, None, stars_data.last_updated)}
+          </td>
+        </tr>
         <tr py:for="field_dict, label_attributes, value_attributes in fields">
           <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
           <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>

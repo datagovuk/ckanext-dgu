@@ -302,6 +302,29 @@ def get_cache_url(resource_dict):
     # on a machine other than data.gov.uk
     return url.replace('http://data.gov.uk/', '/')
 
+def get_stars_aggregate(dataset_id):
+    '''Run a query to choose the most recent, highest qa score of all resources in this dataset.
+    Loosely based upon get_stars in ckanext_qa.reports
+    returns a dict of { 'value' : 3, 'last_updated': '2012-06-15T13:20:11.699' ...} '''
+
+    from sqlalchemy.sql.expression import desc
+    import ckan.model as model
+    query = model.Session.query(model.Package.name, model.Package.title, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'))\
+        .join(model.ResourceGroup, model.Package.id == model.ResourceGroup.package_id)\
+        .join(model.Resource)\
+        .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
+        .filter(model.TaskStatus.key==u'openness_score')\
+        .filter(model.Package.id == dataset_id)\
+        .order_by(desc(model.TaskStatus.value))\
+        .order_by(desc(model.TaskStatus.last_updated))\
+
+    report =  query.first()
+    # Convert datetime to expected ISO format to match ckanext_qa's usual output
+    if report:
+        report.last_updated = report.last_updated.isoformat()
+        report.value = int( report.value )
+    return report
+
 def render_stars(stars,reason,last_updated):
 
     stars_html = stars * icon('star')
@@ -320,7 +343,7 @@ def render_stars(stars,reason,last_updated):
         'Linked to other data to provide context.'
         ]
 
-    caption = literal('<div class="star-rating-reason"><b>Reason: </b>"%s"</div>' % reason)
+    caption = literal('<div class="star-rating-reason"><b>Reason: </b>"%s"</div>' % reason) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > stars) else ''
         text_stars = i * '&#9733'
