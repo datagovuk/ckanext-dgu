@@ -89,8 +89,8 @@ def import_contacts():
             if '*' in row['Main dept contact']:
                 if row['Type'].strip() not in ('Practitioner', 'Both', 'Sub-Practitioner'):
                     warn('Surprised to see that the main dept contact %r has role %r', row['E-mail'], row['Type'])
-                g.extras['contact-email'] = row['E-mail']
-                log.info('%s has contact %r', g.name, row['E-mail'])
+                g.extras['contact-email'] = row['Transparency Contact'] or row['E-mail']
+                log.info('%s has contact %r', g.name, g.extras['contact-email'])
                 edited = True
             else:
                 log.info('Ignoring non-asterisked contact: %r', (row['Department'], row['Name']))
