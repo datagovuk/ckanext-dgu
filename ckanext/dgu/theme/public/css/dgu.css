@@ -1040,36 +1040,29 @@ div.resource-actions .btn{
   border-right: 0;
   font-weight: bold;
   display: block;
-  padding: 5px 10px;
+  padding: 0;
   color: #333;
-  position: relative;
-}
-.resource-list > li > .trimmed-text {
-  overflow: hidden;
-  white-space: nowrap;
-  width: 338px;
+  height: 29px;
 }
 .resource-list > li.last-child {
   border-bottom-color: transparent;
 }
-.resource-list > li > .btn-group {
-  position: absolute;
-  right: 0;
-  top: 0;
-  z-index: 1;
+.resource-list > li > .trimmed-text {
+  overflow: hidden;
+  padding-left: 10px;
+  white-space: nowrap;
+  width: 325px;
+  padding-top: 5px;
+  float: left;
 }
-.resource-list > li > .btn {
-  position: absolute;
-  right: 115px;
-  top: 0;
-  z-index: 1;
+.resource-list > li > .btn,
+.resource-list > li > .btn-group {
+  margin-left: 4px;
+  float: left;
 }
 .resource-list > li > .format-box {
-  position: absolute;
-  background: #fff;
-  right: 195px;
-  top: 2px;
-  z-index: 1;
+  margin-top: 2px;
+  float: left;
 }
 .resource-list .dropdown-menu a.disabled {
   color: #666;
