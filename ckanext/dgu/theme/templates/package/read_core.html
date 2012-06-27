@@ -61,8 +61,8 @@
                   </li>
                   <li>
                     <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="btn">
-                        <span class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">Cached</span>
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                        Cached
                       </a>
                     </py:if>
                     <py:if test="not dgu_helpers.get_cache_url(res)">
