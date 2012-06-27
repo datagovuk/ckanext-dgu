@@ -38,7 +38,7 @@
             <?python li_class="last-child" if res==individual_resources[-1] else ""?>
             <li class="$li_class">
               <span class="resource resource-title" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
-                ${h.icon('page_white')}
+                ${h.resource_icon(res)}
                 <span class="trimmed-text">
 <?python
 import ckanext.dgu.lib.helpers as dgu_helpers
