@@ -201,6 +201,10 @@ ul.arrow-list {
   color: #fff;
   height: 36px;
 }
+#blackbar > .container {
+  width: 100%;
+  max-width: 940px;
+}
 #blackbar a {
   color: #fff;
 }
@@ -208,10 +212,12 @@ ul.arrow-list {
   float: left;
   font-weight: 100;
   margin-top: 5px;
+  margin-left: 10px;
 }
 #blackbar #login-or-signup {
   float: right;
   margin-top: 10px;
+  margin-right: 10px;
 }
 #blackbar #login-or-signup a {
   font-weight: bold;
