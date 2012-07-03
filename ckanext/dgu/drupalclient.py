@@ -65,7 +65,7 @@ class DrupalClient(object):
         except ValueError, e:
             cls._abort_bad_request('user_id parameter must be an integer')
         try:
-            user = self.drupal.user.get(user_id)
+            user = self.drupal.user.get(str(user_id))
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:

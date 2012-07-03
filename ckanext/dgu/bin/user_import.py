@@ -4,17 +4,8 @@ associate them with the appropriate publishers.
 
 To create the users.csv:
 
-mysql -uroot dgu -e "
-SELECT U.uid, U.name, U.mail,
-       A.nid AS 'old_publisher_id'
-FROM users U
-LEFT OUTER JOIN acl_user AS AU ON AU.uid= U.uid
-LEFT OUTER JOIN acl_node AS A ON AU.acl_id = A.acl_id
-WHERE A.nid IS NOT NULL LIMIT 100000
-INTO OUTFILE '/tmp/users.csv'
-FIELDS TERMINATED BY ','
-ENCLOSED BY '\"'
-LINES TERMINATED BY '\n';"
+python ../dgu/ckanext/dgu/bin/user_list.py dgutest.ini
+(was done using an SQL query, but that missed off some people)
 
 To create nodepublishermap.csv see publisher_datasets_assoc.py
 
