@@ -55,7 +55,7 @@ class ThemePlugin(SingletonPlugin):
     DGU Visual Theme for a CKAN install embedded in dgu/Drupal.
     '''
     implements(IConfigurer)
-    implements(IRoutes)
+    implements(IRoutes, inherit=True)
 
     from ckan.lib.base import h, BaseController
     # [Monkey patch] Replace h.linked_user with a version to hide usernames
@@ -137,7 +137,7 @@ class AuthApiPlugin(SingletonPlugin):
 
 class DguForm(SingletonPlugin):
 
-    implements(IRoutes)
+    implements(IRoutes, inherit=True)
     implements(IConfigurer)
 
     def before_map(self, map):
@@ -160,7 +160,7 @@ class DguForm(SingletonPlugin):
 
 class PublisherPlugin(SingletonPlugin):
 
-    implements(IRoutes)
+    implements(IRoutes, inherit=True)
     implements(IConfigurer)
     implements(ISession, inherit=True)
 
@@ -305,3 +305,13 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__harvest_document(pkg_dict)
         return pkg_dict
 
+class ApiPlugin(SingletonPlugin):
+    '''DGU-specific API'''
+    implements(IRoutes, inherit=True)
+
+    def before_map(self, map):
+        api_controller = 'ckanext.dgu.controllers.api:DguApiController'
+        map.connect('/api/util/latest-datasets', controller=api_controller, action='latest_datasets')
+        map.connect('/api/util/dataset-count', controller=api_controller, action='dataset_count')
+        return map
+    

@@ -24,6 +24,10 @@ class TestRestApi(ControllerTestCase):
         cls.context = {'model': model, 'session': model.Session,
                        'user': ''}
 
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
     def get_package_fixture(self, name_to_give_the_package):
         pkg = copy.deepcopy(DguCreateTestData._packages[0])
         pkg['name'] = munge_title_to_name(name_to_give_the_package)
@@ -186,3 +190,45 @@ class TestRestApi(ControllerTestCase):
 
 #TODO
 # Check non-allowed theme-primary/secondary
+
+class TestDguApi(ControllerTestCase):
+    @classmethod
+    def setup_class(cls):
+        DguCreateTestData.create_dgu_test_data()
+        DguCreateTestData.create_arbitrary({'name': 'latest',
+                                            'notes': '<b>Latest</b> dataset.',
+                                            'groups': ['national-health-service']})
+
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+    def test_dataset_count(self):
+        offset = '/api/util/dataset-count'
+        result = self.app.get(offset, status=[200])
+        content_type = result.header_dict['Content-Type']
+        assert 'application/json' in content_type, content_type
+        res = json.loads(result.body)
+        assert isinstance(res, int), res
+        assert 3 < res < 10, res
+        
+    def test_latest_datasets(self):
+        offset = '/api/util/latest-datasets'
+        result = self.app.get(offset, status=[200])
+        content_type = result.header_dict['Content-Type']
+        assert 'application/json' in content_type, content_type
+        res = json.loads(result.body)
+        assert isinstance(res, list), res
+        pkg = res[0]
+        assert_equal(pkg['name'], 'latest')
+        assert_equal(pkg['notes'], '<b>Latest</b> dataset.')
+        assert_equal(pkg['publisher_title'], 'National Health Service')
+        assert set(pkg.keys()) >= set(('title', 'dataset_link', 'notes', 'publisher_title', 'publisher_link', 'metadata_modified')), pkg.keys()
+
+        # try dataset_link
+        res = self.app.get(pkg['dataset_link'], status=[200])
+        assert 'latest' in res.body
+
+        # try publisher_link
+        res = self.app.get(pkg['publisher_link'], status=[200])
+        assert 'National Health Service' in res.body, res
