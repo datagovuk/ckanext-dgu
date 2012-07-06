@@ -197,7 +197,7 @@ users = data.get('users', [])
     <py:for each="num, package in enumerate(data.get('packages'))">
       <label class="checkbox" for="packages__${num}__name">
         <input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/>
-        ${package['title']}
+        ${package['name']}
       </label>
     </py:for>
   </dl>
