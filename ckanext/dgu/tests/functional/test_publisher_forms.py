@@ -140,7 +140,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
     def test_4_delete_publisher(self):
         group_name = 'deletetest'
         CreateTestData.create_groups([{'name': group_name,
-                                       'packages': [self.packagename]}],
+                                       'packages': [u'cabinet-office-energy-use']}],
                                      admin_user_name='nhsadmin')
 
         group = model.Group.by_name(group_name)
