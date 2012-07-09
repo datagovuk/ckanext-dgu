@@ -1,6 +1,10 @@
 from ckan.lib.base import model, abort, response, h, BaseController
 from ckan.controllers.api import ApiController
 from ckan.lib.helpers import OrderedDict
+from ckanext.dgu.plugins_toolkit import get_action
+import logging
+
+log = logging.getLogger(__name__)
 
 class DguApiController(ApiController):
     def latest_datasets(self, limit=10):
@@ -32,7 +36,23 @@ class DguApiController(ApiController):
         return self._finish_ok(pkg_dicts)
 
     def dataset_count(self):
-        q = model.Session.query(model.Package)\
-            .filter_by(state='active')
-        count = q.count()
+        from ckan.lib.search import SearchError
+        try:
+            # package search
+            context = {'model': model, 'session': model.Session,
+                       'user': 'visitor'}
+            fq = 'capacity:"public"'
+            data_dict = {
+                'q':'',
+                'fq':fq,
+                'facet':'false',
+                'rows':0,
+                'start':0,
+            }
+            query = get_action('package_search')(context,data_dict)
+            count = query['count']
+        except SearchError, se:
+            log.error('Search error: %s', se)
+            count = 0
+
         return self._finish_ok(count)

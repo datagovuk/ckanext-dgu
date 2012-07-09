@@ -45,6 +45,7 @@ class DataController(BaseController):
             #data_dict = {'order_by': 'packages', 'all_fields': 1}
             #c.groups = get_action('group_list')(context, data_dict)
         except SearchError, se:
+            log.error('Search error: %s', se)
             c.package_count = 0
             c.groups = []
 
