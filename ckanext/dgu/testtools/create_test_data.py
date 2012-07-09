@@ -48,6 +48,8 @@ class DguCreateTestData(CreateTestData):
         {'name': 'cabinet-office',
          'title': 'Cabinet Office',
          'contact-email': 'contact@cabinet-office.gov.uk'},
+        {'name': 'northern-ireland-spatial-data-infrastructure',
+         'title': 'Northern Ireland Spatial Data Infrastructure'}
         ]
     _roles = [('sysadmin', 'admin', 'system'),
               ]
@@ -115,7 +117,7 @@ class DguCreateTestData(CreateTestData):
              'temporal_coverage-to': "",
              'temporal_coverage-from': "",
              'temporal_granularity': "",
-             'taxonomy_url': "",
+             'taxonomy_url': "http://www.metoffice.gov.uk/weather/uk/guide/key.html",
              'update_frequency': "Real-time",
              },
          'resources': [
@@ -316,7 +318,7 @@ Alternative title: GDP and Labour Market coherence""",
          'notes': "WMS",
          'license_id': None,
          'tags': ['infoMapAccessService'],
-         # no groups (!)
+         'groups': ['northern-ireland-spatial-data-infrastructure'],
          'extras': {
              'bbox-east-long': "-5.40566902640608",
              'temporal_coverage-from': "[]",

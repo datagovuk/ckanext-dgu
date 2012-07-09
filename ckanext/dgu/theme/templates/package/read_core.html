@@ -199,6 +199,7 @@
     <div id="dataset-information">
 <?python
 import re
+from webhelpers.text import truncate
 from ckan.lib.field_types import DateType
 from ckanext.dgu.schema import GeoCoverageType
 if c.pkg_dict:
@@ -247,6 +248,10 @@ if c.pkg_dict:
     else:
         temporal_coverage = ''
 
+    taxonomy_url = pkg_extras.get('taxonomy_url') or ''
+    if taxonomy_url and taxonomy_url.startswith('http'):
+        taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
+
     field_value_map = {
         # field_name : {display info}
         'state': {'label': 'State', 'value': c.pkg.state},
@@ -262,7 +267,7 @@ if c.pkg_dict:
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 Resource Type', 'value': pkg_extras.get('resource-type')},
-        '': {'label': '', 'value': ''},
+        'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
