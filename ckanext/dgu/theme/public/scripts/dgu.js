@@ -158,7 +158,7 @@ CKAN.Dgu = function($, my) {
           $(node).attr("id", $(node).attr("id").replace(attrValueRegex, replacement));
         }
         $(node).val("");
-        $(node).removeClass("field_error");
+        $(node).removeClass("error");
       });
       newRow.find('a.add-button').remove();
       lastRow.find('a.add-button').appendTo(newRow.find('td').last());
@@ -286,12 +286,12 @@ CKAN.Dgu = function($, my) {
                 if(showError){break;}
               }
               if(showError){
-                $(this[i]).find('input[id$="__url"]').addClass('field_error').attr({'title': data[i].url_errors[0]});
+                $(this[i]).find('input[id$="__url"]').parent().addClass('error').attr({'title': data[i].url_errors[0]});
               } else {
-                $(this[i]).find('input[id$="__url"]').removeClass('field_error').removeAttr('title');
+                $(this[i]).find('input[id$="__url"]').parent().removeClass('error').removeAttr('title');
               }
             } else {
-              $(this[i]).find('input[id$="__url"]').removeClass('field_error').removeAttr('title');
+              $(this[i]).find('input[id$="__url"]').parent().removeClass('error').removeAttr('title');
             }
           }
         },

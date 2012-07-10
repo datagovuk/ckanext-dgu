@@ -177,16 +177,14 @@ if has_errors:
                        type="text"
                        value="${res.get(col, '')}"
                        py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
-                <span py:when="col=='url'">
+                <span class="control-group ${'error' if cell_has_error else ''}" py:when="col=='url'">
                   <input id="timeseries_resources__${num}__${col}"
                          name="timeseries_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         py:attrs="{'class': 'input-small field_error display-error-inside' if cell_has_error else 'input-small display-error-inside'}"/>
-                  <input id="timeseries_resources__${num}__validate-resource-button"
-                         type="button"
-                         class="validate-resource-button btn btn-small"
-                         value="Check"/>
+                         class="input-medium"/>
+                  <button id="timeseries_resources__${num}__validate-resource-button"
+                         class="validate-resource-button btn btn-small">Check</button>
                 </span>
 
                 <input py:otherwise=""
@@ -211,7 +209,7 @@ if has_errors:
       </table>
 
       <p class="field_error" py:if="errors.get('timeseries_resources', '')">Row(s) partially filled.</p>
-      <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
+      <button class="validate-resources-button btn" id="validate-timeseries-button">Check all URLs</button>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
@@ -249,16 +247,14 @@ if has_errors:
                      type="text"
                      value="${res.get(col, '')}"
                      py:attrs="{'class': 'input-large field_error' if cell_has_error else 'input-large'}"/>
-              <span py:when="col=='url'">
+              <span class="control-group ${'error' if cell_has_error else ''}" py:when="col=='url'">
                 <input id="individual_resources__${num}__${col}"
                        name="individual_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-medium field_error display-error-inside' if cell_has_error else 'input-medium display-error-inside'}"/>
-                <input id="individual_resources__${num}__validate-resource-button"
-                       type="button"
-                       class="validate-resource-button btn btn-small"
-                       value="Check"/>
+                       class="input-medium"/>
+                <button id="individual_resources__${num}__validate-resource-button"
+                    class="validate-resource-button btn btn-small">Check</button>
               </span>
               <input py:when="col=='format'"
                      id="individual_resources__${num}__${col}"
@@ -287,7 +283,7 @@ if has_errors:
       </tbody>
       </table>
       <p class="field_error" py:if="errors.get('individual_resources', '')">Row(s) partially filled.</p>
-      <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
+      <button class="validate-resources-button btn" id="validate-timeseries-button">Check all URLs</button>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
@@ -600,16 +596,14 @@ if has_errors:
                        type="text"
                        value="${res.get(col, '')}"
                        py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
-                <span py:when="col=='url'">
+                <span class="control-group ${'error' if cell_has_error else ''}" py:when="col=='url'">
                   <input id="additional_resources__${num}__${col}"
                          name="additional_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         py:attrs="{'class': 'input-medium field_error display-error-inside' if cell_has_error else 'input-medium display-error-inside'}"/>
-                  <input id="additional_resources__${num}__validate-resource-button"
-                         type="button"
-                         class="validate-resource-button btn btn-small"
-                         value="Check"/>
+                         class="input-medium"/>
+                  <button id="additional_resources__${num}__validate-resource-button"
+                          class="validate-resource-button btn btn-small">Check</button>
                 </span>
                 <input py:otherwise=""
                        id="additional_resources__${num}__${col}"
@@ -630,7 +624,7 @@ if has_errors:
     </tbody>
     </table>
     <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Row(s) partially filled.</p>
-    <input  class="validate-resources-button btn" type="button" id="validate-timeseries-button" value="Check all URLs"/>
+    <button  class="validate-resources-button btn" id="validate-timeseries-button">Check all URLs</button>
     <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
     <br/>
     <br/>

@@ -1144,9 +1144,8 @@ p.field_error {
   display: inline;
 }
 
-input.display-error-inside.field_error {
-  padding-left: 20px;
-  background: transparent url(../images/icons/error.png) left center no-repeat;
+.resource-url .error input {
+  background: transparent url(../images/icons/error.png) 98% center no-repeat;
 }
 .hints {
   font-style: italic;
