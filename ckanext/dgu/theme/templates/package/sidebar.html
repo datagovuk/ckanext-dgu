@@ -84,25 +84,24 @@ if access_constraints:
 # go up tree looking for contact details
 import ckanext.dgu.lib.publisher
 publisher_groups = c.pkg.get_groups('publisher') # assume only one
-for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
+name = email = phone = None # defaults
+if publisher_groups:
+    for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
          extras = publisher.extras
          name = extras.get('contact-name')
          email = extras.get('contact-email')
          phone = extras.get('contact-phone')
          if name or email or phone:
-             break
-    
-else:
-    name = email = phone = None
-for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
+             break    
+foi_name = foi_email = foi_phone = None # defaults
+if publisher_groups:
+    for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
          extras = publisher.extras
          foi_name = extras.get('foi-name')
          foi_email = extras.get('foi-email')
          foi_phone = extras.get('foi-phone')
          if foi_name or foi_email or foi_phone:
              break
-else:
-    foi_name = foi_email = foi_phone = None
 ?>
         ${name}
         ${contact_details(name, email, phone, None, None)}
