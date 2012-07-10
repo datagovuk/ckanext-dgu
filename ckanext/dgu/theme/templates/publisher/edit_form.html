@@ -164,6 +164,7 @@ users = data.get('users', [])
 <!--!  <div class="control-group"> -->
     <!--! <label class="control-label" for="extras__${num}__value">${extra.get('key')}</label> -->
 <!--!    <div class="controls"> -->
+    <py:if test="extra.get('key')"> <!--! Somehow some extras have no key! - delete -->
       <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
       <input id="extras__${num}__value" name="extras__${num}__value" type="hidden" value="${extra.get('value')}" />
 <!--!      <label class="checkbox" style="display: inline-block;"> -->
@@ -171,6 +172,7 @@ users = data.get('users', [])
 <!--!      </label> -->
 <!--!    </div> -->
 <!--!  </div> -->
+     </py:if>
   </py:for>
   <hr py:if="len(extras)" class="extras-divider" />
 <!--!  <py:for each="num in range(len(extras), len(extras) + 4)">
