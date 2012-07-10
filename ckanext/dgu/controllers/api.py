@@ -1,4 +1,4 @@
-from ckan.lib.base import model, abort, response, h, BaseController
+from ckan.lib.base import model, abort, response, h, BaseController, request
 from ckan.controllers.api import ApiController
 from ckan.lib.helpers import OrderedDict
 from ckanext.dgu.plugins_toolkit import get_action
@@ -6,14 +6,21 @@ import logging
 
 log = logging.getLogger(__name__)
 
+default_limit = 10
+
 class DguApiController(ApiController):
-    def latest_datasets(self, limit=10):
+    def latest_datasets(self):
+        try:
+            limit = int(request.params.get('limit', default_limit))
+        except ValueError:
+            limit = default_limit
+        limit = min(100, limit) # max value
         query = model.Session.query(model.PackageRevision)
         query = query.filter(model.PackageRevision.state=='active')
         query = query.filter(model.PackageRevision.current==True)
         
         query = query.order_by(model.package_revision_table.c.revision_timestamp.desc())
-        query = query.limit(min(100, limit))
+        query = query.limit(limit)
         pkg_dicts = []
         for pkg_rev in query:
             pkg = pkg_rev.continuity
