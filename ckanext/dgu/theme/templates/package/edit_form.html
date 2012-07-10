@@ -6,10 +6,11 @@
 >
 
 <?python 
+import json
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
 is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' #<!--! 'edit' as opposed to 'new'-->
-has_errors = bool(error_summary) #<!--! validation errors -->
+has_errors = bool(errors) #<!--! validation errors -->
 use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
 is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
 is_individual_dataset = bool(data.get('individual_resources',[]))
@@ -18,11 +19,13 @@ if has_errors:
   # DGU uses different words for things compared to CKAN, so adjust
   # the language of errors using mappings:
   field_name_map = {
-        'Groups': 'Publisher',
-        'Individual resources': 'Data Files',
-        'Title': 'Name',
-        'Name': 'Unique identifier',
-        'Notes': 'Description',
+        'groups': 'Publisher',
+        'individual_resources': 'Data Files',
+        'timeseries_resources': 'Data Files',
+        'title': 'Name',
+        'name': 'Unique identifier',
+        'notes': 'Description',
+        'theme-primary': 'Primary Theme',
   }
   field_error_key_map = {
         'group': 'publisher',
@@ -31,28 +34,50 @@ if has_errors:
   field_error_value_map = {
         'That group name or ID does not exist.': 'Missing value',
   }
-  form_errors_str = []
-  for key, err in error_summary.items():
-    key = field_name_map.get(key, key)
-    if isinstance(err, dict):
-      for map_from, map_to in field_error_key_map.items():
-        if map_from in err.keys():
-          val = err[map_from]
-          err[map_to] = val
-          del err[map_from]
-      for map_from, map_to in field_error_value_map.items():
-        for error_key, error_value in err.items():
-          if error_value == map_from:
-            err[error_key] = map_to
-    form_errors_str.append('%s: %s' % (key, str(err).replace("u'", "'")))
+
+  def clean(o):
+    if type(o) is list and len(o)==1:
+      o = o[0]
+    if type(o) is unicode:
+      o = str(o)
+    if type(o) is str:
+      o = field_name_map.get(o,o)
+      o = field_error_key_map.get(o,o)
+      o = field_error_value_map.get(o,o)
+    return o
 ?>
+<!-- recursive function turns errors into hierarchical lists -->
+<py:def function="dump(o)">
+  <?python o = clean(o) ?>
+  <ul py:if="type(o) is dict and bool(o)">
+    <li py:for="k,v in o.items()">
+      <?python 
+        k=clean(k) 
+        v=clean(v) 
+      ?>
+      <py:if test="type(v) is str">
+        <b>${k}:</b> ${v}
+      </py:if>
+      <py:if test="not (type(v) is str)">
+        <b>${k}: </b> ${dump(v)}
+      </py:if>
+    </li>
+  </ul>
+  <ul py:if="type(o) is list and bool(o)">
+    <py:for each="v in o">
+      ${dump(v)}
+    </py:for>
+  </ul>
+  <li py:if="(type(o) is str or type(o) is unicode) and bool(o)">
+    ${str(o)}
+  </li>
+</py:def>
+
 
 <div class="error-explanation" py:if="has_errors">
 <h2>Errors in form</h2>
 <p>The form contains invalid entries:</p>
-<ul>
-  <li py:for="error_str in form_errors_str">${error_str}</li>
-</ul>
+  ${dump(errors)}
 </div>
 
 <div id="form-tabs" class="tabbable tabs-left">
