@@ -105,29 +105,33 @@ CKAN.Dgu = function($, my) {
   };
 
   my.setupResourcesToggle = function() {
-    var elements = $('#package_type-timeseries input[type="text"], #package_type-individual input[type="text"]');
-    /* If any inputs contain text, then disable the radio toggles */
-    var updateToggle = function(e) {
+    function allElements() {
+      return $('#package_type-timeseries input[type="text"], #package_type-individual input[type="text"]');
+    }
+    function clickToggle(e) {
       var allEmpty = true;
-      $.each(elements, function(i, el) {
-        var v = el.value;
-        if (v.length) {
+      $.each(allElements(), function(i, el) {
+        if ($(el).val()) {
           allEmpty = false;
         }
       });
-      if (allEmpty) {
-        $('#package_type-individual-radio').removeAttr('disabled');
-        $('#package_type-timeseries-radio').removeAttr('disabled');
-        $('.record-type-disabled').hide();
+      if (!allEmpty) {
+        $('#package_type_modal').modal('toggle');
       }
-      else {
-        $('#package_type-individual-radio').attr({'disabled':'disabled'});
-        $('#package_type-timeseries-radio').attr({'disabled':'disabled'});
-        $('.record-type-disabled').show();
-      }
-    };
-    elements.change(updateToggle);
-    updateToggle();
+    }
+    function cancelChange(e) {
+      e.preventDefault();
+      var active = $('input:radio[name=package_type]:not(:checked)').click();
+    }
+    function wipeForm(e) {
+      e.preventDefault();
+      $.each(allElements(), function(i, el) {
+        $(el).val('');
+      });
+    }
+    $('#package_type_modal .cancel').click(cancelChange);
+    $('#package_type_modal .ok').click(wipeForm);
+    $('input:radio[name=package_type]').change(clickToggle);
   };
 
   my.copyTableRowOnClick = function(button, table) {

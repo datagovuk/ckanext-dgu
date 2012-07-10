@@ -118,9 +118,6 @@ if has_errors:
             A timeseries record
           </label>
         </td>
-        <td class="record-type-disabled">
-          <code>Delete all resource data to change the type of this record.</code>
-        </td>
       </tr>
     </table>
 
@@ -858,6 +855,19 @@ if has_errors:
   </div>
 </div><!-- /form-actions -->
 
+</div>
+
+<div class="modal hide" id="package_type_modal">
+  <div class="modal-header">
+    <h3>Delete all data files?</h3>
+  </div>
+  <div class="modal-body">
+    <p>Changing the package type will remove any data files you have listed. Continue?</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn cancel" data-dismiss="modal">Cancel</a>
+    <a href="#" class="btn ok btn-primary" data-dismiss="modal">OK</a>
+  </div>
 </div>
 
 </form>
