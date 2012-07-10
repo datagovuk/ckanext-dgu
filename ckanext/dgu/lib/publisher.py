@@ -22,6 +22,9 @@ def get_parents(publisher):
     return publisher.get_groups('publisher')
 
 def get_children(publisher):
-    '''Finds child publishers for the given publisher (object).'''
+    '''Finds child publishers for the given publisher (object).
+    Returns a list, where each child publisher is expressed as a tuple:
+       (group.id, group.name, group.title)
+    '''
     return model.Session.query("id", "name", "title").\
            from_statement(HIERARCHY_CTE).params(id=publisher.id, type='publisher').all()

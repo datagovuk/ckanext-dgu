@@ -191,6 +191,20 @@ users = data.get('users', [])
   </py:with>
 </fieldset>
 
+<fieldset id="child-publishers" style="display: none;" py:if="c.group">
+<?python
+from ckanext.dgu.lib import publisher
+?>
+  <ul>
+    <li py:for="num, publisher in enumerate(publisher.get_children(c.group))">
+      <label class="checkbox" for="groups__${num}__name">
+        <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher[1]}"/>
+        ${publisher[2]}
+      </label>
+    </li>
+  </ul>
+</fieldset>
+
 <fieldset id="datasets" style="display: none;">
   <h3>Datasets <span py:if="data.get('packages')">(${len(data.get('packages'))})</span></h3>
   <dl py:if="data.get('packages')">

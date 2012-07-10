@@ -105,8 +105,11 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             assert_equal(set([grp.name for grp in group.active_packages()]),
                          set([u'directgov-cota']))
             # parents
-            child_groups = set([grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')])
-            assert publisher_name in child_groups
+            child_groups_of_doh = set([grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')])
+            assert publisher_name in child_groups_of_doh
+            # children
+            child_groups = set([grp['name'] for grp in group.get_children_groups('publisher')])
+            assert set([u'newham-primary-care-trust', u'barnsley-primary-care-trust']) <= child_groups, child_groups
             # admins & editors
             assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='admin')]),
                          set(('nhsadmin',)))
