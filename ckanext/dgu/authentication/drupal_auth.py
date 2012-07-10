@@ -200,7 +200,7 @@ class DrupalAuthMiddleware(object):
             log.debug('Set REMOTE_USER = %r', user.name)
 
         else:
-            log.warn('Drupal disowned the session ID found in the cookie.')
+            log.debug('Drupal said the session ID found in the cookie is not valid.')
 
     def set_roles(self, user_name, drupal_roles):
         '''Sets CKAN user roles based on the drupal roles.
