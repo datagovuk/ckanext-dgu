@@ -40,7 +40,7 @@ jQuery(function ($) {
 
     $('input[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
-      window.location = $(this).val()
+      window.location = $(this).val();
     });
     $('input[name="publisher-results-include-subpub"]').change(function(e){
       e.preventDefault();
@@ -210,7 +210,7 @@ CKAN.Dgu = function($, my) {
         minLength: 1,
         source: function(request, callback) {
           // here request.term is whole list of tags so need to get last
-          var _realTerm = request.term.split(',').pop().trim();
+          var _realTerm = $.trim( request.term.split(',').pop() );
           var url = CKAN.SITE_URL + '/api/2/util/tag/autocomplete?incomplete=' + _realTerm;
           $.getJSON(url, function(data) {
             // data = { ResultSet: { Result: [ {Name: tag} ] } } (Why oh why?)
@@ -269,7 +269,8 @@ CKAN.Dgu = function($, my) {
             // Populate the format field (if it isn't "htm" or "html")
             var formatField = $(this[i]).find('input[id$="__format"]');
             var fmt = data[i].inner_format
-            if(formatField.val().trim() == "" && !fmt.match(/^html?$/) ){
+
+            if($.trim(formatField.val()) == "" && !fmt.match(/^html?$/) ){
               formatField.val(data[i].inner_format);
             }
 
@@ -281,7 +282,7 @@ CKAN.Dgu = function($, my) {
               var showError = false;
               for(var j=0; j<requiredFields.length; j++){
                 var field = $(this[i]).find('input[id$="__'+requiredFields[j]+'"]');
-                showError = field.length >0 && field.val().trim() !== '';
+                showError = field.length >0 && $.trim(field.val()) !== '';
                 if(showError){break;}
               }
               if(showError){
@@ -344,7 +345,7 @@ CKAN.Dgu.UrlEditor = Backbone.View.extend({
     // If you've bothered typing a URL, I won't overwrite you
     function disable() {
       self.disableTitleChanged = true;
-    };
+    }
     this.urlInput.keyup   (disable);
     this.urlInput.keydown (disable);
     this.urlInput.keypress(disable);
