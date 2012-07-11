@@ -1144,6 +1144,10 @@ p.field_error {
   display: inline;
 }
 
+table .field_error {
+  border-color: #FF6666;
+  background: transparent url(../images/icons/error.png) 98% center no-repeat;
+}
 .resource-url .error input {
   background: transparent url(../images/icons/error.png) 98% center no-repeat;
 }
