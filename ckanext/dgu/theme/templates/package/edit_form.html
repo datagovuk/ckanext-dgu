@@ -12,8 +12,14 @@ drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
 is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' #<!--! 'edit' as opposed to 'new'-->
 has_errors = bool(errors) #<!--! validation errors -->
 use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
-is_timeseries_dataset = bool(data.get('timeseries_resources',[]))
-is_individual_dataset = bool(data.get('individual_resources',[]))
+are_timeseries_resources = False
+for res in data.get('timeseries_resources',[]):
+    if res.get('format') or res.get('url') or res.get('format') or res.get('date'):
+        are_timeseries_resources = True
+        break
+#print "ARE TIMESERIES:", are_timeseries_resources
+#print "TIMESERIES", data.get('timeseries_resources',[])
+#print "INDIVIDUAL", data.get('individual_resources',[])
 
 if has_errors:
   # DGU uses different words for things compared to CKAN, so adjust
@@ -135,11 +141,11 @@ if has_errors:
       <tr>
         <td style="width: 30%;">
           <label class="radio">
-            <input py:attrs="{'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
+            <input py:attrs="{'checked': 'checked' if not are_timeseries_resources else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
             A single file record
           </label>
           <label class="radio">
-            <input py:attrs="{'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
+            <input py:attrs="{'checked': 'checked' if are_timeseries_resources else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
             A timeseries record
           </label>
         </td>
