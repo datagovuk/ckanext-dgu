@@ -25,7 +25,8 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_data_resource_types, \
      validate_license, \
      drop_if_same_as_publisher, \
-     populate_from_publisher_if_missing
+     populate_from_publisher_if_missing, \
+     remove_blank_resources
 
 geographic_granularity = [('', ''),
                           ('national', 'national'),
@@ -244,7 +245,7 @@ class DatasetForm(SingletonPlugin):
 
             '__extras': [ignore],
             '__junk': [empty],
-            '__after': [validate_license, validate_resources, merge_resources]
+            '__after': [validate_license, remove_blank_resources, validate_resources, merge_resources]
         }
         return schema
 

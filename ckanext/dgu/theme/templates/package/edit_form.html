@@ -135,11 +135,11 @@ if has_errors:
       <tr>
         <td style="width: 30%;">
           <label class="radio">
-            <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_timeseries_dataset else None, 'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
+            <input py:attrs="{'checked': 'checked' if is_individual_dataset or not is_timeseries_dataset else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
             A single file record
           </label>
           <label class="radio">
-            <input py:attrs="{'disabled': 'disabled' if is_edit_form and is_individual_dataset else None, 'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
+            <input py:attrs="{'checked': 'checked' if is_timeseries_dataset else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
             A timeseries record
           </label>
         </td>

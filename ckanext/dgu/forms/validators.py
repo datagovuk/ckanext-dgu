@@ -231,3 +231,41 @@ def _extract_resources(name, data):
     Extracts the flattened resources with the given name from the flattened data dict
     """
     return [ key for key in data.keys() if key[0] == name+'_resources' ]
+
+def remove_blank_resources(key, data, errors, context):
+    '''
+    If the user leaves values for a resource blank, then remove it plus any
+    validation errors.
+    '''
+    assert key == ('__after',)
+    # needs to be run after resource validation so it can delete validation
+    # errors blank resources
+
+    additional_resources = _extract_resources('additional', data)
+    timeseries_resources = _extract_resources('timeseries', data)
+    individual_resources = _extract_resources('individual', data)
+    resources = sorted(chain(additional_resources,
+                             timeseries_resources,
+                             individual_resources))
+
+    user_filled_fields = set(('description', 'format', 'url', 'date'))
+    
+    for (resource, values_iter) in groupby(resources, lambda t: t[:2]):
+        resource_type, original_index = resource
+        is_blank_resource = True
+        values = list(values_iter) # copy it - we need it twice
+        for (_,_,field) in values:
+            if field not in user_filled_fields:
+                continue
+            field_value = data[(resource_type, original_index, field)]
+            if field_value.strip() if isinstance(field_value, basestring) else field_value:
+                is_blank_resource = False
+                break
+        if is_blank_resource:
+            for (_,_,field) in values:
+                triple = (resource_type, original_index, field)
+                del data[triple]
+                if triple in errors:
+                    del errors[triple]
+
+

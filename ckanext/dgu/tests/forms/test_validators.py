@@ -4,7 +4,8 @@ from ckan.lib.navl.dictization_functions import flatten_dict, unflatten, Invalid
 
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_additional_resource_types, \
-     validate_data_resource_types
+     validate_data_resource_types, \
+     remove_blank_resources
 
 class TestMergeResources(object):
     """
@@ -383,3 +384,53 @@ class TestResourceTypeValidators(object):
 
         assert_equal (f(''), 'file')
         assert_equal (f(None), 'file')
+
+class TestRemoveBlankResources:
+    def test_remove_blank_resources(self):
+        """
+        Blank rows occur as a result of switching to/from timeseries resource
+        or deleting a resource in a table (you can't remove the row itself).
+        Therefore remove blank rows.
+        """
+        import nose
+        nose.tools.maxDiff = 2000
+        data = {
+            'additional_resources': [
+                {'id': '1', 'description': 'Additional 1', 'url': 'A_Url 1', 'resource_type': 'documentation'},
+                {'id': '2', 'description': '', 'url': '', 'resource_type': 'documentation'},
+                {'id': '3', 'description': 'Additional 3', 'url': 'A_Url 3', 'resource_type': 'documentation'},
+            ],
+            'timeseries_resources': [
+                {'id': '4', 'description': 'Timeseries 1', 'url': 'T_Url 1', 'date': 'T_Date 1', 'resource_type': 'file'},
+                {'id': '5', 'description': '', 'url': '', 'date': '', 'resource_type': 'file'},
+                {'id': '6', 'description': 'Timeseries 3', 'url': '', 'date': 'T_Date 3', 'resource_type': 'file'},
+            ]
+        }
+
+        flattened_data = flatten_dict(data)
+
+        ignored = {}
+        errors = {}
+        # Add errors that validation would pick up for the blank resources
+        errors[('additional_resources', 1, 'url')] = ['not empty']
+        errors[('timeseries_resources', 1, 'url')] = ['not empty']
+        # Add a real validation error
+        errors[('timeseries_resources', 2, 'url')] = ['not empty']
+        remove_blank_resources(('__after',), flattened_data, errors, ignored)
+        result_data = unflatten(flattened_data)
+
+        expected_data = {
+            'additional_resources': [
+                {'id': '1', 'description': 'Additional 1', 'url': 'A_Url 1', 'resource_type': 'documentation'},
+                {'id': '3', 'description': 'Additional 3', 'url': 'A_Url 3', 'resource_type': 'documentation'},
+            ],
+            'timeseries_resources': [
+                {'id': '4', 'description': 'Timeseries 1', 'url': 'T_Url 1', 'date': 'T_Date 1', 'resource_type': 'file'},
+                {'id': '6', 'description': 'Timeseries 3', 'url': '', 'date': 'T_Date 3', 'resource_type': 'file'},
+            ]
+        }
+        expected_errors = {('timeseries_resources', 2, 'url'): ['not empty']}
+
+        assert_equal(result_data, expected_data)
+        assert_equal(errors, expected_errors)
+    
