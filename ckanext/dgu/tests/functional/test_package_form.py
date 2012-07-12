@@ -185,7 +185,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         response = form_client.post_form(package_data)
 
         # Sanity check that the form failed to submit due to the name being missing.
-        assert_in('Unique identifier: Missing value', response)
+        assert 'Unique identifier:</b> Missing value' in response, response
 
         # Check the notes field separately as it contains a newline character
         # in its value.  And the `self.check_named_element()` method doesn't
@@ -359,13 +359,13 @@ class TestFormValidation(object):
         """Asserts that the title cannot be empty"""
         data = {'title': ''}
         response = self._form_client.post_form(data)
-        assert 'Name: Missing value' in response.body
+        assert 'Name:</b> Missing value' in response.body
 
     def test_name_non_empty(self):
         """Asserts that the name (uri identifier) is non-empty"""
         data = {'name': ''}
         response = self._form_client.post_form(data)
-        assert 'Unique identifier: Missing value' in response.body
+        assert 'Unique identifier:</b> Missing value' in response.body
 
     def test_name_rejects_non_alphanumeric_names(self):
         """Asserts that the name (uri identifier) does not allow punctuation"""
@@ -391,14 +391,14 @@ class TestFormValidation(object):
         """Asserts that the abstract cannot be empty"""
         data = {'notes': ''}
         response = self._form_client.post_form(data)
-        assert 'Description: Missing value' in response.body
+        assert 'Description:</b> Missing value' in response.body
 
     def test_individual_resource_url_non_empty(self):
         """Asserts that individual resources must have url defined"""
         data = {'individual_resources__0__description': 'description with no url',
                 'individual_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Data Files: {\'url\': [\'Missing value\']}' in response.body
+        assert 'URL:</b> Missing value' in response.body
 
     def test_timeseries_resource_url_non_empty(self):
         """Asserts that timeseries resources must have url defined"""
@@ -406,21 +406,21 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no url',
                 'timeseries_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert_in('Timeseries resources: {\'url\': [\'Missing value\']}', response.body, response.body)
+        assert_in('URL:</b> Missing value', response.body, response.body)
 
     def test_additional_resource_url_non_empty(self):
         """Asserts that additional resources must have url defined"""
         data = {'additional_resources__0__description': 'description with no url',
                 'additional_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Additional resources: {\'url\': [\'Missing value\']}' in response.body
+        assert 'URL:</b> Missing value' in response.body
 
     def test_individual_resource_description_non_empty(self):
         """Asserts that individual resources must have description defined"""
         data = {'individual_resources__0__url': 'url with no description',
                 'individual_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Data Files: {\'title\': [\'Missing value\']}' in response.body
+        assert 'Title:</b> Missing value' in response.body
 
     def test_timeseries_resource_description_non_empty(self):
         """Asserts that timeseries resources must have description defined"""
@@ -428,14 +428,14 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no description',
                 'timeseries_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Timeseries resources: {\'title\': [\'Missing value\']}' in response.body
+        assert 'Title:</b> Missing value' in response.body
 
     def test_additional_resource_description_non_empty(self):
         """Asserts that additional resources must have description defined"""
         data = {'additional_resources__0__url': 'url with no description',
                 'additional_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Additional resources: {\'title\': [\'Missing value\']}' in response.body, response.body
+        assert 'Title:</b> Missing value' in response.body, response.body
         assert 'Row(s) partially filled' in response.body, response.body
 
     def test_timeseries_resource_date_non_empty(self):
@@ -444,7 +444,7 @@ class TestFormValidation(object):
                 'timeseries_resources__0__url': 'url with no date',
                 'timeseries_resources__0__format': 'format with no date',}
         response = self._form_client.post_form(data)
-        assert 'Timeseries resources: {\'date\': [\'Missing value\']}' in response.body
+        assert 'Date:</b> Missing value' in response.body
 
     def assert_accepts_date(self, field_name, date_str):
         data = {field_name: date_str}
@@ -502,7 +502,7 @@ class TestFormValidation(object):
                 'additional_resources__0__resource_type': resource_type,
             }
             response = self._form_client.post_form(data)
-            assert_in("'Invalid resource type: %s']" % resource_type,
+            assert_in("Invalid resource type: %s" % resource_type,
                       response.body)
 
     def test_data_resources_disallows_non_file_or_api_resource_types(self):
@@ -517,7 +517,7 @@ class TestFormValidation(object):
                 'timeseries_resources__0__resource_type': resource_type,
             }
             response = self._form_client.post_form(data)
-            assert_in("'Invalid resource type: %s']" % resource_type,
+            assert_in("Invalid resource type: %s" % resource_type,
                       response.body)
 
             data = {
@@ -526,7 +526,7 @@ class TestFormValidation(object):
                 'individual_resources__0__resource_type': resource_type,
             }
             response = self._form_client.post_form(data)
-            assert_in("'Invalid resource type: %s']" % resource_type,
+            assert_in("Invalid resource type: %s" % resource_type,
                       response.body)
 
     def test_cannot_create_a_non_ogl_dataset_without_specifying_license_name(self):
@@ -535,7 +535,7 @@ class TestFormValidation(object):
         """
         data = {'license_id': ""}
         response = self._form_client.post_form(data)
-        assert_in('License id: Please enter the access constraints.', response.body)
+        assert_in('Licence:</b> Please enter the access constraints.', response.body)
 
     def test_cannot_name_another_license_if_declaring_the_dataset_to_be_ogl_licensed(self):
         """
@@ -543,7 +543,7 @@ class TestFormValidation(object):
         """
         data = {'license_id': 'uk-ogl', 'access_constraints': 'A difference license'}
         response = self._form_client.post_form(data)
-        assert_in('License id: Leave the "Access Constraints" box empty if selecting a license from the list', response.body)
+        assert 'Licence:</b> Leave the "Access Constraints" box empty if selecting a license from the list' in response, response
 
 class TestPackageCreation(CommonFixtureMethods):
     """

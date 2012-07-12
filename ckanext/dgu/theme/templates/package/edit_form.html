@@ -7,6 +7,7 @@
 
 <?python 
 import json
+import re
 from pylons import config
 drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
 is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' #<!--! 'edit' as opposed to 'new'-->
@@ -27,8 +28,10 @@ if has_errors:
         'timeseries_resources': 'Data Files',
         'title': 'Name',
         'name': 'Unique identifier',
+        'url': 'URL',
         'notes': 'Description',
         'theme-primary': 'Primary Theme',
+        'license_id': 'Licence'
   }
   field_error_key_map = {
         'group': 'publisher',
@@ -47,6 +50,9 @@ if has_errors:
       o = field_name_map.get(o,o)
       o = field_error_key_map.get(o,o)
       o = field_error_value_map.get(o,o)
+      o = re.sub('[_-]', ' ', o)
+      if o[0].lower() == o[0]:
+        o = o.capitalize()
     return o
 ?>
 <!-- recursive function turns errors into hierarchical lists -->
