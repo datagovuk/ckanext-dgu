@@ -186,17 +186,17 @@ if has_errors:
       <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
       <thead>
         <tr>
+          <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date: <img src="/images/information-grey.png"/></th>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
           <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
-          <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
-          <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date: <img src="/images/information-grey.png"/></th>
+          <th class="resource-format js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
           <th></th>
         </tr>
       </thead>
       <tbody>
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
         <tr class="timeseries_resources__${num} resource">
-          <py:for each="col in c.resource_columns + ('date',)">
+          <py:for each="col in ('date',) + c.resource_columns">
             <td class="resource-${col}">
               <?python
                 resource_errors = errors.get('timeseries_resources', [])
