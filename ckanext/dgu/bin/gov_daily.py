@@ -99,7 +99,7 @@ def command(config_file):
     if not os.path.exists(analysis_dir):
         log.info('Creating dump analysis dir: %s' % analysis_dir)
         os.makedirs(analysis_dir)
-    json_dump_filepath = os.path.join(analysis_dir, '%s.json.zip' % dump_file_base)
+    json_dump_filepath = os.path.join(dump_dir, '%s.json.zip' % dump_file_base)
     txt_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.txt')
     csv_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.csv')
     run_info = get_run_info()
