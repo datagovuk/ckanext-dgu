@@ -14,12 +14,9 @@ has_errors = bool(errors) #<!--! validation errors -->
 use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
 are_timeseries_resources = False
 for res in data.get('timeseries_resources',[]):
-    if res.get('format') or res.get('url') or res.get('format') or res.get('date'):
+    if res.get('format') or res.get('url') or res.get('description') or res.get('date'):
         are_timeseries_resources = True
         break
-#print "ARE TIMESERIES:", are_timeseries_resources
-#print "TIMESERIES", data.get('timeseries_resources',[])
-#print "INDIVIDUAL", data.get('individual_resources',[])
 
 if has_errors:
   # DGU uses different words for things compared to CKAN, so adjust
@@ -193,10 +190,10 @@ if has_errors:
       <tbody>
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
         <tr class="timeseries_resources__${num} resource">
-          <py:for each="col in c.resource_columns">
+          <py:for each="col in c.resource_columns + ('date',)">
             <td class="resource-${col}">
               <?python
-                resource_errors = errors.get('timeseries_resources', None)
+                resource_errors = errors.get('timeseries_resources', [])
                 cell_has_error = resource_errors and \
                                  num < len(resource_errors) and \
                                  bool(resource_errors[num].get(col, False))
@@ -228,12 +225,10 @@ if has_errors:
               </py:choose>
             </td>
           </py:for>
-          <td class="resource-date">
-            <input id="timeseries_resources__${num}__date" name="timeseries_resources__${num}__date" type="text" value="${res.get('date', '')}" class="input-small" />
+          <td>
             <span class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
             <span class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
-          </td>
-          <td><a py:if="len(data.get('timeseries_resources',[])) == num" href="javascript:;" id="timeseries_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
+            <a py:if="len(data.get('timeseries_resources',[])) == num" href="javascript:;" id="timeseries_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
         </py:for>
       </tbody>
@@ -266,7 +261,7 @@ if has_errors:
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
             <?python
-              resource_errors = errors.get('individual_resources', None)
+              resource_errors = errors.get('individual_resources', [])
               cell_has_error = resource_errors and \
                                num < len(resource_errors) and \
                                bool(resource_errors[num].get(col, False))
