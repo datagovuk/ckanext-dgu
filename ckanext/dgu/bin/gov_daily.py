@@ -12,9 +12,9 @@ import re
 from common import load_config, register_translator
 
 start_time = datetime.datetime.today()
-def report_time_taken():
+def report_time_taken(log):
     time_taken = (datetime.datetime.today() - start_time).seconds
-    logging.info('Time taken: %i seconds' % time_taken)
+    log.info('Time taken: %i seconds' % time_taken)
 
 def get_db_config(config): # copied from fabfile
     url = config['sqlalchemy.url']
@@ -36,53 +36,46 @@ def command(config_file):
         default_dump_dir = '/var/lib/ckan/%s/static/dump' % ckan_instance_name
         default_analysis_dir = '/var/lib/ckan/%s/static/dump_analysis' % ckan_instance_name
         default_backup_dir = '/var/backups/ckan/%s' % ckan_instance_name
-        default_log_dir = '/var/log/ckan/%s' % ckan_instance_name
     else:
         # test purposes
         default_dump_dir = '~/dump'
         default_analysis_dir = '~/dump_analysis'
         default_backup_dir = '~/backups'
-        default_log_dir = '~'
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
                                              default_dump_dir))
     analysis_dir = os.path.expanduser(config.get('ckan.dump_analysis_dir',
                                              default_analysis_dir))
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir',
                                                default_backup_dir))
-    log_dir = os.path.expanduser(config.get('ckan.log_dir',
-                                            default_log_dir))
     dump_filebase = config.get('ckan.dump_filename_base',
                                'data.gov.uk-ckan-meta-data-%Y-%m-%d')
     dump_analysis_filebase = config.get('ckan.dump_analysis_base',
                                'data.gov.uk-analysis')
     backup_filebase = config.get('ckan.backup_filename_base',
                                  ckan_instance_name + '.%Y-%m-%d.pg_dump')
-    log_filepath = os.path.join(log_dir, 'gov-daily.log')
-    #print 'Logging to: %s' % log_filepath
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
 
-    logging.basicConfig(filename=log_filepath, level=logging.INFO)
-    logging.info('----------------------------')
-    logging.info('Starting daily script')
+    log = logging.getLogger('ckanext.dgu.bin.gov_daily')
+    log.info('----------------------------')
+    log.info('Starting daily script')
     start_time = datetime.datetime.today()
-    logging.info(start_time.strftime('%H:%M %d-%m-%Y'))
 
     import ckan.model as model
     import ckan.lib.dumper as dumper
 
     # Check database looks right
     num_packages_before = model.Session.query(model.Package).count()
-    logging.info('Number of existing packages: %i' % num_packages_before)
+    log.info('Number of existing packages: %i' % num_packages_before)
     if num_packages_before < 2:
-        logging.error('Expected more packages.')
+        log.error('Expected more packages.')
         sys.exit(1)
     elif num_packages_before < 2500:
-        logging.warn('Expected more packages.')
+        log.warn('Expected more packages.')
 
     # Create dumps for users
-    logging.info('Creating database dump')
+    log.info('Creating database dump')
     if not os.path.exists(dump_dir):
-        logging.info('Creating dump dir: %s' % dump_dir)
+        log.info('Creating dump dir: %s' % dump_dir)
         os.makedirs(dump_dir)
     query = model.Session.query(model.Package)
     dump_file_base = start_time.strftime(dump_filebase)
@@ -93,18 +86,18 @@ def command(config_file):
         dump_filename = '%s.%s' % (dump_file_base, file_type)
         dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
         tmp_file = open(tmp_filepath, 'w')
-        logging.info('Creating %s file: %s' % (file_type, dump_filepath))
+        log.info('Creating %s file: %s' % (file_type, dump_filepath))
         dumper_(tmp_file, query)
         tmp_file.close()
         dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
         dump_file.write(tmp_filepath, dump_filename)
         dump_file.close()
-    report_time_taken()
+    report_time_taken(log)
 
     # Dump analysis
-    logging.info('Creating dump analysis')
+    log.info('Creating dump analysis')
     if not os.path.exists(analysis_dir):
-        logging.info('Creating dump analysis dir: %s' % analysis_dir)
+        log.info('Creating dump analysis dir: %s' % analysis_dir)
         os.makedirs(analysis_dir)
     json_dump_filepath = os.path.join(analysis_dir, '%s.json.zip' % dump_file_base)
     txt_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.txt')
@@ -112,7 +105,7 @@ def command(config_file):
     run_info = get_run_info()
     options = DumpAnalysisOptions(analyse_by_source=True)
     analysis = DumpAnalysis(json_dump_filepath, options)
-    logging.info('Saving dump analysis')
+    log.info('Saving dump analysis')
     output_types = (
         # (output_filepath, analysis_file_class)
         (txt_filepath, TxtAnalysisFile),
@@ -120,16 +113,16 @@ def command(config_file):
         )
     analysis_files = {} # analysis_file_class, analysis_file
     for output_filepath, analysis_file_class in output_types:
-        logging.info('Saving dump analysis to: %s' % output_filepath)
+        log.info('Saving dump analysis to: %s' % output_filepath)
         analysis_file = analysis_file_class(output_filepath, run_info)
         analysis_file.add_analysis(analysis.date, analysis.analysis_dict)
         analysis_file.save()
-    report_time_taken()
+    report_time_taken(log)
 
     # Create complete backup
-    logging.info('Creating database backup')
+    log.info('Creating database backup')
     if not os.path.exists(backup_dir):
-        logging.info('Creating backup dir: %s' % backup_dir)
+        log.info('Creating backup dir: %s' % backup_dir)
         os.makedirs(backup_dir)
 
     db_details = get_db_config(config)
@@ -142,27 +135,27 @@ def command(config_file):
         if db_details.get(db_details_key):
             cmd += '-%s %s ' % (pg_dump_option, db_details[db_details_key])
     cmd += '%(db_name)s' % db_details + ' > %s' % pg_dump_filepath
-    logging.info('Backup command: %s' % cmd)
+    log.info('Backup command: %s' % cmd)
     ret = os.system(cmd)
     if ret == 0:
-        logging.info('Backup successful: %s' % pg_dump_filepath)
-        logging.info('Zipping up backup')
+        log.info('Backup successful: %s' % pg_dump_filepath)
+        log.info('Zipping up backup')
         pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
         # -f to overwrite any existing file, instead of prompt Yes/No
         cmd = 'gzip -f %s' % pg_dump_filepath 
-        logging.info('Zip command: %s' % cmd)
+        log.info('Zip command: %s' % cmd)
         ret = os.system(cmd)
         if ret == 0:
-            logging.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
+            log.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
         else:
-            logging.error('Backup gzip error: %s' % ret)
+            log.error('Backup gzip error: %s' % ret)
     else:
-        logging.error('Backup error: %s' % ret)
+        log.error('Backup error: %s' % ret)
 
     # Log footer
-    report_time_taken()
-    logging.info('Finished daily script')
-    logging.info('----------------------------')
+    report_time_taken(log)
+    log.info('Finished daily script')
+    log.info('----------------------------')
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
@@ -174,9 +167,10 @@ if __name__ == '__main__':
         logging.error('%s\n%s' % (USAGE, err))
         sys.exit(1)
     config_file = sys.argv[1]
-    path = os.path.abspath(config_file)
+    config_ini_filepath = os.path.abspath(config_file)
 
-    load_config(path)
+    load_config(config_ini_filepath)
     register_translator()
+    logging.config.fileConfig(config_ini_filepath)
     
     command(config_file)
