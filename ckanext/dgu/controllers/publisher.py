@@ -46,7 +46,9 @@ class PublisherController(GroupController):
         # TODO: Fix this up, we only really need to do this when we are
         # showing the hierarchy (and then we should load on demand really).
         c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'publisher').order_by('title')
+                       filter(model.Group.type == 'publisher').\
+                       filter(model.Group.state == 'active').\
+                       order_by('title')
         c.page = AlphaPage(
             controller_name="ckanext.dgu.controllers.publisher:PublisherController",
             collection=c.all_groups,
