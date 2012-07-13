@@ -16,6 +16,8 @@
 <?python
     from ckan import model
     sub_groups = sorted([model.Group.get(x['id']) for x in c.group.get_children_groups('publisher')], key=lambda g:g.title)
+    # temporary hack to weed out deleted groups
+    sub_groups = [group for group in sub_groups if group.state=='active']
 ?>
 
   <py:match path="primarysidebar">
