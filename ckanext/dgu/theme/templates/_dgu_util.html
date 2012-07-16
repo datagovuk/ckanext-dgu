@@ -1,0 +1,204 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
+
+  <!--! Herein can be found generic helper methods for a whole bunch of common
+        templating issues -->
+
+  <xi:include href="package/basket.html" />  
+
+  <ul py:def="package_list_from_dict(packages)" class="datasets">
+   <?python
+      import ckanext.dgu.lib.helpers as dgu_helpers
+    ?>
+   <li py:for="package in packages">
+     <?python is_service = dgu_helpers.is_service(package)
+     uklp_type = dgu_helpers.get_uklp_package_type(package)
+     if uklp_type:
+         item_type = '%s (UK Location)' % uklp_type.capitalize()
+     else:
+         item_type = 'Dataset'
+     ?>
+     <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
+       <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
+         <h3><span class="underlined">${title}</span><span class="suffix">&nbsp;&raquo;</span></h3>
+       </a>
+     <h4>
+          <strong>Publisher</strong> 
+          :&nbsp;
+            <?python
+              groups = package.get('groups', [])
+              publishers = [ g for g in groups if g.get('type') == 'publisher' ]
+              publisher = publishers[0] if publishers else {'name':'', 'title': ''}
+            ?>
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=publisher.get('name', ''))}">
+              ${publisher.get('title', '')}
+            </a>
+     </h4>
+     <?python
+              display_provider = False
+              uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
+              is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
+              providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider' or (d['key'] == 'responsible-party' and ('(owner)' in d['value'] or '(publisher)' in d['value'])))]
+              provider = providers[0]['value'] if len(providers) else ''
+              display_provider = is_uklp
+     ?>
+     <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
+     <div class="dataset-description">
+        ${h.markdown_extract(package.notes)}
+     </div>
+     ${map_preview_buttons(package.id, package)}
+     <py:if test="package.get('resources', [])">
+<?python
+formats = set([res.get('format') for res in package['resources']])
+if None in formats:
+    formats.remove(None)
+?>
+     <h4 py:if="formats">Formats:
+          <ul class="dataset-formats">
+            <py:for each="format in formats">
+              <li>${format}</li>
+            </py:for>
+          </ul>
+        </h4>
+     </py:if>
+      <div class="owners">
+      </div>
+      <div class="clearfix"></div>
+        <!--ul py:if="package.tags" class="tags">
+          <li py:for="tag in package.tags">${tag.name}</li>
+        </ul-->
+     </div>
+    </li>
+  </ul>
+
+  <py:def function="dgu_facet_sidebar(code, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, count_label=lambda c: ' (%d)'%c)">
+      <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">
+          <h4>
+            <img src="/images/arrow-list.png" class="arrow" />
+            ${title(code)}
+          </h4>
+          <ul class="facet-options">
+<?python
+items = h.unselected_facet_items(code, limit=100 if more_button else limit)
+?>
+              <li py:for="facet_item in items[:limit]"
+                  py:if="not (code, facet_item['name']) in c.fields">
+                    <a href="${c.drill_down_url(**{code: facet_item['name']})}">
+                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
+                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+              </li>
+          </ul>
+          <py:if test="more_button and len(items) > limit">
+            <a id="${more_button}" class="more-button js-more-button" href="#"><img src="/images/arrow-down.png"/></a>
+            <ul class="facet-options" id="${more_button}-items" style="display: None">
+                <li py:for="facet_item in items[limit:]"
+                  py:if="not (code, facet_item['name']) in c.fields">
+                    <a href="${c.drill_down_url(**{code: facet_item['name']})}">
+                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
+                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+                </li>
+            </ul>
+          </py:if>
+          <py:if test="code=='publisher'">
+              <?python
+                link_subpub = request.params.get('publisher','') and not request.params.get('parent_publishers','')
+                from ckanext.dgu.lib.helpers import search_with_subpub
+              ?>
+              <ul py:if="link_subpub" class="fact-options">
+                  <li><a href="${search_with_subpub()}">Include sub-publishers</a></li>
+              </ul>
+              <p py:if="not items and not link_subpub">${if_empty}</p>
+          </py:if>
+          <p py:if="code!='publisher' and not items">${if_empty}</p>
+      </div>
+  </py:def>
+
+
+  <div py:def="facet_filters()" class="datasets">
+
+    ${dgu_facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
+
+    ${dgu_facet_sidebar('tags', if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
+
+    ${dgu_facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
+
+    ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
+
+    <div class="facet-box" id="map-based-search">
+      <h4>
+        <img src="/images/arrow-list.png" class="arrow" />
+        UK Location Map Search
+      </h4>
+      <ul class="facet-options">
+        <py:if test="'ext_bbox' not in request.params">
+          <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></li>
+        </py:if>
+        <py:if test="'ext_bbox' in request.params">
+          <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">New Map Based Search</a></li>
+        </py:if>
+      </ul>
+    </div>
+
+    <!-- Create a nested list of UKLP filters -->
+    <div class="facet-box">
+      <h4>
+        <img src="/images/arrow-list.png" class="arrow" />
+        UK Location Dataset Type
+      </h4>
+      <ul py:if="len(h.unselected_facet_items('resource-type'))">
+        ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
+        <ul class="facet-options">
+          ${facet_li('resource-type')}
+        </ul>
+      </ul>
+      <p py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</p>
+    </div>
+
+  </div>
+
+  <!--! List of tags: pass in a list of tag name and this renders the standard
+        tag listing -->
+  <py:def function="tag_list_from_name(tags)" class="tags clearfix">
+    <py:for each="tag in tags">
+      <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
+    </py:for>
+  </py:def>
+
+  <!--! List of tags: pass in a collection of tags and this renders the standard
+        tag listing -->
+  <ul py:def="tag_list_from_dicts(tags)" class="tags clearfix">
+    <py:for each="tag in tags">
+      <a href="/data/search?tags=${tag['name']}" class="tag">${tag['display_name']}</a>
+    </py:for>
+  </ul>
+
+  <!--! Contact details -->
+  <py:def function="contact_details(name, email, phone, web_url, web_name)">
+        <py:choose test="">
+          <li py:when="email and '@' in email">Email:
+            <a href="mailto:${email}">${email}</a>
+          </li>
+          <li py:when="email and 'http' in email">Web contact form:
+            <a href="${email}">${email}</a>
+          </li>
+          <li py:when="email">Email:
+            ${email}
+          </li>
+        </py:choose>
+        <li py:if="phone">Phone:
+          ${phone}
+        </li>
+        <li py:if="web_url">Web:
+          <a href="${web_url}">${web_name or web_url}</a>
+        </li>
+        <li py:if="not (email or phone or web_url)">No details supplied</li>
+  </py:def>
+
+</html>

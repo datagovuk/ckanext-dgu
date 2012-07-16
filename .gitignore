@@ -14,6 +14,5 @@ data/*
 # other
 build/*
 tmp/*
-*.ini
 package/DEBIAN/control
 *.swp

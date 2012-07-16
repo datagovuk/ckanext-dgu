@@ -1,0 +1,40 @@
+site=http://data.gov.uk
+
+$site/data
+
+# keyword search
+$site/search/apachesolr_search/flood?filters=type:ckan_package
+$site/search/apachesolr_search/acid?filters=type:ckan_package
+$site/search/apachesolr_search/fuel%20prices?filters=type:ckan_package
+
+# publishers
+$site/search/publisher-hierarchy
+$site/search/apachesolr_search?filters=ss_cck_field_publisher%3A%22Cabinet%20Office%22&retain-filters=1
+$site/search/apachesolr_search?filters=ss_cck_field_publisher%3A%22Department%20for%20Business%2C%20Innovation%20and%20Skills%22&retain-filters=1
+$site/search/apachesolr_search?filters=ss_cck_field_publisher%3A%22Department%20for%20Communities%20and%20Local%20Government%22&retain-filters=1
+
+# tags
+$site/search/apachesolr_search/health?filters=type%3Ackan_package&retain-filters=1
+$site/search/apachesolr_search/care?filters=type%3Ackan_package&retain-filters=1
+$site/search/apachesolr_search/child?filters=type%3Ackan_package&retain-filters=1
+$site/data/tag
+$site/search/apachesolr_search?filters=tid%3A25%20type%3Ackan_package&retain-filters=1
+$site/search/apachesolr_search?filters=tid%3A1410%20type%3Ackan_package&retain-filters=1
+$site/search/apachesolr_search?filters=tid%3A897%20type%3Ackan_package&retain-filters=1
+
+# multifacets
+$site/search/apachesolr_search?filters=type%3Ackan_package%20sm_resource_formats%3ACSV
+$site/search/apachesolr_search?filters=type%3Ackan_package%20sm_resource_formats%3ACSV%20sm_resource_formats%3APDF
+$site/search/apachesolr_search?filters=type%3Ackan_package%20sm_resource_formats%3APDF%20tid%3A3705
+$site/search/apachesolr_search?filters=type%3Ackan_package%20sm_resource_formats%3APDF%20tid%3A3705%20tid%3A3781
+$site/search/apachesolr_search?filters=type%3Ackan_package%20sm_resource_formats%3APDF%20tid%3A3781%20ss_cck_field_publisher%3A%22Department%20for%20Education%22
+
+# datasets
+$site/dataset/child-maintenance-and-enforcement-commission-government-procurement-card-transactions
+$site/dataset/financial-transactions-data-child-maintenance-and-enforcement-commission
+$site/dataset/revenue-based_taxes_and_benefits-personal_tax_credits-0
+$site/dataset/ni-065-percentage-of-children-becoming-the-subject-of-child-protection-plan-for-a-subsequent-time
+$site/dataset/ni-067-percentage-of-child-protection-cases-which-were-reviewed-within-required-timescales
+$site/dataset/farm-scale-evaluations-of-herbicide-tolerant-genetically-modified-crops-map-service
+$site/dataset/bgs-geosure-ogc-wxs
+$site/dataset/bgs-bedrock-and-superficial-geology-ogc-wxs

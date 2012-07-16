@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <!--[if IE 8 ]>    <html class="no-js ie8" lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+    > <![endif]-->
+  <!--[if (gte IE 9)|!(IE)]><!--> <html class="no-js" lang="en"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:py="http://genshi.edgewall.org/"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      > <!--<![endif]-->
+<xi:include href="_util.html" />
+<xi:include href="_dgu_util.html" />
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+  <title>${page_title()} - ${g.site_title}</title>
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" href="/images/favicon.ico" />
+
+  <py:choose>
+  <py:when test="defined('optional_feed')">
+    ${optional_feed()}
+  </py:when>
+  <py:otherwise>
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Recent Revision History" href="${h.url_for(controller='revision', action='list', format='atom', days=1)}" />
+  </py:otherwise>
+  </py:choose>
+
+  <link rel="stylesheet" href="${h.url_for_static('/css/bootstrap.min.css')}" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/chosen.css')}" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}" />
+  <!--[if lt IE 9]>
+  <style>
+      .widget-container,
+      .facet-box,
+      .boxed {
+        border: 1px solid #ccc !important;
+        /* Support box-shadow #000 and border-radius */
+        -moz-box-shadow: none;
+        -o-box-shadow: none;
+        box-shadow: none;
+      }
+  </style>
+  <![endif]-->
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery/1.7.1/jquery.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/underscore/1.1.6/underscore.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/backbone/0.5.1/backbone.js')}"></script>
+
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/json2.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.tmpl/beta1/jquery.tmpl.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.cookie/jquery.cookie.min.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.chosen/0.9.7/chosen.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.placeholder/jquery.placeholder.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/bootstrap/2.0.3/bootstrap.min.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
+
+  <py:if test="defined('optional_head')">
+    ${optional_head()}
+  </py:if>
+
+  <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  <!-- TODO fix IE conditional commenting. For now, always include these files. -->
+
+  ${h.literal(getattr(g, 'template_head_end', ''))}
+</head>
+
+<?python
+data_controller = 'ckanext.dgu.controllers.data:DataController'
+?>
+<body class="${request.environ.get('pylons.routes_dict', {}).get('action')}
+             ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
+             ${defined('body_class') and body_class()}
+  ">
+  <div id="blackbar" py:choose="defined('blackbar_content')">
+    <py:when test="True">
+      ${blackbar_content()}
+    </py:when>
+    <py:otherwise>
+      <div class="container">
+        <div id="hm-government-link">
+          <img src="/images/crown.png" />
+          <img src="/images/crown-text.png" alt="HM Government" />
+        </div>
+<?python
+is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
+?>
+        <span class="ckan-logged-in" style="display: none;">
+          <div id="login-or-signup">
+            You are logged-in as 
+            <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
+            <a href="${'/logout' if is_drupal_auth else h.url_for('/data/user/logout')}">Log out</a>.
+          </div>
+        </span>
+        <span class="ckan-logged-out">
+          <div id="login-or-signup">
+            <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='login')}">Log in</a>
+            or 
+            <a href="${'/user/register' if is_drupal_auth else h.url_for(controller='user',action='register')}">sign up</a>
+          </div>
+        </span>
+      </div>
+    </py:otherwise>
+  </div>
+  <div id="blackbar-underlay">
+  </div>
+  <div id="greenbar">
+    <div class="container" id="branding">
+      <a href="/">
+        <img src="/images/dgu-header.png" alt="DATA.GOV.UK - Opening up Government" />
+      </a>
+    </div>
+    <div class="container">
+      <ul id="nav">
+        <li id="nav-home"><a href="/home"><div class="nav-icon"></div>Home</a></li>
+        <li id="nav-data" class="active"><a href="${h.url_for(controller=data_controller,action='index')}">Data</a></li>
+        <li id="nav-participate"><a href="/participate">Participate</a></li>
+        <li id="nav-apps"><a href="/apps">Apps</a></li>
+        <li id="nav-location"><a href="/location">Location</a></li>
+        <li id="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
+        <li id="nav-library"><a href="/search/apachesolr_search?filters=type:resource">Library</a></li>
+        <li id="nav-lab"><a href="/lab">Lab</a></li>
+        <li id="nav-about"><a href="/about">About</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container">
+    <ul id="subnav">
+      <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
+        <span class="divider">&nbsp;|&nbsp;</span> -->
+      <li><a href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="/data/map-based-search">Map Search</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="/publisher">Publishers</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a href="/openspending">Spend Browser</a></li>
+    </ul>
+<?python
+import ckan.authz
+from ckanext.dgu.plugins_toolkit import c
+if 'is_sysadmin' not in dir(c):
+    c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
+can_create_package = h.check_access('package_create')
+c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
+c.is_an_official = bool(c.groups or c.is_sysadmin)
+?>
+    <ul id="subnav" py:if="c.is_sysadmin or can_create_package"> 
+      <py:if test="can_create_package">
+        <span class="divider-section">Publisher tools:</span>
+        <py:for each="group in c.groups">
+          <li><a href="/publisher/${group.name}">${group.display_name}</a></li>
+          <span class="divider">&nbsp;|&nbsp;</span>
+        </py:for>
+        <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+        <py:if test="c.groups">
+          <span class="divider">&nbsp;|&nbsp;</span>
+          <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+        </py:if>
+      </py:if>
+      <py:if test="c.is_sysadmin">
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <span class="divider-section">&nbsp; Sys Admin:</span>
+        <li><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
+          <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
+      </py:if>
+    </ul>
+  </div>
+
+  <!-- Flash Messages -->
+  <py:with vars="messages = list(h.flash.pop_messages())">
+    <div class="flash-messages container">
+      <div class="alert ${m.category}" py:for="m in messages">
+        ${h.literal(m)}
+      </div>
+    </div>
+  </py:with>
+
+  <div class="container content-start">
+    <div class="row">
+      <div class="span8 main-outer">
+        <div id="main">
+          <!-- Content -->
+          <div id="content">
+            <py:if test="defined('page_heading')">
+              <h1>${page_heading()}</h1>
+            </py:if>
+            <div class="${content_class() if defined('content_class') else 'boxed'}">
+              <div py:if="defined('content')">
+                ${content()}
+              </div>
+              <content>
+                <p>Master content template placeholder &hellip; please replace me.</p>
+              </content>
+            </div>
+          </div>
+        </div><!-- /main -->
+      </div><!-- /span8 -->
+      <div class="span4 sidebar-outer">
+        <div id="sidebar">
+          <ul class="widget-list">
+            <py:if test="defined('primary_sidebar_extras')">
+              ${primary_sidebar_extras()}
+            </py:if>
+            <primarysidebar>
+              <!-- Primary Side Bar Goes Here -->
+            </primarysidebar>
+          </ul>
+        </div><!-- /#sidebar -->
+      </div><!-- /span4 -->
+    </div><!-- /row -->
+  </div><!-- /container -->
+
+
+  <div class="footer">
+    <footer class="container">
+    <div id="footer-menu" class="container">
+      <ul class="links">
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="/moderation-policy">Moderation</a></li>
+        <li><a href="/code-conduct">Code of conduct</a></li>
+        <li><a href="/accessibility-statement">Accessibility</a></li>
+        <li><a href="/cookies-policy">Cookies</a></li>
+        <li><a href="/privacy">Privacy</a></li>
+        <li><a href="/search/apachesolr_search/transparency%20board%20minutes">Transparency Board Minutes</a></li>
+        <li><a href="/contact">Contact us</a></li>
+        <li><a href="/terms-and-conditions">Terms &amp; Conditions</a></li>
+      </ul>
+      <div class="credits">
+        <div class="credit">
+          <strong>Powered by:</strong>
+          <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
+            <img src="/images/ckan_logo_box_64px_wide.png"/>
+          </a>
+        </div>
+        <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
+          <strong>Map tool by:</strong>
+          <a href="/location" title="UK Location Programme">
+            <img src="/images/uk_location.gif" />
+          </a>
+        </div>
+      </div>
+    </div>
+    </footer>
+  </div> <!-- /footer -->
+
+  <script src="${h.url_for_static('/scripts/vendor/modernizr/1.7/modernizr.min.js')}"></script>
+
+  <xi:include href="js_strings.html" />
+
+  <script type="text/javascript">
+    var CKAN = CKAN || {};
+    CKAN.plugins = [
+      // Declare js array from Python string
+      ${['\'%s\', '%s  for s in config.get('ckan.plugins','').split(' ')]}
+    ];
+    <py:if test="config.get('ckan.storage.bucket', '')">
+    CKAN.plugins.push('storage');
+    </py:if>
+    CKAN.SITE_URL = '${h.url('/')}';
+    CKAN.SITE_URL_NO_LOCALE = '${h.url('/', locale='default')}';
+    // later use will add offsets with leading '/' so ensure no trailing slash
+    CKAN.SITE_URL = CKAN.SITE_URL.replace(/\/$/, '');
+    CKAN.SITE_URL_NO_LOCALE = CKAN.SITE_URL_NO_LOCALE.replace(/\/$/, '');
+    $(document).ready(function() {
+        var ckan_user = '${c.user}';
+        if (ckan_user) {
+            $(".ckan-logged-out").hide();
+            $(".ckan-logged-in").show();
+        }
+        <!--! //DR: Not sure what this does 
+        $('input[placeholder], textarea[placeholder]').placeholder();
+
+		$(".chzn-select").chosen();
+        -->
+    });
+  </script>
+
+  <py:if test="h.asbool(config.get('ckan.tracking_enabled', 'false'))">
+  <script type="text/javascript">
+         $(function (){
+                 // Tracking
+				 var url = location.pathname;
+				 // remove any site root from url
+				 url = url.substring(CKAN.SITE_URL.length, url.length - 1);
+				 $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
+						 type : 'POST',
+						 data : {url:url, type:'page'},
+						 timeout : 300 });
+                 $('a.resource-url-analytics').click(function (e){
+                         var url = $(e.target).closest('a').attr('href');
+						 $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
+							     data : {url:url, type:'resource'},
+								 type : 'POST',
+								 complete : function () {location.href = url;},
+								 timeout : 30});
+                         e.preventDefault();
+                         });
+                 });
+  </script>
+  </py:if>
+
+  <py:if test="defined('optional_footer')">
+    ${optional_footer()}
+  </py:if>
+
+  ${h.literal(getattr(g, 'template_footer_end', ''))}
+
+</body>
+</html>
+
+
+

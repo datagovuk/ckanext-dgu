@@ -1,0 +1,132 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="publisher_util.html" />
+
+  <py:def function="page_title">Publishers</py:def>
+  <py:def function="page_heading">Publishers</py:def>
+
+  <py:match path="primarysidebar">
+    <li class="widget-container boxed widget_text">
+      <h4>Publishers</h4>
+      <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
+    </li>
+    <li py:if="c.userobj" class="widget-container boxed widget_text">
+      <h4>Adding New Publishers</h4>
+      <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
+    </li>
+  </py:match>
+
+  <div py:match="content">
+    <div class="tabbable">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#publisherlist" data-toggle="tab">Publisher list</a></li>
+        <li><a href="#publisherhierarchy" data-toggle="tab">Publisher hierarchy</a></li>
+        <li><a href="#publishersearch" data-toggle="tab">Publisher search</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="publisherlist">
+          ${c.page.pager()}
+          ${publisher_list(c.page.items)}
+        </div>
+        <div class="tab-pane" id="publisherhierarchy">
+          <div id="publisher-tree">
+            ${publisher_tree( c.all_groups )}
+          </div>
+        </div>
+        <div class="tab-pane small-search" id="publishersearch">
+<?python
+import json
+?>
+          <table class="search-area">
+            <tr>
+              <td class="left">
+                <div class="result-count" style="color: #ccc;">${c.all_groups.count()}</div>
+                <div class="result-count-footer" style="color: #ccc;">Publishers</div>
+              </td>
+              <td class="right">
+                <form id="publisher-search" class="form-search dataset-search" action="">
+                  <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
+                  <input type="submit" class="btn btn-primary button" value="Search..."/>
+                </form>
+              </td>
+            </tr>
+          </table>
+          <table id="search_results" class="groups" style="display:none;">
+          </table>
+
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <py:def function="optional_footer">
+    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
+    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
+
+  <!--[if IE 7]>
+    <style>
+      .ui-icon { text-indent: 0; }
+      .node { padding: 2px; }
+    </style>
+  <![endif]-->
+
+
+  <script type="text/javascript">
+    function publisher_search() {
+      var term = $("#q").val();
+      var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=publisher&amp;q=' + escape(term);
+
+      $("#search_results").html('<h4>Results:</h4>');
+      $("#search_results").css("display", "block");
+      $.getJSON(url, function(data) {
+
+        $(".result-count").html(data.length);
+        $(".result-count, .result-count-footer").css('color','#000');
+        $.each(data, function(idx, groupobj) {
+          var tpl = '<tr><td>' +
+                    '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
+                    '</a></td></tr>';
+          $("#search_results").append( tpl );
+        });
+      });
+      $('#q').autocomplete('close');
+      return false;
+    }
+
+    $(document).ready(function() {
+        $('#publisher-search').bind('submit',function(e) { 
+          if (e.preventDefault) e.preventDefault();
+          publisher_search();
+        });
+
+      $('a[data-toggle="tab"]').on('shown', function (e) {
+        if (e.target.hash == '#publishersearch') {
+          $("#q").focus();
+        };
+      });
+
+      $("#publisher-tree").jstree( {
+       "themes" : {
+         "icons" : false
+        },
+       "plugins" : ["themes","html_data","ui"]}
+      ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
+    });
+    var autocomplete_source = ${json.dumps([group.title for group in c.all_groups])};
+    $('#q').autocomplete({
+      source: autocomplete_source,
+      minLength: 1,
+      select: function() { $('#publisher-search').submit();  }
+    });
+
+  </script>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>

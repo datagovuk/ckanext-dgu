@@ -1,0 +1,50 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="map_preview_buttons(package_id, pkg_dict)">
+  <!--!package_id is for the same package as pkg_dict-->
+<?python
+from ckanext.dgu.lib import helpers as dgu_helpers
+wms_urls, wms_extent = dgu_helpers.get_wms_info(pkg_dict)
+wms_extent_params = '&n=%s&w=%s&e=%s&s=%s' % wms_extent if wms_extent else ''
+basket = session.get('preview_list',[])
+?>
+    <div py:if="wms_urls" class="map-buttons">
+     <span style="display: none;" class="js-data-id">${package_id}</span>
+     <span style="display: none;" class="js-data-title">${pkg_dict.get('title')}</span>
+     <span style="display: none;" class="js-data-querystring">${wms_urls}</span>
+     <span style="display: none;" class="js-data-extent">${','.join(wms_extent)}</span>
+       <a href="/data/map-preview?${wms_urls}${wms_extent_params}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
+       <span class="preview-add js-dataset-${package_id}-add" 
+             style="${'display: none' if package_id in basket else ''}">
+             <button data-id="${package_id}" class="btn btn-primary btn-small btn-preview btn-basket"><span>Add to Preview List</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
+       </span>
+       <span class="preview-remove js-dataset-${package_id}-remove" 
+             style="${'' if package_id in basket else 'display: none;'}">
+             <button data-id="${package_id}" class="btn btn-small btn-preview btn-basket"><span>Remove from List</span></button><img class="preview-stamp" src="/images/compass-minus.png"/>
+       </span>
+    </div>
+  </py:def>
+
+  <div py:def="basket()">
+        <div class="facet-box" id="shopping-basket-container">
+          <h4>
+            Map Preview List
+          </h4>
+          <ul id="shopping-basket">
+          </ul>
+          <div id="shopping-basket-buttons">
+            <a href="#" id="shopping-basket-reset" class="btn btn-basket" title="Clear Map Preview List"><img src="/images/icons/bin_closed.png"/></a>
+            <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-primary btn-basket"><span>Preview</span></a>
+          </div>
+        </div>
+  </div>
+
+
+</html>
+
+

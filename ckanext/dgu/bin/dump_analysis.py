@@ -57,10 +57,10 @@ def format_date(date):
     return date.strftime('%Y-%m-%d')
 
 def get_run_info():
-    run_info  = 'This analysis is produced by an OKF script\n'
+    run_info  = 'This analysis is produced by a script\n'
     run_info += 'Date last updated: %r\n' % format_date(datetime.date.today())
     run_info += 'Script filename: %r\n' % os.path.basename(__file__)
-    run_info += 'Script repository: http://bitbucket.org/okfn/ckanext-dgu\n'
+    run_info += 'Script repository: http://github.com/okfn/ckanext-dgu\n'
     run_info += 'Dump files for analysis: http://data.gov.uk/data/dumps\n'
     return run_info
 

@@ -1,0 +1,172 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
+
+
+<py:match path="primarysidebar">
+<?python
+if c.pkg.license and c.pkg.license.url:
+  license_url = c.pkg.license.url
+else:
+  license_url = None
+
+licenses = [] # (title, isopen)
+if c.pkg.license:
+  licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
+licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
+if licence_extra:
+  licenses.append((licence_extra, True if 'OGL' in licence_extra else None))
+access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
+if access_constraints:
+  licenses.append((access_constraints, True if 'OGL' in licence_extra else None))
+?>
+        ${basket()}
+
+  <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
+    <h4>Licence</h4>
+    <div property="dc:rights">
+     <ul>
+      <py:choose test="">
+        <py:when test="license_url and licenses">
+          <li py:for="license, isopen in licenses">
+            <a href="${license_url}" rel="dc:rights">${license}</a>
+            <py:if test="isopen">
+              <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+                <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+              </a> 
+            </py:if>
+            <py:if test="isopen == False">
+              <span class="closed">${h.icon('lock')}</span>
+            </py:if>
+          </li>
+        </py:when>
+        <py:when test="licenses">
+          <li py:for="license, isopen in licenses">
+            ${license}
+            <py:if test="isopen">
+              <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+                <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+              </a> 
+            </py:if>
+            <py:if test="isopen == False">
+              <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+            </py:if>
+          </li>
+        </py:when>
+        <py:when test="c.pkg.license_id">
+          <li>${c.pkg.license_id}</li>
+        </py:when>
+        <py:otherwise>
+          <li>No licence specified</li>
+        </py:otherwise>
+      </py:choose>
+     </ul>
+    </div>
+  </div>
+
+  <li class="widget-container">
+    <h4>Contact</h4>
+    Enquiries:
+    <ul>
+      <li py:if="dataset_type=='uklp'">Email: 
+        <?python
+           email = pkg_extras.get('contact-email')
+        ?>
+        <py:if test="email"><a href="mailto:${email}">${email}</a></py:if>
+        <py:if test="not email">None supplied</py:if>
+      </li>
+      <py:if test="dataset_type=='form'">
+<?python
+# go up tree looking for contact details
+import ckanext.dgu.lib.publisher
+publisher_groups = c.pkg.get_groups('publisher') # assume only one
+name = email = phone = None # defaults
+if publisher_groups:
+    for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
+         extras = publisher.extras
+         name = extras.get('contact-name')
+         email = extras.get('contact-email')
+         phone = extras.get('contact-phone')
+         if name or email or phone:
+             break    
+foi_name = foi_email = foi_phone = None # defaults
+if publisher_groups:
+    for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
+         extras = publisher.extras
+         foi_name = extras.get('foi-name')
+         foi_email = extras.get('foi-email')
+         foi_phone = extras.get('foi-phone')
+         if foi_name or foi_email or foi_phone:
+             break
+?>
+        ${name}
+        ${contact_details(name, email, phone, None, None)}
+      </py:if>
+    </ul>
+    <py:if test="dataset_type=='form' and (foi_name or foi_email or foi_phone)">
+      FOI Contact: 
+      <ul>
+          ${foi_name}
+          ${contact_details(foi_name, foi_email, foi_phone, None, None)}
+      </ul>
+    </py:if>
+
+  </li>
+
+  <?python
+    from ckan import model
+  ?>
+
+  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
+    <h4>Deletion</h4>
+    <ul><li><a href="${h.url_for(controller='ckanext.dgu.controllers.package_gov3:PackageGov3Controller', action='delete', id=c.pkg.name)}">Delete this dataset</a></li></ul>
+  </li>
+
+  <li py:if="c.pkg_dict['tags']" class="widget-container">
+    <h4>Tags</h4>
+    ${tag_list_from_dicts(c.pkg_dict['tags'])}
+  </li>
+
+  <li id="social_media" class="widget-container">
+    <h4>Social</h4>
+    <p>Tell the world about this dataset!</p>
+    <!--! Uses ckanext-social extension -->
+    ${h.social_sharethis()}
+  </li>
+
+  <li class="widget-container">
+    <h4>Developer tools</h4>
+    <a href="/dataset/${c.pkg_dict.get('name')}#developer-tools">JSON, API and URI</a> for this dataset record
+  </li>
+
+  <li class="widget-container">
+    <h4>Do more with this data</h4>
+    <ul>
+      <li><a href="/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
+      <li><a href="/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
+      <li><a href="/node/add/data-request?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
+    </ul>
+  </li>
+
+  <li py:if="c.pkg.get_groups('publisher')" class="widget-container">
+    <h4>Publisher</h4>
+    <ul class="groups">
+      <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
+          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
+      </li>
+      <li py:if="pkg_extras.get('provider')">
+        Provider: ${pkg_extras.get('provider')}
+      </li>
+      <li py:if="dataset_type == 'uklp' and pkg_extras.get('responsible-party')">
+        Responsible Party: ${pkg_extras.get('responsible-party')}
+      </li>
+    </ul>
+  </li>
+
+
+</py:match>
+</html>

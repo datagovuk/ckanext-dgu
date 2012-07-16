@@ -2,11 +2,21 @@
 ckanext-dgu - data.gov.uk extension
 ===================================
 
-This is an extension to CKAN that provides customisations specifically for the data.gov.uk project:
+This is an extension to CKAN that provides customisations specifically for the data.gov.uk project.
+
+The official version is available at: https://github.com/datagovuk/ckanext-dgu
+
+Contributions from 1st March 2012 are by the Cabinet Office. It is Crown Copyright and opened up under both the Open Government License (OGL) (which is compatible with Creative Commons Attibution License) and the GNU Affero General Public License (AGPL) v3.0. Before 1st March 2012, contributions are Copyright (c) 2010-2012 Open Knowledge Foundation. This material is open and licensed under the GNU Affero General Public License (AGPL) v3.0.
+
+OGL terms: http://www.nationalarchives.gov.uk/doc/open-government-licence/
+AGPL terms: http://www.fsf.org/licensing/licenses/agpl-3.0.html
+
+Plugins
+=======
+
+This extension contains a number of elements, principally:
 
  * DGU's package form - includes a number of custom fields such as temporal_coverage and geographic_coverage.
- * the Form API - exposes in the API the form expressed as HTML for insertion in the Drupal front-end.
- * Harvest Source form, supplied by Form API to the Drupal front-end.
  * Harvest Object inserted into the CKAN package view page.
  * gov_daily - a script (for running daily) that save the database dumps for end-users (JSON/CSV) and backups (SQL).
  * ons_loader - an import script for data from the Office of National Statistics.
@@ -47,6 +57,13 @@ and credentials for HTTP Basic Authentication (if necessary)::
     dgu.xmlrpc_username = ckan
     dgu.xmlrpc_password = letmein
 
+The DGU-version of the SOLR schema is required instead of the CKAN 1.4 SOLR schema. Whether you use a single or mult-core SOLR setup, you'll need a link to the DGU SOLR schema like this::
+
+    sudo ln -s /home/okfn/pyenv/src/ckanext-dgu/config/solr/schema-1.4-dgu.xml /etc/solr/conf/schema.xml
+
+You can configure the 'approved' resource formats. These appear in the dataset edit form, and variations on these are standardised when doing search indexing:: 
+
+    dgu.resource_formats = CSV CSV/Zip XLS ODS RDF RDF/XML HTML+RDFa PPT ODP SHP KML TXT DOC JSON iCal SQL SQL/Zip PDF HTML
 
 Usage
 =====
@@ -80,7 +97,7 @@ To run the tests::
 
 or run them from another directory by specifying the test.ini::
 
-    nosetests {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/ --ckan --with-pylons={pyenv}/src/ckanext-dgu/test.ini {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/
+    nosetests --ckan --with-pylons={pyenv}/src/ckanext-dgu/test.ini {pyenv}/src/ckanext-dgu/ckanext/dgu/tests/
 
 You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see http://docs.ckan.org/en/latest/install-from-source.html . 
 
@@ -108,6 +125,10 @@ Config errors
 * ``DrupalXmlRpcSetupError: Drupal XMLRPC not configured.``
 
 The missing settings that result in this error are to be found in {pyenv}/src/ckanext-dgu/test-core.ini which is also imported into {pyenv}/src/ckanext-dgu/test.ini, so make sure you are specifying either of these config files in your nosetests ``--with-pylons`` parameter.
+
+* ``ckan.lib.search.common.SearchIndexError: HTTP code=400, reason=ERROR: [f752f33380e3eec1379cfb89e0fdded8] multiple values encountered for non multiValued field parent_publishers: [london-borough-of-barnet, local-authorities]``
+
+This is due to SOLR using the CKAN SOLR schema, rather than the specific DGU one. Change it using the ``ln -s`` command above, followed by stopping and starting SOLR.
 
 
 Documentation

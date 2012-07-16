@@ -1,0 +1,131 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="../facets.html" />
+  <py:def function="page_title">Data | data.gov.uk</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <py:def function="content_class"><!--unboxed--></py:def>
+
+  <py:def function="optional_head">
+    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.tagcloud.js')}"></script>
+    <script src="/scripts/spin.min.js"></script>
+    <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
+  </py:def>
+
+  <div py:match="content" class="front-page">
+    <!--! Though deeply unfashionable... I'm using a table to create equal-height boxes -->
+    <table class="front-page-table">
+      <tr>
+        <td class="boxed">
+          <h2>Search Datasets</h2>
+          <br/>
+          <div class="small-search">
+            <xi:include href="../package/search_form.html" />
+          </div>
+        </td>
+        <td class="gutter"></td>
+        <td class="boxed">
+          <div class="pull-right">
+            <a href="/data/tag" class="btn btn-primary viewall">View all tags &raquo;</a>
+          </div>
+          <h2>Tags</h2>
+          <div id="tagcloud">
+            <?python
+              import random
+              tags = h.unselected_facet_items('tags', limit=20)
+              random.shuffle(tags)
+            ?>
+            <py:for each="tag_dict in tags">
+              <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
+            </py:for>
+          </div>
+          <script type="text/javascript" charset="utf-8">
+    /* Tag cloud */
+    $.fn.tagcloud.defaults = {
+      size: {start: 8, end: 24, unit: "pt"}, 
+      color: {start: '#bbb', end: '#66aa44'}
+    };
+    $('#tagcloud a').tagcloud();
+        </script>
+        </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="3"></td>
+      </tr>
+      <tr>
+        <td class="boxed">
+          <div class="pull-right">
+            <a href="/publisher" class="btn btn-primary">View all publishers &raquo;</a>
+          </div>
+          <h2>Publishers</h2>
+          <ul class="facet-options">
+            <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
+              <a href="/publisher/${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
+            </li>
+          </ul>
+          <p py:if="not len(h.unselected_facet_items('publisher', limit=1))">No publishers found</p>
+        </td>
+        <td class="gutter"></td>
+        <td class="boxed">
+          <div class="pull-right">
+            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct Map Based Search &raquo;</a>
+          </div>
+          <h2>UK Location</h2>
+          <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
+          <p>The <a href="/location">UK Location Programme</a> has introduced over
+             1000 location data records into data.gov.uk and tools to support their
+             use. To find which of these datasets cover a particular location, you 
+             can use <a href="${h.url_for('/data/map-based-search')}">Map Based Search</a>.</p>
+             <p>Many of these datasets provide a Web Map Service
+             too, and for some a preview of the data is available. Click to find out more
+             <a href="/location/map-based-search">about Map Based Search</a>
+             and <a href="/location/preview-on-map">about Preview on Map</a>.
+          </p>
+        </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="3"></td>
+      </tr>
+      <tr>
+        <td class="boxed" rowspan="3">
+          <h2>Cross-Government Data Apps</h2>
+          <ul>
+            <li><a href="/contractfinder" class="js-tooltip" title="Search and read about all Government opportunities, tenders and contracts worth more than &pound;10,000.">Government contracts in full</a></li>
+
+            <li><a href="/whoslobbying" class="js-tooltip" title="Find out which organisations and industries have met with Ministers from across Government departments.">Who's Lobbying</a> - who ministers are meeting</li>
+
+            <li><a href="/business_plans" class="js-tooltip" title="Check on the Government's progress on implementing its policies. See how every department is performing against its priorities.">Business plans</a></li>
+
+            <!--! Removed - not like the rest - looked like a placeholder. <li><a href="/crime-spy-uk" class="js-tooltip" title="Use your iPhone to view neighbourhood information and crime stats for the area">Applications</a></li>-->
+          </ul>
+        </td>
+        <td class="gutter"></td>
+        <td class="boxed">
+          <div class="pull-right">
+            <a href="/node/add/data-request" class="btn btn-primary">Request new data</a>
+          </div>
+          <h2 class="front-page-no-body">Data Requests</h2>
+        </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="2"></td>
+      </tr>
+      <tr>
+        <td class="gutter"></td>
+        <td class="boxed">
+          <h2>Developers</h2>
+          <div>
+            <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <xi:include href="../layout.html" />
+
+</html>

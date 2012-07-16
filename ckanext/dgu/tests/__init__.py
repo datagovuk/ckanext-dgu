@@ -8,7 +8,7 @@ from ckan import model
 from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import WsgiAppCase, BaseCase
 from ckanext.dgu.testtools.mock_drupal import MOCK_DRUPAL_URL
-from ckanext.harvest.model import HarvestJob, HarvestObject
+from ckanext.harvest.model import HarvestSource, HarvestJob, HarvestObject
 from ckanext.harvest.model import setup as harvest_setup
 
 # Invoke websetup with the current config file
@@ -26,7 +26,7 @@ class PackageFixturesBase:
 
 class GovFixtures(PackageFixturesBase):
     user_name = 'tester'
-    
+
     @property
     def pkgs(self):
         if not hasattr(self, '_pkgs'):
@@ -36,10 +36,10 @@ class GovFixtures(PackageFixturesBase):
      'title':u'Private Fostering',
      'notes':u'Figures on children cared for and accommodated in private fostering arrangements, England, Year ending 31 March 2009',
      'resources':[{'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/SFR17_2009_tables.xls',
-                  'format':u'XLS',
+                  'format':u'xls',
                   'description':u'December 2009 | http://www.statistics.gov.uk/hub/id/119-36345'},
                   {'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000860/SFR17_2009_key.doc',
-                  'format':u'DOC',
+                  'format':u'doc',
                   'description':u'http://www.statistics.gov.uk/hub/id/119-34565'}],
      'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/index.shtml',
      'author':u'DCSF Data Services Group',
@@ -52,7 +52,7 @@ class GovFixtures(PackageFixturesBase):
         'date_updated':u'2009-07-30',
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
-        'geographic_coverage':u'100000: England',
+        'geographic_coverage':u'1000000: England',
         'department':u'Department for Education',
         'agency':u'',
         'temporal_granularity':u'year',
@@ -67,7 +67,7 @@ class GovFixtures(PackageFixturesBase):
     {'name':u'weekly-fuel-prices',
      'title':u'Weekly fuel prices',
      'notes':u'Latest price as at start of week of unleaded petrol and diesel.',
-     'resources':[{'url':u'', 'format':u'XLS', 'description':u''}],
+     'resources':[{'url':u'', 'format':u'xls', 'description':u''}],
      'url':u'http://www.decc.gov.uk/en/content/cms/statistics/source/prices/prices.aspx',
      'author':u'DECC Energy Statistics Team',
      'author_email':u'energy.stats@decc.gsi.gov.uk',
@@ -81,7 +81,7 @@ class GovFixtures(PackageFixturesBase):
         'department':u'Department of Energy and Climate Change',
         'agency':u'',
         'geographic_granularity':u'national',
-        'geographic_coverage':u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)',
+        'geographic_coverage':u'1111000: United Kingdom (England, Scotland, Wales, Northern Ireland)',
         'temporal_granularity':u'weeks',
         'temporal_coverage-from':u'2008-11-24',
         'temporal_coverage-to':u'2009-11-24',
@@ -104,16 +104,21 @@ class Gov3Fixtures(PackageFixturesBase):
      'title':u'Private Fostering',
      'notes':u'Figures on children cared for and accommodated in private fostering arrangements, England, Year ending 31 March 2009',
      'resources':[{'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/SFR17_2009_tables.xls',
-                  'format':u'XLS',
-                  'description':u'December 2009 | http://www.statistics.gov.uk/hub/id/119-36345'},
+                  'format':u'xls',
+                  'description':u'December 2009 | http://www.statistics.gov.uk/hub/id/119-36345',
+                  'resource_type': u'file',
+                  'name':u''},
                   {'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000860/SFR17_2009_key.doc',
-                  'format':u'DOC',
-                  'description':u'http://www.statistics.gov.uk/hub/id/119-34565'}],
+                  'format':u'doc',
+                  'description':u'http://www.statistics.gov.uk/hub/id/119-34565',
+                  'resource_type': u'documentation',
+                  'name':u''}],
      'url':u'http://www.dcsf.gov.uk/rsgateway/DB/SFR/s000859/index.shtml',
      'author':u'DCSF Data Services Group',
      'author_email':u'statistics@dcsf.gsi.gov.uk',
      'license':u'uk-ogl',
      'tags':u'children fostering',
+     'groups':['publisher-1'],
      'extras':{
         'external_reference':u'DCSF-DCSF-0024',
         'date_released':u'2009-07-30',
@@ -121,7 +126,7 @@ class Gov3Fixtures(PackageFixturesBase):
         'date_update_future':u'2009-07-01',
         'update_frequency':u'annual',
         'geographic_granularity':u'regional',
-        'geographic_coverage':u'100000: England',
+        'geographic_coverage':u'1000000: England',
         'published_by':u'Department for Education [3]',
         'published_via':u'',
         'temporal_granularity':u'year',
@@ -129,7 +134,7 @@ class Gov3Fixtures(PackageFixturesBase):
         'temporal_coverage-to':u'2009-6',
         'national_statistic':u'yes',
         'precision':u'Numbers to nearest 10, percentage to nearest whole number',
-        'mandate':u'http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2',                
+        'mandate':u'http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2',
                 'taxonomy_url':u'',
         'import_source':u'ONS-Jan-09',
         }
@@ -137,19 +142,20 @@ class Gov3Fixtures(PackageFixturesBase):
     {'name':u'weekly-fuel-prices',
      'title':u'Weekly fuel prices',
      'notes':u'Latest price as at start of week of unleaded petrol and diesel.',
-     'resources':[{'url':u'', 'format':u'XLS', 'description':u''}],
+     'resources':[{'url':u'', 'format':u'xls', 'description':u'', 'name':u''}],
      'url':u'http://www.decc.gov.uk/en/content/cms/statistics/source/prices/prices.aspx',
      'author':u'DECC Energy Statistics Team',
      'author_email':u'energy.stats@decc.gsi.gov.uk',
      'license':u'ukcrown',
      'tags':u'fuel prices',
+     'groups':['publisher-1'],
      'extras':{
         'external_reference':u'DECC-DECC-0001',
         'date_released':u'2009-11-24',
         'date_updated':u'2009-11-24',
         'update_frequency':u'weekly',
         'geographic_granularity':u'national',
-        'geographic_coverage':u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)',
+        'geographic_coverage':u'1111000: United Kingdom (England, Scotland, Wales, Northern Ireland)',
         'published_by':u'Department of Energy and Climate Change [4]',
         'published_via':u'',
         'temporal_granularity':u'weeks',
@@ -204,7 +210,7 @@ class DrupalSetupError(Exception):
 class MockDrupalCase(BaseCase):
     xmlrpc_url = MOCK_DRUPAL_URL
     xmlrpc_settings = {'xmlrpc_url': xmlrpc_url}
-    
+
     @classmethod
     def setup_class(cls):
         cls._check_drupal_not_already_running()
@@ -230,7 +236,7 @@ class MockDrupalCase(BaseCase):
         import xmlrpclib
         import socket
         import time
-        
+
         url = url or cls.xmlrpc_url
         drupal = xmlrpclib.ServerProxy(url)
         try:
@@ -247,7 +253,7 @@ class MockDrupalCase(BaseCase):
         import xmlrpclib
         import socket
         import time
-        
+
         url = url or cls.xmlrpc_url
         drupal = xmlrpclib.ServerProxy(url)
         for i in range(int(timeout)*100):
@@ -277,18 +283,20 @@ class HarvestFixture(object):
         # Create package and its harvest object
         CreateTestData.create()
         harvest_setup()
-        job = HarvestJob()
+        source = HarvestSource(url=u'http://test-source.org',type='test')
+        source.save()
+
+        job = HarvestJob(source=source)
         job.save()
-        model.repo.commit_and_remove()
-        job = model.Session.query(HarvestJob).first()
+
         ho = HarvestObject(package=model.Package.by_name(u'annakarenina'),
-                           harvest_job=job,
-                           guid='test-guid',
-                           content='<xml>test content</xml>')
+                           job=job,
+                           guid=u'test-guid',
+                           content=u'<xml>test content</xml>')
         ho.save()
 
         # Save a reference to the harvest object in the package
-        rev = model.repo.new_revision()    
+        rev = model.repo.new_revision()
         pkg = model.Package.by_name(u'annakarenina')
         pkg.extras['harvest_object_id'] = ho.id
         pkg.save()

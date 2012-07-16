@@ -1,0 +1,244 @@
+<form id="publisher-edit" action="" method="post"
+    class="form-horizontal"
+    py:attrs="{'class':'has-errors'} if errors else {}"
+    xmlns:i18n="http://genshi.edgewall.org/i18n"
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude">
+    <script>
+      $(function() {
+        new CKAN.Dgu.UrlEditor({slugType:'group'});
+      });
+    </script>
+
+<div class="error-explanation" py:if="error_summary">
+<h2>Errors in form</h2>
+<p>The form contains invalid entries:</p>
+<ul>
+  <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+</ul>
+</div>
+
+<input type="hidden" id="type" name="type" value="publisher" />
+<input type="hidden" id="approval_status" name="approval_status" value="pending" />
+
+<?python
+publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
+                         for extra_dict in data.get('extras', {})])
+?>
+
+<p>Details about the organisation that publishes data on data.gov.uk</p>
+
+<fieldset id="basic-information">
+  <div class="control-group">
+    <label class="control-label" for="name">Publisher name</label>
+    <div class="controls">
+      <input py:if="not c.group or c.is_sysadmin" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+      <span py:if="c.group and not c.is_sysadmin" class="js-title">
+        ${data.get('title', '')}
+      </span>
+      <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="title">Url</label>
+    <div class="controls name-field">
+      <div class="input-prepend">
+        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" />
+      </div>
+      <p class="js-url-is-valid">&nbsp;</p>
+      <p>2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
+      <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="title">Publisher Description</label>
+    <div class="controls description-field">
+      <textarea style="width: 350px;" rows="3" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label py:if="c.is_superuser_or_groupadmin" class="control-label" for="parent">Parent publisher</label>
+    <div class="controls">
+      <py:if test="c.group and not c.is_sysadmin">
+        <span py:if="c.parent is not None" class="js-title">
+          ${c.parent.title}
+        </span>
+        <span py:if="c.parent is None" class="js-title">
+          No parent publisher
+        </span>
+      </py:if>
+      <py:if test="c.is_sysadmin" class="parent-field">
+        <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
+          <option value=""></option>
+          <py:for each="pg in c.possible_parents">
+            <option py:attrs="{'selected': 'selected' if c.parent and pg.id == c.parent.id else None}" value="${pg.id}">${pg.title}</option>
+          </py:for>
+        </select>
+      </py:if>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="state">State</label>
+    <div class="controls state-field">
+      <py:if test="c.is_sysadmin or c.auth_for_change_state">
+        <select id="state" name="state" style="width:100px;">
+          <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
+          <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
+        </select>
+      </py:if>
+    </div>
+  </div>
+</fieldset>
+
+<fieldset id="contact-details">
+  <h3>Contact Details</h3>
+  <p>These provide the default contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.</p>
+
+  <div class="control-group">
+    <label class="control-label" for="contact-name">Name</label>
+    <div class="controls">
+      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${publisher_extras.get('contact-name', '')}" />
+      <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="contact-email">Email</label>
+    <div class="controls">
+      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${publisher_extras.get('contact-email', '')}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="contact-name">Telephone</label>
+    <div class="controls">
+      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${publisher_extras.get('contact-phone', '')}" />
+    </div>
+  </div>
+</fieldset>
+<fieldset id="foi-details">
+  <h3>FOI Request Details</h3>
+  <p>These provide the default Freedom of Information request contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.</p>
+  <div class="control-group">
+    <label class="control-label" for="foi-name">Name</label>
+    <div class="controls">
+      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${publisher_extras.get('foi-name', '')}" />
+      <p class="help-block">e.g. DfT FOI Enquiry Service</p>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="foi-email">Email</label>
+    <div class="controls">
+      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${publisher_extras.get('foi-email', '')}" />
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label" for="foi-name">Telephone</label>
+    <div class="controls">
+      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${publisher_extras.get('foi-phone', '')}" />
+    </div>
+  </div>
+</fieldset>
+<?python
+users = data.get('users', [])
+?>
+<fieldset id="users" style="display: none;">
+  <h3>Users <span py:if="users">(${len(users)})</span></h3>
+  <dl py:if="users">
+    <py:for each="num, user in enumerate(users)">
+    <dd>
+      <label>${user['name']}</label>
+      <input type="hidden" name="users__${num}__name" value="${user['name']}"/>
+      <input type="hidden" name="users__${num}__capacity" value="${user['capacity']}"/>
+  </dd>
+    </py:for>
+  </dl>
+  <p py:if="not users">There are no users currently in this publisher.</p>
+</fieldset>
+<fieldset id="extras" style="display: none;">
+<!--!  <h3>Extras</h3> -->
+  <py:with vars="extras = data.get('extras', [])">
+  <py:for each="num, extra in enumerate(data.get('extras', []))">
+<!--!  <div class="control-group"> -->
+    <!--! <label class="control-label" for="extras__${num}__value">${extra.get('key')}</label> -->
+<!--!    <div class="controls"> -->
+    <py:if test="extra.get('key')"> <!--! Somehow some extras have no key! - delete -->
+      <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
+      <input id="extras__${num}__value" name="extras__${num}__value" type="hidden" value="${extra.get('value')}" />
+<!--!      <label class="checkbox" style="display: inline-block;"> -->
+        <!--!<input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}" />Delete-->
+<!--!      </label> -->
+<!--!    </div> -->
+<!--!  </div> -->
+     </py:if>
+  </py:for>
+  <hr py:if="len(extras)" class="extras-divider" />
+<!--!  <py:for each="num in range(len(extras), len(extras) + 4)">
+    <div class="control-group">
+      <label class="control-label" for="extras__${num}__key"><b>Add...</b></label>
+      <div class="controls">
+        <label>
+          <span class="extras-label">Key =</span>
+          <input class="medium-width" id="extras__${num}__key" name="extras__${num}__key" type="text" />
+        </label>
+        <label>
+          <span class="extras-label">Value =</span>
+          <input class="medium-width" id="extras__${num}__value" name="extras__${num}__value" type="text" />
+        </label>
+      </div>
+    </div>
+  </py:for> -->
+  </py:with>
+</fieldset>
+
+<fieldset id="child-publishers" style="display: none;" py:if="c.group">
+<?python
+from ckanext.dgu.lib import publisher
+?>
+  <ul>
+    <li py:for="num, publisher in enumerate(publisher.get_children(c.group))">
+      <label class="checkbox" for="groups__${num}__name">
+        <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher[1]}"/>
+        ${publisher[2]}
+      </label>
+    </li>
+  </ul>
+</fieldset>
+
+<fieldset id="datasets" style="display: none;">
+  <h3>Datasets <span py:if="data.get('packages')">(${len(data.get('packages'))})</span></h3>
+  <dl py:if="data.get('packages')">
+    <py:for each="num, package in enumerate(data.get('packages'))">
+      <label class="checkbox" for="packages__${num}__name">
+        <input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/>
+        ${package['name']}
+      </label>
+    </py:for>
+  </dl>
+  <p py:if="not data.get('packages')">There are no datasets currently in this publisher.</p>
+
+  <h3>Add datasets</h3>
+  <dl>
+    <dt><label class="field_opt" for="packages__${len(data.get('packages', []))}__name">Dataset</label></dt>
+    <dd><input class="autocomplete-dataset" id="datasets__${len(data.get('packages', []))}__name" name="packages__${len(data.get('packages', []))}__name" type="text" /></dd>
+  </dl>
+  <dl py:if="c.group">
+	<dd>
+		<a href="${h.url_for(controller='package', action='new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+	</dd>
+  </dl>
+</fieldset>
+
+<div class="form-submit form-actions">
+  <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save Changes')}" />
+  <py:if test="c.group">
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
+  </py:if>
+</div>
+
+<script>
+	$(".chzn-select").chosen();
+</script>
+</form>

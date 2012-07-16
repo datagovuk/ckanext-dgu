@@ -1,6 +1,8 @@
+import re
 import logging
 import socket
 from xmlrpclib import ServerProxy, Fault, ProtocolError
+from xml.parsers.expat import ExpatError
 
 log = logging.getLogger(__name__)
 
@@ -12,7 +14,7 @@ class DrupalClient(object):
     def __init__(self, xmlrpc_settings=None):
         '''If you do not supply xmlrpc settings then it looks them
         up in the pylons config.'''
-        self.xmlrpc_url = DrupalClient.get_xmlrpc_url(xmlrpc_settings)
+        self.xmlrpc_url, self.xmlrpc_url_log_safe = DrupalClient.get_xmlrpc_url(xmlrpc_settings)
         self.drupal = ServerProxy(self.xmlrpc_url)
 
     @staticmethod
@@ -24,6 +26,9 @@ class DrupalClient(object):
         up in the pylons config.'''
         if xmlrpc_settings and xmlrpc_settings.get('xmlrpc_url'):
             xmlrpc_url = xmlrpc_settings['xmlrpc_url']
+            xmlrpc_url_log_safe = re.sub(':([^@])[^@]*@', r':\1xxx@',
+                                         xmlrpc_url)
+
         else:
             if xmlrpc_settings:
                 domain = xmlrpc_settings.get('xmlrpc_domain')
@@ -41,11 +46,15 @@ class DrupalClient(object):
                 raise DrupalXmlRpcSetupError('Drupal XMLRPC not configured.')
             if username or password:
                 server = '%s:%s@%s' % (username, password, domain)
+                server_log_safe = '%s:%s%s@%s' % (username, password[:1], 'x' * (len(password)-1), domain)
             else:
                 server = '%s' % domain
-            xmlrpc_url = 'http://%s/services/xmlrpc' % server
-        log.info('XMLRPC connection to %s', xmlrpc_url)
-        return xmlrpc_url
+                server_log_safe = server
+            xmlrpc_url_template = 'http://%s/services/xmlrpc' 
+            xmlrpc_url = xmlrpc_url_template % server
+            xmlrpc_url_log_safe = xmlrpc_url_template % server_log_safe
+        log.info('XMLRPC connection to %s', xmlrpc_url_log_safe)
+        return xmlrpc_url, xmlrpc_url_log_safe
 
     def get_user_properties(self, user_id):
         '''Requests dict of properties of the Drupal user in the request.
@@ -56,9 +65,9 @@ class DrupalClient(object):
         except ValueError, e:
             cls._abort_bad_request('user_id parameter must be an integer')
         try:
-            user = self.drupal.user.get(user_id)
+            user = self.drupal.user.get(str(user_id))
         except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
             raise DrupalRequestError('Drupal returned error for user_id %r: %r' % (user_id, e))
         except ProtocolError, e:
@@ -70,12 +79,14 @@ class DrupalClient(object):
         try:
             session = self.drupal.session.get(session_id)
         except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
             raise DrupalRequestError('Drupal returned error for session_id %r: %r' % (session_id, e))
         except ProtocolError, e:
             raise DrupalRequestError('Drupal returned protocol error for session_id %r: %r' % (session_id, e))
-        log.info('Obtained Drupal session for session ID %r: %r', session_id, session)
+        except ExpatError, e:
+            raise DrupalRequestError('Drupal return value not XML: %r' % (session_id, e))
+        log.info('Obtained Drupal session for session ID %r...: %r', session_id[:4], session)
         return session
 
     def get_department_from_organisation(self, id):
@@ -84,7 +95,7 @@ class DrupalClient(object):
             #   {'11419': 'Department for Culture, Media and Sport'}
             dept_dict = self.drupal.organisation.department(str(id))
         except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
             if e.faultCode == 404:
                 raise DrupalKeyError(id)
@@ -104,7 +115,7 @@ class DrupalClient(object):
         try:
             organisation_name = self.drupal.organisation.one(str(id))
         except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
             if e.faultCode == 404:
                 raise DrupalKeyError(id)
@@ -122,7 +133,7 @@ class DrupalClient(object):
         try:
             organisation_id = self.drupal.organisation.match(organisation_name or u'')
         except socket.error, e:
-            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url, e))
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
             if e.faultCode == 404:
                 raise DrupalKeyError(organisation_name)
@@ -135,3 +146,33 @@ class DrupalClient(object):
                 raise DrupalRequestError('Drupal returned protocol error for organisation_name %r: %r' % (organisation_name, e))
         log.info('Obtained organisation id %r from name %r', organisation_id, organisation_name)
         return organisation_id
+
+    def get_organisation_list(self):
+        try:
+            organisations = self.drupal.publisher.list()
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
+        except Fault, e:
+            raise DrupalRequestError('Drupal returned error: %r' % (e))
+        except ProtocolError, e:
+            raise DrupalRequestError('Drupal returned protocol error: %r' % (e))
+        log.info('Obtained organisation list %r', organisations)
+        return organisations
+
+    def get_organisation_details(self, organisation_id):
+        try:
+            organisation = self.drupal.publisher.details(organisation_id or u'')
+        except socket.error, e:
+            raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
+        except Fault, e:
+            if e.faultCode == 404:
+                raise DrupalKeyError(organisation_id)
+            else:
+                raise DrupalRequestError('Drupal returned error for organisation_id %r: %r' % (organisation_id, e))
+        except ProtocolError, e:
+            if e.errcode == 404:
+                raise DrupalKeyError(organisation_id)
+            else:
+                raise DrupalRequestError('Drupal returned protocol error for organisation_id %r: %r' % (organisation_id, e))
+        log.info('Obtained organisation details %r from name %r', organisation, organisation_id)
+        return organisation

@@ -1,4 +1,6 @@
-from ckanext.dgu.schema import *
+from ckanext.dgu.schema import (suggest_tags, tags_parse, tag_munge, \
+                                DrupalHelper, name_munge, \
+                                canonise_organisation_name, GeoCoverageType)
 from nose.tools import assert_equal
 from ckanext.dgu.tests import MockDrupalCase
 
@@ -13,8 +15,8 @@ class TestGeoCoverageType:
             ('Northern Ireland', ['northern_ireland'], u'000100: Northern Ireland'),
             ('GB', ['england', 'scotland', 'wales'], u'111000: Great Britain (England, Scotland, Wales)'),
             ('UK', ['england', 'scotland', 'wales', 'northern_ireland'], u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
-            ('Sub-National', None, u'000000: '),
-            ]
+            ('Not Specified', None, u'000000: '),
+        ]
             
     def test_str_to_db(self):
         for str_, form, db in self.expected_data:
@@ -36,6 +38,26 @@ class TestGeoCoverageType:
                 continue
             result_form = GeoCoverageType.get_instance().db_to_form(db)
             assert_equal(result_form, form)
+
+    def test_backward_compatibility_of_adding_an_extra_option(self):
+        """
+        Test that omitting the last character from the bit-string encoding
+        is equivelant to having the character set at '0'.  This ensures
+        backward compatibility when reading from the db.
+        """
+        # str_, form, db
+        expected_data = [
+            ('England', ['england'], u'100000: England'),
+            ('England and Wales', ['england', 'wales'], u'101000: England, Wales'),
+            ('Scotland', ['scotland'], u'010000: Scotland'),
+            ('Northern Ireland', ['northern_ireland'], u'000100: Northern Ireland'),
+            ('GB', ['england', 'scotland', 'wales'], u'111000: Great Britain (England, Scotland, Wales)'),
+            ('UK', ['england', 'scotland', 'wales', 'northern_ireland'], u'111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),
+        ]
+
+        for str_, form, db in expected_data:
+            result_form = GeoCoverageType.get_instance().db_to_form(db)
+        assert_equal(result_form, form)
 
 class TestCanonicalOrganisationNames:
     def test_basic(self):

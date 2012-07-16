@@ -1,0 +1,14 @@
+Dear administrator,
+
+A request has been made for membership of the data.gov.uk publisher $group.title by $requester.name {% if requester.fullname %}( $requester.fullname ){% end %}
+
+The reason given for the request was:
+
+"$reason"
+
+Please contact the user to verify and then if you would like to add this user you can do so by visiting ${ '%s' % g.site_url }${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=group.name) } and adding this user: $requester.fullname
+
+If you do not wish to add this user you can safely disregard this email.
+
+
+The data.gov.uk administrators

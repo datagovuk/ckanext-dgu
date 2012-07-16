@@ -329,6 +329,8 @@ class CospreadImporter(SpreadsheetPackageImporter):
                 if row_dict.has_key('CO Reference'):
                     column = 'CO Reference'
                 extras_key = 'external_reference'
+            elif column == 'Geographical Granularity':
+                extras_key = 'geographic_granularity'
             if row_dict.has_key(column):
                 val = row_dict[column]
             else:

@@ -1,0 +1,86 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="../facets.html" />
+
+  <py:def function="page_title">Data Search | data.gov.uk</py:def>
+  <py:def function="page_heading">Data Search</py:def>
+  <py:def function="optional_head">
+    <script src="/scripts/spin.min.js"></script>
+    <script src="/scripts/dgu-basket.js"></script>
+    <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
+  </py:def>
+
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <py:def function="content_class"><!--unboxed--></py:def>
+
+  <div py:match="content">
+    <div class="row">
+      <div class="span12">
+        <div class="boxed search-area-box">
+          <xi:include href="search_form.html" />
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="span4">
+        ${basket()}
+
+        
+        <py:if test="c.page.item_count">
+          <div id="filter-heading">
+            <p>You can refine your search results using the filters below</p>
+          </div>
+
+          ${facet_filters()}
+        </py:if>
+      </div>
+      <div class="span8">
+        <py:if test="c.query_error">
+          <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
+              Please try again.</p>
+        </py:if>
+        <div class="ribbon-header sort-by-controls" py:if="c.page.item_count">
+          <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+            <img src="/images/rss-on-white.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+          </a>
+          <h4>Sort by</h4>
+          <label class="radio inline">
+            <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
+            relevancy
+          </label>
+          <py:for each="field,title,order in [('titleString','title','asc'), ('metadata_modified','last updated','desc')]">
+            <label class="radio inline">
+              <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
+              ${title}
+            </label>
+          </py:for>
+        </div>
+
+        ${package_list_from_dict(c.page.items)}
+        <div class="ribbon-footer" py:if="c.page.item_count"></div>
+        <py:with vars="pager = c.page.pager(q=c.q)">
+          <div py:if="pager" class="pager-container">
+            ${pager}
+          </div>
+        </py:with>
+      </div>
+    </div>
+
+  </div>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets found with custom search: '${c.search_url_params}'"
+    href="${h.url(controller='feed', action='custom')}?${c.search_url_params}" />
+  </py:def>
+
+  <xi:include href="layout.html" />
+</html>
+
+

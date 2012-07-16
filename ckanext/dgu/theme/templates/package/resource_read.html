@@ -1,0 +1,295 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:dc="http://purl.org/dc/terms/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dcat="http://www.w3.org/ns/dcat#"
+  typeof="dcat:Dataset"
+  about=""
+  py:strip="">
+
+  <xi:include href="../_snippet/data-api-help.html" />
+  <xi:include href="../snippets/data-viewer-embed-dialog.html" />
+
+  <xi:include href="sidebar.html"/>
+  <xi:include href="field_helpers.html" />
+
+  <py:def function="optional_head">
+    <!-- data preview -->
+    <!-- leaflet removed for now -->
+    <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/recline/css/data-explorer.css')}" />
+    <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/recline/css/graph.css')}" />
+    <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/recline/css/map.css')}" />
+    <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/recline/css/grid.css')}" />
+    <style type="text/css">
+      .recline-query-editor form, .recline-query-editor .text-query {
+        height: 28px;
+      }
+      .recline-query-editor .pagination ul {
+        margin: 0;
+        padding: 0;
+      }
+      /* needed for Chrome but not FF */
+      .header .recline-query-editor .add-on {
+        margin-left: -27px;
+      }
+
+      /* needed for FF but not chrome */
+      .header .recline-query-editor .input-prepend {
+        vertical-align: top;
+      }
+
+      /** Re-style the data viewer to remove controls,
+        * column menus, row menus, and the leading
+        * (control) column.
+        */
+      .recline-data-explorer .header,
+      .recline-data-explorer .column-header-menu,
+      .recline-data-explorer .root-header-menu,
+      .recline-data-explorer .row-header-menu,
+      .recline-data-explorer td:first-child,
+      .recline-data-explorer th:first-child {
+        display: none;
+      }
+
+    </style>
+    <!-- /data preview -->
+    <script py:if="not is_wms" type="text/javascript">
+      var preload_resource = ${h.literal(c.resource_json)};
+      var embedPath = "${g.site_url+h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.package.id, resource_id=c.resource.id)}";
+    </script>
+    <py:if test="is_wms">
+      <script src="/scripts/spin.min.js"></script>
+      <script src="/scripts/dgu-basket.js"></script>
+    </py:if>
+  </py:def>
+
+  <py:def function="page_title">
+    ${h.dataset_display_name(c.package)} /
+    ${h.resource_display_name(c.resource)} - Dataset - Resource
+  </py:def>
+
+
+  <div py:match="content">
+    <h1>${h.dataset_link(c.package)}
+      <span class="subheading"><img src="/images/arrow-down-right.png" style="vertical-align: baseline;"/> ${h.resource_display_name(c.resource)}</span></h1>
+
+    <div id="minornavigation">
+      <div id="minornavigation-bg-left">
+      <div id="minornavigation-bg-right">
+        <minornavigation></minornavigation>
+      </div>
+      </div>
+    </div>
+
+    &nbsp;
+<?python
+from ckanext.dgu.lib import helpers as dgu_helpers
+is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
+?>
+    <div class="resource-actions">
+      <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}">
+        <py:choose test="c.resource.get('resource_type')">
+          <py:when test="'listing'">View</py:when>
+          <py:when test="'service'">View</py:when>
+          <py:when test="'api'">API Endpoint</py:when>
+          <py:otherwise>
+            <div class="download">
+              <py:if test="not is_wms">
+                <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
+                Download
+              </py:if>
+              <py:if test="is_wms">
+                Link
+              </py:if>
+            </div>
+          </py:otherwise>
+        </py:choose>
+      </a>
+      <a py:if="dgu_helpers.get_cache_url(c.resource) and not is_wms" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${dgu_helpers.get_cache_url(c.resource)}">
+        <div class="download js-tooltip" title="Cached by data.gov.uk on date: ${dgu_helpers.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
+          <py:if test="not is_wms">
+            <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
+            Cached
+          </py:if>
+        </div>
+      </a>
+      <py:if test="config.get('ckan.datastore.enabled', False)">
+        <py:if test="c.resource.get('webstore_url')">
+          <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>
+        </py:if>
+        <py:if test="not c.resource.get('webstore_url')">
+          <a class="btn btn-datagov disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
+        </py:if>
+      </py:if>
+    </div>
+
+  <py:if test="config.get('ckan.datastore.enabled', False)">
+    ${data_api_help(c.datastore_api)}
+  </py:if>
+
+ ${data_viewer_embed_dialog()}
+
+    <div class="quick-info">
+      <div py:if="c.resource['last_modified']">
+        <h4 style="margin-bottom:0;">Last updated:</h4>
+        ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
+      </div>
+      <div>
+        <h4 style="margin-bottom:0;">Format:</h4>
+        ${c.resource.get('format') or 'Unknown'}
+      </div>
+      <?python
+      from ckanext.dgu.lib import helpers
+      from ckanext.qa import reports
+      resource_id = c.resource['id']
+      report = reports.resource_five_stars(resource_id)
+      stars = report.get('openness_score', -1)
+      stars_text = str(stars) + "/5"
+      if (stars==4):
+          stars_text = "4/5 or 5/5"
+      ?>
+      <div py:if="stars >= 0">
+        <h4 style="margin-bottom:5px;">Openness Score: &nbsp;$stars_text</h4>
+        ${helpers.render_stars(stars, report.get('openness_score_reason'), report.get('openness_updated'))}
+      </div>
+      <div>
+        <h4 style="margin-bottom:0;">Licence:</h4>
+        <py:choose test="">
+          <span py:when="c.pkg.license and c.pkg.license.url"><a
+              href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
+          <span py:when="c.pkg.license" property="dc:rights">${c.pkg.license.title}</span>
+          <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
+          <span py:when="not(c.pkg.license)">License unknown</span>
+        </py:choose>
+        <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
+        <py:if test="c.pkg.isopen() or True">
+          <br/>
+          <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+            <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+          </a>
+        </py:if>
+      </div>
+    </div>
+
+    <h3>Resource Description</h3>
+    <div class="notes" property="rdfs:label">
+      <py:if test="c.resource.get('description')">
+        <div>
+          ${c.resource.get('description')}
+        </div>
+      </py:if>
+      <py:if test="not c.resource.get('description')">
+        <py:if test="c.package.get('notes')">
+          <div>
+            <strong i18n:msg="">
+              From the <a href="${h.url_for(controller='package', action='read', id=c.package['name'])}">Dataset</a>:
+            </strong>
+          </div>
+          <div>${h.markdown_extract(c.package.get('notes'), 300)}</div>
+        </py:if>
+        <py:if test="not c.package.get('notes')">
+          <div><em>(No description)</em></div>
+        </py:if>
+      </py:if>
+    </div>
+
+    <div class="recline-read-only resource-preview">
+      <div class="preview-header">
+        <h3>Preview</h3>
+        <p py:if="not is_wms">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
+
+        <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+        <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
+        <py:if test="is_wms"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
+          ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
+        </py:if>
+      </div>
+      <div id="ckanext-datapreview"></div>
+    </div>
+
+    <br/>
+    <div class="resource-information">
+      <h3>Additional Information</h3>
+      <div id="dataset-information">
+<?python
+import re
+import datetime
+import ckanext.dgu.lib.helpers as dgu_helpers
+
+if c.pkg_dict:
+    
+    field_names = ResourceFieldNames()
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+    res_dict = dict(c.resource)
+    
+    field_value_map = {
+        # field_name : {display info}
+        'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
+        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': dgu_helpers.render_datestamp(res_dict.get('revision_timestamp'))},
+        'content_type': {'label': 'Content Type', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+    }
+    
+    # add in fields that only display if they have a value
+    for field_name in field_names_display_only_if_value:
+        if pkg_extras.get(field_name):
+            field_names.add([field_name])
+
+    # calculate displayable field values
+    fields = DisplayableFields(field_names)
+
+?>
+        <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
+            <tbody>
+            <tr py:for="field_dict, label_attributes, value_attributes in fields">
+              <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
+              <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <span class="insert-comment-thread"></span>
+      </div>
+    </div>
+
+  <py:def py:if="not is_wms" function="optional_footer">
+    <!-- data preview -->
+    <script type="text/javascript" src="/scripts/application.js"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.mustache/jquery.mustache.js')}"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
+    <script src="${h.url_for_static('/scripts/vendor/recline/recline.js')}"></script>
+    <script>
+      // Monkey-patch broken functionality in Recline. 
+      // We aren't using maps, havent loaded Leaflet, so do not try to use it.
+      recline.View.Map.prototype._setupMap = function() {};
+    </script>
+    <!--[if lt IE 8]>
+    <script>
+      CKAN.DataPreview.loadPreviewDialog = function(x){};
+      $(function() {
+        // Kill the data preview
+        $('<div/>').text('Preview requires Internet Explorer 8 or higher.').addClass('alert').addClass('alert-info').appendTo($('#ckanext-datapreview'));
+      });
+    </script>
+    <![endif]-->
+
+    <script type="text/javascript">
+      CKAN.DataPreview.loadPreviewDialog(preload_resource);
+    </script>
+
+  </py:def>
+
+  <xi:include href="layout.html" />
+</html>
+
