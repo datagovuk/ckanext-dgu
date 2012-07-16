@@ -68,8 +68,6 @@ class ThemePlugin(SingletonPlugin):
         configure_template_directory(config, 'theme/templates')
         configure_public_directory(config, 'theme/public')
 
-        config['package_form'] = 'package_gov3'
-
     def before_map(self, map):
         """
         Make "/data" the homepage.
