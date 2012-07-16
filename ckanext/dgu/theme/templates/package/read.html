@@ -21,6 +21,10 @@
   <div py:match="content">
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
 
+    <div py:if="c.pkg_dict.get('state') != 'active'" class="state-box boxed">
+      <p>NB: This dataset is <strong>${c.pkg_dict.get('state')}</strong>. Only administrators can view it in this state.</p>
+    </div>
+
     <py:if test="c.pkg_revision_id">
       <div id="revision" class="alert alert-info" py:if="c.pkg_revision_not_latest">
         This is an old revision of this dataset, as edited at ${h.render_datetime(c.pkg_revision_timestamp)}. It may differ significantly from the <a href="${h.url(controller='package', action='read', id=c.pkg.name)}">current revision</a>.

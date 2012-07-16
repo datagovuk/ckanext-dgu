@@ -994,6 +994,9 @@ div.resource-actions .btn{
 #social_media span.stButton {
   margin-bottom: 5px;
 }
+.state-box {
+  background-color: #fdd;
+}
 
 /* Resources */
 /* --------- */
