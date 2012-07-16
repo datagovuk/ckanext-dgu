@@ -2,7 +2,19 @@
 ckanext-dgu - data.gov.uk extension
 ===================================
 
-This is an extension to CKAN that provides customisations specifically for the data.gov.uk project:
+This is an extension to CKAN that provides customisations specifically for the data.gov.uk project.
+
+The official version is available at: https://github.com/datagovuk/ckanext-dgu
+
+Contributions from 1st March 2012 are by the Cabinet Office. It is Crown Copyright and opened up under both the Open Government License (OGL) (which is compatible with Creative Commons Attibution License) and the GNU Affero General Public License (AGPL) v3.0. Before 1st March 2012, contributions are Copyright (c) 2010-2012 Open Knowledge Foundation. This material is open and licensed under the GNU Affero General Public License (AGPL) v3.0.
+
+OGL terms: http://www.nationalarchives.gov.uk/doc/open-government-licence/
+AGPL terms: http://www.fsf.org/licensing/licenses/agpl-3.0.html
+
+Plugins
+=======
+
+This extension contains a number of elements, principally:
 
  * DGU's package form - includes a number of custom fields such as temporal_coverage and geographic_coverage.
  * Harvest Object inserted into the CKAN package view page.
