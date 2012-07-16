@@ -74,7 +74,8 @@ def render_tree(groups,  type='publisher'):
     members = model.Session.query(model.Member).\
                 join(model.Group, model.Member.group_id == model.Group.id).\
                 filter(model.Group.type == 'publisher').\
-                filter(model.Member.table_name == 'group').all()
+                filter(model.Member.table_name == 'group').\
+                filter(model.Member.state == 'active').all()
 
     group_lookup  = dict( (g.id,g, ) for g in groups )
     group_members = dict( (g.id,[],) for g in groups )

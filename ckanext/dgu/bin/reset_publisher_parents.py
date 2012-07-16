@@ -110,7 +110,8 @@ class ImportPublisherTree(object):
 
             existing_parents = [m.group for m in model.Session.query(model.Member).\
                                 filter(model.Member.table_name=='group').\
-                                filter(model.Member.table_id==g.id)]
+                                filter(model.Member.table_id==g.id).\
+                                filter(model.Member.state=='active')]
             if existing_parents:
                 if len(existing_parents) > 1:
                     log.warn('Multiple parents for %s: %r', g.name,
@@ -128,9 +129,9 @@ class ImportPublisherTree(object):
                              [p.name for p in existing_parents], parent.name, g.name)
                     return
 
-            #m = model.Member(group=parent, table_id=g.id, table_name='group')        
-            #model.Session.add(m)
-            #model.Session.commit()        
+            m = model.Member(group=parent, table_id=g.id, table_name='group')        
+            model.Session.add(m)
+            model.Session.commit()        
             cls.status.record('Parent added', slug, do_print=False)
             log.info('%s is made parent of %s', parent.name, g.name)
         else:
