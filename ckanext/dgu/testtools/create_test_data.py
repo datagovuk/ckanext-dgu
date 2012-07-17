@@ -125,7 +125,7 @@ class DguCreateTestData(CreateTestData):
               "description": "70 Whitehall energy data",
               "format": "CSV",
               "mimetype_inner": None,
-              # NB Commenting out those that have Null values for date/int types as it is easiest
+              # NB Commenting out those that have Null values for date/int types and other troublesome ones, as it is easiest
               #"webstore_last_updated": None,
               #"size": None,
               "mimetype": None,
@@ -135,7 +135,7 @@ class DguCreateTestData(CreateTestData):
               #"cache_last_updated": None,
               "webstore_url": None,
               #"last_modified": None,
-              "resource_type": None,
+              #"resource_type": None,
               },
              ]
            },

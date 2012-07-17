@@ -236,6 +236,10 @@ if c.pkg_dict:
         field_names.remove(['mandate'])
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
+    elif dataset_type == 'form':
+        field_names.add_at_start('theme-primary')
+        if pkg_extras.get('theme-secondary'):
+            field_names.add_after('theme-primary', 'theme-secondary')
     if c.is_an_official:
         field_names.add(['state'])
 
@@ -251,6 +255,11 @@ if c.pkg_dict:
     taxonomy_url = pkg_extras.get('taxonomy_url') or ''
     if taxonomy_url and taxonomy_url.startswith('http'):
         taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
+    primary_theme = pkg_extras.get('theme-primary') or ''
+    secondary_themes = pkg_extras.get('theme-secondary')
+    if secondary_themes:
+        from ckan.lib.helpers import json
+        secondary_themes = ', '.join(json.loads(secondary_themes))
 
     field_value_map = {
         # field_name : {display info}
@@ -268,8 +277,8 @@ if c.pkg_dict:
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 Resource Type', 'value': pkg_extras.get('resource-type')},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
-        '': {'label': '', 'value': ''},
-        '': {'label': '', 'value': ''},
+        'theme-primary': {'label': 'Theme', 'value': primary_theme},
+        'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
