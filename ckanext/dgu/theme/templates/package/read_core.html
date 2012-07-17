@@ -259,7 +259,12 @@ if c.pkg_dict:
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         from ckan.lib.helpers import json
-        secondary_themes = ', '.join(json.loads(secondary_themes))
+        try:
+            # JSON for multiple values
+            secondary_themes = ', '.join(json.loads(secondary_themes))
+        except ValueError:
+            # string for single value
+            secondary_themes = str(secondary_themes)
 
     field_value_map = {
         # field_name : {display info}
