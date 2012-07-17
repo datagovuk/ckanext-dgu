@@ -237,9 +237,9 @@ if c.pkg_dict:
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
     elif dataset_type == 'form':
-        field_names.add_at_start('theme-primary')
+        field_names.add_at_start('theme')
         if pkg_extras.get('theme-secondary'):
-            field_names.add_after('theme-primary', 'theme-secondary')
+            field_names.add_after('theme', 'theme-secondary')
     if c.is_an_official:
         field_names.add(['state'])
 
@@ -282,7 +282,7 @@ if c.pkg_dict:
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 Resource Type', 'value': pkg_extras.get('resource-type')},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
-        'theme-primary': {'label': 'Theme', 'value': primary_theme},
+        'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
