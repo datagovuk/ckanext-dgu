@@ -124,14 +124,13 @@ def dgu_dataset_delete(context, data_dict):
     """
     Determines whether a dataset's state can be set to "deleted".
 
-    Currently, only UKLP datasets can be deleted; and only by sysadmin users.
+    Currently only sysadmin users can do this.
     """
     model = context['model']
     user = context.get('user')
     package = get_package_object(context, data_dict)
     
-    if Authorizer().is_sysadmin(unicode(user)) and \
-       package.extras.get('UKLP', '') == 'True':
+    if Authorizer().is_sysadmin(unicode(user)):
         return {'success': True}
     
     return {'success': False}
