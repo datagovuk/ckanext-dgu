@@ -1,6 +1,7 @@
 import Cookie
 import logging
 import datetime
+import md5
 
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
      DrupalRequestError
@@ -21,24 +22,33 @@ class DrupalAuthMiddleware(object):
     def _parse_cookies(self, environ):
         is_ckan_cookie = [False]
         drupal_session_id = [False]
+        server_name = environ['SERVER_NAME']
         for k, v in environ.items():
             key = k.lower()
             if key  == 'http_cookie':
                 is_ckan_cookie[0] = self._is_this_a_ckan_cookie(v)
-                drupal_session_id[0] = self._drupal_cookie_parse(v)
+                drupal_session_id[0] = self._drupal_cookie_parse(v, server_name)
         is_ckan_cookie = is_ckan_cookie[0]
         drupal_session_id = drupal_session_id[0]
         return is_ckan_cookie, drupal_session_id
 
     @staticmethod
-    def _drupal_cookie_parse(cookie_string):
+    def _drupal_cookie_parse(cookie_string, server_name):
         '''Returns the Drupal Session ID from the cookie string.'''
         cookies = Cookie.SimpleCookie()
         cookies.load(str(cookie_string))
+        similar_cookies = []
         for cookie in cookies:
             if cookie.startswith('SESS'):
-                log.debug('Drupal cookie found')
-                return cookies[cookie].value
+                server_hash = md5.new(server_name).hexdigest()
+                if cookie == 'SESS%s' % server_hash:
+                    log.debug('Drupal cookie found for server request %s', server_name)
+                    return cookies[cookie].value
+                else:
+                    similar_cookies.append(cookie)
+        if similar_cookies:
+            log.debug('Drupal cookies ignored with incorrect hash for server %r: %r',
+                      server_name, similar_cookies)
         return None
 
     @staticmethod
