@@ -8,7 +8,7 @@ from ckanext.dgu.ons import downloader
 
 class TestOnsData:
     def __init__(self):
-        self.ons_cache_path = os.path.expanduser(downloader.ONS_CACHE_PATH)
+        self.ons_cache_path = os.path.expanduser(downloader.ONS_DEFAULT_CACHE_PATH)
         self.ons_url_base = downloader.ONS_URL_BASE[:downloader.ONS_URL_BASE.find('?')]
         
     def test_get_url(self):
