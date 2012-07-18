@@ -71,21 +71,14 @@ if access_constraints:
   <li class="widget-container">
     <h4>Contact</h4>
     Enquiries:
-    <ul>
-      <li py:if="dataset_type=='uklp'">Email: 
-        <?python
-           email = pkg_extras.get('contact-email')
-        ?>
-        <py:if test="email"><a href="mailto:${email}">${email}</a></py:if>
-        <py:if test="not email">None supplied</py:if>
-      </li>
-      <py:if test="dataset_type=='form'">
 <?python
 # go up tree looking for contact details
 import ckanext.dgu.lib.publisher
 publisher_groups = c.pkg.get_groups('publisher') # assume only one
-name = email = phone = None # defaults
-if publisher_groups:
+name = pkg_extras.get('contact-name')
+email = pkg_extras.get('contact-email')
+phone = pkg_extras.get('contact-phone')
+if not (name or email or phone) and publisher_groups:
     for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
          extras = publisher.extras
          name = extras.get('contact-name')
@@ -93,8 +86,10 @@ if publisher_groups:
          phone = extras.get('contact-phone')
          if name or email or phone:
              break    
-foi_name = foi_email = foi_phone = None # defaults
-if publisher_groups:
+foi_name = pkg_extras.get('foi-name')
+foi_email = pkg_extras.get('foi-email')
+foi_phone = pkg_extras.get('foi-phone')
+if not (foi_phone or foi_email or foi_phone) and publisher_groups:
     for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
          extras = publisher.extras
          foi_name = extras.get('foi-name')
@@ -103,11 +98,11 @@ if publisher_groups:
          if foi_name or foi_email or foi_phone:
              break
 ?>
+    <ul>
         ${name}
         ${contact_details(name, email, phone, None, None)}
-      </py:if>
     </ul>
-    <py:if test="dataset_type=='form' and (foi_name or foi_email or foi_phone)">
+    <py:if test="foi_name or foi_email or foi_phone">
       FOI Contact: 
       <ul>
           ${foi_name}
