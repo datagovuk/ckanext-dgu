@@ -18,6 +18,11 @@ for res in data.get('timeseries_resources',[]):
     if res.get('format') or res.get('url') or res.get('description') or res.get('date'):
         are_timeseries_resources = True
         break
+are_legacy_extras = False
+for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
+    if data[key]:
+        are_legacy_extras = True
+        break
 
 if has_errors:
   # DGU uses different words for things compared to CKAN, so adjust
@@ -100,7 +105,7 @@ if has_errors:
     <li><a id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
     <li><a id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
     <li><a id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
-    <li py:if="is_edit_form"><a id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+    <li py:if="is_edit_form and (c.is_sysadmin or are_legacy_extras)"><a id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
   </ul>
   <div class="tab-content">
 
@@ -838,14 +843,14 @@ if has_errors:
       <p class="field_error" py:if="errors.get('geographic_granularity', '')">${errors.get('geographic_granularity', '')}</p>
     </div>
   </div>
-  
+
   <div py:if="is_edit_form and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
     <?python
       hidden_extra_fields = [ e for e in data.get('extras', []) \
                                 if e['key'] not in c.schema_fields ]
     ?>
-    <fieldset py:if="len(hidden_extra_fields)">
-    <h3>Dataset Extra Fields (sysadmin only)</h3>
+    <fieldset>
+    <h4>Extra Fields not in the Schema (sysadmin only)</h4>
       <py:for each="num, extra in enumerate(hidden_extra_fields)">
         <py:with vars="key = extra.get('key'); value = extra.get('value')">
           <div class="control-group">
@@ -857,6 +862,9 @@ if has_errors:
           </div>
         </py:with>
       </py:for>
+      <p py:if="not hidden_extra_fields">
+        (None)
+      </p>
     </fieldset>
   </div>
 
