@@ -1281,6 +1281,18 @@ body.harvest #content{
     display:none;
 }
 
+.status {
+  font-style:italic;
+  margin-bottom: 15px;
+  padding: 9px;
+  background: #ffe;
+  #border: 1px solid;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.25);
+}
+
 /* Tag page */
 /* -------- */
 
