@@ -3,7 +3,8 @@ Analyse varnish logs
 '''
 import sys
 import os
-#from __future__ import with
+import re
+
 from collections import defaultdict, OrderedDict
 
 class Transaction(object):    
@@ -35,25 +36,46 @@ class Transaction(object):
             return None
         return hit_or_miss_str == 'HIT'
 
-    @property
-    def cache_reason(self):
-        reasons = []
-        # Check response to vcl_recv
+    def get_vcl_call_response(self, vcl_call_name):
+        '''
+        Returns the VCL_return value following VCL_call of the the given name.
+        e.g. vcl_call_name = 'recv'
+        '''
         for i, prop in enumerate(self._props):
-            if prop['type'] == 'VCL_call' and prop['msg'] == 'recv':
+            if prop['type'] == 'VCL_call' and prop['msg'] == vcl_call_name:
                 max_i = len(self._props) - 1
                 vcl_recv_response = None
                 while i < max_i:
                     i += 1
                     prop = self._props[i]
                     if prop['type'] == 'VCL_return':
-                        vcl_recv_response = prop['msg']
-                        break
-                if vcl_recv_response == 'pass':
-                    reasons.append('Varnish "pass"es on caching')
-                elif vcl_recv_response == 'lookup':
-                    reasons.append('Varnish "lookup" in cache')
+                        return prop['msg']
+                    
+    @property
+    def cache_reason(self):
+        '''Report clues that say why the cache hit or didn\'t hit.'''
+        reasons = []
+        # Check response to vcl_recv
+        vcl_recv_response = self.get_vcl_call_response('recv')
+        if vcl_recv_response == 'pass':
+            reasons.append('Varnish "pass"es on recv')
+        elif vcl_recv_response == 'lookup':
+            reasons.append('Varnish "lookup" in recv')
+
+        # Check response to vcl_fetch
+        vcl_recv_response = self.get_vcl_call_response('fetch')
+        if vcl_recv_response and vcl_recv_response != 'deliver':
+            reasons.append('Varnish "pass" on fetch')
+
+        # Check response status code
+        status = None
+        for i, prop in enumerate(self._props):
+            if prop['type'] == 'ObjStatus':
+                status = prop['msg']
+                if status[0] is not '2':
+                    reasons.append('Status %s' % status)
                 break
+            
 
         # Check for HitPass - Varnish remebers that this content said it should not be cached due to Set-Cookie or ttl
         for i, prop in enumerate(self._props):
@@ -86,7 +108,8 @@ class Transaction(object):
                 reasons.append('Returned cache-control: %s' % prop.get('value'))
 
         return ', '.join(reasons) or '(no reason)'
-def analyse(vlog_filepath, cmd):
+
+def analyse(vlog_filepath, cmd, args):
     # Parse log and populate transactions dict (of open transactions)
     open_transactions_dict = {} # transation_id: transaction_dict
     transactions = []
@@ -112,10 +135,12 @@ def analyse(vlog_filepath, cmd):
                 open_transactions_dict[id].add_row_dict(row_dict)
 
     if cmd == 'list':
+        print 'List of transactions\n'
         for transaction in transactions:
             print transaction.line, transaction.url, transaction.was_hit
 
     elif cmd == 'urls':
+        print 'Top URLs\n'
         transactions_by_url = defaultdict(list)
         for transaction in transactions:
             transactions_by_url[transaction.url].append(transaction)
@@ -132,7 +157,19 @@ def analyse(vlog_filepath, cmd):
             print len(t_list), '%s%%' % hit_percent, url, \
                   ','.join([str(t.line) for t in t_list][:5]), \
                   miss_reason
+            print
 
+    elif cmd == 'url':
+        url = args[0]
+        url_re = re.compile(url)
+        print 'URL: %s\n' % url
+        matches = 0
+        for t in transactions:
+            if url_re.match(t.url):
+                matches += 1
+                print t.line, t.hit_or_miss, t.url, t.cache_reason
+                print
+        print '%i matches' % matches
 
 
 def parse_row(row_str):
@@ -166,5 +203,6 @@ if __name__ == '__main__':
     vlog_file = sys.argv[1]
     vlog_filepath = os.path.abspath(vlog_file)
     command = sys.argv[2]
+    args = sys.argv[3:] if len(sys.argv) > 3 else []
 
-    analyse(vlog_filepath, command)
+    analyse(vlog_filepath, command, args)
