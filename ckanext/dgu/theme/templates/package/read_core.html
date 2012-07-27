@@ -123,8 +123,19 @@
             </py:for>
           </ul>
         </py:if>
- 
-        ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
+
+        <div class="dataset-map-info">
+          ${map_preview_buttons(c.pkg.id, c.pkg_dict, inline=False)} <!--! Supply both since there is no ID in pkg_dict! -->
+
+          <div id="dataset-map-attribution"></div>
+        </div>
+
+        <!-- Dataset Extent Map (only if present) -->
+        <py:if test="c.dataset_extent">
+          <div class="dataset-map" >
+            <div id="dataset-map-container"></div>
+          </div>
+        </py:if>
 
         <py:if test="additional_resources or gemini_resources"> 
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
@@ -194,13 +205,6 @@
 
     </div>
 
-    <!-- Dataset Extent Map (only if present) -->
-    <py:if test="c.dataset_extent">
-      <h3>Dataset extent</h3>
-      <div class="dataset-map">
-        <div id="dataset-map-container"></div>
-      </div>
-    </py:if>
 
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>

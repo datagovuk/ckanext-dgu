@@ -5,7 +5,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <py:def function="map_preview_buttons(package_id, pkg_dict)">
+  <py:def function="map_preview_buttons(package_id, pkg_dict, inline=True)">
   <!--!package_id is for the same package as pkg_dict-->
 <?python
 from ckanext.dgu.lib import helpers as dgu_helpers
@@ -14,20 +14,39 @@ wms_extent_params = '&n=%s&w=%s&e=%s&s=%s' % wms_extent if wms_extent else ''
 basket = session.get('preview_list',[])
 ?>
     <div py:if="wms_urls" class="map-buttons">
-     <span style="display: none;" class="js-data-id">${package_id}</span>
-     <span style="display: none;" class="js-data-title">${pkg_dict.get('title')}</span>
-     <span style="display: none;" class="js-data-querystring">${wms_urls}</span>
-     <span style="display: none;" class="js-data-extent">${','.join(wms_extent)}</span>
-       <a href="/data/map-preview?${wms_urls}${wms_extent_params}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
-       <span class="preview-add js-dataset-${package_id}-add" 
-             style="${'display: none' if package_id in basket else ''}">
-             <button data-id="${package_id}" class="btn btn-primary btn-small btn-preview btn-basket"><span>Add to Preview List</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
-       </span>
-       <span class="preview-remove js-dataset-${package_id}-remove" 
-             style="${'' if package_id in basket else 'display: none;'}">
-             <button data-id="${package_id}" class="btn btn-small btn-preview btn-basket"><span>Remove from List</span></button><img class="preview-stamp" src="/images/compass-minus.png"/>
-       </span>
+      <span style="display: none;" class="js-data-id">${package_id}</span>
+      <span style="display: none;" class="js-data-title">${pkg_dict.get('title')}</span>
+      <span style="display: none;" class="js-data-querystring">${wms_urls}</span>
+      <span style="display: none;" class="js-data-extent">${','.join(wms_extent)}</span>
+      <py:if test="inline">
+        ${map_preview_button_view()}
+        ${map_preview_button_add_remove()}
+      </py:if>
+      <py:if test="not inline">
+        <div>
+          ${map_preview_button_view()}
+        </div>
+        <div>
+          ${map_preview_button_add_remove()}
+        </div>
+      </py:if>
     </div>
+  </py:def>
+
+  <py:def function="map_preview_button_view()">
+    <a href="/data/map-preview?${wms_urls}${wms_extent_params}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
+  </py:def>
+
+  <py:def function="map_preview_button_add_remove()">
+    <span class="preview-add js-dataset-${package_id}-add"
+         style="${'display: none' if package_id in basket else ''}">
+      <button data-id="${package_id}" class="btn btn-primary btn-small btn-preview btn-basket"><span>Add to Preview List</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
+    </span>
+    <span class="preview-remove js-dataset-${package_id}-remove"
+         style="${'' if package_id in basket else 'display: none;'}">
+         <button data-id="${package_id}" class="btn btn-small btn-preview btn-basket"><span>Remove from List</span></button><img class="preview-stamp" src="/images/compass-minus.png"/>
+    </span>
+
   </py:def>
 
   <div py:def="basket()">

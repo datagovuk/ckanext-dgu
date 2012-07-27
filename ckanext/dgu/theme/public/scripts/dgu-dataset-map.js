@@ -41,14 +41,9 @@ CKAN.DguDatasetMap = function($){
             if (!this.extent)
                 return false;
 
-            // Setup some sizes
-            var width = $("#dataset").width();
-            if (width > 1024) {
-                width = 1024;
-            }
-            var height = width / 2;
-            $("#dataset-map-container").width(width);
-            $("#dataset-map-container").height(height);
+            var width = $("#dataset-map-container").width();
+            var height = width;
+            $("#dataset-map-container").height(width);
 
             // Maximum extent available with the OS tiles, if the dataset falls outside,
             // the OSM global map will be loaded
@@ -62,7 +57,7 @@ CKAN.DguDatasetMap = function($){
             this.map_type = (os_max_bounds.containsBounds(dataset_bounds)) ? 'os' : 'osm';
 
             var controls = [
-              new OpenLayers.Control.Attribution()
+              new OpenLayers.Control.Attribution({div: document.getElementById("dataset-map-attribution")})
             ];
 
             if (this.map_type=='osm') {
