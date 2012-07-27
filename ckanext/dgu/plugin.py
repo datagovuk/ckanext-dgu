@@ -1,6 +1,7 @@
 import os
 
 from logging import getLogger
+from urllib import quote
 
 from pylons import config
 from ckan.lib.helpers import flash_notice
@@ -327,6 +328,12 @@ class DguDatasetExtentMap(SingletonPlugin):
         if route in routes_to_filter and c.pkg.id:
             extent = c.pkg.extras.get('spatial',None)
             if extent:
+                GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
+                            'osinspiremappingprod.ordnancesurvey.co.uk') # Not '46.137.180.108'
+                c.tiles_url_ckan = config.get('ckanext-os.tiles.url', 'http://%s/geoserver/gwc/service/wms' % GEOSERVER_HOST)
+                api_key = config.get('ckanext-os.geoserver.apikey', '')
+                if api_key:
+                    c.tiles_url_ckan+= '?key=%s' % quote(api_key)
                 c.dataset_extent = extent
         return stream
 

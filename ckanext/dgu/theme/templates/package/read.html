@@ -65,6 +65,7 @@
       <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-dataset-map.js')}"></script>
       <script type="text/javascript">
         $(document).ready(function(){
+            CKAN.DguDatasetMap.tiles_url = "${c.tiles_url_ckan}";
             CKAN.DguDatasetMap.map_type = 'os';
             CKAN.DguDatasetMap.extent = '${c.dataset_extent}';
             CKAN.DguDatasetMap.setup();

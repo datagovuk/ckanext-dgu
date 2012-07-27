@@ -84,7 +84,7 @@ CKAN.DguDatasetMap = function($){
                 // Create a new map
                 var layers = [
                   new OpenLayers.Layer.WMS("Geoserver layers - Tiled",
-			'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac', {
+			this.tiles_url, {
                         LAYERS: 'InspireETRS89',
 		        STYLES: '',
 		        format: 'image/png',
