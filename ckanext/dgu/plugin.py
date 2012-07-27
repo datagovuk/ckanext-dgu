@@ -2,6 +2,7 @@ import os
 
 from logging import getLogger
 
+from pylons import config
 from ckan.lib.helpers import flash_notice
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
@@ -312,4 +313,20 @@ class ApiPlugin(SingletonPlugin):
         map.connect('/api/util/latest-datasets', controller=api_controller, action='latest_datasets')
         map.connect('/api/util/dataset-count', controller=api_controller, action='dataset_count')
         return map
-    
+
+class DguDatasetExtentMap(SingletonPlugin):
+
+    implements(IGenshiStreamFilter)
+
+    def filter(self, stream):
+        from pylons import request, tmpl_context as c
+
+        route_dict = request.environ.get('pylons.routes_dict')
+        route = '%s/%s' % (route_dict.get('controller'), route_dict.get('action'))
+        routes_to_filter = config.get('ckan.spatial.dataset_extent_map.routes', 'package/read').split(' ')
+        if route in routes_to_filter and c.pkg.id:
+            extent = c.pkg.extras.get('spatial',None)
+            if extent:
+                c.dataset_extent = extent
+        return stream
+

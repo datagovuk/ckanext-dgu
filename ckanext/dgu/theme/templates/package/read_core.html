@@ -194,6 +194,14 @@
 
     </div>
 
+    <!-- Dataset Extent Map (only if present) -->
+    <py:if test="c.dataset_extent">
+      <h3>Dataset extent</h3>
+      <div class="dataset-map">
+        <div id="dataset-map-container"></div>
+      </div>
+    </py:if>
+
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">

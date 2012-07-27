@@ -38,6 +38,7 @@ setup(
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
+        dgu_dataset_extent_map = ckanext.dgu.plugin:DguDatasetExtentMap
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons:load

@@ -1426,3 +1426,30 @@ ul.ui-autocomplete li a.ui-state-hover{
   font-size: 10px;
 }
 
+
+/* Dataset Extent Map */
+/* ------------------ */
+
+.dataset-map {
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#dataset-map-attribution{
+    font-size: x-small;
+}
+
+.olControlAttribution {
+    left: 5px;
+    right: inherit;
+    bottom: 3px !important;
+}
+
+#dataset-map-container div.olControlAttribution {
+    font-size: 9px;
+    font-family: helvetica,tahoma,verdana,sans-serif;
+    line-height: 12px;
+    left: 5px;
+    bottom: 3px;
+    color: #666;
+}
