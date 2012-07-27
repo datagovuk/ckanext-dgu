@@ -50,6 +50,23 @@ CKAN.DguDatasetMap = function($){
             $("#dataset-map-container").width(width);
             $("#dataset-map-container").height(height);
 
+            // Maximum extent available with the OS tiles, if the dataset falls outside,
+            // the OSM global map will be loaded
+            var os_max_bounds = new OpenLayers.Bounds(-30, 48.00, 3.50, 64.00);
+
+            var geojson_format = new OpenLayers.Format.GeoJSON();
+            var features = geojson_format.read(this.extent);
+            if (!features) return false;
+
+            var dataset_bounds = features[0].geometry.getBounds();
+            this.map_type = (os_max_bounds.containsBounds(dataset_bounds)) ? 'os' : 'osm';
+
+            var controls = [
+              new OpenLayers.Control.PanZoom(),
+              new OpenLayers.Control.Navigation(),
+              new OpenLayers.Control.Attribution()
+            ];
+
             if (this.map_type=='osm') {
                 var mapquestTiles = [
                     "http://otile1.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.jpg",
@@ -58,7 +75,10 @@ CKAN.DguDatasetMap = function($){
                     "http://otile4.mqcdn.com/tiles/1.0.0/osm/${z}/${x}/${y}.jpg"];
 
                 var layers = [
-                  new OpenLayers.Layer.OSM("MapQuest-OSM Tiles", mapquestTiles)
+                  new OpenLayers.Layer.OSM("MapQuest-OSM Tiles", mapquestTiles, {
+                    attribution: 'Map data CC-BY-SA by <a href="http://openstreetmap.org">OpenStreetMap</a> | ' +
+                    'Tiles by <a href="http://www.mapquest.com">MapQuest</a>'
+                  })
                 ];
 
                 // Create a new map
@@ -70,10 +90,7 @@ CKAN.DguDatasetMap = function($){
                     "numZoomLevels": 18,
                     "maxResolution": 156543.0339,
                     "maxExtent": new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508.34),
-                    "controls": [
-                        new OpenLayers.Control.PanZoom(),
-                        new OpenLayers.Control.Navigation()
-                    ],
+                    "controls": controls,
                     "theme":"/ckanext/spatial/js/openlayers/theme/default/style.css"
                 });
                 var internalProjection = new OpenLayers.Projection("EPSG:900913");
@@ -103,11 +120,12 @@ CKAN.DguDatasetMap = function($){
     		var options = {
 			        size: new OpenLayers.Size(width, height),
                                 scales: [15000000, 10000000, 5000000, 1000000, 250000, 75000],
-			        maxExtent: new OpenLayers.Bounds(-30, 48.00, 3.50, 64.00),
-			        restrictedExtent: new OpenLayers.Bounds(-30, 48.00, 3.50, 64.00),
+			        maxExtent: os_max_bounds ,
+			        restrictedExtent: os_max_bounds ,
 			        tileSize: new OpenLayers.Size(250, 250),
 			        units: 'degrees',
-			        projection: "EPSG:4258"
+			        projection: "EPSG:4258",
+              controls: controls
     		};
 
                 this.map = new OpenLayers.Map("dataset-map-container", {});
