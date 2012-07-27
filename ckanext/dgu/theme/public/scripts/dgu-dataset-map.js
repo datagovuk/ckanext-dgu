@@ -62,8 +62,6 @@ CKAN.DguDatasetMap = function($){
             this.map_type = (os_max_bounds.containsBounds(dataset_bounds)) ? 'os' : 'osm';
 
             var controls = [
-              new OpenLayers.Control.PanZoom(),
-              new OpenLayers.Control.Navigation(),
               new OpenLayers.Control.Attribution()
             ];
 
@@ -128,10 +126,7 @@ CKAN.DguDatasetMap = function($){
               controls: controls
     		};
 
-                this.map = new OpenLayers.Map("dataset-map-container", {});
-
-	        // Set the options on the map
-		this.map.setOptions(options);
+                this.map = new OpenLayers.Map("dataset-map-container", options);
 
                 var internalProjection = new OpenLayers.Projection("EPSG:4258");
             }
