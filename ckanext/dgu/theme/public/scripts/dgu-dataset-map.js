@@ -89,7 +89,7 @@ CKAN.DguDatasetMap = function($){
                 var internalProjection = new OpenLayers.Projection("EPSG:900913");
             } else if (this.map_type=='os') {
 
-                var copyrightStatements = "Contains Ordnance Survey data (c) Crown copyright and database right  [2012] <br>" + "Contains Royal Mail data (c) Royal Mail copyright and database right [2012]<br>" + "Contains bathymetry data by GEBCO (c) Copyright [2012]<br>" + "Contains data by Land & Property Services (Northern Ireland) (c) Crown copyright [2012]";
+                var copyrightStatements = "Contains Ordnance Survey data (c) Crown copyright and database right  [2012]." + "Contains Royal Mail data (c) Royal Mail copyright and database right [2012]." + "Contains bathymetry data by GEBCO (c) Copyright [2012]." + "Contains data by Land & Property Services (Northern Ireland) (c) Crown copyright [2012].";
 
                 // Create a new map
                 var layers = [
