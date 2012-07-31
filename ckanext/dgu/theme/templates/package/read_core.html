@@ -127,20 +127,22 @@
         <div class="dataset-map-info">
           ${map_preview_buttons(c.pkg.id, c.pkg_dict, inline=False)} <!--! Supply both since there is no ID in pkg_dict! -->
 
+          <py:if test="pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')">
           <div id="dataset-map-extent-label" style="width: 270px; padding-top: 25px; padding-bottom: 25px;">
             <table border="0">
               <tr>
-                <td><b>Extent: &nbsp;</b></td>
-                <td>Latitude:</td>
+                <td valign="top"><b>Extent: &nbsp;</b></td>
+                <td valign="top">Latitude:</td>
                 <td>${pkg_extras.get('bbox-north-lat')}&deg; to ${pkg_extras.get('bbox-south-lat')}&deg;</td>
               </tr>
               <tr>
                 <td></td>
-                <td>Longitude:&nbsp;</td>
+                <td valign="top">Longitude:&nbsp;</td>
                 <td>${pkg_extras.get('bbox-west-long')}&deg; to ${pkg_extras.get('bbox-east-long')}&deg;</td>
               </tr>
             </table>
           </div>
+          </py:if>
 
           <div id="dataset-map-attribution"></div>
         </div>
