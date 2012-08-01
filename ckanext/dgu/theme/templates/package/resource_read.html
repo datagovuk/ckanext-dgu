@@ -166,7 +166,7 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
           <span py:when="not(c.pkg.license)">License unknown</span>
         </py:choose>
         <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
-        <py:if test="c.pkg.isopen() or True">
+        <py:if test="c.pkg.isopen()">
           <br/>
           <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
             <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
