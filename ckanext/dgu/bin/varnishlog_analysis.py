@@ -171,6 +171,16 @@ def analyse(vlog_filepath, cmd, args):
                 print
         print '%i matches' % matches
 
+    elif cmd == 'summary':
+        print 'Summary\n'
+        print 'Requests:', len(transactions)
+        hits = misses = 0
+        for t in transactions:
+            if t.was_hit:
+                hits += 1
+            else:
+                misses += 1
+        print 'Hits:', float(hits)/(hits+misses)*100, '%'
 
 def parse_row(row_str):
     row = {}
@@ -188,8 +198,10 @@ if __name__ == '__main__':
     USAGE = '''Analyse varnish logs
     Usage: python %s <vlog.txt> <command>
     Where <command> is:
+        summary - overall stats
         list  - lists details of transactions
         urls   - top urls
+        url <url>  - list details of one particular url (regular exp)
     ''' % sys.argv[0]
     if len(sys.argv) < 3 or sys.argv[1] in ('--help', '-h'):
         err = ''
@@ -198,7 +210,6 @@ if __name__ == '__main__':
         elif len(sys.argv) < 3:
             err = 'Error: Please specify command.'
         print USAGE, err
-        logging.error('%s\n%s' % (USAGE, err))
         sys.exit(1)
     vlog_file = sys.argv[1]
     vlog_filepath = os.path.abspath(vlog_file)
