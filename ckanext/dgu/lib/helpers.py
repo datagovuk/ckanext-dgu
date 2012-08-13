@@ -150,20 +150,19 @@ def get_resource_wms(resource_dict):
     if 'wms' in url.lower() or format.lower() == 'wms':
         return url
 
-def get_wms_info(pkg_dict, service_only=False):
+def get_wms_info(pkg_dict):
     '''For a given package, extracts all the urls and spatial extent.
     Returns (urls, extent) where:
     * urls is a list of tuples like ('url', 'http://geog.com?wms')
     * extent is a tuple of (N, W, E, S) representing max extent
     '''
-    extras = pkg_dict['extras']
     urls = []
-    if not (service_only and not get_from_flat_dict(extras, 'resource-type', '') == 'service'):
-        for r in pkg_dict.get('resources',[]):
-            wms_url = get_resource_wms(r)
-            if wms_url:
-                urls.append(('url', wms_url))
+    for r in pkg_dict.get('resources',[]):
+        wms_url = get_resource_wms(r)
+        if wms_url:
+            urls.append(('url', wms_url))
     # Extent
+    extras = pkg_dict['extras']
     extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
               'e': get_from_flat_dict(extras, 'bbox-east-long', ''),
               'w': get_from_flat_dict(extras, 'bbox-west-long', ''),
