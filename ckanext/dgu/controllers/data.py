@@ -1,4 +1,5 @@
 import sqlalchemy
+import pylons
 
 import ckan.authz
 from ckan.lib.base import BaseController, model, abort, h, g
@@ -63,3 +64,24 @@ class DataController(BaseController):
         if not c.is_sysadmin:
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')
+
+    def openspending_report(self):
+        return render('data/openspending_report.html')
+
+    def openspending_publisher_report(self, id):
+        id = id.replace('.html', '')
+        if id.startswith('publisher-'):
+            publisher_name = id.replace('publisher-', '')
+            # Check the publisher actually exists, for security
+            publisher = model.Group.by_name(publisher_name)
+            if publisher:
+                c.report_name = id
+            else:
+                abort(404, 'Publisher not found')
+            c.openspending_report_dir = pylons.config.get(
+                'dgu.openspending_reports_dir',
+                '/var/lib/ckan/dgu/openspending_reports')
+            return render('data/openspending_publisher_report.html')
+        else:
+            abort(404)
+            

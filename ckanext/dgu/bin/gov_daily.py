@@ -8,6 +8,8 @@ import zipfile
 import traceback
 import datetime
 import re
+import urllib2
+import json
 
 from common import load_config, register_translator
 
@@ -32,21 +34,25 @@ def command(config_file):
 
     # settings
     ckan_instance_name = os.path.basename(config_file).replace('.ini', '')
-    if ckan_instance_name != 'development':
+    if ckan_instance_name not in ['development', 'dgutest']:
         default_dump_dir = '/var/lib/ckan/%s/static/dump' % ckan_instance_name
         default_analysis_dir = '/var/lib/ckan/%s/static/dump_analysis' % ckan_instance_name
         default_backup_dir = '/var/backups/ckan/%s' % ckan_instance_name
+        default_openspending_reports_dir = '/var/lib/ckan/%s/openspending_reports' % ckan_instance_name
     else:
         # test purposes
         default_dump_dir = '~/dump'
         default_analysis_dir = '~/dump_analysis'
         default_backup_dir = '~/backups'
+        default_openspending_reports_dir = '~/openspending_reports'
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
                                              default_dump_dir))
     analysis_dir = os.path.expanduser(config.get('ckan.dump_analysis_dir',
                                              default_analysis_dir))
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir',
                                                default_backup_dir))
+    openspending_reports_dir = os.path.expanduser(config.get('dgu.openspending_reports_dir',
+                                                             default_openspending_reports_dir))
     dump_filebase = config.get('ckan.dump_filename_base',
                                'data.gov.uk-ckan-meta-data-%Y-%m-%d')
     dump_analysis_filebase = config.get('ckan.dump_analysis_base',
@@ -54,6 +60,9 @@ def command(config_file):
     backup_filebase = config.get('ckan.backup_filename_base',
                                  ckan_instance_name + '.%Y-%m-%d.pg_dump')
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
+    openspending_reports_url = config.get('ckan.openspending_reports_url',
+                                          'http://data.etl.openspending.org/uk25k/report/')
+
 
     log = logging.getLogger('ckanext.dgu.bin.gov_daily')
     log.info('----------------------------')
@@ -71,6 +80,67 @@ def command(config_file):
         sys.exit(1)
     elif num_packages_before < 2500:
         log.warn('Expected more packages.')
+
+    # Copy openspending reports
+    log.info('Copying in OpenSpending reports')
+    if not os.path.exists(openspending_reports_dir):
+        log.info('Creating dump dir: %s' % openspending_reports_dir)
+        os.makedirs(openspending_reports_dir)
+    try:
+        publisher_response = urllib2.urlopen('http://data.gov.uk/api/rest/group').read()
+    except urllib2.HTTPError, e:
+        log.error('Could not get list of publishers for OpenSpending reports: %s',
+                  e)
+    else:
+        try:
+            publishers = json.loads(publisher_response)
+            assert isinstance(publishers, list), publishers
+            assert len(publishers) > 500, len(publishers)
+            log.info('Got list of %i publishers starting: %r',
+                     len(publishers), publishers[:3])
+        except Exception, e:
+            log.error('Could not decode list of publishers for OpenSpending reports: %s',
+                      e)
+        else:
+            urls = [openspending_reports_url]
+            for publisher in publishers:
+                urls.append('%spublisher-%s.html' % (openspending_reports_url, publisher))
+            for url in urls:
+                try:
+                    report_response = urllib2.urlopen(url).read()
+                except urllib2.HTTPError, e:
+                    if e.code == 404:
+                        log.info('Got 404 for openspending report %s' % url)
+                    else:
+                        log.error('Could not download openspending report %r: %s',
+                                  url, e)
+                else:
+                    report_html = report_response
+                    # remove header
+                    report_html = report_html.split('---')[-1]
+                    # add date
+                    report_html += '<p class="import-date">Page imported from openspending.org on %s</p>' % \
+                                   datetime.datetime.now().strftime('%d-%m-%Y')
+                    # add <html>
+                    report_html = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://genshi.edgewall.org/i18n" '\
+                                  'xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" '\
+                                  'py:strip="">' + report_html + '</html>'
+                    # & encoding
+                    report_html = report_html.replace(' & ', ' &amp; ')
+                    report_html = report_html.replace('(GBP)', '(&pound;)')
+                    try:
+                        report_html_encoded = report_html #.encode('utf8', 'ignore')
+                    except UnicodeDecodeError, e:
+                        import pdb; pdb.set_trace()
+                    # save it
+                    filename = url[url.rfind('/')+1:] or 'index.html'
+                    filepath = os.path.join(openspending_reports_dir, filename)
+                    f = open(filepath, 'wb')
+                    try:
+                        f.write(report_html_encoded)
+                    finally:
+                        f.close()
+                    log.info('Wrote openspending report %s', filepath)
 
     # Create dumps for users
     log.info('Creating database dump')
