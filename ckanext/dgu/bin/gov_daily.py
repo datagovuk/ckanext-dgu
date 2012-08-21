@@ -119,7 +119,7 @@ def command(config_file):
                     # remove header
                     report_html = report_html.split('---')[-1]
                     # add date
-                    report_html += '<p class="import-date">Page imported from openspending.org on %s</p>' % \
+                    report_html += '<p class="import-date">Page imported from <a href="http://openspending.org/">OpenSpending</a> on %s</p>' % \
                                    datetime.datetime.now().strftime('%d-%m-%Y')
                     # add <html>
                     report_html = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://genshi.edgewall.org/i18n" '\

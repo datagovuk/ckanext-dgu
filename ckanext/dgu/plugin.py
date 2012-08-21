@@ -83,6 +83,7 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/search', controller='package', action='search')
         map.connect('/data/api', controller=data_controller, action='api')
         map.connect('/data/system_dashboard', controller=data_controller, action='system_dashboard')
+        map.connect('/data/openspending-browse', controller=data_controller, action='openspending_browse')
         map.redirect('/data/openspending-report', '/data/openspending-report/')
         map.connect('/data/openspending-report/', controller=data_controller, action='openspending_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')

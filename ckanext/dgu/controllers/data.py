@@ -65,6 +65,9 @@ class DataController(BaseController):
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')
 
+    def openspending_browse(self):
+        return render('data/openspending_browse.html')
+
     def openspending_report(self):
         return render('data/openspending_report.html')
 
