@@ -11,6 +11,8 @@ Contributions from 1st March 2012 are by the Cabinet Office. It is Crown Copyrig
 OGL terms: http://www.nationalarchives.gov.uk/doc/open-government-licence/
 AGPL terms: http://www.fsf.org/licensing/licenses/agpl-3.0.html
 
+Related extensions that data.gov.uk use in addition are: ckanext-archiver, ckanext-csw, ckanext-harvest, ckanext-inspire, ckanext-os, ckanext-qa, ckanext-social, ckanext-spatial
+
 Plugins
 =======
 
@@ -34,6 +36,11 @@ This is how to install ckanext-dgu, ckan and their dependencies into a python vi
     pip -E pyenv install -e git+https://github.com/okfn/ckan.git#egg=ckan
     pip -E pyenv install -r pyenv/src/ckan/pip-requirements.txt
     pip -E pyenv install -r pyenv/src/ckanext-dgu/pip-requirements.txt
+
+There are plenty of other little details about getting CKAN running under Apache, SOLR config etc in the CKAN README.
+
+When configuring Apache, DGU enables some modules SSL and for ckanext-os. This is the complete list::
+    sudo a2enmod proxy wsgi headers proxy_http rewrite ssl
 
 
 Configuration
@@ -64,6 +71,25 @@ The DGU-version of the SOLR schema is required instead of the CKAN 1.4 SOLR sche
 You can configure the 'approved' resource formats. These appear in the dataset edit form, and variations on these are standardised when doing search indexing:: 
 
     dgu.resource_formats = CSV CSV/Zip XLS ODS RDF RDF/XML HTML+RDFa PPT ODP SHP KML TXT DOC JSON iCal SQL SQL/Zip PDF HTML
+
+Initialise database
+===================
+
+Creating the database is as usual for CKAN::
+
+    db=dgu
+    db_user=dgu
+    sudo -u postgres createuser -S -D -R -P $db_user
+    sudo -u postgres createdb -O $db_user $db
+
+And because we usually use ckanext-dgu also with ckanext-spatial, then PostGIS needs setting up too::
+
+    sudo -u postgres psql -d $db -f /usr/share/postgresql/9.1/contrib/postgis-1.5/postgis.sql -v ON_ERROR_ROLLBACK=on
+    sudo -u postgres psql -d $db -f /usr/share/postgresql/9.1/contrib/postgis-1.5/spatial_ref_sys.sql
+    sudo -u postgres psql -d $db -c "ALTER TABLE spatial_ref_sys OWNER TO $db_user;"
+    sudo -u postgres psql -d $db -c "ALTER TABLE geometry_columns OWNER TO $db_user;"
+
+(For more info on that, see the README for ckanext-spatial.)
 
 Usage
 =====
