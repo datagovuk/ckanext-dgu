@@ -1,9 +1,13 @@
 import sqlalchemy
 import pylons
+import os
+import logging
 
 import ckan.authz
 from ckan.lib.base import BaseController, model, abort, h, g
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
+
+log = logging.getLogger(__name__)
 
 class DataController(BaseController):
     def __before__(self, action, **env):
@@ -68,7 +72,13 @@ class DataController(BaseController):
     def openspending_browse(self):
         return render('data/openspending_browse.html')
 
+    def _set_openspending_reports_dir(self):
+	c.openspending_report_dir = os.path.expanduser(pylons.config.get(
+            'dgu.openspending_reports_dir',
+            '/var/lib/ckan/dgu/openspending_reports'))
+
     def openspending_report(self):
+        self._set_openspending_reports_dir()
         return render('data/openspending_report.html')
 
     def openspending_publisher_report(self, id):
@@ -81,9 +91,7 @@ class DataController(BaseController):
                 c.report_name = id
             else:
                 abort(404, 'Publisher not found')
-            c.openspending_report_dir = pylons.config.get(
-                'dgu.openspending_reports_dir',
-                '/var/lib/ckan/dgu/openspending_reports')
+            self._set_openspending_reports_dir()
             return render('data/openspending_publisher_report.html')
         else:
             abort(404)
