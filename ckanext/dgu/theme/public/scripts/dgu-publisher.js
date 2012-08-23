@@ -3,7 +3,7 @@ $(function() {
 
   jstree.delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
 
-  jstree.bind('loaded.jstree', function() { 
+  jstree.one('reselect.jstree', function() { 
     var li = $('.jstree li');
     var active = $( $('.jstree li strong').parents('li')[0] );
     var offset = Math.max(0, active.offset().top - jstree.offset().top - 80);
