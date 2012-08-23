@@ -71,6 +71,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['foi-name'].value, '')
         assert_equal(form['foi-email'].value, '')
         assert_equal(form['category'].value, 'grouping')
+        assert_equal(form['abbreviation'].value, 'NHS')
 
         # Make edit
         publisher_name = 'new-name'
@@ -83,6 +84,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
         form['category'] = 'alb'
+        form['abbreviation'] = 'nhs'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'nhsadmin'})
         assert_equal(res.header_dict['Location'], 'http://localhost/publisher/new-name')
 
@@ -96,11 +98,84 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-email'], 'foi-comms@nhs.gov.uk')
         assert_equal(publisher.extras['foi-phone'], '0845 4567890')
         assert_equal(publisher.extras['category'], 'alb')
+        assert_equal(publisher.extras['abbreviation'], 'nhs')
 
         # restore name for other tests
         model.repo.new_revision()
         publisher.name = 'national-health-service'
         model.repo.commit_and_remove()
+
+    def test_2_new_validation_error(self):
+        # Load form
+        offset = url_for('/publisher/new')
+        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
+        assert 'Add A Publisher' in res, res
+        form = res.forms['publisher-edit']
+
+        # Fill in form
+        form['title'] = 'New publisher'
+        form['name'] = '' # cause validation error
+        form['description'] = 'New description'
+        form['contact-name'] = 'Head of Comms'
+        form['contact-email'] = 'comms@nhs.gov.uk'
+        form['contact-phone'] = '01234 4567890'
+        form['foi-name'] = 'Head of FOI Comms'
+        form['foi-email'] = 'foi-comms@nhs.gov.uk'
+        form['foi-phone'] = '0845 4567890'
+        form['category'] = 'grouping'
+        form['abbreviation'] = 'tn2'
+        res = form.submit('save', status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
+        assert 'Errors in form' in res.body
+
+        # Check redisplayed form
+        form = res.forms['publisher-edit']
+        assert_equal(form['title'].value, 'New publisher')
+        assert_equal(form['description'].value, 'New description')
+        assert_equal(form['contact-name'].value, 'Head of Comms')
+        assert_equal(form['contact-email'].value, 'comms@nhs.gov.uk')
+        assert_equal(form['contact-phone'].value, '01234 4567890')
+        assert_equal(form['foi-name'].value, 'Head of FOI Comms')
+        assert_equal(form['foi-email'].value, 'foi-comms@nhs.gov.uk')
+        assert_equal(form['foi-phone'].value, '0845 4567890')
+        assert_equal(form['category'].value, 'grouping')
+        assert_equal(form['abbreviation'].value, 'tn2')
+
+    def test_2_edit_validation_error(self):
+        # Load form
+        publisher_name = 'national-health-service'
+        group = model.Group.by_name(publisher_name)
+        offset = url_for('/publisher/edit/%s' % publisher_name)
+        res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
+        assert 'Edit: %s' % group.title in res, res
+        form = res.forms['publisher-edit']
+
+        # Fill in form
+        # TODO form['title'] = 'Edit publisher'
+        form['name'] = '' # cause validation error
+        form['description'] = 'New description'
+        form['contact-name'] = 'Head of Comms'
+        form['contact-email'] = 'comms@nhs.gov.uk'
+        form['contact-phone'] = '01234 4567890'
+        form['foi-name'] = 'Head of FOI Comms'
+        form['foi-email'] = 'foi-comms@nhs.gov.uk'
+        form['foi-phone'] = '0845 4567890'
+        form['category'] = 'grouping'
+        form['abbreviation'] = 'tn2'
+        res = form.submit('save', status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
+        assert 'Errors in form' in res.body
+
+        # Check redisplayed form
+        form = res.forms['publisher-edit']
+        # TODO assert_equal(form['title'].value, 'New publisher')
+        assert_equal(form['description'].value, 'New description')
+        assert_equal(form['contact-name'].value, 'Head of Comms')
+        assert_equal(form['contact-email'].value, 'comms@nhs.gov.uk')
+        assert_equal(form['contact-phone'].value, '01234 4567890')
+        assert_equal(form['foi-name'].value, 'Head of FOI Comms')
+        assert_equal(form['foi-email'].value, 'foi-comms@nhs.gov.uk')
+        assert_equal(form['foi-phone'].value, '0845 4567890')
+        assert_equal(form['category'].value, 'grouping')
+        assert_equal(form['abbreviation'].value, 'tn2')
 
     def test_2_edit_publisher_does_not_affect_others(self):
         publisher_name = 'national-health-service'

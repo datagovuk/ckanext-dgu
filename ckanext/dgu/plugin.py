@@ -171,7 +171,7 @@ class PublisherPlugin(SingletonPlugin):
     def before_commit(self, session):
         """
         Before we commit a session we will check to see if any of the new
-        items are users so we
+        items are users so we can notify them to apply for publisher access.
         """
         from pylons.i18n import _
         from ckan.model.group import User

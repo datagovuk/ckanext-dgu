@@ -1146,7 +1146,7 @@ div#form-tabs a.disabled:hover {
   background: transparent url(../images/icons/error.png) right center no-repeat;
 }
 
-p.field_error {
+p.field_error, span.field_error {
   background: transparent url(../images/icons/error.png) left center no-repeat;
   padding-left: 20px;
   color: #FF6666;

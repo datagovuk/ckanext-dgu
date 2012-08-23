@@ -117,6 +117,7 @@ class PublisherForm(SingletonPlugin):
             'contact-email': [ignore_missing, unicode, convert_to_extras],
             'contact-phone': [ignore_missing, unicode, convert_to_extras],
             'category': [validate_publisher_category, convert_to_extras],
+            'abbreviation': [ignore_missing, unicode, convert_to_extras],
         }
         schema.update( group_form_schema() )
         return schema
@@ -131,6 +132,7 @@ class PublisherForm(SingletonPlugin):
             'contact-email': [convert_from_extras, ignore_missing, unicode],
             'contact-phone': [convert_from_extras, ignore_missing, unicode],
             'category': [convert_from_extras],
+            'abbreviation': [convert_from_extras, ignore_missing, unicode],
         }
         schema.update( default_group_schema() )
         return schema

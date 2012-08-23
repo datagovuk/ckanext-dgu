@@ -22,8 +22,15 @@
 <input type="hidden" id="approval_status" name="approval_status" value="pending" />
 
 <?python
-publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
-                         for extra_dict in data.get('extras', {})])
+# Note when you get a fresh form the extras are in data['extras']. But
+# on validation error, the submitted values appear in data[key] with the original
+# values in data['extras']. Therefore populate the form with the data[key] values
+# in preference, and fall back on the data['extra'] values.
+original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
+                              for extra_dict in data.get('extras', {})])
+for key, value in original_extra_fields.items():
+    if key not in data:
+        data[key] = value
 ?>
 
 <p>Details about the organisation that publishes data on data.gov.uk</p>
@@ -41,7 +48,7 @@ publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
   </div>
 
   <div class="control-group">
-    <label class="control-label" for="title">Url</label>
+    <label class="control-label" for="url">Url</label>
     <div class="controls name-field">
       <div class="input-prepend">
         <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" />
@@ -53,7 +60,15 @@ publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
   </div>
 
   <div class="control-group">
-    <label class="control-label" for="title">Publisher Description</label>
+    <label class="control-label" for="name">Name Abbreviation (optional)</label>
+    <div class="controls">
+      <input id="abbreviation" name="abbreviation" type="text" value="${data.get('abbreviation', '')}"/>
+      <span class="field_error" py:if="errors.get('abbreviation', '')">${errors.get('name', '')}</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="description">Publisher Description</label>
     <div class="controls description-field">
       <textarea style="width: 350px;" rows="3" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
     </div>
@@ -96,14 +111,15 @@ publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
   <div class="control-group">
     <label class="control-label" for="state">Category</label>
     <div class="controls">
-      <select id="category" name="category" value="${publisher_extras.get('contact-name', '')}">
+      <select id="category" name="category" value="${data.get('contact-name', '')}">
         <option value=""></option>
         <py:for each="cat_name, cat_desc in c.categories">
-          <option value="${cat_name}" py:attrs="{'selected': 'selected' if publisher_extras.get('category', '') == cat_name else None}" >
+          <option value="${cat_name}" py:attrs="{'selected': 'selected' if data.get('category', '') == cat_name else None}" >
             ${cat_desc}
           </option>
         </py:for>
       </select>
+      <span class="field_error" py:if="errors.get('category', '')">${errors.get('category', '')}</span>
     </div>
   </div>
 </fieldset>
@@ -115,20 +131,20 @@ publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
   <div class="control-group">
     <label class="control-label" for="contact-name">Name</label>
     <div class="controls">
-      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${publisher_extras.get('contact-name', '')}" />
+      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
       <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="contact-email">Email</label>
     <div class="controls">
-      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${publisher_extras.get('contact-email', '')}" />
+      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="contact-name">Telephone</label>
     <div class="controls">
-      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${publisher_extras.get('contact-phone', '')}" />
+      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
     </div>
   </div>
 </fieldset>
@@ -138,20 +154,20 @@ publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
   <div class="control-group">
     <label class="control-label" for="foi-name">Name</label>
     <div class="controls">
-      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${publisher_extras.get('foi-name', '')}" />
+      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
       <p class="help-block">e.g. DfT FOI Enquiry Service</p>
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="foi-email">Email</label>
     <div class="controls">
-      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${publisher_extras.get('foi-email', '')}" />
+      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
     </div>
   </div>
   <div class="control-group">
     <label class="control-label" for="foi-name">Telephone</label>
     <div class="controls">
-      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${publisher_extras.get('foi-phone', '')}" />
+      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
     </div>
   </div>
 </fieldset>
