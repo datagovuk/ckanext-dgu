@@ -1467,3 +1467,9 @@ ul.ui-autocomplete li a.ui-state-hover{
     bottom: 3px;
     color: #666;
 }
+
+/* Hack: Resize content scraped from OpenSpending */
+/* ---------------------------------------------- */
+body.openspending_report #content .boxed .row .span4 {
+    width: 260px;
+}
