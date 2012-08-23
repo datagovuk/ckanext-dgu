@@ -129,8 +129,14 @@ def render_mini_tree(parent_group, this_group, subgroups):
         parent_node.children.append(node)
         return node
 
+    def add_parent_node_recursive(parent_node, group, tree):
+        parent = group.get_groups('publisher')
+        if parent:
+            parent_node = add_parent_node_recursive(parent_node, parent[0], tree)
+        return add_node(parent_node, group, tree)
+    
     if parent_group:
-        current_parent = add_node(root, parent_group, tree)
+        current_parent = add_parent_node_recursive(root, parent_group, tree)
 
     this_group_node = add_node(current_parent, this_group, tree, bold=True)
 
