@@ -8,19 +8,24 @@ $(function() {
     var active = $( $('.jstree li strong').parents('li')[0] );
     var activeIndex = li.index(active);
 
-    var max = 15;
-    if (li.length>15) {
+    if (li.length>2) {
       var treeWrapper = $('#publisher-tree-wrapper');
       var treeButton = $('#publisher-tree-expand');
-      var hideAfter = 
+      var hidden=false;
       $.each(li, function(i, element) {
-        if (i>=activeIndex) $(element).hide();
+        if (i>activeIndex) {
+          $(element).hide();
+          hidden=true;
+        }
       });
-      treeButton.show();
-      treeButton.click(function() {
-        treeButton.hide();
-        $.each(li, function(i,element) { $(element).show(); });
-      });
+
+      if (hidden) {
+        treeButton.show();
+        treeButton.click(function() {
+          treeButton.hide();
+          $.each(li, function(i,element) { $(element).show(); });
+        });
+      }
     }
   });
   jstree.bind('open_node.jstree', function(e) {
