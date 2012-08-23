@@ -32,10 +32,12 @@ $(function() {
     if (hidden) {
       var treeButton = $('#publisher-tree-expand');
       treeButton.show();
-      treeButton.click(function() {
+      var showAll = function() {
         treeButton.hide();
         $.each(li, function(i,element) { $(element).show(); });
-      });
+      };
+      $('.jstree-icon').click(showAll);
+      treeButton.click(showAll);
     }
   });
 
