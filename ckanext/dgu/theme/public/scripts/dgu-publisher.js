@@ -8,17 +8,25 @@ $(function() {
     var active = $( $('.jstree li strong').parents('li')[0] );
     var activeIndex = li.index(active);
 
-    if (li.length>2) {
+    if (li.length>15) {
       var treeWrapper = $('#publisher-tree-wrapper');
       var treeButton = $('#publisher-tree-expand');
       var hidden=false;
       $.each(li, function(i, element) {
-        if (i>activeIndex) {
+        if (i>activeIndex+2) {
           $(element).hide();
           hidden=true;
         }
       });
-
+      activeIndex = $('.jstree li:visible').index(active);
+      if (activeIndex > 15) {
+        $.each(li, function(i, element) {
+          if (i<activeIndex-3) {
+            $(element).hide();
+            hidden=true;
+          }
+        });
+      }
       if (hidden) {
         treeButton.show();
         treeButton.click(function() {
