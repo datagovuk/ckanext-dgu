@@ -13,11 +13,6 @@
   <py:def function="content_class"><!--unboxed--></py:def>
 
 
-<?python
-    from ckan import model
-    sub_groups = sorted([model.Group.get(x['id']) for x in c.group.get_children_groups('publisher')], key=lambda g:g.title)
-?>
-
   <py:match path="primarysidebar">
     <div py:if="c.can_edit" class="widget-container">
       <h4>Publisher Administration</h4>
@@ -89,7 +84,7 @@ phone = c.group_extras.get('foi-phone')
 <?python
 from ckanext.dgu.lib.helpers import render_mini_tree
 ?>
-       ${Markup(render_mini_tree(c.parent_publisher, c.group, sub_groups))}
+       ${Markup(render_mini_tree(c.all_groups, c.group))}
       </div>
       <a style="display:none;" id="publisher-tree-expand" class="more-button"><img src="/images/arrow-down.png"/></a>
       </div>
@@ -98,9 +93,6 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 <!--!      <py:if test="not c.parent_publisher">
         <div>Top level publisher</div>
       </py:if> -->
-      <py:if test="not sub_groups">
-        <div>There are no publishers in the hierarchy underneath this one</div>
-      </py:if>
     </div>
 
    <!--! ${facet_filters()} -->
