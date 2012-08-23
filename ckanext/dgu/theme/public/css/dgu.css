@@ -465,10 +465,6 @@ ul.widget-list {
   /* Long email addresses will break the sidebar */
   overflow: hidden;
 }
-.widget-container-overflows {
-  /* eg. on Publisher Hierarchy */
-  overflow: visible !important;
-}
 
 /* Ribbon */
 /* ------ */
@@ -1243,18 +1239,6 @@ table.groups th {
 }
 .jstree ul {
   list-style-image: none;
-}
-.jstree.jstree-overflows {
-  overflow: visible !important;
-}
-.jstree.jstree-overflows li {
-  overflow: hidden;
-}
-.jstree.jstree-overflows li:hover {
-  overflow: visible;
-}
-.jstree.jstree-overflows li a {
-  background: #fff !important;
 }
 
 
