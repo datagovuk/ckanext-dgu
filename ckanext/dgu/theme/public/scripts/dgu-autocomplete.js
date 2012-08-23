@@ -66,7 +66,18 @@ $(function() {
     // Don't poll the API immediately. Spam crazy!
     timer = setTimeout(function() { pollApi(request,response); }, 200);
   };
-  var onSelect = function() {
+  var onSelect = function(e) {
+    var trigger = $(e.target);
+    if (trigger.is('a')) {
+      // Mouse has clicked an autocomplete element.
+      // It has not yet been written to the input
+      $('#dataset-search #q').val(trigger.html());
+    }
+    else {
+      // Keyboard has selected an autocomplete element.
+      // It has already been written to the input.
+      //  DAMN YOU JQUERY UI!
+    }
     $('form#dataset-search').submit();
   }
 
