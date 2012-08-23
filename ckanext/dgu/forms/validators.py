@@ -272,8 +272,7 @@ def remove_blank_resources(key, data, errors, context):
 categories = (('ministerial-department', 'UK Government Ministerial Department'),
               ('non-ministerial-department', 'UK Government Non-Ministerial Department'),
               ('devolved', 'Devolved Government Body'),
-              ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds
- and NHS bodies)'),
+              ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
               ('local-council', 'Local Council'),
               ('gov-corporation', 'Government Corporation'),
               ('private', 'Private Sector'),

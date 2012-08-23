@@ -105,13 +105,21 @@ from ckanext.dgu.lib.helpers import render_mini_tree
 
     <div class="widget-container">
       <h4>About</h4>
+        <table class="table table-striped">
 <?python
 category = c.group_extras.get('category')
 if category:
     from ckanext.dgu.forms.validators import categories
     category = dict(categories).get(category, category)
 ?>
-      Category: ${category}
+        <tr><th>Category</th><td>${category}</td></tr>
+<?python
+spb = c.group_extras.get('spending_published_by')
+if spb:
+   spb = model.Group.by_name(spb)
+?>
+        <tr py:if="spb"><th>Spending data published by</th><td><a href="/publisher/${spb.name}">${spb.title}</a></td></tr>
+      </table>
     </div>  
 
   </py:match>
