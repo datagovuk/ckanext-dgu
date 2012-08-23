@@ -461,6 +461,14 @@ ul.widget-list {
 .boxed {
   padding: 14px 17px;
 }
+.widget-container {
+  /* Long email addresses will break the sidebar */
+  overflow: hidden;
+}
+.widget-container-overflows {
+  /* eg. on Publisher Hierarchy */
+  overflow: visible !important;
+}
 
 /* Ribbon */
 /* ------ */
@@ -1466,4 +1474,10 @@ ul.ui-autocomplete li a.ui-state-hover{
     left: 5px;
     bottom: 3px;
     color: #666;
+}
+
+/* Hack: Resize content scraped from OpenSpending */
+/* ---------------------------------------------- */
+body.openspending_report #content .boxed .row .span4 {
+    width: 260px;
 }

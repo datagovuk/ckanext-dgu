@@ -253,6 +253,14 @@ class PublisherController(GroupController):
         fq = ''
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
 
+        # TODO: Deduplicate this code copied from index()
+        # TODO: Fix this up, we only really need to do this when we are
+        # showing the hierarchy (and then we should load on demand really).
+        c.all_groups = model.Session.query(model.Group).\
+                       filter(model.Group.type == 'publisher').\
+                       filter(model.Group.state == 'active').\
+                       order_by('title')
+
         try:
             c.group_dict = get_action('group_show')(context, data_dict)
             c.group = context['group']

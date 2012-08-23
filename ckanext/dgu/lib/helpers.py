@@ -54,7 +54,7 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def render_tree(groups,  type='publisher'):
+def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x:x.title):
     """
         Uses the provided groups to generate a tree structure (in a dict) by
         matching up the tree relationship using the Member objects.
@@ -89,7 +89,7 @@ def render_tree(groups,  type='publisher'):
         return [group_lookup[i] for i in group_members[group.id]]
 
     for group in groups:
-        slug, title = group.name, group.title
+        slug, title = group.name, title_for_group(group)
         if not slug in tree:
             tree[slug] = PublisherNode(slug, title)
         else:
@@ -108,36 +108,33 @@ def render_tree(groups,  type='publisher'):
                     # Parent doesn't yet exist, add a placeholder
                     tree[parent_slug] = PublisherNode('', '')
                 tree[parent_slug].children.append(tree[slug])
+    return root
 
-    return root.render()
+def render_tree(groups,  type='publisher'):
+    return construct_publisher_tree(groups,type).render()
 
-def render_mini_tree(parent_group, this_group, subgroups):
+def render_mini_tree(all_groups,this_group):
     '''Render a tree, but a special case, where there is one 'parent' (optional),
     the current group and any number of subgroups under it.'''
     from ckan import model
+    import ckanext.dgu.lib.publisher as publisher
 
-    root = PublisherNode( "root", "root")
-    tree = { root.slug : root }
-    current_parent = root
+    def get_root_group(group, critical_path):
+        critical_path.insert(0, group)
+        parent = publisher.get_parents(group)
+        if parent:
+            return get_root_group(parent[0],critical_path)
+        return group, critical_path
 
-    def add_node(parent_node, group, tree, bold=False):
-        slug, title = group.name, group.title
-        if bold:
-            title = '<strong>%s</strong>' % title
-        node = PublisherNode(slug, title)
-        tree[slug] = node
-        parent_node.children.append(node)
-        return node
+    root_group, critical_path = get_root_group(this_group, [])
+    def title_for_group(group):
+        if group==this_group:
+            return '<strong>%s</strong>' % group.title
+        return group.title
 
-    if parent_group:
-        current_parent = add_node(root, parent_group, tree)
+    root = construct_publisher_tree(all_groups,'publisher',title_for_group)
+    root.children = filter( lambda x: x.slug==root_group.name , root.children )
 
-    this_group_node = add_node(current_parent, this_group, tree, bold=True)
-
-    if subgroups:
-        for group_ in subgroups:
-            add_node(this_group_node, group_, tree)
-    
     return root.render()
 
 def get_resource_wms(resource_dict):
