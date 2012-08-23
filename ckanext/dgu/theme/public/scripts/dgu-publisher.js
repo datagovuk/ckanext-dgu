@@ -18,10 +18,12 @@ $(function() {
           hidden=true;
         }
       });
-      activeIndex = $('.jstree li:visible').index(active);
-      if (activeIndex > 15) {
-        $.each(li, function(i, element) {
-          if (i<activeIndex-3) {
+      // The order of things has changed. Now hide elements before the current one...
+      var li2 = $('.jstree li:visible');
+      var activeIndex2 = li2.index(active);
+      if (activeIndex2 > 10) {
+        $.each(li2, function(i, element) {
+          if (i<activeIndex2-3) {
             $(element).hide();
             hidden=true;
           }
