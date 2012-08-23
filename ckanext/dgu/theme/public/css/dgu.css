@@ -461,6 +461,14 @@ ul.widget-list {
 .boxed {
   padding: 14px 17px;
 }
+.widget-container {
+  /* Long email addresses will break the sidebar */
+  overflow: hidden;
+}
+.widget-container-overflows {
+  /* eg. on Publisher Hierarchy */
+  overflow: visible !important;
+}
 
 /* Ribbon */
 /* ------ */
