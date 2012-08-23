@@ -54,7 +54,7 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def construct_publisher_tree(groups,  type='publisher'):
+def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x:x.title):
     """
         Uses the provided groups to generate a tree structure (in a dict) by
         matching up the tree relationship using the Member objects.
@@ -89,7 +89,7 @@ def construct_publisher_tree(groups,  type='publisher'):
         return [group_lookup[i] for i in group_members[group.id]]
 
     for group in groups:
-        slug, title = group.name, group.title
+        slug, title = group.name, title_for_group(group)
         if not slug in tree:
             tree[slug] = PublisherNode(slug, title)
         else:
@@ -127,9 +127,14 @@ def render_mini_tree(all_groups,this_group):
         return group, critical_path
 
     root_group, critical_path = get_root_group(this_group, [])
+    def title_for_group(group):
+        if group==this_group:
+            return '<strong>%s</strong>' % group.title
+        return group.title
 
-    root = construct_publisher_tree(all_groups)
+    root = construct_publisher_tree(all_groups,'publisher',title_for_group)
     root.children = filter( lambda x: x.slug==root_group.name , root.children )
+
     return root.render()
 
 def get_resource_wms(resource_dict):

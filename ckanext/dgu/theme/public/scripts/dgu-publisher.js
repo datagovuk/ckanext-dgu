@@ -16,13 +16,21 @@ $(function() {
 
   jstree.bind('loaded.jstree', function() { 
     var li = $('.jstree li');
-    var max = 15;
-    if (li.length>max) {
-      var treeWrapper = $('#publisher-tree-wrapper');
-      var treeButton = $('#publisher-tree-expand');
+    var active = $( $('.jstree li strong').parents('li')[0] );
+    // Hide almost everything
+    var hidden = false;
+    if (li.length >15) {
       $.each(li, function(i, element) {
-        if (i>=max) $(element).hide();
+        element=$(element);
+        if (element[0]!=active[0] && element.hasClass('jstree-leaf')) {
+          $(element).hide();
+          hidden = true;
+        }
       });
+    }
+
+    if (hidden) {
+      var treeButton = $('#publisher-tree-expand');
       treeButton.show();
       treeButton.click(function() {
         treeButton.hide();
