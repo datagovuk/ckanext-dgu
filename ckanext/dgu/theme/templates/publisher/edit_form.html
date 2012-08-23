@@ -1,6 +1,6 @@
 <form id="publisher-edit" action="" method="post"
     class="form-horizontal"
-    py:attrs="{'class':'has-errors'} if errors else {}"
+    py:attrs="{'class':'has-errors form-horizontal'} if errors else {}"
     xmlns:i18n="http://genshi.edgewall.org/i18n"
     xmlns:py="http://genshi.edgewall.org/"
     xmlns:xi="http://www.w3.org/2001/XInclude">
@@ -90,6 +90,20 @@ publisher_extras = dict([(extra_dict['key'], extra_dict['value']) \
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
         </select>
       </py:if>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <label class="control-label" for="state">Category</label>
+    <div class="controls">
+      <select id="category" name="category" value="${publisher_extras.get('contact-name', '')}">
+        <option value=""></option>
+        <py:for each="cat_name, cat_desc in c.categories">
+          <option value="${cat_name}" py:attrs="{'selected': 'selected' if publisher_extras.get('category', '') == cat_name else None}" >
+            ${cat_desc}
+          </option>
+        </py:for>
+      </select>
     </div>
   </div>
 </fieldset>
@@ -200,8 +214,8 @@ from ckanext.dgu.lib import publisher
   <ul>
     <li py:for="num, publisher in enumerate(publisher.get_children(c.group))">
       <label class="checkbox" for="groups__${num}__name">
-        <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher[1]}"/>
-        ${publisher[2]}
+        <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher.name}"/>
+        ${publisher.title}
       </label>
     </li>
   </ul>

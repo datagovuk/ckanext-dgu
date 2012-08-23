@@ -103,7 +103,16 @@ from ckanext.dgu.lib.helpers import render_mini_tree
       </py:if>
     </div>
 
-   <!--! ${facet_filters()} -->
+    <div class="widget-container">
+      <h4>About</h4>
+<?python
+category = c.group_extras.get('category')
+if category:
+    from ckanext.dgu.forms.validators import categories
+    category = dict(categories).get(category, category)
+?>
+      Category: ${category}
+    </div>  
 
   </py:match>
 

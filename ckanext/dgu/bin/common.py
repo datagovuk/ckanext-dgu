@@ -1,3 +1,4 @@
+import os
 
 class ScriptError(Exception):
     pass
@@ -12,9 +13,10 @@ def remove_readonly_fields(pkg):
         if pkg.has_key(read_only_field):
             del pkg[read_only_field]
 
-def load_config(path):
+def load_config(config_filepath):
     import paste.deploy
-    conf = paste.deploy.appconfig('config:' + path)
+    config_abs_path = os.path.abspath(config_filepath)
+    conf = paste.deploy.appconfig('config:' + config_abs_path)
     import ckan
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)

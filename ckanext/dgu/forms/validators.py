@@ -11,6 +11,7 @@ from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
+
 def drop_if_same_as_publisher(key, data, errors, context):
     """
     Validates the contact- and foi- data.
@@ -268,4 +269,25 @@ def remove_blank_resources(key, data, errors, context):
                 if triple in errors:
                     del errors[triple]
 
+categories = (('ministerial-department', 'UK Government Ministerial Department'),
+              ('non-ministerial-department', 'UK Government Non-Ministerial Department'),
+              ('devolved', 'Devolved Government Body'),
+              ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds
+ and NHS bodies)'),
+              ('local-council', 'Local Council'),
+              ('gov-corporation', 'Government Corporation'),
+              ('private', 'Private Sector'),
+              ('grouping', 'A notional grouping of organisations'),
+              )
 
+def validate_publisher_category(key, data, errors, context):
+    '''
+    Validates the category field is a valid value.
+    '''
+    category = data[('category',)]
+    if category not in dict(categories).keys():
+        if category:
+            errors[('category',)] = ['Category is not valid.']
+        else:
+            errors[('category',)] = ['Please supply a value for the Category.']
+            

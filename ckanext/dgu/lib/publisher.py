@@ -18,13 +18,21 @@ def go_down_tree(publisher):
             yield grandchild
 
 def get_parents(publisher):
-    '''Finds parent publishers for the given publisher (object).'''
+    '''Finds parent publishers for the given publisher (object). (Not recursive)'''
     return publisher.get_groups('publisher')
 
 def get_children(publisher):
-    '''Finds child publishers for the given publisher (object).
-    Returns a list, where each child publisher is expressed as a tuple:
-       (group.id, group.name, group.title)
-    '''
-    return model.Session.query("id", "name", "title").\
-           from_statement(HIERARCHY_CTE).params(id=publisher.id, type='publisher').all()
+    '''Finds child publishers for the given publisher (object). (Not recursive)'''
+    return model.Session.query(model.Group).\
+           from_statement(HIERARCHY_CTE).params(id=publisher.id, type='publisher').\
+           all()
+
+def get_top_level():
+    '''Returns the top level publishers.'''
+    return model.Session.query(model.Group).\
+           outerjoin(model.Member, model.Member.table_id == model.Group.id and \
+                     model.Member.table_name == 'group' and \
+                     model.Member.state == 'active').\
+           filter(model.Member.id==None).\
+           filter(model.Group.type=='publisher').\
+           order_by(model.Group.name).all()

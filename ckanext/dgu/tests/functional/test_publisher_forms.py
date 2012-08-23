@@ -38,6 +38,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-name'] = 'Head of FOI Comms'
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
+        form['category'] = 'grouping'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
         assert_equal(res.header_dict['Location'], 'http://localhost/publisher/test-name')
 
@@ -51,6 +52,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-name'], 'Head of FOI Comms')
         assert_equal(publisher.extras['foi-email'], 'foi-comms@nhs.gov.uk')
         assert_equal(publisher.extras['foi-phone'], '0845 4567890')
+        assert_equal(publisher.extras['category'], 'grouping')
 
     def test_1_edit_publisher(self):
         # Load form
@@ -68,6 +70,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['contact-email'].value, 'contact@nhs.gov.uk')
         assert_equal(form['foi-name'].value, '')
         assert_equal(form['foi-email'].value, '')
+        assert_equal(form['category'].value, 'grouping')
 
         # Make edit
         publisher_name = 'new-name'
@@ -79,6 +82,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-name'] = 'Head of FOI Comms'
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
+        form['category'] = 'alb'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'nhsadmin'})
         assert_equal(res.header_dict['Location'], 'http://localhost/publisher/new-name')
 
@@ -91,6 +95,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-name'], 'Head of FOI Comms')
         assert_equal(publisher.extras['foi-email'], 'foi-comms@nhs.gov.uk')
         assert_equal(publisher.extras['foi-phone'], '0845 4567890')
+        assert_equal(publisher.extras['category'], 'alb')
 
         # restore name for other tests
         model.repo.new_revision()

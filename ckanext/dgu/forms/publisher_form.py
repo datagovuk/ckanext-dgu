@@ -26,6 +26,7 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       ignore,
                                       keep_extras,
                                      )
+from ckanext.dgu.forms.validators import validate_publisher_category, categories
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +45,6 @@ def convert_from_extras(key, data, errors, context):
             and data_key[-1] == 'key'
             and data_value == key[-1]):
             data[key] = data[('extras', data_key[1], 'value')]
-
 
 
 class PublisherForm(SingletonPlugin):
@@ -116,6 +116,7 @@ class PublisherForm(SingletonPlugin):
             'contact-name': [ignore_missing, unicode, convert_to_extras],
             'contact-email': [ignore_missing, unicode, convert_to_extras],
             'contact-phone': [ignore_missing, unicode, convert_to_extras],
+            'category': [validate_publisher_category, convert_to_extras],
         }
         schema.update( group_form_schema() )
         return schema
@@ -129,6 +130,7 @@ class PublisherForm(SingletonPlugin):
             'contact-name' : [convert_from_extras, ignore_missing, unicode],
             'contact-email': [convert_from_extras, ignore_missing, unicode],
             'contact-phone': [convert_from_extras, ignore_missing, unicode],
+            'category': [convert_from_extras],
         }
         schema.update( default_group_schema() )
         return schema
@@ -149,10 +151,10 @@ class PublisherForm(SingletonPlugin):
         """
         c.is_sysadmin = Authorizer().is_sysadmin(c.user)
         c.body_class = "group edit"
-        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
         c.schema_fields = [
     		'contact-name', 'contact-email', 'contact-phone',
     		'foi-name', 'foi-email', 'foi-phone',
+                'category',
 	    ]
 
         if 'group' in context:
@@ -177,3 +179,4 @@ class PublisherForm(SingletonPlugin):
             c.users = group.members_of_type(model.User)
         else:
             c.body_class = 'group new'
+        c.categories = categories
