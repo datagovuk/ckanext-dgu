@@ -1,7 +1,7 @@
 import Cookie
 import logging
 import datetime
-import md5
+import hashlib
 
 from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
      DrupalRequestError
@@ -40,7 +40,7 @@ class DrupalAuthMiddleware(object):
         similar_cookies = []
         for cookie in cookies:
             if cookie.startswith('SESS'):
-                server_hash = md5.new(server_name).hexdigest()
+                server_hash = hashlib.md5(server_name).hexdigest()
                 if cookie == 'SESS%s' % server_hash:
                     log.debug('Drupal cookie found for server request %s', server_name)
                     return cookies[cookie].value
