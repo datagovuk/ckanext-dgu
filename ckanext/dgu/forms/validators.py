@@ -269,8 +269,8 @@ def remove_blank_resources(key, data, errors, context):
                 if triple in errors:
                     del errors[triple]
 
-categories = (('ministerial-department', 'UK Government Ministerial Department'),
-              ('non-ministerial-department', 'UK Government Non-Ministerial Department'),
+categories = (('core-department', 'UK Government Core Department'),
+              ('non-core-department', 'UK Government Non-Core Department'),
               ('devolved', 'Devolved Government Body'),
               ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
               ('local-council', 'Local Council'),
