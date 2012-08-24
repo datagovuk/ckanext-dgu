@@ -1253,6 +1253,8 @@ table.groups th {
 }
 div.publisher-mini-tree {
   overflow: auto;
+  overflow-x: hidden;
+  -ms-overflow-y: hidden; /*IE 8 only*/
   max-height: 250px;
 }
 
