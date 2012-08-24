@@ -80,7 +80,7 @@ phone = c.group_extras.get('foi-phone')
     <div class="widget-container">
       <h4>Publisher Hierarchy</h4>
       <div id="publisher-tree-wrapper">
-      <div id="publisher-tree">
+      <div id="publisher-tree" class="publisher-mini-tree">
 <?python
 from ckanext.dgu.lib.helpers import render_mini_tree
 ?>
@@ -95,21 +95,20 @@ from ckanext.dgu.lib.helpers import render_mini_tree
       </py:if> -->
     </div>
 
-    <div class="widget-container">
-      <h4>About</h4>
-        <table class="table table-striped">
 <?python
 category = c.group_extras.get('category')
 if category:
     from ckanext.dgu.forms.validators import categories
     category = dict(categories).get(category, category)
-?>
-        <tr><th>Category</th><td>${category}</td></tr>
-<?python
+from ckan import model
 spb = c.group_extras.get('spending_published_by')
 if spb:
    spb = model.Group.by_name(spb)
 ?>
+    <div py:if="category or spb" class="widget-container">
+      <h4>Details</h4>
+        <table class="table table-striped">
+        <tr py:if="category"><th>Category</th><td>${category}</td></tr>
         <tr py:if="spb"><th>Spending data published by</th><td><a href="/publisher/${spb.name}">${spb.title}</a></td></tr>
       </table>
     </div>  

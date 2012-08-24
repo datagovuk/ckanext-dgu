@@ -1225,8 +1225,6 @@ span.extras-label {
 }
 div#publisher-tree {
   background-color: white;
-  overflow: auto;
-  max-height: 250px;
 }
 .tab-pane .pagination-alphabet a { 
   padding: 0 5px;
@@ -1253,6 +1251,11 @@ table.groups th {
   padding: 8px;
   text-align: center;
 }
+div.publisher-mini-tree {
+  overflow: auto;
+  max-height: 250px;
+}
+
 
 /* Harvest pages */
 /* ------------- */
