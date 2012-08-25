@@ -200,7 +200,7 @@ if has_errors:
       </thead>
       <tbody>
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
-        <tr class="timeseries_resources__${num} resource">
+        <tr class="timeseries_resources__${num}">
           <py:for each="col in ('date',) + c.resource_columns">
             <td class="resource-${col}">
               <?python
@@ -268,7 +268,7 @@ if has_errors:
       </thead>
       <tbody>
         <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
-        <tr class="individual_resources__${num} resource">
+        <tr class="individual_resources__${num}">
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
             <?python
@@ -617,7 +617,7 @@ if has_errors:
     </thead>
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
-        <tr class="additional_resources__${num} resource">
+        <tr class="additional_resources__${num}">
           <py:for each="col in ['description', 'url', 'format']">
             <td>
               <?python

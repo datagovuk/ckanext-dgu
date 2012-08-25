@@ -153,7 +153,6 @@ CKAN.Dgu = function($, my) {
         var name = input.attr('name').split('__')[2];
         if (name in inputMap) {
           inputMap[name].val( input.val() )
-          //alert (' transferred '+name+' from '+input.attr('name')+' to '+inputMap[name].attr('name'));
         }
       });
     }
@@ -161,25 +160,26 @@ CKAN.Dgu = function($, my) {
 
   my.addTableRow = function(table) {
       var lastRow = table.find('tbody tr:last');
-      var info = lastRow.attr('class').split('__'); // eg. additional_resources__0
+      var oldClass = lastRow.prop('class');
+      var info = oldClass.split('__'); // eg. additional_resources__0
       var prefix = info[0];
       var newIndex = parseInt(info[1],10) + 1;
       var newRow = lastRow.clone();
-      newRow.addClass(prefix + "__" + newIndex);
-      newRow.addClass("resource");
+      newRow.removeClass(oldClass);
+      newRow.addClass( prefix + "__" + newIndex);
       newRow.insertAfter(lastRow);
       newRow.find("*").each(function(index, node) {
         var attrValueRegex = new RegExp(prefix + '__\\d+');
         var replacement = prefix + '__' + newIndex;
 
-        if ($(node).attr("for")) {
-          $(node).attr("for", $(node).attr("for").replace(attrValueRegex, replacement));
+        if ($(node).prop("for")) {
+          $(node).prop("for", $(node).prop("for").replace(attrValueRegex, replacement));
         }
-        if ($(node).attr("name")) {
-          $(node).attr("name", $(node).attr("name").replace(attrValueRegex, replacement));
+        if ($(node).prop("name")) {
+          $(node).prop("name", $(node).prop("name").replace(attrValueRegex, replacement));
         }
-        if ($(node).attr("id")) {
-          $(node).attr("id", $(node).attr("id").replace(attrValueRegex, replacement));
+        if ($(node).prop("id")) {
+          $(node).prop("id", $(node).prop("id").replace(attrValueRegex, replacement));
         }
         $(node).val("");
         $(node).removeClass("error");
@@ -191,7 +191,7 @@ CKAN.Dgu = function($, my) {
       newRow.find('input[id$="__validate-resource-button"]').attr('value', 'Check')
                                                             .removeAttr('disabled')
                                                             .each(function(index, e){
-        CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
+        CKAN.Dgu.validateResource(e, function(){return $($(e).parents('tr')[0]);});
       });
       return newRow;
   };
