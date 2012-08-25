@@ -37,28 +37,11 @@
       $("#title").focus();
     }
 
-
-    /* Toggling visibility of time-series/data resources */
-    var toggled = function() {
-      var isTimeseries = $('input#package_type-timeseries-radio').is(':checked');
-      var isIndividual = $('input#package_type-individual-radio').is(':checked');
-      var fieldsetTimeseries = $('fieldset#package_type-timeseries');
-      var fieldsetIndividual = $('fieldset#package_type-individual');
-      if(isTimeseries) {
-        fieldsetTimeseries.show();
-        fieldsetIndividual.hide();
-      } else {
-        fieldsetTimeseries.hide();
-        fieldsetIndividual.show();
-      }
-    };
-
-    $('input#package_type-individual-radio, input#package_type-timeseries-radio').change(toggled);
-    toggled();
-
     /* Handle prev/next buttons */
     $('.package_create_form #form-tabs a').on('shown', CKAN.Dgu.updatePublisherNav);
 
+    /* Show the correct resource fieldset */
+    CKAN.Dgu.showHideResourceFieldsets();
     /* Add new rows */
     CKAN.Dgu.copyTableRowOnClick($('#additional_resources-add'), $('#additional_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));

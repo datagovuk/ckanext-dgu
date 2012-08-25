@@ -106,9 +106,13 @@ CKAN.Dgu = function($, my) {
 
   my.setupResourcesToggle = function() {
     function clickToggle(e) {
-      //$('#package_type_modal').modal('toggle');
-      doToggle(e.target.value);
-
+      var to = e.target.value;
+      if (to=='individual') {
+        $('#package_type_modal').modal('toggle');
+      }
+      else {
+        doToggle(to);
+      }
     }
     function cancelChange(e) {
       e.preventDefault();
@@ -126,10 +130,26 @@ CKAN.Dgu = function($, my) {
       // Wipe the old table
       var newRow = CKAN.Dgu.addTableRow(from);
       from.find('tbody tr').not(newRow).remove();
+      CKAN.Dgu.showHideResourceFieldsets();
     }
     $('#package_type_modal .cancel').click(cancelChange);
     $('#package_type_modal .ok').click(function(){doToggle('individual')});
     $('input:radio[name=package_type]').change(clickToggle);
+  };
+
+  /* Toggling visibility of time-series/data resources */
+  my.showHideResourceFieldsets = function() {
+    var isTimeseries = $('input#package_type-timeseries-radio').is(':checked');
+    var isIndividual = $('input#package_type-individual-radio').is(':checked');
+    var fieldsetTimeseries = $('fieldset#package_type-timeseries');
+    var fieldsetIndividual = $('fieldset#package_type-individual');
+    if(isTimeseries) {
+      fieldsetTimeseries.show();
+      fieldsetIndividual.hide();
+    } else {
+      fieldsetTimeseries.hide();
+      fieldsetIndividual.show();
+    }
   };
 
   my.copyResourceTable = function(_from, _to) {
@@ -144,13 +164,13 @@ CKAN.Dgu = function($, my) {
       var inputMap = {};
       $.each( $(to[i]).find('input'), function(ii, input) {
         input = $(input);
-        var name = input.attr('name').split('__')[2];
+        var name = input.prop('name').split('__')[2];
         inputMap[name] = input;
       });
       // Copy from the source elements
       $.each( $(from[i]).find('input'), function(ii, input) {
         input = $(input);
-        var name = input.attr('name').split('__')[2];
+        var name = input.prop('name').split('__')[2];
         if (name in inputMap) {
           inputMap[name].val( input.val() )
         }
