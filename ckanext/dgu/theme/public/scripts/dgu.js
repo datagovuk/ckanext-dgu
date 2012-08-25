@@ -134,8 +134,33 @@ CKAN.Dgu = function($, my) {
     $('input:radio[name=package_type]').change(clickToggle);
   };
 
-  my.copyTableRowOnClick = function(button, table) {
-    button.attr('onclick', '').click(function() {
+  my.copyResourceTable = function(_from, _to) {
+    var from = _from.find('.resource');
+    while (_to.find('.resource').length < from.length) {
+      CKAN.Dgu.addTableRow(_to);
+    }
+    var to = _to.find('.resource');
+    if (to.length!=from.length) throw "DOM insanely broken.";
+    for (var i=0;i<to.length;i++) {
+      // Map out the target elements; { 'url':<HTMLInput> .. }
+      var inputMap = {};
+      $.each( $(to[i]).find('input'), function(ii, input) {
+        input = $(input);
+        var name = input.attr('name').split('__')[2];
+        inputMap[name] = input;
+      });
+      // Copy from the source elements
+      $.each( $(from[i]).find('input'), function(ii, input) {
+        input = $(input);
+        var name = input.attr('name').split('__')[2];
+        if (name in inputMap) {
+          inputMap[name].val( input.val() )
+        }
+      });
+    }
+  };
+
+  my.addTableRow = function(table) {
       var lastRow = table.find('tr').last();
       var info = lastRow.attr('class').split('__'); // eg. additional_resources__0
       var prefix = info[0];
@@ -169,6 +194,11 @@ CKAN.Dgu = function($, my) {
                                                             .each(function(index, e){
         CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
       });
+  };
+
+  my.copyTableRowOnClick = function(button, table) {
+    button.attr('onclick', '').click(function() {
+      CKAN.Dgu.addTableRow(table);
     });
   };
 
