@@ -105,41 +105,39 @@ CKAN.Dgu = function($, my) {
   };
 
   my.setupResourcesToggle = function() {
-    function allElements() {
-      return $('#package_type-timeseries input[type="text"], #package_type-individual input[type="text"]');
-    }
     function clickToggle(e) {
-      var allEmpty = true;
-      $.each(allElements(), function(i, el) {
-        if ($(el).val()) {
-          allEmpty = false;
-        }
-      });
-      if (!allEmpty) {
-        $('#package_type_modal').modal('toggle');
-      }
+      //$('#package_type_modal').modal('toggle');
+      doToggle(e.target.value);
+
     }
     function cancelChange(e) {
       e.preventDefault();
       var active = $('input:radio[name=package_type]:not(:checked)').click();
     }
-    function wipeForm(e) {
-      e.preventDefault();
-      $.each(allElements(), function(i, el) {
-        $(el).val('');
-      });
+    function doToggle(mode) {
+      var alt;
+      if (mode=='individual') alt='timeseries';
+      else if (mode=='timeseries') alt='individual';
+      else throw 'Cannot toggle to mode='+mode;
+      var from = $('#'+ alt+'_resources-table');
+      var to =   $('#'+mode+'_resources-table'); 
+      // Copy the data
+      CKAN.Dgu.copyResourceTable(from,to);
+      // Wipe the old table
+      var newRow = CKAN.Dgu.addTableRow(from);
+      from.find('tbody tr').not(newRow).remove();
     }
     $('#package_type_modal .cancel').click(cancelChange);
-    $('#package_type_modal .ok').click(wipeForm);
+    $('#package_type_modal .ok').click(function(){doToggle('individual')});
     $('input:radio[name=package_type]').change(clickToggle);
   };
 
   my.copyResourceTable = function(_from, _to) {
-    var from = _from.find('.resource');
-    while (_to.find('.resource').length < from.length) {
-      CKAN.Dgu.addTableRow(_to);
+    var from = _from.find('tbody tr');
+    var to = _to.find('tbody tr');
+    while (to.length < from.length) {
+      to.push(CKAN.Dgu.addTableRow(_to));
     }
-    var to = _to.find('.resource');
     if (to.length!=from.length) throw "DOM insanely broken.";
     for (var i=0;i<to.length;i++) {
       // Map out the target elements; { 'url':<HTMLInput> .. }
@@ -155,18 +153,19 @@ CKAN.Dgu = function($, my) {
         var name = input.attr('name').split('__')[2];
         if (name in inputMap) {
           inputMap[name].val( input.val() )
+          //alert (' transferred '+name+' from '+input.attr('name')+' to '+inputMap[name].attr('name'));
         }
       });
     }
   };
 
   my.addTableRow = function(table) {
-      var lastRow = table.find('tr').last();
+      var lastRow = table.find('tbody tr:last');
       var info = lastRow.attr('class').split('__'); // eg. additional_resources__0
       var prefix = info[0];
       var newIndex = parseInt(info[1],10) + 1;
       var newRow = lastRow.clone();
-      newRow.attr('class', prefix + "__" + newIndex);
+      newRow.addClass(prefix + "__" + newIndex);
       newRow.addClass("resource");
       newRow.insertAfter(lastRow);
       newRow.find("*").each(function(index, node) {
@@ -194,6 +193,7 @@ CKAN.Dgu = function($, my) {
                                                             .each(function(index, e){
         CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
       });
+      return newRow;
   };
 
   my.copyTableRowOnClick = function(button, table) {
