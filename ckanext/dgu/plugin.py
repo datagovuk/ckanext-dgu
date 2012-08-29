@@ -4,6 +4,7 @@ from logging import getLogger
 from urllib import quote
 
 from pylons import config
+
 from ckan.lib.helpers import flash_notice
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
@@ -51,6 +52,9 @@ def after(instance, action, **params):
     instance._set_cors()
     response.headers['Vary'] = 'Cookie'
 
+def not_found(self, url):
+    from ckan.lib.base import abort
+    abort(404)
 
 class ThemePlugin(SingletonPlugin):
     '''
@@ -65,6 +69,11 @@ class ThemePlugin(SingletonPlugin):
     # [Monkey patch] Replace BaseController.__after__ to allow us to add more
     # headers for caching
     BaseController.__after__ = after
+    # [Monkey patch] Replace TemplateController.view since it isn't used
+    # in normal use. Hack attempts sometimes get through to it though
+    # and there is no need to attempt to barf on their unicode characters
+    from ckan.controllers.template import TemplateController
+    TemplateController.view = not_found
 
     def update_config(self, config):
         configure_template_directory(config, 'theme/templates')
