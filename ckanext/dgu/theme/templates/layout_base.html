@@ -150,8 +150,10 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
       <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="/data/openspending-browse">Spend Browser</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="/data/openspending-report/index">Spend Reports</a></li>
+      <py:if test="config.get('dgu.openspending_reports_enabled')">
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="/data/openspending-report/index">Spend Reports</a></li>
+      </py:if>
     </ul>
 <?python
 import ckan.authz
