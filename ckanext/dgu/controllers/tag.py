@@ -1,6 +1,7 @@
 from ckan.controllers.tag import TagController as BaseTagController
 from ckan import model
 from ckan.lib.helpers import Page
+from ckan.lib.base import abort
 from ckanext.dgu.lib.alphabet_paginate_large import AlphaPageLarge
 from ckanext.dgu.plugins_toolkit import render, c, request, _, ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access
 from ckan.lib.base import h
@@ -21,7 +22,10 @@ class TagController(BaseTagController):
         data_dict = {'all_fields': False} 
 
         if c.q:
-            page = int(request.params.get('page', 1))
+            try:
+                page = int(request.params.get('page', 1))
+            except ValueError:
+                abort(404, _('Not found'))
             data_dict['q'] = c.q
             data_dict['limit'] = LIMIT
             data_dict['offset'] = (page-1)*LIMIT
