@@ -11,6 +11,8 @@ import re
 import urllib2
 import json
 
+from bs4 import BeautifulSoup
+
 from common import load_config, register_translator
 
 start_time = datetime.datetime.today()
@@ -119,25 +121,27 @@ def command(config_file):
                     # remove header
                     report_html = report_html.split('---')[-1]
                     # add import timestamp
-                    report_html += '<p class="import-date">Page imported from <a href="${url}">OpenSpending</a> on %s</p>' % \
-                                   datetime.datetime.now().strftime('%d-%m-%Y')
+                    report_html += '<p class="import-date">Page imported from <a href="%s">OpenSpending</a> on %s</p>' % \
+                                   (url.encode('utf8'),
+                                    datetime.datetime.now().strftime('%d-%m-%Y'))
                     # add <html>
                     report_html = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://genshi.edgewall.org/i18n" '\
                                   'xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" '\
                                   'py:strip="">' + report_html + '</html>'
-                    # & encoding
-                    report_html = report_html.replace(' & ', ' &amp; ')
+                    # Pound symbol
                     report_html = report_html.replace('(GBP)', '(&pound;)')
-                    try:
-                        report_html_encoded = report_html #.encode('utf8', 'ignore')
-                    except UnicodeDecodeError, e:
-                        import pdb; pdb.set_trace()
+                    # Make sure it is good XML
+                    soup = BeautifulSoup(report_html)
+                    report_html = soup.prettify(formatter="html")
+                    # Sort out non-encoded symbols
+                    report_html = re.sub(u'\u2714', '&#x2714;', report_html)
+                    report_html = re.sub(u'\u2718', '&#x2718;', report_html)
                     # save it
                     filename = url[url.rfind('/')+1:] or 'index.html'
                     filepath = os.path.join(openspending_reports_dir, filename)
                     f = open(filepath, 'wb')
                     try:
-                        f.write(report_html_encoded)
+                        f.write(report_html)
                     finally:
                         f.close()
                     log.info('Wrote openspending report %s', filepath)

@@ -1466,8 +1466,9 @@ ul.ui-autocomplete li a.ui-state-hover{
     color: #666;
 }
 
+/* OpenSpending reports */
+body.openspending_report .voluntary { display: none; }
 /* Hack: Resize content scraped from OpenSpending */
-/* ---------------------------------------------- */
 body.openspending_report #content .boxed .row .span4 {
     width: 260px;
 }

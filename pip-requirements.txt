@@ -18,3 +18,5 @@ pastescript
 # ApacheMiddleware
 apachemiddleware
 
+# Beautiful Soup for gov_daily.py
+beautifulsoup4
