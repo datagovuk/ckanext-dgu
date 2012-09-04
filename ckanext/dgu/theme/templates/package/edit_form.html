@@ -106,6 +106,7 @@ if has_errors:
     <li><a id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
     <li><a id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
     <li py:if="is_edit_form and (c.is_sysadmin or are_legacy_extras)"><a id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+    <li py:if="c.is_sysadmin"><a id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
   </ul>
   <div class="tab-content">
 
@@ -867,8 +868,22 @@ if has_errors:
       </p>
     </fieldset>
   </div>
-
 </fieldset>
+
+<fieldset class="tab-pane" id="section-state-field" py:if="c.is_sysadmin">
+    <h4>State</h4>
+    <div class="well">
+      <p>NB: Dangerous operation! (Available to sysadmins only)</p>
+      <span>
+      This dataset is&nbsp;&nbsp;
+      <select id="state" class="dataset-delete" name="state" style="display:inline;">
+        <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
+        <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
+      </select>
+      </span>
+    </div>
+</fieldset>
+
 <div class="clearfix">&nbsp;</div>
 </div><!-- /tab-content -->
 
