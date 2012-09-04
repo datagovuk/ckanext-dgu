@@ -38,7 +38,7 @@ class PackageController(ckan.controllers.package.PackageController):
                 h.flash_success(_('Successfully deleted package.'))
                 self._form_save_redirect(package_name, 'edit')
             except NotAuthorized:
-                abort(401, _('Unauthorized to read package %s') % id)
+                abort(401, _('Unauthorized to delete package %s') % id)
             except ObjectNotFound, e:
                 abort(404, _('Package not found'))
             except DataError:
