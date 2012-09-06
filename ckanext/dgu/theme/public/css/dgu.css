@@ -183,7 +183,25 @@ ul.arrow-list {
 .pagination ul {
   background: #fff;
 }
-
+table.tablesorter thead th.headerSortUp { 
+    background-image: url('/images/icons/sort-asc.gif'); 
+    background-color: #6c0; 
+}
+table.tablesorter thead th.headerSortDown { 
+    background-image: url('/images/icons/sort-desc.gif');
+    background-color: #6c0;
+    
+}
+table.tablesorter th.header { 
+    background-image: url('/images/icons/sort.gif');
+    cursor: pointer; 
+    font-weight: bold; 
+    background-repeat: no-repeat; 
+    background-position: center right; 
+    padding-right: 20px; 
+    border-right: 1px solid #dad9c7; 
+    margin-left: -1px; 
+}
 
 /* BlackBar */
 /* -------- */

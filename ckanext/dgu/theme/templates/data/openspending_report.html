@@ -18,6 +18,22 @@
           </p>
   </div>
 
+  <py:def function="optional_footer">
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script> 
+    <script type="text/javascript">
+
+      var removeCommas = function(node)
+      {   
+          return node.textContent.replace(/,/g, '');
+      } 
+      $(document).ready(function() 
+        { 
+          $("#publishers-table").tablesorter({textExtraction: removeCommas}); 
+        } 
+      ); 
+    </script>
+  </py:def>
+
   <xi:include href="../layout.html" />
 
 </html>
