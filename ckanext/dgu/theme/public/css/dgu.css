@@ -185,11 +185,11 @@ ul.arrow-list {
 }
 table.tablesorter thead th.headerSortUp { 
     background-image: url('/images/icons/sort-asc.gif'); 
-    background-color: #6c0; 
+    background-color: #eee; 
 }
 table.tablesorter thead th.headerSortDown { 
     background-image: url('/images/icons/sort-desc.gif');
-    background-color: #6c0;
+    background-color: #eee;
     
 }
 table.tablesorter th.header { 
@@ -1489,4 +1489,7 @@ body.openspending_report .voluntary { display: none; }
 /* Hack: Resize content scraped from OpenSpending */
 body.openspending_report #content .boxed .row .span4 {
     width: 260px;
+}
+.error-details .label {
+    align: center;
 }

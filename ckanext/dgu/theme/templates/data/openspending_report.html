@@ -22,13 +22,20 @@
     <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script> 
     <script type="text/javascript">
 
-      var removeCommas = function(node)
+      var textExtract = function(node)
       {   
+          if ('sort' in node.attributes) {
+              return node.attributes['sort'].value
+          } 
+          // remove commas
           return node.textContent.replace(/,/g, '');
-      } 
+      }
       $(document).ready(function() 
         { 
-          $("#publishers-table").tablesorter({textExtraction: removeCommas}); 
+          $("#publishers-table").tablesorter({
+              textExtraction: textExtract,
+              dataFormat: "uk"
+          }); 
         } 
       ); 
     </script>
