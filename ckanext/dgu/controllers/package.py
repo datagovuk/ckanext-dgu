@@ -63,7 +63,7 @@ class CommentProxy(BaseController):
     for test purposes, when Drupal is not present locally.
     '''
     def get_comments(self, id):
-        return self._read_url('http://dgu-dev.okfn.org/comment/get/%s' % quote(id))
+        return self._read_url('http://co-dev1.dh.bytemark.co.uk/comment/get/%s' % quote(id))
 
     def _read_url(self, url, post_data=None, content_type=None):
         headers = {'Content-Type': content_type} if content_type else {}
