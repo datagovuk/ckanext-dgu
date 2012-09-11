@@ -349,5 +349,14 @@ def render_stars(stars,reason,last_updated):
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
 
+def ga_download_tracking(resource, action='download'):
+    '''Google Analytics event tracking for downloading a resource.
 
+    Values for action: download, download-cache
+
+    c.f. Google example:
+    <a href="#" onClick="_gaq.push(['_trackEvent', 'Videos', 'Play', 'Baby\'s First Birthday']);">Play</a>
+    '''
+    return "_gaq.push(['_trackEvent', 'resource', '%s', '%s', '', true])" % \
+           (action, resource.get('url'))
 

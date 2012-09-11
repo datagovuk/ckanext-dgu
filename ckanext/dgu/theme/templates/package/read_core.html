@@ -46,7 +46,7 @@
                   ${dgu_helpers.resource_display_name(res)} 
               </div>
               <div class="btn-group">
-                <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(c.resource)}">Download</a>
                 <button class="btn btn-primary dropdown-toggle" 
                   data-toggle="dropdown" 
                   py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
@@ -54,14 +54,14 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="${res.get('url', '')}">
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(c.resource)}">
                       <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
                     <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
                         Cached &raquo;
                       </a>
                     </py:if>
@@ -92,7 +92,7 @@
                 ${dgu_helpers.resource_display_name(res)}
               </div>
               <div class="btn-group">
-                <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(c.resource)}">Download</a>
                 <button class="btn btn-primary dropdown-toggle" 
                   data-toggle="dropdown" 
                   py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
@@ -100,14 +100,14 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="${res.get('url', '')}">
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(c.resource)}">
                       <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
                     <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
                         Cached &raquo;
                       </a>
                     </py:if>
@@ -170,7 +170,7 @@
               </div>
 
               <div class="btn-group">
-                <a href="${res.get('url', '')}" class="btn btn-primary">Download</a>
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(c.resource)}">Download</a>
                 <button class="btn btn-primary dropdown-toggle" 
                   data-toggle="dropdown" 
                   py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
@@ -178,14 +178,14 @@
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="${res.get('url', '')}">
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
                       <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
                     <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}">
+                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
                         Cached &raquo;
                       </a>
                     </py:if>
