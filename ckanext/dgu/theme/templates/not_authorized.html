@@ -1,0 +1,25 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Not Authorized | data.gov.uk</py:def>
+  <py:def function="page_heading">Not Authorized</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <div py:match="content">
+    This action is not authorized.
+
+    <div py:if="not c.user">
+      <p>You may <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
+    </div>
+
+    <div py:if="c.user">
+      <p>You are logged in as ${h.dgu_linked_user(c.user)}</p>
+    </div>
+  </div>
+  <xi:include href="layout.html" />
+
+</html>
