@@ -32,21 +32,26 @@ class PackageController(ckan.controllers.package.PackageController):
         pkg_dict = get_action('package_show')(context, {'id':id}) # has side-effect of populating context.get('package')
 
         if request.params: # POST
-            try:
-                package_name = pkg_dict['name']
-                get_action('package_delete')(context, {'id':id})
-                h.flash_success(_('Successfully deleted package.'))
-                self._form_save_redirect(package_name, 'edit')
-            except NotAuthorized:
-                abort(401, _('Unauthorized to delete package %s') % id)
-            except ObjectNotFound, e:
-                abort(404, _('Package not found'))
-            except DataError:
-                abort(400, _(u'Integrity Error'))
-            except SearchIndexError, e:
-                abort(500, _(u'Unable to update search index.') + repr(e.args))
-            except ValidationError, e:
-                abort(400, _('Unable to delete package.') + repr(e.error_dict))
+            if 'cancel' in request.params:
+                h.redirect_to(controller='package', action='read', id=id)
+            elif 'delete' in request.params:
+                try:
+                    package_name = pkg_dict['name']
+                    get_action('package_delete')(context, {'id':id})
+                    h.flash_success(_('Successfully deleted package.'))
+                    self._form_save_redirect(package_name, 'edit')
+                except NotAuthorized:
+                    abort(401, _('Unauthorized to delete package %s') % id)
+                except ObjectNotFound, e:
+                    abort(404, _('Package not found'))
+                except DataError:
+                    abort(400, _(u'Integrity Error'))
+                except SearchIndexError, e:
+                    abort(500, _(u'Unable to update search index.') + repr(e.args))
+                except ValidationError, e:
+                    abort(400, _('Unable to delete package.') + repr(e.error_dict))
+            else:
+                abort(400, 'Parameter error')
 
         # GET
         c.pkg = context.get('package')
