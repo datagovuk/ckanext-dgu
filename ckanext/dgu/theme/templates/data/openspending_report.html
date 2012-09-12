@@ -21,19 +21,24 @@
   <py:def function="optional_footer">
     <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script> 
     <script type="text/javascript">
-
-      var textExtract = function(node)
-      {   
+      //<![CDATA[ 
+      var myExtract = function(node) {
           if ('sort' in node.attributes) {
-              return node.attributes['sort'].value
+              return node.attributes['sort'].value;
           } 
           // remove commas
-          return node.textContent.replace(/,/g, '');
+          var text;
+          if (node.childNodes[0] && node.childNodes[0].hasChildNodes()) {
+                  text = node.childNodes[0].innerHTML;
+          } else {
+                  text = node.innerHTML;
+          }
+          return text.replace(/,/g, '');
       }
       $(document).ready(function() 
         { 
           $("#publishers-table").tablesorter({
-              textExtraction: textExtract,
+              textExtraction: myExtract,
               dateFormat: "uk",
               headers: { 
                2: { sorter: 'digit' },
@@ -44,6 +49,7 @@
           }); 
         } 
       ); 
+    // ]]>
     </script>
   </py:def>
 
