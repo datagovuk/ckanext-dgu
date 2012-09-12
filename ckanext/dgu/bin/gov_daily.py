@@ -121,7 +121,7 @@ def command(config_file):
                     # remove header
                     report_html = report_html.split('---')[-1]
                     # add import timestamp
-                    report_html += '<p class="import-date">Page imported from <a href="%s">OpenSpending</a> on %s</p>' % \
+                    report_html += '<p class="import-date"><a href="%s">Page</a> imported from <a href="http://openspending.org/">OpenSpending</a> on %s. Read more about <a href="http://openspending.org/resources/gb-spending/index.html">OpenSpending on data.gov.uk</a>' % \
                                    (url.encode('utf8'),
                                     datetime.datetime.now().strftime('%d-%m-%Y'))
                     # add <html>
