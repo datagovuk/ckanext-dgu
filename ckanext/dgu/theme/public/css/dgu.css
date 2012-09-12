@@ -1499,3 +1499,6 @@ table.error-details {
 .error-details td {
     overflow: hidden;
 }
+.text-warning {
+    color: #C09853;
+}
