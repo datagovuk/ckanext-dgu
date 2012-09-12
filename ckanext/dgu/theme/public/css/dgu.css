@@ -1493,3 +1493,9 @@ body.openspending_report #content .boxed .row .span4 {
 .error-details .label {
     align: center;
 }
+table.error-details {
+    table-layout: fixed;
+}
+.error-details td {
+    overflow: hidden;
+}
