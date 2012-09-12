@@ -165,7 +165,7 @@
 
                     var list = [],
                         cells = rows[0].cells,
-                        l = cells.length;
+                        l = $headers.length;
 
                     for (var i = 0; i < l; i++) {
 
@@ -245,14 +245,14 @@
 
             /* utils */
 
-            function buildCache(table) {
+            function buildCache(table, numColumns) {
 
                 if (table.config.debug) {
                     var cacheTime = new Date();
                 }
 
                 var totalRows = (table.tBodies[0] && table.tBodies[0].rows.length) || 0,
-                    totalCells = (table.tBodies[0].rows[0] && table.tBodies[0].rows[0].cells.length) || 0,
+                    totalCells = numColumns,
                     parsers = table.config.parsers,
                     cache = {
                         row: [],
@@ -704,7 +704,7 @@
                     // try to auto detect column type, and store in tables config
                     this.config.parsers = buildParserCache(this, $headers);
                     // build the cache for the tbody cells
-                    cache = buildCache(this);
+                    cache = buildCache(this, $headers.length);
                     // get the css class names, could be done else where.
                     var sortCSS = [config.cssDesc, config.cssAsc];
                     // fixate columns if the users supplies the fixedWidth option
