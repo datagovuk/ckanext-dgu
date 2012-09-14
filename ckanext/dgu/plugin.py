@@ -95,6 +95,10 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/openspending-browse', controller=data_controller, action='openspending_browse')
         map.connect('/data/openspending-report/index', controller=data_controller, action='openspending_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
+        map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
+        map.connect('/data/carparks', controller=data_controller, action='carparks')
+
+        # For test usage when Drupal is not running
         map.connect('/comment/get/{id}',
                     controller='ckanext.dgu.controllers.package:CommentProxy',
                     action='get_comments')

@@ -95,4 +95,6 @@ class DataController(BaseController):
             return render('data/openspending_publisher_report.html')
         else:
             abort(404)
-            
+
+    def carparks(self):
+        return render('data/carparks.html')
