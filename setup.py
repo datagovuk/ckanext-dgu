@@ -67,6 +67,7 @@ setup(
         [paste.paster_command]
         mock_drupal = ckanext.dgu.testtools.mock_drupal:Command
         create-test-data=ckanext.dgu.lib.cli:DguCreateTestDataCommand
+        prod = ckanext.dgu.testtools.prodder:ProdCommand
     """,
     test_suite = 'nose.collector',
 )
