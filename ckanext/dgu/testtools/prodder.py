@@ -11,6 +11,7 @@ class Prodder(object):
         from pylons import config
 
         res = model.Session.query(model.Resource).get(res_id)
+        assert res, 'Could not find res: %s' % res_id
         plugin = ckanext.archiver.plugin.ArchiverPlugin()
         plugin.configure(config)
         plugin.notify(res)
@@ -21,6 +22,7 @@ class Prodder(object):
         from pylons import config
 
         res = model.Session.query(model.Resource).get(res_id)
+        assert res, 'Could not find res: %s' % res_id
         plugin = ckanext.qa.plugin.QAPlugin()
         plugin.configure(config)
         plugin.notify(res)
