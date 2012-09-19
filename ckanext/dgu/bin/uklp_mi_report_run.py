@@ -160,13 +160,13 @@ def run_report():
     cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
     os.chown(summary_report, -1, www_data_gid)
 
-    #conn.execute(reporte_insert % dict(date = datenow))
-    #cur = conn.connection.connection.cursor()
-    #summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' %
-    # (REPORT_DIR, REPORT_PREPEND, datenow)
-    #file_to_export = file(summary_report, 'w+')
-    #cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
-    #os.chown(summary_report, -1, www_data_gid)
+    conn.execute(reporte_insert % dict(date = datenow))
+    cur = conn.connection.connection.cursor()
+    summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
+    (REPORT_DIR, REPORT_PREPEND, datenow)
+    file_to_export = file(summary_report, 'w+')
+    cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
+    os.chown(summary_report, -1, www_data_gid)
 
     if delete:
         conn.execute(history_delete % dict(date=datenow))
