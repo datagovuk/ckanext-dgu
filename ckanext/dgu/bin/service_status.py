@@ -4,10 +4,17 @@ import subprocess
 import os
 import ConfigParser
 import re
+import sys
 
 def check_archiver():
     print '\n** Archiver **'
-    check_supervisord('dgu')
+    celery_command = check_supervisord('dgu')
+    check_celery(celery_command, 'ckanext.archiver')
+
+def check_qa():
+    print '\n** QA **'
+    celery_command = check_supervisord('dgu')
+    check_celery(celery_command, 'ckanext.qa')
 
 def check_supervisord(config):
     check_process('/usr/bin/supervisord')
@@ -23,10 +30,12 @@ def check_supervisord(config):
     celery_logfile_name = celery_config.get(config_section, 'stderr_logfile')
     print 'Celery logfile: %s' % celery_logfile_name
     logfile_tail(celery_logfile_name)
+    return celery_command
 
+def check_celery(celery_command, celery_task):   
     config_filepath = extract_ckan_config_from_commandline(celery_command)
     ckan_log_filepath = extract_ckan_log_filepath(config_filepath)
-    logfile_tail(ckan_log_filepath, 'archiver')
+    logfile_tail(ckan_log_filepath, celery_task)
 
 def extract_ckan_log_filepath(config_filepath):
     ckan_config = ConfigParser.ConfigParser()
@@ -101,4 +110,18 @@ def check_process(process_text):
     print 'ERROR: Process %s is not running' % process_text
 
 if __name__ == '__main__':
-    check_archiver()
+    usage = '''Service Status
+
+Usage: python %s [archiver|qa]''' % sys.argv[0]
+    if len(sys.argv) != 2:
+        print usage
+        sys.exit(1)
+    service = sys.argv[1]
+    if service == 'archiver':
+        check_archiver()
+    elif service == 'qa':
+        check_qa()
+    else:
+        print 'Error: Service "%s" not found' % service
+        print usage
+        sys.exit(1)
