@@ -2,8 +2,7 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy import Table, MetaData, types, Column
-from datetime import datetime, date
-from sqlalchemy.sql import text
+from datetime import date
 import grp
 import os
 import sys
@@ -50,7 +49,7 @@ if not os.path.exists(REPORT_DIR):
 try:
     groupname = os.getenv('MI_REPORT_TEST') or 'www-data'
     print 'Using groupname {groupname}'.format(groupname=groupname)
-    www_data_gid =  grp.getgrnam(groupname)[2]
+    www_data_gid = grp.getgrnam(groupname)[2]
 except KeyError:
     print 'Could not find group www-data, if you wish to run locally ' \
         'then "export MI_REPORT_TEST=<GROUP_NAME>"'
@@ -111,8 +110,9 @@ report_uklp_report_e_history_by_owner = Table(
 
 metadata.create_all(engine)
 
+
 def run_report():
-    delete=False
+    delete = False
     if len(sys.argv) > 1 and sys.argv[1] == 'delete':
         delete = True
         print "Will delete today's record from the history afterwards"
@@ -125,46 +125,53 @@ def run_report():
 
     conn.execute(package_extra_pivot_query)
     cur = conn.connection.connection.cursor()
-    dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(dataset_report, 'w+')
     cur.copy_expert(reporta_query, file_to_export)
     os.chown(dataset_report, -1, www_data_gid)
 
     cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(services_report, 'w+')
     cur.copy_expert(reportb_query, file_to_export)
     os.chown(services_report, -1, www_data_gid)
 
     cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(services_report, 'w+')
     cur.copy_expert(reportd_query, file_to_export)
     os.chown(services_report, -1, www_data_gid)
 
     cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(services_report, 'w+')
     cur.copy_expert(reportf_query, file_to_export)
     os.chown(services_report, -1, www_data_gid)
 
-    conn.execute(reportc_insert % dict(date = datenow))
+    conn.execute(reportc_insert % dict(date=datenow))
     cur = conn.connection.connection.cursor()
-    summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(summary_report, 'w+')
-    cur.copy_expert(reportc_query % dict(date = datenow), file_to_export)
+    cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
     os.chown(summary_report, -1, www_data_gid)
 
     #conn.execute(reporte_insert % dict(date = datenow))
     #cur = conn.connection.connection.cursor()
-    #summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    #summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' %
+    # (REPORT_DIR, REPORT_PREPEND, datenow)
     #file_to_export = file(summary_report, 'w+')
     #cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
     #os.chown(summary_report, -1, www_data_gid)
 
     if delete:
-        conn.execute(history_delete % dict(date = datenow))
+        conn.execute(history_delete % dict(date=datenow))
     trans.commit()
+
 
 def update_publisher_table(conn):
 
@@ -443,7 +450,6 @@ if __name__ == '__main__':
     try:
         run_report()
     except:
-	import traceback
+        import traceback
         logging.error(traceback.format_exc())
         raise
-
