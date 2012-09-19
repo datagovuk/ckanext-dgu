@@ -7,7 +7,9 @@ from ckan.lib.helpers import json
 from ckan.lib.create_test_data import CreateTestData
 from ckan.logic import get_action
 from ckan.tests import TestController as ControllerTestCase
+from ckan.tests import TestSearchIndexer
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
+import ckan.lib.search as search
 
 class TestRestApi(ControllerTestCase):
     @classmethod
@@ -191,13 +193,16 @@ class TestRestApi(ControllerTestCase):
 #TODO
 # Check non-allowed theme-primary/secondary
 
-class TestDguApi(ControllerTestCase):
+class TestDguApi(ControllerTestCase, TestSearchIndexer):
     @classmethod
     def setup_class(cls):
+        search.clear()
+        cls.tsi = TestSearchIndexer()
         DguCreateTestData.create_dgu_test_data()
         DguCreateTestData.create_arbitrary({'name': 'latest',
                                             'notes': '<b>Latest</b> dataset.',
                                             'groups': ['national-health-service']})
+        cls.tsi.index()
 
     @classmethod
     def teardown_class(cls):
