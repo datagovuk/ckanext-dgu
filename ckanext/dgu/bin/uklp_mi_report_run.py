@@ -63,7 +63,7 @@ metadata = MetaData(engine)
 
 tmp_publisher_info = Table(
     'tmp_publisher_info', metadata,
-    Column('nid', types.Integer),
+    Column('id', types.Text),
     Column('title', types.Text),
     Column('timestamp', types.DateTime)
 )
@@ -78,7 +78,7 @@ tmp_publisher_info = Table(
 report_uklp_report_c_history = Table(
     'report_uklp_report_c_history', metadata,
      Column('report_date', types.DateTime),
-     Column('nid', types.Integer),
+     Column('id', types.Text),
      Column('title', types.Text),
      Column('date_registered', types.DateTime),
      Column('dataset', types.Integer),
@@ -94,7 +94,7 @@ report_uklp_report_c_history = Table(
 report_uklp_report_e_history_by_owner = Table(
     'report_uklp_report_e_history_by_owner', metadata,
      Column('report_date', types.DateTime),
-     Column('nid', types.Text),
+     Column('id', types.Text),
      #Column('title', types.Text),
      #Column('date_registered', types.DateTime),
      Column('dataset', types.Integer),
@@ -290,7 +290,7 @@ access_constraints "Constraints",
 notes "Abstract"
 from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info on published_by = tmp_publisher_info.nid::text
+left join tmp_publisher_info on published_by = tmp_publisher_info.id::text
 
 where "resource-type" = '"dataset"' and package.state = 'active'
 ) to STDOUT with csv header
@@ -329,7 +329,7 @@ access_constraints "Constraints",
 notes "Abstract"
 from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info on published_by = tmp_publisher_info.nid::text
+left join tmp_publisher_info on published_by = tmp_publisher_info.id::text
 where "resource-type" = '"service"' and package.state = 'active'
 ) to STDOUT with csv header;
 '''
@@ -337,7 +337,7 @@ where "resource-type" = '"service"' and package.state = 'active'
 reportc_insert = '''
 delete from report_uklp_report_c_history where report_date = '%(date)s';
 insert into report_uklp_report_c_history
-select '%(date)s'::timestamp as timestamp, nid, pub.title, pub.timestamp
+select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"dataset"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"series"' then 1 else 0 end)
 ,sum(case when "resource-type" != '"series"' and "resource-type" != '"dataset"' and "resource-type" != '"service"' then 1 else 0 end)
@@ -348,7 +348,7 @@ select '%(date)s'::timestamp as timestamp, nid, pub.title, pub.timestamp
 -- ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info pub on cast(nid as text) = published_by
+left join tmp_publisher_info pub on pub.id = published_by
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2,3,4;
 '''
@@ -376,13 +376,13 @@ from
 report_uklp_report_c_history cur
 left join
 (select
-    distinct on (nid) report_uklp_report_c_history.*
+    distinct on (id) report_uklp_report_c_history.*
  from
     report_uklp_report_c_history
  where
     report_date < '%(date)s'
- order by nid, report_date desc
-) "old" on "old".nid = cur.nid
+ order by id, report_date desc
+) "old" on "old".id = cur.id
 where cur.report_date = '%(date)s'
 ) to STDOUT with csv header;
 '''
@@ -409,8 +409,8 @@ group by 1,2;
 reporte_query = '''
 copy(
 select
--- We use cur.nid rather than the cur.title in this case
-cur.nid "Responsible Party",
+-- We use cur.id rather than the cur.title in this case
+cur.id "Responsible Party",
 -- This makes no sense in the context of responsible party -- cur.date_registered "Date Registered",
 cur.dataset "Number of datasets",
 cur.series "Number of series",
@@ -430,13 +430,13 @@ from
 report_uklp_report_e_history_by_owner cur
 left join
 (select
-    distinct on (nid) report_uklp_report_e_history_by_owner.*
+    distinct on (id) report_uklp_report_e_history_by_owner.*
  from
     report_uklp_report_e_history_by_owner
  where
     report_date < '%(date)s'
- order by nid, report_date desc
-) "old" on "old".nid = cur.nid
+ order by id, report_date desc
+) "old" on "old".id = cur.id
 where cur.report_date = '%(date)s'
 ) to STDOUT with csv header;
 '''
