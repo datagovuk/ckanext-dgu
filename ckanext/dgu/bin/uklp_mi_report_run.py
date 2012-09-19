@@ -1,4 +1,4 @@
-#! /usr/bin/python 
+#!/usr/bin/env python
 
 from sqlalchemy import create_engine
 from sqlalchemy import Table, MetaData, types, Column
@@ -32,21 +32,31 @@ import logging
 # [X] Extent vs bounding box
 
 # Config options
+# To force debug export MI_REPORT_TEST=True locally
 
-if len(sys.argv) <= 3:
+if len(sys.argv) <= 2:
     print >> sys.stderr, "Not enough arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN MYSQL_DSN REPORT_DIR"%sys.argv[0]
+    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR" % sys.argv[0]
 elif len(sys.argv) > 4:
     print >> sys.stderr, "Too many arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN MYSQL_DSN REPORT_DIR"%sys.argv[0]
-POSTGRESQL_DSN, MYSQL_DSN, REPORT_DIR = sys.argv[1:]
+    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR" % sys.argv[0]
+
+POSTGRESQL_DSN, REPORT_DIR = sys.argv[1:]
 REPORT_PREPEND = ''
 
 if not os.path.exists(REPORT_DIR):
     os.mkdir(REPORT_DIR)
-www_data_gid = grp.getgrnam('www-data')[2]
+
+try:
+    groupname = os.getenv('MI_REPORT_TEST') or 'www-data'
+    print 'Using groupname {groupname}'.format(groupname=groupname)
+    www_data_gid =  grp.getgrnam(groupname)[2]
+except KeyError:
+    print 'Could not find group www-data, if you wish to run locally ' \
+        'then "export MI_REPORT_TEST=<GROUP_NAME>"'
+    sys.exit(1)
+
 engine = create_engine(POSTGRESQL_DSN)
-engine_mysql = create_engine(MYSQL_DSN)
 
 logging.basicConfig(filename='%s/error.log' % REPORT_DIR, level=logging.ERROR)
 
@@ -160,23 +170,21 @@ def update_publisher_table(conn):
 
     publisher_table = Table('tmp_publisher_info', metadata, autoload=True)
     conn.execute(publisher_table.delete())
-    conn_mysql = engine_mysql.connect()
-    results = conn_mysql.execute(publisher_info_query)
+
+    results = conn.execute(publisher_info_query)
     result_list = []
     for result in results:
-        result_list.append({'nid': result['nid'],
+        result_list.append({'id': result['id'],
                             'title': result['title'],
-                            'timestamp': datetime.fromtimestamp(result['timestamp'])
+                            'timestamp': result['timestamp']
                            }
                           )
     conn.execute(publisher_table.insert(), result_list)
-    conn_mysql.close()
 
 
 publisher_info_query = '''
-select node.nid, node.title, min(timestamp) timestamp 
-from node join node_revisions using(nid) 
-where node.type = 'publisher' 
+select "group".id, "group".title, now() as timestamp
+from "group" where "group".type = 'publisher'
 group by 1,2;'''
 
 #def update_owner_table(conn):
@@ -256,7 +264,7 @@ group by package_id
 
 reporta_query = '''
 copy(
-SELECT  
+SELECT
 btrim("responsible-party", '"') "Record Owner",
 tmp_publisher_info.title "Record Publisher",
 btrim("resource-type", '"') "Resource Type",
@@ -270,10 +278,10 @@ btrim(guid, '"') "Unique resource identifier",
 array_to_string(ARRAY[btrim("bbox-west-long", '"'),btrim("bbox-south-lat", '"'),btrim("bbox-east-long", '"'), btrim("bbox-north-lat", '"')], ',') "Geographic location",
 array_to_string(ARRAY[btrim("bbox-west-long", '"'),btrim("bbox-south-lat", '"'),btrim("bbox-east-long", '"'), btrim("bbox-north-lat", '"')], ',') "Geographic Extent",
 access_constraints "Constraints",
-(select array_to_string(array_agg(tag.name), ',') 
+(select array_to_string(array_agg(tag.name), ',')
    from package_tag join tag on tag.id = package_tag.tag_id where package_tag.package_id = package.id) "Keywords",
 notes "Abstract"
-from package 
+from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info on published_by = tmp_publisher_info.nid::text
 
@@ -293,12 +301,12 @@ where (not ("resource-type" = '""' or "resource-type" is NULL or "resource-type"
 
 reportb_query = '''
 copy(
-SELECT  
+SELECT
 btrim("responsible-party", '"') "Record Owner",
 tmp_publisher_info.title "Record Publisher",
 btrim("resource-type", '"') "Resource Type",
 btrim("contact-email", '"') "Contact",
-(select min(revision_timestamp) from package_revision pr where pr.id = package.id) "Date record Registered", 
+(select min(revision_timestamp) from package_revision pr where pr.id = package.id) "Date record Registered",
 btrim("metadata-date", '"') "Date record revised or updated",
 btrim("frequency-of-update", '"') "Update schedule (if any)",
 package.id "CKAN ID",
@@ -309,10 +317,10 @@ btrim("spatial-data-service-type", '"') "Resource type",
 array_to_string(ARRAY[btrim("bbox-west-long", '"'),btrim("bbox-south-lat", '"'),btrim("bbox-east-long", '"'), btrim("bbox-north-lat", '"')], ',') "Geographic Extent",
 btrim("coupled-resource", '"') "Coupled Resource",
 access_constraints "Constraints",
-(select array_to_string(array_agg(tag.name), ',') 
+(select array_to_string(array_agg(tag.name), ',')
    from package_tag join tag on tag.id = package_tag.tag_id where package_tag.package_id = package.id) "Keywords",
 notes "Abstract"
-from package 
+from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info on published_by = tmp_publisher_info.nid::text
 where "resource-type" = '"service"' and package.state = 'active'
@@ -333,14 +341,14 @@ select '%(date)s'::timestamp as timestamp, nid, pub.title, pub.timestamp
 -- ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info pub on cast(nid as text) = published_by 
+left join tmp_publisher_info pub on cast(nid as text) = published_by
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2,3,4;
 '''
 
 reportc_query = '''
 copy(
-select 
+select
 cur.title "Organisation Name",
 cur.date_registered "Date Registered",
 cur.dataset "Number of datasets",
@@ -358,13 +366,13 @@ cur.transformation - coalesce("old".transformation, 0) "Transformation Services 
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
 cur.other - coalesce("old".other, 0) "Other Services change"
 from
-report_uklp_report_c_history cur 
-left join 
-(select 
-    distinct on (nid) report_uklp_report_c_history.* 
- from 
-    report_uklp_report_c_history  
- where 
+report_uklp_report_c_history cur
+left join
+(select
+    distinct on (nid) report_uklp_report_c_history.*
+ from
+    report_uklp_report_c_history
+ where
     report_date < '%(date)s'
  order by nid, report_date desc
 ) "old" on "old".nid = cur.nid
@@ -393,7 +401,7 @@ group by 1,2;
 
 reporte_query = '''
 copy(
-select 
+select
 -- We use cur.nid rather than the cur.title in this case
 cur.nid "Responsible Party",
 -- This makes no sense in the context of responsible party -- cur.date_registered "Date Registered",
@@ -412,13 +420,13 @@ cur.transformation - coalesce("old".transformation, 0) "Transformation Services 
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
 cur.other - coalesce("old".other, 0) "Other Services change"
 from
-report_uklp_report_e_history_by_owner cur 
-left join 
-(select 
-    distinct on (nid) report_uklp_report_e_history_by_owner.* 
- from 
+report_uklp_report_e_history_by_owner cur
+left join
+(select
+    distinct on (nid) report_uklp_report_e_history_by_owner.*
+ from
     report_uklp_report_e_history_by_owner
- where 
+ where
     report_date < '%(date)s'
  order by nid, report_date desc
 ) "old" on "old".nid = cur.nid
