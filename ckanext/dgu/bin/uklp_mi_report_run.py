@@ -1,9 +1,8 @@
-#! /usr/bin/python 
+#!/usr/bin/env python
 
 from sqlalchemy import create_engine
 from sqlalchemy import Table, MetaData, types, Column
-from datetime import datetime, date
-from sqlalchemy.sql import text
+from datetime import date
 import grp
 import os
 import sys
@@ -32,21 +31,31 @@ import logging
 # [X] Extent vs bounding box
 
 # Config options
+# To force debug export MI_REPORT_TEST=True locally
 
-if len(sys.argv) <= 3:
+if len(sys.argv) <= 2:
     print >> sys.stderr, "Not enough arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN MYSQL_DSN REPORT_DIR"%sys.argv[0]
+    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR" % sys.argv[0]
 elif len(sys.argv) > 4:
     print >> sys.stderr, "Too many arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN MYSQL_DSN REPORT_DIR"%sys.argv[0]
-POSTGRESQL_DSN, MYSQL_DSN, REPORT_DIR = sys.argv[1:]
+    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR" % sys.argv[0]
+
+POSTGRESQL_DSN, REPORT_DIR = sys.argv[1:]
 REPORT_PREPEND = ''
 
 if not os.path.exists(REPORT_DIR):
     os.mkdir(REPORT_DIR)
-www_data_gid = grp.getgrnam('www-data')[2]
+
+try:
+    groupname = os.getenv('MI_REPORT_TEST') or 'www-data'
+    print 'Using groupname {groupname}'.format(groupname=groupname)
+    www_data_gid = grp.getgrnam(groupname)[2]
+except KeyError:
+    print 'Could not find group www-data, if you wish to run locally ' \
+        'then "export MI_REPORT_TEST=<GROUP_NAME>"'
+    sys.exit(1)
+
 engine = create_engine(POSTGRESQL_DSN)
-engine_mysql = create_engine(MYSQL_DSN)
 
 logging.basicConfig(filename='%s/error.log' % REPORT_DIR, level=logging.ERROR)
 
@@ -54,7 +63,7 @@ metadata = MetaData(engine)
 
 tmp_publisher_info = Table(
     'tmp_publisher_info', metadata,
-    Column('nid', types.Integer),
+    Column('id', types.Text),
     Column('title', types.Text),
     Column('timestamp', types.DateTime)
 )
@@ -69,7 +78,7 @@ tmp_publisher_info = Table(
 report_uklp_report_c_history = Table(
     'report_uklp_report_c_history', metadata,
      Column('report_date', types.DateTime),
-     Column('nid', types.Integer),
+     Column('id', types.Text),
      Column('title', types.Text),
      Column('date_registered', types.DateTime),
      Column('dataset', types.Integer),
@@ -85,7 +94,7 @@ report_uklp_report_c_history = Table(
 report_uklp_report_e_history_by_owner = Table(
     'report_uklp_report_e_history_by_owner', metadata,
      Column('report_date', types.DateTime),
-     Column('nid', types.Text),
+     Column('id', types.Text),
      #Column('title', types.Text),
      #Column('date_registered', types.DateTime),
      Column('dataset', types.Integer),
@@ -101,8 +110,9 @@ report_uklp_report_e_history_by_owner = Table(
 
 metadata.create_all(engine)
 
+
 def run_report():
-    delete=False
+    delete = False
     if len(sys.argv) > 1 and sys.argv[1] == 'delete':
         delete = True
         print "Will delete today's record from the history afterwards"
@@ -115,68 +125,73 @@ def run_report():
 
     conn.execute(package_extra_pivot_query)
     cur = conn.connection.connection.cursor()
-    dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(dataset_report, 'w+')
     cur.copy_expert(reporta_query, file_to_export)
     os.chown(dataset_report, -1, www_data_gid)
 
     cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(services_report, 'w+')
     cur.copy_expert(reportb_query, file_to_export)
     os.chown(services_report, -1, www_data_gid)
 
     cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(services_report, 'w+')
     cur.copy_expert(reportd_query, file_to_export)
     os.chown(services_report, -1, www_data_gid)
 
     cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(services_report, 'w+')
     cur.copy_expert(reportf_query, file_to_export)
     os.chown(services_report, -1, www_data_gid)
 
-    conn.execute(reportc_insert % dict(date = datenow))
+    conn.execute(reportc_insert % dict(date=datenow))
     cur = conn.connection.connection.cursor()
-    summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
+    summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
     file_to_export = file(summary_report, 'w+')
-    cur.copy_expert(reportc_query % dict(date = datenow), file_to_export)
+    cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
     os.chown(summary_report, -1, www_data_gid)
 
-    #conn.execute(reporte_insert % dict(date = datenow))
-    #cur = conn.connection.connection.cursor()
-    #summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % (REPORT_DIR, REPORT_PREPEND, datenow)
-    #file_to_export = file(summary_report, 'w+')
-    #cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
-    #os.chown(summary_report, -1, www_data_gid)
+    conn.execute(reporte_insert % dict(date = datenow))
+    cur = conn.connection.connection.cursor()
+    summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
+    (REPORT_DIR, REPORT_PREPEND, datenow)
+    file_to_export = file(summary_report, 'w+')
+    cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
+    os.chown(summary_report, -1, www_data_gid)
 
     if delete:
-        conn.execute(history_delete % dict(date = datenow))
+        conn.execute(history_delete % dict(date=datenow))
     trans.commit()
+
 
 def update_publisher_table(conn):
 
     publisher_table = Table('tmp_publisher_info', metadata, autoload=True)
     conn.execute(publisher_table.delete())
-    conn_mysql = engine_mysql.connect()
-    results = conn_mysql.execute(publisher_info_query)
+
+    results = conn.execute(publisher_info_query)
     result_list = []
     for result in results:
-        result_list.append({'nid': result['nid'],
+        result_list.append({'id': result['id'],
                             'title': result['title'],
-                            'timestamp': datetime.fromtimestamp(result['timestamp'])
+                            'timestamp': result['timestamp']
                            }
                           )
     conn.execute(publisher_table.insert(), result_list)
-    conn_mysql.close()
 
 
 publisher_info_query = '''
-select node.nid, node.title, min(timestamp) timestamp 
-from node join node_revisions using(nid) 
-where node.type = 'publisher' 
+select "group".id, "group".title, now() as timestamp
+from "group" where "group".type = 'publisher'
 group by 1,2;'''
 
 #def update_owner_table(conn):
@@ -256,7 +271,7 @@ group by package_id
 
 reporta_query = '''
 copy(
-SELECT  
+SELECT
 btrim("responsible-party", '"') "Record Owner",
 tmp_publisher_info.title "Record Publisher",
 btrim("resource-type", '"') "Resource Type",
@@ -270,12 +285,12 @@ btrim(guid, '"') "Unique resource identifier",
 array_to_string(ARRAY[btrim("bbox-west-long", '"'),btrim("bbox-south-lat", '"'),btrim("bbox-east-long", '"'), btrim("bbox-north-lat", '"')], ',') "Geographic location",
 array_to_string(ARRAY[btrim("bbox-west-long", '"'),btrim("bbox-south-lat", '"'),btrim("bbox-east-long", '"'), btrim("bbox-north-lat", '"')], ',') "Geographic Extent",
 access_constraints "Constraints",
-(select array_to_string(array_agg(tag.name), ',') 
+(select array_to_string(array_agg(tag.name), ',')
    from package_tag join tag on tag.id = package_tag.tag_id where package_tag.package_id = package.id) "Keywords",
 notes "Abstract"
-from package 
+from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info on published_by = tmp_publisher_info.nid::text
+left join tmp_publisher_info on published_by = tmp_publisher_info.id::text
 
 where "resource-type" = '"dataset"' and package.state = 'active'
 ) to STDOUT with csv header
@@ -293,12 +308,12 @@ where (not ("resource-type" = '""' or "resource-type" is NULL or "resource-type"
 
 reportb_query = '''
 copy(
-SELECT  
+SELECT
 btrim("responsible-party", '"') "Record Owner",
 tmp_publisher_info.title "Record Publisher",
 btrim("resource-type", '"') "Resource Type",
 btrim("contact-email", '"') "Contact",
-(select min(revision_timestamp) from package_revision pr where pr.id = package.id) "Date record Registered", 
+(select min(revision_timestamp) from package_revision pr where pr.id = package.id) "Date record Registered",
 btrim("metadata-date", '"') "Date record revised or updated",
 btrim("frequency-of-update", '"') "Update schedule (if any)",
 package.id "CKAN ID",
@@ -309,12 +324,12 @@ btrim("spatial-data-service-type", '"') "Resource type",
 array_to_string(ARRAY[btrim("bbox-west-long", '"'),btrim("bbox-south-lat", '"'),btrim("bbox-east-long", '"'), btrim("bbox-north-lat", '"')], ',') "Geographic Extent",
 btrim("coupled-resource", '"') "Coupled Resource",
 access_constraints "Constraints",
-(select array_to_string(array_agg(tag.name), ',') 
+(select array_to_string(array_agg(tag.name), ',')
    from package_tag join tag on tag.id = package_tag.tag_id where package_tag.package_id = package.id) "Keywords",
 notes "Abstract"
-from package 
+from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info on published_by = tmp_publisher_info.nid::text
+left join tmp_publisher_info on published_by = tmp_publisher_info.id::text
 where "resource-type" = '"service"' and package.state = 'active'
 ) to STDOUT with csv header;
 '''
@@ -322,7 +337,7 @@ where "resource-type" = '"service"' and package.state = 'active'
 reportc_insert = '''
 delete from report_uklp_report_c_history where report_date = '%(date)s';
 insert into report_uklp_report_c_history
-select '%(date)s'::timestamp as timestamp, nid, pub.title, pub.timestamp
+select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"dataset"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"series"' then 1 else 0 end)
 ,sum(case when "resource-type" != '"series"' and "resource-type" != '"dataset"' and "resource-type" != '"service"' then 1 else 0 end)
@@ -333,14 +348,14 @@ select '%(date)s'::timestamp as timestamp, nid, pub.title, pub.timestamp
 -- ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info pub on cast(nid as text) = published_by 
+left join tmp_publisher_info pub on pub.id = published_by
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2,3,4;
 '''
 
 reportc_query = '''
 copy(
-select 
+select
 cur.title "Organisation Name",
 cur.date_registered "Date Registered",
 cur.dataset "Number of datasets",
@@ -358,16 +373,16 @@ cur.transformation - coalesce("old".transformation, 0) "Transformation Services 
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
 cur.other - coalesce("old".other, 0) "Other Services change"
 from
-report_uklp_report_c_history cur 
-left join 
-(select 
-    distinct on (nid) report_uklp_report_c_history.* 
- from 
-    report_uklp_report_c_history  
- where 
+report_uklp_report_c_history cur
+left join
+(select
+    distinct on (id) report_uklp_report_c_history.*
+ from
+    report_uklp_report_c_history
+ where
     report_date < '%(date)s'
- order by nid, report_date desc
-) "old" on "old".nid = cur.nid
+ order by id, report_date desc
+) "old" on "old".id = cur.id
 where cur.report_date = '%(date)s'
 ) to STDOUT with csv header;
 '''
@@ -393,9 +408,9 @@ group by 1,2;
 
 reporte_query = '''
 copy(
-select 
--- We use cur.nid rather than the cur.title in this case
-cur.nid "Responsible Party",
+select
+-- We use cur.id rather than the cur.title in this case
+cur.id "Responsible Party",
 -- This makes no sense in the context of responsible party -- cur.date_registered "Date Registered",
 cur.dataset "Number of datasets",
 cur.series "Number of series",
@@ -412,16 +427,16 @@ cur.transformation - coalesce("old".transformation, 0) "Transformation Services 
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
 cur.other - coalesce("old".other, 0) "Other Services change"
 from
-report_uklp_report_e_history_by_owner cur 
-left join 
-(select 
-    distinct on (nid) report_uklp_report_e_history_by_owner.* 
- from 
+report_uklp_report_e_history_by_owner cur
+left join
+(select
+    distinct on (id) report_uklp_report_e_history_by_owner.*
+ from
     report_uklp_report_e_history_by_owner
- where 
+ where
     report_date < '%(date)s'
- order by nid, report_date desc
-) "old" on "old".nid = cur.nid
+ order by id, report_date desc
+) "old" on "old".id = cur.id
 where cur.report_date = '%(date)s'
 ) to STDOUT with csv header;
 '''
@@ -435,7 +450,6 @@ if __name__ == '__main__':
     try:
         run_report()
     except:
-	import traceback
+        import traceback
         logging.error(traceback.format_exc())
         raise
-

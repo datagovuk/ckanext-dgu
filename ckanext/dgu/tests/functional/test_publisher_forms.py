@@ -236,13 +236,12 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         # delete
         form = res.forms['publisher-edit']
         form['state'] = 'deleted'
+        form['category'] = 'private' # to get it to validate
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
 
         group = model.Group.by_name(group_name)
         assert_equal(group.state, 'deleted')
-        res = self.app.get(offset, status=302)
-        res = res.follow()
-        assert 'login' in res.request.url, res.request.url
+        res = self.app.get(offset, status=401)
 
     def test_5_appoint_editor(self):
         publisher_name = 'national-health-service'

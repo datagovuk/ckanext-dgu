@@ -336,7 +336,7 @@ if c.pkg_dict:
         <tr py:if="stars_data">
           <td class="dataset-label">Openness Score:</td>
           <td class="dataset-details">
-            ${helpers.render_stars(stars_data.value, None, stars_data.last_updated)}
+            ${helpers.render_stars(stars_data.value, stars_data.reason, stars_data.last_updated)}
           </td>
         </tr>
         <tr py:for="field_dict, label_attributes, value_attributes in fields">
