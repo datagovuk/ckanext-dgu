@@ -1,5 +1,6 @@
 import copy
 import logging
+import datetime
 
 import ckan.lib.cli
 from ckan.lib.create_test_data import CreateTestData
@@ -379,7 +380,54 @@ Alternative title: GDP and Labour Market coherence""",
              ]
          },
         
-         ]     
+        ]
+    _task_statuses = [
+        {'package_name': 'directgov-cota',
+         'resource_index': 0,
+         'task_type': 'archiver',
+         'key': 'celery_task_id',
+         'value': '0a4b97d9-426e-412f-ad31-90479d88e684',
+         'state': '',
+         'error': '',
+         'last_updated': datetime.datetime(2012, 07, 23, 22, 13, 8, 125505),
+         },
+        {'package_name': 'directgov-cota',
+         'resource_index': 0,
+         'task_type': 'qa',
+         'key': 'openness_score',
+         'value': '0',
+         'state': '',
+         'error': '',
+         'last_updated': datetime.datetime(2012, 07, 23, 01, 10, 49, 842923),
+         },
+        {'package_name': 'directgov-cota',
+         'resource_index': 0,
+         'task_type': 'qa',
+         'key': 'openness_score_reason',
+         'value': 'Could not download it',
+         'state': '',
+         'error': '',
+         'last_updated': datetime.datetime(2012, 07, 23, 01, 10, 49, 843123),
+         },
+        {'package_name': 'directgov-cota',
+         'resource_index': 0,
+         'task_type': 'qa',
+         'key': 'openness_score_failure_count',
+         'value': '5',
+         'state': '',
+         'error': '',
+         'last_updated': datetime.datetime(2012, 07, 23, 01, 10, 49, 843123),
+         },
+        {'package_name': 'nhs-spend-over-25k-barnsleypct',
+         'resource_index': 0,
+         'task_type': 'qa',
+         'key': 'celery_task_id',
+         'value': '5231be73-f5bf-4baf-b18b-3ac8c364db5b',
+         'state': '',
+         'error': 'CkanError: ckan failed to update resource, status_code (404)',
+         'last_updated': datetime.datetime(2012, 07, 23, 01, 10, 49, 842923),
+         }
+        ]
              
 
     @classmethod
@@ -459,6 +507,7 @@ Alternative title: GDP and Labour Market coherence""",
         cls.create_roles(cls._roles)
         cls.create_user_publisher_memberships(cls._user_publisher_memberships)
         cls.create_arbitrary(cls._packages)
+        cls.create_task_statuses(cls._task_statuses)
 
     @classmethod
     def create_dgu_test_users(cls):
@@ -468,6 +517,48 @@ Alternative title: GDP and Labour Market coherence""",
         model.repo.commit_and_remove() # due to bug in create_users
         cls.create_roles(cls._roles)
         cls.create_user_publisher_memberships(cls._user_publisher_memberships)
+
+    @classmethod
+    def create_task_statuses(cls, task_statuses):
+        for task_status in task_statuses:
+            # identify the entity
+            if 'package_name' in task_status:
+                pkg = model.Package.get(task_status['package_name'])
+                assert pkg
+                if 'resource_index' in task_status:
+                    entity = pkg.resources[task_status['resource_index']]
+                else:
+                    entity = pkg
+            else:
+                assert 0, 'Unknown entity_id'
+            entity_type = entity.__class__.__name__.lower()
+
+            model.repo.new_revision()
+
+            # see if the TaskStatus object exists already
+            q = model.Session.query(model.TaskStatus) \
+                .filter_by(entity_id=entity.id) \
+                .filter_by(entity_type=entity_type) \
+                .filter_by(task_type=task_status['task_type']) \
+                .filter_by(key=task_status['key'])
+            if q.count():
+                # edit existing object
+                ts = q.first()
+                for field_name in ['value', 'state', 'error', 'last_updated']:
+                    value = task_status.get(field_name)
+                    setattr(ts, field_name, value)
+            else:
+                # create new object
+                ts = model.TaskStatus(entity_id=entity.id,
+                                      entity_type=entity_type,
+                                      task_type=task_status['task_type'],
+                                      key=task_status['key'],
+                                      value=task_status['value'],
+                                      state=task_status.get('state', ''),
+                                      error=task_status.get('error', ''),
+                                      last_updated=task_status.get('last_updated'))
+                model.Session.add(ts)
+        model.repo.commit_and_remove()
 
     @classmethod
     def ons_package(cls):
