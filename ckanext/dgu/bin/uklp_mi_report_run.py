@@ -35,12 +35,23 @@ import logging
 
 if len(sys.argv) <= 2:
     print >> sys.stderr, "Not enough arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR" % sys.argv[0]
+    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR '<reportletters>" % sys.argv[0]
+    sys.exit(1)
 elif len(sys.argv) > 4:
     print >> sys.stderr, "Too many arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR" % sys.argv[0]
+    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR <reportletters>" % sys.argv[0]
+    sys.exit(1)
 
-POSTGRESQL_DSN, REPORT_DIR = sys.argv[1:]
+if len(sys.argv) == 4:
+    POSTGRESQL_DSN, REPORT_DIR, LETTERS = sys.argv[1:]
+    LETTERS = [l.upper() for l in LETTERS if l in 'ABCDEF']
+    if not LETTERS:
+        print >> sys.stderr, "Only reports A-F are supported"
+        sys.exit(1)
+else:
+    POSTGRESQL_DSN, REPORT_DIR = sys.argv[1:]
+    LETTERS = 'ABCDEF'
+
 REPORT_PREPEND = ''
 
 if not os.path.exists(REPORT_DIR):
@@ -123,50 +134,66 @@ def run_report():
 
     trans = conn.begin()
 
-    conn.execute(package_extra_pivot_query)
-    cur = conn.connection.connection.cursor()
-    dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % \
-        (REPORT_DIR, REPORT_PREPEND, datenow)
-    file_to_export = file(dataset_report, 'w+')
-    cur.copy_expert(reporta_query, file_to_export)
-    os.chown(dataset_report, -1, www_data_gid)
+    if 'A' in LETTERS:
+        print 'Generating report A'
+        conn.execute(package_extra_pivot_query)
+        cur = conn.connection.connection.cursor()
+        dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % \
+            (REPORT_DIR, REPORT_PREPEND, datenow)
+        file_to_export = file(dataset_report, 'w+')
+        cur.copy_expert(reporta_query, file_to_export)
+        os.chown(dataset_report, -1, www_data_gid)
 
-    cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % \
-        (REPORT_DIR, REPORT_PREPEND, datenow)
-    file_to_export = file(services_report, 'w+')
-    cur.copy_expert(reportb_query, file_to_export)
-    os.chown(services_report, -1, www_data_gid)
+    if 'B' in LETTERS:
+        print 'Generating report B'
+        cur = conn.connection.connection.cursor()
+        services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % \
+            (REPORT_DIR, REPORT_PREPEND, datenow)
+        file_to_export = file(services_report, 'w+')
+        cur.copy_expert(reportb_query, file_to_export)
+        os.chown(services_report, -1, www_data_gid)
 
-    cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % \
-        (REPORT_DIR, REPORT_PREPEND, datenow)
-    file_to_export = file(services_report, 'w+')
-    cur.copy_expert(reportd_query, file_to_export)
-    os.chown(services_report, -1, www_data_gid)
+    if 'D' in LETTERS:
+        print 'Generating report D'
 
-    cur = conn.connection.connection.cursor()
-    services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
-        (REPORT_DIR, REPORT_PREPEND, datenow)
-    file_to_export = file(services_report, 'w+')
-    cur.copy_expert(reportf_query, file_to_export)
-    os.chown(services_report, -1, www_data_gid)
+        cur = conn.connection.connection.cursor()
+        services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % \
+            (REPORT_DIR, REPORT_PREPEND, datenow)
+        file_to_export = file(services_report, 'w+')
+        cur.copy_expert(reportd_query, file_to_export)
+        os.chown(services_report, -1, www_data_gid)
 
-    conn.execute(reportc_insert % dict(date=datenow))
-    cur = conn.connection.connection.cursor()
-    summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
-        (REPORT_DIR, REPORT_PREPEND, datenow)
-    file_to_export = file(summary_report, 'w+')
-    cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
-    os.chown(summary_report, -1, www_data_gid)
+    if 'F' in LETTERS:
+        print 'Generating report F'
 
-    conn.execute(reporte_insert % dict(date = datenow))
-    cur = conn.connection.connection.cursor()
-    summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
-    (REPORT_DIR, REPORT_PREPEND, datenow)
-    file_to_export = file(summary_report, 'w+')
-    cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
-    os.chown(summary_report, -1, www_data_gid)
+        cur = conn.connection.connection.cursor()
+        services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
+            (REPORT_DIR, REPORT_PREPEND, datenow)
+        file_to_export = file(services_report, 'w+')
+        cur.copy_expert(reportf_query, file_to_export)
+        os.chown(services_report, -1, www_data_gid)
+
+    if 'C' in LETTERS:
+        print 'Generating report C'
+
+        conn.execute(reportc_insert % dict(date=datenow))
+        cur = conn.connection.connection.cursor()
+        summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
+            (REPORT_DIR, REPORT_PREPEND, datenow)
+        file_to_export = file(summary_report, 'w+')
+        cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
+        os.chown(summary_report, -1, www_data_gid)
+
+    if 'E' in LETTERS:
+        print 'Generating report E'
+
+        conn.execute(reporte_insert % dict(date = datenow))
+        cur = conn.connection.connection.cursor()
+        summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
+        (REPORT_DIR, REPORT_PREPEND, datenow)
+        file_to_export = file(summary_report, 'w+')
+        cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
+        os.chown(summary_report, -1, www_data_gid)
 
     if delete:
         conn.execute(history_delete % dict(date=datenow))
@@ -348,7 +375,7 @@ select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 -- ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info pub on pub.id = published_by
+left join tmp_publisher_info pub on published_by = pub.title
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2,3,4;
 '''
