@@ -298,13 +298,14 @@ def get_cache_url(resource_dict):
     return url.replace('http://data.gov.uk/', '/')
 
 def get_stars_aggregate(dataset_id):
-    '''Run a query to choose the most recent, highest qa score of all resources in this dataset.
+    '''For a dataset, of all its resources, get details of the one with the highest QA score. 
     Loosely based upon get_stars in ckanext_qa.reports
     returns a dict of { 'value' : 3, 'last_updated': '2012-06-15T13:20:11.699' ...} '''
 
     from sqlalchemy.sql.expression import desc
     import ckan.model as model
-    query = model.Session.query(model.Package.name, model.Package.title, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'))\
+    # Run a query to choose the most recent, highest qa score of all resources in this dataset.
+    query = model.Session.query(model.Package.name, model.Package.title, model.Resource.id, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'),)\
         .join(model.ResourceGroup, model.Package.id == model.ResourceGroup.package_id)\
         .join(model.Resource)\
         .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
@@ -313,11 +314,23 @@ def get_stars_aggregate(dataset_id):
         .order_by(desc(model.TaskStatus.value))\
         .order_by(desc(model.TaskStatus.last_updated))\
 
-    report =  query.first()
+    report = query.first()
+    if not report:
+        return report
+    
+    # Get openness_reason for the score on that resource on that date
+    query = model.Session.query(model.Resource.id, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'),)\
+        .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
+        .filter(model.TaskStatus.key == u'openness_score_reason')\
+        .filter(model.Resource.id == report.id)\
+        .order_by(desc(model.TaskStatus.last_updated))
+    openness_score_reason = query.first().value
+    report.reason = openness_score_reason
+    
     # Convert datetime to expected ISO format to match ckanext_qa's usual output
-    if report:
-        report.last_updated = report.last_updated.isoformat()
-        report.value = int( report.value )
+    report.last_updated = report.last_updated.isoformat()
+    report.value = int( report.value )
+
     return report
 
 def render_stars(stars,reason,last_updated):
@@ -331,21 +344,21 @@ def render_stars(stars,reason,last_updated):
         stars = 5
 
     captions = [
-        'Available under an open license.',
-        'Available as structured data (eg. Excel instead of a scanned table).',
-        'Uses non-proprietary formats (e.g., CSV instead of Excel).',
-        'Uses URIs to identify things, so that people can link to it.',
-        'Linked to other data to provide context.'
+        'Available under an open licence',
+        'Available as structured data (e.g. Excel instead of a scanned table)',
+        'Uses non-proprietary formats (e.g. CSV instead of Excel)',
+        'Uses URIs to identify things, so that people can link to it',
+        'Linked to other data to provide context'
         ]
 
     caption = literal('<div class="star-rating-reason"><b>Reason: </b>"%s"</div>' % reason) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > stars) else ''
         text_stars = i * '&#9733'
-        caption += literal('<div class="star-rating-entry %s">%s&nbsp; "%s"</div>' % (classname, text_stars, captions[i-1]))
+        caption += literal('<div class="star-rating-entry %s">%s&nbsp; %s</div>' % (classname, text_stars, captions[i-1]))
 
     datestamp = render_datestamp(last_updated)
-    caption += literal('<div class="star-rating-last-updated"><b>Last Updated: </b>%s</div>' % datestamp)
+    caption += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
 
