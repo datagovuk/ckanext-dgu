@@ -344,7 +344,7 @@ def render_stars(stars,reason,last_updated):
         stars = 5
 
     captions = [
-        'Available under an open licence',
+        'Available and under an open licence',
         'Available as structured data (e.g. Excel instead of a scanned table)',
         'Uses non-proprietary formats (e.g. CSV instead of Excel)',
         'Uses URIs to identify things, so that people can link to it',
