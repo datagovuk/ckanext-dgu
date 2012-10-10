@@ -131,7 +131,7 @@ def command(config_file):
                     # Pound symbol
                     report_html = report_html.replace('(GBP)', '(&pound;)')
                     # Make sure it is good XML
-                    soup = BeautifulSoup(report_html)
+                    soup = BeautifulSoup(report_html, fromEncoding='utf-8')
                     report_html = soup.prettify(formatter="html")
                     # Sort out non-encoded symbols
                     report_html = re.sub(u'\u2714', '&#x2714;', report_html)
