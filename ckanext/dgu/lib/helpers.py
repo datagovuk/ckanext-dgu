@@ -333,7 +333,7 @@ def get_stars_aggregate(dataset_id):
 
     return report
 
-def render_stars(stars,reason,last_updated):
+def render_stars(stars, reason, last_updated):
 
     stars_html = stars * icon('star')
 

@@ -136,6 +136,7 @@ def command(config_file):
                     # Sort out non-encoded symbols
                     report_html = re.sub(u'\u2714', '&#x2714;', report_html)
                     report_html = re.sub(u'\u2718', '&#x2718;', report_html)
+                    report_html = re.sub(u'\u0141', '&#x0141;', report_html)
                     # save it
                     filename = url[url.rfind('/')+1:] or 'index.html'
                     filepath = os.path.join(openspending_reports_dir, filename)
