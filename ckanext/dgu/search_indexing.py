@@ -10,7 +10,7 @@ log = getLogger(__name__)
 class SearchIndexing(object):
     '''Functions that edit the package dictionary fields to affect the way it
     gets indexed in Solr.'''
-    
+
     @classmethod
     def add_field__is_ogl(cls, pkg_dict):
         '''Adds the license_id-is-ogl field.'''
@@ -36,7 +36,7 @@ class SearchIndexing(object):
     def resource_format_cleanup(cls, pkg_dict):
         '''Standardises the res_format field.'''
         pkg_dict['res_format'] = [ cls._clean_format(f) for f in pkg_dict.get('res_format', []) ]
-        
+
     _disallowed_characters = re.compile(r'[^a-zA-Z]')
     @classmethod
     def _clean_format(cls, format_string):
@@ -53,7 +53,7 @@ class SearchIndexing(object):
         '''Adds the group titles.'''
         groups = [Group.get(g) for g in pkg_dict['groups']]
 
-        # Group titles 
+        # Group titles
         if not pkg_dict.has_key('group_titles'):
             pkg_dict['group_titles'] = [g.title for g in groups]
         else:
@@ -63,8 +63,14 @@ class SearchIndexing(object):
     @classmethod
     def add_field__publisher(cls, pkg_dict):
         '''Adds the 'publisher' based on group.'''
-        groups = set([Group.get(g) for g in pkg_dict['groups']])
-        publishers = [g for g in groups if g.type == 'publisher']
+        import ckan.model as model
+
+        # pkg_dict['groups'] here is returning groups found by a relationship
+        # or membership that has been deleted, but not had the revision set
+        # to non-current
+        #groups = set([Group.get(g) for g in pkg_dict['groups']])
+        #publishers = [g for g in groups if g.type == 'publisher']
+        publishers = model.Package.get(pkg_dict['id']).get_groups('publisher')
 
         # Each dataset should have exactly one group of type "publisher".
         # However, this is not enforced in the data model.
@@ -100,7 +106,7 @@ class SearchIndexing(object):
                                 'Ignoring all but the first. %s',
                                 publisher, repr(parent_publishers))
                 publisher = parent_publishers[0]
-        
+
 
         if not pkg_dict.has_key('parent_publishers'):
             pkg_dict['parent_publishers'] = [ p.name for p in ancestors ]
@@ -131,4 +137,4 @@ class SearchIndexing(object):
                 log.warning('Unable to find harvest object "%s" '
                             'referenced by dataset "%s"',
                             data_dict['id'], pkg_dict['id'])
-        
+
