@@ -1,10 +1,19 @@
 from nose.tools import assert_equal
 
-from ckanext.dgu.lib.resource_formats import ResourceFormats, match, get_all
+from ckanext.dgu.lib.formats import Formats
 
-class TestResourceFormats:
-    def test_canonise(self):
-        assert_equal(ResourceFormats.canonise('.XLS '), 'xls')
+class TestFormats:
+    def test_by_display_name(self):
+        assert_equal(Formats.by_display_name()['JSON']['extension'], 'json')
+
+    def test_by_extension(self):
+        assert_equal(Formats.by_extension()['json']['display_name'], 'JSON')
+
+    def test_by_mime_type(self):
+        assert_equal(Formats.by_mime_type()['text/x-json']['display_name'], 'JSON')
+
+    def test_reduce(self):
+        assert_equal(Formats.reduce('.XLS '), 'xls')
         
     def test_match(self):
         res_type_map = {
@@ -15,7 +24,7 @@ class TestResourceFormats:
             'csv': 'CSV',
             '.html': 'HTML',
             'html': 'HTML',
-            'rdf/xml': 'RDF/XML',
+            'rdf/xml': 'RDF',
             'rdf': 'RDF',
             '.rdf': 'RDF',
             '.RDF': 'RDF',
@@ -29,4 +38,5 @@ class TestResourceFormats:
             'json': 'JSON',
             }
         for raw, expected_match in res_type_map.items():
-            assert_equal(match(raw), expected_match)
+            assert Formats.match(raw), raw
+            assert_equal(Formats.match(raw)['display_name'], expected_match)

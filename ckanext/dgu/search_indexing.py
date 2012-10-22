@@ -2,7 +2,7 @@ from logging import getLogger
 import re
 
 from ckan.model.group import Group
-from ckanext.dgu.lib.resource_formats import ResourceFormats
+from ckanext.dgu.lib.formats import Formats
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 
 log = getLogger(__name__)
@@ -37,14 +37,14 @@ class SearchIndexing(object):
         '''Standardises the res_format field.'''
         pkg_dict['res_format'] = [ cls._clean_format(f) for f in pkg_dict.get('res_format', []) ]
         
-    _disallowed_characters = re.compile(r'[^a-zA-Z]')
+    _disallowed_characters = re.compile(r'[^a-zA-Z /+]')
     @classmethod
     def _clean_format(cls, format_string):
         if isinstance(format_string, basestring):
-            matched_format = ResourceFormats.match(format_string)
+            matched_format = Formats.match(format_string)
             if matched_format:
-                return matched_format
-            return re.sub(cls._disallowed_characters, '', format_string)
+                return matched_format['display_name']
+            return re.sub(cls._disallowed_characters, '', format_string).strip()
         else:
             return format_string
 

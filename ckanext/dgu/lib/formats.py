@@ -1,5 +1,7 @@
 '''A directory of file formats and their properties'''
 
+import re
+
 class Formats(object):
     @classmethod
     def by_display_name(cls):
@@ -24,7 +26,7 @@ class Formats(object):
 
     @classmethod
     def by_extension(cls):
-        '''Returns the formats data as a dict keyed by mime type'''
+        '''Returns the formats data as a dict keyed by filename extension'''
         if not hasattr(cls, '_by_extension'):
             data = cls.get_data()
             cls._by_extension = {}
@@ -32,6 +34,41 @@ class Formats(object):
                 for extension in format_dict['extensions']:
                     cls._by_extension[extension] = format_dict
         return cls._by_extension
+
+    @classmethod
+    def by_reduced_name(cls):
+        '''Returns the formats data as a dict keyed by "reduced" names for
+        each format. This is helpful for matching against user-inputted formats.
+        e.g. "TXT / .Zip" is "txt/zip"'''
+        if not hasattr(cls, '_by_reduced'):
+            data = cls.get_data()
+            cls._by_reduced = {}
+            for format_dict in data:
+                for name in [format_dict['display_name']] + list(format_dict['extensions']) \
+                             + list(format_dict['alternative_names']):
+                    reduced_name = cls.reduce(name)
+                    cls._by_reduced[reduced_name] = format_dict
+        return cls._by_reduced
+
+    @staticmethod
+    def reduce(format_name):
+        return re.sub('[^a-z/+]', '', format_name.strip().lower())
+
+    @classmethod
+    def match(cls, raw_resource_format):
+        '''Given a format that may be badly formatted, try and match it to
+        a known format and return that.
+
+        If no match is found, returns None.
+        '''
+        # Try exact match
+        if raw_resource_format in cls.by_display_name():
+            return cls.by_display_name()[raw_resource_format]
+
+        # Try canonised match
+        reduced_raw = cls.reduce(raw_resource_format)
+        if reduced_raw in cls.by_reduced_name():
+            return cls.by_reduced_name()[reduced_raw]
 
     @classmethod
     def get_data(cls):
@@ -45,39 +82,40 @@ class Formats(object):
             # store the data here so it only loads when first used, rather
             # than on module load
             data_flat = (
-                # Display name, extensions (lower case), mime-types, openness
-                ('TXT', ('txt',), ('text/plain',), 1),
-                ('TXT / Zip', ('txt.zip',), (), 1),
-                ('HTML', ('html', 'htm',), ('text/html',), 1),
-                ('PDF', ('pdf',), ('application/pdf',), 1),
-                ('PDF / Zip', ('pdf.zip',), (), 1),
-                ('Zip', ('zip',), ('application/x-zip', 'application/x-compressed', 'application/x-zip-compressed', 'application/zip', 'multipart/x-zip'), 1),
-                ('Torrent', ('torrent',), ('application/x-bittorrent',), 1),
-                ('DOC', ('doc', 'docx'), ('application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-word.document.macroEnabled.12'), 1),
-                ('PPT', ('ppt', 'pptx'), ('application/mspowerpoint', 'application/vnd.ms-powerpoint.presentation.macroEnabled.12'), 1),
-                ('XLS', ('xls', 'xlsx'), ('application/excel', 'application/x-excel', 'application/x-msexcel', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12', 'application/vnd.msexcel'), 2),
-                ('XLS / Zip', ('xls.zip',), (), 2),
-                ('SHP', ('shp',), (), 2),
-                ('SHP / Zip', ('shp.zip',), (), 2),
-                ('CSV', ('csv',), ('text/csv','text/comma-separated-values'), 3),
-                ('CSV / Zip', ('csv.zip',), (), 3),
-                ('PSV', ('psv',), ('text/psv','text/pipe-separated-values'), 3),
-                ('PSV / Zip', ('psv.zip',), (), 3),                
-                ('JSON', ('json',), ('application/json', 'text/x-json'), 3),
-                ('XML', ('xml',), ('text/xml',), 3),
-                ('XML / Zip', ('xml.zip',), (), 3),
-                ('RSS', ('rss',), ('text/rss+xml',), 3),
-                ('ODS', ('ods',), ('application/vnd.oasis.opendocument.spreadsheet',), 3),
-                ('WMS', ('wms',), ('application/vnd.ogc.wms_xml',), 3),
-                ('KML', ('kml',), ('application/vnd.google-earth.kml+xml',), 3),
-                ('NetCDF', ('cdf', 'netcdf'), ('application/x-netcdf',), 3),
-                ('RDF/XML', ('rdf',), ('application/rdf+xml',), 4),
-                ('RDFa', (), (), 4),
+                # Display name, alternative names, extensions (lower case), mime-types, openness
+                ('TXT', (), ('txt',), ('text/plain',), 1),
+                ('TXT / Zip', (), ('txt.zip',), (), 1),
+                ('HTML', ('web page', 'website'), ('html', 'htm',), ('text/html',), 1),
+                ('PDF', (), ('pdf',), ('application/pdf',), 1),
+                ('PDF / Zip', (), ('pdf.zip',), (), 1),
+                ('Zip', (), ('zip',), ('application/x-zip', 'application/x-compressed', 'application/x-zip-compressed', 'application/zip', 'multipart/x-zip'), 1),
+                ('Torrent', (), ('torrent',), ('application/x-bittorrent',), 1),
+                ('DOC', ('word',), ('doc', 'docx'), ('application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-word.document.macroEnabled.12'), 1),
+                ('PPT', ('powerpoint',), ('ppt', 'pptx'), ('application/mspowerpoint', 'application/vnd.ms-powerpoint.presentation.macroEnabled.12'), 1),
+                ('ODP', (), ('odp'), ('application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'), 1),
+                ('XLS', ('excel',), ('xls', 'xlsx'), ('application/excel', 'application/x-excel', 'application/x-msexcel', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12', 'application/vnd.msexcel'), 2),
+                ('XLS / Zip', (), ('xls.zip',), (), 2),
+                ('SHP', ('shapefile', 'esri shapefile'), ('shp',), (), 2),
+                ('SHP / Zip', (), ('shp.zip',), (), 2),
+                ('CSV', (), ('csv',), ('text/csv','text/comma-separated-values'), 3),
+                ('CSV / Zip', (), ('csv.zip',), (), 3),
+                ('PSV', (), ('psv',), ('text/psv','text/pipe-separated-values'), 3),
+                ('PSV / Zip', (), ('psv.zip',), (), 3),
+                ('JSON', (), ('json',), ('application/json', 'text/x-json'), 3),
+                ('XML', (), ('xml',), ('text/xml',), 3),
+                ('XML / Zip', (), ('xml.zip',), (), 3),
+                ('RSS', (), ('rss',), ('text/rss+xml',), 3),
+                ('ODS', (), ('ods',), ('application/vnd.oasis.opendocument.spreadsheet',), 3),
+                ('WMS', (), ('wms',), ('application/vnd.ogc.wms_xml',), 3),
+                ('KML', (), ('kml',), ('application/vnd.google-earth.kml+xml',), 3),
+                ('NetCDF', (), ('cdf', 'netcdf'), ('application/x-netcdf',), 3),
+                ('RDF', ('rdf/xml',), ('rdf',), ('application/rdf+xml',), 4),
+                ('RDFa', ('html+rdfa',), (), (), 4),
                 )
             cls._data = []
             for line in data_flat:
-                display_name, extensions, mime_types, openness = line
-                format_dict = dict(zip(('display_name', 'extensions', 'mime_types', 'openness'), line))
+                display_name, alternative_names, extensions, mime_types, openness = line
+                format_dict = dict(zip(('display_name', 'alternative_names', 'extensions', 'mime_types', 'openness'), line))
                 format_dict['extension'] = extensions[0] if extensions else ''
                 cls._data.append(format_dict)
         return cls._data
