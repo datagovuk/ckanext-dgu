@@ -333,34 +333,37 @@ def get_stars_aggregate(dataset_id):
 
     return report
 
-def render_stars(stars, reason, last_updated):
+def mini_stars_and_caption(num_stars):
+    mini_stars = num_stars * '&#9733'
+    mini_stars += '&#9734' * (5-num_stars)
+    captions = [
+        'Unavailable or not openly licensed',
+        'Unstructured data (e.g. PDF)',
+        'Structured data but proprietry format (e.g. Excel)',
+        'Structured data in open format (e.g. CSV)',
+        'Linkable data - served at URIs (e.g. RDF)',
+        'Linked data - data URIs and linked to other data (e.g. RDF)'
+        ]
+    return literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
-    stars_html = stars * icon('star')
+def render_stars(stars, reason, last_updated):
+    if stars==4:
+        stars = 5
 
     if stars==0:
         stars_html = 5 * icon('star-grey')
-    if stars==4:
-        stars_html += icon('star-half')
-        stars = 5
+    else:
+        stars_html = stars * icon('star')
 
-    captions = [
-        'Available and under an open licence',
-        'Available as structured data (e.g. Excel instead of a scanned table)',
-        'Uses non-proprietary formats (e.g. CSV instead of Excel)',
-        'Uses URIs to identify things, so that people can link to it',
-        'Linked to other data to provide context'
-        ]
-
-    caption = literal('<div class="star-rating-reason"><b>Reason: </b>"%s"</div>' % reason) if reason else ''
+    tooltip = literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > stars) else ''
-        text_stars = i * '&#9733'
-        caption += literal('<div class="star-rating-entry %s">%s&nbsp; %s</div>' % (classname, text_stars, captions[i-1]))
+        tooltip += literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
     datestamp = render_datestamp(last_updated)
-    caption += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
+    tooltip += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
-    return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (caption,stars_html))
+    return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
 
 def ga_download_tracking(resource, action='download'):
     '''Google Analytics event tracking for downloading a resource.

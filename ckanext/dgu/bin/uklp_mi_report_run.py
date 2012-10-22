@@ -207,7 +207,7 @@ def run_report():
 def update_publisher_table(conn):
 
     publisher_table = Table('tmp_publisher_info', metadata, autoload=True)
-    conn.execute('DELETE FROM "tmp_publisher_info"')
+    conn.execute(publisher_table.delete())
 
     results = conn.execute(publisher_info_query)
     result_list = []

@@ -81,7 +81,7 @@ class Command(object):
 
     def command(self):
         pass
-    
+
 def config(filename):
     cfgpath = os.path.abspath(filename)
     cfgfile = ConfigParser({ "here": os.path.dirname(cfgpath) })
@@ -91,3 +91,17 @@ def config(filename):
     if cfgfile.has_section("app:main"):
         cfg.update(cfgfile.items("app:main"))
     return cfg
+
+
+
+class MockTranslator(object):
+    def gettext(self, value):
+        return value
+
+    def ugettext(self, value):
+        return value
+
+    def ungettext(self, singular, plural, n):
+        if n > 1:
+            return plural
+        return singular
