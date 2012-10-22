@@ -83,9 +83,9 @@ class Formats(object):
             # than on module load
             data_flat = (
                 # Display name, alternative names, extensions (lower case), mime-types, openness
+                ('HTML', ('web page', 'website'), ('html', 'htm',), ('text/html',), 0),
                 ('TXT', (), ('txt',), ('text/plain',), 1),
                 ('TXT / Zip', (), ('txt.zip',), (), 1),
-                ('HTML', ('web page', 'website'), ('html', 'htm',), ('text/html',), 1),
                 ('PDF', (), ('pdf',), ('application/pdf',), 1),
                 ('PDF / Zip', (), ('pdf.zip',), (), 1),
                 ('Zip', (), ('zip',), ('application/x-zip', 'application/x-compressed', 'application/x-zip-compressed', 'application/zip', 'multipart/x-zip'), 1),
