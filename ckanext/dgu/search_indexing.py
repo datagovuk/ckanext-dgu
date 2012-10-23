@@ -2,7 +2,8 @@ from logging import getLogger
 import re
 
 from ckan.model.group import Group
-from ckanext.dgu.lib.resource_formats import ResourceFormats
+from ckan import model
+from ckanext.dgu.lib.formats import Formats
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 
 log = getLogger(__name__)
@@ -37,14 +38,14 @@ class SearchIndexing(object):
         '''Standardises the res_format field.'''
         pkg_dict['res_format'] = [ cls._clean_format(f) for f in pkg_dict.get('res_format', []) ]
 
-    _disallowed_characters = re.compile(r'[^a-zA-Z]')
+    _disallowed_characters = re.compile(r'[^a-zA-Z /+]')
     @classmethod
     def _clean_format(cls, format_string):
         if isinstance(format_string, basestring):
-            matched_format = ResourceFormats.match(format_string)
+            matched_format = Formats.match(format_string)
             if matched_format:
-                return matched_format
-            return re.sub(cls._disallowed_characters, '', format_string)
+                return matched_format['display_name']
+            return re.sub(cls._disallowed_characters, '', format_string).strip()
         else:
             return format_string
 
@@ -138,3 +139,22 @@ class SearchIndexing(object):
                             'referenced by dataset "%s"',
                             data_dict['id'], pkg_dict['id'])
 
+    @classmethod
+    def add_field__openness(cls, pkg_dict):
+        '''Add the openness score (stars) to the search index'''
+        pkg = model.Session.query(model.Package).get(pkg_dict['id'])
+        pkg_score = None
+        for res in pkg.resources:
+            q = model.Session.query(model.TaskStatus).\
+                filter_by(entity_id=res.id).\
+                filter_by(task_type='qa').\
+                filter_by(key='openness_score')
+            if q.count():
+                score = q.first().value
+                if not pkg_score or score > pkg_score:
+                    pkg_score = score
+        if not pkg.resources:
+            pkg_score = 0
+        if pkg_score is None:
+            pkg_score = -1
+        pkg_dict['openness_score'] = pkg_score

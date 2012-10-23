@@ -319,6 +319,7 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__group_titles(pkg_dict)
         SearchIndexing.add_field__publisher(pkg_dict)
         SearchIndexing.add_field__harvest_document(pkg_dict)
+        SearchIndexing.add_field__openness(pkg_dict)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):
