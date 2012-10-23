@@ -296,7 +296,7 @@ max(case when key = 'temporal_granularity' then value else '""' end)            
 max(case when key = 'update_frequency' then value else '""' end)                      "update_frequency",
 max(case when key = 'harvest_object_id' then value else '""' end)                     "harvest_object_id"
 into tmp_package_extra_pivot
-from package_extra
+from package_extra where package_id in (select id from "package" where state='active')
 group by package_id
 '''
 
