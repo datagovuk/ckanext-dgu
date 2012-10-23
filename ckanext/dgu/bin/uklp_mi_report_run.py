@@ -280,7 +280,7 @@ max(case when key = 'national_statistic' then value else '""' end)              
 max(case when key = 'openness_score' then value else '""' end)                        "openness_score",
 max(case when key = 'openness_score_last_checked' then value else '""' end)           "openness_score_last_checked",
 max(case when key = 'precision' then value else '""' end)                             "precision",
-max(case when key = 'published_by' then (select "group".name from "member" JOIN "group" on "group".id = "member".group_id where "member".table_name='package' and "member".state='active' and "member".table_id=package_id limit 1) else '""' end)             "published_by",
+max(case when key = 'published_by' then (select "group".title from "member" JOIN "group" on "group".id = "member".group_id where "member".table_name='package' and "member".state='active' and "member".table_id=package_id limit 1) else '""' end)             "published_by",
 max(case when key = 'published_via' then value else '""' end)                         "published_via",
 max(case when key = 'resource-type' then value else '""' end)                         "resource-type",
 max(case when key = 'responsible-party' then value else '""' end)                     "responsible-party",
@@ -321,7 +321,7 @@ access_constraints "Constraints",
 notes "Abstract"
 from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info on published_by = tmp_publisher_info.name
+left join tmp_publisher_info on published_by = tmp_publisher_info.title
 
 where "resource-type" = '"dataset"' and package.state = 'active'
 ) to STDOUT with csv header
@@ -360,7 +360,7 @@ access_constraints "Constraints",
 notes "Abstract"
 from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info on published_by = tmp_publisher_info.name
+left join tmp_publisher_info on published_by = tmp_publisher_info.title
 where "resource-type" = '"service"' and package.state = 'active'
 ) to STDOUT with csv header;
 '''
@@ -379,7 +379,7 @@ select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 --,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-left join tmp_publisher_info pub on published_by = pub.name
+left join tmp_publisher_info pub on published_by = pub.title
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2,3,4;
 '''
