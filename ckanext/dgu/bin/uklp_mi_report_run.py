@@ -8,13 +8,6 @@ import os
 import sys
 import logging
 
-# Install:
-# sudo apt-get install ckan python-mysqldb
-# sudo chown www-data:ckandguos /var/lib/ckan/dguos/static/report
-# okfn@dgu-uat:~$ sudo chmod +x /var/lib/ckan/dguos
-# okfn@dgu-uat:~$ sudo chmod +r /var/lib/ckan/dguos
-# okfn@dgu-uat:~$ sudo chmod +r /var/lib/ckan/dguos/static
-# okfn@dgu-uat:~$ sudo chmod +x /var/lib/ckan/dguos/static
 
 # Potential problems:
 # [*] No geo data on service records
@@ -23,8 +16,8 @@ import logging
 #     -> Are any of them empty?
 #     -> What are the implications?
 # [+] Error reporting
-# [ ] Need to alter table to support series and other on the summary
-# [ ] Report C doesn't have series or other_type (table needs altering)
+# [X] Need to alter table to support series and other on the summary
+# [X] Report C doesn't have series or other_type (table needs altering)
 # [ ] What happens in duplicate runs?
 # [ ] Running on dev, not on live
 # [X] Geographic coverage not pulled in correctly
