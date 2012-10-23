@@ -372,7 +372,7 @@ select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"dataset"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"series"' then 1 else 0 end)
 ,sum(case when "resource-type" != '"series"' and "resource-type" != '"dataset"' and "resource-type" != '"service"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" in ('"view"','"discovery"', '"OGC:WMS"') then 1 else 0 end)
+,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" in ('"view"','"discovery"', '"OGC:WMS"', '"other"') then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"download"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"transformation"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
