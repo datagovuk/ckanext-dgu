@@ -296,7 +296,7 @@ max(case when key = 'temporal_granularity' then value else '""' end)            
 max(case when key = 'update_frequency' then value else '""' end)                      "update_frequency",
 max(case when key = 'harvest_object_id' then value else '""' end)                     "harvest_object_id"
 into tmp_package_extra_pivot
-from package_extra where package_id in (select id from "package" where state='active')
+from package_extra where package_id in (select id from "package" where state='active') and state='active'
 group by package_id
 '''
 
@@ -365,6 +365,11 @@ where "resource-type" = '"service"' and package.state = 'active'
 ) to STDOUT with csv header;
 '''
 
+
+# It appears that the facetting for the 'Service' type is based solely on the resource-type
+# and not the spatial-data-service-type.  There also appear to be one or two resource-type =
+# 'service' that do not have a spatial-data-service-type attached particularly for
+# scottish-government-spatial-data-infrastructure
 reportc_insert = '''
 delete from report_uklp_report_c_history where report_date = '%(date)s';
 insert into report_uklp_report_c_history
