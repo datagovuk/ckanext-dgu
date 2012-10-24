@@ -139,6 +139,8 @@ def stars_label(stars):
     except ValueError:
         pass
     else:
+        if stars == -1:
+            return 'TBC'
         if stars == 4:
             stars = 5
         stars = dgu_helpers.mini_stars_and_caption(stars)
