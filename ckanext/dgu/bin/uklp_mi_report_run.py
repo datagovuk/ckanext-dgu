@@ -110,7 +110,7 @@ report_uklp_report_e_history_by_owner = Table(
     'report_uklp_report_e_history_by_owner', metadata,
      Column('report_date', types.DateTime),
      Column('id', types.Text),
-     #Column('title', types.Text),
+#     Column('title', types.Text),
      #Column('date_registered', types.DateTime),
      Column('dataset', types.Integer),
      Column('series', types.Integer),
@@ -280,7 +280,7 @@ max(case when key = 'national_statistic' then value else '""' end)              
 max(case when key = 'openness_score' then value else '""' end)                        "openness_score",
 max(case when key = 'openness_score_last_checked' then value else '""' end)           "openness_score_last_checked",
 max(case when key = 'precision' then value else '""' end)                             "precision",
-max(case when key = 'published_by' then (select "group".title from "member" JOIN "group" on "group".id = "member".group_id where "member".table_name='package' and "member".table_id=package_id limit 1) else '""' end)             "published_by",
+max(case when key = 'published_by' then (select "group".title from "member" JOIN "group" on "group".id = "member".group_id where "member".table_name='package' and "member".state='active' and "member".table_id=package_id limit 1) else '""' end)             "published_by",
 max(case when key = 'published_via' then value else '""' end)                         "published_via",
 max(case when key = 'resource-type' then value else '""' end)                         "resource-type",
 max(case when key = 'responsible-party' then value else '""' end)                     "responsible-party",
@@ -296,7 +296,7 @@ max(case when key = 'temporal_granularity' then value else '""' end)            
 max(case when key = 'update_frequency' then value else '""' end)                      "update_frequency",
 max(case when key = 'harvest_object_id' then value else '""' end)                     "harvest_object_id"
 into tmp_package_extra_pivot
-from package_extra
+from package_extra where package_id in (select id from "package" where state='active') and state='active'
 group by package_id
 '''
 
@@ -365,6 +365,11 @@ where "resource-type" = '"service"' and package.state = 'active'
 ) to STDOUT with csv header;
 '''
 
+
+# It appears that the facetting for the 'Service' type is based solely on the resource-type
+# and not the spatial-data-service-type.  There also appear to be one or two resource-type =
+# 'service' that do not have a spatial-data-service-type attached particularly for
+# scottish-government-spatial-data-infrastructure
 reportc_insert = '''
 delete from report_uklp_report_c_history where report_date = '%(date)s';
 insert into report_uklp_report_c_history
@@ -372,12 +377,13 @@ select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"dataset"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"series"' then 1 else 0 end)
 ,sum(case when "resource-type" != '"series"' and "resource-type" != '"dataset"' and "resource-type" != '"service"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"view"' then 1 else 0 end)
+,sum(case when "resource-type" = '"service"' then 1 else 0 end)
+--,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" in ('"view"','"discovery"', '"OGC:WMS"', '"other"') then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"download"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"transformation"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
--- ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
+,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
+--,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info pub on published_by = pub.title
 where package.state = 'active' and "resource-type" <> '""'
@@ -430,8 +436,8 @@ select '%(date)s'::timestamp as timestamp, "responsible-party"
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"download"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"transformation"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
--- ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
+,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
+--,sum(case when ("resource-type" = '"service"' and not "spatial-data-service-type" = '"view"' and not "spatial-data-service-type" = '"download"' and not "spatial-data-service-type" =  '"transformation"' and not "spatial-data-service-type" =  '"invoke"') then 1 else 0 end)
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2;
