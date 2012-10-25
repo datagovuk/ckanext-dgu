@@ -324,7 +324,8 @@ def get_stars_aggregate(dataset_id):
         .filter(model.TaskStatus.key == u'openness_score_reason')\
         .filter(model.Resource.id == report.id)\
         .order_by(desc(model.TaskStatus.last_updated))
-    openness_score_reason = query.first().value
+    reason_result = query.first()
+    openness_score_reason = query.first().value if reason_result else 'Not yet available'
     report.reason = openness_score_reason
     
     # Convert datetime to expected ISO format to match ckanext_qa's usual output
