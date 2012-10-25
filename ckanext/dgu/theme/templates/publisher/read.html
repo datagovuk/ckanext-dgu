@@ -27,15 +27,32 @@
     </div>
     <div py:if="c.userobj" class="widget-container">
       <h4>Administrators:</h4>
-      <ul class="property-list" py:for="admin in c.administrators">
-        <li>${h.linked_user(admin, maxlength=40)}</li>
-      </ul>
+
+      <py:if test='c.is_an_official'>
+          <ul class="property-list" py:for="admin in c.administrators">
+            <li>${h.linked_user(admin, maxlength=40)}</li>
+          </ul>
+      </py:if>
+
+      <py:if test='not c.is_an_official and c.administrators.count()'>
+        <ul>
+            <li>${c.administrators.count()} administrators</li>
+        </ul>
+      </py:if>
       <p py:if="not c.administrators.count()">No-one assigned</p>
 
       <h4>Editors:</h4>
-      <ul class="property-list" py:for="editor in c.editors">
-        <li>${h.linked_user(editor, maxlength=40)}</li>
-      </ul>
+      <py:if test='c.is_an_official'>
+          <ul class="property-list" py:for="editor in c.editors">
+            <li>${h.linked_user(editor, maxlength=40)}</li>
+          </ul>
+      </py:if>
+
+      <py:if test='not c.is_an_official and c.editors.count()'>
+        <ul>
+            <li>${c.editors.count()} editors</li>
+        </ul>
+      </py:if>
       <p py:if="not c.editors.count()">No-one assigned</p>
       <ul>
         <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
@@ -111,7 +128,7 @@ if spb:
         <tr py:if="category"><th>Category</th><td>${category}</td></tr>
         <tr py:if="spb"><th>Spending data published by</th><td><a href="/publisher/${spb.name}">${spb.title}</a></td></tr>
       </table>
-    </div>  
+    </div>
 
   </py:match>
 
@@ -143,7 +160,7 @@ if spb:
             </form>
           </div>
 
-          <?python 
+          <?python
             from ckan.controllers.package import search_url
             from ckan.lib.base import request
             params = dict(request.params)
