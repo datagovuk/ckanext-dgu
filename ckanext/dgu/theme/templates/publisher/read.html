@@ -26,17 +26,42 @@
       </ul>
     </div>
     <div py:if="c.userobj" class="widget-container">
+<?python
+    plural_editors = 's' if c.editors.count() > 1 else ''
+    plural_administrators = 's' if c.administrator.count() > 1 else ''
+?>
+
       <h4>Administrators:</h4>
-      <ul class="property-list" py:for="admin in c.administrators">
-        <li>${h.linked_user(admin, maxlength=40)}</li>
-      </ul>
+      <py:choose>
+          <py:when test=='not c.is_an_official and c.administrators.count()'>
+              <ul class="property-list">
+                <li>${c.administrators.count()} administrator${plural_administrators}</li>
+              </ul>
+          </py:when>
+          <py:otherwise>
+              <ul class="property-list" py:for="admin in c.administrators">
+                <li>${h.linked_user(admin, maxlength=40)}</li>
+              </ul>
+          </py:otherwise>
+      </py:choose>
       <p py:if="not c.administrators.count()">No-one assigned</p>
 
       <h4>Editors:</h4>
-      <ul class="property-list" py:for="editor in c.editors">
-        <li>${h.linked_user(editor, maxlength=40)}</li>
-      </ul>
+
+      <py:choose>
+          <py:when test=='not c.is_an_official and c.editors.count()'>
+              <ul class="property-list">
+                <li>${c.editors.count()} editor${plural_editors}</li>
+              </ul>
+          </py:when>
+          <py:otherwise>
+              <ul class="property-list" py:for="editor in c.editors">
+                <li>${h.linked_user(editor, maxlength=40)}</li>
+              </ul>
+          </py:otherwise>
+      </py:choose>
       <p py:if="not c.editors.count()">No-one assigned</p>
+
       <ul>
         <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
