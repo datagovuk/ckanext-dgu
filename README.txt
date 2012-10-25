@@ -11,7 +11,7 @@ Contributions from 1st March 2012 are by the Cabinet Office. It is Crown Copyrig
 OGL terms: http://www.nationalarchives.gov.uk/doc/open-government-licence/
 AGPL terms: http://www.fsf.org/licensing/licenses/agpl-3.0.html
 
-Related extensions that data.gov.uk use in addition are: ckanext-archiver, ckanext-csw, ckanext-harvest, ckanext-inspire, ckanext-os, ckanext-qa, ckanext-social, ckanext-spatial
+Related extensions that data.gov.uk use in addition are: ckanext-archiver, ckanext-harvest, ckanext-spatial, ckanext-os, ckanext-qa, ckanext-social
 
 Plugins
 =======

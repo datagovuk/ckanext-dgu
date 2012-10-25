@@ -318,10 +318,10 @@ CKAN.Dgu = function($, my) {
           for(var i=0; i<data.length; i++){
             // Populate the format field (if it isn't "htm" or "html")
             var formatField = $(this[i]).find('input[id$="__format"]');
-            var fmt = data[i].inner_format
+            var fmt = data[i].format
 
             if($.trim(formatField.val()) == "" && !fmt.match(/^html?$/) ){
-              formatField.val(data[i].inner_format);
+              formatField.val(data[i].format);
             }
 
             // Indicate any url errors
