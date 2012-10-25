@@ -33,9 +33,9 @@
 
       <h4>Administrators:</h4>
       <py:choose>
-          <py:when test='not c.is_an_official and c.administrators.count()'>
+          <py:when test='(not c.is_an_official) and c.administrators.count()'>
               <ul class="property-list">
-                <li>${c.administrators.count()} administrator${plural_administrators}</li>
+                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.administrators.count()} administrator${plural_administrators}</a></li>
               </ul>
           </py:when>
           <py:otherwise>
@@ -49,9 +49,9 @@
       <h4>Editors:</h4>
 
       <py:choose>
-          <py:when test='not c.is_an_official and c.editors.count()'>
+          <py:when test='(not c.is_an_official) and c.editors.count()'>
               <ul class="property-list">
-                <li>${c.editors.count()} editor${plural_editors}</li>
+                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.editors.count()} editor${plural_editors}</a></li>
               </ul>
           </py:when>
           <py:otherwise>
