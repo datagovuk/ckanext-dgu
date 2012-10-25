@@ -33,7 +33,7 @@
 
       <h4>Administrators:</h4>
       <py:choose>
-          <py:when test=='not c.is_an_official and c.administrators.count()'>
+          <py:when test='not c.is_an_official and c.administrators.count()'>
               <ul class="property-list">
                 <li>${c.administrators.count()} administrator${plural_administrators}</li>
               </ul>
@@ -49,7 +49,7 @@
       <h4>Editors:</h4>
 
       <py:choose>
-          <py:when test=='not c.is_an_official and c.editors.count()'>
+          <py:when test='not c.is_an_official and c.editors.count()'>
               <ul class="property-list">
                 <li>${c.editors.count()} editor${plural_editors}</li>
               </ul>
