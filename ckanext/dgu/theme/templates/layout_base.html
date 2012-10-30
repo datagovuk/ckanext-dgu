@@ -98,7 +98,7 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
 ?>
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
-            You are logged-in as 
+            You are logged-in as
             <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
             <a href="${'/logout' if is_drupal_auth else h.url_for('/data/user/logout')}">Log out</a>.
           </div>
@@ -106,7 +106,7 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
         <span class="ckan-logged-out">
           <div id="login-or-signup">
             <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='login')}">Log in</a>
-            or 
+            or
             <a href="${'/user/register' if is_drupal_auth else h.url_for(controller='user',action='register')}">sign up</a>
           </div>
         </span>
@@ -154,6 +154,10 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
         <span class="divider">&nbsp;|&nbsp;</span>
         <li><a href="/data/openspending-report/index">Spend Reports</a></li>
       </py:if>
+      <py:if test="h.ga_report_installed()">
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a href="/data/analytics">Analytics</a></li>
+      </py:if>
     </ul>
 <?python
 import ckan.authz
@@ -164,7 +168,7 @@ can_create_package = h.check_access('package_create')
 c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
 c.is_an_official = bool(c.groups or c.is_sysadmin)
 ?>
-    <ul id="subnav" py:if="c.is_sysadmin or can_create_package"> 
+    <ul id="subnav" py:if="c.is_sysadmin or can_create_package">
       <py:if test="can_create_package">
         <span class="divider-section">Publisher tools:</span>
         <py:for each="group in c.groups">
@@ -288,7 +292,7 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
             $(".ckan-logged-out").hide();
             $(".ckan-logged-in").show();
         }
-        <!--! //DR: Not sure what this does 
+        <!--! //DR: Not sure what this does
         $('input[placeholder], textarea[placeholder]').placeholder();
 
 		$(".chzn-select").chosen();
