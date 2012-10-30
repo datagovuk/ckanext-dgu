@@ -103,6 +103,11 @@ phone = c.group_extras.get('foi-phone')
     </div>
 
     <div class="widget-container">
+        <h4>Popular datasets</h4>
+        ${h.most_popular_datasets(c.group, 10)}
+    </div>
+
+    <div class="widget-container">
       <h4>Publisher Hierarchy</h4>
       <div id="publisher-tree-wrapper">
       <div id="publisher-tree" class="publisher-mini-tree">
