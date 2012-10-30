@@ -183,24 +183,24 @@ ul.arrow-list {
 .pagination ul {
   background: #fff;
 }
-table.tablesorter thead th.headerSortUp { 
-    background-image: url('/images/icons/sort-asc.gif'); 
-    background-color: #eee; 
+table.tablesorter thead th.headerSortUp {
+    background-image: url('/images/icons/sort-asc.gif');
+    background-color: #eee;
 }
-table.tablesorter thead th.headerSortDown { 
+table.tablesorter thead th.headerSortDown {
     background-image: url('/images/icons/sort-desc.gif');
     background-color: #eee;
-    
+
 }
-table.tablesorter th.header { 
+table.tablesorter th.header {
     background-image: url('/images/icons/sort.gif');
-    cursor: pointer; 
-    font-weight: bold; 
-    background-repeat: no-repeat; 
-    background-position: center right; 
-    padding-right: 20px; 
-    border-right: 1px solid #dad9c7; 
-    margin-left: -1px; 
+    cursor: pointer;
+    font-weight: bold;
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding-right: 20px;
+    border-right: 1px solid #dad9c7;
+    margin-left: -1px;
 }
 
 /* BlackBar */
@@ -925,8 +925,8 @@ ul.datasets .dataset-header:hover {
   text-decoration: none;
   color: #470;
 }
-ul.datasets .dataset-header:hover .underlined { 
-  text-decoration: underline; 
+ul.datasets .dataset-header:hover .underlined {
+  text-decoration: underline;
 }
 ul.datasets .dataset-header       .suffix  { color: #fff; }
 ul.datasets .dataset-header:hover .suffix  { color: #690; }
@@ -955,7 +955,7 @@ ul.datasets .dataset .btn-preview {
   margin-left: 5px;
 }
 ul.datasets .dataset .preview-add .btn-preview,
-ul.datasets .dataset .preview-remove .btn-preview { 
+ul.datasets .dataset .preview-remove .btn-preview {
   width: 160px;
   padding-left: 0;
   padding-right: 10px;
@@ -1007,7 +1007,7 @@ div.resource-actions .btn{
   word-wrap: break-word;
   white-space: normal !important;
 }
-.resources .map-buttons { 
+.resources .map-buttons {
   padding: 12px 7px;
   text-align: right;
  }
@@ -1244,10 +1244,10 @@ span.extras-label {
 div#publisher-tree {
   background-color: white;
 }
-.tab-pane .pagination-alphabet a { 
+.tab-pane .pagination-alphabet a {
   padding: 0 5px;
 }
-table.groups th { 
+table.groups th {
   text-align: left;
 }
 #publishersearch .form-search input[type="text"] {
@@ -1312,13 +1312,13 @@ body.harvest #content{
 /* Tag page */
 /* -------- */
 
-.pagination-alphabet a { 
+.pagination-alphabet a {
         padding: 0 10px;
 }
-.tags ul li { 
+.tags ul li {
  display: inline;
 }
-.tags li { 
+.tags li {
   border: 1px;
 }
 
@@ -1371,7 +1371,7 @@ div.new-comment-link {
   padding: 12px;
 }
 
-div.new-comment-link a { 
+div.new-comment-link a {
   float: right;
 }
 
@@ -1501,4 +1501,8 @@ table.error-details {
 }
 .text-warning {
     color: #C09853;
+}
+.popular_datasets p {
+    margin-top: 8px;
+    text-align: center;
 }
