@@ -22,6 +22,7 @@
         <li>Edit a publisher by <a href="/publisher">navigating to it</a> and clicking 'Edit'</li>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_publishers_and_users')}">Publishers and users</a></li>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins')}">Publishers without administrators</a></li>
+        <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaPublisherReport',action='index')}">Publishers leaderboard</a></li>
       </ul>
     </div>
     <div class="boxed">
@@ -39,6 +40,14 @@
         <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest sources</a></li>
       </ul>
     </div>
+    <div py:if="h.ga_report_installed()" class="boxed">
+      <h3>Site Usage</h3>
+      <ul>
+        <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaPublisherReport',action='index')}">Publishers leaderboard</a></li>
+        <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site-wide</a></li>
+      </ul>
+    </div>
+
     <div class="boxed">
       <h3>Datasets</h3>
       <ul>
