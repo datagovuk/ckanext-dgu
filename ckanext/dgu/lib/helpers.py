@@ -348,9 +348,6 @@ def mini_stars_and_caption(num_stars):
     return literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
 def render_stars(stars, reason, last_updated):
-    if stars==4:
-        stars = 5
-
     if stars==0:
         stars_html = 5 * icon('star-grey')
     else:
