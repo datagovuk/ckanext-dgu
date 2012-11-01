@@ -109,8 +109,8 @@ class Formats(object):
                 ('WMS', (), ('wms',), ('application/vnd.ogc.wms_xml',), 3),
                 ('KML', (), ('kml',), ('application/vnd.google-earth.kml+xml',), 3),
                 ('NetCDF', (), ('cdf', 'netcdf'), ('application/x-netcdf',), 3),
-                ('RDF', ('rdf/xml',), ('rdf',), ('application/rdf+xml',), 4),
-                ('RDFa', ('html+rdfa',), (), (), 4),
+                ('RDF', ('rdf/xml',), ('rdf',), ('application/rdf+xml',), 5),
+                ('RDFa', ('html+rdfa',), (), (), 5),
                 )
             cls._data = []
             for line in data_flat:
