@@ -72,14 +72,6 @@
         </td>
         <td class="gutter"></td>
         <td class="boxed">
-            ${h.popular_datasets(5)}
-        </td>
-      </tr>
-      <tr class="gutter">
-        <td colspan="3"></td>
-      </tr>
-      <tr>
-          <td class="boxed">
           <div class="pull-right">
             <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct Map Based Search &raquo;</a>
           </div>
@@ -94,12 +86,13 @@
              <a href="/location/map-based-search">about Map Based Search</a>
              and <a href="/location/preview-on-map">about Preview on Map</a>.
           </p>
-          </td>
-
-          <!--
--->
-        <td class="gutter"></td>
-        <td class="boxed" colspan='1'>
+        </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="3"></td>
+      </tr>
+      <tr>
+        <td class="boxed" rowspan="3">
           <h2>Cross-Government Data Apps</h2>
           <ul>
 
@@ -107,21 +100,10 @@
 
             <li><a href="http://transparency.number10.gov.uk/" class="js-tooltip" title="Check on the Government's progress on implementing its policies. See how every department is performing against its priorities.">Business plans</a></li>
 
+            <!--! Removed - not like the rest - looked like a placeholder. <li><a href="/crime-spy-uk" class="js-tooltip" title="Use your iPhone to view neighbourhood information and crime stats for the area">Applications</a></li>-->
           </ul>
         </td>
-    </tr>
-      <tr class="gutter">
-        <td colspan="2"></td>
-      </tr>
-
-    <tr>
-        <td class="boxed">
-          <h2>Developers</h2>
-          <div>
-            <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
-          </div>
-        </td>
-                <td class="gutter"></td>
+        <td class="gutter"></td>
         <td class="boxed">
           <div class="pull-right">
             <a href="/node/add/data-request" class="btn btn-primary">Request new data</a>
@@ -131,6 +113,15 @@
       </tr>
       <tr class="gutter">
         <td colspan="2"></td>
+      </tr>
+      <tr>
+        <td class="gutter"></td>
+        <td class="boxed">
+          <h2>Developers</h2>
+          <div>
+            <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
+          </div>
+        </td>
       </tr>
     </table>
   </div>
