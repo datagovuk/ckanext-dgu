@@ -230,7 +230,7 @@ def predict_if_resource_will_preview(resource_dict):
     if not format:
         return False
     normalised_format = format.lower().split('/')[-1]
-    return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml', 
+    return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml',
                                   'xml', 'n-triples', 'turtle', 'plain',
                                   'txt', 'atom', 'tsv', 'rss'))
     # list of formats is copied from recline js
@@ -298,7 +298,7 @@ def get_cache_url(resource_dict):
     return url.replace('http://data.gov.uk/', '/')
 
 def get_stars_aggregate(dataset_id):
-    '''For a dataset, of all its resources, get details of the one with the highest QA score. 
+    '''For a dataset, of all its resources, get details of the one with the highest QA score.
     Loosely based upon get_stars in ckanext_qa.reports
     returns a dict of { 'value' : 3, 'last_updated': '2012-06-15T13:20:11.699' ...} '''
 
@@ -317,7 +317,7 @@ def get_stars_aggregate(dataset_id):
     report = query.first()
     if not report:
         return report
-    
+
     # Get openness_reason for the score on that resource on that date
     query = model.Session.query(model.Resource.id, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'),)\
         .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
@@ -327,7 +327,7 @@ def get_stars_aggregate(dataset_id):
     reason_result = query.first()
     openness_score_reason = query.first().value if reason_result else 'Not yet available'
     report.reason = openness_score_reason
-    
+
     # Convert datetime to expected ISO format to match ckanext_qa's usual output
     report.last_updated = report.last_updated.isoformat()
     report.value = int( report.value )
@@ -371,6 +371,9 @@ def ga_download_tracking(resource, action='download'):
     c.f. Google example:
     <a href="#" onClick="_gaq.push(['_trackEvent', 'Videos', 'Play', 'Baby\'s First Birthday']);">Play</a>
     '''
-    return "_gaq.push(['_trackEvent', 'resource', '%s', '%s', '', true])" % \
-           (action, resource.get('url'))
+#    return "_gaq.push(['_trackEvent', 'resource', '%s', '%s', '', true])" % \
+#           (action, resource.get('url'))
+    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s','',true]);"\
+           "setTimeout(function(){location.href=that.href;},200);return false;" \
+           % (action, resource.get('url'))
 
