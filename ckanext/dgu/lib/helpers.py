@@ -370,9 +370,12 @@ def ga_download_tracking(resource, action='download'):
 
     c.f. Google example:
     <a href="#" onClick="_gaq.push(['_trackEvent', 'Videos', 'Play', 'Baby\'s First Birthday']);">Play</a>
+
+    The call here is wrapped in a timeout to give the push call time to complete as some browsers
+    will complete the new http call without allowing _gaq time to complete.  This *could* be resolved
+    by setting a target of _blank but this forces the download (many of them remote urls) into a new
+    tab/window.
     '''
-#    return "_gaq.push(['_trackEvent', 'resource', '%s', '%s', '', true])" % \
-#           (action, resource.get('url'))
     return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s','',true]);"\
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
