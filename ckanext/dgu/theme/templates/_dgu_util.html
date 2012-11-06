@@ -23,7 +23,7 @@
      else:
          item_type = 'Dataset'
      ?>
-     <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
+     <div class="dataset dataset-summary boxed" py:with="title=package.get('title') or package.get('name')">
        <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>

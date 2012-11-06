@@ -93,7 +93,28 @@
       </tr>
       <tr>
         <td class="boxed" rowspan="2">
-      ${h.single_popular_dataset(20)}
+<?python
+popular_dataset = h.single_popular_dataset(20)
+dataset = popular_dataset['dataset']
+publisher = popular_dataset['publisher']
+?>
+    <h2>Featured dataset</h2>
+
+    <div class="dataset-summary boxed">
+          <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=dataset.name)}">
+            <img class="dataset-icon" src="/images/dataset-icon.png" title="Dataset (UK Location)" />
+            <h3>${dataset.title}</h3>
+          </a>
+          <h4>
+            <strong>Publisher</strong> :
+            <a href="/publisher/${publisher.name}">${publisher.title}</a>
+          </h4>
+          <div>${h.truncate(dataset.notes, length=200, whole_word=True)}</div>
+    </div>
+    <div>
+      <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
+      <a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}" class="btn btn-primary">All usage data</a>
+    </div>
         </td>
         <td class="gutter"></td>
         <td class="boxed" rowspan="2">

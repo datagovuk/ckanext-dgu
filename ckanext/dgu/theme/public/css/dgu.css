@@ -170,7 +170,6 @@ h1 .abbreviation {
 button span {
   white-space: nowrap;
 }
-.widget-container ul,
 ul.arrow-list {
   list-style-image: url('/images/arrow-list.png');
 }
@@ -905,57 +904,57 @@ ul.datasets {
   position: relative;
   z-index: 1;
 }
-ul.datasets .dataset {
+ul.datasets .dataset-summary {
   margin-bottom: 30px;
 }
-ul.datasets .dataset img.dataset-icon {
+.dataset-summary img.dataset-icon {
   float: left;
   width: 45px;
   height: 45px;
   margin-right: 10px;
 }
-ul.datasets .dataset-header {
+.dataset-summary .dataset-header {
   display: block;
   min-height: 52px;
   margin-bottom: 12px;
   border-bottom: 1px solid #aaa;
   color: #666;
 }
-ul.datasets .dataset-header:hover {
+.dataset-summary .dataset-header:hover {
   text-decoration: none;
   color: #470;
 }
-ul.datasets .dataset-header:hover .underlined {
+.dataset-summary .dataset-header:hover .underlined {
   text-decoration: underline;
 }
-ul.datasets .dataset-header       .suffix  { color: #fff; }
-ul.datasets .dataset-header:hover .suffix  { color: #690; }
-ul.datasets .dataset h4 {
+.dataset-summary .dataset-header       .suffix  { color: #fff; }
+.dataset-summary .dataset-header:hover .suffix  { color: #690; }
+.dataset-summary h4 {
   color: #666;
   margin: 4px 0;
   font-size: 12px;
 }
-ul.datasets .dataset h4 ul {
+.dataset-summary h4 ul {
   display: inline;
   list-style-type: none;
   margin: 0;
 }
-ul.datasets .dataset h4 ul li {
+.dataset-summary h4 ul li {
   margin-left: 10px;
   /* Cross-browser inline-block positioning */
   display: inline-block;
   zoom: 1;
   *display: inline;
 }
-ul.datasets .dataset .map-buttons {
+.dataset-summary .map-buttons {
   float: right;
   margin-top: 12px;
 }
-ul.datasets .dataset .btn-preview {
+.dataset-summary .btn-preview {
   margin-left: 5px;
 }
-ul.datasets .dataset .preview-add .btn-preview,
-ul.datasets .dataset .preview-remove .btn-preview {
+.dataset .preview-add .btn-preview,
+.dataset .preview-remove .btn-preview {
   width: 160px;
   padding-left: 0;
   padding-right: 10px;
