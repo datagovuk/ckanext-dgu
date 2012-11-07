@@ -12,24 +12,29 @@
   <xi:include href="package/basket.html" />  
 
   <ul py:def="package_list_from_dict(packages)" class="datasets">
-   <?python
-      import ckanext.dgu.lib.helpers as dgu_helpers
-    ?>
    <li py:for="package in packages">
-     <?python is_service = dgu_helpers.is_service(package)
+     ${package_summary(package, show_preview_buttons=True)}
+   </li>
+  </ul>
+
+  <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary boxed">
+     <!--! NB 'package' is a package dict -->
+     <?python
+     import ckanext.dgu.lib.helpers as dgu_helpers
+     is_service = dgu_helpers.is_service(package)
      uklp_type = dgu_helpers.get_uklp_package_type(package)
      if uklp_type:
          item_type = '%s (UK Location)' % uklp_type.capitalize()
      else:
          item_type = 'Dataset'
      ?>
-     <div class="dataset boxed" py:with="title=package.get('title') or package.get('name')">
+     <div py:with="title=package.get('title') or package.get('name')">
        <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
          <h3><span class="underlined">${title}</span><span class="suffix">&nbsp;&raquo;</span></h3>
        </a>
-     <h4>
+       <h4>
           <strong>Publisher</strong> 
           :&nbsp;
             <?python
@@ -40,43 +45,44 @@
             <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=publisher.get('name', ''))}">
               ${publisher.get('title', '')}
             </a>
-     </h4>
-     <?python
+       </h4>
+       <?python
               display_provider = False
               uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
               providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider' or (d['key'] == 'responsible-party' and ('(owner)' in d['value'] or '(publisher)' in d['value'])))]
               provider = providers[0]['value'] if len(providers) else ''
               display_provider = is_uklp
-     ?>
-     <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
-     <div class="dataset-description">
-        ${h.markdown_extract(package.notes)}
-     </div>
-     ${map_preview_buttons(package.id, package)}
-     <py:if test="package.get('resources', [])">
+       ?>
+       <h4 py:if="display_provider"><strong>Provider:</strong> ${provider.strip('"')}</h4>
+       <div class="dataset-description">
+         ${h.markdown_extract(package.notes)}
+       </div>
+       <py:if test="show_preview_buttons">
+         ${map_preview_buttons(package.id, package)}
+       </py:if>
+       <py:if test="package.get('resources', [])">
 <?python
 formats = set([res.get('format') for res in package['resources']])
 if None in formats:
     formats.remove(None)
 ?>
-     <h4 py:if="formats">Formats:
+         <h4 py:if="formats">Formats:
           <ul class="dataset-formats">
             <py:for each="format in formats">
               <li>${format}</li>
             </py:for>
           </ul>
-        </h4>
-     </py:if>
-      <div class="owners">
+         </h4>
+        </py:if>
+        <div class="owners">
+        </div>
+        <div class="clearfix"></div>
+          <!--!ul py:if="package.tags" class="tags">
+            <li py:for="tag in package.tags">${tag.name}</li>
+          </ul-->
       </div>
-      <div class="clearfix"></div>
-        <!--ul py:if="package.tags" class="tags">
-          <li py:for="tag in package.tags">${tag.name}</li>
-        </ul-->
-     </div>
-    </li>
-  </ul>
+  </div>
 
   <py:def function="dgu_facet_sidebar(code, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
       <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">

@@ -92,11 +92,35 @@
         <td colspan="3"></td>
       </tr>
       <tr>
-        <td class="boxed" rowspan="2">
-      ${h.single_popular_dataset(20)}
+        <td class="boxed" rowspan="5">
+          <div class="pull-right">
+            <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets &raquo;</a>
+          </div>
+          <h2>Featured dataset</h2>
+
+          <?python
+            popular_dataset = h.single_popular_dataset(20)
+          ?>
+          ${package_summary(popular_dataset, show_preview_buttons=True)}
+
+          <p>This is one of our most popular datasets. You can see more usage statistics for data.gov.uk on the <a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site Usage</a> pages</p>
+
         </td>
         <td class="gutter"></td>
-        <td class="boxed" rowspan="2">
+        <td class="boxed">
+          <div class="pull-right">
+            <a href="/node/add/data-request" class="btn btn-primary">Request new data</a>
+          </div>
+          <h2 class="front-page-no-body">Data Requests</h2>
+        </td>
+      </tr>
+
+      <tr class="gutter">
+        <td colspan="2"></td>
+      </tr>
+      <tr>
+        <td class="gutter"></td>
+        <td class="boxed" rowspan="1">
           <h2>Cross-Government Data Apps</h2>
           <ul>
 
@@ -107,32 +131,24 @@
             <!--! Removed - not like the rest - looked like a placeholder. <li><a href="/crime-spy-uk" class="js-tooltip" title="Use your iPhone to view neighbourhood information and crime stats for the area">Applications</a></li>-->
           </ul>
         </td>
-
       </tr>
-
       <tr class="gutter">
-        <td colspan="3"></td>
+        <td colspan="2"></td>
       </tr>
-
-      <tr class="gutter">
-        <td colspan="3"></td>
-      </tr>
-
       <tr>
-        <td class="boxed">
-          <div class="pull-right">
-            <a href="/node/add/data-request" class="btn btn-primary">Request new data</a>
-          </div>
-          <h2 class="front-page-no-body">Data Requests</h2>
-        </td>
-
-        <td class="gutter"></td>
+        <td class="gutter" colspan="1"></td>
         <td class="boxed">
           <h2>Developers</h2>
           <div>
             <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
           </div>
         </td>
+      </tr>
+      <tr class="gutter">
+        <td colspan="3"></td>
+      </tr>
+
+      <tr>
       </tr>
     </table>
   </div>

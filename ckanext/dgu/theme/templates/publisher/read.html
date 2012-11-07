@@ -66,11 +66,11 @@
         <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
         </li>
-
-        <li py:if="c.can_admin">
-          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Edit user permissions</a>
-        </li>
        </ul>
+
+        <div py:if="c.can_admin">
+          <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Edit user permissions</a>
+        </div>
     </div>
 
     ${basket()}
