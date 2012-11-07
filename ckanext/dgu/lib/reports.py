@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from sqlalchemy import create_engine
+from sqlalchemy import engine_from_config
 from sqlalchemy import Table, MetaData, types, Column
 from datetime import date
 from urllib import urlencode
@@ -11,293 +11,309 @@ from ckan.logic import get_action
 import grp
 import os
 import sys
-import logging
-
-
+import re
 import logging
 import datetime
 
 from ckan.lib.cli import CkanCommand
 
+# To force debug export MI_REPORT_TEST=True locally
+
+TERRITORIES = {
+    "UK & Territorial Waters": "20.48,48.79,3.11,62.66",
+    "UK, Territorial Waters and Continental Shelf": "63.887067,-23.956667,48.166667,3.398547",
+    "Gilbraltar": "36.158625,-5.407807,36.084108,-5.291815",
+    "All": "SELECT id FROM package where state='active'"
+}
+
+REPORT_PREPEND = ''
+
 class UKLPReports(CkanCommand):
-    """Initialise the extension's database tables
+    """
+    Run the UKLP MI Reports
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
-    max_args = 0
-    min_args = 0
+    max_args = 2
+    min_args = 1
+
 
     def command(self):
         self._load_config()
+        self._setup_app()
 
-        import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
         log = logging.getLogger('ckanext-dgu')
         log.debug("Running command")
 
-
-
-# Potential problems:
-# [*] No geo data on service records
-# [+] Not picking the correct resource locators
-# [+] Provider role
-#     -> Are any of them empty?
-#     -> What are the implications?
-# [+] Error reporting
-# [X] Need to alter table to support series and other on the summary
-# [X] Report C doesn't have series or other_type (table needs altering)
-# [ ] What happens in duplicate runs?
-# [ ] Running on dev, not on live
-# [X] Geographic coverage not pulled in correctly
-# [X] Extent vs bounding box
-
-# Config options
-# To force debug export MI_REPORT_TEST=True locally
-
-TERRITORIES = {
-#    "UK & Territorial Waters": "20.48,48.79,3.11,62.66",
-#    "UK, Territorial Waters and Continental Shelf": "63.887067,-23.956667,48.166667,3.398547",
-    "Gilbraltar": "36.158625,-5.407807,36.084108,-5.291815",
-#    "All": "SELECT id FROM package where state='active'"
-}
-
-if len(sys.argv) <= 2:
-    print >> sys.stderr, "Not enough arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR '<reportletters>" % sys.argv[0]
-    sys.exit(1)
-elif len(sys.argv) > 4:
-    print >> sys.stderr, "Too many arguments. Please run:"
-    print >> sys.stderr, "%s POSTGRESQL_DSN REPORT_DIR <reportletters>" % sys.argv[0]
-    sys.exit(1)
-
-if len(sys.argv) == 4:
-    POSTGRESQL_DSN, REPORT_DIR, LETTERS = sys.argv[1:]
-    LETTERS = [l.upper() for l in LETTERS if l in 'ABCDEF']
-    if not LETTERS:
-        print >> sys.stderr, "Only reports A-F are supported"
-        sys.exit(1)
-else:
-    POSTGRESQL_DSN, REPORT_DIR = sys.argv[1:]
-    LETTERS = 'ABCDEF'
-
-REPORT_PREPEND = ''
-
-if not os.path.exists(REPORT_DIR):
-    os.mkdir(REPORT_DIR)
-
-try:
-    groupname = os.getenv('MI_REPORT_TEST') or 'www-data'
-    print '+ Using groupname {groupname}'.format(groupname=groupname)
-    www_data_gid = grp.getgrnam(groupname)[2]
-except KeyError:
-    print 'Could not find group www-data, if you wish to run locally ' \
-        'then "export MI_REPORT_TEST=<GROUP_NAME>"'
-    sys.exit(1)
-
-engine = create_engine(POSTGRESQL_DSN)
-
-logging.basicConfig(filename='%s/error.log' % REPORT_DIR, level=logging.ERROR)
-
-metadata = MetaData(engine)
-
-tmp_publisher_info = Table(
-    'tmp_publisher_info', metadata,
-    Column('id', types.Text),
-    Column('title', types.Text),
-    Column('timestamp', types.DateTime)
-)
-
-#tmp_owner_info = Table(
-#    'tmp_owner_info', metadata,
-#    Column('nid', types.Text),
-#    Column('title', types.Text),
-#    Column('timestamp', types.DateTime)
-#)
-
-report_uklp_report_c_history = Table(
-    'report_uklp_report_c_history', metadata,
-     Column('report_date', types.DateTime),
-     Column('id', types.Text),
-     Column('title', types.Text),
-     Column('date_registered', types.DateTime),
-     Column('dataset', types.Integer),
-     Column('series', types.Integer),
-     Column('other_type', types.Integer),
-     Column('view', types.Integer),
-     Column('download', types.Integer),
-     Column('transformation', types.Integer),
-     Column('invoke', types.Integer),
-     Column('other', types.Integer),
-     Column('territory', types.Text),
-)
-
-report_uklp_report_e_history_by_owner = Table(
-    'report_uklp_report_e_history_by_owner', metadata,
-     Column('report_date', types.DateTime),
-     Column('id', types.Text),
-#     Column('title', types.Text),
-     #Column('date_registered', types.DateTime),
-     Column('dataset', types.Integer),
-     Column('series', types.Integer),
-     Column('other_type', types.Integer),
-     Column('view', types.Integer),
-     Column('download', types.Integer),
-     Column('transformation', types.Integer),
-     Column('invoke', types.Integer),
-     Column('other', types.Integer),
-     Column('territory', types.Text),
-)
-
-
-metadata.create_all(engine)
-
-def find_datasets(bbox):
-    from ckan.lib.search import SearchError
-    package_type = 'package'
-    q = ''
-    sort_by_fields = []
-
-    #params = {"ext_bbox":bbox}
-    params = {"ext_resource-type":"dataset"}
-    fq = ''
-    search_extras ={}
-    for (param, value) in params.items():
-        if not param.startswith('ext_'):
-            #c.fields.append((param, value))
-            fq += ' %s:"%s"' % (param, value)
+        if len(self.args) == 2:
+            self.REPORT_DIR, self.LETTERS = self.args
         else:
-            search_extras[param] = value
+            self.REPORT_DIR = self.args[0]
+            self.LETTERS = 'ABCDEF'
 
-    context = {'model': model, 'session': model.Session,
-               'user': '', 'for_view': True}
+        if not os.path.exists(self.REPORT_DIR):
+            os.mkdir(self.REPORT_DIR)
 
-    print search_extras
-    data_dict = {
-        'q':q,
-        'fq':fq,
-        #'facet.field':g.facets,
-        #'rows':limit,
-        #'start':(page-1)*limit,
-        #'sort': sort_by,
-        'extras':search_extras
-    }
+        try:
+            self.groupname = os.getenv('MI_REPORT_TEST') or 'www-data'
+            print '+ Using groupname {groupname}'.format(groupname=self.groupname)
+            self.www_data_gid = grp.getgrnam(self.groupname)[2]
+        except KeyError:
+            print 'Could not find group www-data, if you wish to run locally ' \
+                'then "export MI_REPORT_TEST=<GROUP_NAME>"'
+            sys.exit(1)
 
-    query = get_action('package_search')(context,data_dict)
-    print query['results'],
+        self.engine = engine_from_config(config, 'sqlalchemy.')
+        self.metadata = MetaData(self.engine)
+        self.setup_tables()
+        self.metadata.create_all(self.engine)
 
+        search.SolrSettings.init(config.get('solr_url'),
+                                 config.get('solr_user'),
+                                 config.get('solr_password'))
+        search.check_solr_schema_version()
 
-def run_report():
-    delete = False
-    if len(sys.argv) > 1 and sys.argv[1] == 'delete':
-        delete = True
-        print "Will delete today's record from the history afterwards"
-    datenow = date.today().isoformat()
-    conn = engine.connect()
-    update_publisher_table(conn)
-    #update_owner_table(conn)
-
-    search.SolrSettings.init(config.get('solr_url'),
-                             config.get('solr_user'),
-                             config.get('solr_password'))
-    search.check_solr_schema_version()
+        self.run_report()
 
 
-    trans = conn.begin()
 
-    # Clean the pivot table
-    conn.execute(package_extra_pivot_clean)
 
-    for territory,bbox in TERRITORIES.iteritems():
-        print '%d territories in %s' % (10, territory)
-        # Search to get package IDs from search using the bbox
-        if territory == 'All':
-            pkgs = bbox
-        else:
-            pkgs = find_datasets(bbox)
+    def find_datasets(self, bbox):
+        from ckan.lib.search import SearchError
+        package_type = 'package'
+        q = ''
+        sort_by_fields = []
+
+        fq = ''
+        params = {"ext_bbox":bbox}
+        search_extras ={}
+        for (param, value) in params.items():
+            if not param.startswith('ext_'):
+                #c.fields.append((param, value))
+                fq += ' %s:"%s"' % (param, value)
+            else:
+                search_extras[param] = value
+
+        context = {'model': model, 'session': model.Session,
+                   'user': '', 'for_view': True}
+
+        data_dict = {
+            'q':q,
+            'fq':fq,
+            'rows':10000,
+            'extras':search_extras
+        }
+
+        query = get_action('package_search')(context,data_dict)
+        return [q['id'] for q in query['results']]
+
+
+    def run_report(self):
+        import json
+
+        datenow = date.today().isoformat()
+
+        conn = self.engine.connect()
+        self.update_publisher_table(conn)
+
+        trans = conn.begin()
+
+        # Clean the pivot table
+        conn.execute(package_extra_pivot_clean)
+
+        for territory,bbox in TERRITORIES.iteritems():
+            # Search to get package IDs from search using the bbox
+            if territory == 'All':
+                pkgs = bbox
+            else:
+                pkgs = ["'%s'" % q for q in self.find_datasets(bbox)]
+                print '%d items for %s' % (len(pkgs), territory)
+                pkgs = ",".join(pkgs)
+
+            conn.execute(package_extra_pivot_query % dict(territory=territory,packages=pkgs))
+
+        trans.commit()
+        trans = conn.begin()
+
+        _punct_re = re.compile(r'[\t !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+')
+        def slugify(name):
+            result = [w for w in _punct_re.split(name.lower())]
+            return unicode('_'.join(result))
+
+
+        if 'A' in self.LETTERS:
+            for territory,bbox in TERRITORIES.iteritems():
+                print '+ Generating report A for %s' % territory
+                cur = conn.connection.connection.cursor()
+                dataset_report = '%s/%s%s-Report-A-DGUK-Datasets_%s.csv' % \
+                    (self.REPORT_DIR, REPORT_PREPEND, datenow, slugify(territory))
+                file_to_export = file(dataset_report, 'w+')
+                cur.copy_expert(reporta_query % dict(territory=territory), file_to_export)
+                os.chown(dataset_report, -1, self.www_data_gid)
+
+        if 'B' in self.LETTERS:
+            for territory,bbox in TERRITORIES.iteritems():
+                print '+ Generating report B for %s' % territory
+                cur = conn.connection.connection.cursor()
+                services_report = '%s/%s%s-Report-B-DGUK-Services_%s.csv' % \
+                    (self.REPORT_DIR, REPORT_PREPEND, datenow, slugify(territory))
+                file_to_export = file(services_report, 'w+')
+                cur.copy_expert(reportb_query % dict(territory=territory), file_to_export)
+                os.chown(services_report, -1, self.www_data_gid)
+
+        if 'D' in self.LETTERS:
+            for territory,bbox in TERRITORIES.iteritems():
+                print '+ Generating report D for %s' % territory
+                cur = conn.connection.connection.cursor()
+                services_report = '%s/%s%s-Report-D-DGUK-Series_%s.csv' % \
+                    (self.REPORT_DIR, REPORT_PREPEND, datenow, slugify(territory))
+                file_to_export = file(services_report, 'w+')
+                cur.copy_expert(reportd_query % dict(territory=territory), file_to_export)
+                os.chown(services_report, -1, self.www_data_gid)
         sys.exit(0)
-        conn.execute(package_extra_pivot_query % dict(territory=territory,packages=pkgs))
-        print package_extra_pivot_query % dict(territory=territory,packages=pkgs)
 
-    if 'A' in LETTERS:
-        print '+ Generating report A'
-        cur = conn.connection.connection.cursor()
-        dataset_report = '%s/%s%s-Report-A-DGUK-Datasets.csv' % \
-            (REPORT_DIR, REPORT_PREPEND, datenow)
-        file_to_export = file(dataset_report, 'w+')
-        cur.copy_expert(reporta_query, file_to_export)
-        os.chown(dataset_report, -1, www_data_gid)
+        if 'F' in self.LETTERS:
+            print '+ Generating report F'
 
-    if 'B' in LETTERS:
-        print '+ Generating report B'
-        cur = conn.connection.connection.cursor()
-        services_report = '%s/%s%s-Report-B-DGUK-Services.csv' % \
-            (REPORT_DIR, REPORT_PREPEND, datenow)
-        file_to_export = file(services_report, 'w+')
-        cur.copy_expert(reportb_query, file_to_export)
-        os.chown(services_report, -1, www_data_gid)
+            cur = conn.connection.connection.cursor()
+            services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
+                (self.REPORT_DIR, REPORT_PREPEND, datenow)
+            file_to_export = file(services_report, 'w+')
+            cur.copy_expert(reportf_query, file_to_export)
+            os.chown(services_report, -1, self.www_data_gid)
 
-    if 'D' in LETTERS:
-        print '+ Generating report D'
+        if 'C' in self.LETTERS:
+            print '+ Generating report C'
 
-        cur = conn.connection.connection.cursor()
-        services_report = '%s/%s%s-Report-D-DGUK-Series.csv' % \
-            (REPORT_DIR, REPORT_PREPEND, datenow)
-        file_to_export = file(services_report, 'w+')
-        cur.copy_expert(reportd_query, file_to_export)
-        os.chown(services_report, -1, www_data_gid)
+            conn.execute(reportc_insert % dict(date=datenow))
+            cur = conn.connection.connection.cursor()
+            summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
+                (self.REPORT_DIR, REPORT_PREPEND, datenow)
+            file_to_export = file(summary_report, 'w+')
+            cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
+            os.chown(summary_report, -1, self.www_data_gid)
 
-    if 'F' in LETTERS:
-        print '+ Generating report F'
+        if 'E' in self.LETTERS:
+            print '+ Generating report E'
 
-        cur = conn.connection.connection.cursor()
-        services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
-            (REPORT_DIR, REPORT_PREPEND, datenow)
-        file_to_export = file(services_report, 'w+')
-        cur.copy_expert(reportf_query, file_to_export)
-        os.chown(services_report, -1, www_data_gid)
+            conn.execute(reporte_insert % dict(date = datenow))
+            cur = conn.connection.connection.cursor()
+            summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
+            (self.REPORT_DIR, REPORT_PREPEND, datenow)
+            file_to_export = file(summary_report, 'w+')
+            cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
+            os.chown(summary_report, -1, self.www_data_gid)
 
-    if 'C' in LETTERS:
-        print '+ Generating report C'
-
-        conn.execute(reportc_insert % dict(date=datenow))
-        cur = conn.connection.connection.cursor()
-        summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
-            (REPORT_DIR, REPORT_PREPEND, datenow)
-        file_to_export = file(summary_report, 'w+')
-        cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
-        os.chown(summary_report, -1, www_data_gid)
-
-    if 'E' in LETTERS:
-        print '+ Generating report E'
-
-        conn.execute(reporte_insert % dict(date = datenow))
-        cur = conn.connection.connection.cursor()
-        summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
-        (REPORT_DIR, REPORT_PREPEND, datenow)
-        file_to_export = file(summary_report, 'w+')
-        cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
-        os.chown(summary_report, -1, www_data_gid)
-
-    if delete:
-        conn.execute(history_delete % dict(date=datenow))
-    trans.commit()
+        trans.commit()
 
 
-def update_publisher_table(conn):
+    def update_publisher_table(self, conn):
 
-    publisher_table = Table('tmp_publisher_info', metadata, autoload=True)
-    conn.execute(publisher_table.delete())
+        publisher_table = Table('tmp_publisher_info', self.metadata, autoload=True)
+        conn.execute(publisher_table.delete())
 
-    results = conn.execute(publisher_info_query)
-    result_list = []
-    for result in results:
-        result_list.append({'id': result['id'],
-                            'title': result['title'],
-                            'timestamp': result['timestamp']
-                           }
-                          )
-    conn.execute(publisher_table.insert(), result_list)
+        results = conn.execute(publisher_info_query)
+        result_list = []
+        for result in results:
+            result_list.append({'id': result['id'],
+                                'title': result['title'],
+                                'timestamp': result['timestamp']
+                               }
+                              )
+        conn.execute(publisher_table.insert(), result_list)
+
+    def setup_tables(self):
+        tmp_publisher_info = Table(
+            'tmp_publisher_info', self.metadata,
+            Column('id', types.Text),
+            Column('title', types.Text),
+            Column('timestamp', types.DateTime)
+        )
+
+        report_uklp_report_c_history = Table(
+            'report_uklp_report_c_history', self.metadata,
+             Column('report_date', types.DateTime),
+             Column('id', types.Text),
+             Column('title', types.Text),
+             Column('date_registered', types.DateTime),
+             Column('dataset', types.Integer),
+             Column('series', types.Integer),
+             Column('other_type', types.Integer),
+             Column('view', types.Integer),
+             Column('download', types.Integer),
+             Column('transformation', types.Integer),
+             Column('invoke', types.Integer),
+             Column('other', types.Integer),
+             Column('territory', types.Text),
+        )
+
+        report_uklp_report_e_history_by_owner = Table(
+            'report_uklp_report_e_history_by_owner', self.metadata,
+             Column('report_date', types.DateTime),
+             Column('id', types.Text),
+             Column('dataset', types.Integer),
+             Column('series', types.Integer),
+             Column('other_type', types.Integer),
+             Column('view', types.Integer),
+             Column('download', types.Integer),
+             Column('transformation', types.Integer),
+             Column('invoke', types.Integer),
+             Column('other', types.Integer),
+             Column('territory', types.Text),
+        )
+
+        tmp_package_extra_pivot = Table(
+            'tmp_package_extra_pivot', self.metadata,
+             Column('package_id', types.Text),
+             Column('access_constraints', types.Text),
+             Column('agency', types.Text),
+             Column('bbox-east-long', types.Text),
+             Column('bbox-north-lat', types.Text),
+             Column('bbox-south-lat', types.Text),
+             Column('bbox-west-long', types.Text),
+             Column('categories', types.Text),
+             Column('contact-email', types.Text),
+             Column('coupled-resource', types.Text),
+             Column('dataset-reference-date', types.Text),
+             Column('date_released', types.Text),
+             Column('date_updated', types.Text),
+             Column('date_update_future', types.Text),
+             Column('department', types.Text),
+             Column('external_reference', types.Text),
+             Column('frequency-of-update', types.Text),
+             Column('geographic_coverage', types.Text),
+             Column('geographic_granularity', types.Text),
+             Column('guid', types.Text),
+             Column('import_source', types.Text),
+             Column('UKLP', types.Text),
+             Column('licence', types.Text),
+             Column('licence_url', types.Text),
+             Column('mandate', types.Text),
+             Column('metadata-date', types.Text),
+             Column('metadata-language', types.Text),
+             Column('national_statistic', types.Text),
+             Column('openness_score', types.Text),
+             Column('openness_score_last_checked', types.Text),
+             Column('precision', types.Text),
+             Column('published_by', types.Text),
+             Column('published_via', types.Text),
+             Column('resource-type', types.Text),
+             Column('responsible-party', types.Text),
+             Column('series', types.Text),
+             Column('spatial-data-service-type', types.Text),
+             Column('spatial-reference-system', types.Text),
+             Column('taxonomy_url', types.Text),
+             Column('temporal_coverage_from', types.Text),
+             Column('temporal_coverage-from', types.Text),
+             Column('temporal_coverage_to', types.Text),
+             Column('temporal_coverage-to', types.Text),
+             Column('temporal_granularity', types.Text),
+             Column('update_frequency', types.Text),
+             Column('harvest_object_id', types.Text),
+             Column('territory', types.Text),
+        )
 
 
 publisher_info_query = '''
@@ -305,33 +321,12 @@ select "group".id, "group".title, now() as timestamp
 from "group" where "group".type = 'publisher'
 group by 1,2;'''
 
-#def update_owner_table(conn):
-#
-#    owner_table = Table('tmp_owner_info', metadata, autoload=True)
-#    conn.execute(owner_table.delete())
-#    results = conn.execute(owner_info_query)
-#    result_list = []
-#    now = datetime.now()
-#    for result in results:
-#        result_list.append({'nid': result[0],
-#                            'title': result[1],
-#                            'timestamp': result[2],
-#                           }
-#                          )
-#    conn.execute(owner_table.insert(), result_list)
-#
-#owner_info_query = '''
-#select DISTINCT "responsible-party", "responsible-party", '2011-11-09'
-#from tmp_package_extra_pivot
-#'''
-
 package_extra_pivot_clean = '''
-drop table if exists tmp_package_extra_pivot;
+    delete from tmp_package_extra_pivot;
 '''
 
 package_extra_pivot_query = '''
-select
-package_id,
+insert into tmp_package_extra_pivot select package_id,
 max(case when key = 'access_constraints' then value else '""' end)                    "access_constraints",
 max(case when key = 'agency' then value else '""' end)                                "agency",
 max(case when key = 'bbox-east-long' then value else '""' end)                        "bbox-east-long",
@@ -378,8 +373,7 @@ max(case when key = 'temporal_coverage-to' then value else '""' end)            
 max(case when key = 'temporal_granularity' then value else '""' end)                  "temporal_granularity",
 max(case when key = 'update_frequency' then value else '""' end)                      "update_frequency",
 max(case when key = 'harvest_object_id' then value else '""' end)                     "harvest_object_id",
-'%(territory)s' "territory"
-into tmp_package_extra_pivot
+cast('%(territory)s' as text) "territory"
 from package_extra where package_id in (%(packages)s) and state='active'
 group by package_id
 '''
@@ -407,17 +401,17 @@ from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info on published_by = tmp_publisher_info.title
 
-where "resource-type" = '"dataset"' and package.state = 'active'
+where "resource-type" = '"dataset"' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header
 '''
 
 reportd_query = '\n'.join(reporta_query.strip().split('\n')[:-2]) + '''
-where "resource-type" = '"series"' and package.state = 'active'
+where "resource-type" = '"series"' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header
 '''
 
 reportf_query = '\n'.join(reporta_query.strip().split('\n')[:-2]) + '''
-where (not ("resource-type" = '""' or "resource-type" is NULL or "resource-type" = '"dataset"' or "resource-type" = '"series"' or "resource-type" = '"service"')) and package.state = 'active'
+where (not ("resource-type" = '""' or "resource-type" is NULL or "resource-type" = '"dataset"' or "resource-type" = '"series"' or "resource-type" = '"service"')) and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header
 '''
 
@@ -445,7 +439,7 @@ notes "Abstract"
 from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info on published_by = tmp_publisher_info.title
-where "resource-type" = '"service"' and package.state = 'active'
+where "resource-type" = '"service"' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header;
 '''
 
@@ -467,7 +461,7 @@ select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"transformation"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
---,sum(case when "resource-type" = '"service"' and ("spatial-data-service-type" not in ('"view"', '"download"', '"transformation"', '"invoke"')) then 1 else 0 end)
+,tmp_package_extra_pivot.territory
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info pub on published_by = pub.title
 where package.state = 'active' and "resource-type" <> '""'
@@ -492,7 +486,7 @@ cur.view - coalesce("old".view, 0) "View Services change",
 cur.download - coalesce("old".download, 0) "Download Services change",
 cur.transformation - coalesce("old".transformation, 0) "Transformation Services change",
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
-cur.other - coalesce("old".other, 0) "Other Services change"
+cur.other - coalesce("old".other, 0) "Other Services change",
 from
 report_uklp_report_c_history cur
 left join
@@ -504,7 +498,7 @@ left join
     report_date < '%(date)s'
  order by id, report_date desc
 ) "old" on "old".id = cur.id
-where cur.report_date = '%(date)s'
+where cur.report_date = '%(date)s' and cur.territory = '%(territory)s'
 ) to STDOUT with csv header;
 '''
 
@@ -522,6 +516,7 @@ select '%(date)s'::timestamp as timestamp, "responsible-party"
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 --,sum(case when ("resource-type" = '"service"' and not "spatial-data-service-type" = '"view"' and not "spatial-data-service-type" = '"download"' and not "spatial-data-service-type" =  '"transformation"' and not "spatial-data-service-type" =  '"invoke"') then 1 else 0 end)
+tmp_package_extra_pivot.territory
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 where package.state = 'active' and "resource-type" <> '""'
 group by 1,2;
@@ -558,7 +553,7 @@ left join
     report_date < '%(date)s'
  order by id, report_date desc
 ) "old" on "old".id = cur.id
-where cur.report_date = '%(date)s'
+where cur.report_date = '%(date)s' and cur.territory='%(territory)s'
 ) to STDOUT with csv header;
 '''
 
@@ -566,11 +561,3 @@ history_delete = '''
 delete from report_uklp_report_e_history_by_owner where report_date = '%(date)s';
 delete from report_uklp_report_c_history where report_date = '%(date)s';
 '''
-
-if __name__ == '__main__':
-    try:
-        run_report()
-    except:
-        import traceback
-        logging.error(traceback.format_exc())
-        raise
