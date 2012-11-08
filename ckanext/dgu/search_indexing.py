@@ -16,12 +16,13 @@ class SearchIndexing(object):
     def add_popularity(cls, pkg_dict):
         '''Adds the views field from the ga-report plugin, if it is installed'''
         from pylons import config
+
         score = 0
         if 'ga-report' in config.get('ckan.plugins'):
             from ckanext.ga_report.ga_model import get_score_for_dataset
             score = get_score_for_dataset(pkg_dict['name'])
 
-        pkg_dict['recent_views'] = score
+        pkg_dict['popularity'] = score
 
 
     @classmethod
