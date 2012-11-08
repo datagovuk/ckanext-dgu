@@ -21,7 +21,7 @@ class SearchIndexing(object):
             from ckanext.ga_report.ga_model import get_score_for_dataset
             score = get_score_for_dataset(pkg_dict['name'])
 
-        pkg_dict['popularity_score'] = score
+        pkg_dict['views'] = score
 
 
     @classmethod
