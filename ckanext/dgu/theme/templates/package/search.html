@@ -32,7 +32,7 @@
       <div class="span4">
         ${basket()}
 
-        
+
         <py:if test="c.page.item_count">
           <div id="filter-heading">
             <p>You can refine your search results using the filters below</p>
@@ -43,7 +43,7 @@
       </div>
       <div class="span8">
         <py:if test="c.query_error">
-          <p i18n:msg="item_count"><strong>There was an error while searching.</strong> 
+          <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
               Please try again.</p>
         </py:if>
         <div class="ribbon-header sort-by-controls" py:if="c.page.item_count">
@@ -55,7 +55,7 @@
             <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
             relevancy
           </label>
-          <py:for each="field,title,order in [('title_string','title','asc'), ('metadata_modified','last updated','desc')]">
+          <py:for each="field,title,order in [('title_string','title','asc'), ('metadata_modified','last updated','desc')('popularity', 'popularity', 'desc')]">
             <label class="radio inline">
               <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
               ${title}
