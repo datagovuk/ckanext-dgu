@@ -13,6 +13,18 @@ class SearchIndexing(object):
     gets indexed in Solr.'''
 
     @classmethod
+    def add_popularity(cls, pkg_dict):
+        '''Adds the views field from the ga-report plugin, if it is installed'''
+        from pylons import config
+        score = 0
+        if 'ga-report' in config.get('ckan.plugins'):
+            from ckanext.ga_report.ga_model import get_score_for_dataset
+            score = get_score_for_dataset(pkg_dict['name'])
+
+        pkg_dict['popularity_score'] = score
+
+
+    @classmethod
     def add_field__is_ogl(cls, pkg_dict):
         '''Adds the license_id-is-ogl field.'''
         if not pkg_dict.has_key('license_id-is-ogl'):
