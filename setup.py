@@ -68,6 +68,7 @@ setup(
         mock_drupal = ckanext.dgu.testtools.mock_drupal:Command
         create-test-data=ckanext.dgu.lib.cli:DguCreateTestDataCommand
         prod = ckanext.dgu.testtools.prodder:ProdCommand
+        uklpreports = ckanext.dgu.lib.reports:UKLPReports
     """,
     test_suite = 'nose.collector',
 )
