@@ -300,7 +300,7 @@ class SearchPlugin(SingletonPlugin):
         # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
         if 'q' in search_params:
             search_params['q'] = solr_escape(search_params['q'])
-            
+
         return search_params
 
     def after_search(self, search_results, search_params):
@@ -320,6 +320,7 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__publisher(pkg_dict)
         SearchIndexing.add_field__harvest_document(pkg_dict)
         SearchIndexing.add_field__openness(pkg_dict)
+        SearchIndexing.add_popularity(pkg_dict)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):
