@@ -55,7 +55,7 @@
             <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
             relevancy
           </label>
-          <py:for each="field,title,order in [('title_string','title','asc'), ('metadata_modified','last updated','desc')('popularity', 'popularity', 'desc')]">
+          <py:for each="field,title,order in [('title_string','title','asc'), ('metadata_modified','last updated','desc'),('popularity', 'popularity', 'desc')]">
             <label class="radio inline">
               <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
               ${title}
