@@ -3,21 +3,19 @@
 from sqlalchemy import engine_from_config
 from sqlalchemy import Table, MetaData, types, Column
 from datetime import date
-from urllib import urlencode
 from pylons import config
-import ckan.lib.search as search
 import ckan.model as model
 from ckan.logic import get_action
+from ckan.lib.cli import CkanCommand
 import grp
 import os
 import sys
 import re
 import logging
-import datetime
+import zipfile
 
-from ckan.lib.cli import CkanCommand
 
-# To force debug export MI_REPORT_TEST=True locally
+# To force debug (where www-data doesn't exist, i.e. OSX) export MI_REPORT_TEST=True locally
 
 TERRITORIES = {
     "UK & Territorial Waters": "20.48,48.79,3.11,62.66",
@@ -26,7 +24,6 @@ TERRITORIES = {
     "All": "SELECT id FROM package where state='active'"
 }
 
-REPORT_PREPEND = ''
 
 class UKLPReports(CkanCommand):
     """
@@ -34,9 +31,16 @@ class UKLPReports(CkanCommand):
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
-    max_args = 2
+    max_args = 3
     min_args = 1
 
+    def __init__(self, name):
+        super(UKLPReports, self).__init__(name)
+        self.parser.add_option('-z', '--zip',
+                               action='store_true',
+                               default=False,
+                               dest='zip_output',
+                               help='Compress the reports into a single file')
 
     def command(self):
         self._load_config()
@@ -44,25 +48,23 @@ class UKLPReports(CkanCommand):
 
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
-        log = logging.getLogger('ckanext-dgu')
-        log.debug("Running command")
 
-        if len(self.args) == 2:
-            self.REPORT_DIR, self.LETTERS = self.args
-        else:
-            self.REPORT_DIR = self.args[0]
-            self.LETTERS = 'ABCDEF'
+        self.log = logging.getLogger(__name__)
+        self.log.debug("Running command")
+
+        self.REPORT_DIR, self.LETTERS = self.args if len(self.args) == 2 else (self.args[0],'ABCDEF',)
+        self.log.debug("Compressing report output: %s" % self.options.zip_output)
+        self.log.info("Writing to %s" % self.REPORT_DIR)
+        self.log.info("Running reports %s" % ','.join([x for x in self.LETTERS]))
 
         if not os.path.exists(self.REPORT_DIR):
             os.mkdir(self.REPORT_DIR)
 
         try:
-            self.groupname = os.getenv('MI_REPORT_TEST') or 'www-data'
-            print '+ Using groupname {groupname}'.format(groupname=self.groupname)
-            self.www_data_gid = grp.getgrnam(self.groupname)[2]
+            self.www_data_gid = grp.getgrnam( os.getenv('MI_REPORT_TEST') or 'www-data')[2]
         except KeyError:
-            print 'Could not find group www-data, if you wish to run locally ' \
-                'then "export MI_REPORT_TEST=<GROUP_NAME>"'
+            self.log.error('Could not find group www-data, if you wish to run locally '
+                'then "export MI_REPORT_TEST=<GROUP_NAME>"')
             sys.exit(1)
 
         self.engine = engine_from_config(config, 'sqlalchemy.')
@@ -70,28 +72,37 @@ class UKLPReports(CkanCommand):
         self.setup_tables()
         self.metadata.create_all(self.engine)
 
-        search.SolrSettings.init(config.get('solr_url'),
-                                 config.get('solr_user'),
-                                 config.get('solr_password'))
-        search.check_solr_schema_version()
+        self.datenow = date.today().isoformat()
+        report_files = self.run_report()
+        if self.options.zip_output:
+            output_file = os.path.join(self.REPORT_DIR, "%s-MI-Report-DGUK.zip" % self.datenow)
+            self.log.info("Writing ZIP file to %s" % output_file)
 
-        self.run_report()
+            zf = zipfile.ZipFile(output_file, mode='w')
+            try:
+                for f in report_files:
+                    filename = os.path.basename(f)
+                    zf.write(f, compress_type=zipfile.ZIP_DEFLATED,arcname=filename)
+            finally:
+                zf.close()
 
+            os.chown(output_file, -1, self.www_data_gid)
 
-
+            # Cleanup
+            for f in report_files:
+                os.remove(f)
 
     def find_datasets(self, bbox):
-        from ckan.lib.search import SearchError
-        package_type = 'package'
+        '''
+        Find datasets within the specified bounding box.
+        '''
         q = ''
-        sort_by_fields = []
-
         fq = ''
-        params = {"ext_bbox":bbox}
-        search_extras ={}
+        params = {"ext_bbox": bbox}
+        search_extras = {}
+
         for (param, value) in params.items():
             if not param.startswith('ext_'):
-                #c.fields.append((param, value))
                 fq += ' %s:"%s"' % (param, value)
             else:
                 search_extras[param] = value
@@ -100,20 +111,17 @@ class UKLPReports(CkanCommand):
                    'user': '', 'for_view': True}
 
         data_dict = {
-            'q':q,
-            'fq':fq,
-            'rows':10000,
-            'extras':search_extras
+            'q': q,
+            'fq': fq,
+            'rows': 10000,
+            'extras': search_extras
         }
 
         query = get_action('package_search')(context,data_dict)
         return [q['id'] for q in query['results']]
 
-
     def run_report(self):
-        import json
-
-        datenow = date.today().isoformat()
+        report_files = []
 
         conn = self.engine.connect()
         self.update_publisher_table(conn)
@@ -127,87 +135,80 @@ class UKLPReports(CkanCommand):
             # Search to get package IDs from search using the bbox
             if territory == 'All':
                 pkgs = bbox
+                self.log.info('All items for All territories')
             else:
                 pkgs = ["'%s'" % q for q in self.find_datasets(bbox)]
-                print '%d items for %s' % (len(pkgs), territory)
+                self.log.info('%d items for %s' % (len(pkgs), territory))
                 pkgs = ",".join(pkgs)
 
-            conn.execute(package_extra_pivot_query % dict(territory=territory,packages=pkgs))
+            conn.execute(package_extra_pivot_query % dict(territory=territory, packages=pkgs))
 
         trans.commit()
         trans = conn.begin()
 
-        _punct_re = re.compile(r'[\t !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+')
-        def slugify(name):
-            result = [w for w in _punct_re.split(name.lower())]
-            return unicode('_'.join(result))
+        def _build_file_name(root, territory):
+            return '%s/%s-%s_%s.csv' % \
+                    (self.REPORT_DIR, self.datenow, root, slugify(territory))
 
-
-        if 'A' in self.LETTERS:
-            for territory,bbox in TERRITORIES.iteritems():
-                print '+ Generating report A for %s' % territory
+        for territory, bbox in TERRITORIES.iteritems():
+            if 'A' in self.LETTERS:
+                self.log.info('Generating report A for %s' % territory)
                 cur = conn.connection.connection.cursor()
-                dataset_report = '%s/%s%s-Report-A-DGUK-Datasets_%s.csv' % \
-                    (self.REPORT_DIR, REPORT_PREPEND, datenow, slugify(territory))
+                dataset_report = _build_file_name('Report-A-DGUK-Datasets', territory)
                 file_to_export = file(dataset_report, 'w+')
                 cur.copy_expert(reporta_query % dict(territory=territory), file_to_export)
                 os.chown(dataset_report, -1, self.www_data_gid)
+                report_files.append(dataset_report)
 
-        if 'B' in self.LETTERS:
-            for territory,bbox in TERRITORIES.iteritems():
-                print '+ Generating report B for %s' % territory
+            if 'B' in self.LETTERS:
+                self.log.info('Generating report B for %s' % territory)
                 cur = conn.connection.connection.cursor()
-                services_report = '%s/%s%s-Report-B-DGUK-Services_%s.csv' % \
-                    (self.REPORT_DIR, REPORT_PREPEND, datenow, slugify(territory))
+                services_report = _build_file_name('Report-B-DGUK-Services', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportb_query % dict(territory=territory), file_to_export)
                 os.chown(services_report, -1, self.www_data_gid)
+                report_files.append(services_report)
 
-        if 'D' in self.LETTERS:
-            for territory,bbox in TERRITORIES.iteritems():
-                print '+ Generating report D for %s' % territory
+            if 'D' in self.LETTERS:
+                self.log.info('Generating report D for %s' % territory)
                 cur = conn.connection.connection.cursor()
-                services_report = '%s/%s%s-Report-D-DGUK-Series_%s.csv' % \
-                    (self.REPORT_DIR, REPORT_PREPEND, datenow, slugify(territory))
+                services_report = _build_file_name('Report-D-DGUK-Series', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportd_query % dict(territory=territory), file_to_export)
                 os.chown(services_report, -1, self.www_data_gid)
-        sys.exit(0)
+                report_files.append(services_report)
 
-        if 'F' in self.LETTERS:
-            print '+ Generating report F'
+            if 'F' in self.LETTERS:
+                self.log.info('Generating report F for %s' % territory)
+                cur = conn.connection.connection.cursor()
+                services_report = _build_file_name('Report-F-DGUK-Other', territory)
+                file_to_export = file(services_report, 'w+')
+                cur.copy_expert(reportf_query % dict(territory=territory), file_to_export)
+                os.chown(services_report, -1, self.www_data_gid)
+                report_files.append(services_report)
 
-            cur = conn.connection.connection.cursor()
-            services_report = '%s/%s%s-Report-F-DGUK-Other.csv' % \
-                (self.REPORT_DIR, REPORT_PREPEND, datenow)
-            file_to_export = file(services_report, 'w+')
-            cur.copy_expert(reportf_query, file_to_export)
-            os.chown(services_report, -1, self.www_data_gid)
+            if 'C' in self.LETTERS:
+                self.log.info('Generating report C for %s' % territory)
+                conn.execute(reportc_insert % dict(date=self.datenow))
+                cur = conn.connection.connection.cursor()
+                summary_report = _build_file_name('Report-C-DGUK-Org-Summary', territory)
+                file_to_export = file(summary_report, 'w+')
+                cur.copy_expert(reportc_query % dict(date=self.datenow, territory=territory), file_to_export)
+                os.chown(summary_report, -1, self.www_data_gid)
+                report_files.append(summary_report)
 
-        if 'C' in self.LETTERS:
-            print '+ Generating report C'
-
-            conn.execute(reportc_insert % dict(date=datenow))
-            cur = conn.connection.connection.cursor()
-            summary_report = '%s/%s%s-Report-C-DGUK-Org-Summary.csv' % \
-                (self.REPORT_DIR, REPORT_PREPEND, datenow)
-            file_to_export = file(summary_report, 'w+')
-            cur.copy_expert(reportc_query % dict(date=datenow), file_to_export)
-            os.chown(summary_report, -1, self.www_data_gid)
-
-        if 'E' in self.LETTERS:
-            print '+ Generating report E'
-
-            conn.execute(reporte_insert % dict(date = datenow))
-            cur = conn.connection.connection.cursor()
-            summary_report = '%s/%s%s-Report-E-DGUK-Repsonsible-Party-Summary.csv' % \
-            (self.REPORT_DIR, REPORT_PREPEND, datenow)
-            file_to_export = file(summary_report, 'w+')
-            cur.copy_expert(reporte_query % dict(date = datenow), file_to_export)
-            os.chown(summary_report, -1, self.www_data_gid)
+            if 'E' in self.LETTERS:
+                self.log.info('Generating report E for %s' % territory)
+                conn.execute(reporte_insert % dict(date=self.datenow))
+                cur = conn.connection.connection.cursor()
+                summary_report = _build_file_name('Report-E-DGUK-Repsonsible-Party-Summary', territory)
+                file_to_export = file(summary_report, 'w+')
+                cur.copy_expert(reporte_query % dict(date=self.datenow, territory=territory), file_to_export)
+                os.chown(summary_report, -1, self.www_data_gid)
+                report_files.append(summary_report)
 
         trans.commit()
-
+        return report_files
 
     def update_publisher_table(self, conn):
 
@@ -219,9 +220,7 @@ class UKLPReports(CkanCommand):
         for result in results:
             result_list.append({'id': result['id'],
                                 'title': result['title'],
-                                'timestamp': result['timestamp']
-                               }
-                              )
+                                'timestamp': result['timestamp']})
         conn.execute(publisher_table.insert(), result_list)
 
     def setup_tables(self):
@@ -314,6 +313,14 @@ class UKLPReports(CkanCommand):
              Column('harvest_object_id', types.Text),
              Column('territory', types.Text),
         )
+
+
+_punct_re = re.compile(r'[\t !"#$%&\'()*\-/<=>?@\[\\\]^_`{|},.]+')
+
+
+def slugify(name):
+    result = [w for w in _punct_re.split(name.lower())]
+    return unicode('_'.join(result))
 
 
 publisher_info_query = '''
@@ -462,10 +469,10 @@ select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 ,tmp_package_extra_pivot.territory
-from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
+ from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info pub on published_by = pub.title
 where package.state = 'active' and "resource-type" <> '""'
-group by 1,2,3,4;
+group by 1,2,3,4,tmp_package_extra_pivot.territory;
 '''
 
 reportc_query = '''
@@ -487,7 +494,8 @@ cur.download - coalesce("old".download, 0) "Download Services change",
 cur.transformation - coalesce("old".transformation, 0) "Transformation Services change",
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
 cur.other - coalesce("old".other, 0) "Other Services change",
-from
+cur.territory "Territory"
+ from
 report_uklp_report_c_history cur
 left join
 (select
@@ -516,10 +524,10 @@ select '%(date)s'::timestamp as timestamp, "responsible-party"
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
 ,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
 --,sum(case when ("resource-type" = '"service"' and not "spatial-data-service-type" = '"view"' and not "spatial-data-service-type" = '"download"' and not "spatial-data-service-type" =  '"transformation"' and not "spatial-data-service-type" =  '"invoke"') then 1 else 0 end)
-tmp_package_extra_pivot.territory
+,tmp_package_extra_pivot.territory
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 where package.state = 'active' and "resource-type" <> '""'
-group by 1,2;
+group by 1,2,tmp_package_extra_pivot.territory;
 '''
 
 reporte_query = '''
@@ -541,9 +549,10 @@ cur.view - coalesce("old".view, 0) "View Services change",
 cur.download - coalesce("old".download, 0) "Download Services change",
 cur.transformation - coalesce("old".transformation, 0) "Transformation Services change",
 cur.invoke - coalesce("old".invoke, 0) "Invoke Services change",
-cur.other - coalesce("old".other, 0) "Other Services change"
+cur.other - coalesce("old".other, 0) "Other Services change",
+cur.territory "Terriroty"
 from
-report_uklp_report_e_history_by_owner cur
+ report_uklp_report_e_history_by_owner cur
 left join
 (select
     distinct on (id) report_uklp_report_e_history_by_owner.*
