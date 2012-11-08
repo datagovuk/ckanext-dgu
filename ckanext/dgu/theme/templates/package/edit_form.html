@@ -49,8 +49,6 @@ if has_errors:
   def clean(o):
     if type(o) is list and len(o)==1:
       o = o[0]
-    if type(o) is unicode:
-      o = str(o)
     if type(o) is str:
       o = field_name_map.get(o,o)
       o = field_error_key_map.get(o,o)
@@ -83,7 +81,7 @@ if has_errors:
     </py:for>
   </ul>
   <li py:if="(type(o) is str or type(o) is unicode) and bool(o)">
-    ${str(o)}
+    ${o}
   </li>
 </py:def>
 
