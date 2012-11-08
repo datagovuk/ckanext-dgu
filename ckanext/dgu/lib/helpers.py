@@ -7,6 +7,7 @@ import datetime
 from webhelpers.html import literal
 from webhelpers.text import truncate
 from ckan.lib.helpers import icon
+import ckan.lib.helpers
 
 from publisher_node import PublisherNode
 
@@ -380,3 +381,15 @@ def ga_download_tracking(resource, action='download'):
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
 
+def render_datetime(datetime_, date_format=None, with_hours=False):
+    '''Render a datetime object or timestamp string as a pretty string
+    (Y-m-d H:m).
+    If timestamp is badly formatted, then a blank string is returned.
+
+    This is a wrapper on the CKAN one which has an American date_format.
+    '''
+    if not date_format:
+        date_format = '%d %b %Y'
+        if with_hours:
+            date_format += ' %H:%M'
+    return ckan.lib.helpers.render_datetime(datetime_, date_format)

@@ -929,18 +929,24 @@ ul.datasets .dataset-summary {
 }
 .dataset-summary .dataset-header       .suffix  { color: #fff; }
 .dataset-summary .dataset-header:hover .suffix  { color: #690; }
-.dataset-summary h4 {
-  color: #666;
+.dataset-summary div.property {
   margin: 4px 0;
-  font-size: 12px;
 }
-.dataset-summary h4 ul {
+.dataset-summary .property {
+  color: #666;
+  font-size: 12px;
+  line-height: 18px;
+}
+.dataset-summary .property-right {
+  float: right;
+}
+.dataset-summary .property ul {
   display: inline;
   list-style-type: none;
-  margin: 0;
+  margin-left: 0;
 }
-.dataset-summary h4 ul li {
-  margin-left: 10px;
+.dataset-summary .property ul li {
+  margin-right: 5px;
   /* Cross-browser inline-block positioning */
   display: inline-block;
   zoom: 1;
@@ -948,7 +954,7 @@ ul.datasets .dataset-summary {
 }
 .dataset-summary .map-buttons {
   float: right;
-  margin-top: 12px;
+  margin-top: 4px;
 }
 .dataset-summary .btn-preview {
   margin-left: 5px;
