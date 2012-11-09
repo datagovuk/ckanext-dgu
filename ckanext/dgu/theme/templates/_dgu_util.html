@@ -34,8 +34,19 @@
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
          <h3><span class="underlined">${title}</span><span class="suffix">&nbsp;&raquo;</span></h3>
        </a>
+         <span class="property property-right">
+<?python
+if package.get('metadata_modified') == package.get('metadata_created'):
+    updated_string = 'Created'
+    updated_date = package.get('metadata_created')
+else:
+    updated_string = 'Updated'
+    updated_date = package.get('metadata_modified')
+?>
+           ${updated_string}: ${dgu_helpers.render_datetime(updated_date, with_hours=False)}
+         </span>
        <div class="property">
-          <strong>Publisher</strong>:&nbsp;
+          Publisher:&nbsp;
             <?python
               groups = package.get('groups', [])
               publishers = [ g for g in groups if g.get('type') == 'publisher' ]
@@ -53,10 +64,13 @@
               provider = providers[0]['value'] if len(providers) else ''
               display_provider = is_uklp
        ?>
-       <div py:if="display_provider" class="property"><strong>Provider</strong>:&nbsp; ${provider.strip('"')}</div>
+       <div py:if="display_provider" class="property">Provider:&nbsp; ${provider.strip('"')}</div>
        <div class="dataset-description">
          ${h.markdown_extract(package.notes)}
        </div>
+        <py:if test="show_preview_buttons">
+          ${map_preview_buttons(package.id, package)}
+        </py:if>
        <div class="property">
        <py:if test="package.get('resources', [])">
 <?python
@@ -66,30 +80,15 @@ if None in formats:
 if '' in formats:
     formats.remove('')
 ?>
-         <span py:if="formats" class="property"><strong>Formats</strong>:&nbsp;
+         <div py:if="formats" class="property">Formats:&nbsp;
           <ul class="dataset-formats">
             <py:for each="format in formats">
               <li>${format}</li>
             </py:for>
           </ul>
-         </span>
+         </div>
         </py:if>
-         <span class="property property-right">
-<?python
-if package.get('metadata_modified') == package.get('metadata_created'):
-    updated_string = 'Created'
-    updated_date = package.get('metadata_created')
-else:
-    updated_string = 'Updated'
-    updated_date = package.get('metadata_modified')
-?>
-           <strong>${updated_string}:</strong> ${dgu_helpers.render_datetime(updated_date, with_hours=False)}
-         </span>
       </div>
-        <py:if test="show_preview_buttons">
-          <div class="clearfix"></div>
-          ${map_preview_buttons(package.id, package)}
-        </py:if>
         <div class="owners">
         </div>
         <div class="clearfix"></div>
