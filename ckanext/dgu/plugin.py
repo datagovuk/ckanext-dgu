@@ -301,6 +301,15 @@ class SearchPlugin(SingletonPlugin):
         if 'q' in search_params:
             search_params['q'] = solr_escape(search_params['q'])
 
+        # Add popularity into default ranking - this kicks when there is
+        # no keyword, so no rank. Leave name there, in case no popularity
+        # scores have been loaded.
+        # NB The UI has been adjusted to match this - see
+        #    ckanext/dgu/theme/templates/package/search.html
+        order_by = search_params.get('sort')
+        if order_by == 'rank' or order_by is None:
+            search_params['sort'] = 'score desc, popularity desc, name asc'
+
         return search_params
 
     def after_search(self, search_results, search_params):

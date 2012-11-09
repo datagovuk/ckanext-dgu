@@ -51,13 +51,18 @@
             <img src="/images/rss-on-white.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
           </a>
           <h4>Sort by</h4>
-          <label class="radio inline">
-            <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if not c.sort_by_fields else {}"/>
+<?python
+# default to relevancy if there is a keyword, otherwise popularity.
+# NB This ties in with the default sort set in ckanext/dgu/plugin.py
+sort_by = c.sort_by_fields or ('rank' if c.q else 'popularity')
+?>
+<!--          <label class="radio inline">
+            <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if 'relevancy' in sort_by else {}"/>
             relevancy
-          </label>
-          <py:for each="field,title,order in [('title_string','title','asc'), ('metadata_modified','last updated','desc'),('popularity', 'popularity', 'desc')]">
+          </label>-->
+          <py:for each="field,title,order in [('rank','relevancy','desc'), ('popularity', 'popularity', 'desc'), ('title_string','title','asc'), ('metadata_modified','last updated','desc')]">
             <label class="radio inline">
-              <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in c.sort_by_fields else {}"/>
+              <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in sort_by else {}"/>
               ${title}
             </label>
           </py:for>
