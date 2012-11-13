@@ -156,23 +156,6 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
         <h4 style="margin-bottom:5px;">Openness Score: &nbsp;$stars_text</h4>
         ${helpers.render_stars(stars, report.get('openness_score_reason'), report.get('openness_updated'))}
       </div>
-      <div>
-        <h4 style="margin-bottom:0;">Licence:</h4>
-        <py:choose test="">
-          <span py:when="c.pkg.license and c.pkg.license.url"><a
-              href="${c.pkg.license.url}" rel="dc:rights">${c.pkg.license.title.split('::')[-1]}</a></span>
-          <span py:when="c.pkg.license" property="dc:rights">${c.pkg.license.title}</span>
-          <span py:when="c.pkg.license_id" property="dc:rights">${c.pkg.license_id}</span>
-          <span py:when="not(c.pkg.license)">License unknown</span>
-        </py:choose>
-        <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
-        <py:if test="c.pkg.isopen()">
-          <br/>
-          <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-            <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
-          </a>
-        </py:if>
-      </div>
     </div>
 
     <h3>Resource Description</h3>
@@ -221,11 +204,11 @@ import datetime
 import ckanext.dgu.lib.helpers as dgu_helpers
 
 if c.pkg_dict:
-    
+
     field_names = ResourceFieldNames()
     field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
     res_dict = dict(c.resource)
-    
+
     field_value_map = {
         # field_name : {display info}
         'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
@@ -238,7 +221,7 @@ if c.pkg_dict:
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
     }
-    
+
     # add in fields that only display if they have a value
     for field_name in field_names_display_only_if_value:
         if pkg_extras.get(field_name):
@@ -270,7 +253,7 @@ if c.pkg_dict:
     <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
     <script src="${h.url_for_static('/scripts/vendor/recline/recline.js')}"></script>
     <script>
-      // Monkey-patch broken functionality in Recline. 
+      // Monkey-patch broken functionality in Recline.
       // We aren't using maps, havent loaded Leaflet, so do not try to use it.
       recline.View.Map.prototype._setupMap = function() {};
     </script>
