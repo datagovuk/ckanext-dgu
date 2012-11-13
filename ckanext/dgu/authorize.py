@@ -149,6 +149,12 @@ def dgu_extra_fields_editable(context, data_dict):
                 'msg': _('User %s not authorized to edit a dataset\'s extra fields') % str(user)}
 
 def dgu_user_show(context, data_dict):
+    user_id = context.get('user','')
+    viewing_id = data_dict['id']
+
+    if viewing_id == user_id:
+        return {'success': True}
+
     return dgu_user_list(context, data_dict)
 
 def dgu_user_list(context, data_dict):
