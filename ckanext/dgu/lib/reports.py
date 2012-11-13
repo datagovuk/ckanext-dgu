@@ -110,6 +110,8 @@ class UKLPReports(CkanCommand):
         context = {'model': model, 'session': model.Session,
                    'user': '', 'for_view': True}
 
+        # Not very happy about the hard-coded rows value, would prefer if there
+        # was a way to tell it 'no limit'.
         data_dict = {
             'q': q,
             'fq': fq,
@@ -147,8 +149,8 @@ class UKLPReports(CkanCommand):
         trans = conn.begin()
 
         def _build_file_name(root, territory):
-            return '%s/%s-%s_%s.csv' % \
-                    (self.REPORT_DIR, self.datenow, root, slugify(territory))
+            return os.path.join(self.REPORT_DIR,'%s-%s_%s.csv' % \
+                    (self.datenow, root, slugify(territory))
 
         for territory, bbox in TERRITORIES.iteritems():
             if 'A' in self.LETTERS:
