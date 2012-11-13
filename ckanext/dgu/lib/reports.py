@@ -150,7 +150,7 @@ class UKLPReports(CkanCommand):
 
         def _build_file_name(root, territory):
             return os.path.join(self.REPORT_DIR,'%s-%s_%s.csv' % \
-                    (self.datenow, root, slugify(territory))
+                    (self.datenow, root, slugify(territory)))
 
         for territory, bbox in TERRITORIES.iteritems():
             if 'A' in self.LETTERS:
