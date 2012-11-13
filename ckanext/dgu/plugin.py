@@ -20,7 +20,7 @@ from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
                              dgu_package_create, dgu_package_update,
                              dgu_package_create_rest, dgu_package_update_rest,
                              dgu_extra_fields_editable,
-                             dgu_dataset_delete, dgu_user_list)
+                             dgu_dataset_delete, dgu_user_list, dgu_user_show)
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
@@ -149,6 +149,7 @@ class AuthApiPlugin(SingletonPlugin):
             'package_extra_fields_editable' : dgu_extra_fields_editable,
             'package_delete': dgu_dataset_delete,
             'user_list': dgu_user_list,
+            'user_show': dgu_user_show,
         }
 
 
