@@ -110,6 +110,8 @@ class UKLPReports(CkanCommand):
         context = {'model': model, 'session': model.Session,
                    'user': '', 'for_view': True}
 
+        # Not very happy about the hard-coded rows value, would prefer if there
+        # was a way to tell it 'no limit'.
         data_dict = {
             'q': q,
             'fq': fq,
@@ -147,8 +149,8 @@ class UKLPReports(CkanCommand):
         trans = conn.begin()
 
         def _build_file_name(root, territory):
-            return '%s/%s-%s_%s.csv' % \
-                    (self.REPORT_DIR, self.datenow, root, slugify(territory))
+            return os.path.join(self.REPORT_DIR,'%s-%s_%s.csv' % \
+                    (self.datenow, root, slugify(territory)))
 
         for territory, bbox in TERRITORIES.iteritems():
             if 'A' in self.LETTERS:
@@ -157,7 +159,6 @@ class UKLPReports(CkanCommand):
                 dataset_report = _build_file_name('Report-A-DGUK-Datasets', territory)
                 file_to_export = file(dataset_report, 'w+')
                 cur.copy_expert(reporta_query % dict(territory=territory), file_to_export)
-                os.chown(dataset_report, -1, self.www_data_gid)
                 report_files.append(dataset_report)
 
             if 'B' in self.LETTERS:
@@ -166,7 +167,6 @@ class UKLPReports(CkanCommand):
                 services_report = _build_file_name('Report-B-DGUK-Services', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportb_query % dict(territory=territory), file_to_export)
-                os.chown(services_report, -1, self.www_data_gid)
                 report_files.append(services_report)
 
             if 'D' in self.LETTERS:
@@ -175,7 +175,6 @@ class UKLPReports(CkanCommand):
                 services_report = _build_file_name('Report-D-DGUK-Series', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportd_query % dict(territory=territory), file_to_export)
-                os.chown(services_report, -1, self.www_data_gid)
                 report_files.append(services_report)
 
             if 'F' in self.LETTERS:
@@ -184,7 +183,6 @@ class UKLPReports(CkanCommand):
                 services_report = _build_file_name('Report-F-DGUK-Other', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportf_query % dict(territory=territory), file_to_export)
-                os.chown(services_report, -1, self.www_data_gid)
                 report_files.append(services_report)
 
             if 'C' in self.LETTERS:
@@ -194,7 +192,6 @@ class UKLPReports(CkanCommand):
                 summary_report = _build_file_name('Report-C-DGUK-Org-Summary', territory)
                 file_to_export = file(summary_report, 'w+')
                 cur.copy_expert(reportc_query % dict(date=self.datenow, territory=territory), file_to_export)
-                os.chown(summary_report, -1, self.www_data_gid)
                 report_files.append(summary_report)
 
             if 'E' in self.LETTERS:
@@ -204,11 +201,11 @@ class UKLPReports(CkanCommand):
                 summary_report = _build_file_name('Report-E-DGUK-Repsonsible-Party-Summary', territory)
                 file_to_export = file(summary_report, 'w+')
                 cur.copy_expert(reporte_query % dict(date=self.datenow, territory=territory), file_to_export)
-                os.chown(summary_report, -1, self.www_data_gid)
                 report_files.append(summary_report)
 
         trans.commit()
         return report_files
+
 
     def update_publisher_table(self, conn):
 
