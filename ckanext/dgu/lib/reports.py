@@ -1,19 +1,16 @@
-#!/usr/bin/env python
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import Table, MetaData, types, Column
-from datetime import date
+from sqlalchemy import (engine_from_config, Table,
+                        MetaData, types, Column)
 from pylons import config
 import ckan.model as model
 from ckan.logic import get_action
 from ckan.lib.cli import CkanCommand
+from datetime import date
 import grp
 import os
 import sys
 import re
 import logging
 import zipfile
-
 
 # To force debug (where www-data doesn't exist, i.e. OSX) export MI_REPORT_TEST=True locally
 
@@ -24,10 +21,33 @@ TERRITORIES = {
     "All": "SELECT id FROM package where state='active'"
 }
 
+# Maximum number of rows to return from searches.
+MAX_ROW_COUNT = 10000
 
 class UKLPReports(CkanCommand):
     """
-    Run the UKLP MI Reports
+    Generates MI Reports
+
+    By both searching (for bounding boxes) and using the primary db (for all
+    other data) this report generates reports for MI.
+
+    This command requires the name of the output directory where files will
+    be written, either individual CSV files, or if -z (--zip) is provided a
+    single zip file containing the reports.
+
+    The reports use bounding boxes so that reports are constrained to one
+    of the following:
+
+      - UK & Territorial Waters
+      - UK, Territorial Waters and Continental Shelf
+      - Gilbraltar
+
+    As well as these territories the reports be generated for all datasets.
+
+    It is possible to also specify which reports can be used by specifying
+    the letter names of the reports after the folder:
+
+        paster uklpreports /tmp 'ABC'
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
@@ -69,7 +89,7 @@ class UKLPReports(CkanCommand):
 
         self.engine = engine_from_config(config, 'sqlalchemy.')
         self.metadata = MetaData(self.engine)
-        self.setup_tables()
+        self.setup_tables()  # Make sure the DB tables exist.
         self.metadata.create_all(self.engine)
 
         self.datenow = date.today().isoformat()
@@ -82,7 +102,7 @@ class UKLPReports(CkanCommand):
             try:
                 for f in report_files:
                     filename = os.path.basename(f)
-                    zf.write(f, compress_type=zipfile.ZIP_DEFLATED,arcname=filename)
+                    zf.write(f, compress_type=zipfile.ZIP_DEFLATED, arcname=filename)
             finally:
                 zf.close()
 
@@ -115,7 +135,7 @@ class UKLPReports(CkanCommand):
         data_dict = {
             'q': q,
             'fq': fq,
-            'rows': 10000,
+            'rows': MAX_ROW_COUNT,
             'extras': search_extras
         }
 

@@ -9,7 +9,7 @@ class DrupalLoginPlugin(object):
 
     implements(IChallenger)
 
-    # Catches 401 redirects and sends user to Drupal log-in form 
+    # Catches 401 redirects and sends user to Drupal log-in form
     def challenge(self, environ, status, app_headers, forget_headers):
         # redirect to login_form
         res = Response()
