@@ -153,6 +153,9 @@ def dgu_user_list(context, data_dict):
     user = context.get('user','')
     user_obj = model.User.get(user)
 
+    if Authorizer().is_sysadmin(unicode(user)):
+        return {'success': True}
+
     if not user or not user_obj:
         return {'success': False, 'msg': _('You must be logged in to view the user list')}
 
