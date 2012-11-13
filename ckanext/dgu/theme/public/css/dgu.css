@@ -1333,6 +1333,7 @@ body.harvest #content{
 
 .comment {
   position: relative;
+  padding-bottom: 40px;
 }
 .comment h3 {
   margin-bottom: 7px;
@@ -1359,7 +1360,7 @@ body.harvest #content{
 
 .indented {
   margin-left: 3px;
-  border-left: 2px dashed #ccc;
+  border-left: 2px dotted #7BB200;
   padding-left: 25px;
 }
 
