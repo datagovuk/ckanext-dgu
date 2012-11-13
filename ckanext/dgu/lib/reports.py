@@ -204,6 +204,7 @@ class UKLPReports(CkanCommand):
         trans.commit()
         return report_files
 
+
     def update_publisher_table(self, conn):
 
         publisher_table = Table('tmp_publisher_info', self.metadata, autoload=True)
