@@ -157,7 +157,6 @@ class UKLPReports(CkanCommand):
                 dataset_report = _build_file_name('Report-A-DGUK-Datasets', territory)
                 file_to_export = file(dataset_report, 'w+')
                 cur.copy_expert(reporta_query % dict(territory=territory), file_to_export)
-                os.chown(dataset_report, -1, self.www_data_gid)
                 report_files.append(dataset_report)
 
             if 'B' in self.LETTERS:
@@ -166,7 +165,6 @@ class UKLPReports(CkanCommand):
                 services_report = _build_file_name('Report-B-DGUK-Services', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportb_query % dict(territory=territory), file_to_export)
-                os.chown(services_report, -1, self.www_data_gid)
                 report_files.append(services_report)
 
             if 'D' in self.LETTERS:
@@ -175,7 +173,6 @@ class UKLPReports(CkanCommand):
                 services_report = _build_file_name('Report-D-DGUK-Series', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportd_query % dict(territory=territory), file_to_export)
-                os.chown(services_report, -1, self.www_data_gid)
                 report_files.append(services_report)
 
             if 'F' in self.LETTERS:
@@ -184,7 +181,6 @@ class UKLPReports(CkanCommand):
                 services_report = _build_file_name('Report-F-DGUK-Other', territory)
                 file_to_export = file(services_report, 'w+')
                 cur.copy_expert(reportf_query % dict(territory=territory), file_to_export)
-                os.chown(services_report, -1, self.www_data_gid)
                 report_files.append(services_report)
 
             if 'C' in self.LETTERS:
@@ -194,7 +190,6 @@ class UKLPReports(CkanCommand):
                 summary_report = _build_file_name('Report-C-DGUK-Org-Summary', territory)
                 file_to_export = file(summary_report, 'w+')
                 cur.copy_expert(reportc_query % dict(date=self.datenow, territory=territory), file_to_export)
-                os.chown(summary_report, -1, self.www_data_gid)
                 report_files.append(summary_report)
 
             if 'E' in self.LETTERS:
@@ -204,7 +199,6 @@ class UKLPReports(CkanCommand):
                 summary_report = _build_file_name('Report-E-DGUK-Repsonsible-Party-Summary', territory)
                 file_to_export = file(summary_report, 'w+')
                 cur.copy_expert(reporte_query % dict(date=self.datenow, territory=territory), file_to_export)
-                os.chown(summary_report, -1, self.www_data_gid)
                 report_files.append(summary_report)
 
         trans.commit()
