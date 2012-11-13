@@ -128,7 +128,7 @@ class ThemePlugin(SingletonPlugin):
 
 class DrupalAuthPlugin(SingletonPlugin):
     '''Reads Drupal login cookies to log user in.'''
-    implements(IMiddleware,    inherit=True)
+    implements(IMiddleware, inherit=True)
 
     def make_middleware(self, app, config):
         return DrupalAuthMiddleware(app, config)
