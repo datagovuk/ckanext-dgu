@@ -55,6 +55,7 @@ def command(config_file):
                                                default_backup_dir))
     openspending_reports_dir = os.path.expanduser(config.get('dgu.openspending_reports_dir',
                                                              default_openspending_reports_dir))
+    ga_token_filepath = os.path.expanduser(config.get('googleanalytics.token.filepath', ''))
     dump_filebase = config.get('ckan.dump_filename_base',
                                'data.gov.uk-ckan-meta-data-%Y-%m-%d')
     dump_analysis_filebase = config.get('ckan.dump_analysis_base',
@@ -82,6 +83,25 @@ def command(config_file):
         sys.exit(1)
     elif num_packages_before < 2500:
         log.warn('Expected more packages.')
+
+    # Analytics
+    if ga_token_filepath:
+        log.info('Getting analytics for this month')
+        from ckanext.ga_report.download_analytics import DownloadAnalytics
+        from ckanext.ga_report.ga_auth import (init_service, get_profile_id)
+        try:
+            svc = init_service(ga_token_filepath, None)
+        except TypeError:
+            log.error('Could not complete authorization for Google Analytics.'
+                      'Have you correctly run the getauthtoken task and '
+                      'specified the correct token file?')
+            sys.exit(0)
+        downloader = DownloadAnalytics(svc, profile_id=get_profile_id(svc),
+                                       delete_first=False,
+                                       skip_url_stats=False)
+        downloader.latest()
+    else:
+        log.info('No token specified, so not downloading Google Analytics data')
 
     # Copy openspending reports
     log.info('Copying in OpenSpending reports')
