@@ -91,8 +91,9 @@ class Formats(object):
                 ('Zip', (), ('zip',), ('application/x-zip', 'application/x-compressed', 'application/x-zip-compressed', 'application/zip', 'multipart/x-zip'), 1),
                 ('Torrent', (), ('torrent',), ('application/x-bittorrent',), 1),
                 ('DOC', ('word',), ('doc', 'docx'), ('application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-word.document.macroEnabled.12'), 1),
+                ('ODT', (), ('odt',), ('application/vnd.oasis.opendocument.text', 'application/x-vnd.oasis.opendocument.text'), 1),
                 ('PPT', ('powerpoint',), ('ppt', 'pptx'), ('application/mspowerpoint', 'application/vnd.ms-powerpoint.presentation.macroEnabled.12'), 1),
-                ('ODP', (), ('odp'), ('application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'), 1),
+                ('ODP', (), ('odp',), ('application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'), 1),
                 ('XLS', ('excel',), ('xls', 'xlsx'), ('application/excel', 'application/x-excel', 'application/x-msexcel', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12', 'application/vnd.msexcel'), 2),
                 ('XLS / Zip', (), ('xls.zip',), (), 2),
                 ('SHP', ('shapefile', 'esri shapefile'), ('shp',), (), 2),
@@ -109,6 +110,7 @@ class Formats(object):
                 ('WMS', (), ('wms',), ('application/vnd.ogc.wms_xml',), 3),
                 ('KML', (), ('kml',), ('application/vnd.google-earth.kml+xml',), 3),
                 ('NetCDF', (), ('cdf', 'netcdf'), ('application/x-netcdf',), 3),
+                ('IATI', (), ('iati',), ('application/x-iati+xml',), 3),
                 ('RDF', ('rdf/xml',), ('rdf',), ('application/rdf+xml',), 5),
                 ('RDFa', ('html+rdfa',), (), (), 5),
                 )

@@ -164,7 +164,7 @@ def stars_label(stars):
         stars = dgu_helpers.mini_stars_and_caption(stars)
     return stars
 ?>
-    ${dgu_facet_sidebar('openness_score', label=stars_label, title=lambda n:'Openness Score', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
+    ${dgu_facet_sidebar('openness_score', label=stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
 
     <div class="facet-box" id="map-based-search">
       <h4>
