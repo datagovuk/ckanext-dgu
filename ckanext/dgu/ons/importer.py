@@ -6,6 +6,7 @@ import glob
 from ckanext.importlib.importer import PackageImporter
 from ckanext.dgu import schema
 from ckanext.dgu.ons.producers import get_ons_producers
+from ckan import model
 from datautildate import date
 
 guid_prefix = 'http://www.statistics.gov.uk/hub/id/'
@@ -41,7 +42,7 @@ class OnsImporter(PackageImporter):
         # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
-        department, agency, published_by, published_via = self._cached_source_to_organisations(item['hub:source-agency'])
+        publisher = self._source_to_publisher(item['hub:source-agency'])
 
         # Resources
         guid = item['guid'] or None
@@ -80,8 +81,6 @@ class OnsImporter(PackageImporter):
             'date_released': u'',
             'categories': u'',
             'series':u'',
-            'published_by':u'',
-            'published_via':u'',
             }
         date_released = u''
         if item['pubDate']:
@@ -90,8 +89,6 @@ class OnsImporter(PackageImporter):
                 log.warn('Could not read format of publication (release) date: %r' % 
                          item["pubDate"])
         extras['date_released'] = date_released.isoformat()
-        extras['published_by'] = published_by or u''
-        extras['published_via'] = published_via or u''
         extras['categories'] = item['hub:theme']
         extras['geographic_coverage'] = self._parse_geographic_coverage(item['hub:coverage'])
         extras['national_statistic'] = 'yes' if item['hub:designation'] == 'National Statistics' or item['hub:designation'] == 'National Statistics' else 'no'
@@ -107,7 +104,6 @@ class OnsImporter(PackageImporter):
                     extras['update_frequency'] = update_frequency_suggestion
         extras['import_source'] = 'ONS-%s' % self._current_filename 
 
-        author = department or None
         resources = [{
             'url': download_url,
             'description': release,
@@ -120,8 +116,6 @@ class OnsImporter(PackageImporter):
             'title': title,
             'version': None,
             'url': None,
-            'author': author,
-            'author_email': None,
             'maintainer': None,
             'maintainer_email': None,
             'notes': notes,
@@ -152,49 +146,21 @@ class OnsImporter(PackageImporter):
         geographic_coverage_db = geo_coverage_type.str_to_db(coverage_str)
         return geographic_coverage_db
 
-    def _cached_source_to_organisations(self, source):
-        return self._source_to_organisations(source, drupal_helper=self._drupal_helper)
-    
     @classmethod
-    def _source_to_organisations(cls, source, drupal_helper=None):
-        dept_given = schema.canonise_organisation_name(source)
-        department = None
-        agency = None
+    def _source_to_publisher(cls, source):
+        '''
+        For a given ONS Source, returns the equivalent DGU publisher.
+        If it cannot find it, returns None.
+        '''
+        # map the name
+        publisher_name = schema.canonise_organisation_name(source)
 
-        if not drupal_helper:
-            drupal_helper = schema.DrupalHelper()
-        
-        # special cases
-        if '(Northern Ireland)' in source or dept_given == 'Office of the First and Deputy First Minister':
-            department = u'Northern Ireland Executive'
-            agency = drupal_helper.cached_department_or_agency_to_organisation(dept_given, include_id=False)
-            if not agency:
-                log.warn('Could not find NI department: %s' % dept_given)
-                agency = dept_given
-        if dept_given == 'Office for National Statistics':
-            department = dept_given
-        if dept_given == 'Education':
-            department = 'Department for Education'
+        # search for the name in live list of publishers
+        publisher = model.Group.search_by_name_or_title(publisher_name, group_type='publisher')
+        if not publisher:
+            log.warn('Could not find source in DGU publishers: "%s" (mapped to "%s")', source, publisher_name)
 
-        # search for department
-        if not department:
-            org = drupal_helper.cached_department_or_agency_to_organisation(dept_given, include_id=False)
-            if org in schema.government_depts:
-                department = org
-            elif org:
-                agency = org
-                
-        if not (department or agency) and dept_given: 
-            log.warn('Could not find organisation: %s' % dept_given)
-            agency = dept_given
-
-        # publishers
-        orgs = [drupal_helper.cached_department_or_agency_to_organisation(org) \
-                for org in [department, agency] if org]
-        orgs += [u''] * (2 - len(orgs))
-        published_by, published_via = orgs
-
-        return department, agency, published_by, published_via
+        return publisher
 
     @classmethod
     def _split_title(cls, xml_title):

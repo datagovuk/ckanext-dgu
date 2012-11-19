@@ -84,13 +84,6 @@ class TestOnsImporter(MockDrupalCase):
             coverage_db = importer.OnsImporter._parse_geographic_coverage(coverage_str)
             assert_equal(coverage_db, expected_coverage_db)
 
-    def test_dept_to_organisation(self):
-        for source_agency in get_ons_producers():
-            publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
-            assert publisher, source_agency
-            publisher = strip_organisation_id(publisher)
-            assert '[some_number]' in publisher, publisher
-
     def test_publishers(self):
         expected_results = [
             # (hub:source-agency value, published_by, published_via)
@@ -107,7 +100,14 @@ class TestOnsImporter(MockDrupalCase):
             published_via = strip_organisation_id(published_via)
             assert_equal(published_by, expected_published_by or u'')
             assert_equal(published_via, expected_published_via or u'')
-        
+
+    def test_dept_to_organisation(self):
+        for source_agency in get_ons_producers():
+            publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
+            assert publisher, source_agency
+            publisher = strip_organisation_id(publisher)
+            assert '[some_number]' in publisher, publisher
+
     def test_record_2_package(self):
         record = OrderedDict([
             (u'title', u'UK Official Holdings of International Reserves - December 2009'),
@@ -168,4 +168,3 @@ class TestOnsImporter(MockDrupalCase):
         for extra_key in ('published_by', 'published_via'):
             package_dict['extras'][extra_key] = strip_organisation_id(package_dict['extras'][extra_key])
         PackageDictUtil.check_dict(package_dict, expected_package_dict)
-

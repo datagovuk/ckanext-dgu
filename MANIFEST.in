@@ -1,14 +1,4 @@
 
-ckanext/dgu/theme_common/public/css/ *.css
-ckanext/dgu/theme_common/public/images/ *.png
-ckanext/dgu/theme_common/public/images/ *.gif
-ckanext/dgu/theme_common/public/scripts/ *.js
-ckanext/dgu/theme_common/templates/catalogue *.html
-
-ckanext/dgu/theme_embedded/templates *.html
-
-ckanext/dgu/theme_independent/templates *.html
-
 recursive-include ckanext *.html
 recursive-include ckanext *.js
 recursive-include ckanext *.png

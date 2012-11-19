@@ -41,7 +41,7 @@ setup(
         dgu_dataset_extent_map = ckanext.dgu.plugin:DguDatasetExtentMap
 
         [console_scripts]
-        ons_loader = ckanext.dgu.ons:load
+        ons_loader = ckanext.dgu.ons.command:load
         cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
         transfer_url = ckanext.dgu.bin.transfer_url_cmd:command
@@ -69,6 +69,7 @@ setup(
         create-test-data=ckanext.dgu.lib.cli:DguCreateTestDataCommand
         prod = ckanext.dgu.testtools.prodder:ProdCommand
         uklpreports = ckanext.dgu.lib.reports:UKLPReports
+        ons_publisher_test = ckanext.dgu.bin.ons_test_publishers:OnsPublisherTest
     """,
     test_suite = 'nose.collector',
 )
