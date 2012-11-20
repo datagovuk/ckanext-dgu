@@ -6,7 +6,6 @@ import glob
 from ckanext.importlib.importer import PackageImporter
 from ckanext.dgu import schema
 from ckanext.dgu.ons.producers import get_ons_producers
-from ckan import model
 from datautildate import date
 
 guid_prefix = 'http://www.statistics.gov.uk/hub/id/'
@@ -15,14 +14,14 @@ log = __import__("logging").getLogger(__name__)
 
 
 class OnsImporter(PackageImporter):
-    def __init__(self, filepaths, xmlrpc_settings=None):
+    def __init__(self, filepaths, ckanclient):
         if not isinstance(filepaths, (list, tuple)):
             filepaths = [filepaths]
         self._current_filename = os.path.basename(filepaths[0])
         self._item_count = 0
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
-        self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
+        self._ckanclient = ckanclient
         super(OnsImporter, self).__init__(filepath=filepaths)
 
     def import_into_package_records(self):
@@ -42,7 +41,12 @@ class OnsImporter(PackageImporter):
         # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
-        publisher = self._source_to_publisher(item['hub:source-agency'])
+        publisher_name = self._source_to_publisher(item['hub:source-agency'])
+        if publisher_name:
+            publishers = [publisher_name]
+        else:
+            publishers = []
+            log.warn('Did not find publisher for source-agency: %s', item['hub:source-agency'])
 
         # Resources
         guid = item['guid'] or None
@@ -121,7 +125,7 @@ class OnsImporter(PackageImporter):
             'notes': notes,
             'license_id': self._crown_license_id,
             'tags': [], # post-filled
-            'groups': [],
+            'groups': publishers,
             'resources': resources,
             'extras': extras,
             }
@@ -146,8 +150,7 @@ class OnsImporter(PackageImporter):
         geographic_coverage_db = geo_coverage_type.str_to_db(coverage_str)
         return geographic_coverage_db
 
-    @classmethod
-    def _source_to_publisher(cls, source):
+    def _source_to_publisher(self, source):
         '''
         For a given ONS Source, returns the equivalent DGU publisher.
         If it cannot find it, returns None.
@@ -156,11 +159,13 @@ class OnsImporter(PackageImporter):
         publisher_name = schema.canonise_organisation_name(source)
 
         # search for the name in live list of publishers
-        publisher = model.Group.search_by_name_or_title(publisher_name, group_type='publisher')
-        if not publisher:
-            log.warn('Could not find source in DGU publishers: "%s" (mapped to "%s")', source, publisher_name)
+        result = self._ckanclient.action('group_search', query=publisher_name)
+        if not result['count']:
+            log.warn('Could not find source in DGU publishers: "%s" (mapped from "%s")', publisher_name, source)
+        if result['count'] > 1:
+            log.warn('Multiple publishers matched "%s" (mapped from "%s"): %s', publisher_name, source, publishers)
 
-        return publisher
+        return result['results'][0]['name']
 
     @classmethod
     def _split_title(cls, xml_title):

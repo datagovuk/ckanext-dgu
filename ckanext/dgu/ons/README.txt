@@ -5,4 +5,4 @@ Occasionally ONS add new source publishers, and their names often do not corresp
 
   paster --plugin=ckanext-dgu ons_publisher_test --config=dgu2.ini
 
-If any are missing then add them or a mapping to their name (importer.py) and rerun until there are no errors.
+If any are missing then add them or a mapping to their name (organisation_name_mapping in schema.py) and rerun until there are no errors.

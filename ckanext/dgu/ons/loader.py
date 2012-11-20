@@ -6,7 +6,7 @@ from ckanext.importlib.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):
-        field_keys_to_find_pkg_by = ['title', 'published_by']
+        field_keys_to_find_pkg_by = ['title', 'groups']
         field_keys_to_expect_invariant = [
             'geographical_granularity',
             'geographic_coverage', 'temporal_granularity',
@@ -19,13 +19,7 @@ class OnsLoader(ResourceSeriesLoader):
             )
 
     def _get_search_options(self, field_keys, pkg_dict):
-        if pkg_dict['extras'].get('published_by'):
-            search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
-        else:
-            # if published_by is blank then search against published_via instead
-            field_keys.append('published_via')
-            field_keys.remove('published_by')
-            search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
+        search_options_list = super(OnsLoader, self)._get_search_options(field_keys, pkg_dict)
         return search_options_list
 
     def _get_hub_id(self, resource):

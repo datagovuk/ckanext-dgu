@@ -268,7 +268,7 @@ class GeoCoverageType(object):
 
 def canonise_organisation_name(org_name):
     '''Takes a variant on an organisation name and returns the canonical
-    name, which should match what is on DGU.'''
+    name, which should match what is in DGU.'''
     if not org_name:
         return org_name
     canonised_name = organisation_name_mapping.get(org_name.strip()) or org_name
