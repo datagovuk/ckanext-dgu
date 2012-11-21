@@ -14,15 +14,17 @@ if c.pkg.license and c.pkg.license.url:
 else:
   license_url = None
 
-licenses = [] # (title, isopen)
+licenses = [] # [(title, isopen), ... ]
 if c.pkg.license:
   licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
+elif c.pkg.license_id:
+  licenses.append((c.pkg.license_id, None))
 licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
 if licence_extra:
   licenses.append((licence_extra, True if 'OGL' in licence_extra else None))
 access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
 if access_constraints:
-  licenses.append((access_constraints, True if 'OGL' in licence_extra else None))
+  licenses.append(('Access limitations: ' + access_constraints, True if 'OGL' in licence_extra else None))
 ?>
         ${basket()}
 
@@ -36,7 +38,7 @@ if access_constraints:
             <a href="${license_url}" rel="dc:rights">${license}</a>
             <py:if test="isopen">
               <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
-                <img class="open-data" src="http://assets.okfn.org/images/ok_buttons/od_80x15_blue.png" alt="[Open Data]" />
+                <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
               </a> 
             </py:if>
             <py:if test="isopen == False">

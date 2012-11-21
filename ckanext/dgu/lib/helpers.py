@@ -312,6 +312,7 @@ def get_stars_aggregate(dataset_id):
         .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
         .filter(model.TaskStatus.key==u'openness_score')\
         .filter(model.Package.id == dataset_id)\
+        .filter(model.Resource.state==u'active')\
         .order_by(desc(model.TaskStatus.value))\
         .order_by(desc(model.TaskStatus.last_updated))\
 
