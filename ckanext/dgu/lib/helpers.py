@@ -300,41 +300,12 @@ def get_cache_url(resource_dict):
 
 def get_stars_aggregate(dataset_id):
     '''For a dataset, of all its resources, get details of the one with the highest QA score.
-    Loosely based upon get_stars in ckanext_qa.reports
-    returns a dict of { 'value' : 3, 'last_updated': '2012-06-15T13:20:11.699' ...} '''
-
-    from sqlalchemy.sql.expression import desc
-    import ckan.model as model
-    # Run a query to choose the most recent, highest qa score of all resources in this dataset.
-    query = model.Session.query(model.Package.name, model.Package.title, model.Resource.id, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'),)\
-        .join(model.ResourceGroup, model.Package.id == model.ResourceGroup.package_id)\
-        .join(model.Resource)\
-        .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
-        .filter(model.TaskStatus.key==u'openness_score')\
-        .filter(model.Package.id == dataset_id)\
-        .filter(model.Resource.state==u'active')\
-        .order_by(desc(model.TaskStatus.value))\
-        .order_by(desc(model.TaskStatus.last_updated))\
-
-    report = query.first()
-    if not report:
-        return report
-
-    # Get openness_reason for the score on that resource on that date
-    query = model.Session.query(model.Resource.id, model.TaskStatus.last_updated.label('last_updated'), model.TaskStatus.value.label('value'),)\
-        .join(model.TaskStatus, model.TaskStatus.entity_id == model.Resource.id)\
-        .filter(model.TaskStatus.key == u'openness_score_reason')\
-        .filter(model.Resource.id == report.id)\
-        .order_by(desc(model.TaskStatus.last_updated))
-    reason_result = query.first()
-    openness_score_reason = query.first().value if reason_result else 'Not yet available'
-    report.reason = openness_score_reason
-
-    # Convert datetime to expected ISO format to match ckanext_qa's usual output
-    report.last_updated = report.last_updated.isoformat()
-    report.value = int( report.value )
-
-    return report
+    returns a dict of details including:
+      {'value': 3, 'last_updated': '2012-06-15T13:20:11.699', ...}
+    '''
+    from ckanext.qa.reports import dataset_five_stars
+    stars_dict = dataset_five_stars(dataset_id)
+    return stars_dict
 
 def mini_stars_and_caption(num_stars):
     mini_stars = num_stars * '&#9733'
@@ -360,7 +331,7 @@ def render_stars(stars, reason, last_updated):
         classname = 'fail' if (i > stars) else ''
         tooltip += literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
-    datestamp = render_datestamp(last_updated)
+    datestamp = last_updated.strftime('%d/%m/%Y')
     tooltip += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
