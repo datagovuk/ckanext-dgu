@@ -141,7 +141,6 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
         <span class="divider">&nbsp;|&nbsp;</span> -->
       <?python
           path = c.environ.get('CKAN_CURRENT_URL')
-          print "PATH", path
       ?>
       <li><a class="${'active' if path.startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
