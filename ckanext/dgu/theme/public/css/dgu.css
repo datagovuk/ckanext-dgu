@@ -855,7 +855,6 @@ body.login #content {
 .facet-box > ul {
   list-style-type: none;
   margin: 0;
-  padding: 0 15px;
 }
 .facet-box .lower > ul li {
   margin: 8px 0;
@@ -927,8 +926,6 @@ ul.datasets .dataset-summary {
 .dataset-summary .dataset-header:hover .underlined {
   text-decoration: underline;
 }
-.dataset-summary .dataset-header       .suffix  { color: #fff; }
-.dataset-summary .dataset-header:hover .suffix  { color: #690; }
 .dataset-summary div.property {
   margin: 4px 0;
 }
