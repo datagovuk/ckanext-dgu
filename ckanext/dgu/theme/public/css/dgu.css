@@ -338,6 +338,9 @@ ul#nav {
 #subnav .divider {
   color: #bbb;
 }
+#subnav a.active {
+  font-weight: bold;
+}
 
 /* No-subnav mode */
 body.no-subnav #subnav {

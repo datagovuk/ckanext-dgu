@@ -139,24 +139,28 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
     <ul id="subnav">
       <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <?python
+          path = c.environ.get('CKAN_CURRENT_URL')
+          print "PATH", path
+      ?>
+      <li><a class="${'active' if path.startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="/data/map-based-search">Map Search</a></li>
+      <li><a class="${'active' if path.startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="/publisher">Publishers</a></li>
+      <li><a class="${'active' if path.startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
+      <li><a class="${'active' if path.startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="/data/openspending-browse">Spend Browser</a></li>
+      <li><a class="${'active' if path.startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
       <py:if test="config.get('dgu.openspending_reports_enabled')">
         <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="/data/openspending-report/index">Spend Reports</a></li>
+        <li><a class="${'active' if path.startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
       </py:if>
       <py:if test="h.ga_report_installed()">
         <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="/data/site-usage">Site Usage</a></li>
+        <li><a class="${'active' if path.startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
       </py:if>
     </ul>
 <?python
@@ -172,21 +176,21 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
       <py:if test="can_create_package">
         <span class="divider-section">Publisher tools:</span>
         <py:for each="group in c.groups">
-          <li><a href="/publisher/${group.name}">${group.display_name}</a></li>
+          <li><a class="${'active' if path.startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.display_name}</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
-        <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+        <li><a class="${'active' if path.startswith('/dataset/new') else ''}" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
         <py:if test="c.groups">
           <span class="divider">&nbsp;|&nbsp;</span>
-          <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+          <li><a class="${'active' if path.startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
         </py:if>
       </py:if>
       <py:if test="c.is_sysadmin">
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Sys Admin:</span>
-        <li><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
+        <li><a class="${'active' if path.startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
+        <li><a class="${'active' if path.startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
       </py:if>
     </ul>
   </div>
