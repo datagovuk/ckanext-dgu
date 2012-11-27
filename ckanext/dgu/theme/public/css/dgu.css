@@ -173,6 +173,9 @@ button span {
 ul.arrow-list {
   list-style-image: url('/images/arrow-list.png');
 }
+ul.green-bullet {
+  list-style-image: url('/images/bullet-green.png');
+}
 .widget-container ul.tags,
 .widget-container ul.groups {
  list-style-image: none;
