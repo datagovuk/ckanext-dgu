@@ -10,7 +10,6 @@
   <py:match path="primarysidebar">
     <div class="facet-box">
     <h3>About</h3>
-    <hr/>
     <p>This page includes reports and administration tools for use by data.gov.uk System Administrators.</p>
     </div>
   </py:match>
@@ -18,7 +17,6 @@
   <py:match path="content">
     <div class="boxed">
       <h3>Publishers</h3>
-      <hr/>
       <ul>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='new')}">Create a new publisher</a></li>
         <li>Edit a publisher by <a href="/publisher">navigating to it</a> and clicking 'Edit'</li>
@@ -29,7 +27,6 @@
     </div>
     <div class="boxed">
       <h3>Users</h3>
-      <hr/>
       <ul>
         <li>Appoint a Publisher Admin or Publisher Editor by <a href="/publisher">navigating to the publisher</a> and clicking 'Edit User Permissions'</li>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users')}">Users</a></li>
@@ -39,7 +36,6 @@
     </div>
     <div class="boxed">
       <h3>Datasets</h3>
-      <hr/>
       <ul>
         <li><a href="/dataset/new">Create a dataset</a></li>
         <li>Edit a dataset by <a href="/data/search">navigating to it</a> and clicking 'Edit'</li>
@@ -50,14 +46,12 @@
     </div>
     <div class="boxed">
       <h3>Harvesting</h3>
-      <hr/>
       <ul>
         <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest sources</a></li>
       </ul>
     </div>
     <div py:if="h.ga_report_installed()" class="boxed">
       <h3>Site Usage</h3>
-      <hr/>
       <ul>
         <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site-wide</a></li>
         <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='publishers')}">Publishers leaderboard</a></li>

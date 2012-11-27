@@ -34,7 +34,6 @@
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
          <h3><span class="underlined">${title}</span></h3>
        </a>
-       <hr/>
          <span class="property property-right">
 <?python
 if package.get('metadata_modified') == package.get('metadata_created'):
@@ -104,7 +103,6 @@ if '' in formats:
           <h4>
             ${title(code)}
           </h4>
-          <hr/>
           <ul class="facet-options">
 <?python
 items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)
@@ -171,7 +169,6 @@ def stars_label(stars):
       <h4>
         UK Location Map Search
       </h4>
-      <hr/>
       <ul class="facet-options">
         <py:if test="'ext_bbox' not in request.params">
           <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></li>
@@ -187,7 +184,6 @@ def stars_label(stars):
       <h4>
         UK Location Dataset Type
       </h4>
-      <hr/>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
         ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
         <ul class="facet-options green-bullet">

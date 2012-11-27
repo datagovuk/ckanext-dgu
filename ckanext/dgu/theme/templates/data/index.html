@@ -23,7 +23,6 @@
       <tr>
         <td class="boxed">
           <h2>Search Datasets</h2>
-          <hr/>
           <div class="small-search">
             <xi:include href="../package/search_form.html" />
           </div>
@@ -34,7 +33,6 @@
             <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
           </div>
           <h2>Tags</h2>
-          <hr/>
           <div id="tagcloud">
             <?python
               import random
@@ -64,7 +62,6 @@
             <a href="/publisher" class="btn btn-primary">View all publishers</a>
           </div>
           <h2>Publishers</h2>
-          <hr/>
           <ul class="facet-options">
             <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
               <a href="/publisher/${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
@@ -78,7 +75,6 @@
             <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct map based search</a>
           </div>
           <h2>UK Location</h2>
-          <hr/>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
              1000 location data records into data.gov.uk and tools to support their
@@ -100,7 +96,6 @@
             <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
           </div>
           <h2>Featured dataset</h2>
-          <hr/>
           <?python
             popular_dataset = h.single_popular_dataset(20)
           ?>
