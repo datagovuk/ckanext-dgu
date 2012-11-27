@@ -81,24 +81,18 @@ name = pkg_extras.get('contact-name')
 email = pkg_extras.get('contact-email')
 phone = pkg_extras.get('contact-phone')
 if not (name or email or phone) and publisher_groups:
-    for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
-         extras = publisher.extras
+         extras = publisher_groups[0].extras
          name = extras.get('contact-name')
          email = extras.get('contact-email')
          phone = extras.get('contact-phone')
-         if name or email or phone:
-             break    
 foi_name = pkg_extras.get('foi-name')
 foi_email = pkg_extras.get('foi-email')
 foi_phone = pkg_extras.get('foi-phone')
 if not (foi_phone or foi_email or foi_phone) and publisher_groups:
-    for publisher in ckanext.dgu.lib.publisher.go_up_tree(publisher_groups[0]):
-         extras = publisher.extras
+         extras = publisher_groups[0].extras
          foi_name = extras.get('foi-name')
          foi_email = extras.get('foi-email')
          foi_phone = extras.get('foi-phone')
-         if foi_name or foi_email or foi_phone:
-             break
 ?>
     <ul>
         ${name}
