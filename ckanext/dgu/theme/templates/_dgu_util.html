@@ -34,6 +34,7 @@
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
          <h3><span class="underlined">${title}</span></h3>
        </a>
+       <hr/>
          <span class="property property-right">
 <?python
 if package.get('metadata_modified') == package.get('metadata_created'):
@@ -103,6 +104,7 @@ if '' in formats:
           <h4>
             ${title(code)}
           </h4>
+          <hr/>
           <ul class="facet-options">
 <?python
 items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)
@@ -133,9 +135,9 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort
               <ul py:if="link_subpub" class="fact-options">
                   <li><a href="${search_with_subpub()}">Include sub-publishers</a></li>
               </ul>
-              <p py:if="not items and not link_subpub">${if_empty}</p>
+              <span py:if="not items and not link_subpub">${if_empty}</span>
           </py:if>
-          <p py:if="code!='publisher' and not items">${if_empty}</p>
+          <span py:if="code!='publisher' and not items">${if_empty}</span>
       </div>
   </py:def>
 
@@ -169,6 +171,7 @@ def stars_label(stars):
       <h4>
         UK Location Map Search
       </h4>
+      <hr/>
       <ul class="facet-options">
         <py:if test="'ext_bbox' not in request.params">
           <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></li>
@@ -184,13 +187,14 @@ def stars_label(stars):
       <h4>
         UK Location Dataset Type
       </h4>
+      <hr/>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
         ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
         <ul class="facet-options">
           ${facet_li('resource-type')}
         </ul>
       </ul>
-      <p py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</p>
+      <span py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</span>
     </div>
 
   </div>
