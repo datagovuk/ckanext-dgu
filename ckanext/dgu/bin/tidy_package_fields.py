@@ -55,7 +55,9 @@ def command(dry_run=False):
         rev = model.repo.new_revision()
         rev.message = 'Package fields migration'
 
-    for pkg in model.Session.query(model.Package):
+    for pkg in model.Session.query(model.Package)\
+            .filter_by(state='active')\
+            .order_by(model.Package.name):
         # field map
         for existing_fields, destination_field in field_map.items():
             value = pkg.extras.get(destination_field)
