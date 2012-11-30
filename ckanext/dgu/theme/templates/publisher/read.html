@@ -95,7 +95,8 @@ web_name = c.group_extras.get('website-name')
 name = c.group_extras.get('foi-name')
 email = c.group_extras.get('foi-email')
 phone = c.group_extras.get('foi-phone')
-# reuse web url
+if 'WDTK_URL' in c.group_extras:
+    web_url = c.group_extras['WDTK_URL']
 ?>
         ${name}
         ${contact_details(name, email, phone, web_url, web_name)}
@@ -184,8 +185,9 @@ if spb:
           <a style="float:right;" href="${advanced}">Advanced Search</a>
 
           <p><span py:if="c.q">You searched for "${c.q}". </span>${c.page.item_count} datasets found.</p>
-
       </div>
+
+
 
       <div py:if="c.page.items">
         <h3>Datasets:</h3>

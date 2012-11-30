@@ -70,6 +70,7 @@ setup(
         prod = ckanext.dgu.testtools.prodder:ProdCommand
         uklpreports = ckanext.dgu.lib.reports:UKLPReports
         ons_publisher_test = ckanext.dgu.bin.ons_test_publishers:OnsPublisherTest
+        wdtk_publisher_match = ckanext.dgu.commands.wdtk:PublisherMatch
     """,
     test_suite = 'nose.collector',
 )

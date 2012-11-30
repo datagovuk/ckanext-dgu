@@ -9,7 +9,7 @@
   <!--! Herein can be found generic helper methods for a whole bunch of common
         templating issues -->
 
-  <xi:include href="package/basket.html" />  
+  <xi:include href="package/basket.html" />
 
   <ul py:def="package_list_from_dict(packages)" class="datasets">
    <li py:for="package in packages">
@@ -228,7 +228,7 @@ def stars_label(stars):
           ${phone}
         </li>
         <li py:if="web_url">Web:
-          <a href="${web_url}">${web_name or web_url}</a>
+          <a href="${web_url}">${h.truncate(web_name or web_url, 32)}</a>
         </li>
         <p py:if="not (email or phone or web_url)" class="alert-contact-details">No details supplied</p>
   </py:def>
