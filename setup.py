@@ -71,6 +71,7 @@ setup(
         uklpreports = ckanext.dgu.lib.reports:UKLPReports
         ons_publisher_test = ckanext.dgu.bin.ons_test_publishers:OnsPublisherTest
         wdtk_publisher_match = ckanext.dgu.commands.wdtk:PublisherMatch
+        update_licenses = ckanext.dgu.commands.license_updates:UpdateLicense
     """,
     test_suite = 'nose.collector',
 )
