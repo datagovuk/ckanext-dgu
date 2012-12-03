@@ -55,7 +55,7 @@ class PublisherMatch(CkanCommand):
         log.info("Found %d publishers to process in DB" %
             len(self.publishers))
 
-        count = 0
+        count, processed = 0, 0
         with open(self.authorities_file, 'rU') as f:
             reader = csv.reader(f)
             for row in reader:
@@ -73,11 +73,12 @@ class PublisherMatch(CkanCommand):
                         publisher.extras['WDTK_URL'] = WDTK_REQUEST_URL % slug
                         modified = True
                     if modified:
+                        processed = processed + 1
                         model.Session.add(publisher)
                         model.Session.commit()
         end = time.time()
         took = str(datetime.timedelta(seconds=end-start))
-        log.info('Processed %d publishers in %s' % (count,took,))
+        log.info('Checked %d publishers and updated %d publishers in %s' % (count, processed, took,))
 
     def _get_authorities_csv(self):
         """
