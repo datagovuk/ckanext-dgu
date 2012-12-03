@@ -20,7 +20,7 @@ class PublisherCategories(object):
     publisher_cache = {} # {nid:publisher_details}
     drupal_client = None
     header = '"id","title","parent_publisher","category","spending_published_by"\n'
-    
+
     @classmethod
     def export(cls, csv_filepath):
         csv_filepath = os.path.abspath(csv_filepath)
@@ -30,7 +30,7 @@ class PublisherCategories(object):
 
         f = open(csv_filepath, 'w')
         f.write(cls.header)
-        
+
         number_of_publishers = 0
         expected_publishers = set(model.Session.query(model.Group).\
                                   filter_by(state='active').\
@@ -114,7 +114,7 @@ class PublisherCategories(object):
                 model.Session.commit()
             else:
                 log.info('Leaving SPB for %r as %s', title, spending_published_by)
-                
+
         model.Session.remove()
 
         log.info('Warnings: %r', warnings)
@@ -141,7 +141,7 @@ class PublisherCategories(object):
         title = pub['title'].strip()
 
         slug = munge_title_to_name(title)
-        g = model.Group.get(slug) 
+        g = model.Group.get(slug)
         if g:
             global_log.info('Publisher already exists in db: %s', slug)
         else:
@@ -175,12 +175,12 @@ class PublisherCategories(object):
             if model.Session.query(model.Member).\
                 filter(model.Member.group==parent).\
                 filter(model.Member.table_id==g.id).count() == 0:
-                m = model.Member(group=parent, table_id=g.id, table_name='group')                 
+                m = model.Member(group=parent, table_id=g.id, table_name='group')
                 model.Session.add(m)
                 global_log.info('%s is parent of %s', parent.name, g.name)
             else:
                 global_log.info('%s is already a parent of %s', parent.name, g.name)
-            model.Session.commit()        
+            model.Session.commit()
 
         return g
 
@@ -191,7 +191,7 @@ def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
     global_log.warn(msg, *params)
-    
+
 
 def usage():
     print """
@@ -200,11 +200,11 @@ Usage:
 
   python publisher_categories.py <CKAN config ini filepath> export pub_cats.csv
     - produces a list of publishers and their categories
-        
+
   python publisher_categories.py <CKAN config ini filepath> import pub_cats.csv
     - import an amended list of publishers and their categories
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 4:
         print 'Wrong number of arguments %i' % len(sys.argv)
