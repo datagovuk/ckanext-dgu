@@ -5,7 +5,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
 
-<?python 
+<?python
 import json
 import re
 from pylons import config
@@ -63,9 +63,9 @@ if has_errors:
   <?python o = clean(o) ?>
   <ul py:if="type(o) is dict and bool(o)">
     <li py:for="k,v in o.items()">
-      <?python 
-        k=clean(k) 
-        v=clean(v) 
+      <?python
+        k=clean(k)
+        v=clean(v)
       ?>
       <py:if test="type(v) is str">
         <b>${k}:</b> ${v}
@@ -121,7 +121,7 @@ if has_errors:
       <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
     </div>
   </div>
-  
+
   <div class="control-group">
     <label class="control-label" for="name">Unique identifier for this data record:</label>
     <div class="controls">
@@ -249,7 +249,7 @@ if has_errors:
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
-    
+
     <!-- The resource fieldset for an individual dataset -->
     <fieldset id="package_type-individual" class="well">
       <p>If your data comes in multiple formats, use a line for each.</p>
@@ -310,6 +310,24 @@ if has_errors:
             </td>
           </py:for>
           <td>
+            <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                  to pull the others from the resource keys, strip the resource_columns and then
+                  ignore resource_type, id and resource_group_id.
+
+                  Code is long hand to keep the list comp understandable -->
+            <?python
+                refs = set(res.keys()) - set(c.resource_columns)
+                resource_extra_fields = [r for r in res.keys() if r not in
+                                         ('id','resource_type','resource_group_id','revision_id')]
+            ?>
+            <py:for each="col in resource_extra_fields">
+              <input
+                     id="individual_resources__${num}__${col}"
+                     name="individual_resources__${num}__${col}"
+                     type="hidden"
+                     value="${res.get(col, '')}"/>
+            </py:for>
+
             <span class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
             <span class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
             <a py:if="len(data.get('individual_resources',[])) == num" href="javascript:;" id="individual_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a>
@@ -402,7 +420,7 @@ if has_errors:
     <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
     </div>
     </div>
-    
+
     <div class="control-group choose-other-licence">
       <label class="control-label" for="license_extra">Licence (other):</label>
       <div class="controls">
@@ -429,7 +447,7 @@ if has_errors:
           groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
           group_name = groups[0] if groups else ''
       group = c.publishers.get(group_name, {}) if group_id else data
-      
+
       contact_name = group.get('contact-name', '')
       contact_email = group.get('contact-email', '')
       contact_phone = group.get('contact-phone', '')
@@ -497,10 +515,10 @@ if has_errors:
         </div>
       </div>
     </fieldset>
-    
+
     <fieldset class="well">
       <h3>FOI Request Contact Details</h3>
-      
+
       <p><b>Name: </b> <span id="foi-name-label">${foi_name}</span></p>
       <p><b>Email: </b><span id="foi-email-label">${foi_email}</span></p>
       <p><b>Phone: </b><span id="foi-phone-label">${foi_phone}</span></p>
@@ -594,7 +612,7 @@ if has_errors:
     <div class="control-group">
       <label class="control-label" for="tag_string">Tags</label>
       <div class="controls">
-        <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete" 
+        <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
              data-tagcomplete-url="/api/2/util/tag/autocomplete"
              id="tag_string" name="tag_string" size="60" type="text"
              value="${data.get('tag_string') or ', '.join(free_tags)}" />
@@ -684,7 +702,7 @@ if has_errors:
     <div class="controls">
       <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
       <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
-      <input class="input-medium" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> - 
+      <input class="input-medium" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> -
       <input class="input-medium" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
       <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
       <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the second box can be left blank.</p>
@@ -699,32 +717,32 @@ if has_errors:
       <py:with vars="geographic_coverage=data.get('geographic_coverage', [])">
         <div class="checkbox">
           <label for="england">
-          <input id="england" name="geographic_coverage" size="40" type="checkbox" 
+          <input id="england" name="geographic_coverage" size="40" type="checkbox"
           value="england" py:attrs="{'checked': 'checked' if 'england' in geographic_coverage else None}"/> England</label>
         </div>
         <div class="checkbox">
           <label for="scotland">
-          <input id="scotland" name="geographic_coverage" size="40" type="checkbox" 
+          <input id="scotland" name="geographic_coverage" size="40" type="checkbox"
           value="scotland" py:attrs="{'checked': 'checked' if 'scotland' in geographic_coverage else None}"/> Scotland</label>
         </div>
         <div class="checkbox">
           <label for="wales">
-          <input id="wales" name="geographic_coverage" size="40" type="checkbox" 
+          <input id="wales" name="geographic_coverage" size="40" type="checkbox"
           value="wales" py:attrs="{'checked': 'checked' if 'wales' in geographic_coverage else None}"/> Wales</label>
         </div>
         <div class="checkbox">
           <label for="northern_ireland">
-          <input id="northern_ireland" name="geographic_coverage" size="40" type="checkbox" 
+          <input id="northern_ireland" name="geographic_coverage" size="40" type="checkbox"
           value="northern_ireland" py:attrs="{'checked': 'checked' if 'northern_ireland' in geographic_coverage else None}"/> Northern Ireland</label>
         </div>
         <div class="checkbox">
           <label for="overseas">
-          <input id="overseas" name="geographic_coverage" size="40" type="checkbox" 
+          <input id="overseas" name="geographic_coverage" size="40" type="checkbox"
           value="overseas" py:attrs="{'checked': 'checked' if 'overseas' in geographic_coverage else None}"/> Overseas</label>
         </div>
         <div class="checkbox">
           <label for="global">
-          <input id="global" name="geographic_coverage" size="40" type="checkbox" 
+          <input id="global" name="geographic_coverage" size="40" type="checkbox"
           value="global" py:attrs="{'checked': 'checked' if 'global' in geographic_coverage else None}"/> Global</label>
         </div>
       </py:with>
@@ -754,7 +772,7 @@ if has_errors:
       <p class="field_error" py:if="errors.get('taxonomy_url', '')">${errors.get('taxonomy_url', '')}</p>
     </div>
   </div>
-  
+
   <div class="control-group" py:if="data.get('national_statistic', '')">
     <label class="control-label" for="national_statistic">National Statistic</label>
     <div class="controls">
@@ -824,7 +842,7 @@ if has_errors:
 
   <div class="control-group" py:if="data.get('geographic_granularity', '')">
     <label class="control-label" for="geographic_granularity">Geographic granularity</label>
-    
+
     <div class="controls">
       <div class="form-inline">
         <select id="geographic_granularity" name="geographic_granularity">
@@ -835,7 +853,7 @@ if has_errors:
           </py:for>
         </select>
         <label class="inline" for="geographic_granularity-other">Other:</label>
-        <input class="input-medium" id="geographic_granularity-other" 
+        <input class="input-medium" id="geographic_granularity-other"
         name="geographic_granularity-other" type="text" value="${data.get('geographic_granularity-other', '')}"/>
       </div>
       <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
