@@ -14,8 +14,8 @@ jQuery(function ($) {
     /* Star ratings have gorgeous HTML tooltips */
     $('.star-rating').each(function(i,el) {
       el = $(el);
-      el.tooltip({ 
-        title: el.find('.tooltip').html(), 
+      el.tooltip({
+        title: el.find('.tooltip').html(),
         placement: 'right',
         template: '<div class="tooltip star-rating-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
         delay: 0,
@@ -36,7 +36,7 @@ jQuery(function ($) {
       var id = target.attr('id');
       target.remove();
       $('#'+id+'-items').toggle();
-    });  
+    });
 
     $('input[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
@@ -83,8 +83,8 @@ CKAN.Dgu = function($, my) {
       $.each(inputs, function(i, input) {
         input = $(input);
         var targetInput = input.attr('data-input');
-        if (targetInput)  { 
-          input.val($(targetInput).val()); 
+        if (targetInput)  {
+          input.val($(targetInput).val());
         }
       });
 
@@ -124,7 +124,7 @@ CKAN.Dgu = function($, my) {
       else if (mode=='timeseries') alt='individual';
       else throw 'Cannot toggle to mode='+mode;
       var from = $('#'+ alt+'_resources-table');
-      var to =   $('#'+mode+'_resources-table'); 
+      var to =   $('#'+mode+'_resources-table');
       // Copy the data
       CKAN.Dgu.copyResourceTable(from,to);
       // Wipe the old table
