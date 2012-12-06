@@ -303,13 +303,24 @@ class SearchPlugin(SingletonPlugin):
         if 'q' in search_params:
             search_params['q'] = solr_escape(search_params['q'])
 
-        # Add popularity into default ranking - this kicks when there is
-        # no keyword, so no rank. Leave name there, in case no popularity
-        # scores have been loaded.
-        # NB The UI has been adjusted to match this - see
+        # If the user does not specify a "sort by" method manually,
+        # then it defaults here (and the UI has to have the same logic)
+        # NB The UI has to be kept in step with this logic:
         #    ckanext/dgu/theme/templates/package/search.html
         order_by = search_params.get('sort')
-        if order_by == 'rank' or order_by is None:
+        bbox = search_params.get('extras', {}).get('ext_bbox')
+        search_params_apart_from_bbox = search_params['q'] + search_params['fq']
+        sort_by_location_enabled = bool(bbox and not search_params_apart_from_bbox)
+
+        if order_by in (None, 'spatial desc') and sort_by_location_enabled:
+            search_params['sort'] = 'spatial desc'
+            # This sort parameter is picked up by ckanext-spatial
+        elif order_by in (None, 'rank'):
+            # Score = SOLR rank = relevancy = how well q keyword matches the
+            # SOLR record's text content.
+            # Add popularity into default ranking - this kicks when there is
+            # no keyword, so no rank. Leave name there, in case no popularity
+            # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
         return search_params

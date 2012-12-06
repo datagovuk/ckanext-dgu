@@ -98,7 +98,20 @@ if '' in formats:
         </div>
   </div>
 
-  <py:def function="dgu_facet_sidebar(code, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
+
+  <py:def function="dgu_facet_li(items, code, limit=5, label=lambda n: n, count_label=lambda c: ' (%d)'%c)">
+    <?python
+      import ckanext.dgu.lib.helpers as dgu_helpers
+    ?>
+              <li py:for="facet_item in items"
+                  py:if="not (code, facet_item['name']) in c.fields">
+                    <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
+                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
+                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+              </li>
+  </py:def>
+
+  <py:def function="dgu_facet_sidebar(code, params_to_keep, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
       <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">
           <h4>
             ${title(code)}
@@ -107,22 +120,12 @@ if '' in formats:
 <?python
 items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)
 ?>
-              <li py:for="facet_item in items[:limit]"
-                  py:if="not (code, facet_item['name']) in c.fields">
-                    <a href="${c.drill_down_url(**{code: facet_item['name']})}">
-                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
-                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
-              </li>
+              ${dgu_facet_li(items[:limit], code, limit=limit, label=label, count_label=count_label)}
           </ul>
           <py:if test="more_button and len(items) > limit">
             <a id="${more_button}" class="more-button js-more-button" href="#"><img src="/images/arrow-down.png"/></a>
             <ul class="facet-options" id="${more_button}-items" style="display: None">
-                <li py:for="facet_item in items[limit:]"
-                  py:if="not (code, facet_item['name']) in c.fields">
-                    <a href="${c.drill_down_url(**{code: facet_item['name']})}">
-                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
-                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
-                </li>
+              ${dgu_facet_li(items[limit:], code, limit=limit, label=label, count_label=count_label)}
             </ul>
           </py:if>
           <py:if test="code=='publisher'">
@@ -142,13 +145,17 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort
 
   <div py:def="facet_filters()" class="datasets">
 
-    ${dgu_facet_sidebar('license_id-is-ogl', title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
+    <?python
+      params_to_keep = [(k, v) for k,v in request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
+    ?>
 
-    ${dgu_facet_sidebar('tags', if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
+    ${dgu_facet_sidebar('license_id-is-ogl', params_to_keep, title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
-    ${dgu_facet_sidebar('res_format', title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
+    ${dgu_facet_sidebar('tags', params_to_keep, if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
 
-    ${dgu_facet_sidebar('publisher', label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
+    ${dgu_facet_sidebar('res_format', params_to_keep, title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
+
+    ${dgu_facet_sidebar('publisher', params_to_keep, label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
 
 <?python
 import ckanext.dgu.lib.helpers as dgu_helpers
@@ -163,19 +170,23 @@ def stars_label(stars):
         stars = dgu_helpers.mini_stars_and_caption(stars)
     return stars
 ?>
-    ${dgu_facet_sidebar('openness_score', label=stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
+    ${dgu_facet_sidebar('openness_score', params_to_keep, label=stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
 
     <div class="facet-box" id="map-based-search">
       <h4>
         UK Location Map Search
       </h4>
       <ul class="facet-options">
-        <py:if test="'ext_bbox' not in request.params">
-          <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></li>
-        </py:if>
-        <py:if test="'ext_bbox' in request.params">
-          <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">New Map Based Search</a></li>
-        </py:if>
+          <li>
+            <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {}, alternative_url='/data/map-based-search')}">
+              <py:if test="'ext_bbox' not in request.params">
+                Conduct Map Based Search
+              </py:if>
+              <py:if test="'ext_bbox' in request.params">
+                New Map Based Search
+              </py:if>
+            </a>
+          </li>
       </ul>
     </div>
 
@@ -185,9 +196,9 @@ def stars_label(stars):
         UK Location Dataset Type
       </h4>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
-        ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
+        ${dgu_facet_li(h.unselected_facet_items('UKLP'), 'UKLP', label=lambda n: 'UK Location')}
         <ul class="facet-options green-bullet">
-          ${facet_li('resource-type')}
+          ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')}
         </ul>
       </ul>
       <span py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</span>
