@@ -17,7 +17,7 @@ import ckan.logic.schema as default_schema
 import ckan.logic.validators as val
 
 from ckan.plugins import implements, IDatasetForm, SingletonPlugin
-
+from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.schema import GeoCoverageType
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_resources, \
@@ -300,13 +300,23 @@ class DatasetForm(SingletonPlugin):
 
     def get_publishers(self):
         from ckan.model.group import Group
+
         if Authorizer().is_sysadmin(c.user):
             groups = Group.all(group_type='publisher')
         elif c.userobj:
             # need to get c.userobj again as it may be detached from the
             # session since the last time we called get_groups (it caches)
             c.userobj = model.User.by_name(c.user)
-            groups = c.userobj.get_groups('publisher')
+
+            # For each group where the user is an admin, we should also include
+            # all of the child publishers.
+            admin_groups = set()
+            for g in c.userobj.get_groups('publisher', 'admin'):
+                for pub in publib.go_down_tree(g):
+                    admin_groups.add(pub)
+
+            editor_groups = c.userobj.get_groups('publisher', 'editor')
+            groups = list(admin_groups) + editor_groups
         else: # anonymous user shouldn't have access to this page anyway.
             groups = []
 
