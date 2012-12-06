@@ -6,6 +6,8 @@ import datetime
 
 from webhelpers.html import literal
 from webhelpers.text import truncate
+from pylons import tmpl_context as c
+
 from ckan.lib.helpers import icon
 import ckan.lib.helpers
 

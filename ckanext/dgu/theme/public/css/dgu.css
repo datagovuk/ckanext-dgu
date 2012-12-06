@@ -716,6 +716,7 @@ h2.front-page-no-body {
   color: #fff;
 }
 .sort-by-controls label {
+  padding-left: 25px;
   color: #fff;
 }
 .sort-by-controls > * {
