@@ -3094,7 +3094,7 @@ this.recline.Backend = this.recline.Backend || {};
     __type__: 'dataproxy',
     readonly: true,
     defaults: {
-      dataproxy_url: 'http://localhost:5000/data/preview/' //'http://jsonpdataproxy.appspot.com'
+      dataproxy_url: '/data/preview/' //'http://jsonpdataproxy.appspot.com'
     },
     sync: function(method, model, options) {
       var self = this;
