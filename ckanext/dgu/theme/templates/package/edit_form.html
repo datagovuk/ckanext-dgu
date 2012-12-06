@@ -318,7 +318,8 @@ if has_errors:
             <?python
                 refs = set(res.keys()) - set(c.resource_columns)
                 resource_extra_fields = [r for r in res.keys() if r not in
-                                         ('id','resource_type','resource_group_id','revision_id')]
+                                         ('id','resource_type','resource_group_id',
+                                          'revision_id', 'url','description','format')]
             ?>
             <py:for each="col in resource_extra_fields">
               <input
