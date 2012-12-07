@@ -236,6 +236,25 @@ if has_errors:
             </td>
           </py:for>
           <td>
+            <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                  to pull the others from the resource keys, strip the resource_columns and then
+                  ignore resource_type, id and resource_group_id.
+
+                  Code is long hand to keep the list comp understandable -->
+            <?python
+                refs = set(res.keys()) - set(c.resource_columns)
+                timeseries_extra_fields = [r for r in res.keys() if r not in
+                                         ('id','resource_type','resource_group_id',
+                                          'revision_id', 'url','description','format')]
+            ?>
+            <py:for each="col in timeseries_extra_fields">
+              <input
+                     id="timeseries_resources__${num}__${col}"
+                     name="timeseries_resources__${num}__${col}"
+                     type="hidden"
+                     value="${res.get(col, '')}"/>
+            </py:for>
+
             <span class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
             <span class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
             <a py:if="len(data.get('timeseries_resources',[])) == num" href="javascript:;" id="timeseries_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
@@ -671,6 +690,25 @@ if has_errors:
             </td>
           </py:for>
           <td>
+            <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                  to pull the others from the resource keys, strip the resource_columns and then
+                  ignore resource_type, id and resource_group_id.
+
+                  Code is long hand to keep the list comp understandable -->
+            <?python
+                refs = set(res.keys()) - set(c.resource_columns)
+                additional_extra_fields = [r for r in res.keys() if r not in
+                                         ('id','resource_type','resource_group_id',
+                                          'revision_id', 'url','description','format')]
+            ?>
+            <py:for each="col in additional_extra_fields">
+              <input
+                     id="additional_resources__${num}__${col}"
+                     name="additional_resources__${num}__${col}"
+                     type="hidden"
+                     value="${res.get(col, '')}"/>
+            </py:for>
+
             <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/>
             <a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a>
           </td>
