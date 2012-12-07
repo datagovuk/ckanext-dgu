@@ -438,6 +438,9 @@ ul.widget-list {
   list-style-type: none;
   margin: 0;
 }
+#sidebar .btn {
+  margin-top: 8px;
+}
 
 /* Footer */
 /* ------ */
@@ -546,7 +549,7 @@ div.first-box-in-ribbon {
 }
 .front-page h2 {
   padding-bottom: 8px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #aaa;
   padding-left: 17px;
   padding-right: 17px;
   margin-left: -17px;
@@ -862,7 +865,7 @@ body.login #content {
   color: #656565;
   padding-bottom: 5px;
   margin-bottom: 8px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #aaa;
   padding-left: 25px;
   padding-right: 25px;
   margin-left: -25px;
@@ -871,7 +874,7 @@ body.login #content {
 .facet-box h3 {
   padding-bottom: 5px;
   margin-bottom: 8px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #aaa;
   padding-left: 25px;
   padding-right: 25px;
   margin-left: -25px;
@@ -1603,5 +1606,4 @@ table.error-details {
 }
 .popular_datasets p {
     margin-top: 8px;
-    text-align: center;
 }
