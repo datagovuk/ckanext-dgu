@@ -163,7 +163,10 @@ class PublisherMatch(CkanCommand):
             r = requests.get(WDTK_AUTHORITIES_URL)
             if r.status_code == 200:
                 with open(f, 'w') as w:
-                    w.write(r.content.encode('utf-8','ignore'))
+                    try:
+                        w.write(r.content.encode('utf-8','ignore'))
+                    except:
+                        w.write(r.content)
             else:
                 raise RuntimeError("Cannot find the authorities file at %s" %
                     (WDTK_AUTHORITIES_URL,))
