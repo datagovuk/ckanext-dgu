@@ -13,6 +13,10 @@ log = logging.getLogger('ckanext')
 WDTK_REQUEST_URL = 'http://www.whatdotheyknow.com/body/%s'
 WDTK_AUTHORITIES_URL = 'http://www.whatdotheyknow.com/body/all-authorities.csv'
 
+direct_matches = {
+'wales_office_swyddfa_cymru': 'wales_office',
+'ons': 'office_for_national_statistics'
+}
 
 class PublisherMatch(CkanCommand):
     """
@@ -26,6 +30,7 @@ class PublisherMatch(CkanCommand):
     run with
 
         paster wdtk_publisher_match <WORKING_DIR> -c ../ckan/development.ini
+
     """
     summary = __doc__.strip().split('\n')[0]
     usage = '\n' + __doc__
@@ -47,6 +52,7 @@ class PublisherMatch(CkanCommand):
         start = time.time()
         self.authorities_file = self._get_authorities_csv()
         self.publishers = {}
+
         pubs = model.Session.query(model.Group)\
             .filter(model.Group.type == 'publisher')\
             .filter(model.Group.state == 'active')
@@ -55,13 +61,26 @@ class PublisherMatch(CkanCommand):
         log.info("Found %d publishers to process in DB" %
             len(self.publishers))
 
+        matched = set()
+        schools = 0
         count, processed = 0, 0
         with open(self.authorities_file, 'rU') as f:
             reader = csv.reader(f)
             for row in reader:
                 slug = row[2]
+                if '_school' in slug or '_college' in slug:
+                    schools = schools + 1
+                    continue
+
                 homepage = row[4]
                 publisher = self.publishers.get(slug, None)
+
+                if not publisher:
+                    publisher = self.nhs_guess(row)
+
+                if not publisher and slug in direct_matches:
+                    publisher = self.publishers[direct_matches[slug]]
+
                 if publisher:
                     # Save as a publisher extra
                     count = count + 1
@@ -76,9 +95,56 @@ class PublisherMatch(CkanCommand):
                         processed = processed + 1
                         model.Session.add(publisher)
                         model.Session.commit()
+                    matched.add(publisher.name.replace('-','_'))
         end = time.time()
         took = str(datetime.timedelta(seconds=end-start))
-        log.info('Checked %d publishers and updated %d publishers in %s' % (count, processed, took,))
+        log.info('Found %d publishers in CSV, updated %d publishers in %s' % (count, processed,took,))
+        # diff = set(self.publishers.keys()) - matched
+        # print 'Publishers we did not match'
+        # print '==========================='
+        # for p in diff:
+        #    print p
+
+
+    def council_guess(self, row):
+        slug = row[2]
+        if not 'council' in slug:
+            return None
+
+
+    def nhs_guess(self, row):
+        slug = row[2]
+        if not slug.startswith('nhs_'):
+            return None
+
+        # Try a semi-consistent PCT lookup
+        partial = "%s_primary_care_trust" % slug[4:]
+        publisher = self.publishers.get(partial)
+        if publisher:
+            return publisher
+
+        partial = "%s_pct" % slug[4:]
+        publisher = self.publishers.get(partial)
+        if publisher:
+            return publisher
+
+
+        name = row[0]
+        if '(PCT)' in name:
+            name = name[:name.index(' (PCT)')]
+            slug = name.lower().replace(' ', '_')
+            publisher = self.publishers.get(slug)
+            if publisher:
+                return publisher
+
+            slug = slug.replace('primary_care_trust', 'pct')
+            publisher = self.publishers.get(slug)
+            if publisher:
+                return publisher
+
+        return None
+
+
 
     def _get_authorities_csv(self):
         """
@@ -97,7 +163,7 @@ class PublisherMatch(CkanCommand):
             r = requests.get(WDTK_AUTHORITIES_URL)
             if r.status_code == 200:
                 with open(f, 'w') as w:
-                    w.write(r.content)
+                    w.write(r.content.encode('utf-8','ignore'))
             else:
                 raise RuntimeError("Cannot find the authorities file at %s" %
                     (WDTK_AUTHORITIES_URL,))
