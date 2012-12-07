@@ -181,7 +181,7 @@ def command(config_file):
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
             os.makedirs(dump_dir)
-        query = model.Session.query(model.Package)
+        query = model.Session.query(model.Package).filter(model.Package.state=='active')
         dump_file_base = start_time.strftime(dump_filebase)
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
         for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),

@@ -39,54 +39,72 @@ class TestParentAuth:
     def teardown_class(cls):
         model.repo.rebuild_db()
 
-    def _check_permission(self, username, package_id):
+    def _check_permission(self, perm, username, object_id):
         context = {'model': model,
                    'session':model.Session,
                    'user': username}
         try:
-            check_access('package_update', context, {'id': package_id})
+            check_access(perm, context, {'id': object_id})
             return True
         except NotAuthorized, e:
             return False
 
+    def _check_package_edit_permission(self, username, package_id):
+        return self._check_permission( 'package_update', username, package_id )
+
+    def _check_group_edit_permission(self, username, group_id):
+        return self._check_permission( 'group_update', username, group_id )
+
+    def test_invalid_group_auths(self):
+        assert_equal(self._check_group_edit_permission('', 'dept-health'), False)
+        assert_equal(self._check_group_edit_permission('nhseditor', 'dept-health'), False)
+        assert_equal(self._check_group_edit_permission('nhseditor', 'national-health-service'), False)
+        assert_equal(self._check_group_edit_permission('nhseditor', 'barnsley-primary-care-trust'), False)
+        assert_equal(self._check_group_edit_permission('nhsadmin', 'dept-health'), False)
+
+    def test_valid_group_auths(self):
+        assert_equal(self._check_group_edit_permission('nhsadmin', 'national-health-service'), True)
+        assert_equal(self._check_group_edit_permission('nhsadmin', 'barnsley-primary-care-trust'), True)
+
+
     def test_no_user(self):
         # Automatic FAIL
-        assert_equal(self._check_permission('', 'nhs-spend-over-25k-barnsleypct'), False)
+        assert_equal(self._check_package_edit_permission('', 'nhs-spend-over-25k-barnsleypct'), False)
 
     def test_sysadmin(self):
         # Automatic WIN
-        assert_equal(self._check_permission('sysadmin', 'nhs-spend-over-25k-barnsleypct'), True)
+        assert_equal(self._check_package_edit_permission('sysadmin', 'nhs-spend-over-25k-barnsleypct'), True)
 
     def test_admin_of_parent(self):
         # admin of dept-health should be able to edit
         # barnsley-primary-care-trust dataset
-        assert_equal(self._check_permission('dh_admin', 'nhs-spend-over-25k-barnsleypct'), True)
+        assert_equal(self._check_package_edit_permission('dh_admin', 'nhs-spend-over-25k-barnsleypct'), True)
 
     def test_admin_of_parent_one_level_up(self):
         # admin of dept-health should be able to edit
         # barnsley-primary-care-trust dataset
-        assert_equal(self._check_permission('nhsadmin', 'nhs-spend-over-25k-barnsleypct'), True)
+        assert_equal(self._check_package_edit_permission('nhsadmin', 'nhs-spend-over-25k-barnsleypct'), True)
 
     def test_editor_cannot_edit_parent(self):
         # admin/editor of barnsley-primary-care-trust should not be able to edit
         # a dataset from NHS (which is a parent)
-        assert_equal(self._check_permission('barnsley_admin', 'directgov-cota'), False)
-        assert_equal(self._check_permission('barnsley_editor', 'directgov-cota'), False)
+        assert_equal(self._check_package_edit_permission('barnsley_admin', 'directgov-cota'), False)
+        assert_equal(self._check_package_edit_permission('barnsley_editor', 'directgov-cota'), False)
 
     def test_not_admin_of_parent(self):
         # admin of cabinet-office should not be able to edit
         # barnsley-primary-care-trust ds
-        assert_equal(self._check_permission('co_admin', 'nhs-spend-over-25k-barnsleypct'), False)
+        assert_equal(self._check_package_edit_permission('co_admin', 'nhs-spend-over-25k-barnsleypct'), False)
 
     def test_editor_of_group(self):
         # editor of barnsley-primary-care-trust should be able to edit
         # barnsley-primary-care-trust ds
-        assert_equal(self._check_permission('barnsley_editor', 'nhs-spend-over-25k-barnsleypct'), True)
+        assert_equal(self._check_package_edit_permission('barnsley_editor', 'nhs-spend-over-25k-barnsleypct'), True)
 
     def test_not_editor_of_group(self):
         # editor of cabinet-office should be able to edit
         # barnsley-primary-care-trust ds
-        assert_equal(self._check_permission('co_editor', 'nhs-spend-over-25k-barnsleypct'), False)
+        assert_equal(self._check_package_edit_permission('co_editor', 'nhs-spend-over-25k-barnsleypct'), False)
 
 
 class TestGoUpTree:

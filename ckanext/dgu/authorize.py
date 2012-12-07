@@ -27,11 +27,17 @@ def dgu_group_update(context, data_dict):
     if not user_obj:
         return { 'success' : False, 'msg': _('Could not find user %s') % str(user) }
 
-    # Only admins of this group should be able to update this group
-    if not _groups_intersect( user_obj.get_groups( 'publisher', 'admin' ), [group] ):
-        return { 'success': False, 'msg': _('User %s not authorized to edit this group') % str(user) }
+    parent_groups = list(publib.go_up_tree(group))
 
-    return { 'success': True }
+    # Check if user is an admin of a parent group, and if so allow them to edit.
+    if _groups_intersect( user_obj.get_groups('publisher', 'admin'), parent_groups ):
+        return {'success': True}
+
+    # Check admin of just this group
+    if _groups_intersect( user_obj.get_groups('publisher', 'admin'), [group] ):
+        return {'success': True}
+
+    return { 'success': False, 'msg': _('User %s not authorized to edit this group') % str(user) }
 
 
 def dgu_group_create(context, data_dict=None):
