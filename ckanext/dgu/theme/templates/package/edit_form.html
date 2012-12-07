@@ -245,7 +245,7 @@ if has_errors:
                 refs = set(res.keys()) - set(c.resource_columns)
                 timeseries_extra_fields = [r for r in res.keys() if r not in
                                          ('id','resource_type','resource_group_id',
-                                          'revision_id', 'url','description','format')]
+                                          'revision_id', 'url','description','format','date')]
             ?>
             <py:for each="col in timeseries_extra_fields">
               <input
