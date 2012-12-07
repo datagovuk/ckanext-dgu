@@ -1310,6 +1310,12 @@ div.publisher-mini-tree {
   -ms-overflow-x: hidden; /*IE 8 only*/
   max-height: 250px;
 }
+.popular_datasets p {
+  margin-top: 8px;
+}
+.popular_datasets ul {
+  list-style-image: url('/images/bullet-green.png');
+}
 
 
 /* Harvest pages */
@@ -1604,7 +1610,4 @@ table.error-details {
 }
 .text-warning {
     color: #C09853;
-}
-.popular_datasets p {
-    margin-top: 8px;
 }

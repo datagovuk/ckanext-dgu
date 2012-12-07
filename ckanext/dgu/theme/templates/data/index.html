@@ -62,7 +62,7 @@
             <a href="/publisher" class="btn btn-primary">View all publishers</a>
           </div>
           <h2>Publishers</h2>
-          <ul class="facet-options">
+          <ul class="facet-options green-bullet"">
             <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
               <a href="/publisher/${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
             </li>
@@ -120,7 +120,7 @@
         <td class="gutter"></td>
         <td class="boxed" rowspan="1">
           <h2>Cross-Government Data Apps</h2>
-          <ul>
+          <ul class="green-bullet">
 
             <li><a href="/whoslobbying" class="js-tooltip" title="Find out which organisations and industries have met with Ministers from across Government departments.">Who's Lobbying</a> - who ministers are meeting</li>
 
