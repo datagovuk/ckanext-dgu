@@ -49,7 +49,7 @@ $(function() {
     $('.preview-remove').hide();
     $.each(basket, function(i,item) {
       // The API provides only simple IDs right now. Later it should give a detailed object.
-      var li = $('<li/>').html('<a href="/dataset/'+item.name+'">'+item.name+'</a>').attr('id',item.id);
+      var li = $('<li/>').html(item.name).attr('id',item.id);
       var xButton = $('<button/>').addClass('btn').addClass('btn-small').addClass('x-button').html('x');
       xButton.prependTo(li);
       li.appendTo(basketUi);
