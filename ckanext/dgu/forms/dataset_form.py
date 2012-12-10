@@ -151,9 +151,8 @@ class DatasetForm(SingletonPlugin):
                 return default_schema.default_create_package_schema()
             else:
                 return default_schema.default_update_package_schema()
-        
-        schema = self.form_to_db_schema()
 
+        schema = self.form_to_db_schema()
         # Sysadmins can save UKLP datasets with looser validation
         # constraints.  This is because UKLP datasets are created using
         # a custom schema passed in from the harvester.  However, when it
@@ -179,7 +178,7 @@ class DatasetForm(SingletonPlugin):
                 'name': [ignore_missing, validate_group_id_or_name_exists_if_not_blank, unicode],
                 'id': [ignore_missing, unicode],
             },
-            
+
         }
 
     def db_to_form_schema_options(self, options={}):

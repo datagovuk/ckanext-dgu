@@ -4,7 +4,7 @@ import datetime
 
 import ckan.lib.cli
 from ckan.lib.create_test_data import CreateTestData
-from ckan import model        
+from ckan import model
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +25,21 @@ class DguCreateTestData(CreateTestData):
          'password': 'pass'},
         {'name': 'user',
          'fullname': 'John Doe - a public user',
+         'password': 'pass'},
+        {'name': 'dh_admin',
+         'fullname': 'Dept Health Admin',
+         'password': 'pass'},
+        {'name': 'co_admin',
+         'fullname': 'Cabinet Office Admin',
+         'password': 'pass'},
+        {'name': 'co_editor',
+         'fullname': 'Cabinet Office Editor',
+         'password': 'pass'},
+        {'name': 'barnsley_editor',
+         'fullname': 'Barnsley PCT Editor',
+         'password': 'pass'},
+        {'name': 'barnsley_admin',
+         'fullname': 'Barnsley PCT Admin',
          'password': 'pass'},
         ]
     _publishers = [
@@ -66,6 +81,11 @@ class DguCreateTestData(CreateTestData):
         ('nhsadmin', 'admin', 'national-health-service'),
         ('nhseditor', 'editor', 'national-health-service'),
         ('user_d101', 'editor', 'national-health-service'),
+        ('dh_admin', 'admin', 'dept-health'),
+        ('co_admin', 'admin', 'cabinet-office'),
+        ('co_editor', 'editor', 'cabinet-office'),
+        ('barnsley_admin', 'editor', 'barnsley-primary-care-trust'),
+        ('barnsley_editor', 'editor', 'barnsley-primary-care-trust'),
         ]
     _packages = [
         # Package edited on new form (June 2012)
@@ -96,7 +116,7 @@ class DguCreateTestData(CreateTestData):
              {'url': "http://innovate-apps.direct.gov.uk/cota/",
               'format': 'HTML',
               'description': "Directgov Article Ratings",
-              'cache_last_updated': '2012-06-12T17:33:02.884649',
+              'cache_last_updated': datetime.datetime(year=2012,month=6,day=12,hour=17,minute=33),
               'cache_url': 'http://data.gov.uk/data/resource_cache/89471cf8-013f-4695-ad56-12c028e167b7/cota.html',
               },
              ]
@@ -352,7 +372,7 @@ Alternative title: GDP and Labour Market coherence""",
              'responsible-party': "LPS (pointOfContact)",
              'INSPIRE': "True",
              'spatial-data-service-type': "view",
-             'metadata-language': "eng"             
+             'metadata-language': "eng"
             },
          'resources': [
              {'hash': "",
@@ -379,7 +399,7 @@ Alternative title: GDP and Labour Market coherence""",
               },
              ]
          },
-        
+
         ]
     _task_statuses = [
         {'package_name': 'directgov-cota',
@@ -428,7 +448,7 @@ Alternative title: GDP and Labour Market coherence""",
          'last_updated': datetime.datetime(2012, 07, 23, 01, 10, 49, 842923),
          }
         ]
-             
+
 
     @classmethod
     def create_publishers(cls, publishers):
@@ -457,11 +477,11 @@ Alternative title: GDP and Labour Market coherence""",
                        filter(model.Member.group==parent and \
                               model.Member.table_id==g.id).count() == 0:
                     log.debug('Made "%s" parent of "%s"', parent_name, publisher['name'])
-                    m = model.Member(group=parent, table_id=g.id, table_name='group')                 
+                    m = model.Member(group=parent, table_id=g.id, table_name='group')
                     model.Session.add(m)
                 else:
-                    log.debug('No need to make "%s" parent of "%s"', parent_name, publisher['name'])                    
-        model.Session.commit()        
+                    log.debug('No need to make "%s" parent of "%s"', parent_name, publisher['name'])
+        model.Session.commit()
 
     @classmethod
     def create_user_publisher_memberships(cls, memberships):
@@ -481,11 +501,11 @@ Alternative title: GDP and Labour Market coherence""",
                 m = model.Member(group_id=publisher.id, table_id=user.id,
                                  table_name='user', capacity=capacity)
                 model.Session.add(m)
-                log.debug('Made: "%s" %s for "%s"', user_name, capacity, publisher_name)                    
+                log.debug('Made: "%s" %s for "%s"', user_name, capacity, publisher_name)
             else:
-                log.debug('No need to make "%s" %s for "%s"', user_name, capacity, publisher_name)                    
-                
-        model.Session.commit()        
+                log.debug('No need to make "%s" %s for "%s"', user_name, capacity, publisher_name)
+
+        model.Session.commit()
 
     @classmethod
     def create_roles(cls, roles):
@@ -496,7 +516,7 @@ Alternative title: GDP and Labour Market coherence""",
 
             subj = model.User.by_name(unicode(subj))
             model.add_user_to_role(subj, model.Role.ADMIN, model.System())
-            
+
         model.repo.commit_and_remove()
 
     @classmethod

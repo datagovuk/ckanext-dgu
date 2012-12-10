@@ -91,12 +91,12 @@ class PublisherController(GroupController):
                 h.flash_error(_("There is a problem with the system configuration"))
                 errors = {"reason": ["%s does not have an administrator user to contact" % group.name]}
                 return self.apply(group.id, data=data, errors=errors,
-                                  error_summary=error_summary(errors))                
+                                  error_summary=error_summary(errors))
             recipients = [(config.get('dgu.admin.name', "DGU Admin"),
                            config['dgu.admin.email'])]
             recipient_publisher = 'data.gov.uk admin'
 
-            
+
         log.debug('User "%s" requested publisher access for "%s" which was sent to admin %s (%r) with reason: %r',
                   c.user, group.name, recipient_publisher, recipients, reason)
         extra_vars = {
@@ -129,6 +129,9 @@ class PublisherController(GroupController):
         Form for a user to request to be an editor for a publisher.
         It sends an email to a suitable admin.
         """
+        if not c.user:
+            abort(401, _('You must be logged in to apply for membership'))
+
         if 'parent' in request.params and not id:
             id = request.params['parent']
 
