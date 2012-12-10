@@ -185,9 +185,9 @@ def stars_label(stars):
         UK Location Dataset Type
       </h4>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
-        ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
-        <ul class="facet-options green-bullet">
-          ${facet_li('resource-type')}
+        ${dgu_facet_li(h.unselected_facet_items('UKLP'), 'UKLP', label=lambda n: 'UK Location')}
+        <ul class="facet-options">
+          ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')}
         </ul>
       </ul>
       <span py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</span>
