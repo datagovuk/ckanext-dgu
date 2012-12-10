@@ -197,7 +197,7 @@ def stars_label(stars):
       </h4>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
         ${dgu_facet_li(h.unselected_facet_items('UKLP'), 'UKLP', label=lambda n: 'UK Location')}
-        <ul class="facet-options green-bullet">
+        <ul class="facet-options">
           ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')}
         </ul>
       </ul>

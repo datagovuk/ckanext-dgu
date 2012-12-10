@@ -31,7 +31,7 @@ if access_constraints:
   <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
     <h4>Licence</h4>
     <div property="dc:rights">
-     <ul class="green-bullet">
+     <ul>
       <py:choose test="">
         <py:when test="license_url and licenses">
           <li py:for="license, isopen in licenses">
@@ -94,13 +94,13 @@ if not (foi_phone or foi_email or foi_phone) and publisher_groups:
          foi_email = extras.get('foi-email')
          foi_phone = extras.get('foi-phone')
 ?>
-    <ul class="green-bullet">
+    <ul>
         ${name}
         ${contact_details(name, email, phone, None, None)}
     </ul>
     <py:if test="foi_name or foi_email or foi_phone">
       FOI Contact: 
-      <ul class="green-bullet">
+      <ul>
           ${foi_name}
           ${contact_details(foi_name, foi_email, foi_phone, None, None)}
       </ul>
@@ -136,7 +136,7 @@ if not (foi_phone or foi_email or foi_phone) and publisher_groups:
 
   <li class="widget-container">
     <h4>Do more with this data</h4>
-    <ul class="green-bullet">
+    <ul>
       <li><a href="/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
       <li><a href="/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
       <li><a href="/node/add/data-request?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
