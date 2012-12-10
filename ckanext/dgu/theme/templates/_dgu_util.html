@@ -32,7 +32,7 @@
        <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
-         <h3><span class="underlined">${title}</span><span class="suffix">&nbsp;&raquo;</span></h3>
+         <h3><span class="underlined">${title}</span></h3>
        </a>
          <span class="property property-right">
 <?python
@@ -101,7 +101,6 @@ if '' in formats:
   <py:def function="dgu_facet_sidebar(code, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
       <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">
           <h4>
-            <img src="/images/arrow-list.png" class="arrow" />
             ${title(code)}
           </h4>
           <ul class="facet-options">
@@ -134,9 +133,9 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort
               <ul py:if="link_subpub" class="fact-options">
                   <li><a href="${search_with_subpub()}">Include sub-publishers</a></li>
               </ul>
-              <p py:if="not items and not link_subpub">${if_empty}</p>
+              <span py:if="not items and not link_subpub">${if_empty}</span>
           </py:if>
-          <p py:if="code!='publisher' and not items">${if_empty}</p>
+          <span py:if="code!='publisher' and not items">${if_empty}</span>
       </div>
   </py:def>
 
@@ -168,7 +167,6 @@ def stars_label(stars):
 
     <div class="facet-box" id="map-based-search">
       <h4>
-        <img src="/images/arrow-list.png" class="arrow" />
         UK Location Map Search
       </h4>
       <ul class="facet-options">
@@ -184,16 +182,15 @@ def stars_label(stars):
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
       <h4>
-        <img src="/images/arrow-list.png" class="arrow" />
         UK Location Dataset Type
       </h4>
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
         ${facet_li('uklp', label_function=lambda n: 'UKLP', if_empty='UK Location')}
-        <ul class="facet-options">
+        <ul class="facet-options green-bullet">
           ${facet_li('resource-type')}
         </ul>
       </ul>
-      <p py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</p>
+      <span py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</span>
     </div>
 
   </div>

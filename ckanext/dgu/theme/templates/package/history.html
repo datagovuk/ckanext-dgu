@@ -28,7 +28,7 @@
       <input type="hidden" name="pkg_name" value="${c.pkg_dict['name']}"/>
 
       <!-- only display this additional compare button if there are lots of revisions -->
-      <input py:if="len(c.pkg_revisions) > 5" type="submit" name="diff" value="${_('Compare &raquo;')}" class="btn btn-primary" />
+      <input py:if="len(c.pkg_revisions) > 5" type="submit" name="diff" value="${_('Compare')}" class="btn btn-primary" />
 
       <table class="history-table table table-striped table-bordered table-condensed">
         <tr>
@@ -50,7 +50,7 @@
           </tr> 
         </py:for>
       </table>
-      <input type="submit" name="diff" value="${_('Compare &raquo;')}" class="btn btn-primary" />
+      <input type="submit" name="diff" value="Compare" class="btn btn-primary" />
     </form>
   </div>
 

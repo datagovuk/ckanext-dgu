@@ -23,7 +23,6 @@
       <tr>
         <td class="boxed">
           <h2>Search Datasets</h2>
-          <br/>
           <div class="small-search">
             <xi:include href="../package/search_form.html" />
           </div>
@@ -31,7 +30,7 @@
         <td class="gutter"></td>
         <td class="boxed">
           <div class="pull-right">
-            <a href="/data/tag" class="btn btn-primary viewall">View all tags &raquo;</a>
+            <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
           </div>
           <h2>Tags</h2>
           <div id="tagcloud">
@@ -60,7 +59,7 @@
       <tr>
         <td class="boxed">
           <div class="pull-right">
-            <a href="/publisher" class="btn btn-primary">View all publishers &raquo;</a>
+            <a href="/publisher" class="btn btn-primary">View all publishers</a>
           </div>
           <h2>Publishers</h2>
           <ul class="facet-options">
@@ -73,7 +72,7 @@
         <td class="gutter"></td>
         <td class="boxed">
           <div class="pull-right">
-            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct Map Based Search &raquo;</a>
+            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct map based search</a>
           </div>
           <h2>UK Location</h2>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
@@ -94,10 +93,9 @@
       <tr>
         <td class="boxed" rowspan="5">
           <div class="pull-right">
-            <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets &raquo;</a>
+            <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
           </div>
           <h2>Featured dataset</h2>
-
           <?python
             popular_dataset = h.single_popular_dataset(20)
           ?>

@@ -20,29 +20,6 @@ $(function() {
   var spinDiv = $('.comments-spinner')[0];
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
 
-  var contortDrupal = function(data) {
-    data = data || '<div class="boxed"><h2>Comments</h2>(no data)</div>';
-    var dom = $(data);
-    if (dom.find('#comments').length==0) {
-        /* Push the entire thing inside a #comments div */
-        dom = $('<div id="comments" />').append(dom);
-    }
-    if (dom.find('.new-comment-link').length==0) {
-        var button = dom.find('#comment-add').remove();
-        dom.prepend( $('<div class="new-comment-link"/>').append(button) );
-    }
-    dom.find('#comment-add').addClass('btn').addClass('btn-primary').css({'float':'right'});
-    dom.find('.comment').addClass('boxed');
-    dom.find('ul.links a').addClass('btn').addClass('btn-primary');
-    dom.find('.comment-content h3 a').each(function(i, el) {
-      el = $(el);
-      var link = el.attr('href');
-      link = link.substr( link.indexOf('#') );
-      el.attr('href',link);
-    });
-    return dom;
-  };
-
   var url = '/comment/get/'+DATASET_ID;
   $.ajax({
           url: url,
@@ -50,7 +27,7 @@ $(function() {
           dataType: 'html',
           success: function(data, textStatus, xhr) {
             commentsSpinner.stop();
-            $('#comments-container').html(contortDrupal(data));
+            $('#comments-container').html(data);
           },
           error: function(xhr, status, exception) {
             commentsSpinner.stop();
