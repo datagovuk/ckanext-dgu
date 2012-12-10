@@ -9,6 +9,7 @@ from webhelpers.text import truncate
 from ckan.lib.helpers import icon
 import ckan.lib.helpers
 
+from ckan.controllers.package import search_url, url_with_params
 from publisher_node import PublisherNode
 
 log = logging.getLogger(__name__)
@@ -365,3 +366,20 @@ def render_datetime(datetime_, date_format=None, with_hours=False):
         if with_hours:
             date_format += ' %H:%M'
     return ckan.lib.helpers.render_datetime(datetime_, date_format)
+
+def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
+    '''Since you must not mix spatial search with other facets,
+    we need to strip off "sort=spatial+desc" from the params if it
+    is there.
+
+    params_to_keep: All the params apart from 'page' or
+                    'sort=spatial+desc' (it is more efficient to calculate
+                    this once and pass it in than to calculate it here).
+                    List of (key, value) pairs.
+    added_params: Dict of params to add, for this facet option
+    '''
+    params = set(params_to_keep)
+    params |= set(added_params.items())
+    if alternative_url:
+        return url_with_params(alternative_url, params)
+    return search_url(params)
