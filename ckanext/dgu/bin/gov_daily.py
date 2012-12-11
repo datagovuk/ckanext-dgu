@@ -196,7 +196,6 @@ def command(config_file):
             dumper_(tmp_file, query)
             tmp_file.close()
             log.info('Dumped data file is %dMb in size' % (os.path.getsize(tmp_filepath) / (1024*1024)))
-            sys.exit(0)
             dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
             dump_file.write(tmp_filepath, dump_filename)
             dump_file.close()
