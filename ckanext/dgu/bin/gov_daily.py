@@ -187,8 +187,6 @@ def command(config_file):
         for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
                                   ('json', dumper.SimpleDumper().dump_json),
                                  ):
-            if not run_task('dump_' + file_type):
-                continue
             dump_filename = '%s.%s' % (dump_file_base, file_type)
             dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
             tmp_file = open(tmp_filepath, 'w+b')
