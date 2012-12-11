@@ -37,6 +37,15 @@ class PublisherMatch(CkanCommand):
     max_args = 1
     min_args = 1
 
+    def stripped(self, s):
+        import string
+        exclude = set(string.punctuation)
+        stopped = ['and', 'of', 'it', 'the']
+        s = s.lower()
+        s = ''.join(c for c in s if not c in exclude)
+        s = ' '.join(w for w in s.split() if not w in stopped)
+        return s
+
     def command(self):
         self._load_config()
 
@@ -52,12 +61,15 @@ class PublisherMatch(CkanCommand):
         start = time.time()
         self.authorities_file = self._get_authorities_csv()
         self.publishers = {}
+        self.publishers_full = {}
 
         pubs = model.Session.query(model.Group)\
             .filter(model.Group.type == 'publisher')\
             .filter(model.Group.state == 'active')
         for publisher in pubs:
             self.publishers[publisher.name.replace('-', '_')] = publisher
+            self.publishers_full[self.stripped(publisher.title)] = publisher
+
         log.info("Found %d publishers to process in DB" %
             len(self.publishers))
 
@@ -67,6 +79,7 @@ class PublisherMatch(CkanCommand):
         with open(self.authorities_file, 'rU') as f:
             reader = csv.reader(f)
             for row in reader:
+                name = row[0]
                 slug = row[2]
                 if '_school' in slug or '_college' in slug:
                     schools = schools + 1
@@ -80,6 +93,10 @@ class PublisherMatch(CkanCommand):
 
                 if not publisher and slug in direct_matches:
                     publisher = self.publishers[direct_matches[slug]]
+
+                # Match on the first field if we still don't have a publisher.
+                if not publisher:
+                    publisher = self.publishers_full.get(self.stripped(name))
 
                 if publisher:
                     # Save as a publisher extra
@@ -127,7 +144,6 @@ class PublisherMatch(CkanCommand):
         publisher = self.publishers.get(partial)
         if publisher:
             return publisher
-
 
         name = row[0]
         if '(PCT)' in name:
