@@ -176,7 +176,7 @@ def command(config_file):
                         log.info('Wrote openspending report %s', filepath)
 
     # Create dumps for users
-    if run_task('dump_csv') or run_task('dump_json'):
+    if run_task('dump_csv'):
         log.info('Creating database dump')
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
@@ -267,14 +267,14 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump_csv','dump_json','backup']
+TASKS_TO_RUN = ['analytics','openspending','dump_csv','backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
     Usage: python %s [config.ini]
 
     You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from analytics,openspending,dump_csv,dump_json,backup or run multiple by
+    and you can choose from analytics,openspending,dump_csv,backup or run multiple by
     separating by a comma.
     ''' % sys.argv[0]
 
