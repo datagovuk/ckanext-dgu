@@ -398,6 +398,7 @@ class PublisherController(GroupController):
         c.editors = c.group.members_of_type(model.User, 'editor')
         if c.user:
             c.is_sysadmin = Authorizer().is_sysadmin(unicode(c.user))
+            # Replace can_edit with call to check_access
             c.can_admin = c.is_sysadmin or c.userobj in c.administrators
             c.can_edit = c.can_admin or c.userobj in c.editors
 
