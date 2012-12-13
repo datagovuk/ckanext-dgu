@@ -1560,7 +1560,7 @@ CKAN.DataPreview = function ($, my) {
       var dataset = new recline.Model.Dataset(resourceData, 'elasticsearch');
       initializeDataExplorer(dataset);
     }
-    else if (resourceData.formatNormalized in {'csv': '', 'xls': ''}) {
+    else if (resourceData.formatNormalized in {'csv': '', 'xls': '', 'tsv': ''}) {
       // set format as this is used by Recline in setting format for DataProxy
       resourceData.format = resourceData.formatNormalized;
       var dataset = new recline.Model.Dataset(resourceData, 'dataproxy');
@@ -1640,7 +1640,7 @@ CKAN.DataPreview = function ($, my) {
 
     // have to set jsonp because webstore requires _callback but that breaks jsonpdataproxy
     var jsonp = '_callback';
-    if (url.indexOf('jsonpdataproxy') != -1) {
+    if (url.indexOf('/data/preview') != -1) {
       jsonp = 'callback';
     }
 
