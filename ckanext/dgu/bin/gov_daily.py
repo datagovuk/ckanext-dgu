@@ -176,7 +176,7 @@ def command(config_file):
                         log.info('Wrote openspending report %s', filepath)
 
     # Create dumps for users
-    if run_task('dump_csv') or run_task('dump_json'):
+    if run_task('dump_csv'):
         log.info('Creating database dump')
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
@@ -187,8 +187,6 @@ def command(config_file):
         for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
                                   ('json', dumper.SimpleDumper().dump_json),
                                  ):
-            if not run_task('dump_' + file_type):
-                continue
             dump_filename = '%s.%s' % (dump_file_base, file_type)
             dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
             tmp_file = open(tmp_filepath, 'w+b')
@@ -196,7 +194,6 @@ def command(config_file):
             dumper_(tmp_file, query)
             tmp_file.close()
             log.info('Dumped data file is %dMb in size' % (os.path.getsize(tmp_filepath) / (1024*1024)))
-            sys.exit(0)
             dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
             dump_file.write(tmp_filepath, dump_filename)
             dump_file.close()
@@ -268,14 +265,14 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump_csv','dump_json','backup']
+TASKS_TO_RUN = ['analytics','openspending','dump_csv','backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
     Usage: python %s [config.ini]
 
     You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from analytics,openspending,dump_csv,dump_json,backup or run multiple by
+    and you can choose from analytics,openspending,dump_csv,backup or run multiple by
     separating by a comma.
     ''' % sys.argv[0]
 

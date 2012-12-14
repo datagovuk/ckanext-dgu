@@ -1543,9 +1543,9 @@ CKAN.DataPreview = function ($, my) {
     // that if we got here (i.e. preview shown) worth doing
     // something ...)
     resourceData.formatNormalized = my.normalizeFormat(resourceData.format);
-
     resourceData.url  = my.normalizeUrl(resourceData.url);
-    if (resourceData.formatNormalized === '') {
+    if (resourceData.formatNormalized == '') {
+        console.log('checking')
       var tmp = resourceData.url.split('/');
       tmp = tmp[tmp.length - 1];
       tmp = tmp.split('?'); // query strings
@@ -1555,12 +1555,15 @@ CKAN.DataPreview = function ($, my) {
         resourceData.formatNormalized = ext[ext.length-1];
       }
     }
+
+    console.log(resourceData.formatNormalized)
+
     if (resourceData.webstore_url) {
       resourceData.elasticsearch_url = '/api/data/' + resourceData.id;
       var dataset = new recline.Model.Dataset(resourceData, 'elasticsearch');
       initializeDataExplorer(dataset);
     }
-    else if (resourceData.formatNormalized in {'csv': '', 'xls': ''}) {
+    else if (resourceData.formatNormalized in {'csv': '', 'xls': '', 'tsv': ''}) {
       // set format as this is used by Recline in setting format for DataProxy
       resourceData.format = resourceData.formatNormalized;
       var dataset = new recline.Model.Dataset(resourceData, 'dataproxy');
@@ -1568,21 +1571,30 @@ CKAN.DataPreview = function ($, my) {
       $('.recline-query-editor .text-query').hide();
     }
     else if (resourceData.formatNormalized in {
+        'xml': '',
+        'rdf': '',
         'rdf+xml': '',
         'owl+xml': '',
         'xml': '',
+        'atom': '',
+        'rss': ''
+    }){
+      var _url = '/data/preview/' + resourceData.id + '?type=xml';
+      my.getResourceDataDirect(_url, function(data) {
+        my.showPlainTextData(data);
+      });
+    }
+    else if (resourceData.formatNormalized in {
         'n3': '',
         'n-triples': '',
         'turtle': '',
         'plain': '',
-        'atom': '',
         'tsv': '',
-        'rss': '',
         'txt': ''
         }) {
       // HACK: treat as plain text / csv
       // pass url to jsonpdataproxy so we can load remote data (and tell dataproxy to treat as csv!)
-      var _url = '/data/preview/' + resourceData.id + '?type=csv';
+      var _url = '/data/preview/' + resourceData.id + '?type=plain';
       my.getResourceDataDirect(_url, function(data) {
         my.showPlainTextData(data);
       });
@@ -1628,7 +1640,7 @@ CKAN.DataPreview = function ($, my) {
   my.getResourceDataDirect = function(url, callback) {
     // $.ajax() does not call the "error" callback for JSONP requests so we
     // set a timeout to provide the callback with an error after x seconds.
-    var timeout = 5000;
+    var timeout = 10000;
     var timer = setTimeout(function error() {
       callback({
         error: {
@@ -1640,7 +1652,7 @@ CKAN.DataPreview = function ($, my) {
 
     // have to set jsonp because webstore requires _callback but that breaks jsonpdataproxy
     var jsonp = '_callback';
-    if (url.indexOf('jsonpdataproxy') != -1) {
+    if (url.indexOf('/data/preview') != -1) {
       jsonp = 'callback';
     }
 
