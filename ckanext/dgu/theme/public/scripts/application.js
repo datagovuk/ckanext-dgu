@@ -1545,7 +1545,6 @@ CKAN.DataPreview = function ($, my) {
     resourceData.formatNormalized = my.normalizeFormat(resourceData.format);
     resourceData.url  = my.normalizeUrl(resourceData.url);
     if (resourceData.formatNormalized == '') {
-        console.log('checking')
       var tmp = resourceData.url.split('/');
       tmp = tmp[tmp.length - 1];
       tmp = tmp.split('?'); // query strings
@@ -1555,8 +1554,6 @@ CKAN.DataPreview = function ($, my) {
         resourceData.formatNormalized = ext[ext.length-1];
       }
     }
-
-    console.log(resourceData.formatNormalized)
 
     if (resourceData.webstore_url) {
       resourceData.elasticsearch_url = '/api/data/' + resourceData.id;
@@ -1572,6 +1569,7 @@ CKAN.DataPreview = function ($, my) {
     }
     else if (resourceData.formatNormalized in {
         'xml': '',
+        'kml': '',
         'rdf': '',
         'rdf+xml': '',
         'owl+xml': '',
@@ -1640,7 +1638,7 @@ CKAN.DataPreview = function ($, my) {
   my.getResourceDataDirect = function(url, callback) {
     // $.ajax() does not call the "error" callback for JSONP requests so we
     // set a timeout to provide the callback with an error after x seconds.
-    var timeout = 10000;
+    var timeout = 30000;
     var timer = setTimeout(function error() {
       callback({
         error: {
@@ -1650,23 +1648,25 @@ CKAN.DataPreview = function ($, my) {
       });
     }, timeout);
 
-    // have to set jsonp because webstore requires _callback but that breaks jsonpdataproxy
-    var jsonp = '_callback';
-    if (url.indexOf('/data/preview') != -1) {
-      jsonp = 'callback';
-    }
-
     // We need to provide the `cache: true` parameter to prevent jQuery appending
     // a cache busting `={timestamp}` parameter to the query as the webstore
     // currently cannot handle custom parameters.
     $.ajax({
       url: url,
       cache: true,
-      dataType: 'jsonp',
-      jsonp: jsonp,
+      dataType: 'json',
       success: function(data) {
         clearTimeout(timer);
         callback(data);
+      },
+      error: function(err) {
+          clearTimeout(timer);
+          callback({
+            error: {
+              title: 'Request Error',
+              message: 'There was an error processing the request'
+            }
+          });
       }
     });
   };
