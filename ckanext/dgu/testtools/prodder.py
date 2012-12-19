@@ -26,11 +26,22 @@ class Prodder(object):
         plugin = ckanext.qa.plugin.QAPlugin()
         plugin.configure(config)
         plugin.notify(res)
-        
+
+    def os(self, dataset_id):
+        import ckanext.os.plugin
+        from ckan import model
+        from pylons import config
+
+        res = model.Package.get(dataset_id)
+        assert res, 'Could not find package: %s' % dataset_id
+        plugin = ckanext.os.plugin.SpatialIngesterPlugin()
+        plugin.configure(config)
+        plugin.notify(res)
+
 class ProdCommand(CkanCommand):
     '''Prodder
 
-    paster --plugin=ckanext-dgu prod OPTIONS archiver resource_id
+    paster --plugin=ckanext-dgu prod OPTIONS {archiver|qa|os} entity_id
     '''
     summary = __doc__.split('\n')[0]
     usage = __doc__
@@ -70,6 +81,14 @@ class ProdCommand(CkanCommand):
                 sys.exit(1)
             res_id = self.args[1]
             prodder.qa(res_id)
+        elif target == 'os':
+            prodder = Prodder()
+            if not len(self.args) == 2:
+                print self.usage
+                print 'Error: Wrong number of args'
+                sys.exit(1)
+            dataset_id = self.args[1]
+            prodder.os(dataset_id)
         else:
             assert 0, 'Target not known: %s' % target
 
