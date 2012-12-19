@@ -59,12 +59,12 @@ class ScrapeResources(CkanCommand):
     def _process_dataset(self, name, datalist):
         import ckan.model as model
 
-        log.info("Processing data for dataset => %s" % name)
+        log.info("  Processing data for dataset => %s" % name)
         dataset = model.Package.get(name)
         if not dataset or not dataset.state == 'active':
-            log.error('Unable to update dataset %s, not found or not active' % name)
+            log.error('  Unable to update dataset %s, not found or not active' % name)
 
-        log.info("Dataset currently has %d resources" % len(dataset.resources))
+        log.info("  Dataset currently has %d resources" % len(dataset.resources))
         modified = False
 
         # Get a list of the URLs in the current resources, so we can check against
@@ -73,18 +73,19 @@ class ScrapeResources(CkanCommand):
 
         for d in datalist:
             if d['url'] in current_urls:  # We already have a resource with this url
-                log.info("%s is already present" % d['url'])
+                log.info("  %s is already present" % d['url'])
             else:
                 # if there was an error, or the status code wasn't (eventually) a 200
                 # then we should skip the adding of this data.
                 if d.get('error'):
-                    log.info("Skipping resource due to error: %s" % d.get('error'))
+                    log.info("  Skipping resource due to error: %s" % d.get('error'))
                     continue
-                if d.get('status_code') != "200":
-                    log.info("Skipping resource due to request failure: %s" % d.get('status_code'))
+                if not d.get('status_code') in ["200", "302"]:
+                    log.info("  Skipping resource due to request failure: %s" % d.get('status_code'))
                     continue
 
                 # Add a resource, and flag the dataset as modified
+                log.info('  Adding resource: %s' % d.get('url'))
                 dataset.add_resource(d.get('url'), format=d.get('format',''),
                                      description=d.get('label', ''), size=d.get('size',0))
                 modified = True
@@ -103,7 +104,7 @@ class ScraperWiki(object):
         """
         url = "https://api.scraperwiki.com/api/1.0/datastore/sqlite?format=jsondict&name=dgu_dataset_scrapers&query=select%20*%20from%20%60data%60"
         response = requests.get(url)
-        if not response.status_code == 200:
+        if not response.status_code in [200]:
             log.error("ScraperWiki returned a %d response when fetching the list"
                 % response.status_code)
             return []
@@ -138,7 +139,7 @@ class ScraperWiki(object):
 
         log.info("Fetching data for %s" % name)
         response = requests.get(url)
-        if not response.status_code == 200:
+        if not response.status_code in [200, 302]:
             log.error("ScraperWiki returned a %d response when fetching the list"
                 % response.status_code)
             return None
