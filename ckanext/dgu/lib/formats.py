@@ -103,7 +103,7 @@ class Formats(object):
                 ('PSV', (), ('psv',), ('text/psv','text/pipe-separated-values'), 3),
                 ('PSV / Zip', (), ('psv.zip',), (), 3),
                 ('JSON', (), ('json',), ('application/json', 'text/x-json'), 3),
-                ('XML', (), ('xml',), ('text/xml',), 3),
+                ('XML', (), ('xml',), ('text/xml','application/xml'), 3),
                 ('XML / Zip', (), ('xml.zip',), (), 3),
                 ('RSS', (), ('rss',), ('text/rss+xml',), 3),
                 ('ODS', (), ('ods',), ('application/vnd.oasis.opendocument.spreadsheet',), 3),
