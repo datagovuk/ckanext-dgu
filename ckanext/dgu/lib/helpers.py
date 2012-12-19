@@ -351,7 +351,7 @@ def ga_download_tracking(resource, action='download'):
     by setting a target of _blank but this forces the download (many of them remote urls) into a new
     tab/window.
     '''
-    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s','',true]);"\
+    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s',0,true]);"\
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
 
