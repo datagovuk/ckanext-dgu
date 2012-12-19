@@ -92,8 +92,6 @@ class ScrapeResources(CkanCommand):
                     log.info("  Resource had url: %s" % r.get('url') )
                     continue
 
-                log.info('  Adding resource: %s' % r.get('url') )
-
                 # Add a resource, and flag the dataset as modified
                 log.info('  Adding resource: %s' % r.get('url') )
                 dataset.add_resource(r.get('url'), format=r.get('format',''),
