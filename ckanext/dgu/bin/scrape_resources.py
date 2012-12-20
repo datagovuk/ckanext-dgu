@@ -112,7 +112,7 @@ class ScrapeResources(CkanCommand):
             log.info("%d additional resource(s) were found" % len(additional_resource))
             for r in additional_resource:
                 if r.url == source_url and not 'scraper_url' in r.extras:
-                    r.extras['scraper_url'] = "http://scraperwiki.com/scrapers/"
+                    r.extras['scraper_url'] = "http://scraperwiki.com/scrapers/%s" % scraper_name
                     model.Session.add(r)
                     modified = True
         else:
