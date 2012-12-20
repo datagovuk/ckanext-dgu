@@ -339,6 +339,10 @@ def render_stars(stars, reason, last_updated):
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
 
+def scraper_icon(res):
+    alt = 'Scraped by scraperwiki.com, see additional resource for information'
+    return icon('scraperwiki_small', alt=alt)
+
 def ga_download_tracking(resource, action='download'):
     '''Google Analytics event tracking for downloading a resource.
 
