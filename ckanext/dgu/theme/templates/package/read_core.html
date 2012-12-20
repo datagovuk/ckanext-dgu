@@ -6,6 +6,10 @@
   <xi:include href="../_util.html" />
   <xi:include href="field_helpers.html" />
 
+<?python
+import ckanext.dgu.lib.helpers as dgu_helpers
+?>
+
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
     <!-- Overview Section -->
     <div id="dataset-overview">
@@ -169,9 +173,10 @@
             <li class="$li_class">
               <div class="trimmed-text">
                   ${h.resource_icon(res)}
-                  <?python
-                  import ckanext.dgu.lib.helpers as dgu_helpers
-                  ?>
+                  <py:if test="res.get('scraper_url')">
+                  ${dgu_helpers.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
+                  </py:if>
+
                   ${res.get('date')}
                   ${dgu_helpers.resource_display_name(res)}
               </div>

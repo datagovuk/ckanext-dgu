@@ -5,6 +5,7 @@ import logging
 import requests
 import collections
 from ckan.lib.cli import CkanCommand
+import dateutil.parser
 
 log = logging.getLogger("ckanext")
 
@@ -94,10 +95,14 @@ class ScrapeResources(CkanCommand):
 
                 # Add a resource, and flag the dataset as modified
                 log.info('  Adding resource: %s' % r.get('url') )
+
+                dt = dateutil.parser.parse(r.get('scrape_time'))
+                scrape_time = dt.strftime('%d/%m/%Y')
+
                 dataset.add_resource(r.get('url'), format=r.get('format',''),
                                      description=r.get('label', ''), size=r.get('size',0),
-                                     extras={'scraped': datetime.datetime.now().isoformat(),
-                                     'scraper':scraper_name})
+                                     extras={'scraped': scrape_time,
+                                     'scraper_url':scraper_name, 'scraper_source': r.get('source')})
                 modified = True
 
         # Potentially not safe to assume all resources came from the first page, if for
@@ -119,7 +124,7 @@ class ScrapeResources(CkanCommand):
         else:
             log.info("No additional resource(s) were found - adding one")
             dataset.add_resource(source_url, format="HTML", resource_type='documentation',
-                                 description="Source of the data resources",
+                                 description="List of spending files",
                                  extras={'scraper_url': scraper_name})
             modified = True
 
