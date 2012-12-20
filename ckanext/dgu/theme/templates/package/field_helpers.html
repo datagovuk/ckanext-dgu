@@ -32,11 +32,12 @@
         # For building a list of the fields to display and their order
         def __init__(self):
             # core fields
-            self._field_names = ['url', 'date-updated-computed']
-    
+            self._field_names = ['url', 'date-updated-computed', 'scraper_url']
+
     class DisplayableFields:
         # For collecting the key and value to display each field
         def __init__(self, field_names):
+            self._fields_requiring_values = ['scraper_url']
             self.fields = []
             for field_name in field_names:
                 value_dict = field_value_map.get(field_name, {})
@@ -49,7 +50,8 @@
             blank_values = []
             for field in self.fields[:]:
                 if not field.get('value'):
-                    blank_values.append(field)
+                    if not field.get('name', '') in self._fields_requiring_values:
+                        blank_values.append(field)
                     self.fields.remove(field)
             self.fields.extend(blank_values)
         def __iter__(self):

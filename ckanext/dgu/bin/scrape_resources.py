@@ -96,7 +96,8 @@ class ScrapeResources(CkanCommand):
                 log.info('  Adding resource: %s' % r.get('url') )
                 dataset.add_resource(r.get('url'), format=r.get('format',''),
                                      description=r.get('label', ''), size=r.get('size',0),
-                                     extras={'scraped': datetime.datetime.now().isoformat()})
+                                     extras={'scraped': datetime.datetime.now().isoformat(),
+                                     'scraper':scraper_name})
                 modified = True
 
         # Potentially not safe to assume all resources came from the first page, if for
@@ -112,14 +113,14 @@ class ScrapeResources(CkanCommand):
             log.info("%d additional resource(s) were found" % len(additional_resource))
             for r in additional_resource:
                 if r.url == source_url and not 'scraper_url' in r.extras:
-                    r.extras['scraper_url'] = "http://scraperwiki.com/scrapers/%s" % scraper_name
+                    r.extras['scraper_url'] = scraper_name
                     model.Session.add(r)
                     modified = True
         else:
             log.info("No additional resource(s) were found - adding one")
             dataset.add_resource(source_url, format="HTML", resource_type='documentation',
                                  description="Source of the data resources",
-                                 extras={'scraper_url': "http://scraperwiki.com/scrapers/"})
+                                 extras={'scraper_url': scraper_name})
             modified = True
 
         if modified:
