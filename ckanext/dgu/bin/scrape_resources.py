@@ -34,10 +34,9 @@ class ScrapeResources(CkanCommand):
         log.info("Database access initialised")
 
         s = ScraperWiki()
-        scrapers = s.get_simple_scraper_list()
-        log.info("Processing %d simple scrapers" % len(scrapers))
 
-        for scrapername in scrapers:
+        for resource in self._get_resources():
+            scrapername = resource.extras.get('scraper_url')
 
             # Get the data for this scraper and give up if there is none
             datalist = s.get_simple_scraper_data(scrapername)
@@ -56,6 +55,19 @@ class ScrapeResources(CkanCommand):
             for k,v in grouped_datasets.iteritems():
                 self._process_dataset(scrapername, k, v)
 
+    def _get_resources(self):
+        import ckan.model as model
+        log.debug("Getting local resources with scraper_url")
+
+        resources = model.Session.query(model.Resource).\
+            filter(model.Resource.resource_type=="documentation").\
+            filter(model.Resource.state=='active')
+        log.debug('Checking %d resources' % resources.count())
+
+        s = set([r for r in resources.all() if r.extras.get('scraper_url')
+                 and not r.extras.get('scraper_url','').startswith('http')])
+        log.debug('Found %d resources' % len(s))
+        return s
 
     def _process_dataset(self, scraper_name, name, datalist):
         import ckan.model as model
