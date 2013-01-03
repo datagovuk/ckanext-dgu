@@ -72,7 +72,14 @@ def dgu_package_create(context, data_dict):
         return {'success': False,
                 'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
 
-    user_publisher_names = [pub.name for pub in user_publishers]
+    # For users who are admins of groups, we should also include all of their child groups
+    # in the list of user_publishers
+    as_admin = user_obj.get_groups('publisher', 'admin')
+    for g in as_admin:
+        user_publishers.extend(list(publib.go_down_tree(group)))
+
+    user_publisher_names = [pub.name for pub in set(user_publishers)]
+
     if data_dict['groups'] and isinstance(data_dict['groups'][0], dict):
         package_group_names = [pub['name'] for pub in data_dict['groups']]
     else:
