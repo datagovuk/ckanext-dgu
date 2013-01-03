@@ -161,6 +161,23 @@ def dgu_dataset_delete(context, data_dict):
     if Authorizer().is_sysadmin(unicode(user)):
         return {'success': True}
 
+    user_obj = model.User.get(user)
+
+    groups = package.get_groups('publisher')
+    group = groups[0] if groups else None
+    if not group:
+        return {'success': False}
+
+    parent_groups = list(publib.go_up_tree(group))
+
+    # Check if user is an admin of a parent group, and if so allow them to delete.
+    if _groups_intersect( user_obj.get_groups('publisher', 'admin'), parent_groups ):
+        return {'success': True}
+
+    # Check admin of just this group
+    if _groups_intersect( user_obj.get_groups('publisher', 'admin'), [group] ):
+        return {'success': True}
+
     return {'success': False}
 
 def dgu_extra_fields_editable(context, data_dict):
