@@ -76,7 +76,7 @@ def dgu_package_create(context, data_dict):
     # in the list of user_publishers
     as_admin = user_obj.get_groups('publisher', 'admin')
     for g in as_admin:
-        user_publishers.extend(list(publib.go_down_tree(group)))
+        user_publishers.extend(list(publib.go_down_tree(g)))
 
     user_publisher_names = [pub.name for pub in set(user_publishers)]
 
