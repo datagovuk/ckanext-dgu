@@ -9,7 +9,7 @@ from ckanext.dgu.lib import publisher as publib
 def dgu_group_update(context, data_dict):
     """
     Group edit permission.  Checks that a valid user is supplied and that the user is
-    a member of the group currently with any capacity.
+    a member of the group with a capacity of admin.
     """
     model = context['model']
     user = context.get('user','')
@@ -76,8 +76,9 @@ def dgu_package_create(context, data_dict):
     if data_dict['groups'] and isinstance(data_dict['groups'][0], dict):
         package_group_names = [pub['name'] for pub in data_dict['groups']]
     else:
-        # Just get the group name in the rest interface
-        package_group_names = data_dict['groups']
+        # Just get the group name in the rest interface and make sure it is a list
+        # so that the intersection works on names (rather than the decomposed name)
+        package_group_names = [data_dict['groups']]
 
     if not _groups_intersect(user_publisher_names, package_group_names):
         return {'success': False,
