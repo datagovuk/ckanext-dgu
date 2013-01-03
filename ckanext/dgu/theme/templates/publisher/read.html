@@ -14,13 +14,13 @@
 
 
   <py:match path="primarysidebar">
-    <div py:if="c.can_edit" class="widget-container">
+    <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
       <ul>
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}">Edit publisher properties</a>
         </li>
-        <li py:if="c.can_edit">
+        <li py:if="h.check_access('package_create', {'groups':c.group.name})">
           <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
         </li>
       </ul>
