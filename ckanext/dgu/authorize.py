@@ -162,6 +162,8 @@ def dgu_dataset_delete(context, data_dict):
         return {'success': True}
 
     user_obj = model.User.get(user)
+    if not user_obj:
+        return {'success': False}
 
     groups = package.get_groups('publisher')
     group = groups[0] if groups else None
