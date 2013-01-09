@@ -73,6 +73,7 @@ setup(
         wdtk_publisher_match = ckanext.dgu.commands.wdtk:PublisherMatch
         update_licenses = ckanext.dgu.commands.license_updates:UpdateLicense
         scrape_resources = ckanext.dgu.bin.scrape_resources:ScrapeResources
+        selenium_tests = ckanext.dgu.commands.selenium_tests:TestRunner
     """,
     test_suite = 'nose.collector',
 )
