@@ -324,7 +324,7 @@ if c.pkg_dict:
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
-        'resource-type': {'label': 'Gemini2 Resource Type', 'value': pkg_extras.get('resource-type')},
+        'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
@@ -349,7 +349,7 @@ if c.pkg_dict:
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
         <tr py:if="stars_data">
-          <td class="dataset-label">Openness Score:</td>
+          <td class="dataset-label">Openness score:</td>
           <td class="dataset-details">
             ${helpers.render_stars(stars_data.value, stars_data.reason, stars_data.last_updated)}
           </td>
