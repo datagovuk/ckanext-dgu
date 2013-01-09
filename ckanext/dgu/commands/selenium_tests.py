@@ -1,5 +1,4 @@
 
-import logging
 import os
 import sys
 import urllib2
@@ -13,6 +12,7 @@ from optparse import OptionParser
 from selenium import selenium
 from ckan.lib.cli import CkanCommand
 
+log = __import__('logging').getLogger("ckanext")
 
 class TestRunner(CkanCommand):
     """
@@ -33,10 +33,6 @@ class TestRunner(CkanCommand):
 
     def __init__(self, name):
         super(TestRunner, self).__init__(name)
-
-        logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s: %(message)s')
-        self.log = logging.getLogger("ckanext")
-        self.selenium_process = None
         self.parser.add_option("-s", "--selenium",
                   type="string", dest="selenium_url",
                   help="Specify the selenium url")
@@ -47,12 +43,25 @@ class TestRunner(CkanCommand):
                   type="string", dest="config_file",
                   help="Specifies the configuration file")
 
+
+        self.selenium_process = None
+
+
+
     def command(self):
-        self.log.info("Created TestRunner")
+        log.info("Created TestRunner")
+        self._load_config()
+
+        import ckan.model as model
+        model.Session.remove()
+        model.Session.configure(bind=model.meta.engine)
+        model.repo.new_revision()
+        log.info("Database access initialised")
+
 
         cmd = self.args[0]
         if cmd not in ['install', 'run']:
-            self.log.error("Unknown command [%s]" % cmd)
+            log.error("Unknown command [%s]" % cmd)
             sys.exit(1)
 
         root = os.path.abspath(os.path.join(__file__,
@@ -60,7 +69,7 @@ class TestRunner(CkanCommand):
 
         self.selenium_home = os.path.join(root, 'selenium')
         if not os.path.exists(self.selenium_home):
-            self.log.info("Creating selenium home directory")
+            log.info("Creating selenium home directory")
             os.makedirs(self.selenium_home)
 
         self.config = ConfigParser.ConfigParser()
@@ -70,10 +79,10 @@ class TestRunner(CkanCommand):
 
     def install_task(self):
         """ Installs selenium jar file """
-        self.log.info("Running install task")
+        log.info("Running install task")
         url = "http://selenium.googlecode.com/files/selenium-server-standalone-2.28.0.jar"
 
-        self.log.info("Downloading selenium")
+        log.info("Downloading selenium")
         self._download(url, os.path.join(self.selenium_home,
             "selenium-server-standalone-2.28.0.jar"))
 
@@ -95,6 +104,9 @@ class TestRunner(CkanCommand):
 
         import ckanext.dgu.testtools.selenium_tests
         for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testtools.selenium_tests"], inspect.isclass):
+            if 'dataset' not in name.lower():
+                continue
+
             class_count += 1
 
             methods = [nm for (nm,_) in
@@ -116,19 +128,19 @@ class TestRunner(CkanCommand):
                     getattr(instance, method_name)()
                 except Exception as e:
                     error_dict["%s.%s" % (name, method_name)].append(e)
-                    self.log.error(e)
+                    log.error(e)
                 except AssertionError as b:
                     error_dict["%s.%s" % (name, method_name)].append(b)
-                    self.log.error(b)
+                    log.error(b)
 
 
         # Cleanup
         self.selenium.stop()
         if self.selenium_process:
-            self.log.info("Closing down our local selenium server")
+            log.info("Closing down our local selenium server")
             self.selenium_process.kill()
 
-        self.log.info("Ran %d tests in %d classes" % (method_count, class_count,))
+        log.info("Ran %d tests in %d classes" % (method_count, class_count,))
 
         for k,v in error_dict.iteritems():
             print k
@@ -146,16 +158,16 @@ class TestRunner(CkanCommand):
         except:
             running = False
 
-        self.log.info("A local selenium is running? %s" % running)
+        log.info("A local selenium is running? %s" % running)
         if not running:
-            self.log.info("Creating our own local selenium instance")
+            log.info("Creating our own local selenium instance")
             args = ['java', '-jar', os.path.join(self.selenium_home, "selenium-server-standalone-2.28.0.jar")]
             self.selenium_process = subprocess.Popen(args)
         return 'http://127.0.0.1:4444/'
 
 
     def _download(self, url, target):
-        self.log.info("Downloading selenium to %s" % target)
+        log.info("Downloading selenium to %s" % target)
         u = urllib2.urlopen(url)
         with open(target, 'wb') as f:
             meta = u.info()
