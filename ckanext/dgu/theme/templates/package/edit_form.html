@@ -649,6 +649,7 @@ if has_errors:
         <th class="resource-name">Description:</th>
         <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
         <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
+        <th class="resource-url js-tooltip" title="The name of the ScraperWiki scraper that will process this resource and add new ones to the dataset">Scraper name</th>
         <th></th>
       </tr>
     </thead>
@@ -675,7 +676,7 @@ if has_errors:
                          name="additional_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         class="input-medium"/>
+                         class="input-small"/>
                   <button id="additional_resources__${num}__validate-resource-button"
                           class="validate-resource-button btn btn-small">Check</button>
                 </span>
@@ -690,6 +691,13 @@ if has_errors:
             </td>
           </py:for>
           <td>
+              <input id="additional_resources__${num}__scraper_url"
+                       name="additional_resources__${num}__scraper_url"
+                       type="text"
+                       value="${res.get('scraper_url', '')}"
+                       class=" input-small"/>
+          </td>
+          <td>
             <!--! Because the resource fields are explicitly set in c.resource_columns, we need
                   to pull the others from the resource keys, strip the resource_columns and then
                   ignore resource_type, id and resource_group_id.
@@ -699,7 +707,7 @@ if has_errors:
                 refs = set(res.keys()) - set(c.resource_columns)
                 additional_extra_fields = [r for r in res.keys() if r not in
                                          ('id','resource_type','resource_group_id',
-                                          'revision_id', 'url','description','format')]
+                                          'revision_id', 'url','description','format', 'scraper_url')]
             ?>
             <py:for each="col in additional_extra_fields">
               <input

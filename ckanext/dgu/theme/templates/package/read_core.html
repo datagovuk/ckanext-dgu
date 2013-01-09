@@ -6,6 +6,10 @@
   <xi:include href="../_util.html" />
   <xi:include href="field_helpers.html" />
 
+<?python
+import ckanext.dgu.lib.helpers as dgu_helpers
+?>
+
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
     <!-- Overview Section -->
     <div id="dataset-overview">
@@ -40,18 +44,19 @@
             <li class="$li_class">
               <div class="trimmed-text">
                   ${h.resource_icon(res)}
+                  <py:if test="res.get('scraped')">${dgu_helpers.scraper_icon(res)}</py:if>
                   <?python
                   import ckanext.dgu.lib.helpers as dgu_helpers
                   ?>
-                  ${dgu_helpers.resource_display_name(res)} 
+                  ${dgu_helpers.resource_display_name(res)}
               </div>
               <div class="btn-group">
                 <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${dgu_helpers.ga_download_tracking(res)}">
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                 </a>
-                <button class="btn btn-primary dropdown-toggle" 
-                  data-toggle="dropdown" 
+                <button class="btn btn-primary dropdown-toggle"
+                  data-toggle="dropdown"
                   py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
@@ -99,8 +104,8 @@
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                 </a>
-                <button class="btn btn-primary dropdown-toggle" 
-                  data-toggle="dropdown" 
+                <button class="btn btn-primary dropdown-toggle"
+                  data-toggle="dropdown"
                   py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
@@ -160,7 +165,7 @@
           </div>
         </py:if>
 
-        <py:if test="additional_resources or gemini_resources"> 
+        <py:if test="additional_resources or gemini_resources">
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
           <ul class="resource-list">
             <py:for each="res in additional_resources">
@@ -168,11 +173,12 @@
             <li class="$li_class">
               <div class="trimmed-text">
                   ${h.resource_icon(res)}
-                  <?python
-                  import ckanext.dgu.lib.helpers as dgu_helpers
-                  ?>
+                  <py:if test="res.get('scraper_url')">
+                  ${dgu_helpers.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
+                  </py:if>
+
                   ${res.get('date')}
-                  ${dgu_helpers.resource_display_name(res)} 
+                  ${dgu_helpers.resource_display_name(res)}
               </div>
 
               <div class="btn-group">
@@ -180,8 +186,8 @@
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                 </a>
-                <button class="btn btn-primary dropdown-toggle" 
-                  data-toggle="dropdown" 
+                <button class="btn btn-primary dropdown-toggle"
+                  data-toggle="dropdown"
                   py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
@@ -241,7 +247,7 @@ from webhelpers.text import truncate
 from ckan.lib.field_types import DateType
 from ckanext.dgu.schema import GeoCoverageType
 if c.pkg_dict:
-    
+
     field_names = DatasetFieldNames()
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if c.is_an_official:
@@ -327,7 +333,7 @@ if c.pkg_dict:
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
     }
-    
+
     # add in fields that only display if they have a value
     for field_name in field_names_display_only_if_value:
         if pkg_extras.get(field_name):

@@ -14,5 +14,6 @@ data/*
 # other
 build/*
 tmp/*
+selenium/*
 package/DEBIAN/control
 *.swp

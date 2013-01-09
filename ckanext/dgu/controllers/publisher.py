@@ -1,6 +1,6 @@
 import logging
 from urllib import urlencode
-
+from urlparse import urljoin
 from sqlalchemy.orm import eagerload_all
 from ckanext.dgu.plugins_toolkit import c, request, render, _, ObjectNotFound, NotAuthorized, ValidationError, check_access, get_action
 from ckan.lib.base import BaseController, model, h, g
@@ -97,12 +97,17 @@ class PublisherController(GroupController):
             recipient_publisher = 'data.gov.uk admin'
 
 
+        url = urljoin(g.site_url,
+            h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController',
+                      action='users', id=group.name))
+
         log.debug('User "%s" requested publisher access for "%s" which was sent to admin %s (%r) with reason: %r',
                   c.user, group.name, recipient_publisher, recipients, reason)
         extra_vars = {
             'group'    : group,
             'requester': c.userobj,
-            'reason'   : reason
+            'reason'   : reason,
+            'accept_url': url
         }
         email_msg = render("email/join_publisher_request.txt", extra_vars=extra_vars,
                            loader_class=NewTextTemplate)
@@ -398,9 +403,6 @@ class PublisherController(GroupController):
         c.editors = c.group.members_of_type(model.User, 'editor')
         if c.user:
             c.is_sysadmin = Authorizer().is_sysadmin(unicode(c.user))
-            # Replace can_edit with call to check_access
-            c.can_admin = c.is_sysadmin or c.userobj in c.administrators
-            c.can_edit = c.can_admin or c.userobj in c.editors
 
         c.restricted_to_publisher = 'publisher' in request.params
         parent_groups = c.group.get_groups('publisher')
