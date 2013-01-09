@@ -46,9 +46,9 @@
 
       <script type="text/javascript">
 <?python
-from ckanext.dgu.lib.resource_formats import get_all
+from ckanext.dgu.lib.formats import Formats
 import json
-resource_formats = json.dumps(get_all())
+resource_formats = json.dumps(Formats.by_display_name().keys())
 ?>
         DGU_RESOURCE_FORMATS = ${resource_formats}
       </script>
