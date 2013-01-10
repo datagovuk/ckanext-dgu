@@ -10,12 +10,15 @@ class TestBase(object):
         http://selenium.googlecode.com/svn/trunk/docs/api/py/selenium/selenium.selenium.html
     """
 
-    def __init__(self, selenium, config):
+    def __init__(self, selenium, config, log):
         self.selenium = selenium
         self.config = config
+        self.log = log
         super(TestBase, self).__init__()
 
-    def wait(self, max_wait=10):
+    def wait(self, max_wait=20):
+        """ Waits for the current page to load. Default was originally 10 seconds
+            but login is particularly slow for me and so have changed to 20 """
         self.selenium.wait_for_page_to_load(max_wait*1000)
 
     def fill_form(self, frm_locator, data, submit=None):

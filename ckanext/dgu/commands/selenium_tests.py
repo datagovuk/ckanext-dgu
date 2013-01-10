@@ -5,6 +5,7 @@ import urllib2
 import requests
 import subprocess
 import inspect
+import time
 import collections
 import ConfigParser
 
@@ -104,9 +105,6 @@ class TestRunner(CkanCommand):
 
         import ckanext.dgu.testtools.selenium_tests
         for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testtools.selenium_tests"], inspect.isclass):
-            if 'dataset' not in name.lower():
-                continue
-
             class_count += 1
 
             methods = [nm for (nm,_) in
@@ -121,10 +119,13 @@ class TestRunner(CkanCommand):
                 cfg.update(dict([(k,v,) for k,v in self.config.items(name)]))
 
             # Build an instance of the test class and call each test method
-            instance = cls(self.selenium, cfg)
+            instance = cls(self.selenium, cfg, log)
+            log.info("Running tests in %s" % name)
+
             for method_name in methods:
                 try:
                     method_count += 1
+                    log.info(" Test: %s" % method_name)
                     getattr(instance, method_name)()
                 except Exception as e:
                     error_dict["%s.%s" % (name, method_name)].append(e)
@@ -163,6 +164,9 @@ class TestRunner(CkanCommand):
             log.info("Creating our own local selenium instance")
             args = ['java', '-jar', os.path.join(self.selenium_home, "selenium-server-standalone-2.28.0.jar")]
             self.selenium_process = subprocess.Popen(args)
+
+            # We should pause to give it a second or two to startup
+            time.sleep(10)
         return 'http://127.0.0.1:4444/'
 
 
