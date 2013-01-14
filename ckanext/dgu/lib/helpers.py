@@ -1,12 +1,13 @@
 import logging
 import re
 import urllib
+from urlparse import urljoin
 from itertools import dropwhile
 import datetime
 
 from webhelpers.html import literal
 from webhelpers.text import truncate
-from pylons import tmpl_context as c
+from pylons import tmpl_context as c, config
 
 from ckan.lib.helpers import icon
 import ckan.lib.helpers
@@ -153,11 +154,11 @@ def get_resource_wms(resource_dict):
 
 def get_resource_wfs(resource_dict):
     '''For a given resource, return the WMS url if it is a WMS data type.'''
-    url = resource_dict.get('url') or ''
-    format = resource_dict.get('format') or ''
+    wfs_service = resource_dict.get('wfs_service') or ''
+    format_ = resource_dict.get('format') or ''
     # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
-    if 'wfs' in url.lower() or format.lower() == 'wfs':
-        return url
+    if wfs_service == 'ckanext_os' or format_.lower() == 'wfs':
+        return urljoin(config['ckan.site_url'], '/data/wfs')
 
 def get_wms_info(pkg_dict):
     '''For a given package, extracts all the urls and spatial extent.
