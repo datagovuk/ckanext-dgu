@@ -17,7 +17,8 @@ class OnsImporter(PackageImporter):
     def __init__(self, filepaths, ckanclient):
         if not isinstance(filepaths, (list, tuple)):
             filepaths = [filepaths]
-        self._current_filename = os.path.basename(filepaths[0])
+        self._current_filename = os.path.basename(filepaths[0]) \
+                                 if filepaths else None
         self._item_count = 0
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
@@ -30,10 +31,13 @@ class OnsImporter(PackageImporter):
 
     def pkg_dict(self):
         for filepath in self._filepath:
-            log.info('Importing from file: %s' % filepath)
+            log.info('Importing from file: %s', filepath)
             self._current_filename = os.path.basename(filepath)
+            count = 0
             for item in OnsDataRecords(filepath):
                 yield self.record_2_package(item)
+                count += 1
+            log.info('%i records were imported from file: %s', count, filepath)
 
     def record_2_package(self, item):
         assert isinstance(item, dict)
@@ -151,19 +155,32 @@ class OnsImporter(PackageImporter):
         return geographic_coverage_db
 
     def _source_to_publisher(self, source):
+        # wrapper for _source_to_publisher_ so that it can be
+        # used by tests without instantiating the class
+        return self._source_to_publisher_(source, self._ckanclient)
+
+    @classmethod
+    def _source_to_publisher_(cls, source, ckanclient):
         '''
-        For a given ONS Source, returns the equivalent DGU publisher.
+        For a given ONS Source, returns the equivalent DGU publisher name.
         If it cannot find it, returns None.
         '''
         # map the name
         publisher_name = schema.canonise_organisation_name(source)
 
         # search for the name in live list of publishers
-        result = self._ckanclient.action('group_search', query=publisher_name)
+        # Start with a narrow search
+        result = ckanclient.action('group_search', query=publisher_name, exact=True)
+        if not result['count']:
+            # Now broaden it out
+            result = ckanclient.action('group_search', query=publisher_name, exact=False)
+            
         if not result['count']:
             log.warn('Could not find source in DGU publishers: "%s" (mapped from "%s")', publisher_name, source)
+            return None
         if result['count'] > 1:
-            log.warn('Multiple publishers matched "%s" (mapped from "%s"): %s', publisher_name, source, publishers)
+            log.warn('Multiple publishers matched "%s" (mapped from "%s"): %s', publisher_name, source,
+                     [(pub['name'], pub['title']) for pub in result['results']])
 
         return result['results'][0]['name']
 

@@ -98,6 +98,7 @@ organisation_name_mapping = {
     'Health':'Department of Health',
     'ISD Scotland (part of NHS National Services Scotland)':'ISD Scotland',
     'Information Centre for Health and Social Care':'NHS Information Centre for Health and Social Care',
+    'Health and Social Care Information Centre':'NHS Information Centre for Health and Social Care',
     'International Development':'Department for International Development',
     'Justice':'Ministry of Justice',
     'National Treatment Agency':'National Treatment Agency for Substance Misuse',
@@ -118,6 +119,7 @@ organisation_name_mapping = {
     'Justice (Northern Ireland)':'Department of Justice',
     'National Health Service in Scotland':'NHS Scotland',
     'Police Service of Northern Ireland (PSNI)':'Police Service of Northern Ireland',
+    'Office for Rail Regulation':'Office of Rail Regulation',
     }
 
 update_frequency_options = ['never', 'discontinued', 'annual', 'quarterly', 'monthly']

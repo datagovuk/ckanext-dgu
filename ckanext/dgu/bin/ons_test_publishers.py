@@ -1,22 +1,19 @@
-# NB This is a test, but run by paster. Due to it importing paste/registry, this file can't
-# live in the test directory.
+'''Test tool to check that the ONS sources can be translated into actual
+DGU publishers. Run it against data.gov.uk or a test CKAN server.
 
-from ckan.lib.cli import CkanCommand
+Due to it originally importing paste/registry, this file was not put
+in the test directory.
+'''
 
-class OnsPublisherTest(CkanCommand):
-    '''
-    Ensure we can translate all the values in the Source field into a publisher name.
-    '''
-    default_verbosity = 1
-    group_name = 'ckanext-dgu'
-    summary = __doc__.split('\n')[0]
-    usage = __doc__
-    min_args = 0
-    max_args = 0
-    
-    def command(self):
-        self._load_config()
-        log = __import__('logging').getLogger(__name__)
+import sys
+import logging
+
+from ckanclient import CkanClient
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger()
+
+def command(ckan_api_url):
 
         from ckanext.dgu.ons.importer import OnsImporter
         # sources pasted here from http://www.statistics.gov.uk/hub/statistics-producers/index.html
@@ -71,8 +68,37 @@ Civil Aviation Authority
 Higher Education Statistics Agency
 Eurostat
 '''
+        ckanclient = CkanClient(base_location=ckan_api_url)
+        num_errors = 0
+        sources = sources.split('\n')
         for source in sources:
-            publisher = OnsImporter._source_to_publisher(source)
-            assert publisher, source
-        import pdb; pdb.set_trace()
-        log.info('Completed successfully for %i sources', len(sources))
+            if not source.strip():
+                continue
+            publisher = OnsImporter._source_to_publisher_(source.strip(),
+                                                          ckanclient)
+            if not publisher:
+                log.error('Publisher not found: %s', source)
+                num_errors += 1
+        log.info('Completed with %i errors from %i sources', num_errors, len(sources))
+
+if __name__ == '__main__':
+    USAGE = '''ONS Sources test tool
+    Usage: python %s {ckan_api_url}
+
+    e.g. python %s http://data.gov.uk/api
+
+    Test tool to check that the ONS sources can be translated into actual
+    DGU publishers. Run it against data.gov.uk or a test CKAN server.
+    ''' % (sys.argv[0], sys.argv[0])
+
+    err = None
+    if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
+        err = 'Error: Please specify CKAN API URL.'
+    if len(sys.argv) > 2:
+        err = 'Error: Too many arguments.'
+    if err:
+        print err + '\n\n' + USAGE
+        sys.exit(1)
+    ckan_api_url = sys.argv[1]
+
+    command(ckan_api_url)

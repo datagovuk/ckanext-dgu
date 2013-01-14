@@ -155,7 +155,7 @@ def get_resource_wfs(resource_dict):
     '''For a given resource, return the WMS url if it is a WMS data type.'''
     wfs_service = resource_dict.get('wfs_service') or ''
     format_ = resource_dict.get('format') or ''
-    # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
+    # NB This WFS detection condition must match that in ckanext-os/ckanext/os/controller.py
     if wfs_service == 'ckanext_os' or format_.lower() == 'wfs':
         return urljoin(config['ckan.site_url'], '/data/wfs')
 
