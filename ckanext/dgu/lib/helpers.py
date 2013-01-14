@@ -150,6 +150,14 @@ def get_resource_wms(resource_dict):
     if 'wms' in url.lower() or format.lower() == 'wms':
         return url
 
+def get_resource_wfs(resource_dict):
+    '''For a given resource, return the WMS url if it is a WMS data type.'''
+    url = resource_dict.get('url') or ''
+    format = resource_dict.get('format') or ''
+    # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
+    if 'wfs' in url.lower() or format.lower() == 'wfs':
+        return url
+
 def get_wms_info(pkg_dict):
     '''For a given package, extracts all the urls and spatial extent.
     Returns (urls, extent) where:
@@ -161,6 +169,9 @@ def get_wms_info(pkg_dict):
         wms_url = get_resource_wms(r)
         if wms_url:
             urls.append(('url', wms_url))
+        wfs_url = get_resource_wfs(r)
+        if wfs_url:
+            urls.append(('url', wfs_url))
     # Extent
     extras = pkg_dict['extras']
     extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
