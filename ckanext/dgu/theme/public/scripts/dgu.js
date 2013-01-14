@@ -208,9 +208,11 @@ CKAN.Dgu = function($, my) {
       lastRow.find('a.add-button').appendTo(newRow.find('td').last());
 
       // Check URL button
-      newRow.find('input[id$="__validate-resource-button"]').attr('value', 'Check')
-                                                            .removeAttr('disabled')
-                                                            .each(function(index, e){
+      var validateButton = newRow.find('button[id$="__validate-resource-button"]');
+      if (validateButton.length==0) { throw 'Bad CSS selector. Could not attach event handler.'; }
+      validateButton.attr('value', 'Check')
+                     .removeAttr('disabled')
+                     .each(function(index, e){
         CKAN.Dgu.validateResource(e, function(){return $($(e).parents('tr')[0]);});
       });
       return newRow;

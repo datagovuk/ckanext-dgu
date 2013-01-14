@@ -5,16 +5,12 @@ from ckanext.dgu.testtools.selenium_tests.login import with_auth
 class DatasetTests(t.TestBase):
 
     @with_auth('editor_username', 'editor_password')
-    def test_create_invalid(self):
-        self.selenium.open('/dataset/new')
-
-    @with_auth('editor_username', 'editor_password')
-    def test_create(self, name=None):
+    def test_create(self):
         self.selenium.open('/dataset/new')
         self.wait()
 
         # Info
-        nm = name or 'Test Dataset %s' % str(uuid.uuid4())
+        nm = 'Test Dataset %s' % str(uuid.uuid4())
         self.selenium.type('id=title', nm)
         name = self.selenium.get_value("id=name")
         self.selenium.click('id=next-button')
@@ -59,12 +55,60 @@ class DatasetTests(t.TestBase):
         self.delete_dataset(name)
 
 
+    @with_auth('editor_username', 'editor_password')
     def test_edit(self):
-        pass
+        """ Create, and then edit a dataset """
 
+        self.selenium.open('/dataset/new')
+        self.wait()
+
+        # Info
+        nm = 'Test Dataset %s' % str(uuid.uuid4())
+        self.selenium.type('id=title', nm)
+        name = self.selenium.get_value("id=name")
+        self.selenium.click('id=next-button')
+
+        # Data files
+        self.selenium.click('id=next-button')
+
+        # Description
+        self.selenium.type("id=notes", "This is a test dataset")
+        self.selenium.click('id=next-button')
+
+        # License, we'll use the default
+        self.selenium.click('id=next-button')
+
+        # Publisher
+        labels = self.selenium.get_select_options("id=groups__0__name")
+        self.selenium.select("id=groups__0__name", "label=%s" % labels[1])
+        self.selenium.click('id=next-button')
+
+        labels = self.selenium.get_select_options("id=theme-primary")
+        self.selenium.select("id=theme-primary", "label=%s" % labels[1])
+        self.selenium.click('id=next-button')
+        self.selenium.click('id=save-button')
+        self.wait()
+
+        assert 'dataset/%s' % name in self.selenium.get_location(), "There was a problem creating a dataset"
+
+        print 'Ready to edit the dataset now...'
+        #self.selenium.click('link= Edit') - link isn't easily identifiable
+
+        self.selenium.open('/dataset/edit/%s' % name)
+
+        self.selenium.click('id=section-description-field')
+        self.selenium.type('id=notes','Wombles live under Wimbledon common')
+        self.selenium.click('id=save-button')
+        self.wait()
+
+        notes = self.selenium.get_text('css=.notes')
+        assert 'Womble' in notes, "Description was not updated when editing dataset"
+        self.delete_dataset(name)
 
     def delete_dataset(self, name):
         import ckan.model as model
+        model.repo.new_revision()
+
         pkg = model.Package.get(name)
         if pkg:
             # Make sure we save it so it is taken out of search index

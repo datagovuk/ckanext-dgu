@@ -75,7 +75,7 @@ class LoginTests(t.TestBase):
         user_was = model.User.get(uname)
         user_was.delete()
         model.Session.commit()
-        log.info("Deleted user %s that was created in test" % uname)
+        self.log.info("Deleted user %s that was created in test" % uname)
 
 
 class with_auth(object):
@@ -88,7 +88,7 @@ class with_auth(object):
     def __call__(decorator, f):
         def inner(self, *args):
             from login import LoginTests
-            l = LoginTests(self.selenium, self.config)
+            l = LoginTests(self.selenium, self.config, self.log)
 
             try:
                 username = self.config.get(decorator.username_key)
