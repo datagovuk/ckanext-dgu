@@ -172,6 +172,7 @@ def get_wms_info(pkg_dict):
         wfs_url = get_resource_wfs(r)
         if wfs_url:
             urls.append(('wfsurl', wfs_url))
+            urls.append(('resid', r['id']))
     # Extent
     extras = pkg_dict['extras']
     extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
