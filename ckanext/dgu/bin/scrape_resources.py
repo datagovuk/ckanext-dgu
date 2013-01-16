@@ -1,13 +1,11 @@
-import os
 import json
-import datetime
 import logging
 import requests
 import collections
 from ckan.lib.cli import CkanCommand
 import dateutil.parser
 
-log = logging.getLogger("ckanext")
+log = None
 
 class ScrapeResources(CkanCommand):
     """
@@ -27,16 +25,21 @@ class ScrapeResources(CkanCommand):
     def command(self):
         self._load_config()
 
+        # Set up logging after the config and before we import ckan
+        global log
+        log = logging.getLogger("ckanext.dgu.scrape_resources")
+
         import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
         model.repo.new_revision()
-        log.info("Database access initialised")
 
+        log.info("Database access initialised")
         s = ScraperWiki()
 
         for resource in self._get_resources():
             scrapername = resource.extras.get('scraper_url')
+            package = resource.resource_group.package
 
             # Get the data for this scraper and give up if there is none
             datalist = s.get_simple_scraper_data(scrapername)
@@ -44,16 +47,13 @@ class ScrapeResources(CkanCommand):
                 continue
 
             log.info("Found %d resources from scraper %s" % (len(datalist), scrapername))
-            grouped_datasets = collections.defaultdict(list)
+            grouped_datasets = {}
 
             # Groups the data we have retrieved into a dict, where each value is a
-            # list of json blobs back from ScraperWiki.
-            for r in datalist:
-                grouped_datasets[r['dataset']].append(r)
+            # list of json blobs back from ScraperWiki. Currently we only support
+            # a single package being added to from a single scraper
+            self._process_dataset(scrapername, package.name, datalist)
 
-            # For each dataset name, and the list of data, process it.
-            for k,v in grouped_datasets.iteritems():
-                self._process_dataset(scrapername, k, v)
 
     def _get_resources(self):
         import ckan.model as model
@@ -66,7 +66,7 @@ class ScrapeResources(CkanCommand):
 
         s = set([r for r in resources.all() if r.extras.get('scraper_url')
                  and not r.extras.get('scraper_url','').startswith('http')])
-        log.debug('Found %d resources' % len(s))
+        log.debug('Found %d resources with a scraper url' % len(s))
         return s
 
     def _process_dataset(self, scraper_name, name, datalist):
@@ -92,48 +92,44 @@ class ScrapeResources(CkanCommand):
         log.info("  Checking %d resources from scraper" % len(datalist))
         for r in datalist:
             if r.get('url') in current_urls:  # We already have a resource with this url
-                log.info("  %s is already present" % r['url'])
+                log.info("  [exists] %s" % r['url'])
             else:
-                # if there was an error, or the status code wasn't (eventually) a 200
-                # then we should skip the adding of this data.
+                # if there was an error during scraping we shouldn't trust the data
                 if r.get('error'):
                     log.info("  Skipping resource due to error: %s" % r.get('error'))
                     continue
 
+                # Hopefully at some point the status code was a 200, if not, then
+                # we should skip the resource
                 if not r.get('status_code') in ["200", "302"]:
                     log.info("  Skipping resource due to request failure: %s" % r.get('status_code'))
                     log.info("  Resource had url: %s" % r.get('url') )
                     continue
 
                 # Add a resource, and flag the dataset as modified
-                log.info('  Adding resource: %s' % r.get('url') )
+                log.info('  [adding] : %s' % r.get('url') )
 
                 dt = dateutil.parser.parse(r.get('scrape_time'))
                 scrape_time = dt.strftime('%d/%m/%Y')
 
+                extras = {'scraped': scrape_time,
+                          'scraper_url':scraper_name,
+                          'scraper_source': r.get('source')}
                 dataset.add_resource(r.get('url'), format=r.get('format',''),
                                      description=r.get('label', ''), size=r.get('size',0),
-                                     extras={'scraped': scrape_time,
-                                     'scraper_url':scraper_name, 'scraper_source': r.get('source')})
+                                     extras=extras)
                 modified = True
 
         # Potentially not safe to assume all resources came from the first page, if for
-        # instance the results came from search results, so we have to rely on the source
-        # being the very first page scraped.
+        # instance the results came from search results. We have to rely on the source
+        # being the very first page scraped, but that is up to the scraper.
         if not source_url:
             source_url = datalist[0].get('source')
 
         # We should check that this dataset has an additional resource, pointing at the
         # scraped url.  If so then we need to make sure it has a link to the ScraperWiki
         # scraper.
-        if additional_resource:
-            log.info("%d additional resource(s) were found" % len(additional_resource))
-            for r in additional_resource:
-                if r.url == source_url and not 'scraper_url' in r.extras:
-                    r.extras['scraper_url'] = scraper_name
-                    model.Session.add(r)
-                    modified = True
-        else:
+        if not additional_resource:
             log.info("No additional resource(s) were found - adding one")
             dataset.add_resource(source_url, format="HTML", resource_type='documentation',
                                  description="List of spending files",
@@ -189,7 +185,15 @@ class ScraperWiki(object):
         url = "https://api.scraperwiki.com/api/1.0/datastore/sqlite?format=jsondict&name=%s&query=select%%20*%%20from%%20%%60data%%60" % name
 
         log.info("Fetching data for %s" % name)
-        response = requests.get(url)
+        try:
+            response = requests.get(url)
+        except requests.exceptions.ConnectionError as e:
+            log.error("There was a connection failure connecting to ScraperWiki")
+            return None
+        except Exception as ex:
+            log.error(ex)
+            return None
+
         if not response.status_code in [200, 302]:
             log.error("ScraperWiki returned a %d response when fetching the list"
                 % response.status_code)
