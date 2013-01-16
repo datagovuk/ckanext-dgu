@@ -356,7 +356,7 @@ def render_stars(stars, reason, last_updated):
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
 
 def scraper_icon(res, alt=None):
-    if not alt:
+    if not alt and 'scraped' in res and 'scraper_source' in res:
         alt = "File link has been added automatically by scraping {url} on {date}. " \
               "Powered by scraperwiki.com.".format(url=res.get('scraper_source'), date=res.get('scraped').format("%d/%m/%Y"))
     return icon('scraperwiki_small', alt=alt)
