@@ -1000,7 +1000,7 @@ CKAN.Utils = function($, my) {
 
         input_box.attr('name', new_name);
         input_box.attr('id', new_name);
-        
+
         var $new = $('<div class="ckan-dataset-to-add"><p></p></div>');
         $new.append($('<input type="hidden" />').attr('name', old_name).val(ui.item.value));
         $new.append('<i class="icon-plus-sign"></i> ');
@@ -1197,7 +1197,7 @@ CKAN.Utils = function($, my) {
           // This needs to be far more informative.
           addAlert('<strong>Error:</strong> Unable to add related item');
         }
-      }); 
+      });
     });
   };
 
@@ -1555,7 +1555,6 @@ CKAN.DataPreview = function ($, my) {
         resourceData.formatNormalized = ext[ext.length-1];
       }
     }
-
     if (resourceData.webstore_url) {
       resourceData.elasticsearch_url = '/api/data/' + resourceData.id;
       var dataset = new recline.Model.Dataset(resourceData, 'elasticsearch');
@@ -1583,7 +1582,7 @@ CKAN.DataPreview = function ($, my) {
         }) {
       // HACK: treat as plain text / csv
       // pass url to jsonpdataproxy so we can load remote data (and tell dataproxy to treat as csv!)
-      var _url = my.jsonpdataproxyUrl + '?type=csv&url=' + resourceData.url;
+      var _url = '/data/preview/' + resourceData.id + '?type=csv';
       my.getResourceDataDirect(_url, function(data) {
         my.showPlainTextData(data);
       });

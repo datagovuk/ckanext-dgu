@@ -11,7 +11,7 @@
   <py:def function="page_heading">Data Search</py:def>
   <py:def function="optional_head">
     <script src="/scripts/spin.min.js"></script>
-    <script src="/scripts/dgu-basket.js"></script>
+    <script src="/scripts/dgu-basket.js?1"></script>
     <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
   </py:def>
 
@@ -52,17 +52,30 @@
           </a>
           <h4>Sort by</h4>
 <?python
-# default to relevancy if there is a keyword, otherwise popularity.
+# Default to location if there is a bbox and no other parameters. Otherwise 
+# relevancy if there is a keyword, otherwise popularity.
 # NB This ties in with the default sort set in ckanext/dgu/plugin.py
-sort_by = c.sort_by_fields or ('rank' if c.q else 'popularity')
+bbox = request.params.get('ext_bbox')
+search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items() 
+                                       if key not in ('ext_bbox', 'sort') and value != '']
+sort_by_location_enabled = bool(bbox and not search_params_apart_from_bbox_or_sort)
+sort_by = c.sort_by_fields or ('spatial' if sort_by_location_enabled else ('rank' if c.q else 'popularity'))
+sort_by_location_disabled = 'Selecting a location in Map Based Search allows you to sort by similarity of location. It is not possible to combine this sort ordering with other search parameters.' if not sort_by_location_enabled else False
+relevancy_disabled = 'Typing some text in the Search box allows you to sort by relevancy.' if not request.params.get('q') else False
 ?>
-<!--          <label class="radio inline">
-            <input type="radio" name="dataset-results-sort" value="${c.sort_by([])}" py:attrs="{'checked': 'checked'} if 'relevancy' in sort_by else {}"/>
-            relevancy
-          </label>-->
-          <py:for each="field,title,order in [('rank','relevancy','desc'), ('popularity', 'popularity', 'desc'), ('title_string','title','asc'), ('metadata_modified','last updated','desc')]">
-            <label class="radio inline">
-              <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="{'checked': 'checked'} if field in sort_by else {}"/>
+          <py:for each="field,title,order,disabled in [('rank','relevancy','desc',relevancy_disabled), ('popularity', 'popularity', 'desc', False), ('title_string','title','asc', False), ('metadata_modified','last updated','desc', False), ('spatial','location','desc',sort_by_location_disabled)]">
+            <?python
+                label_attrs = {'class': "radio inline"}
+                input_attrs = {}
+                if field in sort_by:
+                  input_attrs['checked'] = 'checked'
+                if disabled:
+                  input_attrs['disabled'] = 'disabled'
+                  label_attrs['class'] += ' js-tooltip'
+                  label_attrs['title'] = disabled
+            ?>
+            <label py:attrs="label_attrs">
+              <input type="radio" name="dataset-results-sort" value="${c.sort_by([(field,order)])}" py:attrs="input_attrs"/>
               ${title}
             </label>
           </py:for>

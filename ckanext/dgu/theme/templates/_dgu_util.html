@@ -176,12 +176,16 @@ def stars_label(stars):
         UK Location Map Search
       </h4>
       <ul class="facet-options">
-        <py:if test="'ext_bbox' not in request.params">
-          <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">Conduct Map Based Search</a></li>
-        </py:if>
-        <py:if test="'ext_bbox' in request.params">
-          <li><a href="${c.drill_down_url(alternative_url='/data/map-based-search')}">New Map Based Search</a></li>
-        </py:if>
+          <li>
+            <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {}, alternative_url='/data/map-based-search')}">
+              <py:if test="'ext_bbox' not in request.params">
+                Conduct Map Based Search
+              </py:if>
+              <py:if test="'ext_bbox' in request.params">
+                New Map Based Search
+              </py:if>
+            </a>
+          </li>
       </ul>
     </div>
 
