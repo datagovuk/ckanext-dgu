@@ -40,7 +40,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # Name section
         'title':     ('Name:', 'input'),
         'name':      ('Unique identifier for this data record', 'input'),
-        
+
         # Data section
         'package_type':                         (None, 'input'),
         'update_frequency':                     ('Update frequency', 'select'),
@@ -64,6 +64,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'foi-name':                 (None, 'input'),
         'foi-email':                (None, 'input'),
         'foi-phone':                (None, 'input'),
+        'foi-web':                (None, 'input'),
 
         # Themes and tags section
         'theme-primary':        (None, 'select'),
@@ -84,7 +85,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # Geographic coverage section
         'geographic_coverage':          (None, 'input'),
     }
-    
+
     # Fields that shouldn't appear in the form
     _unexpected_fields = (
         'external_reference',
@@ -111,7 +112,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         'geographic_granularity',
         'geographic_granularity-other',
     )
-    
+
     @classmethod
     def setup(self):
         """
@@ -185,7 +186,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         response = form_client.post_form(package_data)
 
         # Sanity check that the form failed to submit due to the name being missing.
-        assert 'Unique identifier:</b> Missing value' in response, response
+        assert 'Missing value' in response, response
 
         # Check the notes field separately as it contains a newline character
         # in its value.  And the `self.check_named_element()` method doesn't
@@ -254,7 +255,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         # TODO: fix these fields
         del expected_field_values['published_by']
         del expected_field_values['published_via']
-    
+
         # Ensure the resources have been un-merged correctly.
         for resource_type in 'additional timeseries individual'.split():
             resource_type += '_resources'
@@ -296,7 +297,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
 
         # create package via form
         response = form_client.post_form(package_data)
-        
+
         # GET the edit form
         offset = url_for(controller='package', action='edit', id=package_name)
         response = self.app.get(offset, extra_environ={'REMOTE_USER': self.admin})
@@ -359,13 +360,13 @@ class TestFormValidation(object):
         """Asserts that the title cannot be empty"""
         data = {'title': ''}
         response = self._form_client.post_form(data)
-        assert 'Name:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def test_name_non_empty(self):
         """Asserts that the name (uri identifier) is non-empty"""
         data = {'name': ''}
         response = self._form_client.post_form(data)
-        assert 'Unique identifier:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def test_name_rejects_non_alphanumeric_names(self):
         """Asserts that the name (uri identifier) does not allow punctuation"""
@@ -391,14 +392,15 @@ class TestFormValidation(object):
         """Asserts that the abstract cannot be empty"""
         data = {'notes': ''}
         response = self._form_client.post_form(data)
-        assert 'Description:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
+        assert '<b>Unique identifier: </b>' in response.body
 
     def test_individual_resource_url_non_empty(self):
         """Asserts that individual resources must have url defined"""
         data = {'individual_resources__0__description': 'description with no url',
                 'individual_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'URL:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def test_timeseries_resource_url_non_empty(self):
         """Asserts that timeseries resources must have url defined"""
@@ -406,21 +408,21 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no url',
                 'timeseries_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert_in('URL:</b> Missing value', response.body, response.body)
+        assert_in('Missing value', response.body, response.body)
 
     def test_additional_resource_url_non_empty(self):
         """Asserts that additional resources must have url defined"""
         data = {'additional_resources__0__description': 'description with no url',
                 'additional_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'URL:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def test_individual_resource_description_non_empty(self):
         """Asserts that individual resources must have description defined"""
         data = {'individual_resources__0__url': 'url with no description',
                 'individual_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Title:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def test_timeseries_resource_description_non_empty(self):
         """Asserts that timeseries resources must have description defined"""
@@ -428,14 +430,14 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no description',
                 'timeseries_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Title:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def test_additional_resource_description_non_empty(self):
         """Asserts that additional resources must have description defined"""
         data = {'additional_resources__0__url': 'url with no description',
                 'additional_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Title:</b> Missing value' in response.body, response.body
+        assert 'Missing value' in response.body, response.body
         assert 'Row(s) partially filled' in response.body, response.body
 
     def test_timeseries_resource_date_non_empty(self):
@@ -444,7 +446,7 @@ class TestFormValidation(object):
                 'timeseries_resources__0__url': 'url with no date',
                 'timeseries_resources__0__format': 'format with no date',}
         response = self._form_client.post_form(data)
-        assert 'Date:</b> Missing value' in response.body
+        assert 'Missing value' in response.body
 
     def assert_accepts_date(self, field_name, date_str):
         data = {field_name: date_str}
@@ -549,7 +551,7 @@ class TestPackageCreation(CommonFixtureMethods):
     """
     A suite of tests that check that packages are created correctly through the creation form.
     """
-    
+
     def setup(self):
         self._form_client = _PackageFormClient()
         CreateTestData.create_groups(_EXAMPLE_GROUPS, auth_profile='publisher')
@@ -570,15 +572,15 @@ class TestPackageCreation(CommonFixtureMethods):
         CreateTestData.flag_for_deletion(package_name)
         assert not self.get_package_by_name(package_name),\
             'Package "%s" already exists' % package_name
-        
+
         # create package via form
         self._form_client.post_form(package_data)
-        
+
         # ensure it's correct
         pkg = self.get_package_by_name(package_name)
         assert pkg
         assert package_data['name'] == pkg.name
-        
+
     def test_a_full_timeseries_dataset(self):
         """
         Tests the submission of a fully-completed timeseries dataset.
@@ -591,7 +593,7 @@ class TestPackageCreation(CommonFixtureMethods):
 
         # create package via form
         response = self._form_client.post_form(package_data)
-        
+
         # ensure it's correct
         pkg = self.get_package_by_name(package_name)
         assert pkg, response.body
@@ -621,6 +623,7 @@ class TestPackageCreation(CommonFixtureMethods):
         assert_equal(package_data['contact-name'], pkg.extras['contact-name'])
         assert_equal(package_data['contact-phone'], pkg.extras['contact-phone'])
         assert_equal(package_data['foi-name'], pkg.extras['foi-name'])
+        assert_equal(package_data['foi-web'], pkg.extras['foi-web'])
         assert_equal(package_data['foi-email'], pkg.extras['foi-email'])
         assert_equal(package_data['foi-phone'], pkg.extras['foi-phone'])
 
@@ -732,7 +735,7 @@ class TestEditingHarvestedDatasets(CommonFixtureMethods, WsgiAppCase):
                          ver='2')
 
         pkg_before = json.loads(self.app.get(offset).body)
-        
+
         # GET and POST the form, without entering any new details.
         client = _PackageFormClient()
         client.post_form({'license_id': '__other__'}, id=self.uklp_dataset['id'])
@@ -752,7 +755,7 @@ class TestAuthorization(WsgiAppCase):
     def setup_class(cls):
         cls._form_client = _PackageFormClient()
         DguCreateTestData.create_dgu_test_data()
-        
+
     @classmethod
     def teardown_class(cls):
         _drop_sysadmin()
@@ -834,7 +837,7 @@ class _PackageFormClient(WsgiAppCase):
         response = self.app.get(offset,
                                 extra_environ={'REMOTE_USER': self.admin if use_sysadmin_to_get_form else (user_name or self.admin)},
                                 )
-        
+
         # get the form fields and values from the html
         form = response.forms['package-edit']
         form_fields = {}
@@ -872,7 +875,7 @@ class _PackageFormClient(WsgiAppCase):
         def _index(k):
             """
             Returns the index specified in the given key
-            
+
             >>> _index('additional_resources__2__url')
             2
 
@@ -883,7 +886,7 @@ class _PackageFormClient(WsgiAppCase):
         resource_counts = {}
         for resource_type in resource_types:
             resource_keys = filter(lambda k: k.startswith(resource_type+'_resources'), keys)
-            resource_counts[resource_type] = max([0] + map(_index, resource_keys))                    
+            resource_counts[resource_type] = max([0] + map(_index, resource_keys))
 
         # populate the form_fields dict with the generated fields up to the
         # given index.  If the field already exists, then leave it alone, as
@@ -950,7 +953,7 @@ _EXAMPLE_FORM_DATA = {
         'name'                  : 'new_name',
         'title'                 : 'New Package Title',
         'notes'                 : 'A multi-line\ndescription',
-            
+
         # Publisher / contact details
         'groups__0__name'        : 'publisher-1',
         'contact-name'           : 'Publisher custom name',
@@ -959,6 +962,7 @@ _EXAMPLE_FORM_DATA = {
         'foi-name'               : 'FOI custom name',
         'foi-email'              : 'FOI custom email',
         'foi-phone'              : 'FOI custom phone',
+        'foi-web'                : 'FOI custom web',
 
         # additional resources
         'additional_resources'  : [

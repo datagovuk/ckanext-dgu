@@ -157,6 +157,7 @@ class PublisherCategories(object):
         g.extras['contact-phone'] = ''
         g.extras['foi-name'] = ''
         g.extras['foi-email'] = ''
+        g.extras['foi-web'] = ''
         g.extras['foi-phone'] = ''
         acronym = pub['field_acronym'][0]['value'] if pub['field_acronym'] else ''
         g.extras['abbreviation'] = acronym or ''

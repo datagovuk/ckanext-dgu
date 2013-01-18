@@ -228,6 +228,7 @@ class DatasetForm(SingletonPlugin):
             'foi-name': [unicode, drop_if_same_as_publisher, convert_to_extras],
             'foi-email': [unicode, drop_if_same_as_publisher, convert_to_extras],
             'foi-phone': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-web': [unicode, drop_if_same_as_publisher, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
@@ -283,6 +284,7 @@ class DatasetForm(SingletonPlugin):
             'foi-name': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
             'foi-email': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
             'foi-phone': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
+            'foi-web': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],
@@ -331,6 +333,7 @@ class DatasetForm(SingletonPlugin):
             'foi-name': g.extras.get('foi-name', ''),
             'foi-email': g.extras.get('foi-email', ''),
             'foi-phone': g.extras.get('foi-phone', ''),
+            'foi-web': g.extras.get('foi-name', ''),
         } for g in groups ]
 
         return dict( (g['name'], g) for g in groups )

@@ -103,6 +103,7 @@ class DguCreateTestData(CreateTestData):
              'foi-email': '',
              'foi-name': '',
              'foi-phone': '',
+             'foi-web': '',
              'geographic_coverage': "000000: ",
              'geographic_granularity': '',
              'mandate': '',

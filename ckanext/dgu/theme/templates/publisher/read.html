@@ -95,8 +95,7 @@ web_name = c.group_extras.get('website-name')
 name = c.group_extras.get('foi-name')
 email = c.group_extras.get('foi-email')
 phone = c.group_extras.get('foi-phone')
-if 'WDTK_URL' in c.group_extras:
-    web_url = c.group_extras['WDTK_URL']
+web_url = c.group_extras.get('foi-web')
 ?>
         ${name}
         ${contact_details(name, email, phone, web_url, web_name)}

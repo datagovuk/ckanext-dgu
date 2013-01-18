@@ -106,8 +106,8 @@ class PublisherMatch(CkanCommand):
                     if not publisher.extras.get('website-url'):
                         publisher.extras['website-url'] = homepage
                         modified = True
-                    if not publisher.extras.get('WDTK_URL'):
-                        publisher.extras['WDTK_URL'] = WDTK_REQUEST_URL % slug
+                    if not publisher.extras.get('foi-web'):
+                        publisher.extras['foi-web'] = WDTK_REQUEST_URL % slug
                         modified = True
                     if modified:
                         processed = processed + 1
