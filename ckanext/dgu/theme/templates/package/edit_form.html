@@ -67,10 +67,10 @@ if has_errors:
         k=clean(k)
         v=clean(v)
       ?>
-      <py:if test="type(v) is str">
+      <py:if test="type(v) in [str, unicode]">
         <b>${k}:</b> ${v}
       </py:if>
-      <py:if test="not (type(v) is str)">
+      <py:if test="not (type(v) in [str, unicode])">
         <b>${k}: </b> ${dump(v)}
       </py:if>
     </li>
