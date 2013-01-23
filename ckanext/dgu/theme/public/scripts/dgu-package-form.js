@@ -145,6 +145,12 @@
       CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
     });
 
+    /* Up/down buttons */
+    $('.resource-move').each(function(index, button){ // validate individual resource
+      button = $(button);
+      CKAN.Dgu.bindResourceMoveButtons(button, function(){return button.parents('tr.resource');});
+    });
+
     /* Resource format autocomplete */
     $('.format-typeahead').autocomplete({source: DGU_RESOURCE_FORMATS, items:5});
 

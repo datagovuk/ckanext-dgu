@@ -275,9 +275,10 @@ if has_errors:
 
       <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
 
-      <table class="flexitable table table-bordered table-condensed table-striped" id="individual_resources-table">
+      <table class="table table-bordered table-condensed table-striped" id="individual_resources-table">
       <thead>
         <tr>
+          <th></th>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
           <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
           <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
@@ -287,6 +288,10 @@ if has_errors:
       <tbody>
         <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
         <tr class="individual_resources__${num} resource">
+          <td>
+            <button class="resource-move resource-move-up">up</button>
+            <button class="resource-move resource-move-down">down</button>
+          </td>
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
             <?python
