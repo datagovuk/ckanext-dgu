@@ -209,6 +209,7 @@ CKAN.Dgu = function($, my) {
       var newRow = lastRow.clone();
       newRow.removeClass(oldClass);
       newRow.addClass( prefix + "__" + newIndex);
+      newRow.addClass('resource');
       newRow.insertAfter(lastRow);
       newRow.find("*").each(function(index, node) {
         var attrValueRegex = new RegExp(prefix + '__\\d+');
@@ -338,9 +339,11 @@ CKAN.Dgu = function($, my) {
         assert( input1.length==input2.length, 'Rows should have matching structure' );
         assert( input1.length>0, 'Found no inputs to swap', tr1 );
         for (var i=0;i<input1.length;i++) {
-          var swap = input1.val();
-          input1.val( input2.val() );
-          input2.val( swap );
+          var a = $(input1[i]);
+          var b = $(input2[i]);
+          var swap = a.val();
+          a.val( b.val() );
+          b.val( swap );
         }
       }
       if (up) {
