@@ -480,7 +480,7 @@ if has_errors:
       <label class="control-label" for="groups__0__name">Published by: </label>
       <div class="controls">
         <select id="groups__0__name" name="groups__0__name">
-          <option value=" " py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
+          <option value="" py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
             <option value="${publisher_name}" py:attrs="{'selected': 'selected' if group_name == publisher_name else None}" >
               ${publisher['title']}
