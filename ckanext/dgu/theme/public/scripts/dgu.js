@@ -242,6 +242,8 @@ CKAN.Dgu = function($, my) {
       $.each( newRow.find('.resource-move'), function(i, button) {
         CKAN.Dgu.bindResourceMoveButtons($(button));
       });
+      // Reset button visiblity
+      CKAN.Dgu.setVisibleResourceMoveButtons(table);
       return newRow;
   };
 
@@ -357,7 +359,22 @@ CKAN.Dgu = function($, my) {
         // Array splice downwards
         swapValues( $(rows[index]), $(rows[index+1]) );
       }
+      CKAN.Dgu.setVisibleResourceMoveButtons(table);
       return false;
+    });
+  };
+
+  my.setVisibleResourceMoveButtons = function(table) {
+    /* Update the visibility of resource-move buttons.
+     * In simple terms: The final two buttons are invisible.
+     * Of the visible ones, the first "Up" and last "Down" buttons are disabled.  */
+    var all = table.find('.resource-move');
+    $.each( all, function(i, element) {
+      element = $(element);
+      disabled = (i==0 || i>=all.length-3);
+      element.attr('disabled',disabled);
+      visible = (i>=all.length-2) ? 'none':'inline-block';
+      element.css('display',visible);
     });
   };
 

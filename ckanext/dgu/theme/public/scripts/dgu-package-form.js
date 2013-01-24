@@ -150,6 +150,11 @@
       button = $(button);
       CKAN.Dgu.bindResourceMoveButtons(button, function(){return button.parents('tr.resource');});
     });
+    /* Up/down button visibility */
+    var flexitables = $('.resource-move').parents('table');
+    $.each( flexitables, function(i,table) {
+      CKAN.Dgu.setVisibleResourceMoveButtons($(table));
+    });
 
     /* Resource format autocomplete */
     $('.format-typeahead').autocomplete({source: DGU_RESOURCE_FORMATS, items:5});
