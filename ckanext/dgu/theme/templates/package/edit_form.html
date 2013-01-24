@@ -160,7 +160,7 @@ if has_errors:
     </table>
 
     <!-- The resource fieldset for a timeseries dataset -->
-    <fieldset id="package_type-timeseries" class="well">
+    <fieldset id="package_type-timeseries" class="well resources-well">
       <p>If your data comes in multiple formats, use a line for each.</p>
 
       <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional resources' section.</p>
@@ -190,6 +190,7 @@ if has_errors:
       <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
       <thead>
         <tr>
+          <th></th>
           <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date: <img src="/images/information-grey.png"/></th>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
           <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
@@ -200,6 +201,12 @@ if has_errors:
       <tbody>
         <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
         <tr class="timeseries_resources__${num} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+          </td>
           <py:for each="col in ('date',) + c.resource_columns">
             <td class="resource-${col}">
               <?python
@@ -270,14 +277,15 @@ if has_errors:
 
 
     <!-- The resource fieldset for an individual dataset -->
-    <fieldset id="package_type-individual" class="well">
+    <fieldset id="package_type-individual" class="well resources-well">
       <p>If your data comes in multiple formats, use a line for each.</p>
 
       <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
 
-      <table class="flexitable table table-bordered table-condensed table-striped" id="individual_resources-table">
+      <table class="table table-bordered table-condensed table-striped" id="individual_resources-table">
       <thead>
         <tr>
+          <th></th>
           <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
           <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
           <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
@@ -287,6 +295,12 @@ if has_errors:
       <tbody>
         <py:for each="num, res in enumerate(data.get('individual_resources', []) + [{}])">
         <tr class="individual_resources__${num} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+          </td>
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
             <?python
@@ -655,6 +669,7 @@ if has_errors:
   <table class="table table-bordered table-striped table-condensed flexitable" id="additional_resources-table">
     <thead>
       <tr>
+        <th></th>
         <th class="resource-name">Description:</th>
         <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
         <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
@@ -665,6 +680,12 @@ if has_errors:
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr class="additional_resources__${num} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+          </td>
           <py:for each="col in ['description', 'url', 'format']">
             <td>
               <?python

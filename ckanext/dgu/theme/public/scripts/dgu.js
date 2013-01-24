@@ -1,4 +1,26 @@
-jQuery(function ($) {
+/* Utility: Global assertion function */
+function assert( code, errorMessage ) {
+  if (!code) {
+    console.error(errorMessage, arguments);
+    throw ('AssertionError');
+  }
+}
+
+/* Utility: Global console.log() function for all browsers */
+(function (con) {
+  var method;
+  var dummy = function() {};
+  var methods = ('assert,count,debug,dir,dirxml,error,exception,group,' +
+     'groupCollapsed,groupEnd,info,log,markTimeline,profile,profileEnd,' + 
+     'time,timeEnd,trace,warn').split(',');
+  while (method = methods.pop()) {
+    con[method] = con[method] || dummy;
+  }
+})(window.console = window.console || {});
+
+
+/* Core JS */
+jQuery(function () {
 
   $(document).ready(function () {
     /* Create javascript tooltips */
@@ -187,6 +209,7 @@ CKAN.Dgu = function($, my) {
       var newRow = lastRow.clone();
       newRow.removeClass(oldClass);
       newRow.addClass( prefix + "__" + newIndex);
+      newRow.addClass('resource');
       newRow.insertAfter(lastRow);
       newRow.find("*").each(function(index, node) {
         var attrValueRegex = new RegExp(prefix + '__\\d+');
@@ -215,6 +238,12 @@ CKAN.Dgu = function($, my) {
                      .each(function(index, e){
         CKAN.Dgu.validateResource(e, function(){return $($(e).parents('tr')[0]);});
       });
+      // Up/Down buttons
+      $.each( newRow.find('.resource-move'), function(i, button) {
+        CKAN.Dgu.bindResourceMoveButtons($(button));
+      });
+      // Reset button visiblity
+      CKAN.Dgu.setVisibleResourceMoveButtons(table);
       return newRow;
   };
 
@@ -289,6 +318,63 @@ CKAN.Dgu = function($, my) {
           this.value = terms.join( "," );
           return false;
         }
+    });
+  };
+
+  my.bindResourceMoveButtons = function(button) {
+    button.bind('click',function(e){
+      e.preventDefault();
+      var target = $(e.delegateTarget);
+      var table = target.closest('table');
+      var rows = table.find('tr');
+      var index = table.find('tr').index(target.closest('tr'));
+      // Should be going either up or down
+      var up   = target.hasClass('resource-move-up');
+      var down = target.hasClass('resource-move-down');
+      assert( (up&&!down) || (!up&&down), 'up XOR down should be true: '+up+','+down);
+      // Function to exchange the <INPUT> values between two rows
+      // Trust me, this is simpler than trying to manipulate the table
+      function swapValues( tr1, tr2 ) {
+        assert(tr1.length);
+        var input1 = tr1.find('input[type="text"]');
+        var input2 = tr2.find('input[type="text"]');
+        assert( input1.length==input2.length, 'Rows should have matching structure' );
+        assert( input1.length>0, 'Found no inputs to swap', tr1 );
+        for (var i=0;i<input1.length;i++) {
+          var a = $(input1[i]);
+          var b = $(input2[i]);
+          var swap = a.val();
+          a.val( b.val() );
+          b.val( swap );
+        }
+      }
+      if (up) {
+        assert(index>1, 'First up button should be disabled');
+        assert(index<rows.length-1, 'Last up button should be disabled');
+        // Array splice upwards
+        swapValues( $(rows[index]), $(rows[index-1]) );
+      }
+      if (down) {
+        assert(index<rows.length-2, 'Last down button should be disabled');
+        // Array splice downwards
+        swapValues( $(rows[index]), $(rows[index+1]) );
+      }
+      CKAN.Dgu.setVisibleResourceMoveButtons(table);
+      return false;
+    });
+  };
+
+  my.setVisibleResourceMoveButtons = function(table) {
+    /* Update the visibility of resource-move buttons.
+     * In simple terms: The final two buttons are invisible.
+     * Of the visible ones, the first "Up" and last "Down" buttons are disabled.  */
+    var all = table.find('.resource-move');
+    $.each( all, function(i, element) {
+      element = $(element);
+      disabled = (i==0 || i>=all.length-3);
+      element.attr('disabled',disabled);
+      visible = (i>=all.length-2) ? 'none':'inline-block';
+      element.css('display',visible);
     });
   };
 
