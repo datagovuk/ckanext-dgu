@@ -12,7 +12,7 @@ class LoginTests(t.TestBase):
 
         self.wait()
         assert "- User - CKAN" in self.selenium.get_title(),\
-            "User did not log in correctly" % self.selenium.get_title()
+            "User did not log in correctly to: '%s'" % self.selenium.get_title()
 
     def do_logout(self):
         self.selenium.click("link=Log out")
@@ -87,7 +87,7 @@ class with_auth(object):
 
     def __call__(decorator, f):
         def inner(self, *args):
-            from login import LoginTests
+            from test_login import LoginTests
             l = LoginTests(self.selenium, self.config, self.log)
 
             try:

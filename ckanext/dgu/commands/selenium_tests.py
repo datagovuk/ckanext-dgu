@@ -8,6 +8,7 @@ import time
 import collections
 import ConfigParser
 import logging
+import traceback
 
 from optparse import OptionParser
 from selenium import selenium
@@ -106,60 +107,71 @@ class TestRunner(CkanCommand):
         target_url = self.options.target_url or "http://localhost:5000/data"
         obj = urlparse.urlparse(selenium_url)
 
-
         self.selenium = selenium(obj.hostname, obj.port, "*firefox", target_url)
         self.selenium.start()
 
-        error_dict = collections.defaultdict(list)
-        class_count, method_count = (0, 0,)
+        try:
+            error_dict = collections.defaultdict(list) # {test_name: [message, ..]}
+            class_count, method_count = (0, 0,)
 
-        base_cfg = dict([(k,v,) for k,v in self.config.items("*")])
+            base_cfg = dict([(k,v,) for k,v in self.config.items("*")])
 
-        import ckanext.dgu.testselenium
-        for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testselenium"], inspect.isclass):
-            class_count += 1
+            import ckanext.dgu.testselenium
+            for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testselenium"], inspect.isclass):
+                class_count += 1
 
-            methods = [nm for (nm,_) in
-                inspect.getmembers(cls, predicate=inspect.ismethod) if nm.startswith('test_')]
-            if not methods:
-                continue
+                methods = [nm for (nm,_) in
+                    inspect.getmembers(cls, predicate=inspect.ismethod) if nm.startswith('test_')]
+                if not methods:
+                    continue
 
-            # Get config for test name by copying the base config and applying
-            # the test specific config over the top.
-            cfg = base_cfg.copy()
-            if self.config.has_section(name):
-                cfg.update(dict([(k,v,) for k,v in self.config.items(name)]))
+                # Get config for test name by copying the base config and applying
+                # the test specific config over the top.
+                cfg = base_cfg.copy()
+                if self.config.has_section(name):
+                    cfg.update(dict([(k,v,) for k,v in self.config.items(name)]))
 
-            # Build an instance of the test class and call each test method
-            instance = cls(self.selenium, cfg, log)
-            log.info("Running tests in %s" % name)
+                # Build an instance of the test class and call each test method
+                instance = cls(self.selenium, cfg, log)
+                log.info("Running tests in %s" % name)
 
-            for method_name in methods:
-                try:
-                    method_count += 1
-                    log.info(" Test: %s" % method_name)
-                    getattr(instance, method_name)()
-                except Exception as e:
-                    error_dict["%s.%s" % (name, method_name)].append(e)
-                    log.error(e)
-                except AssertionError as b:
-                    error_dict["%s.%s" % (name, method_name)].append(b)
-                    log.error(b)
+                for method_name in methods:
+                    test_name = "%s.%s" % (name, method_name)
+                    log.info("Test: %s", test_name)
+                    try:
+                        method_count += 1
+                        log.info("* Test: %s" % method_name)
+                        getattr(instance, method_name)()
+                    except Exception as e:
+                        exception_str = traceback.format_exc(limit=3)
+                        error_dict[test_name].append(exception_str)
+                        log.exception(e)
+                        log.info("Test failed: %s.%s", name, method_name)
+                    except AssertionError as e:
+                        exception_str = traceback.format_exc(limit=3)
+                        error_dict[test_name].append(exception_str)
+                        log.exception(e)
+                        log.info("Test failed: %s.%s", name, method_name)
+                    else:
+                        log.info("Test passed: %s", test_name)
 
+        finally:
+            # Cleanup
+            self.selenium.stop()
+            if self.selenium_process:
+                log.info("Closing down our local selenium server")
+                self.selenium_process.kill()
 
-        # Cleanup
-        self.selenium.stop()
-        if self.selenium_process:
-            log.info("Closing down our local selenium server")
-            self.selenium_process.kill()
+        log.info("Ran %d tests with %d failures", method_count, len(error_dict))
 
-        log.info("Ran %d tests in %d classes" % (method_count, class_count,))
-
-        for k,v in error_dict.iteritems():
-            print k
-            print '*' * 30
-            for i in v:
-                print i
+        if error_dict:
+            print 'Errors:'
+            print '-' * 50
+            for k,v in error_dict.iteritems():
+                print 'Test:', k
+                for i in v:
+                    print i
+                print '-' * 50
 
 
     def _run_selenium(self):
