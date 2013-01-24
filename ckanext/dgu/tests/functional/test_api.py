@@ -34,7 +34,7 @@ class TestRestApi(ControllerTestCase):
         pkg = copy.deepcopy(DguCreateTestData._packages[0])
         pkg['name'] = munge_title_to_name(name_to_give_the_package)
         return pkg
-        
+
     def test_get_package(self):
         offset = '/api/rest/package/%s' % self.pkg_name
         result = self.app.get(offset, status=[200])
@@ -51,9 +51,9 @@ class TestRestApi(ControllerTestCase):
         extras = res['extras']
         expected_extra_keys = set((
             'access_constraints', 'contact-email', 'contact-name', 'contact-phone',
-            'foi-email', 'foi-name', 'foi-phone', 'geographic_coverage',
-            'mandate', 'temporal_coverage-to', 'temporal_coverage-from',
-            'temporal_granularity'))
+            'foi-email', 'foi-name', 'foi-phone', 'foi-web',
+            'geographic_coverage', 'mandate', 'temporal_coverage-to',
+            'temporal_coverage-from', 'temporal_granularity'))
         assert set(extras.keys()) >= expected_extra_keys, set(extras.keys()) - expected_extra_keys
         assert_equal(extras.get('temporal_coverage-from'), '2010-01-01')
         assert_equal(len(res['resources']), 1)
@@ -67,7 +67,7 @@ class TestRestApi(ControllerTestCase):
         offset = '/api/rest/package'
         postparams = '%s=1' % json.dumps(test_pkg)
         result = self.app.post(offset, postparams, status=[201], extra_environ=self.extra_environ_sysadmin)
-        
+
         # check returned dict is correct
         res = json.loads(result.body)
         assert_equal(res['name'], test_pkg['name'])
@@ -101,7 +101,7 @@ class TestRestApi(ControllerTestCase):
         edited_pkg['title'] = 'Edited title'
         postparams = '%s=1' % json.dumps(edited_pkg)
         result = self.app.put(offset, postparams, status=[200], extra_environ=self.extra_environ_sysadmin)
-        
+
         # check returned dict is correct
         res = json.loads(result.body)
         assert_equal(res['name'], test_pkg['name'])
@@ -152,7 +152,7 @@ class TestRestApi(ControllerTestCase):
         assert_cannot_create('user', '')
         assert_cannot_create('', '')
         assert_cannot_create('', 'national-health-service')
-        
+
     def test_edit_permissions(self):
         def assert_edit(user_name, publisher_name, status=200):
             # create a package to edit
@@ -160,7 +160,7 @@ class TestRestApi(ControllerTestCase):
             test_pkg = self.get_package_fixture(pkg_name)
             test_pkg['groups'] = [publisher_name] if publisher_name else []
             pkg = CreateTestData.create_arbitrary(test_pkg)
-            
+
             # edit it
             offset = '/api/rest/package/%s' % pkg_name
             edited_pkg = copy.deepcopy(test_pkg)
@@ -216,7 +216,7 @@ class TestDguApi(ControllerTestCase, TestSearchIndexer):
         res = json.loads(result.body)
         assert isinstance(res, int), res
         assert 3 < res < 10, res
-        
+
     def test_latest_datasets(self):
         offset = '/api/util/latest-datasets'
         result = self.app.get(offset, status=[200])

@@ -67,10 +67,10 @@ if has_errors:
         k=clean(k)
         v=clean(v)
       ?>
-      <py:if test="type(v) is str">
+      <py:if test="type(v) in [str, unicode]">
         <b>${k}:</b> ${v}
       </py:if>
-      <py:if test="not (type(v) is str)">
+      <py:if test="not (type(v) in [str, unicode])">
         <b>${k}: </b> ${dump(v)}
       </py:if>
     </li>
@@ -474,12 +474,13 @@ if has_errors:
       foi_name = group.get('foi-name', '')
       foi_email = group.get('foi-email', '')
       foi_phone = group.get('foi-phone', '')
+      foi_web = group.get('foi-web', '')
     ?>
     <div class="control-group">
       <label class="control-label" for="groups__0__name">Published by: </label>
       <div class="controls">
         <select id="groups__0__name" name="groups__0__name">
-          <option value=" " py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
+          <option value="" py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
             <option value="${publisher_name}" py:attrs="{'selected': 'selected' if group_name == publisher_name else None}" >
               ${publisher['title']}
@@ -541,10 +542,12 @@ if has_errors:
 
       <p><b>Name: </b> <span id="foi-name-label">${foi_name}</span></p>
       <p><b>Email: </b><span id="foi-email-label">${foi_email}</span></p>
+      <p><b>Web: </b><span id="foi-web-label">${foi_web}</span></p>
       <p><b>Phone: </b><span id="foi-phone-label">${foi_phone}</span></p>
 
       <input id="foi-name" name="foi-name" type="hidden" value="${foi_name}"/>
       <input id="foi-email" name="foi-email" type="hidden" value="${foi_email}"/>
+      <input id="foi-web" name="foi-web" type="hidden" value="${foi_web}"/>
       <input id="foi-phone" name="foi-phone" type="hidden" value="${foi_phone}"/>
 
       <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
@@ -565,6 +568,12 @@ if has_errors:
             <label class="control-label" for="foi-email-editor">Email:</label>
             <div class="controls">
               <input type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" />
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="foi-web-editor">Web:</label>
+            <div class="controls">
+              <input type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" />
             </div>
           </div>
           <div class="control-group">

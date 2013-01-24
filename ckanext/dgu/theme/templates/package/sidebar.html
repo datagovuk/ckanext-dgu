@@ -39,7 +39,7 @@ if access_constraints:
             <py:if test="isopen">
               <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
                 <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
-              </a> 
+              </a>
             </py:if>
             <py:if test="isopen == False">
               <span class="closed">${h.icon('lock')}</span>
@@ -52,7 +52,7 @@ if access_constraints:
             <py:if test="isopen">
               <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
                 <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
-              </a> 
+              </a>
             </py:if>
             <py:if test="isopen == False">
               <span class="closed" py:if="not c.pkg.isopen()">${h.icon('lock')}</span>
@@ -88,21 +88,23 @@ if not (name or email or phone) and publisher_groups:
 foi_name = pkg_extras.get('foi-name')
 foi_email = pkg_extras.get('foi-email')
 foi_phone = pkg_extras.get('foi-phone')
-if not (foi_phone or foi_email or foi_phone) and publisher_groups:
+foi_web = pkg_extras.get('foi-web')
+if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
          extras = publisher_groups[0].extras
          foi_name = extras.get('foi-name')
          foi_email = extras.get('foi-email')
          foi_phone = extras.get('foi-phone')
+         foi_web = extras.get('foi-web')
 ?>
     <ul>
         ${name}
         ${contact_details(name, email, phone, None, None)}
     </ul>
     <py:if test="foi_name or foi_email or foi_phone">
-      FOI Contact: 
+      FOI Contact:
       <ul>
           ${foi_name}
-          ${contact_details(foi_name, foi_email, foi_phone, None, None)}
+          ${contact_details(foi_name, foi_email, foi_phone, foi_web, None)}
       </ul>
     </py:if>
 

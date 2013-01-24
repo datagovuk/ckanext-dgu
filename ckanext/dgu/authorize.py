@@ -87,6 +87,12 @@ def dgu_package_create(context, data_dict):
         # so that the intersection works on names (rather than the decomposed name)
         package_group_names = [data_dict['groups']]
 
+    # If the user has a group (is a publisher), but there is no package
+    # group name, then we need to continue to allow validation to cause the
+    # failure.
+    if user_publisher_names and not any(package_group_names):
+        return {'success': True}
+
     if not _groups_intersect(user_publisher_names, package_group_names):
         return {'success': False,
                 'msg': _('User %s not authorized to edit packages of this publisher') % str(user)}
