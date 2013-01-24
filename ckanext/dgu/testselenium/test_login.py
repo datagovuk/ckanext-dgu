@@ -1,5 +1,5 @@
 import uuid
-import ckanext.dgu.testtools.selenium_test_base as t
+import selenium_test_base as t
 
 class LoginTests(t.TestBase):
 

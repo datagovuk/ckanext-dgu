@@ -1,6 +1,6 @@
 import uuid, time
-import ckanext.dgu.testtools.selenium_test_base as t
-from ckanext.dgu.testtools.selenium_tests.login import with_auth
+import selenium_test_base as t
+from test_login import with_auth
 
 class PublisherTests(t.TestBase):
 

@@ -1,4 +1,3 @@
-
 import os
 import sys
 import urllib2
@@ -8,12 +7,13 @@ import inspect
 import time
 import collections
 import ConfigParser
+import logging
 
 from optparse import OptionParser
 from selenium import selenium
 from ckan.lib.cli import CkanCommand
 
-log = __import__('logging').getLogger("ckanext")
+log = None
 
 class TestRunner(CkanCommand):
     """
@@ -34,6 +34,9 @@ class TestRunner(CkanCommand):
 
     def __init__(self, name):
         super(TestRunner, self).__init__(name)
+        self.dgu_dir = os.path.abspath(os.path.join(__file__, "../../../../"))
+        default_config_filepath = os.path.join(self.dgu_dir,
+                                               'selenium_test.ini')
         self.parser.add_option("-s", "--selenium",
                   type="string", dest="selenium_url",
                   help="Specify the selenium url")
@@ -42,7 +45,8 @@ class TestRunner(CkanCommand):
                   help="Specify the server url")
         self.parser.add_option("--configfile",
                   type="string", dest="config_file",
-                  help="Specifies the configuration file")
+                               default=default_config_filepath,
+                  help="Specifies the DGU Selenium configuration file")
 
 
         self.selenium_process = None
@@ -50,14 +54,18 @@ class TestRunner(CkanCommand):
 
 
     def command(self):
-        log.info("Created TestRunner")
         self._load_config()
 
-        import ckan.model as model
-        model.Session.remove()
-        model.Session.configure(bind=model.meta.engine)
-        model.repo.new_revision()
-        log.info("Database access initialised")
+        # Initialise logger after the config is loaded, so it is not disabled.
+        global log
+        log = logging.getLogger(__name__)
+        log.info("Created TestRunner")
+
+        #import ckan.model as model
+        #model.Session.remove()
+        #model.Session.configure(bind=model.meta.engine)
+        #model.repo.new_revision()
+        #log.info("Database access initialised")
 
 
         cmd = self.args[0]
@@ -65,16 +73,20 @@ class TestRunner(CkanCommand):
             log.error("Unknown command [%s]" % cmd)
             sys.exit(1)
 
-        root = os.path.abspath(os.path.join(__file__,
-            "../../../../"))
-
-        self.selenium_home = os.path.join(root, 'selenium')
+        self.selenium_home = os.path.join(self.dgu_dir, 'selenium')
         if not os.path.exists(self.selenium_home):
             log.info("Creating selenium home directory")
             os.makedirs(self.selenium_home)
 
         self.config = ConfigParser.ConfigParser()
-        self.config.readfp(open(self.options.config_file or "selenium_test.ini"))
+        if self.options.config_file:
+            config_filepath = self.options.config_file
+        else:
+            log.debug('No --configfile specified, so using default of: %s',
+                      default_config_filepath)
+            config_filepath = default_config_filepath
+        self.config.readfp(open(self.options.config_file or \
+                                default_config_filepath))
 
         getattr(self, '%s_task' % cmd)()
 
@@ -103,8 +115,8 @@ class TestRunner(CkanCommand):
 
         base_cfg = dict([(k,v,) for k,v in self.config.items("*")])
 
-        import ckanext.dgu.testtools.selenium_tests
-        for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testtools.selenium_tests"], inspect.isclass):
+        import ckanext.dgu.testselenium
+        for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testselenium"], inspect.isclass):
             class_count += 1
 
             methods = [nm for (nm,_) in
