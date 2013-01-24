@@ -669,6 +669,7 @@ if has_errors:
   <table class="table table-bordered table-striped table-condensed flexitable" id="additional_resources-table">
     <thead>
       <tr>
+        <th></th>
         <th class="resource-name">Description:</th>
         <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
         <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
@@ -679,6 +680,12 @@ if has_errors:
     <tbody>
       <py:for each="num, res in enumerate(data.get('additional_resources', []) + [{}])">
         <tr class="additional_resources__${num} resource">
+          <td class="resource-move-cell">
+            <div class="btn-group">
+              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+          </td>
           <py:for each="col in ['description', 'url', 'format']">
             <td>
               <?python
