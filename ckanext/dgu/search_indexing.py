@@ -1,5 +1,6 @@
 from logging import getLogger
 import re
+import string
 
 from ckan.model.group import Group
 from ckan import model
@@ -45,6 +46,16 @@ class SearchIndexing(object):
         regex = re.compile(r'open government licen[sc]e', re.IGNORECASE)
         return pkg_dict['license_id'] == 'uk-ogl' or \
                bool(regex.search(pkg_dict.get('extras_access_constraints', '')))
+
+    @classmethod
+    def clean_title_string(cls, pkg_dict):
+        ''' Removes leading spaces from the title_string that is used for searching '''
+        ts = pkg_dict.get('title_string', '').lstrip()  # strip leading whitespace
+        if ts and ts[0] in string.punctuation:
+            # Remove leading punctuation where we find it.
+            ts = ts.replace(ts[0], '')
+        pkg_dict['title_string'] = ts
+
 
     @classmethod
     def resource_format_cleanup(cls, pkg_dict):
