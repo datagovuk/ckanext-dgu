@@ -177,7 +177,7 @@ def get_wms_info(pkg_dict):
             resname = pkg_dict['title']
             if r['description']:
                 resname += ' - %s' % r['description']
-            urls.append(('resname', resname))
+            urls.append(('resname', resname.encode('utf8')))
     # Extent
     extras = pkg_dict['extras']
     extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
