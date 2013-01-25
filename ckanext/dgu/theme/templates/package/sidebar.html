@@ -113,8 +113,14 @@ if not (foi_phone or foi_email or foi_phone) and publisher_groups:
   ?>
 
   <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
-    <h4>Deletion</h4>
-    <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Delete this dataset</a>
+    <py:if test="dataset_type != 'uklp'">
+      <h4>Deletion</h4>
+      <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Delete this dataset</a>
+    </py:if>
+    <py:if test="dataset_type == 'uklp'">
+      <h4>Withdrawal</h4>
+      <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Withdraw this dataset</a>
+    </py:if>
   </li>
 
   <li py:if="c.pkg_dict['tags']" class="widget-container">
