@@ -18,8 +18,8 @@
       </py:if>
       <py:if test="c.pkg.extras.get('UKLP') == 'True'">
         <p>Are you sure you want to withdraw this ${c.pkg.extras.get('resource-type')} record?</p>
-        <p py:if="c.pkg.extras.get('resource-type') == 'service'"><strong>Reminder:</strong> Ensure any dataset records that are coupled from this record are also withdrawn.</p>
-        <p py:if="c.pkg.extras.get('resource-type') == 'dataset'"><strong>Reminder:</strong> Ensure any service records that couple to this record are also withdrawn.</p>
+        <p py:if="c.pkg.extras.get('resource-type') == 'service'"><strong>Reminder:</strong> Ensure any dataset records that point to this record (e.g. by Coupled Resource) are also withdrawn.</p>
+        <p py:if="c.pkg.extras.get('resource-type') == 'dataset'"><strong>Reminder:</strong> Ensure any series or service records that point to this record (e.g. by Coupled Resource) are also withdrawn.</p>
       </py:if>
       <input id="delete-button" name="delete" type="submit" value="Ok" />
       <input id="cancel-button" name="cancel" type="submit" value="Cancel" />
