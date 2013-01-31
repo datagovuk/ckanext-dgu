@@ -336,6 +336,7 @@ class SearchPlugin(SingletonPlugin):
         Dynamically creates a license_id-is-ogl field to index on, and clean
         up resource formats prior to indexing.
         """
+        SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
         SearchIndexing.add_field__group_titles(pkg_dict)
