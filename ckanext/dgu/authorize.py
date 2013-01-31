@@ -166,7 +166,7 @@ def dgu_dataset_delete(context, data_dict):
     # (they are an 'editor' for this publisher) OR
     # (an admin for this publisher OR parent publishers).
     if not user_obj:
-        return fail
+        return {'success': False}
 
     package_group = package.get_groups('publisher')
     parent_groups = list(publib.go_up_tree(package_group[0])) if package_group else []
