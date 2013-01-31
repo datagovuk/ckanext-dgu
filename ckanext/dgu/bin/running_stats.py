@@ -48,20 +48,23 @@ class StatsCount(dict):
         self[category] += 1
 
     def report_value(self, category):
+        '''Returns the value for a category and value to sort categories by.'''
         value = repr(self[category])
         if len(value) > self.report_value_limit:
             value = value[:self.report_value_limit] + '...'
-        return value
+        return (value, self[category])
 
     def report(self, indent=1):
         lines = []
-        categories = self.keys()
-        categories.sort()
         indent_str = '\t' * indent
-        for category in categories:
-            value = self.report_value(category)
+        report_dict = dict()
+        for category in self.keys():
+            report_dict[category] = self.report_value(category)
+        for category, value_tuple in sorted(report_dict.iteritems(),
+                                            key=lambda x: -x[1][1]):
+            value = value_tuple[0]
             lines.append(indent_str + '%s: %s' % (category, value))
-        if not categories:
+        if not self:
             lines = [indent_str + 'None']
         return '\n'.join(lines)
 
@@ -75,7 +78,19 @@ class StatsList(StatsCount):
 
     def report_value(self, category):
         value = self[category]
-        value_str = '%i %r' % (len(value), value)
+        number_of_values = len(value)
+        value_str = '%i %r' % (number_of_values, value)
         if len(value_str) > self.report_value_limit:
             value_str = value_str[:self.report_value_limit] + '...'
-        return value_str
+        return (value_str, number_of_values)
+
+if __name__ == '__main__':
+    package_stats = StatsList()
+    package_stats.add('Success', 'good1')
+    package_stats.add('Success', 'good2')
+    package_stats.add('Success', 'good3')
+    package_stats.add('Success', 'good4')
+    package_stats.add('Failure', 'bad1')
+    print package_stats.report()
+
+    print StatsList().report()
