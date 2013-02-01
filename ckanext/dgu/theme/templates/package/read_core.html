@@ -277,7 +277,7 @@ if c.pkg_dict:
             harvest_guid = pkg_extras.get('guid')
             harvest_source_reference = pkg_extras.get('harvest_source_reference')
             if harvest_source_reference and harvest_source_reference != harvest_guid:
-                field_names.add('harvest-source-reference')
+                field_names.add(['harvest_source_reference'])
     elif dataset_type == 'ons':
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
