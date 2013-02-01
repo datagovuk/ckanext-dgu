@@ -55,19 +55,11 @@ class TestRunner(CkanCommand):
 
 
     def command(self):
-        self._load_config()
 
         # Initialise logger after the config is loaded, so it is not disabled.
         global log
         log = logging.getLogger(__name__)
         log.info("Created TestRunner")
-
-        #import ckan.model as model
-        #model.Session.remove()
-        #model.Session.configure(bind=model.meta.engine)
-        #model.repo.new_revision()
-        #log.info("Database access initialised")
-
 
         cmd = self.args[0]
         if cmd not in ['install', 'run']:
@@ -114,7 +106,7 @@ class TestRunner(CkanCommand):
             error_dict = collections.defaultdict(list) # {test_name: [message, ..]}
             class_count, method_count = (0, 0,)
 
-            base_cfg = dict([(k,v,) for k,v in self.config.items("*")])
+            base_cfg = {}
 
             import ckanext.dgu.testselenium
             for name,cls in inspect.getmembers(sys.modules["ckanext.dgu.testselenium"], inspect.isclass):
@@ -172,6 +164,7 @@ class TestRunner(CkanCommand):
                 for i in v:
                     print i
                 print '-' * 50
+            sys.exit(1)  # Make sure bail so that we know we have errors
 
 
     def _run_selenium(self):
