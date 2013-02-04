@@ -168,6 +168,9 @@ def dgu_dataset_delete(context, data_dict):
     if Authorizer().is_sysadmin(user_obj):
         return {'success': True}
 
+    if package.extras.get('UKLP', '') != 'True':
+        return {'success': False}
+
     # To be able to delete this dataset the user is allowed if
     # (they are an 'editor' for this publisher) OR
     # (an admin for this publisher OR parent publishers).
