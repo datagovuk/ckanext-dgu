@@ -1,12 +1,13 @@
 import logging
 import re
 import urllib
+from urlparse import urljoin
 from itertools import dropwhile
 import datetime
 
 from webhelpers.html import literal
 from webhelpers.text import truncate
-from pylons import tmpl_context as c
+from pylons import tmpl_context as c, config
 
 from ckan.lib.helpers import icon
 import ckan.lib.helpers
@@ -151,6 +152,14 @@ def get_resource_wms(resource_dict):
     if 'wms' in url.lower() or format.lower() == 'wms':
         return url
 
+def get_resource_wfs(resource_dict):
+    '''For a given resource, return the WMS url if it is a WMS data type.'''
+    wfs_service = resource_dict.get('wfs_service') or ''
+    format_ = resource_dict.get('format') or ''
+    # NB This WMS detection condition must match that in ckanext-os/ckanext/os/controller.py
+    if wfs_service == 'ckanext_os' or format_.lower() == 'wfs':
+        return urljoin(config['ckan.site_url'], '/data/wfs')
+
 def get_wms_info(pkg_dict):
     '''For a given package, extracts all the urls and spatial extent.
     Returns (urls, extent) where:
@@ -162,6 +171,14 @@ def get_wms_info(pkg_dict):
         wms_url = get_resource_wms(r)
         if wms_url:
             urls.append(('url', wms_url))
+        wfs_url = get_resource_wfs(r)
+        if wfs_url:
+            urls.append(('wfsurl', wfs_url))
+            urls.append(('resid', r['id']))
+            resname = pkg_dict['title']
+            if r['description']:
+                resname += ' - %s' % r['description']
+            urls.append(('resname', resname))
     # Extent
     extras = pkg_dict['extras']
     extent = {'n': get_from_flat_dict(extras, 'bbox-north-lat', ''),
@@ -339,6 +356,12 @@ def render_stars(stars, reason, last_updated):
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
 
+def scraper_icon(res, alt=None):
+    if not alt and 'scraped' in res and 'scraper_source' in res:
+        alt = "File link has been added automatically by scraping {url} on {date}. " \
+              "Powered by scraperwiki.com.".format(url=res.get('scraper_source'), date=res.get('scraped').format("%d/%m/%Y"))
+    return icon('scraperwiki_small', alt=alt)
+
 def ga_download_tracking(resource, action='download'):
     '''Google Analytics event tracking for downloading a resource.
 
@@ -352,7 +375,7 @@ def ga_download_tracking(resource, action='download'):
     by setting a target of _blank but this forces the download (many of them remote urls) into a new
     tab/window.
     '''
-    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s','',true]);"\
+    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s',0,true]);"\
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
 

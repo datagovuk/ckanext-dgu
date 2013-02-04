@@ -1000,7 +1000,7 @@ CKAN.Utils = function($, my) {
 
         input_box.attr('name', new_name);
         input_box.attr('id', new_name);
-        
+
         var $new = $('<div class="ckan-dataset-to-add"><p></p></div>');
         $new.append($('<input type="hidden" />').attr('name', old_name).val(ui.item.value));
         $new.append('<i class="icon-plus-sign"></i> ');
@@ -1197,7 +1197,7 @@ CKAN.Utils = function($, my) {
           // This needs to be far more informative.
           addAlert('<strong>Error:</strong> Unable to add related item');
         }
-      }); 
+      });
     });
   };
 
@@ -1543,9 +1543,8 @@ CKAN.DataPreview = function ($, my) {
     // that if we got here (i.e. preview shown) worth doing
     // something ...)
     resourceData.formatNormalized = my.normalizeFormat(resourceData.format);
-
     resourceData.url  = my.normalizeUrl(resourceData.url);
-    if (resourceData.formatNormalized === '') {
+    if (resourceData.formatNormalized == '') {
       var tmp = resourceData.url.split('/');
       tmp = tmp[tmp.length - 1];
       tmp = tmp.split('?'); // query strings
@@ -1561,7 +1560,7 @@ CKAN.DataPreview = function ($, my) {
       var dataset = new recline.Model.Dataset(resourceData, 'elasticsearch');
       initializeDataExplorer(dataset);
     }
-    else if (resourceData.formatNormalized in {'csv': '', 'xls': ''}) {
+    else if (resourceData.formatNormalized in {'csv': '', 'xls': '', 'tsv': ''}) {
       // set format as this is used by Recline in setting format for DataProxy
       resourceData.format = resourceData.formatNormalized;
       var dataset = new recline.Model.Dataset(resourceData, 'dataproxy');
@@ -1569,21 +1568,31 @@ CKAN.DataPreview = function ($, my) {
       $('.recline-query-editor .text-query').hide();
     }
     else if (resourceData.formatNormalized in {
+        'xml': '',
+        'kml': '',
+        'rdf': '',
         'rdf+xml': '',
         'owl+xml': '',
         'xml': '',
+        'atom': '',
+        'rss': ''
+    }){
+      var _url = '/data/preview/' + resourceData.id + '?type=xml';
+      my.getResourceDataDirect(_url, function(data) {
+        my.showPlainTextData(data);
+      });
+    }
+    else if (resourceData.formatNormalized in {
         'n3': '',
         'n-triples': '',
         'turtle': '',
         'plain': '',
-        'atom': '',
         'tsv': '',
-        'rss': '',
         'txt': ''
         }) {
       // HACK: treat as plain text / csv
       // pass url to jsonpdataproxy so we can load remote data (and tell dataproxy to treat as csv!)
-      var _url = my.jsonpdataproxyUrl + '?type=csv&url=' + resourceData.url;
+      var _url = '/data/preview/' + resourceData.id + '?type=plain';
       my.getResourceDataDirect(_url, function(data) {
         my.showPlainTextData(data);
       });
@@ -1629,7 +1638,7 @@ CKAN.DataPreview = function ($, my) {
   my.getResourceDataDirect = function(url, callback) {
     // $.ajax() does not call the "error" callback for JSONP requests so we
     // set a timeout to provide the callback with an error after x seconds.
-    var timeout = 5000;
+    var timeout = 30000;
     var timer = setTimeout(function error() {
       callback({
         error: {
@@ -1639,23 +1648,25 @@ CKAN.DataPreview = function ($, my) {
       });
     }, timeout);
 
-    // have to set jsonp because webstore requires _callback but that breaks jsonpdataproxy
-    var jsonp = '_callback';
-    if (url.indexOf('jsonpdataproxy') != -1) {
-      jsonp = 'callback';
-    }
-
     // We need to provide the `cache: true` parameter to prevent jQuery appending
     // a cache busting `={timestamp}` parameter to the query as the webstore
     // currently cannot handle custom parameters.
     $.ajax({
       url: url,
       cache: true,
-      dataType: 'jsonp',
-      jsonp: jsonp,
+      dataType: 'json',
       success: function(data) {
         clearTimeout(timer);
         callback(data);
+      },
+      error: function(err) {
+          clearTimeout(timer);
+          callback({
+            error: {
+              title: 'Request Error',
+              message: 'There was an error processing the request'
+            }
+          });
       }
     });
   };

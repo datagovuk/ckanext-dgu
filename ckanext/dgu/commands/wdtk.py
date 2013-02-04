@@ -37,6 +37,15 @@ class PublisherMatch(CkanCommand):
     max_args = 1
     min_args = 1
 
+    def stripped(self, s):
+        import string
+        exclude = set(string.punctuation)
+        stopped = ['and', 'of', 'it', 'the']
+        s = s.lower()
+        s = ''.join(c for c in s if not c in exclude)
+        s = ' '.join(w for w in s.split() if not w in stopped)
+        return s
+
     def command(self):
         self._load_config()
 
@@ -52,12 +61,17 @@ class PublisherMatch(CkanCommand):
         start = time.time()
         self.authorities_file = self._get_authorities_csv()
         self.publishers = {}
+        self.publishers_full = {}
+        self.missing = {}
 
         pubs = model.Session.query(model.Group)\
             .filter(model.Group.type == 'publisher')\
             .filter(model.Group.state == 'active')
         for publisher in pubs:
             self.publishers[publisher.name.replace('-', '_')] = publisher
+            self.publishers_full[self.stripped(publisher.title)] = publisher
+            self.missing[publisher] = 1
+
         log.info("Found %d publishers to process in DB" %
             len(self.publishers))
 
@@ -67,11 +81,8 @@ class PublisherMatch(CkanCommand):
         with open(self.authorities_file, 'rU') as f:
             reader = csv.reader(f)
             for row in reader:
+                name = row[0]
                 slug = row[2]
-                if '_school' in slug or '_college' in slug:
-                    schools = schools + 1
-                    continue
-
                 homepage = row[4]
                 publisher = self.publishers.get(slug, None)
 
@@ -80,6 +91,13 @@ class PublisherMatch(CkanCommand):
 
                 if not publisher and slug in direct_matches:
                     publisher = self.publishers[direct_matches[slug]]
+
+                # Match on the first field if we still don't have a publisher.
+                if not publisher:
+                    publisher = self.publishers_full.get(self.stripped(name))
+
+                if not publisher:
+                    publisher = self.council_guess(row)
 
                 if publisher:
                     # Save as a publisher extra
@@ -96,9 +114,17 @@ class PublisherMatch(CkanCommand):
                         model.Session.add(publisher)
                         model.Session.commit()
                     matched.add(publisher.name.replace('-','_'))
+                    del self.missing[publisher]
+
+        output_file = open(os.path.join(self.working_directory, 'missing.txt'), 'w')
+        for k in self.missing.keys():
+            output_file.write('%s\n' % k.name)
+        output_file.close()
+
         end = time.time()
         took = str(datetime.timedelta(seconds=end-start))
         log.info('Found %d publishers in CSV, updated %d publishers in %s' % (count, processed,took,))
+
         # diff = set(self.publishers.keys()) - matched
         # print 'Publishers we did not match'
         # print '==========================='
@@ -108,9 +134,25 @@ class PublisherMatch(CkanCommand):
 
     def council_guess(self, row):
         slug = row[2]
-        if not 'council' in slug:
+        if slug.endswith('_borough_council'):
+            slug = slug[:-len('_borough_council')]
+        else:
             return None
 
+        part = 'london_borough_of_%s' % slug
+        publisher = self.publishers.get(part)
+        if publisher:
+            return publisher
+
+        publisher = self.publishers.get("borough_of_%s" % slug)
+        if publisher:
+            return publisher
+
+        publisher = self.publishers.get("royal_borough_of_%s" % slug)
+        if publisher:
+            return publisher
+
+        return None
 
     def nhs_guess(self, row):
         slug = row[2]
@@ -127,7 +169,6 @@ class PublisherMatch(CkanCommand):
         publisher = self.publishers.get(partial)
         if publisher:
             return publisher
-
 
         name = row[0]
         if '(PCT)' in name:
