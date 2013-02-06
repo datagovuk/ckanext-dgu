@@ -60,7 +60,7 @@ else:
               display_provider = False
               uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
               is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
-              providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider' or (d['key'] == 'responsible-party' and ('(owner)' in d['value'] or '(publisher)' in d['value'])))]
+              providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider')]
               provider = providers[0]['value'] if len(providers) else ''
               display_provider = is_uklp
        ?>
