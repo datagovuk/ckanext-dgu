@@ -68,7 +68,7 @@ def init(server):
         env.root = os.path.abspath(os.path.join(__file__, "../../../"))
 
     env.config = os.path.join(env.root, 'src/ckan/development.ini')
-    if server != _LOCALHOST:
+    if server != _LOCALHOST or not os.path.exists(env.config):
         env.config = os.path.join(env.root, "dgu_as_co_user.ini")
 
     env.config_target = "/tmp/test_config.ini"
