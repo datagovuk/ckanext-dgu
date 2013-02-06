@@ -249,7 +249,7 @@ from ckanext.dgu.schema import GeoCoverageType
 if c.pkg_dict:
 
     field_names = DatasetFieldNames()
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'geographic_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if c.is_an_official:
         field_names_display_only_if_value.append('external_reference')
     # work out the dataset_type
@@ -287,12 +287,15 @@ if c.pkg_dict:
     if c.is_an_official:
         field_names.add(['state'])
 
-    temporal_coverage_from = pkg_extras.get('temporal_coverage_from')
-    temporal_coverage_to = pkg_extras.get('temporal_coverage_to')
+    temporal_coverage_from = pkg_extras.get('temporal_coverage-from')
+    temporal_coverage_to = pkg_extras.get('temporal_coverage-to')
     if temporal_coverage_from and temporal_coverage_to:
-        temporal_coverage = '%s - %s' % (temporal_coverage_from, temporal_coverage_to)
+        temporal_coverage = '%s - %s' % \
+          (DateType.db_to_form(temporal_coverage_from),
+           DateType.db_to_form(temporal_coverage_to))
     elif temporal_coverage_from or temporal_coverage_to:
-        temporal_coverage = temporal_coverage_from or temporal_coverage_to
+        temporal_coverage = DateType.db_to_form(temporal_coverage_from or \
+                                                temporal_coverage_to)
     else:
         temporal_coverage = ''
 
