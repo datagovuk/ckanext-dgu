@@ -4,7 +4,7 @@ import logging
 import ConfigParser
 from fabric.api import *
 
-_LOCALHOST = "localhost:5000"
+_LOCALHOST = "localhost"
 
 ADMIN_USERNAME = 'seleniumadmin'
 ADMIN_PASSWORD = 'seleniumpassword'
@@ -17,7 +17,7 @@ PUBLISHER = 'seleniumpublisher'
 logging.basicConfig(format="%(asctime)s %(levelname)s [%(module)s]: %(message)s", level=logging.INFO)
 log = logging.getLogger(__file__)
 
-def run_tests(test="localhost"):
+def run_tests(test="localhost", port=80):
     global log
 
     """ The expected entry point into the fab file, should be run either with
@@ -34,10 +34,10 @@ def run_tests(test="localhost"):
         print "\nSorry I don't know how to test '%s'" % test
         return
 
-    if test == 'localhost':
-        server = _LOCALHOST
-    else:
-        server = 'co-%s.dh.bytemark.co.uk' % test
+    server = _LOCALHOST if test == 'localhost' else 'co-%s.dh.bytemark.co.uk' % test
+
+    if port != 80:
+        server = "{server}:{port}".format(server=server, port=port)
 
     # Setup the environment and prep the db ready for tests.
     init(server)
@@ -60,18 +60,16 @@ def run_tests(test="localhost"):
 def init(server):
     global log
     """ Setup the env dictionary with the data we need to run """
+    env.root = "/home/co/pyenv_dgu/"
 
-    if server == _LOCALHOST:
+    if server.startswith(_LOCALHOST):
         env.runner = local
+        env.root = os.path.abspath(os.path.join(__file__, "../../../"))
     else:
         env.runner = run
 
-    env.root = "/home/co/pyenv_dgu/"
-    if server == _LOCALHOST:
-        env.root = os.path.abspath(os.path.join(__file__, "../../../"))
-
     env.config = os.path.join(env.root, 'src/ckan/development.ini')
-    if server != _LOCALHOST:
+    if not os.path.exists(env.config):
         env.config = os.path.join(env.root, "dgu_as_co_user.ini")
 
     env.config_target = "/tmp/test_config.ini"

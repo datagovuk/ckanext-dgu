@@ -78,8 +78,12 @@ class TestRunner(CkanCommand):
             log.debug('No --configfile specified, so using default of: %s',
                       default_config_filepath)
             config_filepath = default_config_filepath
-        self.config.readfp(open(self.options.config_file or \
-                                default_config_filepath))
+
+        if cmd == "run":
+            # Currently only run uses config, and this will be generated for
+            # us by a fab task in most cases.
+            self.config.readfp(open(self.options.config_file or \
+                                    default_config_filepath))
 
         getattr(self, '%s_task' % cmd)()
 
