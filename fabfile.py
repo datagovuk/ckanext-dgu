@@ -34,10 +34,8 @@ def run_tests(test="localhost"):
         print "\nSorry I don't know how to test '%s'" % test
         return
 
-    if test == 'localhost':
-        server = _LOCALHOST
-    else:
-        server = 'co-%s.dh.bytemark.co.uk' % test
+    :
+    server = _LOCALHOST if test == 'localhost' else 'co-%s.dh.bytemark.co.uk' % test
 
     # Setup the environment and prep the db ready for tests.
     init(server)
