@@ -186,8 +186,8 @@ def teardown_tests(server, delete_drupal_user):
             print "Failed to run drush command to delete a user: %s" % (exc,)
 
     # Delete the temporary configuration file.
-    if os.path.exists(env.config_target):
-        os.unlink(env.config_target)
+    #if os.path.exists(env.config_target):
+    #    os.unlink(env.config_target)
 
 
 def _run_paster_command(args, plugin='ckanext-dgu', critical=False):
