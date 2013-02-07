@@ -264,10 +264,7 @@ ul#nav {
   padding: 0;
   width: 100px;
   position: relative;
-  /* Cross-browser inline-block positioning */
-  display: inline-block;
-  zoom: 1;
-  *display: inline;
+  float: left;
   /* Gradient */
   background: rgb(51,51,51); /* Old browsers */
   background: -moz-linear-gradient(top,  rgba(68,68,68,1) 0%, rgba(34,34,34,1) 100%); /* FF3.6+ */
