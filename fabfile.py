@@ -183,7 +183,7 @@ def teardown_tests(server, delete_drupal_user):
             args = ["user-cancel", EDITOR_USERNAME, "--delete-content"]
             _run_drush_command(args)
         except:
-            log.error("Failed to run drush command to create a user" )
+            log.error("Failed to run drush command to delete a user" )
 
     # Delete the temporary configuration file.
     if os.path.exists(env.config_target):
@@ -204,6 +204,7 @@ def _run_drush_command(args):
     cmd = "drush --yes --root /var/www/dgu_d7 " % ' '.join(args)
 
     with settings(warn_only=True):
+        log.info("Running drush command: %s" % cmd)
         result = env.runner(cmd)
         if result.return_code == 1 and critical:
             raise Exception()
