@@ -201,7 +201,7 @@ def _run_paster_command(args, plugin='ckanext-dgu', critical=False):
                 raise Exception()
 
 def _run_drush_command(args):
-    cmd = "drush --yes --root /var/www/dgu_d7 " % ' '.join(args)
+    cmd = "drush --yes --root /var/www/dgu_d7 %s" % ' '.join(args)
 
     with settings(warn_only=True):
         log.info("Running drush command: %s" % cmd)
