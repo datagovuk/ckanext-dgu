@@ -30,7 +30,7 @@ def run_tests(test="localhost", port=80, create_drupal_user=False):
         The tests can be run on dev1 currently, uat1 etc should be added to the list
         below.
     """
-    if not test in ['localhost', 'dev1']:  # Need to expand this list
+    if not test in ['localhost', 'dev1', 'uat1']:  # Need to expand this list
         print "\nSorry I don't know how to test '%s'" % test
         return
 
