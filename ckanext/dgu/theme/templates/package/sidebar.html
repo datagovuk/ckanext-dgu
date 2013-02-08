@@ -133,8 +133,11 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
   <li py:if="dataset_type == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
     <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
     <?python
-       from ckanext.spatial.lib.helpers import get_coupled_packages
-       coupled_pkg_tuples = get_coupled_packages(c.pkg)
+       try: 
+         from ckanext.spatial.lib.helpers import get_coupled_packages
+         coupled_pkg_tuples = get_coupled_packages(c.pkg)
+       except ImportError:
+         coupled_pkg_tuples = []
     ?>
     <ul>
       <li py:for="name, title in coupled_pkg_tuples">
