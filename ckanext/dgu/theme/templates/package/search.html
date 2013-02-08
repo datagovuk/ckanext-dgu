@@ -76,7 +76,7 @@
               ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in sort_by)}
               ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in sort_by)}
               ${sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in sort_by)}
-              ${sort_option('Location Updated', c.sort_by([('spatial','desc')]), 'spatial' in sort_by, sort_by_location_disabled)}
+              ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in sort_by, sort_by_location_disabled)}
             </select>
           </form>
         </div>
