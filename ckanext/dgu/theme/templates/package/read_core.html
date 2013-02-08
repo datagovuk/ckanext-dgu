@@ -140,22 +140,21 @@ import ckanext.dgu.lib.helpers as dgu_helpers
 
           <py:if test="pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')">
           <div id="dataset-map-extent-label" style="width: 270px; padding-top: 25px; padding-bottom: 25px;">
-            <table border="0">
+            <table class="table-lat-long">
               <tr>
-                <td valign="top"><b>Extent: &nbsp;</b></td>
-                <td valign="top">Latitude:</td>
-                <td>${pkg_extras.get('bbox-north-lat')}&deg; to ${pkg_extras.get('bbox-south-lat')}&deg;</td>
+                <td rowspan="2" class="extent-text">Extent: &nbsp;</td>
+                <td class="extent-label"><div class="dataset-map-boxed">Latitude:</div></td>
+                <td class="extent-value">${pkg_extras.get('bbox-north-lat')[:7]}&deg; to ${pkg_extras.get('bbox-south-lat')[:7]}&deg;</td>
               </tr>
               <tr>
-                <td></td>
-                <td valign="top">Longitude:&nbsp;</td>
-                <td>${pkg_extras.get('bbox-west-long')}&deg; to ${pkg_extras.get('bbox-east-long')}&deg;</td>
+                <td class="extent-label"><div class="dataset-map-boxed">Longitude:</div></td>
+                <td class="extent-value">${pkg_extras.get('bbox-west-long')[:7]}&deg; to ${pkg_extras.get('bbox-east-long')[:7]}&deg;</td>
               </tr>
             </table>
           </div>
           </py:if>
 
-          <div id="dataset-map-attribution"></div>
+          <div class="dataset-map-boxed" id="dataset-map-attribution"></div>
         </div>
 
         <!-- Dataset Extent Map (only if present) -->

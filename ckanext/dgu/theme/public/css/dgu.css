@@ -70,6 +70,16 @@ textarea:focus {
   border-left: 1px solid #7b2;
 }
 
+.label-dgu,
+.badge-dgu {
+  background-color: #66AA44;
+}
+
+.label-dgu[href],
+.badge-dgu[href] {
+  background-color: #559933;
+}
+
 /* No-sidebar mode */
 /* --------------- */
 body.no-sidebar .main-outer {
@@ -1577,10 +1587,23 @@ ul.ui-autocomplete li a.ui-state-hover{
   margin-bottom: 10px;
 }
 
-#dataset-map-attribution{
-    font-size: xx-small;
-    width: 270px;
+.dataset-map-boxed {
+  border: 1px solid #6a3;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-box-shadow: 1px 1px 3px #ddd;
+  -moz-box-shadow: 1px 1px 3px #ddd;
+  box-shadow: 1px 1px 3px #ddd;
 }
+
+#dataset-map-attribution{
+    font-size: 9px;
+    line-height: 12px;
+    padding: 10px;
+    width: 250px;
+}
+
 
 .olControlAttribution {
     left: 5px;
@@ -1617,4 +1640,21 @@ table.error-details {
 }
 .popular_datasets p {
     margin-top: 8px;
+}
+
+.table-lat-long {
+}
+.table-lat-long .extent-text {
+  font-weight: bold;
+}
+.table-lat-long .extent-label {
+  text-align: right;
+  padding: 2px 8px;
+}
+.table-lat-long .extent-label > div {
+  font-size: 11px;
+  padding: 0 6px;
+}
+.table-lat-long .extent-value {
+  white-space: nobreak;
 }
