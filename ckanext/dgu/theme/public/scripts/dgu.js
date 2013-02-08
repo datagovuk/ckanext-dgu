@@ -60,7 +60,7 @@ jQuery(function () {
       $('#'+id+'-items').toggle();
     });
 
-    $('input[name="dataset-results-sort"]').change(function(e){
+    $('select[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
       window.location = $(this).val();
     });
