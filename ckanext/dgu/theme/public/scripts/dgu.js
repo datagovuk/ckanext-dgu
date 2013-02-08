@@ -442,6 +442,31 @@ CKAN.Dgu = function($, my) {
     });
   };
 
+  my.setupAdditionalResourcesScrapers = function() {
+    var updateScraperField = function( formatField ) {
+      formatField = $(formatField);
+      var tr = formatField.closest('tr');
+      var scraperField = tr.find('.input_additional_resources_scraper');
+      assert(scraperField.length==1);
+      if ( formatField.val().toUpperCase().trim()=='HTML' ) {
+        scraperField.removeAttr('disabled');
+        scraperField.css('text-decoration', 'none');
+      }
+      else {
+        scraperField.attr('disabled','disabled');
+        scraperField.css('text-decoration', 'line-through');
+      }
+    };
+    var inputFormat = $('.input_additional_resources_format');
+    /* Set initial state */
+    inputFormat.each( function(i,x) {updateScraperField(x); } );
+    /* Bind to state changes */
+    var onChange = function(e) { updateScraperField( e.delegateTarget ); };
+    inputFormat.bind('keyup', onChange);
+    inputFormat.bind('keypress', onChange);
+    inputFormat.bind('change', onChange);
+  };
+
   return my;
 }(jQuery, CKAN.Dgu || {});
 

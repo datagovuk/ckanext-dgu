@@ -673,7 +673,7 @@ if has_errors:
         <th class="resource-name">Description:</th>
         <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
         <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
-        <th class="resource-url js-tooltip" title="The name of the ScraperWiki scraper that will process the page this resource describes and add new resources to the dataset">Scraper name: <img src="/images/information-grey.png"/></th>
+        <th class="resource-url js-tooltip" title="Name of ScraperWiki scraper to create resources from the webpage this resource describes. Only available when Format is 'HTML'.">Scraper name: <img src="/images/information-grey.png"/></th>
         <th></th>
       </tr>
     </thead>
@@ -718,14 +718,15 @@ if has_errors:
                    name="additional_resources__${num}__format"
                    type="text"
                    value="${res.get('format', '')}"
-                   class="input-small ${apply_error_class('format', 'field_error')}" />
+                   class="input_additional_resources_format input-small ${apply_error_class('format', 'field_error')}" />
           </td>
           <td>
               <input id="additional_resources__${num}__scraper_url"
                        name="additional_resources__${num}__scraper_url"
                        type="text"
                        value="${res.get('scraper_url', '')}"
-                       class=" input-small"/>
+                       class="input_additional_resources_scraper input-small"
+                       disabled="disabled" />
           </td>
           <td>
             <!--! Because the resource fields are explicitly set in c.resource_columns, we need
