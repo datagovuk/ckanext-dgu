@@ -14,6 +14,11 @@
 
 
   <py:match path="primarysidebar">
+
+  <py:if test="h.check_access('group_update', {'id':c.group.id})">
+   ${publisher_traffic_lights(c.group)}
+  </py:if>
+
     <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
       <ul>

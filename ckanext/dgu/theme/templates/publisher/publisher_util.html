@@ -19,5 +19,39 @@
 	${ Markup( h.render_tree( groups ))  }
  </py:def>
 
+  <div py:def="publisher_traffic_lights(publisher)" class="widget-container">
+    <?python
+      import ckanext.dgu.lib.helpers as dgu_helpers
+      lights = dgu_helpers.publisher_performance_data(publisher, False)
+      # Publisher performance data defaults to not including sub-orgs because
+      # the NHS has hundreds and it takes about 12s.
+    ?>
+    <h4>Publisher report</h4>
+    <dl>
+      <dt>Broken links</dt>
+      <dd>
+        ${lights['broken_links']}
+        <div style="background-color: ${lights['broken_links']}; display:inline; width:16px;">
+          &nbsp;
+        </div>
+
+       <a href="${h.url_for('qa_organisation_action_id', action='broken_resource_links', id=publisher.name)}">view</a></dd>
+
+      <dt>Openness</dt>
+      <dd>
+        ${lights['openness']}
+        <div style="background-color: ${lights['openness']}; display:inline; width:16px;">
+          &nbsp;
+        </div>
+        <a href="${h.url_for('qa_organisation_action_id', action='scores', id=publisher.name)}">view</a>
+      </dd>
+
+      <py:if test="dgu_helpers.publisher_has_spend_data(publisher)">
+        <dt>Spend reports - check publisher needs it</dt>
+        <dd>(green for up-to-date, amber for up to 3 months out of date) <a href="${h.url_for('openspending_publisher_report', id=publisher.name)}">view</a></dd>
+      </py:if>
+    </dl>
+  </div>
+
 
 </html>

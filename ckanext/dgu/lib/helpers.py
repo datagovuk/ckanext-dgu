@@ -13,6 +13,7 @@ from urlparse import urljoin
 from itertools import dropwhile
 import datetime
 
+import ckan.plugins.toolkit as t
 from webhelpers.html import literal
 from webhelpers.text import truncate
 from pylons import tmpl_context as c, config
@@ -1156,3 +1157,69 @@ def get_tiles_url():
     return tiles_url_ckan
 
 
+def publisher_performance_data(publisher, include_sub_publishers):
+    """
+        Returns additional info for publishers, as traffic lights so that
+        it can be viewed on the publisher read page.
+
+        broken_links - green = 0%, amber <= 60% broken links, red > 60% broken
+        openness - green if all > 4 *, amber for 50%> 3*, red otherwise
+    """
+    import time
+    from ckanext.qa.reports import broken_resource_links_for_organisation
+    from ckanext.dgu.lib import publisher as publib
+
+    start_time = time.time()
+
+    rcount = publib.resource_count(publisher, include_sub_publishers)
+    log.debug("{p} has {r} resources".format(p=publisher.name, r=rcount))
+
+    # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
+    # that returns count().  This is likely to be slow if there are lots of resource links broken
+    # such as for ONS.
+    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+    broken_count = len(data['data'])
+
+    pct = int(100 * float(broken_count)/float(rcount))
+    log.debug("{d}% of resources in {p} are broken".format(d=pct, p=publisher.name))
+
+    broken_links = 'green'
+    if 1 < pct <= 60:
+        broken_links = 'amber'
+    elif pct > 60:
+        broken_links = 'red'
+
+    s = time.time()
+    openness = ''
+    total, counters = publib.openness_scores(publisher, include_sub_publishers)
+    log.debug("openness took {d} seconds".format(d=time.time()-s))
+    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+
+    above_3 = number_x_or_above(3)
+    pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
+
+    if number_x_or_above(4) == total:
+        openness = 'green'
+    elif pct_above_3 >= 50:
+        openness = 'amber'
+    else:
+        openness = 'red'
+
+    log.debug("publisher performance data took {d} seconds".format(d=time.time()-start_time))
+    return {
+        'broken_links': broken_links,
+        'openness': openness,
+    }
+
+def publisher_has_spend_data(publisher):
+    # TODO: We should cache this to save checking the disk
+    # each time we want to know if there is data.
+    import os
+
+    nm = 'publisher-{name}.html'.format(name=publisher.name)
+    folder = os.path.expanduser(config.get(
+            'dgu.openspending_reports_dir',
+            '/var/lib/ckan/dgu/openspending_reports'))
+    pth = os.path.join(folder, nm)
+    log.info("Looking for {p}".format(p=pth))
+    return os.path.exists(pth)
