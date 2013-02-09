@@ -5,7 +5,8 @@ from ckan.lib.navl.dictization_functions import flatten_dict, unflatten, Invalid
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_additional_resource_types, \
      validate_data_resource_types, \
-     remove_blank_resources
+     remove_blank_resources, \
+     validate_license
 
 class TestMergeResources(object):
     """
@@ -434,3 +435,57 @@ class TestRemoveBlankResources:
         assert_equal(result_data, expected_data)
         assert_equal(errors, expected_errors)
     
+class TestValidateLicense:
+    def check(self, license_id, access_constraints, expected_data, expected_errors):
+        errors = {}
+        data = {('license_id',):license_id,
+                ('access_constraints',):access_constraints}
+        errors = {('license_id',):None,
+                ('access_constraints',):None}
+        validate_license(key=None, data=data, errors=errors, context=None)
+        assert_equal(data, expected_data)
+        assert_equal(errors, expected_errors)
+
+# DR: These are the rules from the validate_license docstring.
+#     * The first case is clear and that is what is tested mainly.
+    '''
+    Validation rules must be true to validate:
+
+     license_id == ''                             => access_constraints != ''
+     license_id != '__extra__' ^ license_id != '' => access_constraints == ''
+
+    Additional transformations occur:
+
+     license_id == '__extra__' => licence_id := None
+     access_constraints != ''    => license_id := access_constraints
+     access_constraints is DROPPED
+    '''
+#     * license_id == '__extra__' occurs when editing a record that was
+#     harvested and the license text is in package.extra['licence']
+#     * I don't know why free text gets put in the license_id field - seems
+#     wrong, so I will change this as part of #308.
+    def test_form_dropdown(self):
+        self.check('uk-ogl', '',
+                   {('license_id',): 'uk-ogl'},
+                   {('license_id',): None})
+
+    def test_form_free_text(self):
+        self.check('', 'Free form',
+                   {('license_id',): 'Free form'},
+                   {('license_id',): None})
+
+    def test_blank(self):
+        self.check('', '',
+                   {('license_id',): ''},
+                   {('license_id',): ['Please enter the access constraints.']})
+
+    def test_harvested_license(self):
+        # A harvested dataset has license as free form text and it lives
+        # in package.extra['licence'], which
+        # is not displayed in the license part of the form (only under
+        # extras) and is not validated by validate_license.
+        self.check('__extra__', '',
+                   {('license_id',): None, ('access_constraints',): ''},
+                   {('license_id',): None, ('access_constraints',): None})
+        # I don't know why access_constraints pops up in these results - does
+        # that delete the extra?!
