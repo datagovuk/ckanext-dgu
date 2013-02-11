@@ -17,7 +17,7 @@ PUBLISHER = 'seleniumpublisher'
 logging.basicConfig(format="%(asctime)s %(levelname)s [%(module)s]: %(message)s", level=logging.INFO)
 log = logging.getLogger(__file__)
 
-def run_tests(test="localhost", port=80):
+def run_tests(test="localhost", port=80, create_drupal_user=False):
     global log
 
     """ The expected entry point into the fab file, should be run either with
@@ -30,7 +30,7 @@ def run_tests(test="localhost", port=80):
         The tests can be run on dev1 currently, uat1 etc should be added to the list
         below.
     """
-    if not test in ['localhost', 'dev1']:  # Need to expand this list
+    if not test in ['localhost', 'dev1', 'uat1']:  # Need to expand this list
         print "\nSorry I don't know how to test '%s'" % test
         return
 
@@ -41,7 +41,7 @@ def run_tests(test="localhost", port=80):
 
     # Setup the environment and prep the db ready for tests.
     init(server)
-    setup_tests(server)
+    setup_tests(server, create_drupal_user)
 
     try:
         # Run the tests using the paster command
@@ -52,7 +52,7 @@ def run_tests(test="localhost", port=80):
     finally:
         # Clear test data.
         try:
-            teardown_tests(server)
+            teardown_tests(server, create_drupal_user)
         except Exception as te:
             log.error(te)
             sys.exit(1)
@@ -91,7 +91,7 @@ def selenium(server):
 
     _run_paster_command( ' '.join(cmdline) , "ckanext-dgu", True)
 
-def setup_tests(server):
+def setup_tests(server, create_drupal_user):
     """ Add users and groups ready for the tests """
     global log
 
@@ -119,6 +119,17 @@ def setup_tests(server):
         except:
             log.error("Failed to run command '{c}'".format(c=cmd) )
 
+    if create_drupal_user:
+        try:
+            args = ["user-create", ADMIN_USERNAME, '--password="%s"' % ADMIN_PASSWORD,
+                    '--mail="%s@localhost.local"' % ADMIN_USERNAME]
+            _run_drush_command(args)
+
+            args = ["user-create", EDITOR_USERNAME, '--password="%s"' % EDITOR_PASSWORD,
+                    '--mail="%s@localhost.local"' % EDITOR_USERNAME]
+            _run_drush_command(args)
+        except Exception as exc:
+            print "Failed to run drush command to create a user: %s" % (exc,)
 
     # Write config file for tests...
     config = ConfigParser.RawConfigParser()
@@ -141,7 +152,7 @@ def setup_tests(server):
     with open(env.config_target, 'wb') as configfile:
         config.write(configfile)
 
-def teardown_tests(server):
+def teardown_tests(server, delete_drupal_user):
     """ Delete users and groups from the database """
     global log
     log.info("--Teardown")
@@ -164,9 +175,19 @@ def teardown_tests(server):
         except:
             log.error("Failed to run command '{c}'".format(c=cmd) )
 
+    if delete_drupal_user:
+        try:
+            args = ["user-cancel", ADMIN_USERNAME, "--delete-content"]
+            _run_drush_command(args)
+
+            args = ["user-cancel", EDITOR_USERNAME, "--delete-content"]
+            _run_drush_command(args)
+        except Exception as exc:
+            print "Failed to run drush command to delete a user: %s" % (exc,)
+
     # Delete the temporary configuration file.
-    if os.path.exists(env.config_target):
-        os.unlink(env.config_target)
+    #if os.path.exists(env.config_target):
+    #    os.unlink(env.config_target)
 
 
 def _run_paster_command(args, plugin='ckanext-dgu', critical=False):
@@ -179,4 +200,12 @@ def _run_paster_command(args, plugin='ckanext-dgu', critical=False):
             if result.return_code == 1 and critical:
                 raise Exception()
 
+def _run_drush_command(args):
+    cmd = "drush --yes --root=/var/www/dgu_d7 %s" % ' '.join(args)
+
+    with settings(warn_only=True):
+        log.info("Running drush command: %s" % cmd)
+        result = env.runner(cmd)
+        if result.return_code == 1 and critical:
+            raise Exception(cmd)
 

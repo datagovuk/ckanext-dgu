@@ -673,7 +673,7 @@ if has_errors:
         <th class="resource-name">Description:</th>
         <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
         <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
-        <th class="resource-url js-tooltip" title="The name of the ScraperWiki scraper that will process the page this resource describes and add new resources to the dataset">Scraper name: <img src="/images/information-grey.png"/></th>
+        <th class="resource-url js-tooltip" title="Name of ScraperWiki scraper to create resources from the webpage this resource describes. Only available when Format is 'HTML'.">Scraper name: <img src="/images/information-grey.png"/></th>
         <th></th>
       </tr>
     </thead>
@@ -686,46 +686,47 @@ if has_errors:
               <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
             </div>
           </td>
-          <py:for each="col in ['description', 'url', 'format']">
-            <td>
-              <?python
-                resource_errors = errors.get('additional_resources', None)
-                cell_has_error = resource_errors and \
-                                 num < len(resource_errors) and \
-                                 bool(resource_errors[num].get(col, False))
-              ?>
-              <py:choose test="">
-                <input py:when="col=='description'"
-                       id="additional_resources__${num}__${col}"
-                       name="additional_resources__${num}__${col}"
-                       type="text"
-                       value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
-                <span class="control-group ${'error' if cell_has_error else ''}" py:when="col=='url'">
-                  <input id="additional_resources__${num}__${col}"
-                         name="additional_resources__${num}__${col}"
-                         type="text"
-                         value="${res.get(col, '')}"
-                         class="input-small"/>
-                  <button id="additional_resources__${num}__validate-resource-button"
-                          class="validate-resource-button btn btn-small">Check</button>
-                </span>
-                <input py:otherwise=""
-                       id="additional_resources__${num}__${col}"
-                       name="additional_resources__${num}__${col}"
-                       type="text"
-                       value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-small field_error' if cell_has_error else 'input-small'}"/>
-
-              </py:choose>
-            </td>
-          </py:for>
+          <py:def function="apply_error_class(field,error_class)">
+            <?python
+              resource_errors = errors.get('additional_resources', None)
+              cell_has_error = resource_errors and \
+                             num < len(resource_errors) and \
+                             bool(resource_errors[num].get(field, False))
+                             ?>
+                             <py:if test="cell_has_error">${error_class}</py:if>
+          </py:def>
+          <td>
+              <input id="additional_resources__${num}__description"
+                     name="additional_resources__${num}__description"
+                     type="text"
+                     value="${res.get('description', '')}"
+                     class="input-medium ${apply_error_class('description','field_error')}" />
+          </td>
+          <td>
+            <span class="control-group ${apply_error_class('url','error')}">
+              <input id="additional_resources__${num}__url"
+                     name="additional_resources__${num}__url"
+                     type="text"
+                     value="${res.get('url', '')}"
+                     class="input-small"/>
+              <button id="additional_resources__${num}__validate-resource-button"
+                      class="validate-resource-button btn btn-small">Check</button>
+            </span>
+          </td>
+          <td>
+            <input id="additional_resources__${num}__format"
+                   name="additional_resources__${num}__format"
+                   type="text"
+                   value="${res.get('format', '')}"
+                   class="input_additional_resources_format input-small ${apply_error_class('format', 'field_error')}" />
+          </td>
           <td>
               <input id="additional_resources__${num}__scraper_url"
                        name="additional_resources__${num}__scraper_url"
                        type="text"
                        value="${res.get('scraper_url', '')}"
-                       class=" input-small"/>
+                       class="input_additional_resources_scraper input-small"
+                       disabled="disabled" />
           </td>
           <td>
             <!--! Because the resource fields are explicitly set in c.resource_columns, we need

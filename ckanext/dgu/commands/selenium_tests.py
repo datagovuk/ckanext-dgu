@@ -97,11 +97,14 @@ class TestRunner(CkanCommand):
             "selenium-server-standalone-2.28.0.jar"))
 
     def run_task(self):
+        global log
         import urlparse
 
         selenium_url = self.options.selenium_url or self._run_selenium()
         target_url = self.options.target_url or "http://localhost:5000/data"
         obj = urlparse.urlparse(selenium_url)
+
+        print "Requesting selenium connect to: %s" % (target_url,)
 
         self.selenium = selenium(obj.hostname, obj.port, "*firefox", target_url)
         self.selenium.start()
