@@ -1,3 +1,11 @@
+/* Utility: Global assertion function */
+function assert( code, errorMessage ) {
+  if (!code) {
+    console.error(errorMessage, arguments);
+    throw ('AssertionError');
+  }
+}
+
 jQuery(function ($) {
 
   $(document).ready(function () {
