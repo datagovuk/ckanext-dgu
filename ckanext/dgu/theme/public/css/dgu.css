@@ -712,7 +712,7 @@ h2.front-page-no-body {
   font-weight: bold;
 }
 .sort-by-controls {
-  padding: 6px 20px 30px 20px;
+  padding: 10px 20px 16px 395px;
   color: #fff;
 }
 .sort-by-controls label {
@@ -730,6 +730,9 @@ h2.front-page-no-body {
   margin: 0;
   padding: 0;
   margin-right: 20px;
+}
+.sort-by-controls select {
+  width: 100px;
 }
 .sort-by-controls .feed-icon {
   float: right;
