@@ -9,6 +9,8 @@
 
 <py:match path="primarysidebar">
 <?python
+import ckanext.dgu.lib.helpers as dgu_helpers
+
 if c.pkg.license and c.pkg.license.url:
   license_url = c.pkg.license.url
 else:
@@ -19,16 +21,15 @@ if c.pkg.license:
   licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
 elif c.pkg.license_id:
   licenses.append((c.pkg.license_id, None))
-licence_extra = (c.pkg.extras.get('licence') or '').strip('"[]')
-if licence_extra:
-  licenses.append((licence_extra, True if 'OGL' in licence_extra else None))
-access_constraints = (c.pkg.extras.get('access_constraints') or '').strip('"[]')
-if access_constraints:
-  licenses.append(('Access limitations: ' + access_constraints, True if 'OGL' in licence_extra else None))
+licence_extra_list = dgu_helpers.json_list(c.pkg.extras.get('licence') or '')
+for licence_extra in licence_extra_list:
+  if licence_extra.startswith('http'):
+    licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
+  licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
 ?>
         ${basket()}
 
-  <div py:if="license_url or licenses or access_constraints" id="dataset-license" class="widget-container">
+  <div py:if="license_url or licenses" id="dataset-license" class="widget-container">
     <h4>Licence</h4>
     <div property="dc:rights">
      <ul>

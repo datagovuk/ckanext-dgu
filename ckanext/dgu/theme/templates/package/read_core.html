@@ -256,7 +256,7 @@ if c.pkg_dict:
     pkg_extras = dict(c.pkg_extras)
     harvest_date = harvest_guid = harvest_url = None
     if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language', 'resource-type'])
+        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
@@ -278,6 +278,8 @@ if c.pkg_dict:
             harvest_source_reference = pkg_extras.get('harvest_source_reference')
             if harvest_source_reference and harvest_source_reference != harvest_guid:
                 field_names.add(['harvest_source_reference'])
+        if pkg_extras.get('resource-type') == 'service':
+            field_names.add(['spatial-data-service-type'])
     elif dataset_type == 'ons':
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
@@ -290,8 +292,8 @@ if c.pkg_dict:
     if c.is_an_official:
         field_names.add(['state'])
 
-    temporal_coverage_from = pkg_extras.get('temporal_coverage_from')
-    temporal_coverage_to = pkg_extras.get('temporal_coverage_to')
+    temporal_coverage_from = pkg_extras.get('temporal_coverage-from').strip('"[]')
+    temporal_coverage_to = pkg_extras.get('temporal_coverage-to').strip('"[]')
     if temporal_coverage_from and temporal_coverage_to:
         temporal_coverage = '%s - %s' % (temporal_coverage_from, temporal_coverage_to)
     elif temporal_coverage_from or temporal_coverage_to:
@@ -328,10 +330,12 @@ if c.pkg_dict:
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
+        'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
+        'access_constraints': {'label': 'Access constraints', 'value': dgu_helpers.render_json(pkg_extras.get('access_constraints'))},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
-        '': {'label': '', 'value': ''},
+        'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language').replace('eng', 'English')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
