@@ -26,6 +26,12 @@ for licence_extra in licence_extra_list:
   if licence_extra.startswith('http'):
     licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
   licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
+licence_url = c.pkg.extras.get('licence_url')
+if licence_url:
+   licence_url_title = c.pkg.extras.get('licence_url_title') or licence_url
+   licence_html = HTML('<a href="%s">%s</a>' % (licence_url, licence_url_title))
+   licenses.append((licence_html, True if (licence_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf') else None))
+
 ?>
         ${basket()}
 
