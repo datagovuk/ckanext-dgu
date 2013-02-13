@@ -9,7 +9,7 @@ from webhelpers.html import literal
 from webhelpers.text import truncate
 from pylons import tmpl_context as c, config
 
-from ckan.lib.helpers import icon
+from ckan.lib.helpers import icon, json
 import ckan.lib.helpers
 from ckan.controllers.package import search_url, url_with_params
 from publisher_node import PublisherNode
@@ -407,3 +407,37 @@ def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
     if alternative_url:
         return url_with_params(alternative_url, params)
     return search_url(params)
+
+def render_json(json_str):
+    '''Given a JSON string, list or dict, return it for display,
+    being pragmatic.'''
+    if not json_str:
+        return ''
+    try:
+        obj = json.loads(json_str)
+    except ValueError:
+        return json_str.strip('"[]{}')
+    if isinstance(obj, basestring):
+        return obj
+    elif isinstance(obj, list):
+        return ', '.join(obj)
+    elif isinstance(obj, dict):
+        return ', ',join(['%s: %s' % (k, v) for k, v in obj.items()])
+    # json can't be anything else
+
+def json_list(json_str):
+    '''Given a JSON list, return it for display,
+    being pragmatic.'''
+    if not json_str:
+        return []
+    try:
+        obj = json.loads(json_str)
+    except ValueError:
+        return json_str.strip('"[]{}')
+    if isinstance(obj, basestring):
+        return [obj]
+    elif isinstance(obj, list):
+        return obj
+    elif isinstance(obj, dict):
+        return obj.items()
+    # json can't be anything else
