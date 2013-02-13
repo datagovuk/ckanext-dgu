@@ -256,7 +256,7 @@ if c.pkg_dict:
     pkg_extras = dict(c.pkg_extras)
     harvest_date = harvest_guid = harvest_url = None
     if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
+        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
@@ -339,7 +339,7 @@ if c.pkg_dict:
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language').replace('eng', 'English')},
-        '': {'label': '', 'value': ''},
+        'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date'))},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
     }
