@@ -294,8 +294,8 @@ if c.pkg_dict:
     if c.is_an_official:
         field_names.add(['state'])
 
-    temporal_coverage_from = pkg_extras.get('temporal_coverage-from').strip('"[]')
-    temporal_coverage_to = pkg_extras.get('temporal_coverage-to').strip('"[]')
+    temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
+    temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
     if temporal_coverage_from and temporal_coverage_to:
         temporal_coverage = '%s - %s' % \
           (DateType.db_to_form(temporal_coverage_from),
