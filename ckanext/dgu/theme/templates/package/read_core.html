@@ -282,6 +282,8 @@ if c.pkg_dict:
                 field_names.add(['harvest_source_reference'])
         if pkg_extras.get('resource-type') == 'service':
             field_names.add(['spatial-data-service-type'])
+        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+                       for date_dict in dgu_helpers.json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_type == 'ons':
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
@@ -342,7 +344,7 @@ if c.pkg_dict:
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date'))},
-        '': {'label': '', 'value': ''},
+        'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
         '': {'label': '', 'value': ''},
     }
 
