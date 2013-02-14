@@ -52,7 +52,9 @@ class Formats(object):
 
     @staticmethod
     def reduce(format_name):
-        return re.sub('[^a-z/+]', '', format_name.strip().lower())
+        format_name = format_name.strip().lower()
+        if format_name.startswith('.'): format_name = format_name[1:]
+        return re.sub('[^a-z/+]', '', format_name)
 
     @classmethod
     def match(cls, raw_resource_format):
@@ -83,22 +85,27 @@ class Formats(object):
             # than on module load
             data_flat = (
                 # Display name, alternative names, extensions (lower case), mime-types, openness
-                ('HTML', ('web page', 'website'), ('html', 'htm',), ('text/html',), 0),
-                ('TXT', (), ('txt',), ('text/plain',), 1),
+                ('HTML', ('web page', 'website', 'url'), ('html', 'htm','http', 'asp', 'php'), ('text/html',), 0),
+                ('JPEG', (), ('jpg','jpeg'), ('image/jpg',), 0),
+                ('TIFF', (), ('tiff-lzw','tifflzw','tiff'), ('image/tiff',), 0),
+                ('EXE', (), ('exe'), ('application/octet-stream',), 0),
+                ('Database', ('database','api','sql'), (), ('text/html',), 0),
+                ('TXT', (), ('txt','gz(txt)'), ('text/plain',), 1),
                 ('TXT / Zip', (), ('txt.zip',), (), 1),
                 ('PDF', (), ('pdf',), ('application/pdf',), 1),
                 ('PDF / Zip', (), ('pdf.zip',), (), 1),
+                ('RTF', (), ('rtf',), ('application/rtf',), 1),
                 ('Zip', (), ('zip',), ('application/x-zip', 'application/x-compressed', 'application/x-zip-compressed', 'application/zip', 'multipart/x-zip', 'application/x-gzip'), 1),
                 ('Torrent', (), ('torrent',), ('application/x-bittorrent',), 1),
                 ('DOC', ('word',), ('doc', 'docx', 'mcw'), ('application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-word.document.macroEnabled.12'), 1),
                 ('ODT', (), ('odt',), ('application/vnd.oasis.opendocument.text', 'application/x-vnd.oasis.opendocument.text'), 1),
                 ('PPT', ('powerpoint',), ('ppt', 'pptx', 'ppz'), ('application/mspowerpoint', 'application/vnd.ms-powerpoint.presentation.macroEnabled.12', 'application/vnd.ms-powerpoint'), 1),
                 ('ODP', (), ('odp',), ('application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'), 1),
-                ('XLS', ('excel',), ('xls', 'xlsx'), ('application/excel', 'application/x-excel', 'application/x-msexcel', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12', 'application/vnd.msexcel'), 2),
+                ('XLS', ('excel',), ('xlb', 'xls', 'xlsx'), ('application/excel', 'application/x-excel', 'application/x-msexcel', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12', 'application/vnd.msexcel'), 2),
                 ('XLS / Zip', (), ('xls.zip',), (), 2),
-                ('SHP', ('shapefile', 'esri shapefile'), ('shp',), (), 2),
+                ('SHP', ('shapefile', 'esri shapefile','kml,shp',), ('shp',), (), 2),
                 ('SHP / Zip', (), ('shp.zip',), (), 2),
-                ('CSV', (), ('csv',), ('text/csv','text/comma-separated-values'), 3),
+                ('CSV', (), ('csv','csvfile','html/csv'), ('text/csv','text/comma-separated-values'), 3),
                 ('CSV / Zip', (), ('csv.zip',), (), 3),
                 ('PSV', (), ('psv',), ('text/psv','text/pipe-separated-values'), 3),
                 ('PSV / Zip', (), ('psv.zip',), (), 3),
