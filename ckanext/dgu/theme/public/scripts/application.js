@@ -465,7 +465,7 @@ CKAN.View.Resource = Backbone.View.extend({
     var resource_object = {
         resource: this.raw_resource,
         num: this.options.position,
-        resource_icon: '/images/icons/page_white.png',
+        resource_icon: '/images/fugue/document.png',
         resourceTypeOptions: [
           ['file', CKAN.Strings.dataFile],
           ['api', CKAN.Strings.api],

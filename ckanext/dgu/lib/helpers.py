@@ -14,6 +14,7 @@ import ckan.lib.helpers
 
 from ckan.controllers.package import search_url, url_with_params
 from publisher_node import PublisherNode
+from ckanext.dgu.lib import formats
 
 log = logging.getLogger(__name__)
 
@@ -408,3 +409,49 @@ def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
     if alternative_url:
         return url_with_params(alternative_url, params)
     return search_url(params)
+
+def render_json(json_str):
+    '''Given a JSON string, list or dict, return it for display,
+    being pragmatic.'''
+    if not json_str:
+        return ''
+    try:
+        obj = json.loads(json_str)
+    except ValueError:
+        return json_str.strip('"[]{}')
+    if isinstance(obj, basestring):
+        return obj
+    elif isinstance(obj, list):
+        return ', '.join(obj)
+    elif isinstance(obj, dict):
+        return ', ',join(['%s: %s' % (k, v) for k, v in obj.items()])
+    # json can't be anything else
+
+def json_list(json_str):
+    '''Given a JSON list, return it for display,
+    being pragmatic.'''
+    if not json_str:
+        return []
+    try:
+        obj = json.loads(json_str)
+    except ValueError:
+        return json_str.strip('"[]{}')
+    if isinstance(obj, basestring):
+        return [obj]
+    elif isinstance(obj, list):
+        return obj
+    elif isinstance(obj, dict):
+        return obj.items()
+    # json can't be anything else
+
+
+def dgu_resource_icon(res):
+    format_string = res.get('format','').strip().lower()
+    fmt = formats.Formats.match(format_string)
+    icon_name = 'document'
+    if fmt is not None and fmt['icon']!='':
+        icon_name = fmt['icon']
+    url = '/images/fugue/%s.png' % icon_name
+    return ckan.lib.helpers.icon_html(url)
+
+
