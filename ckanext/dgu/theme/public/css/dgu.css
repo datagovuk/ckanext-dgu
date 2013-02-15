@@ -1,7 +1,7 @@
 /* Root Elements */
 /* ------------- */
 body {
-  background: #f4f4f4 url('/images/bg-thin.png') repeat-x;
+  background: #f4f4f4 url('/images/bg-thin-lighter.png') repeat-x;
 }
 h1 { font-size: 24px; line-height: 30px; margin-bottom: 10px; }
 h2 { font-size: 22px; line-height: 27px; margin-bottom: 8px; }
@@ -256,8 +256,8 @@ table.tablesorter th.header {
 /* Branding space */
 /* -------------- */
 #branding {
-  height: 88px;
-  padding-top: 21px;
+  height: 64px;
+  padding-top: 20px;
   padding-left: 55px;
 }
 
