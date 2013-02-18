@@ -40,8 +40,14 @@ class PackageController(ckan.controllers.package.PackageController):
                     package_name = pkg_dict['name']
                     get_action('package_delete')(context, {'id':id})
                     is_uklp = get_from_flat_dict(pkg_dict['extras'], 'UKLP') == 'True'
-                    action = 'withdrawn' if is_uklp else 'deleted'
-                    h.flash_success('Successfully %s dataset.' % action)
+                    if is_uklp:
+                        action = 'withdrawn'
+                        resource_type = get_from_flat_dict(pkg_dict['extras'], 'resource-type') + ' record'
+                    else:
+                        action = 'deleted'
+                        resource_type = 'dataset'
+                    h.flash_success('Successfully %s %s.' \
+                                    % (action, resource_type))
                     self._form_save_redirect(package_name, 'edit')
                 except NotAuthorized:
                     abort(401, _('Unauthorized to delete package %s') % id)
