@@ -43,11 +43,8 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             <?python li_class="last-child" if res==individual_resources[-1] else ""?>
             <li class="$li_class">
               <div class="trimmed-text">
-                  ${h.resource_icon(res)}
+                  ${dgu_helpers.dgu_resource_icon(res)}
                   <py:if test="res.get('scraped')">${dgu_helpers.scraper_icon(res)}</py:if>
-                  <?python
-                  import ckanext.dgu.lib.helpers as dgu_helpers
-                  ?>
                   ${dgu_helpers.resource_display_name(res)}
               </div>
               <div class="btn-group">
@@ -92,10 +89,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             <?python li_class="last-child" if res==timeseries_resources[-1] else ""?>
             <li class="$li_class">
               <div class="trimmed-text">
-                ${h.resource_icon(res)}
-                <?python
-                import ckanext.dgu.lib.helpers as dgu_helpers
-                ?>
+                ${dgu_helpers.dgu_resource_icon(res)}
                 ${res.get('date')}
                 ${dgu_helpers.resource_display_name(res)}
               </div>
@@ -154,7 +148,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
           </div>
           </py:if>
 
-          <div class="dataset-map-boxed" id="dataset-map-attribution"></div>
+          <div id="dataset-map-attribution"></div>
         </div>
 
         <!-- Dataset Extent Map (only if present) -->
@@ -174,7 +168,7 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             <?python li_class="last-child" if res==additional_resources[-1] else ""?>
             <li class="$li_class">
               <div class="trimmed-text">
-                  ${h.resource_icon(res)}
+                  ${dgu_helpers.dgu_resource_icon(res)}
                   <py:if test="res.get('scraper_url')">
                   ${dgu_helpers.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
                   </py:if>

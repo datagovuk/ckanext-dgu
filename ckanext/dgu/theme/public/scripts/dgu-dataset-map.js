@@ -56,8 +56,11 @@ CKAN.DguDatasetMap = function($){
             var dataset_bounds = features[0].geometry.getBounds();
             this.map_type = (os_max_bounds.containsBounds(dataset_bounds)) ? 'os' : 'osm';
 
+            var attributionBox = $('#dataset-map-attribution');
+            assert(attributionBox.length>0);
+            attributionBox.addClass('dataset-map-boxed');
             var controls = [
-              new OpenLayers.Control.Attribution({div: document.getElementById("dataset-map-attribution")})
+              new OpenLayers.Control.Attribution({div: attributionBox[0]})
             ];
 
             if (this.map_type=='osm') {

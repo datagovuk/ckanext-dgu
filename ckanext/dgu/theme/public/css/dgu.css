@@ -1,7 +1,7 @@
 /* Root Elements */
 /* ------------- */
 body {
-  background: #f4f4f4 url('/images/bg-thin.png') repeat-x;
+  background: #f4f4f4 url('/images/bg-thin-lighter.png') repeat-x;
 }
 h1 { font-size: 24px; line-height: 30px; margin-bottom: 10px; }
 h2 { font-size: 22px; line-height: 27px; margin-bottom: 8px; }
@@ -217,19 +217,14 @@ table.tablesorter th.header {
 
 /* BlackBar */
 /* -------- */
-#blackbar-underlay {
-  height: 36px;
-}
 #blackbar {
-  position: fixed;
   top: 0;
   left: 0;
   z-index: 1500;
   width: 100%;
-  background: #333;
-  background: rgba(0,0,0,0.8);
+  background: #202020;
   color: #fff;
-  height: 36px;
+  height: 27px;
 }
 #blackbar > .container {
   width: 100%;
@@ -240,13 +235,13 @@ table.tablesorter th.header {
 }
 #blackbar #hm-government-link {
   float: left;
-  font-weight: 100;
-  margin-top: 5px;
+  margin-top: 2px;
   margin-left: 10px;
 }
 #blackbar #login-or-signup {
+  font-size: 11px;
   float: right;
-  margin-top: 10px;
+  margin-top: 4px;
   margin-right: 10px;
 }
 #blackbar #login-or-signup a {
@@ -256,8 +251,8 @@ table.tablesorter th.header {
 /* Branding space */
 /* -------------- */
 #branding {
-  height: 88px;
-  padding-top: 21px;
+  height: 66px;
+  padding-top: 18px;
   padding-left: 55px;
 }
 
