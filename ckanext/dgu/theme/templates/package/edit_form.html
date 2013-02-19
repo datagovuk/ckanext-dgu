@@ -47,9 +47,9 @@ if has_errors:
   }
 
   def clean(o):
-    if type(o) is list and len(o)==1:
+    if isinstance(o, list) and len(o)==1:
       o = o[0]
-    if type(o) is str:
+    if isinstance(o, basestring):
       o = field_name_map.get(o,o)
       o = field_error_key_map.get(o,o)
       o = field_error_value_map.get(o,o)
@@ -494,7 +494,7 @@ if has_errors:
       <label class="control-label" for="groups__0__name">Published by: </label>
       <div class="controls">
         <select id="groups__0__name" name="groups__0__name">
-          <option value="" py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option>
+          <option value=" " py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in authorize.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
             <option value="${publisher_name}" py:attrs="{'selected': 'selected' if group_name == publisher_name else None}" >
               ${publisher['title']}
@@ -634,8 +634,8 @@ if has_errors:
         <option value="Administration" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Administration' else None}">Administration</option>
         <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Spending Data' else None}">Spending Data</option>
       </select>
+      <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
     <div>
-    <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
     <br/>
     <p>2. If there are other themes in this data, select them here:</p>
     <div class="well">
