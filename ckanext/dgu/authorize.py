@@ -90,7 +90,7 @@ def dgu_package_create(context, data_dict):
     # If the user has a group (is a publisher), but there is no package
     # group name, then we need to continue to allow validation to cause the
     # failure.
-    if user_publisher_names and not any(package_group_names):
+    if user_publishers and package_group_names == [u' ']:
         return {'success': True}
 
     if not _groups_intersect(user_publisher_names, package_group_names):
