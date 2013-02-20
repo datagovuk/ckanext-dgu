@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import ckanext.dgu.testtools.selenium_test_base as t
+import selenium_test_base as t
 
-class SearchTests(t.TestBase):
+class TestSearch(t.TestBase):
 
     def test_basic_search(self):
         self.selenium.open('/data/search')

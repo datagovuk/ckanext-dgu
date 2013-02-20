@@ -103,12 +103,21 @@ class PublisherMatch(CkanCommand):
                     # Save as a publisher extra
                     count = count + 1
                     modified = False
+
+                    # We don't want to write any details automatically if we have
+                    # any existing phone, email or web details for FOI.
+                    have_previous_details = any([publisher.extras.get('foi-phone'),
+                                                publisher.extras.get('foi-email'),
+                                                publisher.extras.get('foi-web')])
+
                     if not publisher.extras.get('website-url'):
                         publisher.extras['website-url'] = homepage
                         modified = True
-                    if not publisher.extras.get('WDTK_URL'):
-                        publisher.extras['WDTK_URL'] = WDTK_REQUEST_URL % slug
+                    if not have_previous_details:
+                        publisher.extras['foi-web'] = WDTK_REQUEST_URL % slug
                         modified = True
+                    else:
+                        log.info("Skipping {pubname} as details already exist".format(pubname=publisher.name))
                     if modified:
                         processed = processed + 1
                         model.Session.add(publisher)

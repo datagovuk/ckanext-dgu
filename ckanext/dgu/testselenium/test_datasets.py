@@ -1,6 +1,6 @@
 import uuid, time
-import ckanext.dgu.testtools.selenium_test_base as t
-from ckanext.dgu.testtools.selenium_tests.login import with_auth
+import selenium_test_base as t
+from test_login import with_auth
 
 class DatasetTests(t.TestBase):
 
@@ -10,7 +10,7 @@ class DatasetTests(t.TestBase):
         self.wait()
 
         # Info
-        nm = 'Test Dataset %s' % str(uuid.uuid4())
+        nm = self.config['create_name']
         self.selenium.type('id=title', nm)
         name = self.selenium.get_value("id=name")
         self.selenium.click('id=next-button')
@@ -51,8 +51,8 @@ class DatasetTests(t.TestBase):
 
         self.selenium.click('id=save-button')
         self.wait()
-        assert 'dataset/%s' % name in self.selenium.get_location(), "There was a problem creating a dataset"
-        self.delete_dataset(name)
+        assert 'dataset/%s' % name in self.selenium.get_location(), \
+            "There was a problem creating a dataset" + self.selenium.get_html_source()
 
 
     @with_auth('editor_username', 'editor_password')
@@ -63,7 +63,7 @@ class DatasetTests(t.TestBase):
         self.wait()
 
         # Info
-        nm = 'Test Dataset %s' % str(uuid.uuid4())
+        nm = self.config['edit_name']
         self.selenium.type('id=title', nm)
         name = self.selenium.get_value("id=name")
         self.selenium.click('id=next-button')
@@ -89,7 +89,8 @@ class DatasetTests(t.TestBase):
         self.selenium.click('id=save-button')
         self.wait()
 
-        assert 'dataset/%s' % name in self.selenium.get_location(), "There was a problem creating a dataset"
+        assert 'dataset/%s' % name in self.selenium.get_location(), \
+            "There was a problem editing a dataset" + self.selenium.get_html_source()
 
         print 'Ready to edit the dataset now...'
         #self.selenium.click('link= Edit') - link isn't easily identifiable
@@ -103,30 +104,4 @@ class DatasetTests(t.TestBase):
 
         notes = self.selenium.get_text('css=.notes')
         assert 'Womble' in notes, "Description was not updated when editing dataset"
-        self.delete_dataset(name)
-
-    def delete_dataset(self, name):
-        import ckan.model as model
-        model.repo.new_revision()
-
-        pkg = model.Package.get(name)
-        if pkg:
-            # Make sure we save it so it is taken out of search index
-            pkg.state = 'deleted'
-            model.Session.add(pkg)
-            model.Session.commit()
-
-            # Purge all of the revisions... mostly taken from admin controller
-            revisions = [x[0] for x in pkg.all_related_revisions]
-            revs_to_purge = [r.id for r in revisions]
-            model.Session.remove()
-
-            for id in revs_to_purge:
-                revision = model.Session.query(model.Revision).get(id)
-                try:
-                    # TODO deleting the head revision corrupts the edit page
-                    # Ensure that whatever 'head' pointer is used gets moved down to the next revision
-                    model.repo.purge_revision(revision, leave_record=False)
-                except Exception, inst:
-                    print "Failed to delete a revision of this package"
 

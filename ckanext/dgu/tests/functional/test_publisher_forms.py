@@ -38,6 +38,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-name'] = 'Head of FOI Comms'
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
+        form['foi-web'] = 'http://whatdotheyknow.com'
         form['category'] = 'grouping'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
         assert_equal(res.header_dict['Location'], 'http://localhost/publisher/test-name')
@@ -52,6 +53,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-name'], 'Head of FOI Comms')
         assert_equal(publisher.extras['foi-email'], 'foi-comms@nhs.gov.uk')
         assert_equal(publisher.extras['foi-phone'], '0845 4567890')
+        assert_equal(publisher.extras['foi-web'], 'http://whatdotheyknow.com')
         assert_equal(publisher.extras['category'], 'grouping')
 
     def test_1_edit_publisher(self):
@@ -70,6 +72,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['contact-email'].value, 'contact@nhs.gov.uk')
         assert_equal(form['foi-name'].value, '')
         assert_equal(form['foi-email'].value, '')
+        assert_equal(form['foi-web'].value, '')
         assert_equal(form['category'].value, 'grouping')
         assert_equal(form['abbreviation'].value, 'NHS')
 
@@ -83,6 +86,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-name'] = 'Head of FOI Comms'
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
+        form['foi-web'] = 'http://whatdotheyknow.com'
         form['category'] = 'alb'
         form['abbreviation'] = 'nhs'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'nhsadmin'})
@@ -97,6 +101,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-name'], 'Head of FOI Comms')
         assert_equal(publisher.extras['foi-email'], 'foi-comms@nhs.gov.uk')
         assert_equal(publisher.extras['foi-phone'], '0845 4567890')
+        assert_equal(publisher.extras['foi-web'], 'http://whatdotheyknow.com')
         assert_equal(publisher.extras['category'], 'alb')
         assert_equal(publisher.extras['abbreviation'], 'nhs')
 
@@ -122,6 +127,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-name'] = 'Head of FOI Comms'
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
+        form['foi-web'] = 'http://whatdotheyknow.com'
         form['category'] = 'grouping'
         form['abbreviation'] = 'tn2'
         res = form.submit('save', status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
@@ -137,6 +143,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['foi-name'].value, 'Head of FOI Comms')
         assert_equal(form['foi-email'].value, 'foi-comms@nhs.gov.uk')
         assert_equal(form['foi-phone'].value, '0845 4567890')
+        assert_equal(form['foi-web'].value, 'http://whatdotheyknow.com')
         assert_equal(form['category'].value, 'grouping')
         assert_equal(form['abbreviation'].value, 'tn2')
 
@@ -159,6 +166,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-name'] = 'Head of FOI Comms'
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
+        form['foi-web'] = 'http://whatdotheyknow.com'
         form['category'] = 'grouping'
         form['abbreviation'] = 'tn2'
         res = form.submit('save', status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
@@ -174,6 +182,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['foi-name'].value, 'Head of FOI Comms')
         assert_equal(form['foi-email'].value, 'foi-comms@nhs.gov.uk')
         assert_equal(form['foi-phone'].value, '0845 4567890')
+        assert_equal(form['foi-web'].value, 'http://whatdotheyknow.com')
         assert_equal(form['category'].value, 'grouping')
         assert_equal(form['abbreviation'].value, 'tn2')
 
@@ -196,7 +205,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='editor')]),
                          set(('nhseditor', 'user_d101')))
         check_related_publisher_properties()
-        
+
         # Load form
         group = model.Group.by_name(publisher_name)
         offset = url_for('/publisher/edit/%s' % publisher_name)
@@ -271,7 +280,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['users__2__name'].value, 'user_d101')
         assert_equal(form['users__2__capacity'].value, 'editor')
         assert_equal(form['users__3__name'].value, '')
-        
+
         # Edit the form
         form['users__3__name'] = 'test_user'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'nhsadmin'})
@@ -285,7 +294,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
                      set(('nhseditor', 'user_d101', 'test_user')))
 
         check_related_publisher_properties()
-        
+
 class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
 
     @classmethod
@@ -314,7 +323,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         parent_publisher_name = model.Group.get(parent_publisher_id).name
         assert_equal(parent_publisher_name, publisher_name)
         assert_equal(form['reason'].value, '')
-        
+
         # Fill in form
         form['reason'] = 'I am the director'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'user'})
@@ -326,7 +335,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         msg = msgs[0]
         assert_equal(msg[1], 'info@test.ckan.net') # from (ckan.mail_from in ckan/test-core.ini)
         assert_equal(msg[2], ["coffice@gov.uk"]) # to (dgu.admin.name/email in dgu/test-core.ini)
-        
+
     def assert_application_sent_to_right_person(self, publisher_name, to_email_addresses):
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})

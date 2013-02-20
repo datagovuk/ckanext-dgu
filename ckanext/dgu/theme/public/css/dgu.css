@@ -1214,8 +1214,21 @@ table .field_error {
   border-color: #FF6666;
   background: transparent url(../images/icons/error.png) 98% center no-repeat;
 }
+.resources-well {
+  padding: 15px 8px;
+}
+.resource-move-cell {
+  width: 39px;
+  padding: 6px 1px 0 1px !important;
+}
+.resource-move-cell .btn {
+  padding: 5px 2px 2px 2px;
+}
 .resource-url .error input {
   background: transparent url(../images/icons/error.png) 98% center no-repeat;
+}
+.resource .input-medium {
+  width: 130px;
 }
 .hints {
   font-style: italic;

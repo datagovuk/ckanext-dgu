@@ -5,7 +5,7 @@
     var isDatasetNew = $('body.PackageController.new').length > 0;
 
     for (field_id in form_errors) {
-      
+
       var errors = form_errors[field_id];
       if( ! errors.length) { return; }
 
@@ -56,25 +56,25 @@
       return function(e) {
         e.preventDefault();
         var activeTab = $('div#form-tabs li.active');
-        if (goBack) { 
-          activeTab.prev().children('a').click(); 
+        if (goBack) {
+          activeTab.prev().children('a').click();
         }
         else {
-          activeTab.next().children('a').click(); 
+          activeTab.next().children('a').click();
           activeTab.next().removeClass('disabled');
         }
       };
     };
 
     // Correctly handle disabled nav buttons
-    $('a.disabled').click(function(e) { 
+    $('a.disabled').click(function(e) {
       e.preventDefault();
     });
 
     $('#back-button').click(function(e) {
         e.preventDefault();
         var activeTab = $('div#form-tabs li.active');
-        activeTab.prev().children('a').click(); 
+        activeTab.prev().children('a').click();
     });
     $('#next-button').click(function(e) {
         e.preventDefault();
@@ -99,6 +99,7 @@
       "contact-phone",
       "foi-name",
       "foi-email",
+      "foi-web",
       "foi-phone"
     ];
     $('#groups__0__name').change(function() {
@@ -110,6 +111,7 @@
           publisher[publisherInfoFields[i]] = '';
         }
       }
+
       for(var i=0; i<publisherInfoFields.length; i++){
         $('#' + publisherInfoFields[i]).val(publisher[publisherInfoFields[i]]);
         $('#' + publisherInfoFields[i] + '-dialog').val(publisher[publisherInfoFields[i]]);
@@ -141,6 +143,17 @@
     });
     $('.validate-resource-button').each(function(index, e){ // validate individual resource
       CKAN.Dgu.validateResource(e, function(){return $(e).parents('tr.resource');});
+    });
+
+    /* Up/down buttons */
+    $('.resource-move').each(function(index, button){ // validate individual resource
+      button = $(button);
+      CKAN.Dgu.bindResourceMoveButtons(button, function(){return button.parents('tr.resource');});
+    });
+    /* Up/down button visibility */
+    var flexitables = $('.resource-move').parents('table');
+    $.each( flexitables, function(i,table) {
+      CKAN.Dgu.setVisibleResourceMoveButtons($(table));
     });
 
     /* Resource format autocomplete */

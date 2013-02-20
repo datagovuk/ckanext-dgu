@@ -35,7 +35,6 @@ class ScrapeResources(CkanCommand):
         model.repo.new_revision()
 
         log.info("Database access initialised")
-
         s = ScraperWiki()
 
         for resource in self._get_resources():

@@ -113,6 +113,7 @@ class PublisherForm(SingletonPlugin):
             'foi-name': [ignore_missing, unicode, convert_to_extras],
             'foi-email': [ignore_missing, unicode, convert_to_extras],
             'foi-phone': [ignore_missing, unicode, convert_to_extras],
+            'foi-web': [ignore_missing, unicode, convert_to_extras],
             'contact-name': [ignore_missing, unicode, convert_to_extras],
             'contact-email': [ignore_missing, unicode, convert_to_extras],
             'contact-phone': [ignore_missing, unicode, convert_to_extras],
@@ -128,6 +129,7 @@ class PublisherForm(SingletonPlugin):
             'foi-name' : [convert_from_extras, ignore_missing, unicode],
             'foi-email': [convert_from_extras, ignore_missing, unicode],
             'foi-phone': [convert_from_extras, ignore_missing, unicode],
+            'foi-web': [convert_from_extras, ignore_missing, unicode],
             'contact-name' : [convert_from_extras, ignore_missing, unicode],
             'contact-email': [convert_from_extras, ignore_missing, unicode],
             'contact-phone': [convert_from_extras, ignore_missing, unicode],
@@ -155,7 +157,7 @@ class PublisherForm(SingletonPlugin):
         c.body_class = "group edit"
         c.schema_fields = [
     		'contact-name', 'contact-email', 'contact-phone',
-    		'foi-name', 'foi-email', 'foi-phone',
+    		'foi-name', 'foi-email', 'foi-phone', 'foi-web',
                 'category',
 	    ]
 
