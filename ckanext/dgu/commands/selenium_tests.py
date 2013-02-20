@@ -11,7 +11,6 @@ import logging
 import traceback
 
 from optparse import OptionParser
-from selenium import selenium
 from ckan.lib.cli import CkanCommand
 
 log = None
@@ -94,6 +93,7 @@ class TestRunner(CkanCommand):
 
     def run_task(self):
         import urlparse
+        from selenium import selenium
 
         selenium_url = self.options.selenium_url or self._run_selenium()
         target_url = self.options.target_url or "http://localhost:5000/data"
