@@ -1174,6 +1174,26 @@ def publisher_performance_data(publisher, include_sub_publishers):
     rcount = publib.resource_count(publisher, include_sub_publishers)
     log.debug("{p} has {r} resources".format(p=publisher.name, r=rcount))
 
+    # Issues data
+    issues = ""
+
+    if 'issues' in config['ckan.plugins']:
+        # If issues are installed then we can use the info to determine
+        # whether the issues are older than a month, between a fortnight
+        # and a month, or less than a fortnight.
+        from ckanext.issues.lib import util
+
+        more_than_month = util.old_unresolved(publisher, days=30)
+        more_than_fortnight = util.old_unresolved(publisher, days=14)
+
+        if more_than_month:
+            issues = 'red'
+        elif more_than_fortnight:
+            issues = 'amber'
+        else:
+            issues = 'green'
+
+
     # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
     # that returns count().  This is likely to be slow if there are lots of resource links broken
     # such as for ONS.
@@ -1209,6 +1229,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
     return {
         'broken_links': broken_links,
         'openness': openness,
+        'issues': issues
     }
 
 def publisher_has_spend_data(publisher):

@@ -50,6 +50,13 @@
         <dt>Spend reports - check publisher needs it</dt>
         <dd>(green for up-to-date, amber for up to 3 months out of date) <a href="${h.url_for('openspending_publisher_report', id=publisher.name)}">view</a></dd>
       </py:if>
+
+      <py:if test="h.issues_installed()">
+        <dt>Dataset issues</dt>
+        <dd>
+          ${lights.get('issues','green')}
+          <a href="${h.url_for(controller='ckanext.issues.controller:IssueController',action='publisher_issue_page', publisher_id=publisher.id)}">view</a></dd>
+      </py:if>
     </dl>
   </div>
 
