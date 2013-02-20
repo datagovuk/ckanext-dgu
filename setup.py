@@ -69,7 +69,7 @@ setup(
         create-test-data=ckanext.dgu.lib.cli:DguCreateTestDataCommand
         prod = ckanext.dgu.testtools.prodder:ProdCommand
         uklpreports = ckanext.dgu.lib.reports:UKLPReports
-        wdtk_publisher_match = ckanext.dgu.commands.wdtk:PublisherMatch
+        wdtk_publisher_match = ckanext.dgu.commands.wdtk2:PublisherMatch
         update_licenses = ckanext.dgu.commands.license_updates:UpdateLicense
         scrape_resources = ckanext.dgu.bin.scrape_resources:ScrapeResources
         selenium_tests = ckanext.dgu.commands.selenium_tests:TestRunner
