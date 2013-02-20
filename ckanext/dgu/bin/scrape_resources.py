@@ -35,6 +35,7 @@ class ScrapeResources(CkanCommand):
         model.repo.new_revision()
 
         log.info("Database access initialised")
+
         s = ScraperWiki()
 
         for resource in self._get_resources():
@@ -53,7 +54,6 @@ class ScrapeResources(CkanCommand):
             # list of json blobs back from ScraperWiki. Currently we only support
             # a single package being added to from a single scraper
             self._process_dataset(scrapername, package.name, datalist)
-
 
     def _get_resources(self):
         import ckan.model as model

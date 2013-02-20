@@ -8,6 +8,7 @@ class TestFormats:
 
     def test_by_extension(self):
         assert_equal(Formats.by_extension()['json']['display_name'], 'JSON')
+        assert_equal(Formats.by_extension()['xlsx']['display_name'], 'XLS')
 
     def test_by_mime_type(self):
         assert_equal(Formats.by_mime_type()['text/x-json']['display_name'], 'JSON')

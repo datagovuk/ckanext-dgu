@@ -8,10 +8,9 @@ class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):
         field_keys_to_find_pkg_by = ['title', 'groups']
         field_keys_to_expect_invariant = [
-            'geographical_granularity',
             'geographic_coverage', 'temporal_granularity',
-            'precision', 'url', 'taxonomy_url', 'agency',
-            'author', 'author_email', 'license_id']
+            'precision', 'url', 'taxonomy_url',
+            'license_id']
         super(OnsLoader, self).__init__(
             ckanclient,
             field_keys_to_find_pkg_by,
