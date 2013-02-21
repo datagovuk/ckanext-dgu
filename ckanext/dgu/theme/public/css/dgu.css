@@ -740,6 +740,7 @@ h2.front-page-no-body {
 }
 .front-page-table {
   width: 100%;
+  border-collapse: separate;
 }
 .front-page-table td {
   width: 426px; /* 460px - (17px padding each side) */
