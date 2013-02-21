@@ -42,8 +42,7 @@ CKAN.DguDatasetMap = function($){
                 return false;
 
             var width = $("#dataset-map-container").width();
-            var height = width;
-            $("#dataset-map-container").height(width);
+            var height = $("#dataset-map-container").height();
 
             // Maximum extent available with the OS tiles, if the dataset falls outside,
             // the OSM global map will be loaded
@@ -58,7 +57,6 @@ CKAN.DguDatasetMap = function($){
 
             var attributionBox = $('#dataset-map-attribution');
             assert(attributionBox.length>0);
-            attributionBox.addClass('dataset-map-boxed');
             var controls = [
               new OpenLayers.Control.Attribution({div: attributionBox[0]})
             ];
