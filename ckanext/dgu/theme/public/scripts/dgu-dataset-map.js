@@ -43,6 +43,12 @@ CKAN.DguDatasetMap = function($){
 
             var width = $("#dataset-map-container").width();
             var height = $("#dataset-map-container").height();
+            /* It will not render in IE7 until it has a height.
+             * OK, it has a height. top=0, bottom=0, therefore height=280
+             * because that's the height of my parent container.
+             * But no CSS height is set.
+             * I hate you Microsoft. */
+            $("#dataset-map-container").height(height);
 
             // Maximum extent available with the OS tiles, if the dataset falls outside,
             // the OSM global map will be loaded
