@@ -1571,17 +1571,27 @@ ul.ui-autocomplete li a.ui-state-hover{
 /* ------------------ */
 
 .dataset-map {
-    width: 50%;
     padding-bottom: 10px;
     margin-bottom: 20px;
+    position: relative;
+    height: 280px;
 }
 
 #dataset-map-container {
-    width: 100%;
+    width: 350px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: #ccc;
 }
 
 .dataset-map-info {
-  float: right;
+  position: absolute;
+  width: 220px;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 .dataset-map-info .map-buttons > div{
@@ -1601,8 +1611,10 @@ ul.ui-autocomplete li a.ui-state-hover{
 #dataset-map-attribution{
     font-size: 9px;
     line-height: 12px;
-    padding: 10px;
-    width: 250px;
+    text-align: right;
+    position: absolute;
+    right: 0;
+    bottom: 0;
 }
 
 
@@ -1644,6 +1656,9 @@ table.error-details {
 }
 
 .table-lat-long {
+}
+.table-lat-long th {
+  padding-bottom: 8px;
 }
 .table-lat-long .extent-text {
   font-weight: bold;
