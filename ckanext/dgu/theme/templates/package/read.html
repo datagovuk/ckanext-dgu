@@ -13,7 +13,7 @@
 
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])}
   - Datasets</py:def>
-  
+
   <py:def function="content_class"><!--unboxed--></py:def>
 
   <xi:include href="sidebar.html"/>
@@ -54,6 +54,9 @@
 
 
   <py:def function="optional_head">
+
+    <link rel="alternate" type="application/rdf+xml" href="${h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf',qualified=True)}"/>
+
     <script src="/scripts/spin.min.js"></script>
     <script src="/scripts/dgu-basket.js?1"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-package.js')}"></script>
