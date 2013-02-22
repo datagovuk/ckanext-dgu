@@ -156,12 +156,8 @@ import ckanext.dgu.lib.helpers as dgu_helpers
           </py:if>
         </div>
 
-        <!-- Dataset Extent Map (only if present) -->
-        <py:if test="c.dataset_extent">
-          <div class="dataset-map" >
-            <div id="dataset-map-container"></div>
-          </div>
-        </py:if>
+        <div class="clearfix"></div>
+
 
         <py:if test="additional_resources or gemini_resources">
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
