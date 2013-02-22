@@ -123,7 +123,7 @@ h2.front-page-no-body{padding-bottom:0;border-bottom:none;}
 .sort-by-controls select{width:115px;}
 .sort-by-controls .feed-icon{float:right;}
 .front-page .span6 .boxed{min-height:150px;margin-bottom:25px;}
-.front-page-table{width:100%;}
+.front-page-table{width:100%;border-collapse:separate;}
 .front-page-table td{width:426px;vertical-align:top;}
 .front-page-table tr.gutter td{height:20px;}
 .front-page-table td.gutter{width:20px;padding:0;}
@@ -281,12 +281,12 @@ ul.ui-autocomplete li a.ui-state-hover{background:#9D2;border-color:#690;}
 .star-rating>a{color:#333;}
 .star-rating>a:hover{text-decoration:none;}
 .star-rating .last-updated{font-size:10px;}
-.dataset-map{width:50%;padding-bottom:10px;margin-bottom:20px;}
-#dataset-map-container{width:100%;}
-.dataset-map-info{float:right;}
+.dataset-map{padding-bottom:10px;margin-bottom:20px;position:relative;height:280px;}
+#dataset-map-container{width:350px;position:absolute;top:0;left:0;bottom:0;background:#ccc;}
+.dataset-map-info{position:absolute;width:220px;right:0;top:0;bottom:0;}
 .dataset-map-info .map-buttons>div{margin-bottom:10px;}
 .dataset-map-boxed{border:1px solid #6a3;-moz-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:1px 1px 3px #ddd;-moz-box-shadow:1px 1px 3px #ddd;box-shadow:1px 1px 3px #ddd;}
-#dataset-map-attribution{font-size:9px;line-height:12px;padding:10px;width:250px;}
+#dataset-map-attribution{font-size:9px;line-height:12px;text-align:right;position:absolute;right:0;bottom:0;}
 .olControlAttribution{left:5px;right:inherit;bottom:3px !important;}
 #dataset-map-container div.olControlAttribution{font-size:9px;font-family:helvetica,tahoma,verdana,sans-serif;line-height:12px;left:5px;bottom:3px;color:#666;}
 body.openspending_report .voluntary{display:none;}
@@ -296,6 +296,7 @@ table.error-details{table-layout:fixed;}
 .error-details td{overflow:hidden;}
 .text-warning{color:#C09853;}
 .popular_datasets p{margin-top:8px;}
+.table-lat-long th{padding-bottom:8px;}
 .table-lat-long .extent-text{font-weight:bold;}
 .table-lat-long .extent-label{text-align:right;padding:2px 8px;}
 .table-lat-long .extent-label>div{font-size:11px;padding:0 6px;}
