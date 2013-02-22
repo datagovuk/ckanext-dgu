@@ -8,7 +8,7 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <table class="search-area">
+    <table class="search-area margin-bottom-40">
      <tr>
       <td class="left" py:if="not c.query_error">
         <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>

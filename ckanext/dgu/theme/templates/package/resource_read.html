@@ -238,7 +238,7 @@ if c.pkg_dict:
     # calculate displayable field values
     fields = DisplayableFields(field_names)
 ?>
-        <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
+        <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size metadata-table">
             <tbody>
             <tr py:for="field_dict, label_attributes, value_attributes in fields">
               <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>

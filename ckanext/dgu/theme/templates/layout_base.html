@@ -65,6 +65,7 @@
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.ba-hashchange.min.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/bootstrap/2.0.3/bootstrap.min.js')}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
+  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script> 
 
   <py:if test="defined('optional_head')">
     ${optional_head()}
@@ -82,8 +83,9 @@
 <?python
 data_controller = 'ckanext.dgu.controllers.data:DataController'
 ?>
-<body class="${request.environ.get('pylons.routes_dict', {}).get('action')}
-             ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
+<body class="action-${request.environ.get('pylons.routes_dict', {}).get('action')}
+             controller-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[0].split('.')[-1]}
+             controllerclass-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
              ${defined('body_class') and body_class()}
   ">
   <div id="blackbar" py:choose="defined('blackbar_content')">
@@ -227,9 +229,6 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
       <div class="span4 sidebar-outer">
         <div id="sidebar">
           <ul class="widget-list">
-            <py:if test="defined('primary_sidebar_extras')">
-              ${primary_sidebar_extras()}
-            </py:if>
             <primarysidebar>
               <!-- Primary Side Bar Goes Here -->
             </primarysidebar>

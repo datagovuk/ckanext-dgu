@@ -20,6 +20,7 @@
   </py:match>
 
   <div py:match="content">
+    <?python import json ?>
     <div class="tabbable">
       <ul class="nav nav-tabs">
         <li class="active"><a href="#publisherlist" data-toggle="tab">Publisher list</a></li>
@@ -36,10 +37,7 @@
             ${publisher_tree( c.all_groups )}
           </div>
         </div>
-        <div class="tab-pane small-search" id="publishersearch">
-<?python
-import json
-?>
+        <div class="tab-pane" id="publishersearch">
           <table class="search-area">
             <tr>
               <td class="left">
@@ -47,7 +45,7 @@ import json
                 <div class="result-count-footer" style="color: #ccc;">Publishers</div>
               </td>
               <td class="right">
-                <form id="publisher-search" class="form-search dataset-search" action="">
+                <form id="publisher-search" class="form-search" action="">
                   <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
                   <input type="submit" class="btn btn-primary button" value="Search..."/>
                 </form>

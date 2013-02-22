@@ -34,12 +34,12 @@
       <h4>Administrators:</h4>
       <py:choose>
           <py:when test='(not c.is_an_official) and c.administrators.count()'>
-              <ul class="property-list">
+              <ul>
                 <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.administrators.count()} administrator${plural_administrators}</a></li>
               </ul>
           </py:when>
           <py:otherwise>
-              <ul class="property-list" py:for="admin in c.administrators">
+              <ul py:for="admin in c.administrators">
                 <li>${h.linked_user(admin, maxlength=40)}</li>
               </ul>
           </py:otherwise>
@@ -50,12 +50,12 @@
 
       <py:choose>
           <py:when test='(not c.is_an_official) and c.editors.count()'>
-              <ul class="property-list">
+              <ul >
                 <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.editors.count()} editor${plural_editors}</a></li>
               </ul>
           </py:when>
           <py:otherwise>
-              <ul class="property-list" py:for="editor in c.editors">
+              <ul py:for="editor in c.editors">
                 <li>${h.linked_user(editor, maxlength=40)}</li>
               </ul>
           </py:otherwise>
@@ -150,19 +150,20 @@ if spb:
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
 
     <div class="group-dataset-list">
-      <div class="boxed search-area-box">
+      <div class="boxed margin-bottom-40">
         <div class="notes" py:if="str(c.description_formatted).strip()">
           ${c.description_formatted}
         </div>
 
-          <form id="dataset-search-thin" class="form-search dataset-search" method="GET">
+        <div class="search-area">
+          <form class="form-search" method="GET">
             <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />
-
             <py:for each="(k, v) in c.fields">
               <input type="hidden" name="${k}" value="${v}" />
             </py:for>
             <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           </form>
+        </div>
 
           <div>
             <form action="">
@@ -191,7 +192,7 @@ if spb:
       <div py:if="c.page.items">
         <h3>Datasets:</h3>
         <!--!<div class="clearfix">&nbsp;</div>-->
-        <div class="ribbon-header publisher-header">
+        <div class="ribbon-header">
           <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
             <img src="/images/rss-on-white.png" width="16" height="16"/>
           </a>

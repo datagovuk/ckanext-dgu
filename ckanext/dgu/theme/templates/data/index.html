@@ -17,15 +17,13 @@
     <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
   </py:def>
 
-  <div py:match="content" class="front-page">
+  <div py:match="content">
     <!--! Though deeply unfashionable... I'm using a table to create equal-height boxes -->
     <table class="front-page-table">
       <tr>
         <td class="boxed">
           <h2>Search Datasets</h2>
-          <div class="small-search">
-            <xi:include href="../package/search_form.html" />
-          </div>
+          ${search_form()}
         </td>
         <td class="gutter"></td>
         <td class="boxed">
@@ -109,7 +107,7 @@
           <div class="pull-right">
             <a href="/node/add/data-request" class="btn btn-primary">Request new data</a>
           </div>
-          <h2 class="front-page-no-body">Data Requests</h2>
+          <h2 class="no-underline">Data Requests</h2>
         </td>
       </tr>
 

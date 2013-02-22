@@ -354,7 +354,7 @@ if c.pkg_dict:
     from ckanext.dgu.lib import helpers
     stars_data = helpers.get_stars_aggregate(c.pkg.id)
 ?>
-    <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
+    <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size metadata-table">
       <tbody>
         <tr py:if="stars_data">
           <td class="dataset-label">Openness score:</td>

@@ -11,7 +11,78 @@
 
   <xi:include href="package/basket.html" />
 
-  <ul py:def="package_list_from_dict(packages)" class="datasets">
+  <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')">
+    <py:if test="testValue">${stringIfTrue}</py:if>
+    <py:if test="not testValue">${stringIfFalse}</py:if>
+  </py:def>
+
+  <table py:def="search_form()" class="search-area">
+    <tr>
+      <td class="left" py:if="not c.query_error">
+        <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
+        <py:if test="request.params">      
+          <div class="result-count-footer">Results</div>
+        </py:if>
+        <py:if test="not request.params">      
+          <div class="result-count-footer">Datasets</div>
+        </py:if>
+      </td>
+      <td class="left" py:if="c.query_error">
+        <div class="result-count-footer">Search Error</div>
+      </td>
+      <td class="right">
+        <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
+          <input id="q" type="text" class="input-medium" name="q" value="${c.q}" results="0" placeholder="${_('Search...')}" />
+          <div class="search-spinner">&nbsp;</div>
+          <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
+          <span py:if="c.fields">
+          <py:for each="(k, v) in c.fields"> 
+            <input type="hidden" name="${k}" value="${v}" />  
+          </py:for>
+          </span>
+<?python
+bbox = request.params.get('ext_bbox','')
+subpub = request.params.get('parent_publishers','')
+?>
+          <py:if test="bbox">
+            <input type="hidden" id="ext_bbox" name="ext_bbox" value="${bbox}" />
+          </py:if>
+          <div id="dataset-search-ext"></div>
+        </form>
+        <div class="search-facets">
+          <div class="pull-left" style="padding-top: 5px;" py:if="c.fields">Your search:</div>
+          <div class="pull-left" style="width: 80%;">
+            <py:for each="(field, value) in c.fields">
+              <a class="facet" href="${c.remove_field(field, value)}">
+                <span class="name">${h.facet_title(field)}</span>:
+                <span class="value">${value}</span>
+                <span class="x">x</span>
+              </a>
+            </py:for>
+            <py:if test="bbox">
+              <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
+                <span class="name">${h.facet_title('Location')}</span>:
+                <span class="value">${bbox}</span>
+                <span class="x">x</span>
+              </a>
+            </py:if>
+            <py:if test="subpub">
+              <?python from ckanext.dgu.lib.helpers import search_without_subpub ?>
+              <a class="facet" href="${search_without_subpub()}">
+                <span class="name">Including sub-publishers</span>
+                <span class="x">x</span>
+              </a>
+            </py:if>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+
+
+  <ul py:def="package_list_from_dict(packages)" class="common-dataset-list">
    <li py:for="package in packages">
      ${package_summary(package, show_preview_buttons=True)}
    </li>
