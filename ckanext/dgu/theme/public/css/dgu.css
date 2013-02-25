@@ -1347,6 +1347,50 @@ body.harvest #content{
   box-shadow: 0px 2px 6px rgba(0,0,0,0.25);
 }
 
+.harvest-metadata {
+  overflow: hidden;
+}
+
+.harvest-metadata h1 {
+    padding-top: 20px;
+}
+.harvest-metadata h2 {
+    font-size: 20px;
+   margin-left:20px;
+}
+.harvest-metadata h3 {
+    font-size: 17px;
+   margin-left:40px;
+}
+.harvest-metadata h4 {
+    font-size: 15px;
+   margin-left:60px;
+}
+.harvest-metadata h5 {
+    font-size: 13px;
+   margin-left:80px;
+}
+
+.harvest-metadata h2,
+.harvest-metadata h3,
+.harvest-metadata h4,
+.harvest-metadata h5,
+.harvest-metadata h6 {
+  content: ':';
+  margin-top: 5px;
+  margin-bottom: 0px;
+}
+.harvest-metadata h5 {
+  margin-bottom: 1px;
+}
+.harvest-metadata p {
+   margin-left:100px;
+  margin-bottom: 2px;
+}
+.harvest-metadata .list-item {
+  padding-bottom: 20px;
+}
+
 /* Tag page */
 /* -------- */
 
