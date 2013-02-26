@@ -265,7 +265,9 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
         return user
     if not isinstance(user, model.User):
         user_name = unicode(user)
-        user = model.User.get(user_name)
+        user = model.User.get(user_name) or model.Session.query(model.User).filter_by(fullname=user_name).first()
+    this_is_me = c.user in (user.name, user.fullname)
+
     if not user:
         # may be in the format "NHS North Staffordshire (uid 6107 )"
         match = re.match('.*\(uid (\d+)\s?\)', user_name)
@@ -273,8 +275,8 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
             drupal_user_id = match.groups()[0]
             user = model.User.get('user_d%s' % drupal_user_id)
 
-    if (c.is_an_official):
-        # only officials can see the actual user name
+    if (c.is_an_official or this_is_me):
+        # only officials and oneself can see the actual user name
         if user:
             publisher = ', '.join([group.title for group in user.get_groups('publisher')])
 

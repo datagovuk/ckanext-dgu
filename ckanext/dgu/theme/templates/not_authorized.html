@@ -18,7 +18,7 @@
 
     <div py:if="c.user">
       <?python import ckanext.dgu.lib.helpers as dgu_helpers ?>
-      <p>You are logged in as: ${dgu_helpers.dgu_linked_user(c.user)}</p>
+      <p>You are logged in as: ${dgu_helpers.dgu_linked_user(c.user, maxlength=100)}</p>
     </div>
   </div>
   <xi:include href="layout.html" />
