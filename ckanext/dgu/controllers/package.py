@@ -10,6 +10,7 @@ from ckan.lib.navl.dictization_functions import Invalid, DataError
 from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import missing
 import ckan.controllers.package
+from ckanext.dgu.lib.helpers import get_from_flat_dict
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ class PackageController(ckan.controllers.package.PackageController):
         return super(PackageController, self).history(id)
 
     def delete(self, id):
-        """Provide a delete action, but only for UKLP datasets"""
+        """Provide a delete ('withdraw') action, but only for UKLP datasets"""
         from ckan.lib.search import SearchIndexError
         context = {
             'model': model,
@@ -38,7 +39,15 @@ class PackageController(ckan.controllers.package.PackageController):
                 try:
                     package_name = pkg_dict['name']
                     get_action('package_delete')(context, {'id':id})
-                    h.flash_success(_('Successfully deleted package.'))
+                    is_uklp = get_from_flat_dict(pkg_dict['extras'], 'UKLP') == 'True'
+                    if is_uklp:
+                        action = 'withdrawn'
+                        resource_type = get_from_flat_dict(pkg_dict['extras'], 'resource-type') + ' record'
+                    else:
+                        action = 'deleted'
+                        resource_type = 'dataset'
+                    h.flash_success('Successfully %s %s.' \
+                                    % (action, resource_type))
                     self._form_save_redirect(package_name, 'edit')
                 except NotAuthorized:
                     abort(401, _('Unauthorized to delete package %s') % id)

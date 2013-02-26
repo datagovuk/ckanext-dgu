@@ -110,6 +110,9 @@ There are a number of command-line scripts for processing data. To run one of th
 Tests
 =====
 
+Unit and functional tests
+-------------------------
+
 To test the DGU extension you need the setup with CKAN (see above) and creation of a configured pyenv/src/ckan/development.ini (see http://docs.ckan.org/en/latest/install-from-source.html ).
 
 To run the tests::
@@ -124,8 +127,13 @@ or run them from another directory by specifying the test.ini::
 
 You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see http://docs.ckan.org/en/latest/install-from-source.html . 
 
-Test issues
------------
+Browser tests
+-------------
+
+Selenium is used to test a site is operating to a basic minimum standard, and specific checks on javascript elements.
+
+To run the Selenium tests, TODO
+
 
 Address and Connection errors
 +++++++++++++++++++++++++++++

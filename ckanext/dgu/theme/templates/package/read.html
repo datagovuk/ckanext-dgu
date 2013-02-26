@@ -21,8 +21,8 @@
   <div py:match="content">
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
 
-    <div py:if="c.pkg_dict.get('state') != 'active'" class="state-box boxed">
-      <p>NB: This dataset is <strong>${c.pkg_dict.get('state')}</strong>. Only administrators can view it in this state.</p>
+    <div py:if="c.pkg_dict.get('state') == 'deleted'" class="state-box boxed">
+      <p>NB: This ${resource_type} is <strong>${'withdrawn' if dataset_type == 'uklp' else 'deleted'}</strong>. Only administrators can view it in this state.</p>
     </div>
 
     <py:if test="c.pkg_revision_id">

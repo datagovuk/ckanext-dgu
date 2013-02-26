@@ -158,13 +158,34 @@ def dgu_dataset_delete(context, data_dict):
     """
     Determines whether a dataset's state can be set to "deleted".
 
-    Currently only sysadmin users can do this.
+    Currently only sysadmin users can do this, apart from UKLP.
     """
     model = context['model']
     user = context.get('user')
+    user_obj = model.User.get(user)
     package = get_package_object(context, data_dict)
 
-    if Authorizer().is_sysadmin(unicode(user)):
+    if Authorizer().is_sysadmin(user_obj):
+        return {'success': True}
+
+    if package.extras.get('UKLP', '') != 'True':
+        return {'success': False}
+
+    # To be able to delete this dataset the user is allowed if
+    # (they are an 'editor' for this publisher) OR
+    # (an admin for this publisher OR parent publishers).
+    if not user_obj:
+        return {'success': False}
+
+    package_group = package.get_groups('publisher')
+    parent_groups = list(publib.go_up_tree(package_group[0])) if package_group else []
+
+    # Check admin of this or parent groups.
+    if _groups_intersect( user_obj.get_groups('publisher', 'admin'), parent_groups ):
+        return {'success': True}
+
+    # Check admin or editor of just this group
+    if _groups_intersect( user_obj.get_groups('publisher'), package_group ):
         return {'success': True}
 
     return {'success': False}

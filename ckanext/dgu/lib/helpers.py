@@ -9,7 +9,7 @@ from webhelpers.html import literal
 from webhelpers.text import truncate
 from pylons import tmpl_context as c, config
 
-from ckan.lib.helpers import icon
+from ckan.lib.helpers import icon, json
 import ckan.lib.helpers
 
 from ckan.controllers.package import search_url, url_with_params
@@ -455,5 +455,3 @@ def dgu_resource_icon(res):
         icon_name = fmt['icon']
     url = '/images/fugue/%s.png' % icon_name
     return ckan.lib.helpers.icon_html(url)
-
-

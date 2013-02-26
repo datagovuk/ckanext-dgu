@@ -248,9 +248,9 @@ if c.pkg_dict:
         field_names_display_only_if_value.append('external_reference')
     # work out the dataset_type
     pkg_extras = dict(c.pkg_extras)
-    harvest_date = harvest_guid = harvest_url = None
+    harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
     if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata_date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'spatial-data-service-type', 'metadata-language', 'coupled-resource', 'resource-type'])
+        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
@@ -269,6 +269,13 @@ if c.pkg_dict:
             else:
                 harvest_date = 'Metadata not available'
             harvest_guid = pkg_extras.get('guid')
+            harvest_source_reference = pkg_extras.get('harvest_source_reference')
+            if harvest_source_reference and harvest_source_reference != harvest_guid:
+                field_names.add(['harvest_source_reference'])
+        if pkg_extras.get('resource-type') == 'service':
+            field_names.add(['spatial-data-service-type'])
+        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+                       for date_dict in dgu_helpers.json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_type == 'ons':
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
@@ -281,8 +288,8 @@ if c.pkg_dict:
     if c.is_an_official:
         field_names.add(['state'])
 
-    temporal_coverage_from = pkg_extras.get('temporal_coverage-from')
-    temporal_coverage_to = pkg_extras.get('temporal_coverage-to')
+    temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
+    temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
     if temporal_coverage_from and temporal_coverage_to:
         temporal_coverage = '%s - %s' % \
           (DateType.db_to_form(temporal_coverage_from),
@@ -322,12 +329,14 @@ if c.pkg_dict:
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
+        'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
+        'access_constraints': {'label': 'Access constraints', 'value': dgu_helpers.render_json(pkg_extras.get('access_constraints'))},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
-        '': {'label': '', 'value': ''},
-        '': {'label': '', 'value': ''},
-        '': {'label': '', 'value': ''},
+        'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
+        'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
+        'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
         '': {'label': '', 'value': ''},
     }
 

@@ -11,8 +11,10 @@ if c.pkg_dict:
     # work out the dataset_type
     dataset_type = 'form' # default - entered via the form
     pkg_extras = dict(c.pkg_extras)
+    resource_type = 'dataset'
     if pkg_extras.get('UKLP') == 'True' or pkg_extras.get('INSPIRE') == 'True':
         dataset_type = 'uklp'
+        resource_type = pkg_extras.get('resource-type') + ' record' # dataset/service
     elif pkg_extras.get('external_reference') == 'ONSHUB':
         dataset_type = 'ons'
     
