@@ -6,10 +6,6 @@
   <xi:include href="../_util.html" />
   <xi:include href="field_helpers.html" />
 
-<?python
-import ckanext.dgu.lib.helpers as dgu_helpers
-?>
-
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
     <!-- Overview Section -->
     <div id="dataset-overview">
@@ -43,40 +39,40 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             <?python li_class="last-child" if res==individual_resources[-1] else ""?>
             <li class="$li_class">
               <div class="trimmed-text">
-                  ${dgu_helpers.dgu_resource_icon(res)}
-                  <py:if test="res.get('scraped')">${dgu_helpers.scraper_icon(res)}</py:if>
-                  ${dgu_helpers.resource_display_name(res)}
+                  ${h.dgu_resource_icon(res)}
+                  <py:if test="res.get('scraped')">${h.scraper_icon(res)}</py:if>
+                  ${h.resource_display_name(res)}
               </div>
               <div class="btn-group">
-                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${dgu_helpers.ga_download_tracking(res)}">
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                 </a>
                 <button class="btn btn-primary dropdown-toggle"
                   data-toggle="dropdown"
-                  py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
+                  py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="${res.get('url', '')}" onclick="${dgu_helpers.ga_download_tracking(res)}">
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                     </a>
                   </li>
                   <li>
-                    <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${dgu_helpers.ga_download_tracking(res, 'download-cache')}">
+                    <py:if test="h.get_cache_url(res)">
+                      <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
                         Cached
                       </a>
                     </py:if>
-                    <py:if test="not dgu_helpers.get_cache_url(res)">
+                    <py:if test="not h.get_cache_url(res)">
                       <a class="disabled">(no cache available)</a>
                     </py:if>
                   </li>
                 </ul>
               </div>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
               <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </li>
             </py:for>
@@ -89,40 +85,40 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             <?python li_class="last-child" if res==timeseries_resources[-1] else ""?>
             <li class="$li_class">
               <div class="trimmed-text">
-                ${dgu_helpers.dgu_resource_icon(res)}
+                ${h.dgu_resource_icon(res)}
                 ${res.get('date')}
-                ${dgu_helpers.resource_display_name(res)}
+                ${h.resource_display_name(res)}
               </div>
               <div class="btn-group">
-                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${dgu_helpers.ga_download_tracking(res)}">
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                 </a>
                 <button class="btn btn-primary dropdown-toggle"
                   data-toggle="dropdown"
-                  py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
+                  py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="${res.get('url', '')}" onclick="${dgu_helpers.ga_download_tracking(res)}">
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
                       <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
-                    <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${dgu_helpers.ga_download_tracking(res, 'download-cache')}">
+                    <py:if test="h.get_cache_url(res)">
+                      <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
                         Cached &raquo;
                       </a>
                     </py:if>
-                    <py:if test="not dgu_helpers.get_cache_url(res)">
+                    <py:if test="not h.get_cache_url(res)">
                       <a class="disabled">(no cache available)</a>
                     </py:if>
                   </li>
                 </ul>
               </div>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
               <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
               </li>
             </py:for>
@@ -166,45 +162,45 @@ import ckanext.dgu.lib.helpers as dgu_helpers
             <?python li_class="last-child" if res==additional_resources[-1] else ""?>
             <li class="$li_class">
               <div class="trimmed-text">
-                  ${dgu_helpers.dgu_resource_icon(res)}
+                  ${h.dgu_resource_icon(res)}
                   <py:if test="res.get('scraper_url')">
-                  ${dgu_helpers.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
+                  ${h.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
                   </py:if>
 
                   ${res.get('date')}
-                  ${dgu_helpers.resource_display_name(res)}
+                  ${h.resource_display_name(res)}
               </div>
 
               <div class="btn-group">
-                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${dgu_helpers.ga_download_tracking(res)}">
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
                       <py:if test="dataset_type!='uklp'">Download</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link</py:if>
                 </a>
                 <button class="btn btn-primary dropdown-toggle"
                   data-toggle="dropdown"
-                  py:attrs="{'disabled':'disabled'} if not dgu_helpers.get_cache_url(res) else {}">
+                  py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="${res.get('url', '')}" onclick="${dgu_helpers.ga_download_tracking(res, 'download-cache')}">
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
                       <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
                       <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
-                    <py:if test="dgu_helpers.get_cache_url(res)">
-                      <a href="${dgu_helpers.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${dgu_helpers.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${dgu_helpers.ga_download_tracking(res, 'download-cache')}">
+                    <py:if test="h.get_cache_url(res)">
+                      <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
                         Cached &raquo;
                       </a>
                     </py:if>
-                    <py:if test="not dgu_helpers.get_cache_url(res)">
+                    <py:if test="not h.get_cache_url(res)">
                       <a class="disabled">(no cache available)</a>
                     </py:if>
                   </li>
                 </ul>
               </div>
-              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if dgu_helpers.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
               <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
             </li>
             </py:for>
@@ -275,7 +271,7 @@ if c.pkg_dict:
         if pkg_extras.get('resource-type') == 'service':
             field_names.add(['spatial-data-service-type'])
         dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
-                       for date_dict in dgu_helpers.json_list(pkg_extras.get('dataset-reference-date'))])
+                       for date_dict in h.json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_type == 'ons':
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
@@ -330,7 +326,7 @@ if c.pkg_dict:
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
         'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
-        'access_constraints': {'label': 'Access constraints', 'value': dgu_helpers.render_json(pkg_extras.get('access_constraints'))},
+        'access_constraints': {'label': 'Access constraints', 'value': h.render_json(pkg_extras.get('access_constraints'))},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},

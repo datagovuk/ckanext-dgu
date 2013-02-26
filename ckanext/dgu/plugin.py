@@ -10,6 +10,7 @@ from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
+from ckan.plugins import ITemplateHelpers
 from ckan.plugins import IGenshiStreamFilter
 from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
@@ -62,6 +63,7 @@ class ThemePlugin(SingletonPlugin):
     '''
     implements(IConfigurer)
     implements(IRoutes, inherit=True)
+    implements(ITemplateHelpers, inherit=True)
 
     from ckan.lib.base import h, BaseController
     # [Monkey patch] Replace h.linked_user with a version to hide usernames
@@ -78,6 +80,47 @@ class ThemePlugin(SingletonPlugin):
     def update_config(self, config):
         configure_template_directory(config, 'theme/templates')
         configure_public_directory(config, 'theme/public')
+
+    def get_helpers(self):
+        """
+        A dictionary of extra helpers that will be available to provide
+        dgu specific helpers to the templates.  We may be able to override
+        h.linked_user so that we don't need to monkey patch above.
+        """
+        from ckanext.dgu.lib import helpers
+        return {
+            "additional_resources": helpers.additional_resources,
+            "timeseries_resources": helpers.timeseries_resources,
+            "individual_resources": helpers.individual_resources,
+            "resource_type": helpers.resource_type,
+            "construct_publisher_tree": helpers.construct_publisher_tree,
+            "render_tree": helpers.render_tree,
+            "render_mini_tree": helpers.render_mini_tree,
+            "get_resource_wms": helpers.get_resource_wms,
+            "get_resource_wfs": helpers.get_resource_wfs,
+            "get_wms_info": helpers.get_wms_info,
+            "get_from_flat_dict": helpers.get_from_flat_dict,
+            "get_uklp_package_type": helpers.get_uklp_package_type,
+            "is_service": helpers.is_service,
+            "resource_display_name": helpers.resource_display_name,
+            "search_with_subpub": helpers.search_with_subpub,
+            "search_without_subpub": helpers.search_without_subpub,
+            "predict_if_resource_will_preview": helpers.predict_if_resource_will_preview,
+            "dgu_linked_user": helpers.dgu_linked_user,
+            "render_datestamp": helpers.render_datestamp,
+            "get_cache_url": helpers.get_cache_url,
+            "get_stars_aggregate": helpers.get_stars_aggregate,
+            "mini_stars_and_caption": helpers.mini_stars_and_caption,
+            "render_stars": helpers.render_stars,
+            "scraper_icon": helpers.scraper_icon,
+            "ga_download_tracking": helpers.ga_download_tracking,
+            "render_datetime": helpers.render_datetime,
+            "dgu_drill_down_url": helpers.dgu_drill_down_url,
+            "render_json": helpers.render_json,
+            "json_list": helpers.json_list,
+            "dgu_resource_icon": helpers.dgu_resource_icon,
+        }
+
 
     def before_map(self, map):
         """

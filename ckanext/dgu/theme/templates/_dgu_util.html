@@ -20,9 +20,8 @@
   <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary boxed">
      <!--! NB 'package' is a package dict -->
      <?python
-     import ckanext.dgu.lib.helpers as dgu_helpers
-     is_service = dgu_helpers.is_service(package)
-     uklp_type = dgu_helpers.get_uklp_package_type(package)
+     is_service = h.is_service(package)
+     uklp_type = h.get_uklp_package_type(package)
      if uklp_type:
          item_type = '%s (UK Location)' % uklp_type.capitalize()
      else:
@@ -43,7 +42,7 @@ else:
     updated_string = 'Updated'
     updated_date = package.get('metadata_modified')
 ?>
-           ${updated_string}: ${dgu_helpers.render_datetime(updated_date, with_hours=False)}
+           ${updated_string}: ${h.render_datetime(updated_date, with_hours=False)}
          </span>
        <div class="property">
           Publisher:&nbsp;
@@ -100,15 +99,12 @@ if '' in formats:
 
 
   <py:def function="dgu_facet_li(items, code, limit=5, label=lambda n: n, count_label=lambda c: ' (%d)'%c)">
-    <?python
-      import ckanext.dgu.lib.helpers as dgu_helpers
-    ?>
-              <li py:for="facet_item in items"
-                  py:if="not (code, facet_item['name']) in c.fields">
-                    <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
-                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
-                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
-              </li>
+    <li py:for="facet_item in items"
+        py:if="not (code, facet_item['name']) in c.fields">
+          <a href="${h.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
+          <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
+            ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+    </li>
   </py:def>
 
   <py:def function="dgu_facet_sidebar(code, params_to_keep, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
@@ -158,7 +154,6 @@ items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort
     ${dgu_facet_sidebar('publisher', params_to_keep, label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
 
 <?python
-import ckanext.dgu.lib.helpers as dgu_helpers
 def stars_label(stars):
     try:
         stars = int(stars)
@@ -167,7 +162,7 @@ def stars_label(stars):
     else:
         if stars == -1:
             return 'TBC'
-        stars = dgu_helpers.mini_stars_and_caption(stars)
+        stars = h.mini_stars_and_caption(stars)
     return stars
 ?>
     ${dgu_facet_sidebar('openness_score', params_to_keep, label=stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
@@ -178,7 +173,7 @@ def stars_label(stars):
       </h4>
       <ul class="facet-options">
           <li>
-            <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {}, alternative_url='/data/map-based-search')}">
+            <a href="${h.dgu_drill_down_url(params_to_keep, {}, alternative_url='/data/map-based-search')}">
               <py:if test="'ext_bbox' not in request.params">
                 Conduct Map Based Search
               </py:if>
@@ -211,7 +206,7 @@ def stars_label(stars):
           ?>
               <li py:for="facet_item in items"
                   py:if="not (code, facet_item['name']) in c.fields">
-                    <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
+                    <a href="${h.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
                       ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
                       <ul py:if="facet_item['name'] == 'service'" class="facet-options">
                         ${dgu_facet_li(h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count'), 'spatial-data-service-type')}

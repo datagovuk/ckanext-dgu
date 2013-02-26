@@ -8,8 +8,7 @@
   <py:def function="map_preview_buttons(package_id, pkg_dict, inline=True)">
   <!--!package_id is for the same package as pkg_dict-->
 <?python
-from ckanext.dgu.lib import helpers as dgu_helpers
-wms_urls, wms_extent = dgu_helpers.get_wms_info(pkg_dict)
+wms_urls, wms_extent = h.get_wms_info(pkg_dict)
 wms_extent_params = '&n=%s&w=%s&e=%s&s=%s' % wms_extent if wms_extent else ''
 basket = session.get('preview_list',[])
 ?>

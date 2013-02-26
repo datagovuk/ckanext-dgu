@@ -5,7 +5,6 @@
   py:strip=""
   >
   <?python
-import ckanext.dgu.lib.helpers as dgu_helpers
 import re
 if c.pkg_dict:
     # work out the dataset_type
@@ -17,7 +16,7 @@ if c.pkg_dict:
         resource_type = pkg_extras.get('resource-type') + ' record' # dataset/service
     elif pkg_extras.get('external_reference') == 'ONSHUB':
         dataset_type = 'ons'
-    
+
     individual_resources = c.pkg_dict.get('individual_resources', [])
     timeseries_resources = c.pkg_dict.get('timeseries_resources', [])
     additional_resources = c.pkg_dict.get('additional_resources', [])
@@ -66,7 +65,7 @@ if c.pkg_dict:
           <div class="dropdown-appears">
             <ul class="dropdown-menu">
               <li py:for="res in c.pkg_dict.get('resources', [])">
-                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id']) if res.get('id') else '#'}">${dgu_helpers.dgu_resource_icon(res) + h.resource_display_name(res)}</a>
+                <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id']) if res.get('id') else '#'}">${h.dgu_resource_icon(res) + h.resource_display_name(res)}</a>
               </li>
             </ul>
           </div>
@@ -85,7 +84,7 @@ if c.pkg_dict:
       </li>
     </ul>
   </py:match>
-  
+
   <xi:include href="../layout.html" />
 
 </html>
