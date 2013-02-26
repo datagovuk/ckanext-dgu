@@ -119,6 +119,15 @@ class ThemePlugin(SingletonPlugin):
             "render_json": helpers.render_json,
             "json_list": helpers.json_list,
             "dgu_resource_icon": helpers.dgu_resource_icon,
+            "name_for_uklp_type": helpers.name_for_uklp_type,
+            "updated_date": helpers.updated_date,
+            "updated_string": helpers.updated_string,
+            "package_publisher_dict": helpers.package_publisher_dict,
+            "formats_for_package": helpers.formats_for_package,
+            "link_subpub": helpers.link_subpub,
+            "facet_params_to_keep": helpers.facet_params_to_keep,
+            "stars_label": helpers.stars_label,
+            "uklp_display_provider": helpers.uklp_display_provider,
         }
 
 

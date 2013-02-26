@@ -457,3 +457,65 @@ def dgu_resource_icon(res):
     return ckan.lib.helpers.icon_html(url)
 
 
+def name_for_uklp_type(package):
+    uklp_type = get_uklp_package_type(package)
+    if uklp_type:
+        item_type = '%s (UK Location)' % uklp_type.capitalize()
+    else:
+        item_type = 'Dataset'
+
+def updated_string(package):
+    if package.get('metadata_modified') == package.get('metadata_created'):
+        updated_string = 'Created'
+    else:
+        updated_string = 'Updated'
+    return updated_string
+
+def updated_date(package):
+    if package.get('metadata_modified') == package.get('metadata_created'):
+        updated_date = package.get('metadata_created')
+    else:
+        updated_date = package.get('metadata_modified')
+    return updated_date
+
+def package_publisher_dict(package):
+    groups = package.get('groups', [])
+    publishers = [ g for g in groups if g.get('type') == 'publisher' ]
+    return publishers[0] if publishers else {'name':'', 'title': ''}
+
+def formats_for_package(package):
+    formats = set([res.get('format') for res in package['resources']])
+    if None in formats:
+        formats.remove(None)
+    if '' in formats:
+        formats.remove('')
+    return formats
+
+def link_subpub():
+    from ckan.lib.base import request
+    return request.params.get('publisher','') and not request.params.get('parent_publishers','')
+
+def facet_params_to_keep():
+    from ckan.lib.base import request
+    return [(k, v) for k,v in request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
+
+def stars_label(stars):
+    try:
+        stars = int(stars)
+    except ValueError:
+        pass
+    else:
+        if stars == -1:
+            return 'TBC'
+        stars = mini_stars_and_caption(stars)
+    return stars
+
+def uklp_display_provider(package):
+    uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
+    is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
+    if not is_uklp:
+        return None
+
+    providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider')]
+    return providers[0]['value'] if len(providers) else ''
+
