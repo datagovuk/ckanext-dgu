@@ -267,7 +267,8 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
     if not isinstance(user, model.User):
         user_name = unicode(user)
         user = model.User.get(user_name) or model.Session.query(model.User).filter_by(fullname=user_name).first()
-    this_is_me = c.user in (user.name, user.fullname)
+
+    this_is_me = user and (c.user in (user.name, user.fullname))
 
     if not user:
         # may be in the format "NHS North Staffordshire (uid 6107 )"
