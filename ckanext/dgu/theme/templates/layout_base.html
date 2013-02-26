@@ -291,9 +291,9 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
     // later use will add offsets with leading '/' so ensure no trailing slash
     CKAN.SITE_URL = CKAN.SITE_URL.replace(/\/$/, '');
     CKAN.SITE_URL_NO_LOCALE = CKAN.SITE_URL_NO_LOCALE.replace(/\/$/, '');
+    CKAN.USER = '${c.user}';
     $(document).ready(function() {
-        var ckan_user = '${c.user}';
-        if (ckan_user) {
+        if (CKAN.USER) {
             $(".ckan-logged-out").hide();
             $(".ckan-logged-in").show();
         }
@@ -309,20 +309,20 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
   <script type="text/javascript">
          $(function (){
                  // Tracking
-				 var url = location.pathname;
-				 // remove any site root from url
-				 url = url.substring(CKAN.SITE_URL.length, url.length - 1);
-				 $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
-						 type : 'POST',
-						 data : {url:url, type:'page'},
-						 timeout : 300 });
+                 var url = location.pathname;
+                 // remove any site root from url
+                 url = url.substring(CKAN.SITE_URL.length, url.length - 1);
+                 $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
+                         type : 'POST',
+                         data : {url:url, type:'page'},
+                         timeout : 300 });
                  $('a.resource-url-analytics').click(function (e){
                          var url = $(e.target).closest('a').attr('href');
-						 $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
-							     data : {url:url, type:'resource'},
-								 type : 'POST',
-								 complete : function () {location.href = url;},
-								 timeout : 30});
+                         $.ajax({url : CKAN.SITE_URL_NO_LOCALE + '/_tracking',
+                                 data : {url:url, type:'resource'},
+                                 type : 'POST',
+                                 complete : function () {location.href = url;},
+                                 timeout : 30});
                          e.preventDefault();
                          });
                  });
