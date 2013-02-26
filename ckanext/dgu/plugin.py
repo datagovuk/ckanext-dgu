@@ -310,7 +310,7 @@ class SearchPlugin(SingletonPlugin):
         order_by = search_params.get('sort')
         bbox = search_params.get('extras', {}).get('ext_bbox')
         search_params_apart_from_bbox = search_params.get('q', '') + search_params.get('fq', '')
-        sort_by_location_enabled = False #bool(bbox and not search_params_apart_from_bbox)
+        sort_by_location_enabled = bool(bbox and not search_params_apart_from_bbox)
 
         if order_by in (None, 'spatial desc') and sort_by_location_enabled:
             search_params['sort'] = 'spatial desc'

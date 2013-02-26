@@ -58,12 +58,12 @@
 bbox = request.params.get('ext_bbox')
 search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items() 
                                        if key not in ('ext_bbox', 'sort') and value != '']
-sort_by_location_enabled = False #bool(bbox and not search_params_apart_from_bbox_or_sort)
+sort_by_location_enabled = bool(bbox and not search_params_apart_from_bbox_or_sort)
 sort_by = c.sort_by_fields or ('spatial' if sort_by_location_enabled else ('rank' if c.q else 'popularity'))
 sort_by_location_disabled = 'Selecting a location in Map Based Search allows you to sort by similarity of location. It is not possible to combine this sort ordering with other search parameters.' if not sort_by_location_enabled else False
 relevancy_disabled = 'Typing some text in the Search box allows you to sort by relevancy.' if not request.params.get('q') else False
 ?>
-          <py:for each="field,title,order,disabled in [('rank','relevancy','desc',relevancy_disabled), ('popularity', 'popularity', 'desc', False), ('title_string','title','asc', False), ('metadata_modified','last updated','desc', False)]"> <!-- ('spatial','location','desc',sort_by_location_disabled) -->
+          <py:for each="field,title,order,disabled in [('rank','relevancy','desc',relevancy_disabled), ('popularity', 'popularity', 'desc', False), ('title_string','title','asc', False), ('metadata_modified','last updated','desc', False), ('spatial','location','desc',sort_by_location_disabled)]">
             <?python
                 label_attrs = {'class': "radio inline"}
                 input_attrs = {}

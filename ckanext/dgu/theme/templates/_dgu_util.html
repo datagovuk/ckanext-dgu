@@ -197,7 +197,25 @@ def stars_label(stars):
       <ul py:if="len(h.unselected_facet_items('resource-type'))">
         ${dgu_facet_li(h.unselected_facet_items('UKLP'), 'UKLP', label=lambda n: 'UK Location')}
         <ul class="facet-options">
-          ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')}
+
+          <!--
+            # This dgu_facet_li call has been expanded, to insert the service type filters.
+            ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')} -->
+          <?python
+              items = h.unselected_facet_items('resource-type', limit=100, sort_by='count')
+              code = 'resource-type'
+              limit = 5
+              label = lambda n: n
+              count_label = lambda c: ' (%d)'%c
+          ?>
+              <li py:for="facet_item in items"
+                  py:if="not (code, facet_item['name']) in c.fields">
+                    <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
+                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+                      <ul py:if="facet_item['name'] == 'service'" class="facet-options">
+                        ${dgu_facet_li(h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count'), 'spatial-data-service-type')}
+                      </ul>
+              </li>
         </ul>
       </ul>
       <span py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</span>
