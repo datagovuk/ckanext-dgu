@@ -9,10 +9,10 @@
     <tr>
       <td class="left" py:if="not c.query_error">
         <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
-        <py:if test="request.params">      
+        <py:if test="request.params">
           <div class="result-count-footer">Results</div>
         </py:if>
-        <py:if test="not request.params">      
+        <py:if test="not request.params">
           <div class="result-count-footer">Datasets</div>
         </py:if>
       </td>
@@ -25,16 +25,12 @@
           <div class="search-spinner">&nbsp;</div>
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
-          <py:for each="(k, v) in c.fields"> 
-            <input type="hidden" name="${k}" value="${v}" />  
+          <py:for each="(k, v) in c.fields">
+            <input type="hidden" name="${k}" value="${v}" />
           </py:for>
           </span>
-<?python
-bbox = request.params.get('ext_bbox','')
-subpub = request.params.get('parent_publishers','')
-?>
-          <py:if test="bbox">
-            <input type="hidden" id="ext_bbox" name="ext_bbox" value="${bbox}" />
+          <py:if test="request.params.get('ext_bbox','')">
+            <input type="hidden" id="ext_bbox" name="ext_bbox" value="${request.params.get('ext_bbox','')}" />
           </py:if>
           <div id="dataset-search-ext"></div>
         </form>
@@ -50,16 +46,15 @@ subpub = request.params.get('parent_publishers','')
                 <span class="x">x</span>
               </a>
             </py:for>
-            <py:if test="bbox">
+            <py:if test="request.params.get('ext_bbox','')">
               <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
                 <span class="name">${h.facet_title('Location')}</span>:
                 <span class="value">${bbox}</span>
                 <span class="x">x</span>
               </a>
             </py:if>
-            <py:if test="subpub">
-              <?python from ckanext.dgu.lib.helpers import search_without_subpub ?>
-              <a class="facet" href="${search_without_subpub()}">
+            <py:if test="request.params.get('parent_publishers','')">
+              <a class="facet" href="${h.search_without_subpub()}">
                 <span class="name">Including sub-publishers</span>
                 <span class="x">x</span>
               </a>
@@ -71,6 +66,6 @@ subpub = request.params.get('parent_publishers','')
     </tr>
   </table>
 
-  <script src="/scripts/dgu-autocomplete.js"></script> 
+  <script src="/scripts/dgu-autocomplete.js"></script>
 
 </html>

@@ -37,9 +37,6 @@
           </div>
         </div>
         <div class="tab-pane small-search" id="publishersearch">
-<?python
-import json
-?>
           <table class="search-area">
             <tr>
               <td class="left">
@@ -100,7 +97,7 @@ import json
     }
 
     $(document).ready(function() {
-        $('#publisher-search').bind('submit',function(e) { 
+        $('#publisher-search').bind('submit',function(e) {
           if (e.preventDefault) e.preventDefault();
           publisher_search();
         });
@@ -118,7 +115,7 @@ import json
        "plugins" : ["themes","html_data","ui"]}
       ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
     });
-    var autocomplete_source = ${json.dumps([group.title for group in c.all_groups])};
+    var autocomplete_source = ${h.groups_as_json(c.all_groups)};
     $('#q').autocomplete({
       source: autocomplete_source,
       minLength: 1,

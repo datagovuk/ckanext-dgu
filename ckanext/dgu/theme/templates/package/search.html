@@ -52,31 +52,16 @@
           </a>
           <form class="form-inline">
             <py:def function="sort_option(text, value, selected, disabled=False)">
-              <?python
-                  attr = {}
-                  if selected: attr['selected'] = 'selected'
-                  if disabled: attr['disabled'] = 'disabled'
-              ?>
-              <option value="${value}" py:attrs="attr">${text}</option>
+              <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
             </py:def>
             <label>Sort by:</label>
             <select name="dataset-results-sort">
-              <?python
-              # Default to location if there is a bbox and no other parameters. Otherwise 
-              # relevancy if there is a keyword, otherwise popularity.
-              # NB This ties in with the default sort set in ckanext/dgu/plugin.py
-              bbox = request.params.get('ext_bbox')
-              search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items() 
-                                                     if key not in ('ext_bbox', 'sort') and value != '']
-              sort_by_location_disabled = not(bool(bbox and not search_params_apart_from_bbox_or_sort))
-              relevancy_disabled = not(bool(request.params.get('q')))
-              sort_by = c.sort_by_fields or ('spatial' if not sort_by_location_disabled else ('rank' if c.q else 'popularity'))
-              ?>
-              ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in sort_by, relevancy_disabled)}
-              ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in sort_by)}
-              ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in sort_by)}
-              ${sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in sort_by)}
-              ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in sort_by, sort_by_location_disabled)}
+              <!-- Can optimise this bit of the template, particularly results_sort_by -->
+              ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
+              ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
+              ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
+              ${sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in h.results_sort_by())}
+              ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
             </select>
           </form>
         </div>

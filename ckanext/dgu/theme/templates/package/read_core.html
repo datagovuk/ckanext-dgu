@@ -36,8 +36,7 @@
 
           <ul class="resource-list">
             <py:for each="res in individual_resources">
-            <?python li_class="last-child" if res==individual_resources[-1] else ""?>
-            <li class="$li_class">
+            <li class="${'last-child' if res==individual_resources[-1] else ''}">
               <div class="trimmed-text">
                   ${h.dgu_resource_icon(res)}
                   <py:if test="res.get('scraped')">${h.scraper_icon(res)}</py:if>
@@ -82,8 +81,7 @@
           <h3>Data Resources (${len(timeseries_resources)} in a time series)</h3>
           <ul class="resource-list">
             <py:for each="res in timeseries_resources">
-            <?python li_class="last-child" if res==timeseries_resources[-1] else ""?>
-            <li class="$li_class">
+            <li class="${'last-child' if res==timeseries_resources[-1] else ''}">
               <div class="trimmed-text">
                 ${h.dgu_resource_icon(res)}
                 ${res.get('date')}
@@ -159,8 +157,7 @@
           <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
           <ul class="resource-list">
             <py:for each="res in additional_resources">
-            <?python li_class="last-child" if res==additional_resources[-1] else ""?>
-            <li class="$li_class">
+            <li class="${'last-child' if res==additional_resources[-1] else ''}">
               <div class="trimmed-text">
                   ${h.dgu_resource_icon(res)}
                   <py:if test="res.get('scraper_url')">
@@ -207,8 +204,7 @@
           </ul>
           <ul class="resource-list gemini-resource-list" py:if="gemini_resources">
             <py:for each="gemini_resource in gemini_resources">
-            <?python li_class="last-child" if gemini_resource==gemini_resources[-1] else ""?>
-            <li class="$li_class">
+            <li class="${'last-child' if gemini_resource==gemini_resources[-1] else ''}">
               <div class="trimmed-text">
                 ${h.icon('page_white')}
                 ${gemini_resource['title']}
@@ -231,132 +227,15 @@
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">
-<?python
-import re
-from webhelpers.text import truncate
-from ckan.lib.field_types import DateType
-from ckanext.dgu.schema import GeoCoverageType
-if c.pkg_dict:
-
-    field_names = DatasetFieldNames()
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'geographic_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
-    if c.is_an_official:
-        field_names_display_only_if_value.append('external_reference')
-    # work out the dataset_type
-    pkg_extras = dict(c.pkg_extras)
-    harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
-    if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
-        field_names.remove(['geographic_coverage', 'mandate'])
-        from ckan.logic import get_action, NotFound
-        from ckan import model
-        from ckanext.harvest.model import HarvestObject
-        try:
-            context = {'model': model, 'session': model.Session}
-            harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':c.pkg.id})
-            harvest_url = harvest_source['url']
-        except NotFound:
-            harvest_url = 'Metadata not available'
-        harvest_object_id = pkg_extras.get('harvest_object_id')
-        if harvest_object_id:
-            harvest_object = HarvestObject.get(harvest_object_id)
-            if harvest_object:
-                harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
-            else:
-                harvest_date = 'Metadata not available'
-            harvest_guid = pkg_extras.get('guid')
-            harvest_source_reference = pkg_extras.get('harvest_source_reference')
-            if harvest_source_reference and harvest_source_reference != harvest_guid:
-                field_names.add(['harvest_source_reference'])
-        if pkg_extras.get('resource-type') == 'service':
-            field_names.add(['spatial-data-service-type'])
-        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
-                       for date_dict in h.json_list(pkg_extras.get('dataset-reference-date'))])
-    elif dataset_type == 'ons':
-        field_names.add(['national_statistic', 'categories'])
-        field_names.remove(['mandate'])
-        if c.is_an_official:
-            field_names.add(['external_reference', 'import_source'])
-    elif dataset_type == 'form':
-        field_names.add_at_start('theme')
-        if pkg_extras.get('theme-secondary'):
-            field_names.add_after('theme', 'theme-secondary')
-    if c.is_an_official:
-        field_names.add(['state'])
-
-    temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
-    temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
-    if temporal_coverage_from and temporal_coverage_to:
-        temporal_coverage = '%s - %s' % \
-          (DateType.db_to_form(temporal_coverage_from),
-           DateType.db_to_form(temporal_coverage_to))
-    elif temporal_coverage_from or temporal_coverage_to:
-        temporal_coverage = DateType.db_to_form(temporal_coverage_from or \
-                                                temporal_coverage_to)
-    else:
-        temporal_coverage = ''
-
-    taxonomy_url = pkg_extras.get('taxonomy_url') or ''
-    if taxonomy_url and taxonomy_url.startswith('http'):
-        taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
-    primary_theme = pkg_extras.get('theme-primary') or ''
-    secondary_themes = pkg_extras.get('theme-secondary')
-    if secondary_themes:
-        from ckan.lib.helpers import json
-        try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(json.loads(secondary_themes))
-        except ValueError:
-            # string for single value
-            secondary_themes = str(secondary_themes)
-
-    field_value_map = {
-        # field_name : {display info}
-        'state': {'label': 'State', 'value': c.pkg.state},
-        'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
-        'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
-        'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': h.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
-        'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
-        'date-added-computed': {'label': 'Date added to data.gov.uk', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
-        'date-updated-computed': {'label': 'Date updated on data.gov.uk', 'label_title': 'Date this record was updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
-        'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
-        'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
-        'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
-        'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
-        'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
-        'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
-        'access_constraints': {'label': 'Access constraints', 'value': h.render_json(pkg_extras.get('access_constraints'))},
-        'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
-        'theme': {'label': 'Theme', 'value': primary_theme},
-        'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
-        'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
-        'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
-        'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
-        '': {'label': '', 'value': ''},
-    }
-
-    # add in fields that only display if they have a value
-    for field_name in field_names_display_only_if_value:
-        if pkg_extras.get(field_name):
-            field_names.add([field_name])
-
-    # calculate displayable field values
-    fields = DisplayableFields(field_names)
-
-    # Handle ckanext-qa integration
-    from ckanext.dgu.lib import helpers
-    stars_data = helpers.get_stars_aggregate(c.pkg.id)
-?>
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
-        <tr py:if="stars_data">
+        <tr py:if="h.get_stars_aggregate(c.pkg.id)">
           <td class="dataset-label">Openness score:</td>
           <td class="dataset-details">
-            ${helpers.render_stars(stars_data.value, stars_data.reason, stars_data.last_updated)}
+            ${h.render_stars(h.get_stars_aggregate(c.pkg.id).value, h.get_stars_aggregate(c.pkg.id).reason, h.get_stars_aggregate(c.pkg.id).last_updated)}
           </td>
         </tr>
-        <tr py:for="field_dict, label_attributes, value_attributes in fields">
+        <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),dataset_type)">
           <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
           <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
         </tr>
