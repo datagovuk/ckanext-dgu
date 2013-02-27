@@ -46,11 +46,6 @@ jQuery(function () {
       });
     });
 
-    /* Toggle visibility of sub-publishers on the publisher/read.html page */
-    $('#sub-publisher-toggle').click(function(){
-      $('#sub-publishers li.collapsed').toggle();
-    });
-
     /* Reveal in search results facets */
     $('.js-more-button').click(function(e){
       e.preventDefault();

@@ -258,7 +258,7 @@ subpub = request.params.get('parent_publishers','')
         <li py:if="web_url">Web:
           <a href="${web_url}">${h.truncate(web_name or web_url, 32)}</a>
         </li>
-        <p py:if="not (email or phone or web_url)" class="alert-contact-details">No details supplied</p>
+        <p py:if="not (email or phone or web_url)"><em>No details supplied</em></p>
   </py:def>
 
 </html>
