@@ -88,66 +88,17 @@ class ThemePlugin(SingletonPlugin):
         h.linked_user so that we don't need to monkey patch above.
         """
         from ckanext.dgu.lib import helpers
-        return {
-            "additional_resources": helpers.additional_resources,
-            "timeseries_resources": helpers.timeseries_resources,
-            "individual_resources": helpers.individual_resources,
-            "resource_type": helpers.resource_type,
-            "construct_publisher_tree": helpers.construct_publisher_tree,
-            "render_tree": helpers.render_tree,
-            "render_mini_tree": helpers.render_mini_tree,
-            "get_resource_wms": helpers.get_resource_wms,
-            "get_resource_wfs": helpers.get_resource_wfs,
-            "get_wms_info": helpers.get_wms_info,
-            "get_from_flat_dict": helpers.get_from_flat_dict,
-            "get_uklp_package_type": helpers.get_uklp_package_type,
-            "is_service": helpers.is_service,
-            "resource_display_name": helpers.resource_display_name,
-            "search_with_subpub": helpers.search_with_subpub,
-            "search_without_subpub": helpers.search_without_subpub,
-            "predict_if_resource_will_preview": helpers.predict_if_resource_will_preview,
-            "dgu_linked_user": helpers.dgu_linked_user,
-            "render_datestamp": helpers.render_datestamp,
-            "get_cache_url": helpers.get_cache_url,
-            "get_stars_aggregate": helpers.get_stars_aggregate,
-            "mini_stars_and_caption": helpers.mini_stars_and_caption,
-            "render_stars": helpers.render_stars,
-            "scraper_icon": helpers.scraper_icon,
-            "ga_download_tracking": helpers.ga_download_tracking,
-            "render_datetime": helpers.render_datetime,
-            "dgu_drill_down_url": helpers.dgu_drill_down_url,
-            "render_json": helpers.render_json,
-            "json_list": helpers.json_list,
-            "dgu_resource_icon": helpers.dgu_resource_icon,
-            "name_for_uklp_type": helpers.name_for_uklp_type,
-            "updated_date": helpers.updated_date,
-            "updated_string": helpers.updated_string,
-            "package_publisher_dict": helpers.package_publisher_dict,
-            "formats_for_package": helpers.formats_for_package,
-            "link_subpub": helpers.link_subpub,
-            "facet_params_to_keep": helpers.facet_params_to_keep,
-            "stars_label": helpers.stars_label,
-            "uklp_display_provider": helpers.uklp_display_provider,
-            "random_tags": helpers.random_tags,
-            "get_resource_fields": helpers.get_resource_fields,
-            "get_package_fields": helpers.get_package_fields,
-            "results_sort_by": helpers.results_sort_by,
-            "sort_by_location_disabled": helpers.sort_by_location_disabled,
-            "relevancy_disabled": helpers.relevancy_disabled,
-            "get_resource_formats": helpers.get_resource_formats,
-            "get_wms_info_urls": helpers.get_wms_info_urls,
-            "get_wms_info_extent": helpers.get_wms_info_extent,
-            "get_star_text": helpers.get_star_text,
-            "get_resource_stars": helpers.get_resource_stars,
-            "star_report_reason": helpers.star_report_reason,
-            "star_report_updated": helpers.star_report_updated,
-            "groups_as_json": helpers.groups_as_json,
-            "user_display_name": helpers.user_display_name,
-            "pluralise_text": helpers.pluralise_text,
-            "group_category": helpers.group_category,
-            "spending_published_by": helpers.spending_published_by,
-            "advanced_search_url": helpers.advanced_search_url,
-        }
+        from inspect import getmembers, isfunction
+
+        helper_dict = {}
+
+        functions_list = [o for o in getmembers(helpers, isfunction)]
+        for name, fn in functions_list:
+            if name[0] != '_':
+                helper_dict[name] = fn
+
+        return helper_dict
+
 
 
     def before_map(self, map):

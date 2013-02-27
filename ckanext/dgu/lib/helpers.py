@@ -1,3 +1,11 @@
+"""
+These helper functions are made available via the h variable which
+is given to every template for rendering.  To simplify the loading
+of helpers all functions *that do not start with _* will be added
+to the helper functions, so if you don't want your helper loaded make
+sure you prefix the function name with _
+"""
+
 import logging
 import re
 import urllib
