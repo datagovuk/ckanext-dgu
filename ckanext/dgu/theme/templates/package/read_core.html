@@ -133,30 +133,32 @@ import ckanext.dgu.lib.helpers as dgu_helpers
           <div class="dataset-map-info">
             ${map_preview_buttons(c.pkg.id, c.pkg_dict, inline=False)} <!--! Supply both since there is no ID in pkg_dict! -->
             <py:if test="pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')">
-            <table class="table-lat-long">
-              <thead><tr><th colspan="2">Dataset Extent:</th></tr></thead>
-              <tbody>
-              <tr>
-                <td class="extent-label"><div class="dataset-map-boxed">Latitude:</div></td>
-                <td class="extent-value">${pkg_extras.get('bbox-north-lat')[:7]}&deg; to ${pkg_extras.get('bbox-south-lat')[:7]}&deg;</td>
-              </tr>
-              <tr>
-                <td class="extent-label"><div class="dataset-map-boxed">Longitude:</div></td>
-                <td class="extent-value">${pkg_extras.get('bbox-west-long')[:7]}&deg; to ${pkg_extras.get('bbox-east-long')[:7]}&deg;</td>
-              </tr>
+              <table class="table-lat-long">
+                <thead><tr><th colspan="2">Dataset Extent:</th></tr></thead>
+                <tbody>
+                <tr>
+                  <td class="extent-label"><div class="dataset-map-boxed">Latitude:</div></td>
+                  <td class="extent-value">${pkg_extras.get('bbox-north-lat')[:7]}&deg; to ${pkg_extras.get('bbox-south-lat')[:7]}&deg;</td>
+                </tr>
+                <tr>
+                  <td class="extent-label"><div class="dataset-map-boxed">Longitude:</div></td>
+                  <td class="extent-value">${pkg_extras.get('bbox-west-long')[:7]}&deg; to ${pkg_extras.get('bbox-east-long')[:7]}&deg;</td>
+                </tr>
             </tbody>
             </table>
             </py:if>
 
-            <div id="dataset-map-attribution"></div>
+            <py:if test="c.dataset_extent">
+              <div id="dataset-map-attribution"></div>
+            </py:if>
           </div>
           <!-- Dataset Extent Map (only if present) -->
           <py:if test="c.dataset_extent">
             <div id="dataset-map-container"></div>
           </py:if>
+          <div class="clearfix"></div>
         </div>
 
-        <div class="clearfix"></div>
 
 
         <py:if test="additional_resources or gemini_resources">

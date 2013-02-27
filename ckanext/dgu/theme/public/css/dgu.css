@@ -1618,27 +1618,19 @@ ul.ui-autocomplete li a.ui-state-hover{
 /* ------------------ */
 
 .dataset-map {
-    padding-bottom: 10px;
-    margin-bottom: 20px;
     position: relative;
-    height: 280px;
 }
 
 #dataset-map-container {
+    height: 280px;
     width: 350px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
+    margin-bottom: 30px !important;
     background: #ccc;
 }
 
 .dataset-map-info {
-  position: absolute;
   width: 220px;
-  right: 0;
-  top: 0;
-  bottom: 0;
+  float: right;
 }
 
 .dataset-map-info .map-buttons > div{
@@ -1659,9 +1651,7 @@ ul.ui-autocomplete li a.ui-state-hover{
     font-size: 9px;
     line-height: 12px;
     text-align: right;
-    position: absolute;
-    right: 0;
-    bottom: 0;
+    margin-top: 26px;
 }
 
 
