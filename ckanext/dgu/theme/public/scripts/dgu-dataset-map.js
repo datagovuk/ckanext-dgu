@@ -42,8 +42,13 @@ CKAN.DguDatasetMap = function($){
                 return false;
 
             var width = $("#dataset-map-container").width();
-            var height = width;
-            $("#dataset-map-container").height(width);
+            var height = $("#dataset-map-container").height();
+            /* It will not render in IE7 until it has a height.
+             * OK, it has a height. top=0, bottom=0, therefore height=280
+             * because that's the height of my parent container.
+             * But no CSS height is set.
+             * I hate you Microsoft. */
+            $("#dataset-map-container").height(height);
 
             // Maximum extent available with the OS tiles, if the dataset falls outside,
             // the OSM global map will be loaded
@@ -56,8 +61,10 @@ CKAN.DguDatasetMap = function($){
             var dataset_bounds = features[0].geometry.getBounds();
             this.map_type = (os_max_bounds.containsBounds(dataset_bounds)) ? 'os' : 'osm';
 
+            var attributionBox = $('#dataset-map-attribution');
+            assert(attributionBox.length>0);
             var controls = [
-              new OpenLayers.Control.Attribution({div: document.getElementById("dataset-map-attribution")})
+              new OpenLayers.Control.Attribution({div: attributionBox[0]})
             ];
 
             if (this.map_type=='osm') {

@@ -10,6 +10,7 @@ import json
 import re
 
 from nose.tools import assert_equal, assert_raises
+from nose.plugins.skip import SkipTest
 
 import paste.fixture
 
@@ -360,13 +361,13 @@ class TestFormValidation(object):
         """Asserts that the title cannot be empty"""
         data = {'title': ''}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'Name:</b> Missing value' in response.body, response.body
 
     def test_name_non_empty(self):
         """Asserts that the name (uri identifier) is non-empty"""
         data = {'name': ''}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'Unique identifier:</b> Missing value' in response.body, response.body
 
     def test_name_rejects_non_alphanumeric_names(self):
         """Asserts that the name (uri identifier) does not allow punctuation"""
@@ -392,15 +393,14 @@ class TestFormValidation(object):
         """Asserts that the abstract cannot be empty"""
         data = {'notes': ''}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
-        assert '<b>Unique identifier: </b>' in response.body
+        assert 'Description:</b> Missing value' in response.body, response.body
 
     def test_individual_resource_url_non_empty(self):
         """Asserts that individual resources must have url defined"""
         data = {'individual_resources__0__description': 'description with no url',
                 'individual_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'URL:</b> Missing value' in response.body, response.body
 
     def test_timeseries_resource_url_non_empty(self):
         """Asserts that timeseries resources must have url defined"""
@@ -408,21 +408,21 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no url',
                 'timeseries_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert_in('Missing value', response.body, response.body)
+        assert 'URL:</b> Missing value' in response.body, response.body
 
     def test_additional_resource_url_non_empty(self):
         """Asserts that additional resources must have url defined"""
         data = {'additional_resources__0__description': 'description with no url',
                 'additional_resources__0__format': 'format with no url'}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'URL:</b> Missing value' in response.body, response.body
 
     def test_individual_resource_description_non_empty(self):
         """Asserts that individual resources must have description defined"""
         data = {'individual_resources__0__url': 'url with no description',
                 'individual_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'Title:</b> Missing value' in response.body, response.body
 
     def test_timeseries_resource_description_non_empty(self):
         """Asserts that timeseries resources must have description defined"""
@@ -430,14 +430,14 @@ class TestFormValidation(object):
                 'timeseries_resources__0__date': 'date with no description',
                 'timeseries_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'Title:</b> Missing value' in response.body, response.body
 
     def test_additional_resource_description_non_empty(self):
         """Asserts that additional resources must have description defined"""
         data = {'additional_resources__0__url': 'url with no description',
                 'additional_resources__0__format': 'format with no description'}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body, response.body
+        assert 'Title:</b> Missing value' in response.body, response.body
         assert 'Row(s) partially filled' in response.body, response.body
 
     def test_timeseries_resource_date_non_empty(self):
@@ -446,7 +446,7 @@ class TestFormValidation(object):
                 'timeseries_resources__0__url': 'url with no date',
                 'timeseries_resources__0__format': 'format with no date',}
         response = self._form_client.post_form(data)
-        assert 'Missing value' in response.body
+        assert 'Date:</b> Missing value' in response.body, response.body
 
     def assert_accepts_date(self, field_name, date_str):
         data = {field_name: date_str}
@@ -546,6 +546,28 @@ class TestFormValidation(object):
         data = {'license_id': 'uk-ogl', 'access_constraints': 'A difference license'}
         response = self._form_client.post_form(data)
         assert 'Licence:</b> Leave the "Access Constraints" box empty if selecting a license from the list' in response, response
+
+    def test_publisher_required_as_sysadmin(self):
+        '''
+        You must specify a publisher.
+        '''
+        data = {}
+        response = self._form_client.post_form(data)
+        assert 'Publisher:' in response, response
+        assert 'Unique identifier:</b> Missing value' in response
+        assert '<p class="field_error">Please select a publisher.</p>' in response
+
+    def test_publisher_required(self):
+        '''
+        You must specify a publisher. Check the authorization is correct
+        to let the validation through when you are not a sysadmin.
+        '''
+        data = {}
+        response = self._form_client.post_form(data, user_name='nhseditor')
+        assert 'Publisher:' in response, response
+        assert 'Unique identifier:</b> Missing value' in response
+        assert '<p class="field_error">Please select a publisher.</p>' in response
+
 
 class TestPackageCreation(CommonFixtureMethods):
     """
@@ -794,6 +816,8 @@ class TestAuthorization(WsgiAppCase):
     def test_create_by_sysadmin(self):
         self.assert_create('sysadmin', allowed=True)
     def test_create_by_nhsadmin(self):
+        if model.engine_is_sqlite():
+            raise SkipTest
         self.assert_create('nhsadmin', allowed=True)
     def test_create_by_nhseditor(self):
         self.assert_create('nhseditor', allowed=True)

@@ -69,12 +69,13 @@ class StatsCount(dict):
         return '\n'.join(lines)
 
 class StatsList(StatsCount):
-    # {category:count}
+    # {category:[values]}
     _init_value = []
 
     def add(self, category, value):
         self._init_category(category)
         self[category].append(value)
+        return '%s: %s' % (category, value) # so you can log it too
 
     def report_value(self, category):
         value = self[category]

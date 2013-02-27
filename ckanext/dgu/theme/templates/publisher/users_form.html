@@ -18,15 +18,9 @@
   <h3>Admins and Editors</h3>
   <py:if test="data.get('users')">
     <py:for each="num, user in enumerate(data.get('users'))">
-<?python
-user_str = ''
-if user.get('fullname'):
-    user_str += user['fullname']
-user_str += ' [%s]' % user['name']
-?>
       <div class="control-group">
 
-        <label class="control-label" for="users__${num}__name"><h5>${user_str}</h5></label>
+        <label class="control-label" for="users__${num}__name"><h5>${h.user_display_name(user)}</h5></label>
         <div class="controls form-inline">
           <input checked="checked" id="users__${num}__name" name="users__${num}__name" type="checkbox" value="${user['name']}" style="display:none;"/>
           <label class="radio"><input type="radio" name="users__${num}__capacity" value="admin"  py:attrs="{'checked': 'checked' if user['capacity'] == 'admin' else None}"></input> Admin</label>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -45,7 +39,8 @@ user_str += ' [%s]' % user['name']
       <div class="controls">
         <input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" autocomplete="off"/>
       </div>
-	  </div>
+      <p>NB: A user might not appear on this list until that user has logged in and clicked on a page in the <a href="/data">Data</a> part of data.gov.uk.</p>
+  </div>
 </fieldset>
 
 

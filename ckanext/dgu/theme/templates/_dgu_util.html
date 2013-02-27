@@ -89,53 +89,22 @@ subpub = request.params.get('parent_publishers','')
   </ul>
 
   <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary boxed">
-     <!--! NB 'package' is a package dict -->
-     <?python
-     import ckanext.dgu.lib.helpers as dgu_helpers
-     is_service = dgu_helpers.is_service(package)
-     uklp_type = dgu_helpers.get_uklp_package_type(package)
-     if uklp_type:
-         item_type = '%s (UK Location)' % uklp_type.capitalize()
-     else:
-         item_type = 'Dataset'
-     ?>
      <div py:with="title=package.get('title') or package.get('name')">
-       <img py:if="is_service" class="dataset-ribbon" src="/images/service-ribbon.png" />
+       <img py:if="h.is_service(package)" class="dataset-ribbon" src="/images/service-ribbon.png" />
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <img class="dataset-icon" src="${'/images/dataset-icon.png' if not is_service else '/images/dataset-icon-service.png'}" title="${item_type}"/>
+         <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
          <h3><span class="underlined">${title}</span></h3>
        </a>
          <span class="property property-right">
-<?python
-if package.get('metadata_modified') == package.get('metadata_created'):
-    updated_string = 'Created'
-    updated_date = package.get('metadata_created')
-else:
-    updated_string = 'Updated'
-    updated_date = package.get('metadata_modified')
-?>
-           ${updated_string}: ${dgu_helpers.render_datetime(updated_date, with_hours=False)}
+           ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
          </span>
        <div class="property">
           Publisher:&nbsp;
-            <?python
-              groups = package.get('groups', [])
-              publishers = [ g for g in groups if g.get('type') == 'publisher' ]
-              publisher = publishers[0] if publishers else {'name':'', 'title': ''}
-            ?>
-            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=publisher.get('name', ''))}">
-              ${publisher.get('title', '')}
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+              ${h.package_publisher_dict(package).get('title', '')}
             </a>
        </div>
-       <?python
-              display_provider = False
-              uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
-              is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
-              providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider')]
-              provider = providers[0]['value'] if len(providers) else ''
-              display_provider = is_uklp
-       ?>
-       <div py:if="display_provider" class="property">Provider:&nbsp; ${provider.strip('"')}</div>
+       <div py:if="h.uklp_display_provider(package)" class="property">Provider:&nbsp; ${h.uklp_display_provider(package).strip('"')}</div>
        <div class="dataset-description">
          ${h.markdown_extract(package.notes)}
        </div>
@@ -144,16 +113,9 @@ else:
         </py:if>
        <div class="property">
        <py:if test="package.get('resources', [])">
-<?python
-formats = set([res.get('format') for res in package['resources']])
-if None in formats:
-    formats.remove(None)
-if '' in formats:
-    formats.remove('')
-?>
-         <div py:if="formats" class="property">Formats:&nbsp;
+         <div py:if="h.formats_for_package(package)" class="property">Formats:&nbsp;
           <ul class="dataset-formats">
-            <py:for each="format in formats">
+            <py:for each="format in h.formats_for_package(package)">
               <li>${format}</li>
             </py:for>
           </ul>
@@ -171,15 +133,12 @@ if '' in formats:
 
 
   <py:def function="dgu_facet_li(items, code, limit=5, label=lambda n: n, count_label=lambda c: ' (%d)'%c)">
-    <?python
-      import ckanext.dgu.lib.helpers as dgu_helpers
-    ?>
-              <li py:for="facet_item in items"
-                  py:if="not (code, facet_item['name']) in c.fields">
-                    <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
-                    <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
-                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
-              </li>
+    <li py:for="facet_item in items"
+        py:if="not (code, facet_item['name']) in c.fields">
+          <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {code: facet_item['name']})}">
+          <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
+            ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+    </li>
   </py:def>
 
   <py:def function="dgu_facet_sidebar(code, params_to_keep, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
@@ -188,60 +147,36 @@ if '' in formats:
             ${title(code)}
           </h4>
           <ul class="facet-options">
-<?python
-items = h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)
-?>
-              ${dgu_facet_li(items[:limit], code, limit=limit, label=label, count_label=count_label)}
+              ${dgu_facet_li(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)[:limit], code, limit=limit, label=label, count_label=count_label)}
           </ul>
-          <py:if test="more_button and len(items) > limit">
+          <py:if test="more_button and len(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)) > limit">
             <a id="${more_button}" class="more-button js-more-button" href="#"><img src="/images/arrow-down.png"/></a>
             <ul class="facet-options" id="${more_button}-items" style="display: None">
-              ${dgu_facet_li(items[limit:], code, limit=limit, label=label, count_label=count_label)}
+              ${dgu_facet_li(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)[limit:], code, limit=limit, label=label, count_label=count_label)}
             </ul>
           </py:if>
           <py:if test="code=='publisher'">
-              <?python
-                link_subpub = request.params.get('publisher','') and not request.params.get('parent_publishers','')
-                from ckanext.dgu.lib.helpers import search_with_subpub
-              ?>
-              <ul py:if="link_subpub" class="fact-options">
-                  <li><a href="${search_with_subpub()}">Include sub-publishers</a></li>
+              <ul py:if="h.link_subpub()" class="fact-options">
+                  <li><a href="${h.search_with_subpub()}">Include sub-publishers</a></li>
               </ul>
-              <span py:if="not items and not link_subpub">${if_empty}</span>
+              <span py:if="not h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by) and not h.link_subpub()">${if_empty}</span>
           </py:if>
-          <span py:if="code!='publisher' and not items">${if_empty}</span>
+          <span py:if="code!='publisher' and not h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)">${if_empty}</span>
       </div>
   </py:def>
 
 
   <div py:def="facet_filters()" class="datasets">
 
-    <?python
-      params_to_keep = [(k, v) for k,v in request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
-    ?>
+    ${dgu_facet_sidebar('license_id-is-ogl', h.facet_params_to_keep(), title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
 
-    ${dgu_facet_sidebar('license_id-is-ogl', params_to_keep, title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
+    ${dgu_facet_sidebar('tags', h.facet_params_to_keep(), if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
 
-    ${dgu_facet_sidebar('tags', params_to_keep, if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
+    ${dgu_facet_sidebar('res_format', h.facet_params_to_keep(), title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
 
-    ${dgu_facet_sidebar('res_format', params_to_keep, title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
+    ${dgu_facet_sidebar('publisher', h.facet_params_to_keep(), label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
 
-    ${dgu_facet_sidebar('publisher', params_to_keep, label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
-
-<?python
-import ckanext.dgu.lib.helpers as dgu_helpers
-def stars_label(stars):
-    try:
-        stars = int(stars)
-    except ValueError:
-        pass
-    else:
-        if stars == -1:
-            return 'TBC'
-        stars = dgu_helpers.mini_stars_and_caption(stars)
-    return stars
-?>
-    ${dgu_facet_sidebar('openness_score', params_to_keep, label=stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
+    ${dgu_facet_sidebar('openness_score', h.facet_params_to_keep(), label=h.stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
 
     <div class="facet-box" id="map-based-search">
       <h4>
@@ -249,7 +184,7 @@ def stars_label(stars):
       </h4>
       <ul class="facet-options">
           <li>
-            <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {}, alternative_url='/data/map-based-search')}">
+            <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {}, alternative_url='/data/map-based-search')}">
               <py:if test="'ext_bbox' not in request.params">
                 Conduct Map Based Search
               </py:if>
@@ -273,17 +208,10 @@ def stars_label(stars):
           <!--
             # This dgu_facet_li call has been expanded, to insert the service type filters.
             ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')} -->
-          <?python
-              items = h.unselected_facet_items('resource-type', limit=100, sort_by='count')
-              code = 'resource-type'
-              limit = 5
-              label = lambda n: n
-              count_label = lambda c: ' (%d)'%c
-          ?>
-              <li py:for="facet_item in items"
-                  py:if="not (code, facet_item['name']) in c.fields">
-                    <a href="${dgu_helpers.dgu_drill_down_url(params_to_keep, {code: facet_item['name']})}">
-                      ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
+              <li py:for="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')"
+                  py:if="not ('resource-type', facet_item['name']) in c.fields">
+                    <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {'resource-type': facet_item['name']})}">
+                      ${facet_item['name']}</a>${ ' (%d)'% facet_item['count']}
                       <ul py:if="facet_item['name'] == 'service'" class="facet-options">
                         ${dgu_facet_li(h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count'), 'spatial-data-service-type')}
                       </ul>

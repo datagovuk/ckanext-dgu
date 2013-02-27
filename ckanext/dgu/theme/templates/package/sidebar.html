@@ -9,8 +9,6 @@
 
 <py:match path="primarysidebar">
 <?python
-import ckanext.dgu.lib.helpers as dgu_helpers
-
 if c.pkg.license and c.pkg.license.url:
   license_url = c.pkg.license.url
 else:
@@ -21,7 +19,7 @@ if c.pkg.license:
   licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
 elif c.pkg.license_id:
   licenses.append((c.pkg.license_id, None))
-licence_extra_list = dgu_helpers.json_list(c.pkg.extras.get('licence') or '')
+licence_extra_list = h.json_list(c.pkg.extras.get('licence') or '')
 for licence_extra in licence_extra_list:
   if licence_extra.startswith('http'):
     licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
@@ -87,11 +85,14 @@ publisher_groups = c.pkg.get_groups('publisher') # assume only one
 name = pkg_extras.get('contact-name')
 email = pkg_extras.get('contact-email')
 phone = pkg_extras.get('contact-phone')
+web_url = web_name = None
 if not (name or email or phone) and publisher_groups:
          extras = publisher_groups[0].extras
          name = extras.get('contact-name')
          email = extras.get('contact-email')
          phone = extras.get('contact-phone')
+         web_url = extras.get('website-url')
+         web_name = extras.get('website-name')
 foi_name = pkg_extras.get('foi-name')
 foi_email = pkg_extras.get('foi-email')
 foi_phone = pkg_extras.get('foi-phone')
@@ -105,9 +106,9 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
 ?>
     <ul>
         ${name}
-        ${contact_details(name, email, phone, None, None)}
+        ${contact_details(name, email, phone, web_url, web_name)}
     </ul>
-    <py:if test="foi_name or foi_email or foi_phone">
+    <py:if test="foi_name or foi_email or foi_phone or foi_web">
       FOI Contact:
       <ul>
           ${foi_name}
@@ -140,7 +141,7 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
   <li py:if="dataset_type == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
     <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
     <?python
-       try: 
+       try:
          from ckanext.spatial.lib.helpers import get_coupled_packages
          coupled_pkg_tuples = get_coupled_packages(c.pkg)
        except ImportError:

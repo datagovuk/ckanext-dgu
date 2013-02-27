@@ -1,3 +1,11 @@
+"""
+These helper functions are made available via the h variable which
+is given to every template for rendering.  To simplify the loading
+of helpers all functions *that do not start with _* will be added
+to the helper functions, so if you don't want your helper loaded make
+sure you prefix the function name with _
+"""
+
 import logging
 import re
 import urllib
@@ -265,7 +273,10 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
         return user
     if not isinstance(user, model.User):
         user_name = unicode(user)
-        user = model.User.get(user_name)
+        user = model.User.get(user_name) or model.Session.query(model.User).filter_by(fullname=user_name).first()
+
+    this_is_me = user and (c.user in (user.name, user.fullname))
+
     if not user:
         # may be in the format "NHS North Staffordshire (uid 6107 )"
         match = re.match('.*\(uid (\d+)\s?\)', user_name)
@@ -273,8 +284,8 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
             drupal_user_id = match.groups()[0]
             user = model.User.get('user_d%s' % drupal_user_id)
 
-    if (c.is_an_official):
-        # only officials can see the actual user name
+    if (c.is_an_official or this_is_me):
+        # only officials and oneself can see the actual user name
         if user:
             publisher = ', '.join([group.title for group in user.get_groups('publisher')])
 
@@ -453,4 +464,317 @@ def dgu_resource_icon(res):
     url = '/images/fugue/%s.png' % icon_name
     return ckan.lib.helpers.icon_html(url)
 
+
+def name_for_uklp_type(package):
+    uklp_type = get_uklp_package_type(package)
+    if uklp_type:
+        item_type = '%s (UK Location)' % uklp_type.capitalize()
+    else:
+        item_type = 'Dataset'
+
+def updated_string(package):
+    if package.get('metadata_modified') == package.get('metadata_created'):
+        updated_string = 'Created'
+    else:
+        updated_string = 'Updated'
+    return updated_string
+
+def updated_date(package):
+    if package.get('metadata_modified') == package.get('metadata_created'):
+        updated_date = package.get('metadata_created')
+    else:
+        updated_date = package.get('metadata_modified')
+    return updated_date
+
+def package_publisher_dict(package):
+    groups = package.get('groups', [])
+    publishers = [ g for g in groups if g.get('type') == 'publisher' ]
+    return publishers[0] if publishers else {'name':'', 'title': ''}
+
+def formats_for_package(package):
+    formats = set([res.get('format') for res in package['resources']])
+    if None in formats:
+        formats.remove(None)
+    if '' in formats:
+        formats.remove('')
+    return formats
+
+def link_subpub():
+    from ckan.lib.base import request
+    return request.params.get('publisher','') and not request.params.get('parent_publishers','')
+
+def facet_params_to_keep():
+    from ckan.lib.base import request
+    return [(k, v) for k,v in request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
+
+def stars_label(stars):
+    try:
+        stars = int(stars)
+    except ValueError:
+        pass
+    else:
+        if stars == -1:
+            return 'TBC'
+        stars = mini_stars_and_caption(stars)
+    return stars
+
+def uklp_display_provider(package):
+    uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
+    is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
+    if not is_uklp:
+        return None
+
+    providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider')]
+    return providers[0]['value'] if len(providers) else ''
+
+def random_tags():
+    import random
+    from ckan.lib.base import h
+    tags = h.unselected_facet_items('tags', limit=20)
+    random.shuffle(tags)
+    return tags
+
+def get_resource_fields(resource, pkg_extras):
+    from ckan.lib.base import h
+    import re
+    import datetime
+    from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
+
+    field_names = ResourceFieldNames()
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+    res_dict = dict(resource)
+
+    field_value_map = {
+        # field_name : {display info}
+        'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
+        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': render_datestamp(res_dict.get('revision_timestamp'))},
+        'content_type': {'label': 'Content Type', 'value': ''},
+        'scraper_url': {'label': 'Scraper',
+            'label_title':'URL of the scraper used to obtain the data',
+            'value': h.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
+        'scraped': {'label': 'Scrape date',
+            'label_title':'The date when this data was scraped',
+            'value': res_dict.get('scraped')},
+        'scraper_source': {'label': 'Scrape date',
+            'label_title':'The date when this data was scraped',
+            'value': res_dict.get('scraper_source')},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+        '': {'label': '', 'value': ''},
+    }
+
+    # add in fields that only display if they have a value
+    for field_name in field_names_display_only_if_value:
+        if pkg_extras.get(field_name):
+            field_names.add([field_name])
+
+    # calculate displayable field values
+    return  DisplayableFields(field_names, field_value_map, pkg_extras)
+
+def get_package_fields(package, pkg_extras, dataset_type):
+    import re
+    from ckan.lib.base import h
+    from webhelpers.text import truncate
+    from ckan.lib.field_types import DateType
+    from ckanext.dgu.schema import GeoCoverageType
+    from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
+
+    field_names = DatasetFieldNames()
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'geographic_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    if c.is_an_official:
+        field_names_display_only_if_value.append('external_reference')
+    # work out the dataset_type
+    pkg_extras = dict(pkg_extras)
+    harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
+    if dataset_type == 'uklp':
+        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
+        field_names.remove(['geographic_coverage', 'mandate'])
+        from ckan.logic import get_action, NotFound
+        from ckan import model
+        from ckanext.harvest.model import HarvestObject
+        try:
+            context = {'model': model, 'session': model.Session}
+            harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':package.id})
+            harvest_url = harvest_source['url']
+        except NotFound:
+            harvest_url = 'Metadata not available'
+        harvest_object_id = pkg_extras.get('harvest_object_id')
+        if harvest_object_id:
+            harvest_object = HarvestObject.get(harvest_object_id)
+            if harvest_object:
+                harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
+            else:
+                harvest_date = 'Metadata not available'
+            harvest_guid = pkg_extras.get('guid')
+            harvest_source_reference = pkg_extras.get('harvest_source_reference')
+            if harvest_source_reference and harvest_source_reference != harvest_guid:
+                field_names.add(['harvest_source_reference'])
+        if pkg_extras.get('resource-type') == 'service':
+            field_names.add(['spatial-data-service-type'])
+        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+                       for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
+    elif dataset_type == 'ons':
+        field_names.add(['national_statistic', 'categories'])
+        field_names.remove(['mandate'])
+        if c.is_an_official:
+            field_names.add(['external_reference', 'import_source'])
+    elif dataset_type == 'form':
+        field_names.add_at_start('theme')
+        if pkg_extras.get('theme-secondary'):
+            field_names.add_after('theme', 'theme-secondary')
+    if c.is_an_official:
+        field_names.add(['state'])
+
+    temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
+    temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
+    if temporal_coverage_from and temporal_coverage_to:
+        temporal_coverage = '%s - %s' % \
+          (DateType.db_to_form(temporal_coverage_from),
+           DateType.db_to_form(temporal_coverage_to))
+    elif temporal_coverage_from or temporal_coverage_to:
+        temporal_coverage = DateType.db_to_form(temporal_coverage_from or \
+                                                temporal_coverage_to)
+    else:
+        temporal_coverage = ''
+
+    taxonomy_url = pkg_extras.get('taxonomy_url') or ''
+    if taxonomy_url and taxonomy_url.startswith('http'):
+        taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
+    primary_theme = pkg_extras.get('theme-primary') or ''
+    secondary_themes = pkg_extras.get('theme-secondary')
+    if secondary_themes:
+        from ckan.lib.helpers import json
+        try:
+            # JSON for multiple values
+            secondary_themes = ', '.join(json.loads(secondary_themes))
+        except ValueError:
+            # string for single value
+            secondary_themes = str(secondary_themes)
+
+    field_value_map = {
+        # field_name : {display info}
+        'state': {'label': 'State', 'value': c.pkg.state},
+        'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
+        'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
+        'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
+        'bbox': {'label': 'Extent', 'value': h.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
+        'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
+        'date-added-computed': {'label': 'Date added to data.gov.uk', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
+        'date-updated-computed': {'label': 'Date updated on data.gov.uk', 'label_title': 'Date this record was updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
+        'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
+        'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
+        'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
+        'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
+        'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
+        'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
+        'access_constraints': {'label': 'Access constraints', 'value': render_json(pkg_extras.get('access_constraints'))},
+        'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
+        'theme': {'label': 'Theme', 'value': primary_theme},
+        'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
+        'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
+        'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
+        'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
+        '': {'label': '', 'value': ''},
+    }
+
+    # add in fields that only display if they have a value
+    for field_name in field_names_display_only_if_value:
+        if pkg_extras.get(field_name):
+            field_names.add([field_name])
+
+    # calculate displayable field values
+    return DisplayableFields(field_names, field_value_map, pkg_extras)
+
+def results_sort_by():
+    # Default to location if there is a bbox and no other parameters. Otherwise
+    # relevancy if there is a keyword, otherwise popularity.
+    # NB This ties in with the default sort set in ckanext/dgu/plugin.py
+    from ckan.lib.base import request
+    bbox = request.params.get('ext_bbox')
+    search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items()
+                                         if key not in ('ext_bbox', 'sort') and value != '']
+    return c.sort_by_fields or ('spatial' if not sort_by_location_disabled() else ('rank' if c.q else 'popularity'))
+
+def sort_by_location_disabled():
+    # TODO: Duplicated code from above, needs tidying
+    from ckan.lib.base import request
+    bbox = request.params.get('ext_bbox')
+    search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items()
+                                         if key not in ('ext_bbox', 'sort') and value != '']
+    return not(bool(bbox and not search_params_apart_from_bbox_or_sort))
+
+def relevancy_disabled():
+    from ckan.lib.base import request
+    return not(bool(request.params.get('q')))
+
+def get_resource_formats():
+    from ckanext.dgu.lib.formats import Formats
+    import json
+    resource_formats = json.dumps(Formats.by_display_name().keys())
+
+def get_wms_info_urls(pkg_dict):
+    return get_wms_info(pkg_dict)[0]
+
+def get_wms_info_extent(pkg_dict):
+    return get_wms_info(pkg_dict)[1]
+
+def get_resource_stars(resource_id):
+    from ckanext.qa import reports
+    report = reports.resource_five_stars(resource_id)
+    stars = report.get('openness_score', -1)
+    return stars
+
+def get_star_text(resource_id):
+    stars = get_resource_stars(resource_id)
+    stars_text = str(stars) + "/5"
+    if (stars==4):
+        stars_text = "4/5 or 5/5"
+    return stars_text
+
+def star_report_reason(resource_id):
+    from ckanext.qa import reports
+    report = reports.resource_five_stars(resource_id)
+    return report.get('openness_score_reason')
+
+def star_report_updated(resource_id):
+    from ckanext.qa import reports
+    report = reports.resource_five_stars(resource_id)
+    return report.get('openness_updated')
+
+def groups_as_json(groups):
+    import json
+    return json.dumps([group.title for group in groups])
+
+def user_display_name(user):
+    user_str = ''
+    if user.get('fullname'):
+        user_str += user['fullname']
+    user_str += ' [%s]' % user['name']
+    return user_str
+
+def pluralise_text(num):
+    return 's' if num > 1 else ''
+
+def group_category(group_extras):
+    category = group_extras.get('category')
+    if category:
+        from ckanext.dgu.forms.validators import categories
+        return dict(categories).get(category, category)
+    return None
+
+def spending_published_by(group_extras):
+    from ckan import model
+    spb = group_extras.get('spending_published_by')
+    if spb:
+        return model.Group.by_name(spb)
+    return None
+
+def advanced_search_url():
+    from ckan.controllers.package import search_url
+    from ckan.lib.base import request
+    params = dict(request.params)
+    if not 'publisher' in params:
+        params['parent_publishers'] = c.group.name
+    return search_url(params.items())
 

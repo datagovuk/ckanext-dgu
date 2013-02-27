@@ -32,12 +32,7 @@
           </div>
           <h2>Tags</h2>
           <div id="tagcloud">
-            <?python
-              import random
-              tags = h.unselected_facet_items('tags', limit=20)
-              random.shuffle(tags)
-            ?>
-            <py:for each="tag_dict in tags">
+            <py:for each="tag_dict in h.random_tags()">
               <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
             </py:for>
           </div>
@@ -94,10 +89,7 @@
             <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
           </div>
           <h2>Featured dataset</h2>
-          <?python
-            popular_dataset = h.single_popular_dataset(20)
-          ?>
-          ${package_summary(popular_dataset, show_preview_buttons=False)}
+          ${package_summary(h.single_popular_dataset(20), show_preview_buttons=False)}
 
           <p>This is one of our most popular datasets. You can see more usage statistics for data.gov.uk on the <a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site Usage</a> pages.</p>
 
