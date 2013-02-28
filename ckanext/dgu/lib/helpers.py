@@ -1175,7 +1175,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
     log.debug("{p} has {r} resources".format(p=publisher.name, r=rcount))
 
     # Issues data
-    issues = ""
+    issues = "green"
 
     if 'issues' in config['ckan.plugins']:
         # If issues are installed then we can use the info to determine
