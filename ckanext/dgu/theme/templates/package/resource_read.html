@@ -17,6 +17,8 @@
   <xi:include href="sidebar.html"/>
   <xi:include href="field_helpers.html" />
 
+  <py:def function="content_class"><!--unboxed--></py:def>
+
   <py:def function="optional_head">
     <!-- data preview -->
     <!-- leaflet removed for now -->
@@ -74,129 +76,133 @@
 
 
   <div py:match="content">
-    <h1>${h.dataset_link(c.package)}
-      <span class="subheading"><img src="/images/arrow-down-right.png" style="vertical-align: baseline;"/> ${h.resource_display_name(c.resource)}</span></h1>
+    <h1>
+      ${h.dataset_link(c.package)}
+      <span class="subheading"><img src="/images/arrow-down-right.png" style="vertical-align: baseline;"/> ${h.resource_display_name(c.resource)}</span>
+    </h1>
+    <div class="boxed">
 
-    <div id="minornavigation">
-      <div id="minornavigation-bg-left">
-      <div id="minornavigation-bg-right">
-        <minornavigation></minornavigation>
+      <div id="minornavigation">
+        <div id="minornavigation-bg-left">
+        <div id="minornavigation-bg-right">
+          <minornavigation></minornavigation>
+        </div>
+        </div>
       </div>
-      </div>
-    </div>
 
-    &nbsp;
-    <div class="resource-actions">
-      <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
-        <py:choose test="c.resource.get('resource_type')">
-          <py:when test="'listing'">View</py:when>
-          <py:when test="'service'">View</py:when>
-          <py:when test="'api'">API Endpoint</py:when>
-          <py:otherwise>
-            <div class="download">
-              <py:if test="not bool(h.get_resource_wms(c.resource))">
-                <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
-                Download
-              </py:if>
-              <py:if test="bool(h.get_resource_wms(c.resource))">
-                Link
-              </py:if>
+      &nbsp;
+      <div class="resource-actions">
+        <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
+          <py:choose test="c.resource.get('resource_type')">
+            <py:when test="'listing'">View</py:when>
+            <py:when test="'service'">View</py:when>
+            <py:when test="'api'">API Endpoint</py:when>
+            <py:otherwise>
+              <div class="download">
+                <py:if test="not bool(h.get_resource_wms(c.resource))">
+                  <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
+                  Download
+                </py:if>
+                <py:if test="bool(h.get_resource_wms(c.resource))">
+                  Link
+                </py:if>
+              </div>
+            </py:otherwise>
+          </py:choose>
+        </a>
+        <a py:if="h.get_cache_url(c.resource) and not bool(h.get_resource_wms(c.resource))" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${h.get_cache_url(c.resource)}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
+          <div class="download js-tooltip" title="Cached by data.gov.uk on date: ${h.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
+            <py:if test="not bool(h.get_resource_wms(c.resource))">
+              <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
+              Cached
+            </py:if>
+          </div>
+        </a>
+        <py:if test="config.get('ckan.datastore.enabled', False)">
+          <py:if test="c.resource.get('webstore_url')">
+            <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>
+          </py:if>
+          <py:if test="not c.resource.get('webstore_url')">
+            <a class="btn btn-datagov disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
+          </py:if>
+        </py:if>
+      </div>
+
+      <py:if test="config.get('ckan.datastore.enabled', False)">
+        ${data_api_help(c.datastore_api)}
+      </py:if>
+
+      ${data_viewer_embed_dialog()}
+
+      <div class="quick-info">
+        <div py:if="c.resource['last_modified']">
+          <h4 style="margin-bottom:0;">Last updated:</h4>
+          ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
+        </div>
+        <div>
+          <h4 style="margin-bottom:0;">Format:</h4>
+          ${c.resource.get('format') or 'Unknown'}
+        </div>
+        <div py:if="h.get_resource_stars(c.resource['id']) >= 0">
+          <h4 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h4>
+          ${h.render_stars(h.get_resource_stars(c.resource['id']), h.star_report_reason(c.resource['id']), h.star_report_updated(c.resource['id']))}
+        </div>
+      </div>
+
+      <h3>Resource Description</h3>
+      <div class="notes" property="rdfs:label">
+        <py:if test="c.resource.get('description')">
+          <div>
+            ${c.resource.get('description')}
+          </div>
+        </py:if>
+        <py:if test="not c.resource.get('description')">
+          <py:if test="c.package.get('notes')">
+            <div>
+              <strong i18n:msg="">
+                From the <a href="${h.url_for(controller='package', action='read', id=c.package['name'])}">Dataset</a>:
+              </strong>
             </div>
-          </py:otherwise>
-        </py:choose>
-      </a>
-      <a py:if="h.get_cache_url(c.resource) and not bool(h.get_resource_wms(c.resource))" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${h.get_cache_url(c.resource)}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
-        <div class="download js-tooltip" title="Cached by data.gov.uk on date: ${h.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
-          <py:if test="not bool(h.get_resource_wms(c.resource))">
-            <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
-            Cached
+            <div>${h.markdown_extract(c.package.get('notes'), 300)}</div>
+          </py:if>
+          <py:if test="not c.package.get('notes')">
+            <div><em>(No description)</em></div>
+          </py:if>
+        </py:if>
+      </div>
+
+      <div class="recline-read-only resource-preview">
+        <div class="preview-header">
+          <h3>Preview</h3>
+          <p py:if="not is_wms">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
+
+          <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+          <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
+          <py:if test="is_wms"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
+            ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
           </py:if>
         </div>
-      </a>
-      <py:if test="config.get('ckan.datastore.enabled', False)">
-        <py:if test="c.resource.get('webstore_url')">
-          <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>
-        </py:if>
-        <py:if test="not c.resource.get('webstore_url')">
-          <a class="btn btn-datagov disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
-        </py:if>
-      </py:if>
-    </div>
-
-  <py:if test="config.get('ckan.datastore.enabled', False)">
-    ${data_api_help(c.datastore_api)}
-  </py:if>
-
- ${data_viewer_embed_dialog()}
-
-    <div class="quick-info">
-      <div py:if="c.resource['last_modified']">
-        <h4 style="margin-bottom:0;">Last updated:</h4>
-        ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
+        <div id="ckanext-datapreview"></div>
       </div>
-      <div>
-        <h4 style="margin-bottom:0;">Format:</h4>
-        ${c.resource.get('format') or 'Unknown'}
-      </div>
-      <div py:if="h.get_resource_stars(c.resource['id']) >= 0">
-        <h4 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h4>
-        ${h.render_stars(h.get_resource_stars(c.resource['id']), h.star_report_reason(c.resource['id']), h.star_report_updated(c.resource['id']))}
-      </div>
-    </div>
 
-    <h3>Resource Description</h3>
-    <div class="notes" property="rdfs:label">
-      <py:if test="c.resource.get('description')">
-        <div>
-          ${c.resource.get('description')}
-        </div>
-      </py:if>
-      <py:if test="not c.resource.get('description')">
-        <py:if test="c.package.get('notes')">
-          <div>
-            <strong i18n:msg="">
-              From the <a href="${h.url_for(controller='package', action='read', id=c.package['name'])}">Dataset</a>:
-            </strong>
+      <br/>
+      <div class="resource-information">
+        <h3>Additional Information</h3>
+        <div id="dataset-information">
+          <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
+              <tbody>
+              <tr py:for="field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource,dict(c.pkg_extras))">
+                <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
+                <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
+              </tr>
+            </tbody>
+          </table>
           </div>
-          <div>${h.markdown_extract(c.package.get('notes'), 300)}</div>
-        </py:if>
-        <py:if test="not c.package.get('notes')">
-          <div><em>(No description)</em></div>
-        </py:if>
-      </py:if>
-    </div>
 
-    <div class="recline-read-only resource-preview">
-      <div class="preview-header">
-        <h3>Preview</h3>
-        <p py:if="not is_wms">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
-
-        <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
-        <a py:if="not c.pkg.is_private and not is_wms" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
-        <py:if test="is_wms"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
-          ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
-        </py:if>
-      </div>
-      <div id="ckanext-datapreview"></div>
-    </div>
-
-    <br/>
-    <div class="resource-information">
-      <h3>Additional Information</h3>
-      <div id="dataset-information">
-        <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
-            <tbody>
-            <tr py:for="field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource,dict(c.pkg_extras))">
-              <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
-              <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
-            </tr>
-          </tbody>
-        </table>
+          <span class="insert-comment-thread"></span>
         </div>
-
-        <span class="insert-comment-thread"></span>
-      </div>
-    </div>
+    </div><!-- /.boxed -->
+  </div><!-- /#content -->
 
   <py:def py:if="not is_wms" function="optional_footer">
     <!-- data preview -->
