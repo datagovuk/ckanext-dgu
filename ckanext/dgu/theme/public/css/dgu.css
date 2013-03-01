@@ -29,7 +29,7 @@ h4 img.arrow{padding-right:3px;padding-bottom:1px;}
 img.open-data{vertical-align:top;margin-top:1px;}
 .pagination{text-align:center;}
 a.tag{display:inline-block;padding:4px 9px;border:1px solid #bd8;background:#F9FFF4;margin:0 5px 3px 0;border-radius:4px;}a.tag:hover{border-color:#ac9;background:#e7FFe0;text-decoration:none;}
-h1 .subheading{display:block;font-size:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+h1 .subheading{display:block;font-size:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;}
 .notes{margin-bottom:10px;padding:8px;}
 .notes p:last-child{margin-bottom:0;}
 h1 .abbreviation{color:#888;}
@@ -171,7 +171,7 @@ ul.ui-autocomplete li a.ui-state-hover{background:#9D2;border-color:#690;}
 .star-rating-tooltip{opacity:1 !important;}.star-rating-tooltip>.tooltip-inner{background:#444;}
 .star-rating-tooltip>.tooltip-arrow{border-right-color:#444 !important;}
 body.controller-data.action-index h2{padding-bottom:8px;border-bottom:1px solid #aaa;padding-left:17px;padding-right:17px;margin-left:-17px;margin-right:-17px;}body.controller-data.action-index h2.no-underline{padding-bottom:0;border-bottom:none;}
-body.controller-data.action-index .front-page-table{width:100%;border-collapse:separate;}body.controller-data.action-index .front-page-table td{width:426px;vertical-align:top;}
+body.controller-data.action-index .front-page-table{width:100%;border-collapse:separate;}body.controller-data.action-index .front-page-table td.boxed{width:426px;vertical-align:top;}
 body.controller-data.action-index .front-page-table tr.gutter td{height:20px;}
 body.controller-data.action-index .front-page-table td.gutter{width:20px;padding:0;}
 body.controller-data.action-index div#tagcloud{clear:both;margin:10px auto;text-align:center;}body.controller-data.action-index div#tagcloud *{display:inline-block;vertical-align:middle;line-height:0.9;}
@@ -228,8 +228,7 @@ body.openspending_report .error-details .label{align:center;}
 body.openspending_report table.error-details{table-layout:fixed;}
 body.openspending_report .error-details td{overflow:hidden;}
 body.openspending_report .text-warning{color:#C09853;}
-.harvest-metadata{overflow:hidden;}
-.harvest-metadata h1{padding-top:20px;}
+.harvest-metadata{overflow:hidden;}.harvest-metadata h1{padding-top:20px;}
 .harvest-metadata h2{font-size:20px;margin-left:20px;}
 .harvest-metadata h3{font-size:17px;margin-left:40px;}
 .harvest-metadata h4{font-size:15px;margin-left:60px;}
