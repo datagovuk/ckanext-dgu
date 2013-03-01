@@ -712,6 +712,7 @@ def get_resource_formats():
     from ckanext.dgu.lib.formats import Formats
     import json
     resource_formats = json.dumps(Formats.by_display_name().keys())
+    return resource_formats
 
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
