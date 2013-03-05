@@ -47,9 +47,9 @@
               </a>
             </py:for>
             <py:if test="request.params.get('ext_bbox','')">
-              <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
+              <a class="facet" href="${c.remove_field('ext_bbox', request.params.get('ext_bbox',''))}">
                 <span class="name">${h.facet_title('Location')}</span>:
-                <span class="value">${bbox}</span>
+                <span class="value">${request.params.get('ext_bbox','')}</span>
                 <span class="x">x</span>
               </a>
             </py:if>
