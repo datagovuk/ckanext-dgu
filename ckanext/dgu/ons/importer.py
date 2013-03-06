@@ -181,6 +181,8 @@ class OnsImporter(PackageImporter):
         if result['count'] > 1:
             log.warn('Multiple publishers matched "%s" (mapped from "%s"): %s', publisher_name, source,
                      [(pub['name'], pub['title']) for pub in result['results']])
+        else:
+            log.info('Publisher found: %s', result['results'][0]['name'])
 
         return result['results'][0]['name']
 

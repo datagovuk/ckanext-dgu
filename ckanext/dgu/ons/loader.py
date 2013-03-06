@@ -6,7 +6,7 @@ from ckanext.importlib.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):
-        field_keys_to_find_pkg_by = ['title', 'groups']
+        field_keys_to_find_pkg_by = ['title', 'groups', 'external_reference']
         field_keys_to_expect_invariant = [
             'geographic_coverage', 'temporal_granularity',
             'precision', 'url', 'taxonomy_url',
@@ -25,11 +25,15 @@ class OnsLoader(ResourceSeriesLoader):
         '''For a given resource, returns its hub id
         e.g. "April 2009 data: Experimental Statistics | hub/id/119-46440"
               gives "119-46440"
+
+        If the resource has no hub id then it returns None (this is the case
+        for resources that were manually created during the period in 2012
+        when it was possible).
         '''
         try:
             return resource['hub-id']
         except KeyError, e:
-            raise Exception('Could not get hub-id from resource: %r' % resource)
+            return None
             
 
     def _choose_date(self, pkg1, date2_str, earlier_or_later, extra_field):

@@ -3,6 +3,8 @@ DGU publishers. Run it against data.gov.uk or a test CKAN server.
 
 Due to it originally importing paste/registry, this file was not put
 in the test directory.
+
+For more info, see ckanext/dgu/ons/README.txt
 '''
 
 import sys
@@ -68,6 +70,12 @@ Civil Aviation Authority
 Higher Education Statistics Agency
 Eurostat
 '''
+        # These are extra sources seen in the past ONS data, picked up from
+        # the ons_merge_duplicates tool:
+        sources += '''
+Cancer Registry Northern Ireland
+Welsh Assembly Government
+        '''
         ckanclient = CkanClient(base_location=ckan_api_url)
         num_errors = 0
         sources = sources.split('\n')
