@@ -132,7 +132,7 @@ ul.common-dataset-list{list-style-type:none;width:97%;margin:-24px auto 0 auto;p
 .dataset-summary .btn-preview{margin-left:5px;}
 .dataset-summary .preview-add .btn-preview,.dataset-summary .preview-remove .btn-preview{width:160px;padding-left:0;padding-right:10px;}
 .dataset-summary img.dataset-ribbon{float:right;margin-right:-21px;margin-top:-18px;}
-.resource-list{list-style-type:none;padding:0;margin:0 0 15px 0;}.resource-list>li{background:#fff;border:0;border:1px solid #eee;border-top-color:transparent;border-left-color:transparent;border-right:0;font-weight:bold;display:block;padding:0;color:#333;height:29px;position:relative;}.resource-list>li.last-child{border-bottom-color:transparent;}
+.resource-list{list-style-type:none;padding:0;margin:0 0 15px 0;}.resource-list>li{background:#fff;border-bottom:1px solid #eee;font-weight:bold;display:block;padding:0;color:#333;height:29px;position:relative;}.resource-list>li.last-child{border-bottom-color:transparent;}
 .resource-list>li .trimmed-text{overflow:hidden;padding-left:10px;white-space:nowrap;padding-top:5px;position:absolute;width:375px;}
 .resource-list>li>.btn,.resource-list>li>.btn-group{margin-left:4px;float:right;}
 .resource-list>li .format-box{-webkit-box-shadow:-2px 0 2px #ffffff;-moz-box-shadow:-2px 0 2px #ffffff;box-shadow:-2px 0 2px #ffffff;border:1px solid #EEE;margin-left:8px;padding:2px 8px;color:#808080;position:absolute;right:194px;top:2px;background:#fff;}
