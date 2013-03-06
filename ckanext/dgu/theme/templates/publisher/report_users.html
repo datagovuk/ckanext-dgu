@@ -21,9 +21,6 @@
         <th>Rights</th>
         <th>Created</th>
       </tr>
-<?python
-from ckan.authz import Authorizer
-?>
       <py:for each="u in c.page.items">
         <tr>
           <td><a href="/data/user/${u.name}">${u.display_name}</a></td>
@@ -31,7 +28,7 @@ from ckan.authz import Authorizer
           <td>${u.number_administered_packages()}</td>
           <td>${u.number_of_edits()}</td>
           <td>
-            <py:if test="Authorizer().is_sysadmin(u)">Sysadmin</py:if>
+            <py:if test="h.is_sysadmin(u)">Sysadmin</py:if>
             <py:for each="capacity in ('admin', 'editor')">
               <py:for each="group in u.get_groups(capacity=capacity)">
                 ${capacity.capitalize()}: <a href="/publisher/${group.name}">${group.display_name}</a>
