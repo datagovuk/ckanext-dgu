@@ -150,10 +150,10 @@ subpub = request.params.get('parent_publishers','')
               ${dgu_facet_li(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)[:limit], code, limit=limit, label=label, count_label=count_label)}
           </ul>
           <py:if test="more_button and len(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)) > limit">
-            <a id="${more_button}" class="more-button js-more-button" href="#"><img src="/images/arrow-down.png"/></a>
             <ul class="facet-options" id="${more_button}-items" style="display: None">
               ${dgu_facet_li(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)[limit:], code, limit=limit, label=label, count_label=count_label)}
             </ul>
+            <a id="${more_button}" class="facet-expand-collapse" href="#"><div class="expander"><img src="/images/arrow-down.png"/></div><div class="collapser"><img src="/images/arrow-up.png"/></div></a>
           </py:if>
           <py:if test="code=='publisher'">
               <ul py:if="h.link_subpub()" class="fact-options">

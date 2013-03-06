@@ -114,12 +114,11 @@ ul#nav li:hover a .nav-icon{background-position:-21px 0;}
 #shopping-basket-container #shopping-basket-submit{margin-left:20px;width:180px;}
 .facet-box{margin-bottom:20px;padding-left:25px;padding-right:25px;}.facet-box h3{padding-bottom:5px;margin-bottom:8px;border-bottom:1px solid #aaa;padding-left:25px;padding-right:25px;margin-left:-25px;margin-right:-25px;}
 .facet-box>ul{list-style-type:none;margin:0;}
-.facet-box .lower>ul li{margin:8px 0;}
-.facet-box .lower>ul li:first-child{margin-top:14px;}
-.facet-box .lower>ul li:last-child{margin-bottom:14px;}
 .facet-box .inline-icon{display:none;}
-.facet-box img.facets-title{height:22px;width:22px;vertical-align:top;margin-right:8px;}
-.facet-box img.facets-radio{height:16px;width:16px;vertical-align:top;margin-right:8px;}
+.facet-box .facet-expand-collapse{height:12px;padding:4px 0;margin:0 auto;width:100%;display:block;text-align:center;}.facet-box .facet-expand-collapse .expander{display:block;}
+.facet-box .facet-expand-collapse .collapser{display:none;}
+.facet-box .facet-expand-collapse.expanded .expander{display:none;}
+.facet-box .facet-expand-collapse.expanded .collapser{display:block;}
 ul.common-dataset-list{list-style-type:none;width:97%;margin:-24px auto 0 auto;position:relative;z-index:1;}ul.common-dataset-list .dataset-summary{margin-bottom:30px;}
 .dataset-summary img.dataset-icon{float:left;width:45px;height:45px;margin-right:10px;}
 .dataset-summary .dataset-header{display:block;min-height:52px;margin-bottom:12px;border-bottom:1px solid #aaa;padding-left:17px;padding-right:17px;margin-left:-17px;margin-right:-17px;color:#666;}
@@ -177,7 +176,6 @@ body.controller-data.action-index .front-page-table td.gutter{width:20px;padding
 body.controller-data.action-index div#tagcloud{clear:both;margin:10px auto;text-align:center;}body.controller-data.action-index div#tagcloud *{display:inline-block;vertical-align:middle;line-height:0.9;}
 body.controller-data.action-index div#tagcloud a{text-decoration:none;}body.controller-data.action-index div#tagcloud a:hover{text-decoration:underline;}
 body.controller-publisher.action-read .ribbon-header{text-align:right;padding-top:4px;padding-right:10px;height:30px;}
-body.controller-publisher.action-read #publisher-tree-expand{height:12px;padding:4px 0;margin:0 auto;width:100%;display:block;text-align:center;}
 body.controller-publisher.action-read .state-box{background-color:#fdd;}
 body.controller-package.action-search .sort-by-controls{text-align:right;padding:10px 5px 15px 0;}body.controller-package.action-search .sort-by-controls label{color:#fff;}
 body.controller-package.action-search .sort-by-controls .feed-icon{float:right;margin:1px 5px 0 20px;}

@@ -739,29 +739,21 @@ ul#nav {
         list-style-type: none;
         margin: 0;
     }
-    .lower > ul li {
-        margin: 8px 0;
-    }
-    .lower > ul li:first-child {
-        margin-top: 14px;
-    }
-    .lower > ul li:last-child {
-        margin-bottom: 14px;
-    }
     .inline-icon {
         display: none;
     }
-    img.facets-title {
-        height: 22px;
-        width: 22px;
-        vertical-align: top;
-        margin-right: 8px;
-    }
-    img.facets-radio {
-        height: 16px;
-        width: 16px;
-        vertical-align: top;
-        margin-right: 8px;
+    .facet-expand-collapse {
+        height: 12px;
+        padding: 4px 0;
+        margin: 0 auto;
+        width: 100%;
+        display: block;
+        text-align: center;
+        /* Class 'expanded' changes children */
+        .expander { display: block; }
+        .collapser { display: none; }
+        &.expanded .expander { display: none; }
+        &.expanded .collapser { display: block; }
     }
 }
 
@@ -1150,14 +1142,6 @@ body.controller-publisher.action-read {
         padding-right: 10px;
         height: 30px;
     }
-    #publisher-tree-expand {
-        height: 12px;
-        padding: 4px 0;
-        margin: 0 auto;
-        width: 100%;
-        display: block;
-        text-align: center;
-    }
     .state-box {
         background-color: #fdd;
     }
@@ -1487,7 +1471,6 @@ body.openspending_report {
         color: #C09853;
     }
 }
-
 
 /* TODO attach these to a page */
 

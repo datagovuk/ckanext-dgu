@@ -47,12 +47,12 @@ jQuery(function () {
     });
 
     /* Reveal in search results facets */
-    $('.js-more-button').click(function(e){
+    $('.facet-expand-collapse').click(function(e){
       e.preventDefault();
       var target = $(e.delegateTarget); // Using e.target might accidently catch the <img>
       var id = target.attr('id');
-      target.remove();
-      $('#'+id+'-items').toggle();
+      target.toggleClass('expanded');
+      $('#'+id+'-items').toggle('fast');
     });
 
     $('select[name="dataset-results-sort"]').change(function(e){
