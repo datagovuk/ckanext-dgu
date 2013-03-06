@@ -640,39 +640,38 @@ ul#nav {
             top: 15px;
         }
     }
-    .search-facets {
-        padding: 10px 0;
-        color: #888;
+    .facet-table {
+      .facet-table-left {
+        text-align: right;
+        width: 120px;
+        font-weight: bold;
+        vertical-align: top;
+        padding-top: 3px;
+      }
+      .facet-table-right {
+        padding-bottom: 5px;
+      }
     }
     .facet {
         color: #333;
-        padding: 3px 8px;
-        margin-left: 10px;
-        margin-bottom: 5px;
-        font-size: 11px;
-        color: #777;
-        text-shadow: 1px 1px 1px #fff;
-       .box-shadow(0 1px 2px #bbb);
+        font-weight: bold;
+        background: #A4DF45;
+        margin: 0 5px 2px 5px;
+        padding: 2px 5px 2px 8px;
+        float: left;
         .rounded(3px);
-        /* Cross-browser inline-block positioning */
-        display: inline-block;
-        zoom: 1;
-        *display: inline;
-        .gradient(#eeeeee, #e4e4e4, #f0f0f0);
-        &:hover {
-            text-decoration: none;
-            color: #000;
-            .gradient(#e4e4e4, #f0f0f0, #e4e4e4);
-        }
         .x {
-            color: #555;
-            margin: 0 2px 0 10px;
-            font-size: 9px;
-            vertical-align: top;
-        }
-        &:hover .x {
-            color: #c00;
-            font-weight: bold;
+          float: right;
+          padding: 0 4px;
+          margin-left: 4px;
+          font-weight: normal;
+          color: #690;
+          .rounded(4px);
+          &:hover {
+            text-decoration: none;
+            background: #470;
+            color: #fff;
+          }
         }
     }
 }

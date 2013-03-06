@@ -49,33 +49,43 @@ subpub = request.params.get('parent_publishers','')
           </py:if>
           <div id="dataset-search-ext"></div>
         </form>
-        <div class="search-facets">
-          <div class="pull-left" style="padding-top: 5px;" py:if="c.fields">Your search:</div>
-          <div class="pull-left" style="width: 80%;">
-            <py:for each="(field, value) in c.fields">
-              <a class="facet" href="${c.remove_field(field, value)}">
-                <span class="name">${h.facet_title(field)}</span>:
-                <span class="value">${value}</span>
-                <span class="x">x</span>
-              </a>
-            </py:for>
-            <py:if test="bbox">
-              <a class="facet" href="${c.remove_field('ext_bbox', bbox)}">
-                <span class="name">${h.facet_title('Location')}</span>:
-                <span class="value">${bbox}</span>
-                <span class="x">x</span>
-              </a>
-            </py:if>
-            <py:if test="subpub">
-              <?python from ckanext.dgu.lib.helpers import search_without_subpub ?>
-              <a class="facet" href="${search_without_subpub()}">
-                <span class="name">Including sub-publishers</span>
-                <span class="x">x</span>
-              </a>
-            </py:if>
-          </div>
-          <div class="clearfix"></div>
-        </div>
+        <table class="facet-table">
+          <?python
+            fields = {}
+            for (field,value) in c.fields:
+                fields[field] = fields.get(field,[])
+                fields[field].append(value)
+          ?>
+          <py:def function="facet(label,kill_link)">
+            <div class="facet">
+              <a class="x" href="${kill_link}">x</a>
+              ${value}
+            </div>
+          </py:def>
+          <py:for each="field in sorted(fields.keys())">
+            <tr>
+              <td class="facet-table-left">${h.facet_title(field)}:</td>
+              <td class="facet-table-right">
+                <py:for each="value in sorted(fields[field])">
+                  ${facet(value,c.remove_field(field, value))}
+                </py:for>
+              </td>
+            </tr>
+          </py:for>
+          <py:if test="bbox">
+            <tr>
+              <td class="facet-table-left">${h.facet_title('Location')}</td>
+              <td class="facet-table-right">${facet(bbox,c.remove_field('ext_bbox', bbox))}</td>
+            </tr>
+          </py:if>
+          <py:if test="subpub">
+            <?python from ckanext.dgu.lib.helpers import search_without_subpub ?>
+            <tr>
+              <td class="facet-table-left">Publishers:</td>
+              <td class="facet-table-right">${facet('Including sub-publishers',search_without_subpub())}</td>
+            </tr>
+          </py:if>
+        </table>
       </td>
     </tr>
   </table>
