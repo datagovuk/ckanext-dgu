@@ -300,8 +300,11 @@ class SearchPlugin(SingletonPlugin):
 
         # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
         # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
-        if 'q' in search_params:
+        # You can avoid this escaping on the API by setting escape_q=False.
+        if 'q' in search_params and search_params.get('escape_q', True):
             search_params['q'] = solr_escape(search_params['q'])
+        if 'escape_q' in search_params:
+            search_params.pop('escape_q')
 
         # If the user does not specify a "sort by" method manually,
         # then it defaults here (and the UI has to have the same logic)

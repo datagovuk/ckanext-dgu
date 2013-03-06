@@ -32,7 +32,7 @@ from ckanext.dgu.lib.formats import Formats
 import json
 resource_formats = json.dumps(Formats.by_display_name().keys())
 ?>
-        DGU_RESOURCE_FORMATS = ${resource_formats}
+        DGU_RESOURCE_FORMATS = ${resource_formats};
       </script>
     <script type="text/javascript" src="/scripts/dgu-package-form.js"></script>
     <script type="text/javascript" src="/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js"></script>
