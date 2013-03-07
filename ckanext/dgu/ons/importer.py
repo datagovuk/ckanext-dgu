@@ -35,6 +35,7 @@ class OnsImporter(PackageImporter):
             self._current_filename = os.path.basename(filepath)
             count = 0
             for item in OnsDataRecords(filepath):
+                log.info('Item %s %s', item['guid'][-9:], item['pubDate'])
                 yield self.record_2_package(item)
                 count += 1
             log.info('%i records were imported from file: %s', count, filepath)
@@ -116,6 +117,7 @@ class OnsImporter(PackageImporter):
             'url': download_url,
             'description': release,
             'hub-id': guid,
+            'publish-date': date_released.as_datetime().strftime('%Y-%m-%d'),
             }]
 
         # update package
@@ -182,7 +184,7 @@ class OnsImporter(PackageImporter):
             log.warn('Multiple publishers matched "%s" (mapped from "%s"): %s', publisher_name, source,
                      [(pub['name'], pub['title']) for pub in result['results']])
         else:
-            log.info('Publisher found: %s', result['results'][0]['name'])
+            log.info('..Publisher found: %s', result['results'][0]['name'])
 
         return result['results'][0]['name']
 
