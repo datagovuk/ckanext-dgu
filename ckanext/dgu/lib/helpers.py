@@ -718,6 +718,7 @@ def get_resource_formats():
     import json
     return json.dumps(Formats.by_display_name().keys())
 
+
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
 
