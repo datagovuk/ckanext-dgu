@@ -252,9 +252,9 @@ class Command(MassChangerCommand):
         tool = Tool(self.client,
                     dry_run=self.options.dry_run,
                     force=self.options.force)
-        #tool.add_missing_onshub_extra()
-        #tool.correct_home_office_titles()
-        #tool.add_missing_publisher()
+        tool.add_missing_onshub_extra()
+        tool.correct_home_office_titles()
+        tool.add_missing_publisher()
         tool.merge_duplicates()
 
     def add_options(self):
