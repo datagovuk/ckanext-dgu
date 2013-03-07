@@ -55,9 +55,9 @@ class OnsLoader(ResourceSeriesLoader):
         pkg['extras']['date_released'] = self._choose_date(existing_pkg, pub_date, 'earlier', 'date_released')
         pkg['extras']['date_updated'] = self._choose_date(existing_pkg, pub_date, 'later', 'date_updated')        
         merged_dict = super(OnsLoader, self)._merge_resources(existing_pkg, pkg)
-        # sort resources by hub_id
-        cmp_hub_id = lambda res1, res2: cmp(self._get_hub_id(res1),
-                                                self._get_hub_id(res2))
+        # sort resources by publish-date
+        cmp_hub_id = lambda res1, res2: cmp(res1.get('publish-date'),
+                                            res2.get('publish-date'))
         merged_dict['resources'] = sorted(merged_dict['resources'], cmp=cmp_hub_id)
         return merged_dict
 
