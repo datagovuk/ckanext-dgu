@@ -7,55 +7,62 @@
   <xi:include href="field_helpers.html" />
 
   <py:def function="resource_table(resources)">
-    <ul class="resource-list">
+  <div class="resource-table">
+    <table class="table table-condensed">
       <py:for each="res in resources">
-      <li class="${'last-child' if res==resources[-1] else ''}">
-        <div class="trimmed-text">
-            ${h.dgu_resource_icon(res)}
-            <!-- Attached to resources which were scraped -->
-            <py:if test="res.get('scraped')">${h.scraper_icon(res)}</py:if>
-            <!-- Attached to Additional Links which are scrape sources -->
-            <py:if test="res.get('scraper_url')">
-              ${h.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
-            </py:if>
-            <!-- Attached to timeseries resources and additional resources -->
-            ${res.get('date')}
-            ${h.resource_display_name(res)}
-        </div>
-        <div class="btn-group">
-          <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
-                <py:if test="dataset_type!='uklp'">Download</py:if>
-                <py:if test="dataset_type=='uklp'">Direct Link</py:if>
-          </a>
-          <button class="btn btn-primary dropdown-toggle"
-            data-toggle="dropdown"
-            py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu">
-            <li>
-              <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
-                <py:if test="dataset_type!='uklp'">Download</py:if>
-                <py:if test="dataset_type=='uklp'">Direct Link</py:if>
+      <!--tr class="${'last-child' if res==resources[-1] else ''}"-->
+      <tr>
+        <td class="resource-td-format">
+          ${format_box(res.get('format','').lower())}
+        </td>
+        <td class="resource-td-title">
+          <!-- Attached to resources which were scraped -->
+          <py:if test="res.get('scraped')">${h.scraper_icon(res)}</py:if>
+          <!-- Attached to Additional Links which are scrape sources -->
+          <py:if test="res.get('scraper_url')">
+            ${h.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
+          </py:if>
+          <!-- Attached to timeseries resources and additional resources -->
+          ${res.get('date')}
+          ${h.resource_display_name(res)}
+          <div class="text-overlay">
+            <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
+            <div class="btn-group">
+              <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
+                    <py:if test="dataset_type!='uklp'">Download</py:if>
+                    <py:if test="dataset_type=='uklp'">Direct Link</py:if>
               </a>
-            </li>
-            <li>
-              <py:if test="h.get_cache_url(res)">
-                <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
-                  Cached
-                </a>
-              </py:if>
-              <py:if test="not h.get_cache_url(res)">
-                <a class="disabled">(no cache available)</a>
-              </py:if>
-            </li>
-          </ul>
-        </div>
-        <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
-        <span py:if="res.get('format')" class="format-box" property="dc:format">${res.get('format')}</span>
-        </li>
+              <button class="btn btn-primary dropdown-toggle"
+                data-toggle="dropdown"
+                py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li>
+                  <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
+                    <py:if test="dataset_type!='uklp'">Download</py:if>
+                    <py:if test="dataset_type=='uklp'">Direct Link</py:if>
+                  </a>
+                </li>
+                <li>
+                  <py:if test="h.get_cache_url(res)">
+                    <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
+                      Cached
+                    </a>
+                  </py:if>
+                  <py:if test="not h.get_cache_url(res)">
+                    <a class="disabled">(no cache available)</a>
+                  </py:if>
+                </li>
+              </ul>
+            </div><!--/btn-group-->
+            <div class="clearfix"></div>
+          </div>
+        </td>
+      </tr>
       </py:for>
-    </ul>
+    </table>
+  </div>
   </py:def>
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
@@ -129,11 +136,10 @@
             <py:for each="gemini_resource in gemini_resources">
             <li class="${'last-child' if gemini_resource==gemini_resources[-1] else ''}">
               <div class="trimmed-text">
-                ${h.icon('page_white')}
+                ${format_box(gemini_resource['type'],h.icon('page_white'))}
                 ${gemini_resource['title']}
               </div>
               <a href="${gemini_resource['url']}" class="btn btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
-              <span class="format-box" property="dc:format">${gemini_resource['type']}</span>
             </li>
             </py:for>
           </ul>

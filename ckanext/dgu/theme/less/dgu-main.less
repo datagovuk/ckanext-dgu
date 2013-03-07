@@ -96,6 +96,20 @@ body.no-sidebar {
 
 /* -- Misc -- */
 /* ---------- */
+.format-box {
+    float: left;
+    padding: 2px 10px 0px 9px;
+    border: 1px solid rgba(0,0,0,0.1);
+    .rounded(10px);
+    color: #606060;
+    background: #f7f7f7;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-right: 7px;
+    > .inline-icon {
+      padding-right: 0;
+    }
+}
 .flash-messages {
     margin-top: 12px;
     margin-bottom: 12px;
@@ -840,59 +854,45 @@ ul.common-dataset-list {
 
 /* Common resource list */
 /* -------------------- */
-.resource-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0 0 15px 0;
-    > li {
-        background: #fff;
-        border-bottom: 1px solid #eee;
-        font-weight: bold;
-        display: block;
-        padding: 0;
-        color: #333;
-        height: 29px;
-        position: relative;
-        &.last-child {
-            border-bottom-color: transparent;
-        }
-        .trimmed-text {
-            overflow: hidden;
-            padding-left: 10px;
-            white-space: nowrap;
-            padding-top: 5px;
-            position: absolute;
-            width: 375px;
-        }
-        > .btn,
-        > .btn-group {
-            margin-left: 4px;
-            float: right;
-        }
-        .format-box {
-            .box-shadow(-2px 0 2px #fff);
-            border: 1px solid #EEE;
-            margin-left: 8px;
-            padding: 2px 8px;
-            color: #808080;
-            position: absolute;
-            right: 194px;
-            top: 2px;
-            background: #fff;
-        }
+.resource-table {
+  overflow: hidden;
+  > table {
+    width: 100%;
+    max-width: 100%;
+    /* Clip top pixel (first horz line) */
+    margin-top: -1px;
+  }
+  tbody td {
+    padding: 1px 0;
+    vertical-align: middle;
+    height: 28px;
+  }
+  .resource-td-format {
+    padding-left: 5px;
+    padding-right: 2px;
+    width: 0;
+  }
+  .resource-td-title {
+    position: relative;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+    max-width: 520px;
+    .text-overlay {
+      position: absolute;
+      right: 0;
+      top: 1px;
+      background: #fff;
+      > .btn {
+        float: left;
+        margin-right: 3px;
+      }
+      > .btn-group {
+        float: left;
+      }
     }
-    .dropdown-menu a.disabled {
-        color: #666;
-        &:hover {
-            background: transparent;
-        }
-    }
-    &.gemini-resource-list > li > .btn {
-        width: 80px;
-    }
-    &.gemini-resource-list > li > .format-box {
-        right: 120px;
-    }
+  }
 }
 
 

@@ -140,8 +140,11 @@
           ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
         </div>
         <div>
-          <h4 style="margin-bottom:0;">Format:</h4>
-          ${c.resource.get('format') or 'Unknown'}
+          <h4 style="margin-bottom: 0;">Format:</h4>
+          <div class="notes">
+            ${format_box(c.resource.get('format','Unknown').lower())}
+            <div class="clearfix"></div>
+          </div>
         </div>
         <div py:if="h.get_resource_stars(c.resource['id']) >= 0">
           <h4 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h4>
@@ -149,7 +152,7 @@
         </div>
       </div>
 
-      <h3>Resource Description</h3>
+      <h3 style="margin-bottom: 0;">Resource Description</h3>
       <div class="notes" property="rdfs:label">
         <py:if test="c.resource.get('description')">
           <div>

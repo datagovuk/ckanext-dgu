@@ -121,17 +121,16 @@ subpub = request.params.get('parent_publishers','')
         <py:if test="show_preview_buttons">
           ${map_preview_buttons(package.id, package)}
         </py:if>
-       <div class="property">
-       <py:if test="package.get('resources', [])">
-         <div py:if="h.formats_for_package(package)" class="property">Formats:&nbsp;
-          <ul class="dataset-formats">
+        <div class="property">
+          <py:if test="package.get('resources', [])">
+           <py:if test="h.formats_for_package(package)">
             <py:for each="format in h.formats_for_package(package)">
-              <li>${format}</li>
+              ${format_box(format.lower())}
             </py:for>
-          </ul>
-         </div>
-        </py:if>
-      </div>
+           </py:if>
+          </py:if>
+          <div class="clearfix"></div>
+        </div>
         <div class="owners">
         </div>
         <div class="clearfix"></div>
@@ -269,6 +268,18 @@ subpub = request.params.get('parent_publishers','')
           <a href="${web_url}">${h.truncate(web_name or web_url, 32)}</a>
         </li>
         <p py:if="not (email or phone or web_url)"><em>No details supplied</em></p>
+  </py:def>
+
+  <py:def function="format_box(format_name,icon_html=None)">
+    <?python 
+      if not icon_html: 
+          from ckanext.dgu.lib.helpers import dgu_format_icon
+          icon_html = dgu_format_icon(format_name) 
+    ?>
+    <div class="format-box">
+      ${icon_html}
+      <span py:if="format_name" property="dc:format">${format_name}</span>
+    </div>
   </py:def>
 
 </html>

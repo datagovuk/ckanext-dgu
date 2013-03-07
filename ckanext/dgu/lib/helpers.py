@@ -454,16 +454,13 @@ def json_list(json_str):
         return obj.items()
     # json can't be anything else
 
-
-def dgu_resource_icon(res):
-    format_string = res.get('format','').strip().lower()
-    fmt = formats.Formats.match(format_string)
+def dgu_format_icon(format_string):
+    fmt = formats.Formats.match(format_string.strip().lower())
     icon_name = 'document'
     if fmt is not None and fmt['icon']!='':
         icon_name = fmt['icon']
     url = '/images/fugue/%s.png' % icon_name
     return ckan.lib.helpers.icon_html(url)
-
 
 def name_for_uklp_type(package):
     uklp_type = get_uklp_package_type(package)
