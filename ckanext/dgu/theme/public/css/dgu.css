@@ -132,7 +132,6 @@ ul.common-dataset-list{list-style-type:none;width:97%;margin:-24px auto 0 auto;p
 .dataset-summary .map-buttons{float:right;margin-top:4px;}
 .dataset-summary .btn-preview{margin-left:5px;}
 .dataset-summary .preview-add .btn-preview,.dataset-summary .preview-remove .btn-preview{width:160px;padding-left:0;padding-right:10px;}
-.dataset-summary img.dataset-ribbon{float:right;margin-right:-21px;margin-top:-18px;}
 .resource-table{overflow:hidden;}.resource-table>table{width:100%;max-width:100%;margin-top:-1px;}
 .resource-table tbody td{padding:1px 0;vertical-align:middle;height:28px;}
 .resource-table .resource-td-format{padding-left:5px;padding-right:2px;width:0;}

@@ -100,7 +100,6 @@ subpub = request.params.get('parent_publishers','')
 
   <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary boxed">
      <div py:with="title=package.get('title') or package.get('name')">
-       <img py:if="h.is_service(package)" class="dataset-ribbon" src="/images/service-ribbon.png" />
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
          <h3><span class="underlined">${title}</span></h3>
