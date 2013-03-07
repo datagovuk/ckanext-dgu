@@ -136,6 +136,7 @@ class UKLPReports(CkanCommand):
             'q': q,
             'fq': fq,
             'rows': MAX_ROW_COUNT,
+            'start': 0,
             'extras': search_extras
         }
 
