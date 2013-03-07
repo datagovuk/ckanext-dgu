@@ -102,11 +102,17 @@ subpub = request.params.get('parent_publishers','')
      <div py:with="title=package.get('title') or package.get('name')">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
+         <div class="format-list">
+           <py:for each="format in h.formats_for_package(package)">
+             ${format_box(format.lower())}
+           </py:for>
+           <div class="clearfix"></div>
+         </div>
          <h3><span class="underlined">${title}</span></h3>
        </a>
-         <span class="property property-right">
-           ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
-         </span>
+       <span class="property pull-right">
+         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+       </span>
        <div class="property">
           Publisher:&nbsp;
             <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
@@ -120,16 +126,6 @@ subpub = request.params.get('parent_publishers','')
         <py:if test="show_preview_buttons">
           ${map_preview_buttons(package.id, package)}
         </py:if>
-        <div class="property">
-          <py:if test="package.get('resources', [])">
-           <py:if test="h.formats_for_package(package)">
-            <py:for each="format in h.formats_for_package(package)">
-              ${format_box(format.lower())}
-            </py:for>
-           </py:if>
-          </py:if>
-          <div class="clearfix"></div>
-        </div>
         <div class="owners">
         </div>
         <div class="clearfix"></div>

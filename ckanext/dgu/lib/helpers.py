@@ -489,11 +489,11 @@ def package_publisher_dict(package):
     return publishers[0] if publishers else {'name':'', 'title': ''}
 
 def formats_for_package(package):
-    formats = set([res.get('format') for res in package['resources']])
-    if None in formats:
-        formats.remove(None)
-    if '' in formats:
-        formats.remove('')
+    formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
+    # Strip empty strings, deduplicate and sort
+    formats = filter(bool,formats)
+    formats = set(formats)
+    formats = sorted(list(formats))
     return formats
 
 def link_subpub():
