@@ -11,8 +11,6 @@ import re
 import urllib2
 import json
 
-from bs4 import BeautifulSoup
-
 from common import load_config, register_translator
 
 start_time = datetime.datetime.today()
@@ -149,18 +147,13 @@ def command(config_file):
                         # remove header
                         report_html = report_html.split('---')[-1]
                         # add import timestamp
-                        report_html += '<p class="import-date"><a href="%s">Page</a> imported from <a href="http://openspending.org/">OpenSpending</a> on %s. Read more about <a href="http://openspending.org/resources/gb-spending/index.html">OpenSpending on data.gov.uk</a>' % \
+                        report_html += '<p class="import-date">\n<a href="%s">Page</a> imported from <a href="http://openspending.org/">OpenSpending</a> on %s. Read more about <a href="http://openspending.org/resources/gb-spending/index.html">OpenSpending on data.gov.uk</a>\n</p>' % \
                                        (url.encode('utf8'),
                                         datetime.datetime.now().strftime('%d-%m-%Y'))
                         # add <html>
                         report_html = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://genshi.edgewall.org/i18n" '\
                                       'xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" '\
                                       'py:strip="">' + report_html + '</html>'
-                        # Pound symbol
-                        report_html = report_html.replace('(GBP)', '(&pound;)')
-                        # Make sure it is good XML
-                        soup = BeautifulSoup(report_html, fromEncoding='utf-8')
-                        report_html = soup.prettify(formatter="html")
                         # Sort out non-encoded symbols
                         report_html = re.sub(u'\u2714', '&#x2714;', report_html)
                         report_html = re.sub(u'\u2718', '&#x2718;', report_html)
