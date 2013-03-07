@@ -8,6 +8,9 @@
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">${c.group.display_name}
     <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+    <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+      <img src="/images/rss-on-white.png" width="16" height="16"/>
+    </a>
     <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn button" style="float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:def>
   <py:def function="content_class"><!--unboxed--></py:def>
@@ -126,7 +129,7 @@
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
 
     <div class="group-dataset-list">
-      <div class="boxed margin-bottom-40">
+      <div class="boxed">
         <div class="notes" py:if="str(c.description_formatted).strip()">
           ${c.description_formatted}
         </div>
@@ -158,15 +161,11 @@
 
 
       <div py:if="c.page.items">
-        <h3>Datasets:</h3>
         <!--!<div class="clearfix">&nbsp;</div>-->
-        <div class="ribbon-header">
-          <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
-            <img src="/images/rss-on-white.png" width="16" height="16"/>
-          </a>
+        <div class="sort-by-controls">
+          <div class="clearfix"></div>
         </div>
         ${package_list_from_dict(c.page.items)}
-        <div class="ribbon-footer" />
         ${c.page.pager()}
 
       </div>

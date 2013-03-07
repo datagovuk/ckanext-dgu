@@ -201,9 +201,6 @@ ul.green-bullet {
 .pagination ul {
     background: #fff;
 }
-.margin-bottom-40 {
-    margin-bottom: 40px !important;
-}
 p.field_error, 
 span.field_error {
     background: transparent url(../images/icons/error.png) left center no-repeat;
@@ -572,35 +569,6 @@ ul#nav {
     overflow: hidden;
 }
 
-/* Black header/footer blocks, eg wrapping around a list of search results */
-/* ----------------------------------------------------------------------- */
-.ribbon-header,
-.ribbon-footer {
-    background-color: #42474B;
-    color: #FFF;
-    min-height: 25px;
-    padding: 0 10px 20px 0;
-    position: relative;
-    .drop-shadow(0px, 2px, 6px, 0.25);
-}
-.ribbon-header {
-    .rounded-top-left(5px);
-    .rounded-top-right(5px);
-    h2 {
-        color: #FFF;
-        font-size: 18px;
-        line-height: 24px;
-        padding: 10px 0 0 10px;
-        border: none;
-        background: none;
-    }
-}
-.ribbon-footer {
-    .rounded-bottom-left(5px);
-    .rounded-bottom-right(5px);
-    margin: -50px 0 20px 0;
-}
-
 /* Search box (used everywhere) */
 /* ---------------------------- */
 .search-area {
@@ -773,12 +741,26 @@ ul#nav {
 
 /* common-dataset-list and dataset-summary */
 /* --------------------------------------- */
+.sort-by-controls {
+    text-align: right;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    form {
+      margin: 0 0 0 0;
+    }
+    .feed-icon {
+        float: right;
+        margin: 3px 15px 0 14px;
+    }
+}
+.feed-icon {
+    img {
+      .drop-shadow(0px, 2px, 6px, 0.25);
+    }
+}
 ul.common-dataset-list {
     list-style-type: none;
-    width: 97%;
-    margin: -24px auto 0 auto;
-    position: relative;
-    z-index: 1;
+    margin-left: 0;
     .dataset-summary {
         margin-bottom: 30px;
     }
@@ -1118,11 +1100,10 @@ body.controller-data.action-index {
 /* PAGE: Publisher/read */
 /* -------------------- */
 body.controller-publisher.action-read {
-    .ribbon-header {
-        text-align: right;
-        padding-top: 4px;
-        padding-right: 10px;
-        height: 30px;
+    .feed-icon {
+      img {
+        margin: -4px 0 0 4px;
+      }
     }
     .state-box {
         background-color: #fdd;
@@ -1133,17 +1114,7 @@ body.controller-publisher.action-read {
 /* PAGE: Package/search */
 /* -------------------- */
 body.controller-package.action-search {
-    .sort-by-controls {
-        text-align: right;
-        padding: 10px 5px 15px 0;
-        label {
-            color: #fff;
-        }
-        .feed-icon {
-            float: right;
-            margin: 1px 5px 0 20px;
-        }
-    }
+
 }
 
 
@@ -1426,6 +1397,9 @@ body.controller-view.action-read {
 /* PAGE: Tag/index */
 /* --------------- */
 body.controller-tag.action-index {
+    .search-area {
+      margin-bottom: 25px;
+    }
     .pagination-alphabet a {
         padding: 0 10px;
     }

@@ -22,26 +22,10 @@
   <div py:match="content">
     <div class="row">
       <div class="span12">
-        <div class="boxed margin-bottom-40">
+        <div class="boxed">
           ${search_form()}
         </div>
-        <div class="clearfix"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="span4">
-        ${basket()}
-
-        <py:if test="c.page.item_count">
-          ${facet_filters()}
-        </py:if>
-      </div>
-      <div class="span8">
-        <py:if test="c.query_error">
-          <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
-              Please try again.</p>
-        </py:if>
-        <div class="ribbon-header sort-by-controls" py:if="c.page.item_count">
+        <div class="sort-by-controls" py:if="c.page.item_count">
           <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
             <img src="/images/rss-on-white.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
           </a>
@@ -60,9 +44,23 @@
             </select>
           </form>
         </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="span4">
+        ${basket()}
+
+        <py:if test="c.page.item_count">
+          ${facet_filters()}
+        </py:if>
+      </div>
+      <div class="span8">
+        <py:if test="c.query_error">
+          <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
+              Please try again.</p>
+        </py:if>
 
         ${package_list_from_dict(c.page.items)}
-        <div class="ribbon-footer" py:if="c.page.item_count"></div>
         <py:with vars="pager = c.page.pager(q=c.q)">
           <div py:if="pager" class="pager-container">
             ${pager}
