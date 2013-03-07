@@ -1568,30 +1568,12 @@ CKAN.DataPreview = function ($, my) {
       $('.recline-query-editor .text-query').hide();
     }
     else if (resourceData.formatNormalized in {
-        'xml': '',
-        'kml': '',
-        'rdf': '',
-        'rdf+xml': '',
-        'owl+xml': '',
-        'xml': '',
-        'atom': '',
-        'rss': ''
-    }){
-      var _url = '/data/preview/' + resourceData.id + '?type=xml';
-      my.getResourceDataDirect(_url, function(data) {
-        my.showPlainTextData(data);
-      });
-    }
-    else if (resourceData.formatNormalized in {
         'n3': '',
         'n-triples': '',
         'turtle': '',
         'plain': '',
-        'tsv': '',
         'txt': ''
         }) {
-      // HACK: treat as plain text / csv
-      // pass url to jsonpdataproxy so we can load remote data (and tell dataproxy to treat as csv!)
       var _url = '/data/preview/' + resourceData.id + '?type=plain';
       my.getResourceDataDirect(_url, function(data) {
         my.showPlainTextData(data);
