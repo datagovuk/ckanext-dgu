@@ -163,8 +163,10 @@ class DatasetForm(SingletonPlugin):
         user = context.get('user', '')
         if Authorizer().is_sysadmin(unicode(user)) and \
            pkg and pkg.extras.get('UKLP', 'False') == 'True':
-           schema.update(self._uklp_sysadmin_schema_updates)
-
+            schema.update(self._uklp_sysadmin_schema_updates)
+        if Authorizer().is_sysadmin(unicode(user)) and \
+               pkg and pkg.extras.get('external_reference') == 'ONSHUB':
+            self._ons_sysadmin_schema_updates(schema)
         return schema
 
     @property
@@ -180,6 +182,16 @@ class DatasetForm(SingletonPlugin):
             },
 
         }
+
+    def _ons_sysadmin_schema_updates(self, schema):
+        schema.update(
+            {
+                'theme-primary': [ignore_missing, unicode, convert_to_extras],
+                })
+        for resources in ('additional_resources',
+                          'timeseries_resources',
+                          'individual_resources'):
+            schema[resources]['format'] = [unicode] # i.e. optional
 
     def db_to_form_schema_options(self, options={}):
         context = options.get('context', {})
