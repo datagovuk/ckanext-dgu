@@ -120,6 +120,8 @@ organisation_name_mapping = {
     'National Health Service in Scotland':'NHS Scotland',
     'Police Service of Northern Ireland (PSNI)':'Police Service of Northern Ireland',
     'Office for Rail Regulation':'Office of Rail Regulation',
+    'Welsh Assembly Government':'Welsh Government',
+    'Cancer Registry Northern Ireland':'Northern Ireland Cancer Registry',
     }
 
 update_frequency_options = ['never', 'discontinued', 'annual', 'quarterly', 'monthly']

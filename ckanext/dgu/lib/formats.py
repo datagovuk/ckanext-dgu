@@ -121,6 +121,8 @@ class Formats(object):
                 ('iCalendar', ('iCal', 'ICS'), ('ics', 'ical'), ('text/calendar',), 3, 'calendar-day'),
                 ('RDF', ('rdf/xml',), ('rdf',), ('application/rdf+xml',), 5, 'document-rdf'),
                 ('RDFa', ('html+rdfa',), (), (), 5, 'document-rdf'),
+                ('SPARQL', (), (), ('application/sparql-results+xml', 'application/sparql-query'), 5, 'document-rdf'),
+                ('SPARQL web form', (), (), (), 5, 'document-rdf'),
                 )
             cls._data = []
             for line in data_flat:
