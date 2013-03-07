@@ -14,12 +14,12 @@
       <div py:if="str(c.pkg_notes_formatted).strip()">
         <h3>Description</h3>
         <!--! Optional logo -->
-        <div py:if="dataset_type == 'ons' and pkg_extras.get('national_statistic', '').lower() == 'yes'">
+        <div py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'">
           <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">
             <img class="dataset-logo" src="/images/national_statistics.gif" />
           </a>
         </div>
-        <div py:if="dataset_type == 'uklp'">
+        <div py:if="h.dataset_type(c.pkg_extras) == 'uklp'">
           <a href="/location">
             <img class="dataset-logo" src="/images/uk_location.gif" />
           </a>
@@ -31,12 +31,12 @@
 
       <!-- Resources -->
       <div id="dataset-resources" class="resources subsection">
-        <py:if test="individual_resources or not timeseries_resources">
-          <h3>Data Resources (${len(individual_resources)})</h3>
+        <py:if test="h.individual_resources() or not h.timeseries_resources()">
+          <h3>Data Resources (${len(h.individual_resources())})</h3>
 
           <ul class="resource-list">
-            <py:for each="res in individual_resources">
-            <li class="${'last-child' if res==individual_resources[-1] else ''}">
+            <py:for each="res in h.individual_resources()">
+            <li class="${'last-child' if res==h.individual_resources()[-1] else ''}">
               <div class="trimmed-text">
                   ${h.dgu_resource_icon(res)}
                   <py:if test="res.get('scraped')">${h.scraper_icon(res)}</py:if>
@@ -44,8 +44,8 @@
               </div>
               <div class="btn-group">
                 <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
-                      <py:if test="dataset_type!='uklp'">Download</py:if>
-                      <py:if test="dataset_type=='uklp'">Direct Link</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
                 </a>
                 <button class="btn btn-primary dropdown-toggle"
                   data-toggle="dropdown"
@@ -55,8 +55,8 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
-                      <py:if test="dataset_type!='uklp'">Download</py:if>
-                      <py:if test="dataset_type=='uklp'">Direct Link</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
                     </a>
                   </li>
                   <li>
@@ -77,7 +77,7 @@
             </py:for>
           </ul>
         </py:if>
-        <py:if test="timeseries_resources">
+        <py:if test="h.timeseries_resources()">
           <h3>Data Resources (${len(timeseries_resources)} in a time series)</h3>
           <ul class="resource-list">
             <py:for each="res in timeseries_resources">
@@ -89,8 +89,8 @@
               </div>
               <div class="btn-group">
                 <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
-                      <py:if test="dataset_type!='uklp'">Download</py:if>
-                      <py:if test="dataset_type=='uklp'">Direct Link</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
                 </a>
                 <button class="btn btn-primary dropdown-toggle"
                   data-toggle="dropdown"
@@ -100,8 +100,8 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
-                      <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
-                      <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download &raquo;</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
@@ -126,17 +126,17 @@
         <div class="dataset-map" >
           <div class="dataset-map-info">
             ${map_preview_buttons(c.pkg.id, c.pkg_dict, inline=False)} <!--! Supply both since there is no ID in pkg_dict! -->
-            <py:if test="pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')">
+            <py:if test="h.has_bounding_box(c.pkg_extras)">
               <table class="table-lat-long">
                 <thead><tr><th colspan="2">Dataset Extent:</th></tr></thead>
                 <tbody>
                 <tr>
                   <td class="extent-label"><div class="dataset-map-boxed">Latitude:</div></td>
-                  <td class="extent-value">${pkg_extras.get('bbox-north-lat')[:7]}&deg; to ${pkg_extras.get('bbox-south-lat')[:7]}&deg;</td>
+                  <td class="extent-value">${dict(c.pkg_extras).get('bbox-north-lat')[:7]}&deg; to ${dict(c.pkg_extras).get('bbox-south-lat')[:7]}&deg;</td>
                 </tr>
                 <tr>
                   <td class="extent-label"><div class="dataset-map-boxed">Longitude:</div></td>
-                  <td class="extent-value">${pkg_extras.get('bbox-west-long')[:7]}&deg; to ${pkg_extras.get('bbox-east-long')[:7]}&deg;</td>
+                  <td class="extent-value">${dict(c.pkg_extras).get('bbox-west-long')[:7]}&deg; to ${dict(c.pkg_extras).get('bbox-east-long')[:7]}&deg;</td>
                 </tr>
             </tbody>
             </table>
@@ -155,11 +155,11 @@
 
 
 
-        <py:if test="additional_resources or gemini_resources">
-          <h3>Additional Links (${len(additional_resources) + len(gemini_resources)})</h3>
+        <py:if test="h.additional_resources() or h.gemini_resources()">
+          <h3>Additional Links (${len(h.additional_resources()) + len(h.gemini_resources())})</h3>
           <ul class="resource-list">
-            <py:for each="res in additional_resources">
-            <li class="${'last-child' if res==additional_resources[-1] else ''}">
+            <py:for each="res in h.additional_resources()">
+            <li class="${'last-child' if res==h.additional_resources()[-1] else ''}">
               <div class="trimmed-text">
                   ${h.dgu_resource_icon(res)}
                   <py:if test="res.get('scraper_url')">
@@ -172,8 +172,8 @@
 
               <div class="btn-group">
                 <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
-                      <py:if test="dataset_type!='uklp'">Download</py:if>
-                      <py:if test="dataset_type=='uklp'">Direct Link</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
                 </a>
                 <button class="btn btn-primary dropdown-toggle"
                   data-toggle="dropdown"
@@ -183,8 +183,8 @@
                 <ul class="dropdown-menu">
                   <li>
                     <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
-                      <py:if test="dataset_type!='uklp'">Download &raquo;</py:if>
-                      <py:if test="dataset_type=='uklp'">Direct Link &raquo;</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download &raquo;</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link &raquo;</py:if>
                     </a>
                   </li>
                   <li>
@@ -204,7 +204,7 @@
             </li>
             </py:for>
           </ul>
-          <ul class="resource-list gemini-resource-list" py:if="gemini_resources">
+          <ul class="resource-list gemini-resource-list" py:if="h.gemini_resources()">
             <py:for each="gemini_resource in gemini_resources">
             <li class="${'last-child' if gemini_resource==gemini_resources[-1] else ''}">
               <div class="trimmed-text">
@@ -218,7 +218,7 @@
           </ul>
          </py:if>
 
-        <py:if test="not (dataset_type == 'uklp' or individual_resources or timeseries_resources or additional_resources)">
+        <py:if test="not (h.dataset_type(c.pkg_extras) == 'uklp' or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
           <em>(none)</em>
         </py:if>
       </div>
@@ -237,7 +237,7 @@
             ${h.render_stars(h.get_stars_aggregate(c.pkg.id).value, h.get_stars_aggregate(c.pkg.id).reason, h.get_stars_aggregate(c.pkg.id).last_updated)}
           </td>
         </tr>
-        <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),dataset_type)">
+        <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras))">
           <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
           <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
         </tr>

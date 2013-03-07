@@ -8,39 +8,16 @@
 
 
 <py:match path="primarysidebar">
-<?python
-if c.pkg.license and c.pkg.license.url:
-  license_url = c.pkg.license.url
-else:
-  license_url = None
+  ${basket()}
 
-licenses = [] # [(title, isopen), ... ]
-if c.pkg.license:
-  licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
-elif c.pkg.license_id:
-  licenses.append((c.pkg.license_id, None))
-licence_extra_list = h.json_list(c.pkg.extras.get('licence') or '')
-for licence_extra in licence_extra_list:
-  if licence_extra.startswith('http'):
-    licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
-  licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
-licence_url = c.pkg.extras.get('licence_url')
-if licence_url:
-   licence_url_title = c.pkg.extras.get('licence_url_title') or licence_url
-   licence_html = HTML('<a href="%s">%s</a>' % (licence_url, licence_url_title))
-   licenses.append((licence_html, True if (licence_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf') else None))
-
-?>
-        ${basket()}
-
-  <div py:if="license_url or licenses" id="dataset-license" class="widget-container">
+  <div py:if="h.get_license_url(c.pkg) or h.get_licenses(c.pkg)" id="dataset-license" class="widget-container">
     <h4>Licence</h4>
     <div property="dc:rights">
      <ul>
       <py:choose test="">
-        <py:when test="license_url and licenses">
-          <li py:for="license, isopen in licenses">
-            <a href="${license_url}" rel="dc:rights">${license}</a>
+        <py:when test="c.pkg.extras.get('licence_url')">
+          <li py:for="license, isopen in h.get_licenses(c.pkg)">
+            <a href="${h.get_license_url(c.pkg)}" rel="dc:rights">${license}</a>
             <py:if test="isopen">
               <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
                 <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
@@ -51,8 +28,8 @@ if licence_url:
             </py:if>
           </li>
         </py:when>
-        <py:when test="licenses">
-          <li py:for="license, isopen in licenses">
+        <py:when test="h.get_licenses(c.pkg)">
+          <li py:for="license, isopen in h.get_licenses(c.pkg)">
             ${license}
             <py:if test="isopen">
               <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
@@ -78,56 +55,26 @@ if licence_url:
   <li class="widget-container">
     <h4>Contact</h4>
     Enquiries:
-<?python
-# go up tree looking for contact details
-import ckanext.dgu.lib.publisher
-publisher_groups = c.pkg.get_groups('publisher') # assume only one
-name = pkg_extras.get('contact-name')
-email = pkg_extras.get('contact-email')
-phone = pkg_extras.get('contact-phone')
-web_url = web_name = None
-if not (name or email or phone) and publisher_groups:
-         extras = publisher_groups[0].extras
-         name = extras.get('contact-name')
-         email = extras.get('contact-email')
-         phone = extras.get('contact-phone')
-         web_url = extras.get('website-url')
-         web_name = extras.get('website-name')
-foi_name = pkg_extras.get('foi-name')
-foi_email = pkg_extras.get('foi-email')
-foi_phone = pkg_extras.get('foi-phone')
-foi_web = pkg_extras.get('foi-web')
-if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
-         extras = publisher_groups[0].extras
-         foi_name = extras.get('foi-name')
-         foi_email = extras.get('foi-email')
-         foi_phone = extras.get('foi-phone')
-         foi_web = extras.get('foi-web')
-?>
     <ul>
-        ${name}
-        ${contact_details(name, email, phone, web_url, web_name)}
+        ${h.get_contact_name(c.pkg, dict(c.pkg_extras))}
+        ${contact_details(*h.get_contact_details(c.pkg, dict(c.pkg_extras)))}
     </ul>
-    <py:if test="foi_name or foi_email or foi_phone or foi_web">
+    <py:if test="h.have_foi_contact_details(c.pkg, dict(c.pkg_extras))">
       FOI Contact:
       <ul>
-          ${foi_name}
-          ${contact_details(foi_name, foi_email, foi_phone, foi_web, None)}
+          ${h.get_foi_contact_name(c.pkg, dict(c.pkg_extras))}
+          ${contact_details(*h.get_foi_contact_details(c.pkg, dict(c.pkg_extras)))}
       </ul>
     </py:if>
 
   </li>
 
-  <?python
-    from ckan import model
-  ?>
-
-  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and c.pkg.state != model.State.DELETED" class="widget-container">
-    <py:if test="dataset_type != 'uklp'">
+  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and h.is_package_deleted(c.pkg)" class="widget-container">
+    <py:if test="h.dataset_type(c.pkg_extras) != 'uklp'">
       <h4>Deletion</h4>
       <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Delete this dataset</a>
     </py:if>
-    <py:if test="dataset_type == 'uklp'">
+    <py:if test="h.dataset_type(c.pkg_extras) == 'uklp'">
       <h4>Withdrawal</h4>
       <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Withdraw this dataset</a>
     </py:if>
@@ -138,21 +85,14 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
     ${tag_list_from_dicts(c.pkg_dict['tags'])}
   </li>
 
-  <li py:if="dataset_type == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
+  <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
     <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
-    <?python
-       try:
-         from ckanext.spatial.lib.helpers import get_coupled_packages
-         coupled_pkg_tuples = get_coupled_packages(c.pkg)
-       except ImportError:
-         coupled_pkg_tuples = []
-    ?>
     <ul>
-      <li py:for="name, title in coupled_pkg_tuples">
+      <li py:for="name, title in h.coupled_pkg_tuples(c.pkg)">
         <a href="/dataset/${name}">${title}</a>
       </li>
     </ul>
-    <span py:if="not coupled_pkg_tuples">(none)</span>
+    <span py:if="not h.coupled_pkg_tuples(c.pkg)">(none)</span>
   </li>
 
   <li id="social_media" class="widget-container">
@@ -182,11 +122,11 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
       <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
       </li>
-      <li py:if="pkg_extras.get('provider')">
-        Provider: ${pkg_extras.get('provider')}
+      <li py:if="dict(c.pkg_extras).get('provider')">
+        Provider: ${dict(c.pkg_extras).get('provider')}
       </li>
-      <li py:if="dataset_type == 'uklp' and pkg_extras.get('responsible-party')">
-        Responsible Party: ${pkg_extras.get('responsible-party')}
+      <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(pkg_extras).get('responsible-party')">
+        Responsible Party: ${dict(pkg_extras).get('responsible-party')}
       </li>
     </ul>
   </li>

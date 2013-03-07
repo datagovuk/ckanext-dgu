@@ -156,16 +156,6 @@
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
       </py:if>
     </ul>
-<?python
-# Change this usage to use the proper auth helpers
-#  <div py:if="is_edit_form and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
-import ckan.authz
-from ckanext.dgu.plugins_toolkit import c
-if 'is_sysadmin' not in dir(c):
-    c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
-c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
-c.is_an_official = bool(c.groups or c.is_sysadmin)
-?>
     <ul id="subnav" py:if="c.is_sysadmin or h.check_access('package_create')">
       <py:if test="h.check_access('package_create')">
         <span class="divider-section">Publisher tools:</span>
