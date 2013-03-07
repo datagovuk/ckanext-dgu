@@ -126,6 +126,11 @@ def dgu_package_update(context, data_dict):
     if package.extras.get('UKLP', '') == 'True':
         return fail
 
+    # Only sysadmins can edit ONS packages.
+    # Note: the dgu user *is* a sysadmin
+    if package.extras.get('external_reference') == 'ONSHUB':
+        return fail
+
     # To be able to edit this dataset the user is allowed if
     # (they are an 'editor' for this publisher) OR
     # (an admin for this publisher OR parent publishers).

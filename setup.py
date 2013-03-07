@@ -54,6 +54,7 @@ setup(
         ons_remove_packages = ckanext.dgu.bin.ons_remove_packages:command
         ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
         ons_uksa_data4nr = ckanext.dgu.bin.ons_uksa_data4nr:command
+        ons_merge_duplicates = ckanext.dgu.bin.ons_merge_duplicates:command
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command

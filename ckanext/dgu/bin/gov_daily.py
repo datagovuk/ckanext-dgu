@@ -155,6 +155,8 @@ def command(config_file):
                                       'xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" '\
                                       'py:strip="">' + report_html + '</html>'
                         # Sort out non-encoded symbols
+                        report_html = re.sub(u' & ', ' &amp; ', report_html)
+                        report_html = re.sub('\xc2\xa3', '&pound;', report_html)
                         report_html = re.sub(u'\u2714', '&#x2714;', report_html)
                         report_html = re.sub(u'\u2718', '&#x2718;', report_html)
                         report_html = re.sub(u'\u0141', '&#x0141;', report_html)
