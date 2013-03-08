@@ -273,7 +273,7 @@ ul#nav {
 }
 #nav li {
   padding: 0;
-  width: 100px;
+  width: 98px;
   position: relative;
   float: left;
   /* Gradient */
@@ -287,13 +287,16 @@ ul#nav {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#444444', endColorstr='#222222',GradientType=0 ); /* IE6-9 */
 }
 #nav li#nav-home {
-  width: 115px;
+  width: 110px;
 }
 #nav li#nav-linked-data {
   width: 110px;
 }
+#nav li#nav-data-requests {
+  width: 120px;
+}
 #nav li#nav-about {
-  width: 115px;
+  width: 110px;
 }
 #nav li a {
   color: #ccc;
