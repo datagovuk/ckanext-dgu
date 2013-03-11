@@ -38,17 +38,20 @@ class OnsData(object):
 
     @classmethod
     def download_months_since(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False,
-                              year=None, month=None):
+                              year=None, month=None,
+                              force_download=False):
         ons = cls(ons_cache_dir, log)
         assert month and month <= MONTHS_PER_YEAR
         assert year and year > 2000
-        url_tuples = ons._get_monthly_urls_since(year, month)
+        url_tuples = ons._get_monthly_urls_since(year, month,
+                                                 force_download=force_download)
         return ons.download_multiple(url_tuples)
 
     @classmethod
-    def download_all(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False):
+    def download_all(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False,
+                     force_download=False):
         ons = cls(ons_cache_dir, log)
-        url_tuples = ons._get_urls_for_all_time()
+        url_tuples = ons._get_urls_for_all_time(force_download)
         return ons.download_multiple(url_tuples)
 
     def __init__(self, local_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False):
@@ -138,10 +141,11 @@ class OnsData(object):
                                 end_date.strftime('%Y-%m-%d'))
         return url, url_id
 
-    def _get_urls_for_all_time(self):
-        return self._get_monthly_urls_since(YEAR_ONS_DATA_STARTS, 1)
+    def _get_urls_for_all_time(self, force_download):
+        return self._get_monthly_urls_since(YEAR_ONS_DATA_STARTS, month=1,
+                                            force_download=force_download)
 
-    def _get_monthly_urls_since(self, year, month):
+    def _get_monthly_urls_since(self, year, month, force_download=False):
         url_tuples = []
         this_year = self._get_today().year
         this_month = self._get_today().month
@@ -151,7 +155,7 @@ class OnsData(object):
             # month is 1-12
             while (month <= 12 and
                    datetime.datetime(year, month, 1) < first_of_this_month):
-                url_tuples.append(self._get_url_month(month, year) + [False])
+                url_tuples.append(self._get_url_month(month, year) + [force_download])
                 month += 1
             month = 1
             year += 1
