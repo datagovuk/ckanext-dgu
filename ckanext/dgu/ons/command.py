@@ -26,6 +26,11 @@ class OnsLoaderCmd(ApiCommand):
                                action="store_true",
                                default=False,
                                help="Request all ONS updates ever, in monthly chunks")
+        self.parser.add_option("-f", "--force-download",
+                               dest="force_download",
+                               action="store_true",
+                               default=False,
+                               help="Force download from ONS, even if it is cached")
         self.parser.add_option("-c", "--cache-dir",
                                dest="ons_cache_dir",
                                help="Path to store downloads from ONS Pub Hub")
@@ -69,10 +74,12 @@ class OnsLoaderCmd(ApiCommand):
             data_filepaths = OnsData.download_month(year=self.options.month.year,
                                                     month=self.options.month.month)
         elif self.options.months_since:
-            data_filepaths = OnsData.download_months_since(year=self.options.months_since.year,
-                                                    month=self.options.months_since.month)
+            data_filepaths = OnsData.download_months_since(
+                year=self.options.months_since.year,
+                month=self.options.months_since.month,
+                force_download=self.options.force_download)
         elif self.options.all_time:
-            data_filepaths = OnsData.download_all()
+            data_filepaths = OnsData.download_all(force_download=self.options.force_download)
         else:
             self.parser.error('Please specify a time period')
 
