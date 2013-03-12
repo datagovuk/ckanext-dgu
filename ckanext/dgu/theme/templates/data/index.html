@@ -86,20 +86,17 @@
         <td colspan="3"></td>
       </tr>
       <tr>
-        <td class="boxed" rowspan="5">
+        <td class="boxed" rowspan="3">
           <div class="pull-right">
             <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
           </div>
           <h2>Featured dataset</h2>
           ${package_summary(h.single_popular_dataset(20), show_preview_buttons=False)}
-
-          <p>This is one of our most popular datasets. You can see more usage statistics for data.gov.uk on the <a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site Usage</a> pages.</p>
-
         </td>
         <td class="gutter"></td>
         <td class="boxed">
           <div class="pull-right">
-            <a href="/node/add/data-request" class="btn btn-primary">Request new data</a>
+            <a href="/odug" class="btn btn-primary">Request new data</a>
           </div>
           <h2>Data Requests</h2>
           <div>
@@ -108,23 +105,6 @@
         </td>
       </tr>
 
-      <tr class="gutter">
-        <td colspan="2"></td>
-      </tr>
-      <tr>
-        <td class="gutter"></td>
-        <td class="boxed" rowspan="1">
-          <h2>Cross-Government Data Apps</h2>
-          <ul>
-
-            <li><a href="/whoslobbying" class="js-tooltip" title="Find out which organisations and industries have met with Ministers from across Government departments.">Who's Lobbying</a> - who ministers are meeting</li>
-
-            <li><a href="http://transparency.number10.gov.uk/" class="js-tooltip" title="Check on the Government's progress on implementing its policies. See how every department is performing against its priorities.">Business plans</a></li>
-
-            <!--! Removed - not like the rest - looked like a placeholder. <li><a href="/crime-spy-uk" class="js-tooltip" title="Use your iPhone to view neighbourhood information and crime stats for the area">Applications</a></li>-->
-          </ul>
-        </td>
-      </tr>
       <tr class="gutter">
         <td colspan="2"></td>
       </tr>
