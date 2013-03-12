@@ -1,12 +1,14 @@
 
 (function ($) {
   $(document).ready(function () {
+    assert(window.form_errors, 'window.form_errors not set');
 
     var isDatasetNew = $('body.PackageController.new').length > 0;
+    var errorFieldsets = [];
 
-    for (field_id in form_errors) {
+    for (field_id in window.form_errors) {
 
-      var errors = form_errors[field_id];
+      var errors = window.form_errors[field_id];
       if( ! errors.length) { return; }
 
       // errors could be nested, in which case it's a list of objects.
@@ -25,9 +27,14 @@
       var field = $('#'+field_id);
       if (field !== undefined && field.length > 0) {
         var fieldset_id = field.parents('fieldset').last().attr('id');
+        errorFieldsets.push(fieldset_id);
         fieldset_id = fieldset_id.replace(/-fields?$/, '');
         $('#'+fieldset_id).addClass('fieldset_button_error');
       }
+    }
+
+    if (errorFieldsets.length>0) {
+      window.location.hash = 'tab-'+errorFieldsets[0];
     }
 
     /* URL auto-completion */
@@ -47,10 +54,6 @@
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
 
-    /* Hide field sets */
-    $('form#package-edit').children('fieldset').hide();
-    $('fieldset#section-name-fields').show();
-
     /* Setup next/back buttons */
     var clickNav = function(goBack) {
       return function(e) {
@@ -69,24 +72,6 @@
     // Correctly handle disabled nav buttons
     $('a.disabled').click(function(e) {
       e.preventDefault();
-    });
-
-    $('#back-button').click(function(e) {
-        e.preventDefault();
-        var activeTab = $('div#form-tabs li.active');
-        activeTab.prev().children('a').click();
-    });
-    $('#next-button').click(function(e) {
-        e.preventDefault();
-        var nextLink = $('div#form-tabs li.active').next().children('a');
-        if (nextLink.hasClass('disabled')) {
-          // Hook up the link with bootstrap
-          nextLink.attr('data-toggle', 'tab');
-          // Allow it to be clicked
-          nextLink.removeClass('disabled');
-        }
-        // Click it
-        nextLink.click();
     });
 
     /* Tag auto-completion */
