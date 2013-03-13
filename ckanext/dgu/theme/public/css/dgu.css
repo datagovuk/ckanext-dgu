@@ -109,9 +109,9 @@ ul#nav li:hover a .nav-icon{background-position:-21px 0;}
 #shopping-basket-container #shopping-basket-buttons{margin:10px 0 2px 0;}
 #shopping-basket-container #shopping-basket-reset{padding-left:6px;padding-right:9px;}
 #shopping-basket-container #shopping-basket-submit{margin-left:20px;width:180px;}
-.facet-box{padding:9px;padding-top:1px;margin-bottom:20px;padding-left:25px;padding-right:25px;}.facet-box h4{color:#656565;padding-bottom:5px;margin-bottom:8px;margin-top:8px;border-bottom:1px solid #aaa;padding-left:25px;padding-right:25px;margin-left:-25px;margin-right:-25px;}
-.facet-box .facet-options{background:rgba(255, 0, 255, 0.2);}.facet-box .facet-options .facet-option{background:rgba(0, 0, 0, 0.2);border:1px solid #f0f;}
-.facet-box .facet-expand-collapse{height:12px;padding:4px 0;margin:0 auto;width:100%;display:block;text-align:center;}.facet-box .facet-expand-collapse .expander{display:block;}
+.facet-box{margin-bottom:20px;}.facet-box h4{color:#656565;padding-bottom:5px;margin-bottom:0;margin-top:8px;border-bottom:1px solid #aaa;padding-left:10px;}
+.facet-box .facet-options{padding:8px 10px;margin-left:5px;}
+.facet-box .facet-expand-collapse{height:12px;padding:4px 0;margin:0 auto;margin-top:-5px;width:100%;display:block;text-align:center;}.facet-box .facet-expand-collapse .expander{display:block;}
 .facet-box .facet-expand-collapse .collapser{display:none;}
 .facet-box .facet-expand-collapse.expanded .expander{display:none;}
 .facet-box .facet-expand-collapse.expanded .collapser{display:block;}
