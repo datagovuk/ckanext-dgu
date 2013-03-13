@@ -17,6 +17,8 @@
   <xi:include href="sidebar.html"/>
   <xi:include href="field_helpers.html" />
 
+  <py:def function="content_class"><!--unboxed--></py:def>
+
   <py:def function="optional_head">
     <!-- data preview -->
     <!-- leaflet removed for now -->
@@ -74,8 +76,11 @@
 
 
   <div py:match="content">
-    <h1>${h.dataset_link(c.package)}
-      <span class="subheading"><img src="/images/arrow-down-right.png" style="vertical-align: baseline;"/> ${h.resource_display_name(c.resource)}</span></h1>
+    <h1>
+      ${h.dataset_link(c.package)}
+      <span class="subheading"><img src="/images/arrow-down-right.png" style="v
+    </h1>
+    <div class="boxed">
 
     <div id="minornavigation">
       <div id="minornavigation-bg-left">
@@ -192,7 +197,8 @@ is_wms = bool(dgu_helpers.get_resource_wms(c.resource))
         </py:if>
       </div>
       <div id="ckanext-datapreview"></div>
-    </div>
+    </div><!-- /.boxed -->
+  </div><!-- /#content -->
 
     <br/>
     <div class="resource-information">
