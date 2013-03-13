@@ -65,6 +65,16 @@ class TestOnsData:
         assert url_tuples[-2] == [self.ons_url_base + '?lday=1&lmonth=5&lyear=2005&uday=31&umonth=5&uyear=2005', '2005-05', False], url_tuples[-2]
         assert url_tuples[-1] == [self.ons_url_base + '?lday=1&lmonth=6&lyear=2005&uday=31&umonth=6&uyear=2005', '2005-06_incomplete', True], url_tuples[-1]
 
+    def test_get_monthly_urls_since(self):
+        ons_data = OnsDataTester()
+        url_tuples = ons_data._get_monthly_urls_since(1999, 11)
+        assert_equal(len(url_tuples), 68)
+        assert url_tuples[0] == [self.ons_url_base + '?lday=1&lmonth=11&lyear=1999&uday=31&umonth=11&uyear=1999', '1999-11', False], url_tuples[0]
+        assert_equal(url_tuples[1][1], '1999-12')
+        assert_equal(url_tuples[2][1], '2000-01')
+        assert_equal(url_tuples[3][1], '2000-02')
+        assert_equal(url_tuples[-1][1], '2005-06_incomplete')
+
 
     def test_download(self):
         url = 'testurl'

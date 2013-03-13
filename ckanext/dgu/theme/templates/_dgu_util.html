@@ -268,8 +268,7 @@ subpub = request.params.get('parent_publishers','')
   <py:def function="format_box(format_name,icon_html=None)">
     <?python 
       if not icon_html: 
-          from ckanext.dgu.lib.helpers import dgu_format_icon
-          icon_html = dgu_format_icon(format_name) 
+          icon_html = h.dgu_format_icon(format_name) 
     ?>
     <div class="format-box">
       ${icon_html}

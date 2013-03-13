@@ -57,11 +57,12 @@ table.tablesorter th.header{background-image:url('/images/icons/sort.gif');curso
 #blackbar #login-or-signup{font-size:11px;float:right;margin-top:4px;margin-right:10px;}
 #blackbar #login-or-signup a{font-weight:bold;}
 #branding{height:66px;padding-top:18px;padding-left:55px;}
-ul#nav{list-style-type:none;margin-left:0;margin-bottom:0;font-size:0;}ul#nav li{padding:0;width:100px;position:relative;float:left;background:#333333;background:-webkit-gradient(linear, left bottom, left top, color-stop(0, #222222), color-stop(1, #444444));background:-ms-linear-gradient(bottom, #222222, #444444);background:-moz-linear-gradient(center bottom, #222222 0%, #444444 100%);background:-o-linear-gradient(#444444, #222222);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#444444', endColorstr='#222222', GradientType=0);}ul#nav li a{color:#ccc;text-align:center;display:block;padding:10px 10px;border-left:1px solid #505050;border-right:1px solid #181818;font-size:15px;font-weight:300;}ul#nav li a:hover{color:#fff;text-decoration:none;background:url('/images/nav-chevron.png') 50% 100% no-repeat;}
+ul#nav{list-style-type:none;margin-left:0;margin-bottom:0;font-size:0;}ul#nav li{padding:0;width:98px;position:relative;float:left;background:#333333;background:-webkit-gradient(linear, left bottom, left top, color-stop(0, #222222), color-stop(1, #444444));background:-ms-linear-gradient(bottom, #222222, #444444);background:-moz-linear-gradient(center bottom, #222222 0%, #444444 100%);background:-o-linear-gradient(#444444, #222222);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#444444', endColorstr='#222222', GradientType=0);}ul#nav li a{color:#ccc;text-align:center;display:block;padding:10px 10px;border-left:1px solid #505050;border-right:1px solid #181818;font-size:15px;font-weight:300;}ul#nav li a:hover{color:#fff;text-decoration:none;background:url('/images/nav-chevron.png') 50% 100% no-repeat;}
 ul#nav li a .nav-icon{width:21px;height:18px;margin:0 10px 0 0;background:url('/images/home-icon.png');display:inline-block;zoom:1;*display:inline;vertical-align:top;}
-ul#nav li#nav-home{width:115px;}ul#nav li#nav-home a{border-left-color:transparent;}
+ul#nav li#nav-home{width:110px;}ul#nav li#nav-home a{border-left-color:transparent;}
 ul#nav li#nav-linked-data{width:110px;}
-ul#nav li#nav-about{width:115px;}ul#nav li#nav-about a{border-right-color:transparent;}
+ul#nav li#nav-data-requests{width:120px;}
+ul#nav li#nav-about{width:110px;}ul#nav li#nav-about a{border-right-color:transparent;}
 ul#nav li.active a{background:url('/images/nav-chevron.png') 50% 100% no-repeat;}
 ul#nav li:hover a .nav-icon{background-position:-21px 0;}
 #subnav{list-style-type:none;margin:0;padding:6px 18px;border:1px solid #ccc;border-top:none;}#subnav li{display:inline;}

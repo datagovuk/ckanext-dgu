@@ -13,7 +13,7 @@
     This action is not authorized.
 
     <div py:if="not c.user">
-      <p>You may <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
+      <p>You may <a href="${'/user' if 'dgu_drupal_auth' in config['ckan.plugins'] else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
     </div>
 
     <div py:if="c.user">

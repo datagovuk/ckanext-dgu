@@ -150,6 +150,11 @@ def render_mini_tree(all_groups,this_group):
 
     return root.render()
 
+def is_wms(resource):
+    from ckanext.dgu.lib.helpers import get_resource_wms
+    return bool(get_resource_wms(resource))
+
+
 def get_resource_wms(resource_dict):
     '''For a given resource, return the WMS url if it is a WMS data type.'''
     # plenty of WMS resources have res['format']='' so
@@ -710,6 +715,7 @@ def get_resource_formats():
     import json
     return json.dumps(Formats.by_display_name().keys())
 
+
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
 
@@ -774,4 +780,357 @@ def advanced_search_url():
     if not 'publisher' in params:
         params['parent_publishers'] = c.group.name
     return search_url(params.items())
+
+def get_license_url(pkg):
+    # Used as the fallback if the URL is not in the extras
+    license_url = None
+    if pkg.license and pkg.license.url:
+        license_url = c.pkg.license.url
+
+    licence_url = pkg.extras.get('licence_url')
+    if licence_url:
+        licence_url_title = pkg.extras.get('licence_url_title') or licence_url
+    return license_url
+
+
+def get_licenses(pkg):
+    license_url = None
+    if pkg.license and pkg.license.url:
+        license_url = c.pkg.license.url
+
+    licenses = [] # [(title, isopen), ... ]
+    if pkg.license:
+        licenses.append((pkg.license.title.split('::')[-1], pkg.isopen()))
+    elif pkg.license_id:
+        licenses.append((pkg.license_id, None))
+
+    licence_extra_list = json_list(pkg.extras.get('licence') or '')
+    for licence_extra in licence_extra_list:
+        if licence_extra.startswith('http'):
+            licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
+            licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
+
+    licence_url = pkg.extras.get('licence_url')
+    if licence_url:
+        licence_url_title = pkg.extras.get('licence_url_title') or licence_url
+        licence_html = HTML('<a href="%s">%s</a>' % (licence_url, licence_url_title))
+        licenses.append((licence_html, True if (licence_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf') else None))
+    return licenses
+
+def get_contact_details(pkg, pkg_extras):
+    publisher_groups = c.pkg.get_groups('publisher') # assume only one
+    name = pkg_extras.get('contact-name')
+    email = pkg_extras.get('contact-email')
+    phone = pkg_extras.get('contact-phone')
+    web_url = web_name = None
+    if not (name or email or phone) and publisher_groups:
+             extras = publisher_groups[0].extras
+             name = extras.get('contact-name')
+             email = extras.get('contact-email')
+             phone = extras.get('contact-phone')
+             web_url = extras.get('website-url')
+             web_name = extras.get('website-name')
+
+    return (name, email, phone, web_url, web_name,)
+
+def have_foi_contact_details(pkg, pkg_extras):
+    return any(get_foi_contact_details(pkg, pkg_extras))
+
+def get_contact_name(pkg, extras):
+    name = extras.get('contact-name')
+    if not name:
+        publisher_groups = pkg.get_groups('publisher')
+        if publisher_groups:
+            name = publisher_groups[0].extras.get('contact-name')
+    return name
+
+def get_foi_contact_name(pkg, extras):
+    name = extras.get('foi-name')
+    if not name:
+        publisher_groups = pkg.get_groups('publisher')
+        if publisher_groups:
+            name = publisher_groups[0].extras.get('foi-name')
+    return name
+
+def get_foi_contact_details(pkg, pkg_extras):
+    publisher_groups = c.pkg.get_groups('publisher') # assume only one
+    foi_name = pkg_extras.get('foi-name')
+    foi_email = pkg_extras.get('foi-email')
+    foi_phone = pkg_extras.get('foi-phone')
+    foi_web = pkg_extras.get('foi-web')
+    if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
+             extras = publisher_groups[0].extras
+             foi_name = extras.get('foi-name')
+             foi_email = extras.get('foi-email')
+             foi_phone = extras.get('foi-phone')
+             foi_web = extras.get('foi-web')
+    return (foi_name, foi_email, foi_phone, foi_web, None,)
+
+def coupled_pkg_tuples(pkg):
+    try:
+        from ckanext.spatial.lib.helpers import get_coupled_packages
+        coupled_pkg_tuples = get_coupled_packages(pkg)
+    except ImportError:
+        coupled_pkg_tuples = []
+    return  coupled_pkg_tuples
+
+def is_package_deleted(pkg):
+    from ckan.model import State
+    return pkg.state == State.DELETED
+
+
+def is_sysadmin(u):
+    from ckan.authz import Authorizer
+    return Authorizer().is_sysadmin(u)
+
+def prep_user_detail():
+    from ckan import model
+    from ckan.authz import Authorizer
+
+    # Non-sysadmins cannot see personally identifiable information
+    if not c.is_myself and not Authorizer().is_sysadmin(c.user):
+        c.user_dict['about']        = ''
+        c.about_formatted           = ''
+        c.user_dict['display_name'] = c.user_dict['name']
+        c.user_dict['fullname']     = None
+        c.user_dict['email']        = None
+        c.user_dict['openid']       = None
+
+def user_get_groups(uid):
+    from ckan import model
+    from ckan.authz import Authorizer
+    groups = []
+    u = model.User.get(uid)
+    if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or Authorizer().is_sysadmin(c.user):
+        groups = u.get_groups('publisher' )
+    return groups
+
+
+def group_get_users(group, capacity):
+    import ckan.model as model
+    return group.members_of_type(model.User, capacity=capacity)
+
+
+def prep_group_edit_data(data):
+    # Note when you get a fresh form the extras are in data['extras']. But
+    # on validation error, the submitted values appear in data[key] with the original
+    # values in data['extras']. Therefore populate the form with the data[key] values
+    # in preference, and fall back on the data['extra'] values.
+    original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
+                                for extra_dict in data.get('extras', {})])
+    for key, value in original_extra_fields.items():
+        if key not in data:
+            data[key] = value
+
+def get_children_for_group(group):
+    from ckanext.dgu.lib import publisher
+    return publisher.get_children(group)
+
+def top_level_init(userobj):
+    # Top level initialisation previously done in layout_base to make sure it
+    # is available to all sub-templates. This is a bit nasty, and I think we
+    # would be better off splitting these c.* things either into separate helpers
+    # or into our own BaseController. Perhaps. TODO.
+    import ckan.authz
+    if 'is_sysadmin' not in dir(c):
+        c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
+    c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
+    c.is_an_official = bool(c.groups or c.is_sysadmin)
+
+
+def additional_extra_fields(res):
+    return [r for r in res.keys() if r not in
+            ('id','resource_type','resource_group_id',
+             'revision_id', 'url','description','format', 'scraper_url')]
+
+
+def hidden_extra_fields(data):
+    return [ e for e in data.get('extras', []) \
+                        if e['key'] not in c.schema_fields ]
+
+def timeseries_extra_fields(res):
+    return [r for r in res.keys() if r not in
+            ('id','resource_type','resource_group_id',
+            'revision_id', 'url','description','format','date')]
+
+def resource_extra_fields(res):
+    return [r for r in res.keys() if r not in
+            ('id','resource_type','resource_group_id',
+            'revision_id', 'url','description','format')]
+
+def cell_has_errors(errors, res_type, num, col):
+    resource_errors = errors.get('individual_resources', [])
+    return resource_errors and \
+           num < len(resource_errors) and \
+           bool(resource_errors[num].get(col, False))
+
+
+def clean_obj(o):
+    if isinstance(o, list) and len(o)==1:
+        o = o[0]
+    if isinstance(o, basestring):
+        # DGU uses different words for things compared to CKAN, so adjust
+        # the language of errors using mappings:
+        field_name_map = {
+            'groups': 'Publisher',
+            'individual_resources': 'Data Files',
+            'timeseries_resources': 'Data Files',
+            'title': 'Name',
+            'name': 'Unique identifier',
+            'url': 'URL',
+            'notes': 'Description',
+            'theme-primary': 'Primary Theme',
+            'license_id': 'Licence'
+        }
+        field_error_key_map = {
+            'group': 'publisher',
+            'description': 'title',
+        }
+        field_error_value_map = {
+            'That group name or ID does not exist.': 'Missing value',
+        }
+
+        o = field_name_map.get(o,o)
+        o = field_error_key_map.get(o,o)
+        o = field_error_value_map.get(o,o)
+        o = re.sub('[_-]', ' ', o)
+        if o[0].lower() == o[0]:
+            o = o.capitalize()
+    return o
+
+def get_license_extra(pkg):
+    try:
+        license_extra = pkg.extras.get('licence')
+    except:
+        license_extra = None
+    return license_extra
+
+def available_license_ids():
+    return zip(*c.licenses)[1]
+
+def license_choices(data):
+    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
+
+def edit_publisher_group_name(data):
+    if not data.get('groups'):
+        group_name = None
+        group_id = None
+    else:
+        group_id = data.get('groups')[0].get('id', '')
+        group_name = data.get('groups')[0].get('name', '')
+
+    if group_id:
+      groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
+      group_name = groups[0] if groups else ''
+
+    return group_name
+    #return c.publishers.get(group_name, {}) if group_id else data
+
+def edit_publisher_group(data):
+    if not data.get('groups'):
+        group_name = None
+        group_id = None
+    else:
+        group_id = data.get('groups')[0].get('id', '')
+        group_name = data.get('groups')[0].get('name', '')
+
+    if group_id:
+      groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
+      group_name = groups[0] if groups else ''
+
+    return c.publishers.get(group_name, {}) if group_id else data
+
+def secondary_themes(data):
+    import re
+    secondary_themes_raw = data.get('theme-secondary', '')
+    if isinstance(secondary_themes_raw, basestring):
+      secondary_themes = set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
+    else:
+      secondary_themes = set(secondary_themes_raw)
+    return secondary_themes
+
+def free_tags(data):
+    import re
+    all_tags = [t['name'] for t in data.get('tags', [])]
+    return set(all_tags) - set([data.get('theme-primary', '')]) - secondary_themes(data)
+
+def is_package_edit_form(data):
+    return bool(data.get('id', None)) and data.get('id') != 'None'
+
+def use_wizard(data, errors):
+    return not bool(errors) and not is_package_edit_form(data)
+
+def are_timeseries_resources(data):
+    are_timeseries_resources = False
+    for res in data.get('timeseries_resources',[]):
+        if res.get('format') or res.get('url') or res.get('description') or res.get('date'):
+            are_timeseries_resources = True
+            break
+    return are_timeseries_resources
+
+def are_legacy_extras(data):
+    are_legacy_extras = False
+    for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
+        if data[key]:
+            are_legacy_extras = True
+            break
+    return are_legacy_extras
+
+
+def timeseries_resources():
+    return c.pkg_dict.get('timeseries_resources', [])
+
+def additional_resources():
+    return c.pkg_dict.get('additional_resources', [])
+
+def gemini_resources():
+    extras = dict(c.pkg_extras)
+    if not dataset_type(extras)  == 'uklp':
+        return []
+    harvest_object_id = extras.get('harvest_object_id')
+    gemini_resources = [
+        {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
+         'title': 'Source GEMINI2 record',
+         'type': 'XML',
+         'action': 'View',
+         'id': ''},
+        {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
+         'title': 'Source GEMINI2 record (formatted)',
+         'type': 'HTML',
+         'action': 'View',
+         'id': ''}]
+    return gemini_resources
+
+def individual_resources():
+    r = c.pkg_dict.get('individual_resources', [])
+    # In case the schema changes, the resources may or may not be split up into
+    # three keys. So combine them if necessary
+    if not r and not timeseries_resources() and not additional_resources():
+        r = dict(c.pkg_dict).get('resources', [])
+
+    return r
+
+def init_resources_for_nav():
+    # Core CKAN expects a resource dict to render in the navigation
+    if c.pkg_dict:
+        if not 'resources' in dict(c.pkg_dict):
+            c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
+                additional_resources() + gemini_resources()
+
+
+def dataset_type(pkg_extras):
+    dataset_type = 'form' # default - entered via the form
+    resource_type = 'dataset'
+    extras = dict(pkg_extras)
+    if extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True':
+        dataset_type = 'uklp'
+        resource_type = extras.get('resource-type') + ' record' # dataset/service
+    elif extras.get('external_reference') == 'ONSHUB':
+        dataset_type = 'ons'
+    return dataset_type
+
+def has_bounding_box(extras):
+    pkg_extras = dict(extras)
+    return pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and \
+        pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
 

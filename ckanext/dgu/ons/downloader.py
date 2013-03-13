@@ -28,9 +28,30 @@ class OnsData(object):
         return ons.download(url, url_name, force_download=True)
 
     @classmethod
-    def download_all(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False):
+    def download_month(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False,
+                       year=None, month=None):
         ons = cls(ons_cache_dir, log)
-        url_tuples = ons._get_urls_for_all_time()
+        assert month and month <= MONTHS_PER_YEAR
+        assert year and year > 2000
+        url, url_name = ons._get_url_month(month, year)
+        return ons.download(url, url_name, force_download=True)
+
+    @classmethod
+    def download_months_since(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False,
+                              year=None, month=None,
+                              force_download=False):
+        ons = cls(ons_cache_dir, log)
+        assert month and month <= MONTHS_PER_YEAR
+        assert year and year > 2000
+        url_tuples = ons._get_monthly_urls_since(year, month,
+                                                 force_download=force_download)
+        return ons.download_multiple(url_tuples)
+
+    @classmethod
+    def download_all(cls, ons_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False,
+                     force_download=False):
+        ons = cls(ons_cache_dir, log)
+        url_tuples = ons._get_urls_for_all_time(force_download)
         return ons.download_multiple(url_tuples)
 
     def __init__(self, local_cache_dir=ONS_DEFAULT_CACHE_PATH, log=False):
@@ -59,12 +80,6 @@ class OnsData(object):
             self.log(logging.info, 'ONS Data already downloaded: %s' % url_name)
         return local_filepath
         
-    def download_month(self, month, year):
-        assert month <= MONTHS_PER_YEAR
-        assert year > 2000
-        url, url_name = _get_url_month(month, year)
-        self.download(url, url_name)
-
     def _get_url(self, lday, lmonth, lyear, uday, umonth, uyear):
         params = { 'lday':lday, 'lmonth':lmonth, 'lyear':lyear,
                    'uday':uday, 'umonth':umonth, 'uyear':uyear, }
@@ -126,15 +141,25 @@ class OnsData(object):
                                 end_date.strftime('%Y-%m-%d'))
         return url, url_id
 
-    def _get_urls_for_all_time(self):
+    def _get_urls_for_all_time(self, force_download):
+        return self._get_monthly_urls_since(YEAR_ONS_DATA_STARTS, month=1,
+                                            force_download=force_download)
+
+    def _get_monthly_urls_since(self, year, month, force_download=False):
         url_tuples = []
         this_year = self._get_today().year
-        for year in range(YEAR_ONS_DATA_STARTS, this_year): # not including this year
-            for month in range(1, MONTHS_PER_YEAR+1): # i.e. 1-12 inclusive
-                url_tuples.append(self._get_url_month(month, year) + [False])
         this_month = self._get_today().month
-        for month in range(1, this_month):
-            url_tuples.append(self._get_url_month(month, this_year) + [False])
+        first_of_this_month = datetime.datetime(this_year, this_month, 1)
+        # loop over the years and months until (but not including) this month
+        while year <= this_year:
+            # month is 1-12
+            while (month <= 12 and
+                   datetime.datetime(year, month, 1) < first_of_this_month):
+                url_tuples.append(self._get_url_month(month, year) + [force_download])
+                month += 1
+            month = 1
+            year += 1
+        # add this month, which is the only incomplete one
         url_tuples.append(self._get_url_month(this_month, this_year) + [True])
         return url_tuples
 
