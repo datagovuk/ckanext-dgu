@@ -147,16 +147,17 @@ img.open-data {
     text-align: center;
 }
 a.tag {
-    .rounded(4px);
-    display: inline-block;
-    padding: 4px 9px;
-    border: 1px solid #bd8;
-    background: #F9FFF4;
-    margin: 0 5px 3px 0;
+    color: #333;
+    font-weight: bold;
+    background: #A4DF45;
+    margin: 0 5px 2px 5px;
+    padding: 2px 5px 2px 8px;
+    float: left;
+    .rounded(3px);
     &:hover {
-        border-color: #ac9;
-        background: #e7FFe0;
-        text-decoration: none;
+      text-decoration: none;
+      background: #470;
+      color: #fff;
     }
 }
 h1 .subheading {
@@ -543,14 +544,10 @@ ul#nav {
 /* Boxes */
 /* ----- */
 .boxed {
+    .drop-shadow(0px, 2px, 6px, 0.10);
     background: #fff;
-    .rounded(5px);
-    .drop-shadow(0px, 2px, 6px, 0.25);
-    padding: 9px;
-    padding-top: 1px;
+    border: 1px solid #ccc;
     margin-bottom: 10px;
-}
-.boxed {
     padding: 14px 17px;
 }
 
@@ -909,8 +906,11 @@ ul.ui-autocomplete {
     }
     div.comment {
         background-color: white;
-        .rounded(5px);
-        .drop-shadow(0, 2px, 6px, 0.25);
+        .drop-shadow(0px, 2px, 6px, 0.10);
+        background: #fff;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+        padding: 14px 17px;
         clear: both;
         margin: 0 0 20px 0;
         min-height: 75px;
