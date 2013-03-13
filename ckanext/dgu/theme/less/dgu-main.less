@@ -487,26 +487,28 @@ ul#nav {
 /* Sidebar */
 /* ------- */
 #sidebar {
-    /* TODO drop this ul of li's. Just a div of divs would have been fine. */
-    ul.widget-list {
-        list-style-type: none;
-        margin: 0;
-    }
-    .btn {
-        /* TODO can you tag this on actual buttons which require 
-        it, rather than having it implicitly occur */
-        margin-top: 8px;
-    }
-    .widget-container#social_media {
+    .widget-container {
+        /* Long email addresses will break the sidebar */
+        margin-left: -10px;
+        margin-right: -10px;
+        padding: 8px 10px 8px 15px;
+        overflow: hidden;
+        h4 {
+            color: #656565;
+            padding-bottom: 5px;
+            margin: 0 -10px 4px -15px;
+            border-bottom: 1px solid #aaa;
+            padding-left: 10px;
+        }
         span.stButton {
             margin-bottom: 5px;
         }
-    }
-    .widget-container ul.tags,
-    .widget-container ul.groups {
-        list-style-image: none;
-        list-style: none;
-        margin-left: 0;
+        ul.tags,
+        ul.groups {
+            list-style-image: none;
+            list-style: none;
+            margin-left: 0;
+        }
     }
 }
 
@@ -540,7 +542,6 @@ ul#nav {
 
 /* Boxes */
 /* ----- */
-.widget-container,
 .boxed {
     background: #fff;
     .rounded(5px);
@@ -549,25 +550,8 @@ ul#nav {
     padding-top: 1px;
     margin-bottom: 10px;
 }
-.widget-container {
-    h4 {
-        color: #656565;
-        padding-bottom: 5px;
-        margin-bottom: 8px;
-        margin-top: 8px;
-        border-bottom: 1px solid #aaa;
-        padding-left: 25px;
-        padding-right: 25px;
-        margin-left: -25px;
-        margin-right: -25px;
-    }
-}
 .boxed {
     padding: 14px 17px;
-}
-.widget-container {
-    /* Long email addresses will break the sidebar */
-    overflow: hidden;
 }
 
 /* Search box (used everywhere) */
@@ -703,18 +687,16 @@ ul#nav {
 /* Facet Menu */
 /* ---------- */
 .facet-box {
-    margin-bottom: 20px;
+    margin-left: -5px;
+    margin-right: -5px;
+    margin-bottom: 12px;
+    padding: 8px 10px 8px 15px;
     h4 {
         color: #656565;
         padding-bottom: 5px;
-        margin-bottom: 0;
-        margin-top: 8px;
+        margin: 0 -10px 8px -15px;
         border-bottom: 1px solid #aaa;
         padding-left: 10px;
-    }
-    .facet-options {
-        padding: 8px 10px;
-        margin-left: 5px;
     }
     .facet-expand-collapse {
         height: 12px;

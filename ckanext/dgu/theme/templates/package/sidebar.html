@@ -10,6 +10,7 @@
 <py:match path="primarysidebar">
   ${basket()}
 
+<div class="boxed">
   <div py:if="h.get_license_url(c.pkg) or h.get_licenses(c.pkg)" id="dataset-license" class="widget-container">
     <h4>Licence</h4>
     <div property="dc:rights">
@@ -52,7 +53,7 @@
     </div>
   </div>
 
-  <li class="widget-container">
+  <div class="widget-container">
     <h4>Contact</h4>
     Enquiries:
     <ul>
@@ -66,10 +67,9 @@
           ${contact_details(*h.get_foi_contact_details(c.pkg, dict(c.pkg_extras)))}
       </ul>
     </py:if>
+  </div>
 
-  </li>
-
-  <li py:if="h.check_access('package_delete', {'id':c.pkg.id}) and h.is_package_deleted(c.pkg)" class="widget-container">
+  <div py:if="h.check_access('package_delete', {'id':c.pkg.id}) and h.is_package_deleted(c.pkg)" class="widget-container">
     <py:if test="h.dataset_type(c.pkg_extras) != 'uklp'">
       <h4>Deletion</h4>
       <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Delete this dataset</a>
@@ -78,14 +78,14 @@
       <h4>Withdrawal</h4>
       <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">Withdraw this dataset</a>
     </py:if>
-  </li>
+  </div>
 
-  <li py:if="c.pkg_dict['tags']" class="widget-container">
+  <div py:if="c.pkg_dict['tags']" class="widget-container">
     <h4>Tags</h4>
     ${tag_list_from_dicts(c.pkg_dict['tags'])}
-  </li>
+  </div>
 
-  <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
+  <div py:if="h.dataset_type(c.pkg_extras) == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
     <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
     <ul>
       <li py:for="name, title in h.coupled_pkg_tuples(c.pkg)">
@@ -93,30 +93,30 @@
       </li>
     </ul>
     <span py:if="not h.coupled_pkg_tuples(c.pkg)">(none)</span>
-  </li>
+  </div>
 
-  <li id="social_media" class="widget-container">
+  <div id="social_media" class="widget-container">
     <h4>Social</h4>
     <p>Tell the world about this dataset!</p>
     <!--! Uses ckanext-social extension -->
     ${h.social_sharethis()}
-  </li>
+  </div>
 
-  <li class="widget-container">
+  <div class="widget-container">
     <h4>Developer tools</h4>
     <a href="/dataset/${c.pkg_dict.get('name')}#developer-tools">JSON, API and URI</a> for this dataset record
-  </li>
+  </div>
 
-  <li class="widget-container">
+  <div class="widget-container">
     <h4>Do more with this data</h4>
     <ul>
       <li><a href="/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
       <li><a href="/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
       <li><a href="/node/add/data-request?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
     </ul>
-  </li>
+  </div>
 
-  <li py:if="c.pkg.get_groups('publisher')" class="widget-container">
+  <div py:if="c.pkg.get_groups('publisher')" class="widget-container">
     <h4>Publisher</h4>
     <ul class="groups">
       <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
@@ -129,8 +129,7 @@
         Responsible Party: ${dict(pkg_extras).get('responsible-party')}
       </li>
     </ul>
-  </li>
-
-
+  </div>
+</div>
 </py:match>
 </html>
