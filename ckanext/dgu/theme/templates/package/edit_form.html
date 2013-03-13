@@ -5,15 +5,10 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
 
-<!-- recursive function turns errors into hierarchical lists
-     TODO: Fix the dep on clean_obj-->
+<!-- recursive function turns errors into hierarchical lists -->
 <py:def function="dump(o)">
   <ul py:if="type(o) is dict and bool(o)">
-    <li py:for="k,v in o.items()">
-      <?python
-        k=h.clean_obj(k)
-        v=h.clean_obj(v)
-      ?>
+    <li py:for="k,v in h.iterate_error_dict(o)">
       <py:if test="type(v) in [str, unicode]">
         <b>${k}:</b> ${v}
       </py:if>
@@ -394,104 +389,104 @@
     </div>
   <h3>Contact details</h3>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
-    <fieldset id="publisher-information-field" class="well" >
-      <h3>Publisher Contact Details</h3>
-      <?python
-        group = h.edit_publisher_group(data) ?>
-      <p><b>Name: </b> <span id="contact-name-label">${group.get('contact-name', '')}</span></p>
-      <p><b>Email: </b><span id="contact-email-label">${group.get('contact-email', '')}</span></p>
-      <p><b>Phone: </b><span id="contact-phone-label">${group.get('contact-phone', '')}</span></p>
+    <py:with vars="group=h.edit_publisher_group(data)">
+      <fieldset id="publisher-information-field" class="well" >
+        <h3>Publisher Contact Details</h3>
+        <p><b>Name: </b> <span id="contact-name-label">${group.get('contact-name', '')}</span></p>
+        <p><b>Email: </b><span id="contact-email-label">${group.get('contact-email', '')}</span></p>
+        <p><b>Phone: </b><span id="contact-phone-label">${group.get('contact-phone', '')}</span></p>
 
-      <input id="contact-name" name="contact-name" type="hidden" value="${group.get('contact-name', '')}"/>
-      <input id="contact-email" name="contact-email" type="hidden" value="${group.get('contact-email', '')}"/>
-      <input id="contact-phone" name="contact-phone" type="hidden" value="${group.get('contact-phone', '')}"/>
+        <input id="contact-name" name="contact-name" type="hidden" value="${group.get('contact-name', '')}"/>
+        <input id="contact-email" name="contact-email" type="hidden" value="${group.get('contact-email', '')}"/>
+        <input id="contact-phone" name="contact-phone" type="hidden" value="${group.get('contact-phone', '')}"/>
 
-      <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
-      <div style="display: none;" class="modal fade dgu-editor" id="edit-contact">
-        <div class="modal-header">
-          <a class="close" data-dismiss="modal">x</a>
-          <h3>Edit Contact Information</h3>
-        </div>
-        <div class="modal-body">
-          <p>Edit any of the contact details below.</p>
-          <div class="control-group">
-            <label class="control-label" for="contact-name-editor">Name:</label>
-            <div class="controls">
-              <input type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" />
+        <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
+        <div style="display: none;" class="modal fade dgu-editor" id="edit-contact">
+          <div class="modal-header">
+            <a class="close" data-dismiss="modal">x</a>
+            <h3>Edit Contact Information</h3>
+          </div>
+          <div class="modal-body">
+            <p>Edit any of the contact details below.</p>
+            <div class="control-group">
+              <label class="control-label" for="contact-name-editor">Name:</label>
+              <div class="controls">
+                <input type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="contact-email-editor">Email:</label>
+              <div class="controls">
+                <input type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="contact-phone-editor">Phone:</label>
+              <div class="controls">
+                <input type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" />
+              </div>
             </div>
           </div>
-          <div class="control-group">
-            <label class="control-label" for="contact-email-editor">Email:</label>
-            <div class="controls">
-              <input type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" />
-            </div>
-          </div>
-          <div class="control-group">
-            <label class="control-label" for="contact-phone-editor">Phone:</label>
-            <div class="controls">
-              <input type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" />
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
-          <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
-        </div>
-      </div>
-    </fieldset>
-
-    <fieldset class="well">
-      <h3>FOI Request Contact Details</h3>
-
-      <p><b>Name: </b> <span id="foi-name-label">${group.get('foi-name', '')}</span></p>
-      <p><b>Email: </b><span id="foi-email-label">${group.get('foi-email', '')}</span></p>
-      <p><b>Web: </b><span id="foi-web-label">${group.get('foi-web', '')}</span></p>
-      <p><b>Phone: </b><span id="foi-phone-label">${group.get('foi-phone', '')}</span></p>
-
-      <input id="foi-name" name="foi-name" type="hidden" value="${group.get('foi-name', '')}"/>
-      <input id="foi-email" name="foi-email" type="hidden" value="${group.get('foi-email', '')}"/>
-      <input id="foi-web" name="foi-web" type="hidden" value="${group.get('foi-web', '')}"/>
-      <input id="foi-phone" name="foi-phone" type="hidden" value="${group.get('foi-phone', '')}"/>
-
-      <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
-      <div style="display: none;" class="modal fade dgu-editor" id="edit-foi">
-        <div class="modal-header">
-          <a class="close" data-dismiss="modal">x</a>
-          <h3>Edit FOI Information</h3>
-        </div>
-        <div class="modal-body">
-          <p>Edit any of the FOI details below.</p>
-          <div class="control-group">
-            <label class="control-label" for="foi-name-editor">Name:</label>
-            <div class="controls">
-              <input type="text" name="foi-name-dialog"  data-label="#foi-name-label"  data-input="#foi-name" />
-            </div>
-          </div>
-          <div class="control-group">
-            <label class="control-label" for="foi-email-editor">Email:</label>
-            <div class="controls">
-              <input type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" />
-            </div>
-          </div>
-          <div class="control-group">
-            <label class="control-label" for="foi-web-editor">Web:</label>
-            <div class="controls">
-              <input type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" />
-            </div>
-          </div>
-          <div class="control-group">
-            <label class="control-label" for="foi-phone-editor">Phone:</label>
-            <div class="controls">
-              <input type="text" name="foi-phone-dialog" data-label="#foi-phone-label" data-input="#foi-phone" />
-            </div>
+          <div class="modal-footer">
+            <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
+            <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
           </div>
         </div>
-        <div class="modal-footer">
-          <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
-          <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
+      </fieldset>
+
+      <fieldset class="well">
+        <h3>FOI Request Contact Details</h3>
+
+        <p><b>Name: </b> <span id="foi-name-label">${group.get('foi-name', '')}</span></p>
+        <p><b>Email: </b><span id="foi-email-label">${group.get('foi-email', '')}</span></p>
+        <p><b>Web: </b><span id="foi-web-label">${group.get('foi-web', '')}</span></p>
+        <p><b>Phone: </b><span id="foi-phone-label">${group.get('foi-phone', '')}</span></p>
+
+        <input id="foi-name" name="foi-name" type="hidden" value="${group.get('foi-name', '')}"/>
+        <input id="foi-email" name="foi-email" type="hidden" value="${group.get('foi-email', '')}"/>
+        <input id="foi-web" name="foi-web" type="hidden" value="${group.get('foi-web', '')}"/>
+        <input id="foi-phone" name="foi-phone" type="hidden" value="${group.get('foi-phone', '')}"/>
+
+        <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
+        <div style="display: none;" class="modal fade dgu-editor" id="edit-foi">
+          <div class="modal-header">
+            <a class="close" data-dismiss="modal">x</a>
+            <h3>Edit FOI Information</h3>
+          </div>
+          <div class="modal-body">
+            <p>Edit any of the FOI details below.</p>
+            <div class="control-group">
+              <label class="control-label" for="foi-name-editor">Name:</label>
+              <div class="controls">
+                <input type="text" name="foi-name-dialog"  data-label="#foi-name-label"  data-input="#foi-name" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="foi-email-editor">Email:</label>
+              <div class="controls">
+                <input type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="foi-web-editor">Web:</label>
+              <div class="controls">
+                <input type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" />
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label" for="foi-phone-editor">Phone:</label>
+              <div class="controls">
+                <input type="text" name="foi-phone-dialog" data-label="#foi-phone-label" data-input="#foi-phone" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
+            <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
+          </div>
         </div>
-      </div>
-    </fieldset>
+      </fieldset>
+    </py:with>
 </fieldset>
 
 <fieldset class="tab-pane" id="section-themes-field">

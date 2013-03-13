@@ -965,37 +965,44 @@ def cell_has_errors(errors, res_type, num, col):
            bool(resource_errors[num].get(col, False))
 
 
-def clean_obj(o):
-    if isinstance(o, list) and len(o)==1:
-        o = o[0]
-    if isinstance(o, basestring):
-        # DGU uses different words for things compared to CKAN, so adjust
-        # the language of errors using mappings:
-        field_name_map = {
-            'groups': 'Publisher',
-            'individual_resources': 'Data Files',
-            'timeseries_resources': 'Data Files',
-            'title': 'Name',
-            'name': 'Unique identifier',
-            'url': 'URL',
-            'notes': 'Description',
-            'theme-primary': 'Primary Theme',
-            'license_id': 'Licence'
-        }
-        field_error_key_map = {
-            'group': 'publisher',
-            'description': 'title',
-        }
-        field_error_value_map = {
-            'That group name or ID does not exist.': 'Missing value',
-        }
+def iterate_error_dict(d):
+    for (k,v) in d.items():
+        if isinstance(v, list) and len(v)==1:
+            v = v[0]
+        if isinstance(k, basestring):
+            k = _translate_ckan_string(k)
+        if isinstance(v, basestring):
+            v = _translate_ckan_string(v)
+        yield (k,v)
 
-        o = field_name_map.get(o,o)
-        o = field_error_key_map.get(o,o)
-        o = field_error_value_map.get(o,o)
-        o = re.sub('[_-]', ' ', o)
-        if o[0].lower() == o[0]:
-            o = o.capitalize()
+def _translate_ckan_string(o):
+    """DGU uses different words for things compared to CKAN, so 
+    adjust the language of errors using mappings."""
+    field_name_map = {
+        'groups': 'Publisher',
+        'individual_resources': 'Data Files',
+        'timeseries_resources': 'Data Files',
+        'title': 'Name',
+        'name': 'Unique identifier',
+        'url': 'URL',
+        'notes': 'Description',
+        'theme-primary': 'Primary Theme',
+        'license_id': 'Licence'
+    }
+    field_error_key_map = {
+        'group': 'publisher',
+        'description': 'title',
+    }
+    field_error_value_map = {
+        'That group name or ID does not exist.': 'Missing value',
+    }
+
+    o = field_name_map.get(o,o)
+    o = field_error_key_map.get(o,o)
+    o = field_error_value_map.get(o,o)
+    o = re.sub('[_-]', ' ', o)
+    if o[0].lower() == o[0]:
+        o = o.capitalize()
     return o
 
 def get_license_extra(pkg):
@@ -1133,4 +1140,14 @@ def has_bounding_box(extras):
     pkg_extras = dict(extras)
     return pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and \
         pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
+
+def facet_keys(facet_tuples):
+    keys = [ x[0] for x in facet_tuples ]
+    keys = sorted( set(keys) )
+    return keys
+
+def facet_values(facet_tuples, facet_key):
+    values = [ v for (k,v) in facet_tuples if k==facet_key ]
+    values = sorted(values)
+    return values
 
