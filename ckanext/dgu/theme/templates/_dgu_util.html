@@ -49,7 +49,7 @@
           <py:def function="facet(label,kill_link)">
             <div class="facet">
               <a class="x" href="${kill_link}">x</a>
-              ${value}
+              ${label}
             </div>
           </py:def>
           <py:for each="field in h.facet_keys(c.fields)">
@@ -125,58 +125,99 @@
   </div>
 
 
-  <py:def function="dgu_facet_li(items, code, limit=5, label=lambda n: n, count_label=lambda c: ' (%d)'%c)">
-    <li py:for="facet_item in items"
-        py:if="not (code, facet_item['name']) in c.fields">
-          <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {code: facet_item['name']})}">
-          <!--!<span py:if="'format' in code.lower()">${h.icon(h.format_icon(facet_item['name']))}</span>-->
-            ${label(facet_item['name'])}</a>${count_label(facet_item['count'])}
-    </li>
-  </py:def>
-
-  <py:def function="dgu_facet_sidebar(code, params_to_keep, limit=5, more_button=None, label=lambda n: n, title=h.facet_title, if_empty=None, sort_by='count', count_label=lambda c: ' (%d)'%c)">
-      <div py:if="if_empty is not None or len(h.unselected_facet_items(code, limit=limit))" class="facet-box">
-          <h4>
-            ${title(code)}
-          </h4>
-          <ul class="facet-options">
-              ${dgu_facet_li(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)[:limit], code, limit=limit, label=label, count_label=count_label)}
-          </ul>
-          <py:if test="more_button and len(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)) > limit">
-            <ul class="facet-options" id="${more_button}-items" style="display: None">
-              ${dgu_facet_li(h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)[limit:], code, limit=limit, label=label, count_label=count_label)}
-            </ul>
-            <a id="${more_button}" class="facet-expand-collapse" href="#"><div class="expander"><img src="/images/arrow-down.png"/></div><div class="collapser"><img src="/images/arrow-up.png"/></div></a>
-          </py:if>
-          <py:if test="code=='publisher'">
-              <ul py:if="h.link_subpub()" class="fact-options">
-                  <li><a href="${h.search_with_subpub()}">Include sub-publishers</a></li>
-              </ul>
-              <span py:if="not h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by) and not h.link_subpub()">${if_empty}</span>
-          </py:if>
-          <span py:if="code!='publisher' and not h.unselected_facet_items(code, limit=100 if more_button else limit, sort_by=sort_by)">${if_empty}</span>
+  <py:def function="facet_line(facet_item, facet_key, label=None)">
+      <div class="facet-option">
+        <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {facet_key: facet_item['name']})}">
+          <py:if test="label">${label(facet_item['name'])}</py:if>
+          <py:if test="not label">${facet_item['name']}</py:if>
+        </a>
+        (${facet_item['count']})
       </div>
   </py:def>
 
+  <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count', label=None)">
+      <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
+          <div class="facet-box">
+              <h4>${title}</h4>
+              <div class="facet-options">
+                <py:if test="more_button">
+                    <py:for each="facet_item in facet_items[:5]">
+                        ${facet_line(facet_item, facet_key, label=label)}
+                    </py:for>
+                    <py:if test="len(facet_items)>5">
+                      <div id="${more_button}-items" style="display: None">
+                        <py:for each="facet_item in facet_items[5:]">
+                          ${facet_line(facet_item, facet_key, label=label)}
+                        </py:for>
+                      </div>
+                      <a id="${more_button}" class="facet-expand-collapse" href="#">
+                        <div class="expander">
+                          <img src="/images/arrow-down.png"/>
+                        </div>
+                        <div class="collapser">
+                          <img src="/images/arrow-up.png"/>
+                        </div>
+                      </a>
+                    </py:if>
+                </py:if>
+                <py:if test="not more_button">
+                    <py:for each="facet_item in facet_items">
+                        ${facet_line(facet_item, facet_key, label=label)}
+                    </py:for>
+                </py:if>
+                <py:if test="facet_key=='publisher'">
+                    <div class="facet-option" py:if="h.link_subpub()">
+                      <a href="${h.search_with_subpub()}">Include sub-publishers</a>
+                    </div>
+                    <div class="facet-option" py:if="not facet_items and not h.link_subpub()">${if_empty}</div>
+                </py:if>
+                <py:if test="facet_key!='publisher'">
+                    <div class="facet-option" py:if="not facet_items">${if_empty}</div>
+                </py:if>
+              </div>
+          </div>
+      </py:with>
+  </py:def>
 
   <div py:def="facet_filters()" class="datasets">
-
-    ${dgu_facet_sidebar('license_id-is-ogl', h.facet_params_to_keep(), title=lambda n: 'Licence', label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence', if_empty='There are no further licence filters to apply.')}
-
-    ${dgu_facet_sidebar('tags', h.facet_params_to_keep(), if_empty='There are no further tag filters to apply.', more_button='more-tags-button')}
-
-    ${dgu_facet_sidebar('res_format', h.facet_params_to_keep(), title=lambda n:'Resource Format', if_empty='There are no further resource format filters to apply.', more_button='more-formats-button')}
-
-    ${dgu_facet_sidebar('publisher', h.facet_params_to_keep(), label=h.group_name_to_title, if_empty='There are no further publisher filters to apply.', more_button='more-publishers-button')}
-
-    ${dgu_facet_sidebar('openness_score', h.facet_params_to_keep(), label=h.stars_label, title=lambda n:'Openness Score (beta)', if_empty='There are no further openness filters to apply.', sort_by='name', limit=6)}
+    <div class="boxed">
+      ${facet_box(
+          'license_id-is-ogl', 
+          'Licence', 
+          'There are no further licence filters to apply.',
+          label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence'
+      )}
+      ${facet_box(
+          'tags', 
+          'Tags', 
+          'There are no further tag filters to apply.', 
+          more_button='more-tags-button'
+      )}
+      ${facet_box(
+          'res_format', 
+          'Resource Format', 
+          'There are no further resource format filters to apply.', 
+          more_button='more-formats-button'
+      )}
+      ${facet_box(
+          'publisher', 
+          'Publisher', 
+          'There are no further publisher filters to apply.', 
+          label=h.group_name_to_title, 
+          more_button='more-publishers-button'
+      )}
+      ${facet_box(
+          'openness_score', 
+          'Openness Score (beta)', 
+          'There are no further openness filters to apply.', 
+          label=h.stars_label, 
+          sort_by='name'
+      )}
 
     <div class="facet-box" id="map-based-search">
-      <h4>
-        UK Location Map Search
-      </h4>
-      <ul class="facet-options">
-          <li>
+      <h4>UK Location Map Search</h4>
+      <div class="facet-options">
+          <div class="facet-option">
             <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {}, alternative_url='/data/map-based-search')}">
               <py:if test="'ext_bbox' not in request.params">
                 Conduct Map Based Search
@@ -185,34 +226,44 @@
                 New Map Based Search
               </py:if>
             </a>
-          </li>
-      </ul>
+          </div>
+      </div>
     </div>
 
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box">
-      <h4>
-        UK Location Dataset Type
-      </h4>
-      <ul py:if="len(h.unselected_facet_items('resource-type'))">
-        ${dgu_facet_li(h.unselected_facet_items('UKLP'), 'UKLP', label=lambda n: 'UK Location')}
-        <ul class="facet-options">
-
-          <!--
-            # This dgu_facet_li call has been expanded, to insert the service type filters.
-            ${dgu_facet_li(h.unselected_facet_items('resource-type', limit=100, sort_by='count'), 'resource-type')} -->
-              <li py:for="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')"
-                  py:if="not ('resource-type', facet_item['name']) in c.fields">
-                    <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {'resource-type': facet_item['name']})}">
-                      ${facet_item['name']}</a>${ ' (%d)'% facet_item['count']}
-                      <ul py:if="facet_item['name'] == 'service'" class="facet-options">
-                        ${dgu_facet_li(h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count'), 'spatial-data-service-type')}
-                      </ul>
+      <h4>UK Location Dataset Type</h4>
+      <div class="facet-options" py:with="show_uklp = bool(len(h.unselected_facet_items('resource-type')))">
+        <py:if test="show_uklp">
+          <py:for each="facet_item in h.unselected_facet_items('UKLP')">
+            ${facet_line(facet_item, 'UKLP', label=lambda n: 'UK Location')}
+          </py:for>
+          <ul>
+            <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">
+              <li>
+                <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {'resource-type': facet_item['name']})}">
+                  ${facet_item['name']}
+                </a>
+                ${ ' (%d)'% facet_item['count']}
+                <ul py:if="facet_item['name'] == 'service'">
+                  <py:for each="sub_item in h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count')">
+                    <li>
+                      ${facet_line(sub_item, 'spatial-data-service-type')}
+                    </li>
+                  </py:for>
+                </ul>
               </li>
-        </ul>
-      </ul>
-      <span py:if="not len(h.unselected_facet_items('resource-type'))">There are no further type filters to apply.</span>
+            </py:for>
+          </ul>
+        </py:if>
+        <py:if test="not show_uklp">
+            <div class="facet-option">
+                There are no further type filters to apply.
+            </div>
+        </py:if>
+      </div>
     </div>
+    </div><!-- /boxed -->
 
   </div>
 
@@ -257,7 +308,7 @@
   <py:def function="format_box(format_name,icon_html=None)">
     <div class="format-box">
       <py:if test="icon_html">${icon_html}</py:if>
-      <py:if test="not icon_html">h.dgu_format_icon(format_name)</py:if>
+      <py:if test="not icon_html">${h.dgu_format_icon(format_name)}</py:if>
       <span py:if="format_name" property="dc:format">${format_name}</span>
     </div>
   </py:def>

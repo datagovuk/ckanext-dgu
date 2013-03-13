@@ -9,7 +9,7 @@
   <py:def function="page_heading">${c.group.display_name}
     <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
     <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
-      <img src="/images/rss-on-white.png" width="16" height="16"/>
+      <img src="/images/rss.png" width="16" height="16"/>
     </a>
     <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn button" style="float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:def>

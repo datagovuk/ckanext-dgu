@@ -541,7 +541,6 @@ ul#nav {
 /* Boxes */
 /* ----- */
 .widget-container,
-.facet-box,
 .boxed {
     background: #fff;
     .rounded(5px);
@@ -550,8 +549,7 @@ ul#nav {
     padding-top: 1px;
     margin-bottom: 10px;
 }
-.widget-container, 
-.facet-box {
+.widget-container {
     h4 {
         color: #656565;
         padding-bottom: 5px;
@@ -705,26 +703,28 @@ ul#nav {
 /* Facet Menu */
 /* ---------- */
 .facet-box {
+    padding: 9px;
+    padding-top: 1px;
     margin-bottom: 20px;
     padding-left: 25px;
     padding-right: 25px;
-    h3 {
-        /* TODO we usually expect H2 not H3, where is this coming from?
-           Can we take control of that HTML and fix it? */
+    h4 {
+        color: #656565;
         padding-bottom: 5px;
         margin-bottom: 8px;
+        margin-top: 8px;
         border-bottom: 1px solid #aaa;
         padding-left: 25px;
         padding-right: 25px;
         margin-left: -25px;
         margin-right: -25px;
     }
-    > ul {
-        list-style-type: none;
-        margin: 0;
-    }
-    .inline-icon {
-        display: none;
+    .facet-options {
+        background: rgba(255,0,255,0.2);
+        .facet-option {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #f0f;
+        }
     }
     .facet-expand-collapse {
         height: 12px;
