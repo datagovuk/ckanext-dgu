@@ -939,18 +939,18 @@ body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-lo
 body.controller-package.action-resource_read div.resource-actions{position:relative;float:right;}body.controller-package.action-resource_read div.resource-actions .btn{bottom:3px;padding:8px 10px;margin:0 0 0 7px;}
 body.controller-package.action-resource_read div.resource-actions .download{padding-top:2px;padding-right:4px;}body.controller-package.action-resource_read div.resource-actions .download img{margin-top:1px;margin-right:0px;}
 body.controller-package.action-resource_read .quick-info>div{margin-bottom:9px;}
-body.controller-package.action-edit #package-edit ul.nav,body.controller-package.action-edit #package-edit ul.nav li{width:210px;margin-right:-1px;background:#fff;}
-body.controller-package.action-edit .tab-content{display:block;width:auto;}body.controller-package.action-edit .tab-content>fieldset{border:1px solid #DDD;padding:20px;min-height:338px;}
-body.controller-package.action-edit #section-description-field p{margin-top:10px;}
-body.controller-package.action-edit .nav-backnext{float:right;}
-body.controller-package.action-edit #form-tabs #disclaimer p,body.controller-package.action-edit #form-tabs #disclaimer input{display:inline-block;*display:inline;zoom:1;max-width:400px;vertical-align:top;margin-left:10px;}
-body.controller-package.action-edit #form-tabs a.disabled{color:#a6a6a6;cursor:default;}body.controller-package.action-edit #form-tabs a.disabled:hover{background-color:transparent;cursor:default;border-color:transparent;}
-body.controller-package.action-edit .fieldset_button_error{background:transparent url(../images/icons/error.png) right center no-repeat;}
-body.controller-package.action-edit table .field_error{border-color:#FF6666;background:transparent url(../images/icons/error.png) 98% center no-repeat;}
-body.controller-package.action-edit .resources-well{padding:15px 8px;}
-body.controller-package.action-edit .resource-move-cell{width:39px;padding:6px 1px 0 1px !important;}body.controller-package.action-edit .resource-move-cell .btn{padding:5px 2px 2px 2px;}
-body.controller-package.action-edit .resource-url .error input{background:transparent url(../images/icons/error.png) 98% center no-repeat;}
-body.controller-package.action-edit .resource .input-medium{width:130px;}
+body.controller-package.action-new #package-edit ul.nav,body.controller-package.action-edit #package-edit ul.nav,body.controller-package.action-new #package-edit ul.nav li,body.controller-package.action-edit #package-edit ul.nav li{width:210px;margin-right:-1px;background:#fff;}
+body.controller-package.action-new .tab-content,body.controller-package.action-edit .tab-content{display:block;width:auto;}body.controller-package.action-new .tab-content>fieldset,body.controller-package.action-edit .tab-content>fieldset{border:1px solid #DDD;padding:20px;min-height:338px;}
+body.controller-package.action-new #section-description-field p,body.controller-package.action-edit #section-description-field p{margin-top:10px;}
+body.controller-package.action-new .nav-backnext,body.controller-package.action-edit .nav-backnext{float:right;}
+body.controller-package.action-new #form-tabs #disclaimer p,body.controller-package.action-edit #form-tabs #disclaimer p,body.controller-package.action-new #form-tabs #disclaimer input,body.controller-package.action-edit #form-tabs #disclaimer input{display:inline-block;*display:inline;zoom:1;max-width:400px;vertical-align:top;margin-left:10px;}
+body.controller-package.action-new #form-tabs a.disabled,body.controller-package.action-edit #form-tabs a.disabled{color:#a6a6a6;cursor:default;}body.controller-package.action-new #form-tabs a.disabled:hover,body.controller-package.action-edit #form-tabs a.disabled:hover{background-color:transparent;cursor:default;border-color:transparent;}
+body.controller-package.action-new .fieldset_button_error,body.controller-package.action-edit .fieldset_button_error{background:transparent url(../images/icons/error.png) right center no-repeat;}
+body.controller-package.action-new table .field_error,body.controller-package.action-edit table .field_error{border-color:#FF6666;background:transparent url(../images/icons/error.png) 98% center no-repeat;}
+body.controller-package.action-new .resources-well,body.controller-package.action-edit .resources-well{padding:15px 8px;}
+body.controller-package.action-new .resource-move-cell,body.controller-package.action-edit .resource-move-cell{width:39px;padding:6px 1px 0 1px !important;}body.controller-package.action-new .resource-move-cell .btn,body.controller-package.action-edit .resource-move-cell .btn{padding:5px 2px 2px 2px;}
+body.controller-package.action-new .resource-url .error input,body.controller-package.action-edit .resource-url .error input{background:transparent url(../images/icons/error.png) 98% center no-repeat;}
+body.controller-package.action-new .resource .input-medium,body.controller-package.action-edit .resource .input-medium{width:130px;}
 body.controller-package.action-history .history-table{margin-top:15px;}body.controller-package.action-history .history-table tr.selected td{background:#ffa !important;}
 body.controller-package.action-history .history-table td.compare{text-align:center;width:50px;}
 body.controller-user.action-read .user-page-table{width:100%;border-collapse:separate;}body.controller-user.action-read .user-page-table td{width:426px;vertical-align:top;min-height:250px;}
