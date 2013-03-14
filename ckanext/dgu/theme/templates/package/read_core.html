@@ -13,7 +13,12 @@
       <!--tr class="${'last-child' if res==resources[-1] else ''}"-->
       <tr>
         <td class="resource-td-format">
-          ${format_box(res.get('format',res.get('type','')).lower())}
+          <py:if test="res.get('gemini',False)">
+            ${format_box(res.get('type',''))}
+          </py:if>
+          <py:if test="not res.get('gemini',False)">
+            ${format_box(res.get('format',''))}
+          </py:if>
         </td>
         <td class="resource-td-title">
           <!-- Attached to resources which were scraped -->
@@ -98,11 +103,11 @@
       <!-- Resources -->
       <div id="dataset-resources" class="resources subsection">
         <py:if test="h.individual_resources() or not h.timeseries_resources()">
-          <h3>Data Resources (${len(h.individual_resources())})</h3>
+          <h3>Data Resources <span class="badge badge-inverse resources-badge">${len(h.individual_resources())}</span></h3>
           ${resource_table(h.individual_resources())}
         </py:if>
         <py:if test="h.timeseries_resources()">
-          <h3>Data Resources (${len(h.timeseries_resources())} in a time series)</h3>
+          <h3>Data Resources (<span class="badge badge-inverse resources-badge">${len(h.timeseries_resources())}</span> in a time series)</h3>
           ${resource_table(h.timeseries_resources())}
         </py:if>
 
@@ -137,7 +142,7 @@
         </div>
 
         <py:if test="h.additional_resources() or h.gemini_resources()">
-          <h3>Additional Links (${len(h.additional_resources()) + len(h.gemini_resources())})</h3>
+          <h3>Additional Links <span class="badge badge-inverse resources-badge">${len(h.additional_resources()) + len(h.gemini_resources())}</span></h3>
           ${resource_table(h.additional_resources() + h.gemini_resources())}
         </py:if>
         <py:if test="not (h.dataset_type(c.pkg_extras) == 'uklp' or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">

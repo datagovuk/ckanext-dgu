@@ -309,7 +309,7 @@
     <div class="format-box">
       <py:if test="icon_html">${icon_html}</py:if>
       <py:if test="not icon_html">${h.dgu_format_icon(format_name)}</py:if>
-      <span py:if="format_name" property="dc:format">${format_name}</span>
+      <span py:if="format_name" property="dc:format">${h.dgu_format_name(format_name)}</span>
     </div>
   </py:def>
 

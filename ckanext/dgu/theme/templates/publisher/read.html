@@ -11,24 +11,13 @@
     <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
       <img src="/images/rss.png" width="16" height="16"/>
     </a>
-    <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn btn-danger" style="float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+    <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn btn-inxfo" style="float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:def>
   <py:def function="content_class"><!--unboxed--></py:def>
 
 
   <py:match path="primarysidebar">
   <div class="boxed">
-    <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
-      <h4>Publisher Administration</h4>
-      <ul>
-        <li py:if="h.check_access('group_update', {'id':c.group.id})">
-          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}"><span class="label label-important">Admin</span> Edit publisher properties</a>
-        </li>
-        <li py:if="h.check_access('package_create', {'groups':c.group.name})">
-          <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}"><span class="label label-important">Admin</span> Add a new dataset</a>
-        </li>
-      </ul>
-    </div>
     <div py:if="c.userobj" class="widget-container">
       <h4>Administrators</h4>
       <py:choose>

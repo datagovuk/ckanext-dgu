@@ -470,6 +470,12 @@ def dgu_format_icon(format_string):
     url = '/images/fugue/%s.png' % icon_name
     return ckan.lib.helpers.icon_html(url)
 
+def dgu_format_name(format_string):
+    fmt = formats.Formats.match(format_string.strip().lower())
+    if fmt is not None:
+        return fmt['display_name']
+    return format_string
+
 def name_for_uklp_type(package):
     uklp_type = get_uklp_package_type(package)
     if uklp_type:
