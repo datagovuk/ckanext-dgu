@@ -4,54 +4,54 @@
   py:strip="">
   
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets - History</py:def>
-  <py:def function="page_heading">History: ${c.pkg.title or c.pkg.name}</py:def>
   <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="content_class"></py:def>
   
   <div py:match="content" class="dataset">
-    <div id="minornavigation">
-      <div id="minornavigation-bg-left">
-      <div id="minornavigation-bg-right">
-        <minornavigation></minornavigation>
-      </div>
-      </div>
+    ${dataset_admin_buttons(c.pkg)}
+    <h1>
+      ${h.dataset_link(c.pkg)}
+      <span class="subheading"><img src="/images/arrow-down-right.png"/> History</span>
+    </h1>
+    <div class="boxed">
+      <h3>Revisions</h3>
+      <form id="dataset-revisions" action="diff" method="post"
+        xmlns:py="http://genshi.edgewall.org/"
+        xmlns:xi="http://www.w3.org/2001/XInclude"
+        > 
+
+        <h3 py:if="c.error" class="form-errors">
+          Error: ${c.error}
+        </h3>
+        
+        <input type="hidden" name="pkg_name" value="${c.pkg_dict['name']}"/>
+
+        <!-- only display this additional compare button if there are lots of revisions -->
+        <input py:if="len(c.pkg_revisions) > 5" type="submit" name="diff" value="${_('Compare')}" class="btn btn-primary" />
+
+        <table class="history-table table table-striped table-bordered table-condensed">
+          <tr>
+            <th>Compare</th><th>Timestamp</th><th>Author</th><th>Description of Change</th>
+          </tr>
+          <py:for each="index, rev in enumerate(c.pkg_revisions)">
+            <tr id="row_${rev.id}">
+              <td nowrap="nowrap" class="compare">
+                <input class="js-compare" type="checkbox" id="checkbox_${rev.id}" />
+                <div style="display: none;">
+                  ${h.radio("selected1", rev.id, checked=(index == 0))}
+                  ${h.radio("selected2", rev.id, checked=(index == len(c.pkg_revisions)-1))}
+                </div>
+              </td>
+              <td>
+                <a href="${h.url_for(controller='package',action='read',id='%s@%s' % (c.pkg_dict['name'], rev['timestamp']))}" title="${_('Read dataset as of %s') % rev['timestamp']}">${h.render_datetime(rev['timestamp'], with_hours=True)}</a></td>
+              <td>${h.linked_user(rev['author'], maxlength=200)}</td>
+              <td>${rev['message']}</td>
+            </tr> 
+          </py:for>
+        </table>
+        <input type="submit" name="diff" value="Compare" class="btn btn-primary" />
+      </form>
     </div>
-    <h3>Revisions</h3>
-    <form id="dataset-revisions" action="diff" method="post"
-      xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude"
-      > 
-
-      <h3 py:if="c.error" class="form-errors">
-        Error: ${c.error}
-      </h3>
-      
-      <input type="hidden" name="pkg_name" value="${c.pkg_dict['name']}"/>
-
-      <!-- only display this additional compare button if there are lots of revisions -->
-      <input py:if="len(c.pkg_revisions) > 5" type="submit" name="diff" value="${_('Compare')}" class="btn btn-primary" />
-
-      <table class="history-table table table-striped table-bordered table-condensed">
-        <tr>
-          <th>Compare</th><th>Timestamp</th><th>Author</th><th>Description of Change</th>
-        </tr>
-        <py:for each="index, rev in enumerate(c.pkg_revisions)">
-          <tr id="row_${rev.id}">
-            <td nowrap="nowrap" class="compare">
-              <input class="js-compare" type="checkbox" id="checkbox_${rev.id}" />
-              <div style="display: none;">
-                ${h.radio("selected1", rev.id, checked=(index == 0))}
-                ${h.radio("selected2", rev.id, checked=(index == len(c.pkg_revisions)-1))}
-              </div>
-            </td>
-            <td>
-              <a href="${h.url_for(controller='package',action='read',id='%s@%s' % (c.pkg_dict['name'], rev['timestamp']))}" title="${_('Read dataset as of %s') % rev['timestamp']}">${h.render_datetime(rev['timestamp'], with_hours=True)}</a></td>
-            <td>${h.linked_user(rev['author'], maxlength=200)}</td>
-            <td>${rev['message']}</td>
-          </tr> 
-        </py:for>
-      </table>
-      <input type="submit" name="diff" value="Compare" class="btn btn-primary" />
-    </form>
   </div>
 
   <py:def function="optional_feed">
@@ -59,6 +59,6 @@
     href="${h.url(controller='package', action='history', id=c.pkg_dict['name'], format='atom', days=7)}" />
   </py:def>
 
-  <xi:include href="layout.html" />
+  <xi:include href="../layout_base.html" />
   <script src="/scripts/dgu-history.js"></script>
 </html>

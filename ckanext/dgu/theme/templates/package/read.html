@@ -19,6 +19,7 @@
   <xi:include href="sidebar.html"/>
 
   <div py:match="content">
+    ${dataset_admin_buttons(c.pkg)}
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
 
     <div py:if="c.pkg_dict.get('state') == 'deleted'" class="state-box boxed">
@@ -35,14 +36,6 @@
     </py:if>
 
     <div class="boxed">
-      <div id="minornavigation">
-        <div id="minornavigation-bg-left">
-        <div id="minornavigation-bg-right">
-          <minornavigation></minornavigation>
-        </div>
-        </div>
-      </div>
-
       <xi:include href="read_core.html" />
     </div>
 
@@ -85,6 +78,6 @@
     href="${h.url(controller='package', action='history', id=c.pkg.name, format='atom', days=7)}" />
   </py:def>
 
-  <xi:include href="layout.html" />
+  <xi:include href="../layout_base.html" />
 </html>
 

@@ -888,9 +888,13 @@ def is_package_deleted(pkg):
     return pkg.state == State.DELETED
 
 
-def is_sysadmin(u):
+def is_sysadmin(u=None):
     from ckan.authz import Authorizer
-    return Authorizer().is_sysadmin(u)
+    if u is None:
+        if c.is_sysadmin=='':
+            c.is_sysadmin = Authorizer.is_sysadmin(c.userobj)
+        return c.is_sysadmin
+    return Authorizer.is_sysadmin(u)
 
 def prep_user_detail():
     from ckan import model

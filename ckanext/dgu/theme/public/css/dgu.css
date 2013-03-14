@@ -786,7 +786,8 @@ h4 img.arrow{padding-right:3px;padding-bottom:1px;}
 img.open-data{vertical-align:top;margin-top:1px;}
 .pagination{text-align:center;}
 a.tag{color:#333;font-size:11px;background:#b9e671;margin:0 5px 2px 5px;padding:2px 5px 2px 8px;float:left;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}a.tag:hover{text-decoration:none;background:#61aa00;color:#fff;}
-h1 .subheading{display:block;font-size:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;}
+h1 .subheading{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;}h1 .subheading>img{vertical-align:baseline;width:20.8px;height:20px;}
+h1 .subheading .subheading{margin-left:30px;margin-top:-3px;}h1 .subheading .subheading>img{vertical-align:baseline;width:15.6px;height:15px;}
 .notes{margin-bottom:10px;padding:8px;}
 .notes p:last-child{margin-bottom:0;}
 h1 .abbreviation{color:#888;}
@@ -937,7 +938,7 @@ body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-lo
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-value{white-space:nobreak;}
 body.controller-package.action-resource_read div.resource-actions{position:relative;float:right;}body.controller-package.action-resource_read div.resource-actions .btn{bottom:3px;padding:8px 10px;margin:0 0 0 7px;}
 body.controller-package.action-resource_read div.resource-actions .download{padding-top:2px;padding-right:4px;}body.controller-package.action-resource_read div.resource-actions .download img{margin-top:1px;margin-right:0px;}
-body.controller-package.action-resource_read .quick-info{margin-top:-20px;}body.controller-package.action-resource_read .quick-info>div{margin-bottom:9px;}
+body.controller-package.action-resource_read .quick-info>div{margin-bottom:9px;}
 body.controller-package.action-edit #package-edit ul.nav,body.controller-package.action-edit #package-edit ul.nav li{width:210px;margin-right:-1px;background:#fff;}
 body.controller-package.action-edit .tab-content{display:block;width:auto;}body.controller-package.action-edit .tab-content>fieldset{border:1px solid #DDD;padding:20px;min-height:338px;}
 body.controller-package.action-edit #section-description-field p{margin-top:10px;}

@@ -143,20 +143,20 @@
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
       </py:if>
     </ul>
-    <ul id="subnav" py:if="c.is_sysadmin or h.check_access('package_create')">
+    <ul id="subnav" py:if="h.is_sysadmin() or h.check_access('package_create')">
       <py:if test="h.check_access('package_create')">
         <span class="divider-section">Publisher tools:</span>
         <py:for each="group in c.groups">
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.display_name}</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/dataset/new') else ''}" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+        <li><a class="btn btn-mini btn-info" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
         <py:if test="c.groups">
           <span class="divider">&nbsp;|&nbsp;</span>
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
         </py:if>
       </py:if>
-      <py:if test="c.is_sysadmin">
+      <py:if test="h.is_sysadmin()">
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Sys Admin:</span>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>

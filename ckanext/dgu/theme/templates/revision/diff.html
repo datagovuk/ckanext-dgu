@@ -1,0 +1,46 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+  
+  <py:def function="page_title">Differences - Revisions</py:def>
+  <py:def function="body_class">${h.literal('no-sidebar')}</py:def>
+  <py:def function="content_class"></py:def>
+
+  <div py:match="content">
+    <h1>
+      ${h.dataset_link(c.pkg)}
+      <span class="subheading">
+        <img src="/images/arrow-down-right.png"/> <a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History</a>
+        <span class="subheading"><img src="/images/arrow-down-right.png"/> Revision Differences</span>
+      </span>
+    </h1>
+    <div class="boxed">
+      <h4>From</h4>
+      <ul>
+        <li><strong>ID: </strong>${c.revision_from.id} </li>
+        <li><strong>Timestamp: </strong>${c.revision_from.timestamp} </li>
+      </ul>
+      <h4>To</h4>
+      <ul>
+        <li><strong>ID: </strong>${c.revision_to.id} </li>
+        <li><strong>Timestamp: </strong>${c.revision_to.timestamp} </li>
+      </ul>
+
+      <py:if test="c.diff">
+        <table class="table table-bordered table-striped">
+          <tr>
+            <th>Field</th><th>Difference</th>
+          </tr>
+         <py:for each="field, diff in c.diff">
+            <tr><td>${field}</td><td><pre>${diff}</pre></td></tr>
+          </py:for>
+        </table>
+      </py:if>
+      <py:if test="not c.diff">
+        <h3>No differences</h3>
+      </py:if>
+    </div>
+  </div>
+
+  <xi:include href="layout.html" />
+</html>

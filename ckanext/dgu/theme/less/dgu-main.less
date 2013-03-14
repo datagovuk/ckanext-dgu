@@ -162,11 +162,26 @@ a.tag {
 }
 h1 .subheading {
     display: block;
-    font-size: 80%;
+    font-size: 19px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: top;
+    > img {
+      vertical-align: baseline;
+      width: 26px*0.8;
+      height: 25px*0.8;
+    }
+    .subheading {
+      /* Subheadings can be nested */
+      margin-left: 30px;
+      margin-top: -3px;
+      > img {
+        vertical-align: baseline;
+        width: 26px*0.6;
+        height: 25px*0.6;
+      }
+    }
 }
 .notes {
     margin-bottom: 10px;
@@ -1160,7 +1175,6 @@ body.controller-package.action-resource_read {
         }
     }
     .quick-info {
-        margin-top: -20px;
         > div {
             margin-bottom: 9px;
         }

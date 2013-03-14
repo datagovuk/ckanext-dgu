@@ -76,21 +76,12 @@
 
 
   <div py:match="content">
+    ${dataset_admin_buttons(c.package)}
     <h1>
       ${h.dataset_link(c.package)}
-      <span class="subheading"><img src="/images/arrow-down-right.png" style="vertical-align: baseline;"/> ${h.resource_display_name(c.resource)}</span>
+      <span class="subheading"><img src="/images/arrow-down-right.png"/> ${h.resource_display_name(c.resource)}</span>
     </h1>
     <div class="boxed">
-
-      <div id="minornavigation">
-        <div id="minornavigation-bg-left">
-        <div id="minornavigation-bg-right">
-          <minornavigation></minornavigation>
-        </div>
-        </div>
-      </div>
-
-      &nbsp;
       <div class="resource-actions">
         <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
           <py:choose test="c.resource.get('resource_type')">
@@ -235,6 +226,6 @@
 
   </py:def>
 
-  <xi:include href="layout.html" />
+  <xi:include href="../layout_base.html" />
 </html>
 

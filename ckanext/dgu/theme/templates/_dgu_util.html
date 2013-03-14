@@ -313,4 +313,18 @@
     </div>
   </py:def>
 
+  <py:def function="dataset_admin_buttons(pkg)">
+    <div class="btn-group pull-right">
+      <py:if test="h.check_access('package_update',{'id':pkg.id})">
+        <a class="btn btn-info" href="${h.url_for(controller='package', action='edit', id=pkg.name)}">
+          Edit
+        </a>
+      </py:if>
+      <py:if test="h.check_access('package_edit_permissions',{'id':pkg.id})">
+        <a class="btn btn-info" href="${h.url_for(controller='package', action='authz', id=pkg.name)}">
+          Authorization
+        </a>
+      </py:if>
+    </div>
+  </py:def>
 </html>

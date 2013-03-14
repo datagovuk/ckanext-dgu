@@ -18,15 +18,12 @@
   </py:def>
 
   <div py:match="content" class="dataset-edit-form">
-    <h1>Edit: ${c.pkg.title or c.pkg.name}</h1>
+    ${dataset_admin_buttons(c.pkg)}
+    <h1>
+      ${h.dataset_link(c.pkg)}
+      <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit Dataset</span>
+    </h1>
     <div class="boxed">
-      <div id="minornavigation">
-        <div id="minornavigation-bg-left">
-        <div id="minornavigation-bg-right">
-          <minornavigation></minornavigation>
-        </div>
-        </div>
-      </div>
       ${c.form}
     </div>
   </div>
@@ -40,6 +37,6 @@
       <script type="text/javascript" src="/scripts/dgu-package-form.js"></script>
       <script type="text/javascript" src="${h.url_for('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js')}"></script>
   </head>
-  <xi:include href="layout.html" />
+  <xi:include href="../layout_base.html" />
 </html>
 
