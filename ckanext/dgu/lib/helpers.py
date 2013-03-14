@@ -231,6 +231,9 @@ def is_service(package):
 # variant of core ckan method of same name
 # but displays better string if no resource there
 def resource_display_name(resource_dict):
+    # Gemini resources special case
+    if resource_dict.get('gemini',False):
+        return resource_dict.get('title')
     name = resource_dict.get('name')
     description = resource_dict.get('description')
     if name and name != 'None':
@@ -1100,12 +1103,14 @@ def gemini_resources():
          'title': 'Source GEMINI2 record',
          'type': 'XML',
          'action': 'View',
-         'id': ''},
+         'id': '',
+         'gemini':True},
         {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
          'title': 'Source GEMINI2 record (formatted)',
          'type': 'HTML',
          'action': 'View',
-         'id': ''}]
+         'id': '',
+         'gemini':True}]
     return gemini_resources
 
 def individual_resources():

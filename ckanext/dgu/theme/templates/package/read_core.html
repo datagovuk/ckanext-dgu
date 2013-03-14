@@ -13,7 +13,7 @@
       <!--tr class="${'last-child' if res==resources[-1] else ''}"-->
       <tr>
         <td class="resource-td-format">
-          ${format_box(res.get('format','').lower())}
+          ${format_box(res.get('format',res.get('type','')).lower())}
         </td>
         <td class="resource-td-title">
           <!-- Attached to resources which were scraped -->
@@ -26,36 +26,43 @@
           ${res.get('date')}
           ${h.resource_display_name(res)}
           <div class="text-overlay">
-            <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
-            <div class="btn-group">
-              <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
-                    <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
-                    <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
+            <py:if test="res.get('gemini',False)">
+              <a href="${res.get('url', '')}" class="btn btn-primary" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
+                ${res['action']}
               </a>
-              <button class="btn btn-primary dropdown-toggle"
-                data-toggle="dropdown"
-                py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                <li>
-                  <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
-                    <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
-                    <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
-                  </a>
-                </li>
-                <li>
-                  <py:if test="h.get_cache_url(res)">
-                    <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
-                      Cached
+            </py:if>
+            <py:if test="not res.get('gemini',False)">
+              <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
+              <div class="btn-group">
+                <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
+                  <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+                  <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
+                </a>
+                <button class="btn btn-primary dropdown-toggle"
+                  data-toggle="dropdown"
+                  py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
+                      <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+                      <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
                     </a>
-                  </py:if>
-                  <py:if test="not h.get_cache_url(res)">
-                    <a class="disabled">(no cache available)</a>
-                  </py:if>
-                </li>
-              </ul>
-            </div><!--/btn-group-->
+                  </li>
+                  <li>
+                    <py:if test="h.get_cache_url(res)">
+                      <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
+                        Cached
+                      </a>
+                    </py:if>
+                    <py:if test="not h.get_cache_url(res)">
+                      <a class="disabled">(no cache available)</a>
+                    </py:if>
+                  </li>
+                </ul>
+              </div><!--/btn-group-->
+            </py:if>
             <div class="clearfix"></div>
           </div>
         </td>
@@ -131,20 +138,8 @@
 
         <py:if test="h.additional_resources() or h.gemini_resources()">
           <h3>Additional Links (${len(h.additional_resources()) + len(h.gemini_resources())})</h3>
-          ${resource_table(h.additional_resources())}
-          <ul class="resource-list gemini-resource-list" py:if="h.gemini_resources()">
-            <py:for each="gemini_resource in h.gemini_resources()">
-            <li class="${'last-child' if gemini_resource==h.gemini_resources()[-1] else ''}">
-              <div class="trimmed-text">
-                ${format_box(gemini_resource['type'],h.icon('page_white'))}
-                ${gemini_resource['title']}
-              </div>
-              <a href="${gemini_resource['url']}" class="btn btn-primary" rel="dcat: distribution" target="_blank">${gemini_resource['action']}</a>
-            </li>
-            </py:for>
-          </ul>
-         </py:if>
-
+          ${resource_table(h.additional_resources() + h.gemini_resources())}
+        </py:if>
         <py:if test="not (h.dataset_type(c.pkg_extras) == 'uklp' or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
           <em>(none)</em>
         </py:if>
