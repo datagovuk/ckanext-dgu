@@ -787,6 +787,8 @@ img.open-data{vertical-align:top;margin-top:1px;}
 .pagination{text-align:center;}
 a.tag{color:#333;font-size:11px;background:#b9e671;margin:0 5px 2px 5px;padding:2px 5px 2px 8px;float:left;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}a.tag:hover{text-decoration:none;background:#61aa00;color:#fff;}
 h1 .subheading{display:block;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top;}h1 .subheading>img{vertical-align:baseline;width:20.8px;height:20px;}
+h1 .subheading .divider{padding-left:5px;padding-right:5px;color:#aaa;}
+h1 .subheading a.active{color:#000;}
 h1 .subheading .subheading{margin-left:30px;margin-top:-3px;}h1 .subheading .subheading>img{vertical-align:baseline;width:15.6px;height:15px;}
 .notes{margin-bottom:10px;padding:8px;}
 .notes p:last-child{margin-bottom:0;}

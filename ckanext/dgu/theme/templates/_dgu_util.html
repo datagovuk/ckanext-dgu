@@ -11,10 +11,8 @@
 
   <xi:include href="package/basket.html" />
 
-  <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')">
-    <py:if test="testValue">${stringIfTrue}</py:if>
-    <py:if test="not testValue">${stringIfFalse}</py:if>
-  </py:def>
+  <!-- pure one-liner to avoid whitespace glitches -->
+  <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
   <table py:def="search_form()" class="search-area">
     <tr>
