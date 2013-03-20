@@ -430,7 +430,7 @@ CKAN.Dgu = function($, my) {
       var tr = formatField.closest('tr');
       var scraperField = tr.find('.input_additional_resources_scraper');
       assert(scraperField.length==1);
-      if ( formatField.val().toUpperCase().trim()=='HTML' ) {
+      if ( $.trim( formatField.val().toUpperCase() )=='HTML' ) {
         scraperField.removeAttr('disabled');
         scraperField.css('text-decoration', 'none');
       }
