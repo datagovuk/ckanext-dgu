@@ -93,7 +93,7 @@ if has_errors:
 </div>
 
 <div id="form-tabs" class="tabbable tabs-left">
-  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if use_wizard(data, errors) else {}">
+  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if use_wizard else {}">
     <li class="active"><a data-toggle="hashtab" id="section-name" href="#section-name-fields">Name</a></li>
     <li><a data-toggle="hashtab" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
     <li><a data-toggle="hashtab" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
