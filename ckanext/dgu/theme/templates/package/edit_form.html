@@ -40,18 +40,18 @@
 </div>
 
 <div id="form-tabs" class="tabbable tabs-left">
-  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled'} if h.use_wizard(data, errors) else {'data-toggle':'hashtab'}">
-    <li class="active"><a id="section-name" href="#section-name-fields" data-toggle="hashtab">Name</a></li>
-    <li><a id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
-    <li><a id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
-    <li><a id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
-    <li><a id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
-    <li><a id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
-    <li><a id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
-    <li><a id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
-    <li><a id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
-    <li py:if="h.is_package_edit_form(data) and (c.is_sysadmin or h.are_legacy_extras(data))"><a id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
-    <li py:if="c.is_sysadmin"><a id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
+  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if h.use_wizard(data, errors) else {}">
+    <li class="active"><a data-toggle="hashtab" id="section-name" href="#section-name-fields">Name</a></li>
+    <li><a data-toggle="hashtab" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
+    <li><a data-toggle="hashtab" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
+    <li><a data-toggle="hashtab" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
+    <li><a data-toggle="hashtab" id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
+    <li><a data-toggle="hashtab" id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
+    <li><a data-toggle="hashtab" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
+    <li><a data-toggle="hashtab" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
+    <li><a data-toggle="hashtab" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
+    <li py:if="h.is_package_edit_form(data) and (c.is_sysadmin or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+    <li py:if="c.is_sysadmin"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
   </ul>
   <div class="tab-content">
 

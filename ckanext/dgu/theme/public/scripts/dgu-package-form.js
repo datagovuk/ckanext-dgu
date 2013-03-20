@@ -45,7 +45,24 @@
     }
 
     /* Handle prev/next buttons */
-    $('.package_create_form #form-tabs a').on('shown', CKAN.Dgu.updatePublisherNav);
+    $('.package_create_form a[data-toggle="hashtab"]').on('shown', function(e) {
+      var target_a = $(e.target);
+      var target_li = target_a.parent();
+      var hasPrevious = target_li.prev().length > 0;
+      var hasNext = target_li.next().length > 0;
+
+      // Handle the back/next buttons
+      if (hasPrevious) {
+        $('#back-button').removeAttr('disabled');
+      } else {
+        $('#back-button').attr('disabled', 'disabled');
+      }
+      if (hasNext) {
+        $('#next-button').removeAttr('disabled');
+      } else {
+        $('#next-button').attr('disabled', 'disabled');
+      }
+    });
 
     /* Show the correct resource fieldset */
     CKAN.Dgu.showHideResourceFieldsets();
@@ -54,25 +71,28 @@
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
 
-    /* Setup next/back buttons */
-    var clickNav = function(goBack) {
-      return function(e) {
-        e.preventDefault();
-        var activeTab = $('div#form-tabs li.active');
-        if (goBack) {
-          activeTab.prev().children('a').click();
-        }
-        else {
-          activeTab.next().children('a').click();
-          activeTab.next().removeClass('disabled');
-        }
-      };
-    };
-
     // Correctly handle disabled nav buttons
     $('a.disabled').click(function(e) {
       e.preventDefault();
     });
+
+    $('#back-button').click(function(e) {
+        e.preventDefault();
+        var activeTab = $('div#form-tabs li.active');
+        activeTab.prev().children('a').click();
+    });
+    $('#next-button').click(function(e) {
+        e.preventDefault();
+        var nextLink = $('div#form-tabs li.active').next().children('a');
+        if (nextLink.hasClass('disabled')) {
+          nextLink.removeAttr('disabled');
+          // Allow it to be clicked
+          nextLink.removeClass('disabled');
+        }
+        // Click it
+        nextLink.click();
+    });
+
 
     /* Tag auto-completion */
     CKAN.Dgu.setupTagAutocomplete($('input.autocomplete-tag'));

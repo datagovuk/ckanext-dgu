@@ -260,24 +260,6 @@ CKAN.Dgu = function($, my) {
     input.change(callback);
   };
 
-  my.updatePublisherNav = function(e) {
-    var hasPrevious = $(e.target).parent().prev().length > 0;
-    var hasNext = $(e.target).parent().next().length > 0;
-
-    // Handle the back/next buttons
-    if (hasPrevious) {
-      $('#back-button').removeAttr('disabled');
-    } else {
-      $('#back-button').attr('disabled', 'disabled');
-    }
-
-    if (hasNext) {
-      $('#next-button').removeAttr('disabled');
-    } else {
-      $('#next-button').attr('disabled', 'disabled');
-    }
-  };
-
   my.setupTagAutocomplete = function(elements) {
     elements
       // don't navigate away from the field on tab when selecting an item
