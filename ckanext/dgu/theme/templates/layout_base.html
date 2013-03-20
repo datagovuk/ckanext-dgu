@@ -281,7 +281,7 @@ c.is_an_official = bool(c.groups or c.is_sysadmin)
     var CKAN = CKAN || {};
     CKAN.plugins = [
       // Declare js array from Python string
-      ${['\'%s\', '%s  for s in config.get('ckan.plugins','').split(' ')]}
+      ${','.join(['\'%s\', '%s  for s in config.get('ckan.plugins','').split(' ')])}
     ];
     <py:if test="config.get('ckan.storage.bucket', '')">
     CKAN.plugins.push('storage');
