@@ -367,8 +367,9 @@ def render_stars(stars, reason, last_updated):
         classname = 'fail' if (i > stars) else ''
         tooltip += literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
-    datestamp = last_updated.strftime('%d/%m/%Y')
-    tooltip += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
+    if last_updated:
+        datestamp = last_updated.strftime('%d/%m/%Y')
+        tooltip += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
     return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
 
