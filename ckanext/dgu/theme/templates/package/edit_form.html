@@ -50,8 +50,8 @@
     <li><a data-toggle="hashtab" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
     <li><a data-toggle="hashtab" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
     <li><a data-toggle="hashtab" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
-    <li py:if="h.is_package_edit_form(data) and (c.is_sysadmin or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
-    <li py:if="c.is_sysadmin"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
+    <li py:if="h.is_package_edit_form(data) and (h.is_sysadmin() or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+    <li py:if="h.is_sysadmin()"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
   </ul>
   <div class="tab-content">
 
@@ -825,7 +825,7 @@
   </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-state-field" py:if="c.is_sysadmin">
+<fieldset class="tab-pane" id="section-state-field" py:if="h.is_sysadmin()">
     <h4>State</h4>
     <div class="well">
       <p>NB: Dangerous operation! (Available to sysadmins only)</p>

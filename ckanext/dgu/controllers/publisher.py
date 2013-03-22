@@ -259,7 +259,6 @@ class PublisherController(GroupController):
         data_dict = {'id': id}
         q = c.q = request.params.get('q', '') # unicode format (decoded from utf8)
         fq = ''
-        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
 
         # TODO: Deduplicate this code copied from index()
         # TODO: Fix this up, we only really need to do this when we are
@@ -401,8 +400,6 @@ class PublisherController(GroupController):
 
         c.administrators = c.group.members_of_type(model.User, 'admin')
         c.editors = c.group.members_of_type(model.User, 'editor')
-        if c.user:
-            c.is_sysadmin = Authorizer().is_sysadmin(unicode(c.user))
 
         c.restricted_to_publisher = 'publisher' in request.params
         parent_groups = c.group.get_groups('publisher')
@@ -496,7 +493,6 @@ class PublisherController(GroupController):
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"
-        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
         self._add_publisher_list()
 
         context = {'model': model, 'session': model.Session,

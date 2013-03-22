@@ -64,8 +64,8 @@ class DataController(BaseController):
         return render('data/api.html')
 
     def system_dashboard(self):
-        c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
-        if not c.is_sysadmin:
+        is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
+        if not is_sysadmin:
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')
 
