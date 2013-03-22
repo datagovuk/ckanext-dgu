@@ -146,7 +146,7 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
        from ckanext.spatial.lib.helpers import get_coupled_packages
        coupled_pkg_tuples = get_coupled_packages(c.pkg)
     ?>
-    <ul>
+    <ul py:if="coupled_pkg_tuples">
       <li py:for="name, title in coupled_pkg_tuples">
         <a href="/dataset/${name}">${title}</a>
       </li>
