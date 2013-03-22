@@ -167,6 +167,8 @@ def dgu_dataset_delete(context, data_dict):
     """
     model = context['model']
     user = context.get('user')
+    if not user:
+        return {'success': False}
     user_obj = model.User.get(user)
     package = get_package_object(context, data_dict)
 
