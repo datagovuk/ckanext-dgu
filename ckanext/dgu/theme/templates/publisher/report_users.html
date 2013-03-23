@@ -6,40 +6,42 @@
   <xi:include href="publisher_util.html" />
 
   <py:def function="page_title">User report</py:def>
-  <py:def function="page_heading">Users (${ c.count })</py:def>
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    ${c.page.pager()}
+    <h1>Users (${ c.count })</h1>
+    <div class="boxed">
+      ${c.page.pager()}
 
-    <table py:if="c.count" width="100%" class="table table-bordered table-striped">
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Datasets created (in CKAN)</th>
-        <th>Edits made (in CKAN)</th>
-        <th>Rights</th>
-        <th>Created</th>
-      </tr>
-      <py:for each="u in c.page.items">
+      <table py:if="c.count" width="100%" class="table table-bordered table-striped">
         <tr>
-          <td><a href="/data/user/${u.name}">${u.display_name}</a></td>
-          <td>${u.email}</td>
-          <td>${u.number_administered_packages()}</td>
-          <td>${u.number_of_edits()}</td>
-          <td>
-            <py:if test="h.is_sysadmin(u)">Sysadmin</py:if>
-            <py:for each="capacity in ('admin', 'editor')">
-              <py:for each="group in u.get_groups(capacity=capacity)">
-                ${capacity.capitalize()}: <a href="/publisher/${group.name}">${group.display_name}</a>
-              </py:for>
-            </py:for>
-          </td>
-          <td>${h.render_datetime(u.created, date_format="%d-%m-%Y")}</td>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Datasets created (in CKAN)</th>
+          <th>Edits made (in CKAN)</th>
+          <th>Rights</th>
+          <th>Created</th>
         </tr>
-      </py:for>
-    </table>
-    ${c.page.pager()}
+        <py:for each="u in c.page.items">
+          <tr>
+            <td><a href="/data/user/${u.name}">${u.display_name}</a></td>
+            <td>${u.email}</td>
+            <td>${u.number_administered_packages()}</td>
+            <td>${u.number_of_edits()}</td>
+            <td>
+              <py:if test="h.is_sysadmin(u)">Sysadmin</py:if>
+              <py:for each="capacity in ('admin', 'editor')">
+                <py:for each="group in u.get_groups(capacity=capacity)">
+                  ${capacity.capitalize()}: <a href="/publisher/${group.name}">${group.display_name}</a>
+                </py:for>
+              </py:for>
+            </td>
+            <td>${h.render_datetime(u.created, date_format="%d-%m-%Y")}</td>
+          </tr>
+        </py:for>
+      </table>
+      ${c.page.pager()}
+    </div>
   </div>
 
 

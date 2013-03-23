@@ -41,9 +41,9 @@
 
 
 <div class="form-submit">
-  <input id="save" class="pretty-button primary" name="save" type="submit" value="${_('Send request')}" />
+  <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Send request')}" />
   <py:if test="c.group">
-    <input id="cancel" class="pretty-button href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
   </py:if>
 </div>
 </form>

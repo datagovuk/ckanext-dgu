@@ -4,8 +4,6 @@
 
   <py:def function="page_title">${c.user_dict['display_name']} - User</py:def>
   <py:def function="body_class">no-sidebar</py:def>
-  <py:def function="content_class"><!--unboxed--></py:def>
-
   <div py:match="content" py:strip="">
     ${h.prep_user_detail()}
 

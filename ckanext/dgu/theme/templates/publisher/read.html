@@ -13,8 +13,6 @@
     </a>
     <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn btn-inxfo" style="float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:def>
-  <py:def function="content_class"><!--unboxed--></py:def>
-
 
   <py:match path="primarysidebar">
   <div class="boxed">

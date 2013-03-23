@@ -184,14 +184,12 @@
             <py:if test="defined('page_heading')">
               <h1>${page_heading()}</h1>
             </py:if>
-            <div class="${content_class() if defined('content_class') else 'boxed'}">
-              <div py:if="defined('content')">
-                ${content()}
-              </div>
-              <content>
-                <p>Master content template placeholder &hellip; please replace me.</p>
-              </content>
+            <div py:if="defined('content')">
+              ${content()}
             </div>
+            <content>
+              <p>Master content template placeholder &hellip; please replace me.</p>
+            </content>
           </div>
         </div><!-- /main -->
       </div><!-- /span8 -->

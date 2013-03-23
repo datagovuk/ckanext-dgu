@@ -44,12 +44,10 @@
 </fieldset>
 
 
-<div class="form-actions">
   <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save')}" />
   <py:if test="c.group">
     <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
   </py:if>
-</div>
 
 <script type="text/javascript">
 	function delete_user(btn) {

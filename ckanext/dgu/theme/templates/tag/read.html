@@ -5,8 +5,6 @@
   
   <py:def function="page_title">${c.tag['display_name']} - Tags</py:def>
   <py:def function="page_heading">Tag: ${c.tag['display_name']}</py:def>
-  <py:def function="content_class"><!--unboxed--></py:def>
-
   <div py:match="content">
     <div style="padding: 10px 15px;">
       <span i18n:msg="count, tagname">There are ${len(c.tag['packages'])} dataset(s) tagged with <a class="tag">${c.tag['display_name']}</a>:</span>

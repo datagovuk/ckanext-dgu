@@ -21,7 +21,9 @@
     <h3 py:if="c.error" class="form-errors">
       Error: ${c.error}
     </h3>
-    ${h.literal(c.form)}
+    <div class="boxed">
+      ${h.literal(c.form)}
+    </div>
   </div>
 
 <head py:match="head">

@@ -6,7 +6,6 @@
   <xi:include href="publisher_util.html" />
 
   <py:def function="page_title">Publishers</py:def>
-  <py:def function="page_heading">Publishers</py:def>
 
   <py:match path="primarysidebar">
   <div class="boxed">
@@ -22,40 +21,43 @@
   </py:match>
 
   <div py:match="content">
-    <div class="tabbable">
-      <ul class="nav nav-tabs">
-        <li class="active"><a href="#publisherlist" data-toggle="hashtab">Publisher list</a></li>
-        <li><a href="#publisherhierarchy" data-toggle="hashtab">Publisher hierarchy</a></li>
-        <li><a href="#publishersearch" data-toggle="hashtab">Publisher search</a></li>
-      </ul>
-      <div class="tab-content">
-        <div class="tab-pane active" id="publisherlist">
-          ${c.page.pager()}
-          ${publisher_list(c.page.items)}
-        </div>
-        <div class="tab-pane" id="publisherhierarchy">
-          <div id="publisher-tree">
-            ${publisher_tree( c.all_groups )}
+    <h1>Publishers</h1>
+    <div class="boxed">
+      <div class="tabbable">
+        <ul class="nav nav-tabs">
+          <li class="active"><a href="#publisherlist" data-toggle="hashtab">Publisher list</a></li>
+          <li><a href="#publisherhierarchy" data-toggle="hashtab">Publisher hierarchy</a></li>
+          <li><a href="#publishersearch" data-toggle="hashtab">Publisher search</a></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="publisherlist">
+            ${c.page.pager()}
+            ${publisher_list(c.page.items)}
           </div>
-        </div>
-        <div class="tab-pane" id="publishersearch">
-          <table class="search-area">
-            <tr>
-              <td class="left">
-                <div class="result-count" style="color: #ccc;">${c.all_groups.count()}</div>
-                <div class="result-count-footer" style="color: #ccc;">Publishers</div>
-              </td>
-              <td class="right">
-                <form id="publisher-search" class="form-search" action="">
-                  <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
-                  <input type="submit" class="btn btn-primary button" value="Search..."/>
-                </form>
-              </td>
-            </tr>
-          </table>
-          <table id="search_results" class="groups" style="display:none;">
-          </table>
+          <div class="tab-pane" id="publisherhierarchy">
+            <div id="publisher-tree">
+              ${publisher_tree( c.all_groups )}
+            </div>
+          </div>
+          <div class="tab-pane" id="publishersearch">
+            <table class="search-area">
+              <tr>
+                <td class="left">
+                  <div class="result-count" style="color: #ccc;">${c.all_groups.count()}</div>
+                  <div class="result-count-footer" style="color: #ccc;">Publishers</div>
+                </td>
+                <td class="right">
+                  <form id="publisher-search" class="form-search" action="">
+                    <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
+                    <input type="submit" class="btn btn-primary button" value="Search..."/>
+                  </form>
+                </td>
+              </tr>
+            </table>
+            <table id="search_results" class="groups" style="display:none;">
+            </table>
 
+          </div>
         </div>
       </div>
     </div>

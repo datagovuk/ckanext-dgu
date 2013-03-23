@@ -5,8 +5,6 @@
   
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets - History</py:def>
   <py:def function="body_class">no-sidebar</py:def>
-  <py:def function="content_class"></py:def>
-  
   <div py:match="content" class="dataset">
     ${dataset_admin_buttons(c.pkg)}
     <h1>
