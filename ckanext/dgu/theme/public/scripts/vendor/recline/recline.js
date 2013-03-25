@@ -3051,7 +3051,7 @@ this.recline.Backend = this.recline.Backend || {};
     // a crude way to catch those errors.
     _wrapInTimeout: function(ourFunction) {
       var dfd = $.Deferred();
-      var timeout = 5000;
+      var timeout = 10000;
       var timer = setTimeout(function() {
         dfd.reject({
           message: 'Request Error: Backend did not respond after ' + (timeout / 1000) + ' seconds'

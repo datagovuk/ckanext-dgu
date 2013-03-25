@@ -87,7 +87,7 @@
 
   <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
     <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
-    <ul>
+    <ul py:if="h.coupled_pkg_tuples(c.pkg)">
       <li py:for="name, title in h.coupled_pkg_tuples(c.pkg)">
         <a href="/dataset/${name}">${title}</a>
       </li>

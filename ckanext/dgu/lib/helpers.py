@@ -2,8 +2,8 @@
 These helper functions are made available via the h variable which
 is given to every template for rendering.  To simplify the loading
 of helpers all functions *that do not start with _* will be added
-to the helper functions, so if you don't want your helper loaded make
-sure you prefix the function name with _
+to the helper functions, so if you don't want your function available
+make sure you prefix the function name with _
 """
 
 import logging
@@ -883,9 +883,12 @@ def is_package_deleted(pkg):
     return pkg.state == State.DELETED
 
 
-def is_sysadmin(u):
+def is_sysadmin(u=None):
     from ckan.authz import Authorizer
-    return Authorizer().is_sysadmin(u)
+    user = u or c.userobj
+    if not user:
+        return False
+    return Authorizer().is_sysadmin(u or c.userobj)
 
 def prep_user_detail():
     from ckan import model
@@ -930,16 +933,14 @@ def get_children_for_group(group):
     from ckanext.dgu.lib import publisher
     return publisher.get_children(group)
 
-def top_level_init(userobj):
+def top_level_init():
     # Top level initialisation previously done in layout_base to make sure it
     # is available to all sub-templates. This is a bit nasty, and I think we
     # would be better off splitting these c.* things either into separate helpers
     # or into our own BaseController. Perhaps. TODO.
     import ckan.authz
-    if 'is_sysadmin' not in dir(c):
-        c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
     c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
-    c.is_an_official = bool(c.groups or c.is_sysadmin)
+    c.is_an_official = bool(c.groups or is_sysadmin())
 
 
 def additional_extra_fields(res):
