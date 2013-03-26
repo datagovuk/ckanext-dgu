@@ -141,7 +141,7 @@ class PublisherController(GroupController):
             id = request.params['parent']
 
         if id:
-            c.group = model.Group.get(id)
+            c.group = model.Group.by_name(id)
             if not c.group:
                 abort(404, _('Publisher not found'))
             if 'save' in request.params and not errors:
@@ -211,7 +211,7 @@ class PublisherController(GroupController):
 
 
     def users(self, id, data=None, errors=None, error_summary=None):
-        c.group = model.Group.get(id)
+        c.group = model.Group.by_name(id)
 
         if not c.group:
             abort(404, _('Group not found'))
