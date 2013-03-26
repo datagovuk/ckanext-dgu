@@ -938,9 +938,11 @@ def top_level_init():
     # is available to all sub-templates. This is a bit nasty, and I think we
     # would be better off splitting these c.* things either into separate helpers
     # or into our own BaseController. Perhaps. TODO.
-    import ckan.authz
-    c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
+    c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
+
+def groups_for_current_user():
+    return c.userobj.get_groups(group_type='publisher') if c.userobj else []
 
 
 def additional_extra_fields(res):

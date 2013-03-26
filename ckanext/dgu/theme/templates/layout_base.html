@@ -161,12 +161,12 @@ ${h.top_level_init()}
     <ul id="subnav" py:if="h.is_sysadmin() or h.check_access('package_create')">
       <py:if test="h.check_access('package_create')">
         <span class="divider-section">Publisher tools:</span>
-        <py:for each="group in c.groups">
+        <py:for each="group in h.groups_for_current_user()">
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.display_name}</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/dataset/new') else ''}" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
-        <py:if test="c.groups">
+        <py:if test="h.groups_for_current_user()">
           <span class="divider">&nbsp;|&nbsp;</span>
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
         </py:if>
