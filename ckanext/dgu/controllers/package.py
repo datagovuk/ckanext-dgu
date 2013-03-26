@@ -30,7 +30,10 @@ class PackageController(ckan.controllers.package.PackageController):
             'user': c.user,
         }
 
-        pkg_dict = get_action('package_show')(context, {'id':id}) # has side-effect of populating context.get('package')
+        try:
+            pkg_dict = get_action('package_show')(context, {'id':id}) # has side-effect of populating context.get('package')
+        except NotAuthorized:
+            abort(401, 'Not authorized to delete package')
 
         if request.params: # POST
             if 'cancel' in request.params:

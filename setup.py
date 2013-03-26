@@ -10,10 +10,10 @@ setup(
     classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     namespace_packages=['ckanext', 'ckanext.dgu'],
     zip_safe=False,
-    author='Open Knowledge Foundation',
-    author_email='info@okfn.org',
+    author='Cabinet Office, Open Knowledge Foundation',
+    author_email='david.read@hackneyworkshop.com',
     license='AGPL',
-    url='http://ckan.org/',
+    url='http://data.gov.uk/',
     description='CKAN DGU extensions',
     keywords='data packaging component tool server',
     install_requires=[
