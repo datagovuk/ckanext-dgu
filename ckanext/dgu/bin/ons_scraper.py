@@ -1,18 +1,34 @@
+"""
+ONS Scraper
+
+Finds all of the resources that have ONSHUB in their extras and then for
+each one:
+
+- Scrapes each resource URL looking for a match on '^http://www.ons.gov.uk/ons/.*$'
+- For each match, find the links to actual data files on the data page, if it exists
+- If we have new resources, it updates the old ones to move them to become
+  documentation resources.
+- For each new resource, if the URL isn't already in the list of resources, it is
+  added
+
+This script will also generate a CSV file 'ons_scrape.csv' containing details of
+each item scraped.  The log file will contain the dataset name, the resource ID,
+the URL of the resource, an HTTP status_code and an error message.  The error
+message will contain details of the failure.
+"""
 import re
 import csv
-import sys
-import uuid
 import time
 import logging
 import requests
 from urlparse import urljoin
 from lxml.html import fromstring
 
-from pylons import config
 from ckan.lib.cli import CkanCommand
 
 url_regex = re.compile('^http://www.ons.gov.uk/ons/.*$')
 follow_regex = re.compile('^.*ons/publications/re-reference-tables.html.*$')
+
 
 class ONSUpdateTask(CkanCommand):
     """
@@ -26,13 +42,13 @@ class ONSUpdateTask(CkanCommand):
     def __init__(self, name):
         super(ONSUpdateTask, self).__init__(name)
         self.parser.add_option('-d', '--delete-resources',
-                               action='store_true',
-                               default=False,
-                               dest='delete_resources',
-                               help='If specified, old resources that are replaced will be deleted')
+            action='store_true',
+            default=False,
+            dest='delete_resources',
+            help='If specified, old resources that are replaced will be deleted')
         self.parser.add_option('-s', '--server',
-                               dest='server',
-                               help='Allows an alternative server URL to be used')
+            dest='server',
+            help='Allows an alternative server URL to be used')
 
     def command(self):
         """
@@ -72,19 +88,23 @@ class ONSUpdateTask(CkanCommand):
         for dsname in datasets:
             dataset = ckan.package_entity_get(dsname)
             counter = counter + 1
-            added = False
             time.sleep(1)
 
             log.info('Processing %s' % (dsname,))
 
+            moved_resources = False
             new_resources = self.scrape_ons_publication(dataset)
             if new_resources:
-                # Update the fold resources, if they need to have their type set.
+                # Update the old resources, if they need to have their type set.
                 for r in dataset['resources']:
-                    r['resource_type'] = 'documentation'
+                    if r['resource_type'] != 'documentation':
+                        r['resource_type'] = 'documentation'
+                        moved_resources = True
 
-                # Save the update to the resources for this dataset
-                ckan.package_entity_put(dataset)
+                # Save the update to the resources for this dataset if we moved
+                # any to become documentation
+                if moved_resources:
+                    ckan.package_entity_put(dataset)
 
                 for r in new_resources:
                     # Check if the URL already appears in the dataset's
@@ -101,12 +121,9 @@ class ONSUpdateTask(CkanCommand):
                                               description=r['description'],
                                               name=r['title'])
 
-                    added = True
-
         self.csv_file.close()
         log.info("Processed %d datasets" % (counter))
-        log.info( "Added %d resources" % (resource_count))
-
+        log.info("Added %d resources" % (resource_count))
 
     def scrape_ons_publication(self, dataset):
         """
@@ -119,10 +136,12 @@ class ONSUpdateTask(CkanCommand):
                 resources.append(resource)
 
         if not resources:
-            self._log({"dataset": dataset['name'], "resource": "", "url": resource["url"], "status code": ""}, "No matching resources found on dataset")
+            self._log({"dataset": dataset['name'], "resource": "",
+                       "url": resource["url"], "status code": ""},
+                       "No matching resources found on dataset")
             return None
 
-        return filter(None, [self._process_ons_resource(dataset,r) for r in resources] )
+        return filter(None, [self._process_ons_resource(dataset, r) for r in resources])
 
     def _log(self, line, err_msg):
         """ Writes out a CSV file with the output of this scraping session """
@@ -133,21 +152,26 @@ class ONSUpdateTask(CkanCommand):
     def _process_ons_resource(self, dataset, resource):
         log = logging.getLogger(__name__)
 
-        results = []
-        line = {"dataset": dataset['name'], "resource": resource['id'], "url": resource['url']}
+        line = {"dataset": dataset['name'],
+                "resource": resource['id'],
+                "url": resource['url']
+                }
 
         # Get the first page that we were pointed at.
         r = requests.get(resource['url'])
         line["status code"] = r.status_code
-        if r.status_code <> 200:
-            log.error("Failed to fetch %s, got status %s" % (resource['url'], r.status_code))
+        if r.status_code != 200:
+            log.error("Failed to fetch %s, got status %s" %
+                (resource['url'], r.status_code))
             self._log(line, "HTTP error")
             return None
 
-        # need to follow the link to the data page. Somewhere on the page is a link
-        # that looks like ^.*ons/publications/re-reference-tables.html.*$
+        # need to follow the link to the data page. Somewhere on the page
+        # is a link that looks like
+        #  ^.*ons/publications/re-reference-tables.html.*$
         if not r.content:
-            log.debug("Successfully fetched %s but page was empty" % (resource['url'],))
+            log.debug("Successfully fetched %s but page was empty" %
+                (resource['url'],))
             self._log(line, "Page was empty")
             return None
 
@@ -157,18 +181,21 @@ class ONSUpdateTask(CkanCommand):
         for node in nodes:
             h = node.get('href')
             if h and follow_regex.match(h):
-                href = urljoin(resource['url'], h)  # Will return href if it includes proto://host..
+                # Will return href if it includes proto://host..
+                href = urljoin(resource['url'], h)
                 break
 
         if not href:
             self._log(line, "No data page")
-            log.debug("Unable to find the 'data' page which contains links to resources")
+            log.debug("Unable to find the 'data' page which contains links " +
+                "to resources")
             return None
 
         r = requests.get(href)
-        if r.status_code <> 200:
+        if r.status_code != 200:
             self._log(line, "Failed to fetch data page")
-            log.error("Failed to fetch data page %s, got status %s" % (resource['url'], r.status_code))
+            log.error("Failed to fetch data page %s, got status %s" %
+                (resource['url'], r.status_code))
             return None
 
         log.debug("Found 'data' page content")
@@ -201,4 +228,3 @@ class ONSUpdateTask(CkanCommand):
                 'description': description,
                 'title': title,
                 'original': resource}
-
