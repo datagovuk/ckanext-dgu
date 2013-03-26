@@ -70,7 +70,7 @@ class ONSUpdateTask(CkanCommand):
         ckan = ckanclient.CkanClient(base_location=self.options.server or 'http://localhost/api',
                                      api_key=apikey)
 
-        opts = {'external_reference': 'ONSHUB', 'offset': 0, 'limit': 10000}
+        opts = {'external_reference': 'ONSHUB', 'offset': 0, 'limit': 0}
         q = ''
         if len(self.args) == 1:
             q = self.args[0].replace(',', '')
