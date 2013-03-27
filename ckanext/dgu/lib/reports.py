@@ -18,6 +18,7 @@ TERRITORIES = {
     "UK & Territorial Waters": "20.48,48.79,3.11,62.66",
     "UK, Territorial Waters and Continental Shelf": "63.887067,-23.956667,48.166667,3.398547",
     "Gilbraltar": "36.158625,-5.407807,36.084108,-5.291815",
+    # Would be nice to constrain this to ones with an extent
     "All": "SELECT id FROM package where state='active'"
 }
 
@@ -149,10 +150,12 @@ class UKLPReports(CkanCommand):
         conn = self.engine.connect()
         self.update_publisher_table(conn)
 
-        trans = conn.begin()
-
         # Clean the pivot table
+        self.log.info("Cleaning up pivot table")
         conn.execute(package_extra_pivot_clean)
+        self.log.info("Table cleaned")
+
+        trans = conn.begin()
 
         for territory,bbox in TERRITORIES.iteritems():
             # Search to get package IDs from search using the bbox
@@ -350,6 +353,8 @@ package_extra_pivot_clean = '''
     delete from tmp_package_extra_pivot;
 '''
 
+# These fields MUST be inserted in this order, don't move them around unless you also
+# change the way the table is laid out.
 package_extra_pivot_query = '''
 insert into tmp_package_extra_pivot select package_id,
 max(case when key = 'access_constraints' then value else '""' end)                    "access_constraints",
@@ -383,7 +388,7 @@ max(case when key = 'national_statistic' then value else '""' end)              
 max(case when key = 'openness_score' then value else '""' end)                        "openness_score",
 max(case when key = 'openness_score_last_checked' then value else '""' end)           "openness_score_last_checked",
 max(case when key = 'precision' then value else '""' end)                             "precision",
-max(case when key = 'published_by' then (select "group".title from "member" JOIN "group" on "group".id = "member".group_id where "member".table_name='package' and "member".state='active' and "member".table_id=package_id limit 1) else '""' end)             "published_by",
+(select "group".title from "group" JOIN "member" on "group".id = "member".group_id where "member".table_name='package' and "member".state='active' and "member".table_id=package_id limit 1) as "published_by",
 max(case when key = 'published_via' then value else '""' end)                         "published_via",
 max(case when key = 'resource-type' then value else '""' end)                         "resource-type",
 max(case when key = 'responsible-party' then value else '""' end)                     "responsible-party",
