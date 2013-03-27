@@ -85,8 +85,8 @@
     ${tag_list_from_dicts(c.pkg_dict['tags'])}
   </li>
 
-  <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
-    <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
+  <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
+    <h4>Coupled ${'Datasets' if dict(c.pkg_extras).get('resource-type') == 'service' else 'Services'}</h4>
     <ul py:if="h.coupled_pkg_tuples(c.pkg)">
       <li py:for="name, title in h.coupled_pkg_tuples(c.pkg)">
         <a href="/dataset/${name}">${title}</a>
@@ -125,8 +125,9 @@
       <li py:if="dict(c.pkg_extras).get('provider')">
         Provider: ${dict(c.pkg_extras).get('provider')}
       </li>
-      <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(pkg_extras).get('responsible-party')">
-        Responsible Party: ${dict(pkg_extras).get('responsible-party')}
+      <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('responsible-party')">
+        Responsible Party: ${dict(c.pkg_extras).get('responsible-party')}
+
       </li>
     </ul>
   </li>

@@ -205,8 +205,8 @@
             </py:for>
           </ul>
           <ul class="resource-list gemini-resource-list" py:if="h.gemini_resources()">
-            <py:for each="gemini_resource in gemini_resources">
-            <li class="${'last-child' if gemini_resource==gemini_resources[-1] else ''}">
+            <py:for each="gemini_resource in h.gemini_resources()">
+            <li class="${'last-child' if gemini_resource==h.gemini_resources()[-1] else ''}">
               <div class="trimmed-text">
                 ${h.icon('page_white')}
                 ${gemini_resource['title']}
