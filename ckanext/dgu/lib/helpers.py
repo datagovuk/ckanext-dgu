@@ -1141,3 +1141,18 @@ def has_bounding_box(extras):
     return pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and \
         pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
 
+
+def get_extent():
+    return  c.pkg.extras.get('spatial', False)
+
+def get_tiles_url():
+    from urllib import quote
+    GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
+                'osinspiremappingprod.ordnancesurvey.co.uk') # Not '46.137.180.108'
+    tiles_url_ckan = config.get('ckanext-os.tiles.url', 'http://%s/geoserver/gwc/service/wms' % GEOSERVER_HOST)
+    api_key = config.get('ckanext-os.geoserver.apikey', '')
+    if api_key:
+        tiles_url_ckan+= '?key=%s' % quote(api_key)
+    return tiles_url_ckan
+
+
