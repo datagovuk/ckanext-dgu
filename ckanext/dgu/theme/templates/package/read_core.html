@@ -78,6 +78,8 @@
   </py:def>
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
+    <div class="pull-right">${openness_image(h.get_dataset_openness(c.pkg))}</div>
+
     <!-- Overview Section -->
     <div id="dataset-overview">
 
@@ -98,6 +100,11 @@
         <div class="notes clearfix">
           ${c.pkg_notes_formatted}
         </div>
+      </div>
+
+      <div>
+        <h3>Licence</h3>
+        ${list_licenses(c.pkg)}
       </div>
 
       <!-- Resources -->

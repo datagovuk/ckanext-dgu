@@ -790,41 +790,40 @@ def advanced_search_url():
         params['parent_publishers'] = c.group.name
     return search_url(params.items())
 
-def get_license_url(pkg):
-    # Used as the fallback if the URL is not in the extras
-    license_url = None
-    if pkg.license and pkg.license.url:
-        license_url = c.pkg.license.url
-
-    licence_url = pkg.extras.get('licence_url')
-    if licence_url:
-        licence_url_title = pkg.extras.get('licence_url_title') or licence_url
-    return license_url
-
-
 def get_licenses(pkg):
-    license_url = None
-    if pkg.license and pkg.license.url:
-        license_url = c.pkg.license.url
+    # isopen is tri-state: True, False, None (for unknown)
+    licenses = [] # [(title, url, isopen), ... ]
 
-    licenses = [] # [(title, isopen), ... ]
     if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.isopen()))
+        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen()))
     elif pkg.license_id:
-        licenses.append((pkg.license_id, None))
+        licenses.append((pkg.license_id, None, None))
 
-    licence_extra_list = json_list(pkg.extras.get('licence') or '')
-    for licence_extra in licence_extra_list:
-        if licence_extra.startswith('http'):
-            licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
-            licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
+    license_extra_list = json_list(pkg.extras.get('licence') or '')
+    for license_extra in license_extra_list:
+        license_extra_url = None
+        if license_extra.startswith('http'):
+            license_extra_url = license_extra
+        licenses.append((license_extra, license_extra_url, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
 
-    licence_url = pkg.extras.get('licence_url')
-    if licence_url:
-        licence_url_title = pkg.extras.get('licence_url_title') or licence_url
-        licence_html = HTML('<a href="%s">%s</a>' % (licence_url, licence_url_title))
-        licenses.append((licence_html, True if (licence_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf') else None))
+    license_url = pkg.extras.get('licence_url')
+    if license_url:
+        license_url_title = pkg.extras.get('licence_url_title') or license_url
+        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+        licenses.append((license_url_title, license_url, True if isopen else None))
     return licenses
+
+def get_dataset_openness(pkg):
+    licenses = get_licenses(pkg) # [(title,url,isopen)...]
+    openness = [ x[2] for x in licenses ]
+    if True in openness:
+        # Definitely open. OpenDefinition icon.
+        return True
+    if False in openness:
+        # Definitely closed. Padlock icon.
+        return False
+    # Indeterminate
+    return None
 
 def get_contact_details(pkg, pkg_extras):
     publisher_groups = c.pkg.get_groups('publisher') # assume only one

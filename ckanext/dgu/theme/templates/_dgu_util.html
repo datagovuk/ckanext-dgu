@@ -325,4 +325,32 @@
       </py:if>
     </div>
   </py:def>
+
+
+  <py:def function="list_licenses(pkg)">
+    <div property="dc:rights" id="dataset-license">
+     <ul py:with="all_licences = h.get_licenses(pkg)">
+        <li py:for="(license_text, url, isopen) in all_licences">
+          <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
+          <span py:if="not url" rel="dc:rights">${license_text}</span>
+          &nbsp;${openness_image(isopen)}
+        </li>
+        <li py:if="len(all_licences)==0">
+          No licence specified
+        </li>
+     </ul>
+    </div>
+  </py:def>
+
+  <py:def function="openness_image(isopen)">
+    <py:if test="isopen == True">
+      <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+        <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
+      </a>
+    </py:if>
+    <py:if test="isopen == False">
+      <span class="closed">${h.icon('lock')}</span>
+    </py:if>
+  </py:def>
+
 </html>

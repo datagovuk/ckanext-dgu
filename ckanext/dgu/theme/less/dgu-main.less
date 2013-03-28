@@ -110,6 +110,10 @@ body.no-sidebar {
       padding-right: 0;
     }
 }
+ul.no-dots {
+  list-style-type: none;
+  margin-left: 0;
+}
 .flash-messages {
     margin-top: 12px;
     margin-bottom: 12px;
@@ -331,7 +335,7 @@ table.tablesorter {
 /* Branding space */
 /* -------------- */
 #branding {
-    height: 66px;
+    height: 69px;
     padding-top: 18px;
     padding-left: 55px;
 }
@@ -350,15 +354,14 @@ ul#nav {
         position: relative;
         float: left;
         /* Gradient */
-        .gradient(#333333,#222222,#444444);
+        background: #333;
         a {
             color: #ccc;
             text-align: center;
             display: block;
-            padding: 10px 10px;
-            border-left: 1px solid #505050;
-            border-right:  1px solid #181818;
-            font-size: 15px;
+            padding: 8px 10px;
+            border-top: 1px solid #000;
+            font-size: 14px;
             font-weight: 300;
             &:hover {
                 color: #fff;
@@ -379,7 +382,7 @@ ul#nav {
     } /* End of #nav li block */
     li#nav-home { 
         width: 110px; 
-        a { border-left-color: transparent; }
+        a { border-left: 1px solid #000; }
     }
     li#nav-linked-data { 
         width: 110px; 
@@ -389,7 +392,7 @@ ul#nav {
     }
     li#nav-about { 
         width: 110px; 
-        a { border-right-color: transparent; }
+        a { border-right: 1px solid #000; }
     }
     li.active {
         a {
@@ -1019,6 +1022,12 @@ ul.ui-autocomplete {
     }
 }
 
+/* ckanext-social plugin: Minimal look */
+.social-sharethis {
+  .stButton .stArrow {
+    display: none;
+  }
+}
 
 
 /* PAGE: Front Page */

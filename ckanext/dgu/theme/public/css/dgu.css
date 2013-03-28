@@ -776,6 +776,7 @@ input:focus,textarea:focus{border-color:#55AA00;border-color:rgba(80, 160, 0, 0.
 body.no-sidebar .main-outer{width:940px;}
 body.no-sidebar .sidebar-outer{display:none;}
 .format-box{float:left;padding:3px 10px 2px 9px;border:1px solid rgba(0, 0, 0, 0.1);-webkit-border-radius:10px;-moz-border-radius:10px;border-radius:10px;color:#606060;background:#f7f7f7;white-space:nowrap;overflow:hidden;margin-right:7px;font-size:11px;vertical-align:top;line-height:17px;}.format-box>.inline-icon{padding-right:0;}
+ul.no-dots{list-style-type:none;margin-left:0;}
 .flash-messages{margin-top:12px;margin-bottom:12px;}
 .btn-preview{padding:5px 42px 5px 26px;border-top-right-radius:10px;border-bottom-right-radius:10px;}
 .preview-stamp{margin-left:-26px;margin-top:-6px;pointer-events:none;}
@@ -815,13 +816,13 @@ table.tablesorter th.header{background-image:url('/images/icons/sort.gif');curso
 #blackbar #hm-government-link{float:left;margin-top:2px;margin-left:10px;}
 #blackbar #login-or-signup{font-size:11px;float:right;margin-top:4px;margin-right:10px;}
 #blackbar #login-or-signup a{font-weight:bold;}
-#branding{height:66px;padding-top:18px;padding-left:55px;}
-ul#nav{list-style-type:none;margin-left:0;margin-bottom:0;font-size:0;}ul#nav li{padding:0;width:98px;position:relative;float:left;background:#333333;background:-webkit-gradient(linear, left bottom, left top, color-stop(0, #222222), color-stop(1, #444444));background:-ms-linear-gradient(bottom, #222222, #444444);background:-moz-linear-gradient(center bottom, #222222 0%, #444444 100%);background:-o-linear-gradient(#444444, #222222);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#444444', endColorstr='#222222', GradientType=0);}ul#nav li a{color:#ccc;text-align:center;display:block;padding:10px 10px;border-left:1px solid #505050;border-right:1px solid #181818;font-size:15px;font-weight:300;}ul#nav li a:hover{color:#fff;text-decoration:none;background:url('/images/nav-chevron.png') 50% 100% no-repeat;}
+#branding{height:69px;padding-top:18px;padding-left:55px;}
+ul#nav{list-style-type:none;margin-left:0;margin-bottom:0;font-size:0;}ul#nav li{padding:0;width:98px;position:relative;float:left;background:#333;}ul#nav li a{color:#ccc;text-align:center;display:block;padding:8px 10px;border-top:1px solid #000;font-size:14px;font-weight:300;}ul#nav li a:hover{color:#fff;text-decoration:none;background:url('/images/nav-chevron.png') 50% 100% no-repeat;}
 ul#nav li a .nav-icon{width:21px;height:18px;margin:0 10px 0 0;background:url('/images/home-icon.png');display:inline-block;zoom:1;*display:inline;vertical-align:top;}
-ul#nav li#nav-home{width:110px;}ul#nav li#nav-home a{border-left-color:transparent;}
+ul#nav li#nav-home{width:110px;}ul#nav li#nav-home a{border-left:1px solid #000;}
 ul#nav li#nav-linked-data{width:110px;}
 ul#nav li#nav-data-requests{width:120px;}
-ul#nav li#nav-about{width:110px;}ul#nav li#nav-about a{border-right-color:transparent;}
+ul#nav li#nav-about{width:110px;}ul#nav li#nav-about a{border-right:1px solid #000;}
 ul#nav li.active a{background:url('/images/nav-chevron.png') 50% 100% no-repeat;}
 ul#nav li:hover a .nav-icon{background-position:-21px 0;}
 #subnav{list-style-type:none;margin:0;padding:6px 18px;border:1px solid #ccc;border-top:none;}#subnav li{display:inline;}
@@ -920,6 +921,7 @@ ul.ui-autocomplete li a.ui-state-hover{background:#9D2;border-color:#690;}
 .star-rating .last-updated{font-size:10px;}
 .star-rating-tooltip{opacity:1 !important;}.star-rating-tooltip>.tooltip-inner{background:#444;}
 .star-rating-tooltip>.tooltip-arrow{border-right-color:#444 !important;}
+.social-sharethis .stButton .stArrow{display:none;}
 body.controller-data.action-index h2{padding-bottom:8px;border-bottom:1px solid #aaa;padding-left:17px;padding-right:17px;margin-left:-17px;margin-right:-17px;}body.controller-data.action-index h2.no-underline{padding-bottom:0;border-bottom:none;}
 body.controller-data.action-index .front-page-table{width:100%;border-collapse:separate;}body.controller-data.action-index .front-page-table td.boxed{width:426px;vertical-align:top;}
 body.controller-data.action-index .front-page-table tr.gutter td{height:20px;}
