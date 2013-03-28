@@ -18,6 +18,7 @@ message will contain details of the failure.
 """
 import re
 import csv
+import datetime
 import time
 import logging
 import requests
@@ -70,7 +71,7 @@ class ONSUpdateTask(CkanCommand):
         ckan = ckanclient.CkanClient(base_location=self.options.server or 'http://localhost/api',
                                      api_key=apikey)
 
-        opts = {'external_reference': 'ONSHUB', 'offset': 0, 'limit': 0}
+        opts = {'external_reference': 'ONSHUB', 'offset': 0, 'limit': 20} # WIP
         q = ''
         if len(self.args) == 1:
             q = self.args[0].replace(',', '')
@@ -97,9 +98,14 @@ class ONSUpdateTask(CkanCommand):
             if new_resources:
                 # Update the old resources, if they need to have their type set.
                 for r in dataset['resources']:
-                    if r['resource_type'] != 'documentation':
+                    # Only move resources to documentation if they are a link to a documentation
+                    # page and haven't been added by scraping.
+                    if r['resource_type'] != 'documentation' and not 'scraped_date' in r:
                         r['resource_type'] = 'documentation'
                         moved_resources = True
+                    else:
+                        log.info("Not moving resource with type %s, which has been scraped: %s" %
+                            (r['resource_type'], 'scraped_date' in r,))
 
                 # Save the update to the resources for this dataset if we moved
                 # any to become documentation
@@ -115,11 +121,13 @@ class ONSUpdateTask(CkanCommand):
                         continue
 
                     resource_count = resource_count + 1
+                    # Add the resource along with a scraped_date
                     ckan.add_package_resource(dataset['name'], r['url'],
                                               resource_type='data',
                                               format=r['url'][-3:],
                                               description=r['description'],
-                                              name=r['title'])
+                                              name=r['title'],
+                                              scraped_date=datetime.datetime.now().isoformat())
 
         self.csv_file.close()
         log.info("Processed %d datasets" % (counter))
