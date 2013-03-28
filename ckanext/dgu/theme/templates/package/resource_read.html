@@ -125,18 +125,18 @@
 
       <div class="quick-info">
         <div py:if="c.resource['last_modified']">
-          <h4 style="margin-bottom:0;">Last updated:</h4>
+          <h3 style="margin-bottom:0;">Last updated:</h3>
           ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
         </div>
         <div>
-          <h4 style="margin-bottom: 0;">Format:</h4>
+          <h3 style="margin-bottom: 0;">Format:</h3>
           <div class="notes">
             ${format_box(c.resource.get('format','Unknown').lower())}
             <div class="clearfix"></div>
           </div>
         </div>
         <div py:if="h.get_resource_stars(c.resource['id']) >= 0">
-          <h4 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h4>
+          <h3 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h3>
           ${h.render_stars(h.get_resource_stars(c.resource['id']), h.star_report_reason(c.resource['id']), h.star_report_updated(c.resource['id']))}
         </div>
       </div>
