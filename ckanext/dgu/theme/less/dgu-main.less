@@ -719,18 +719,43 @@ ul#nav {
         padding-left: 10px;
     }
     .facet-expand-collapse {
-        height: 12px;
-        padding: 4px 0;
-        margin: 0 auto;
-        margin-top: -5px;
-        width: 100%;
+        text-align: right;
         display: block;
-        text-align: center;
+        padding-top: 3px;
+        color: #999;
+        font-weight: bold;
         /* Class 'expanded' changes children */
         .expander { display: block; }
         .collapser { display: none; }
         &.expanded .expander { display: none; }
         &.expanded .collapser { display: block; }
+    }
+    .facet-option-selected {
+      margin-left: -12px;
+      padding-left: 12px;
+      margin-right: -12px;
+      padding-right: 12px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      .rounded(3px);
+      margin-top: 2px;
+      margin-bottom: 2px;
+      display: block;
+      background: #b9e671;
+      color: #333;
+      .x {
+        float: right;
+        padding: 0 4px;
+        margin-left: 4px;
+        font-size: 12px;
+        color: #690;
+        .rounded(4px);
+        &:hover {
+          text-decoration: none;
+          background: lighten(#470,10%);
+          color: #fff;
+        }
+      }
     }
 }
 
@@ -824,8 +849,9 @@ ul.common-dataset-list {
   > table {
     width: 100%;
     max-width: 100%;
-    /* Clip top pixel (first horz line) */
-    margin-top: -1px;
+  }
+  tbody tr:first-child td {
+    border-top: 0;
   }
   tbody td {
     padding: 1px 0;
@@ -839,11 +865,9 @@ ul.common-dataset-list {
   }
   .resource-td-title {
     position: relative;
-    font-weight: bold;
     white-space: nowrap;
-    overflow: hidden;
     width: 100%;
-    max-width: 520px;
+    max-width: 508px;
     .text-overlay {
       position: absolute;
       font-weight: normal;
@@ -853,6 +877,7 @@ ul.common-dataset-list {
       > .btn {
         float: left;
         margin-right: 3px;
+        min-width: 46px;
       }
       > .btn-group {
         float: left;

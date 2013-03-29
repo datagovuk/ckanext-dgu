@@ -28,8 +28,10 @@
             ${h.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
           </py:if>
           <!-- Attached to timeseries resources and additional resources -->
-          ${res.get('date')}
-          ${h.resource_display_name(res)}
+          <div class="hover-text">
+            ${res.get('date')}
+            ${h.resource_display_name(res)}
+          </div>
           <div class="text-overlay">
             <py:if test="res.get('gemini',False)">
               <a href="${res.get('url', '')}" class="btn btn-primary" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">

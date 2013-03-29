@@ -133,10 +133,22 @@
       </div>
   </py:def>
 
+  <py:def function="facet_unline(facet_key,facet_value)">
+      <div class="facet-option facet-option-selected">
+        <a class="x" href="${c.remove_field(facet_key, facet_value)}">
+          x
+        </a>
+        ${facet_value}
+      </div>
+  </py:def>
+
   <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count', label=None)">
       <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
           <div class="facet-box">
               <h4>${title}</h4>
+              <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
+                ${facet_unline(facet_key,preselected)}
+              </py:for>
               <div class="facet-options">
                 <py:if test="more_button">
                     <py:for each="facet_item in facet_items[:5]">
@@ -150,10 +162,10 @@
                       </div>
                       <a id="${more_button}" class="facet-expand-collapse" href="#">
                         <div class="expander">
-                          <img src="/images/arrow-down.png"/>
+                          Show more items &raquo;
                         </div>
                         <div class="collapser">
-                          <img src="/images/arrow-up.png"/>
+                          &laquo; Show fewer items
                         </div>
                       </a>
                     </py:if>
