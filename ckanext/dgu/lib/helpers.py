@@ -1165,3 +1165,8 @@ def facet_values(facet_tuples, facet_key):
     values = sorted(values)
     return values
 
+def get_package_mini_metadata(pkg):
+    return {
+        'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
+        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y"),
+    }
