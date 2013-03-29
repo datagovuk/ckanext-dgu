@@ -804,7 +804,7 @@ def get_licenses(pkg):
         license_extra_url = None
         if license_extra.startswith('http'):
             license_extra_url = license_extra
-        licenses.append((license_extra, license_extra_url, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
+        licenses.append((license_extra, license_extra_url, True if ('OGL' in license_extra or 'OS OpenData Licence' in license_extra) else None))
 
     license_url = pkg.extras.get('licence_url')
     if license_url:
