@@ -78,7 +78,7 @@
 
     <div py:if="h.ga_report_installed()" class="widget-container">
         <h4>Popular datasets</h4>
-        ${h.most_popular_datasets(c.group, 10)}
+        ${h.most_popular_datasets(c.group, 5, preview_image="/images/graph_preview_thumbnail.png")}
     </div>
 
     <div class="widget-container">
