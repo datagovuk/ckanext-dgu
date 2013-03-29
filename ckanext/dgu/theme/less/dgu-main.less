@@ -707,21 +707,25 @@ ul#nav {
 /* Facet Menu */
 /* ---------- */
 .facet-box {
-    margin-left: -5px;
-    margin-right: -5px;
+  /*
     margin-bottom: 12px;
     padding: 8px 10px 8px 15px;
+    */
+    margin: 12px -17px 25px -17px;
     h4 {
         color: #656565;
-        padding-bottom: 5px;
-        margin: 0 -10px 8px -15px;
+        padding: 5px 22px;
+        margin: 0 0 0 0;
         border-bottom: 1px solid #aaa;
-        padding-left: 10px;
+    }
+    .facet-options {
+      padding: 4px 12px 4px 25px ;
     }
     .facet-expand-collapse {
         text-align: right;
         display: block;
-        padding-top: 3px;
+        padding: 5px 22px;
+        margin: 0 -17px;
         color: #999;
         font-weight: bold;
         /* Class 'expanded' changes children */
@@ -731,15 +735,9 @@ ul#nav {
         &.expanded .collapser { display: block; }
     }
     .facet-option-selected {
-      margin-left: -12px;
-      padding-left: 12px;
-      margin-right: -12px;
-      padding-right: 12px;
-      padding-top: 2px;
-      padding-bottom: 2px;
+      padding: 2px 8px 2px 13px;
+      margin: 2px 0 2px -13px;
       .rounded(3px);
-      margin-top: 2px;
-      margin-bottom: 2px;
       display: block;
       background: #b9e671;
       color: #333;

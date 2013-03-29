@@ -146,10 +146,10 @@
       <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
           <div class="facet-box">
               <h4>${title}</h4>
-              <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
-                ${facet_unline(facet_key,preselected)}
-              </py:for>
               <div class="facet-options">
+                <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
+                  ${facet_unline(facet_key,preselected)}
+                </py:for>
                 <py:if test="more_button">
                     <py:for each="facet_item in facet_items[:5]">
                         ${facet_line(facet_item, facet_key, label=label)}
