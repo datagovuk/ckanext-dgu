@@ -133,6 +133,7 @@ def command(config_file):
                 urls = [openspending_reports_url]
                 for publisher in publishers:
                     urls.append('%spublisher-%s.html' % (openspending_reports_url, publisher))
+
                 for url in urls:
                     try:
                         report_response = urllib2.urlopen(url).read()
@@ -145,7 +146,7 @@ def command(config_file):
                     else:
                         report_html = report_response
                         # remove header
-                        report_html = report_html.split('---')[-1]
+                        report_html = "".join(report_html.split('---')[2:])
                         # add import timestamp
                         report_html += '<p class="import-date">\n<a href="%s">Page</a> imported from <a href="http://openspending.org/">OpenSpending</a> on %s. Read more about <a href="http://openspending.org/resources/gb-spending/index.html">OpenSpending on data.gov.uk</a>\n</p>' % \
                                        (url.encode('utf8'),
