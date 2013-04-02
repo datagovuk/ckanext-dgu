@@ -1200,7 +1200,10 @@ def publisher_performance_data(publisher, include_sub_publishers):
     data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
     broken_count = len(data['data'])
 
-    pct = int(100 * float(broken_count)/float(rcount))
+    if broken_count == 0 or rcount == 0:
+        pct = 0
+    else:
+        pct = int(100 * float(broken_count)/float(rcount))
     log.debug("{d}% of resources in {p} are broken".format(d=pct, p=publisher.name))
 
     broken_links = 'green'
