@@ -231,10 +231,10 @@
     <div id="dataset-information">
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
-        <tr py:if="h.get_stars_aggregate(c.pkg.id)">
+        <tr>
           <td class="dataset-label">Openness score:</td>
           <td class="dataset-details">
-            ${h.render_stars(h.get_stars_aggregate(c.pkg.id).value, h.get_stars_aggregate(c.pkg.id).reason, h.get_stars_aggregate(c.pkg.id).last_updated)}
+            ${h.render_dataset_stars(c.pkg.id)}
           </td>
         </tr>
         <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras))">
