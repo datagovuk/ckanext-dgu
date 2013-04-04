@@ -1212,10 +1212,8 @@ def publisher_performance_data(publisher, include_sub_publishers):
     elif pct > 60:
         broken_links = 'red'
 
-    s = time.time()
     openness = ''
     total, counters = publib.openness_scores(publisher, include_sub_publishers)
-    log.debug("openness took {d} seconds".format(d=time.time()-s))
     number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
 
     above_3 = number_x_or_above(3)
@@ -1245,5 +1243,5 @@ def publisher_has_spend_data(publisher):
             'dgu.openspending_reports_dir',
             '/var/lib/ckan/dgu/openspending_reports'))
     pth = os.path.join(folder, nm)
-    log.info("Looking for {p}".format(p=pth))
+    log.debug("Looking for {p}".format(p=pth))
     return os.path.exists(pth)
