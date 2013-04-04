@@ -71,7 +71,10 @@ class ONSUpdateTask(CkanCommand):
         ckan = ckanclient.CkanClient(base_location=self.options.server or 'http://localhost/api',
                                      api_key=apikey)
 
-        opts = {'external_reference': 'ONSHUB', 'offset': 0, 'limit': 20} # WIP
+        opts = {#'external_reference': 'ONSHUB',
+                'offset': 0,
+                'limit': 0,
+                'publisher': 'office-for-national-statistics'}
         q = ''
         if len(self.args) == 1:
             q = self.args[0].replace(',', '')
@@ -88,28 +91,40 @@ class ONSUpdateTask(CkanCommand):
         resource_count = 0
         for dsname in datasets:
             dataset = ckan.package_entity_get(dsname)
+            if dataset['state'] != 'active':
+                log.info("Package %s is not active" % dsname)
+                continue
+
+            if dsname[0] in ['a', 'b', 'c']:
+                continue
+
             counter = counter + 1
             time.sleep(1)
 
             log.info('Processing %s' % (dsname,))
 
             moved_resources = False
-            new_resources = self.scrape_ons_publication(dataset)
+            l = self.scrape_ons_publication(dataset)
+            new_resources = sorted(l, key=lambda r: r['title']) if l else []
+
             if new_resources:
                 # Update the old resources, if they need to have their type set.
                 for r in dataset['resources']:
                     # Only move resources to documentation if they are a link to a documentation
                     # page and haven't been added by scraping.
-                    if r['resource_type'] != 'documentation' and not 'scraped_date' in r:
+                    if r['resource_type'] != 'documentation' and not 'scraped' in r:
+                        log.info("Marking resource documentation as it was not previously scraped")
                         r['resource_type'] = 'documentation'
                         moved_resources = True
                     else:
-                        log.info("Not moving resource with type %s, which has been scraped: %s" %
-                            (r['resource_type'], 'scraped_date' in r,))
+                        log.info("Not marking %s resource documentation, scraped? %s" %
+                            (r['resource_type'], 'scraped' in r))
+
 
                 # Save the update to the resources for this dataset if we moved
                 # any to become documentation
                 if moved_resources:
+                    dataset['resources'] = sorted(dataset['resources'], key=lambda r: r['name'])
                     ckan.package_entity_put(dataset)
 
                 for r in new_resources:
@@ -127,7 +142,9 @@ class ONSUpdateTask(CkanCommand):
                                               format=r['url'][-3:],
                                               description=r['description'],
                                               name=r['title'],
-                                              scraped_date=datetime.datetime.now().isoformat())
+                                              scraped=datetime.datetime.now().isoformat(),
+                                              scraper_source=r['original']['url'])
+                    log.info("Set source to %s" % r['original']['url'])
 
         self.csv_file.close()
         log.info("Processed %d datasets" % (counter))
