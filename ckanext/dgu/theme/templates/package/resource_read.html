@@ -143,9 +143,9 @@
           <h4 style="margin-bottom:0;">Format:</h4>
           ${c.resource.get('format') or 'Unknown'}
         </div>
-        <div py:if="h.get_resource_stars(c.resource['id']) >= 0">
-          <h4 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h4>
-          ${h.render_stars(h.get_resource_stars(c.resource['id']), h.star_report_reason(c.resource['id']), h.star_report_updated(c.resource['id']))}
+        <div>
+          <h4 style="margin-bottom:5px;">Openness Score:</h4>
+          ${h.render_resource_stars(c.resource['id'])}
         </div>
       </div>
 

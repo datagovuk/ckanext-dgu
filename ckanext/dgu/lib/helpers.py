@@ -357,6 +357,23 @@ def mini_stars_and_caption(num_stars):
         ]
     return literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
+def render_dataset_stars(dataset_id):
+    stars_dict = get_stars_aggregate(dataset_id)
+    if not stars_dict:
+        return 'To be determined'
+    return render_stars(stars_dict.value,
+                        stars_dict.reason,
+                        stars_dict.last_updated)
+
+def render_resource_stars(resource_id):
+    from ckanext.qa import reports
+    report = reports.resource_five_stars(resource_id)
+    if not report:
+        return 'To be determined'
+    return render_stars(report.get('openness_score', -1),
+                        report.get('openness_score_reason'),
+                        report.get('openness_updated'))
+
 def render_stars(stars, reason, last_updated):
     if stars==0:
         stars_html = 5 * icon('star-grey')
@@ -726,29 +743,6 @@ def get_wms_info_urls(pkg_dict):
 
 def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
-
-def get_resource_stars(resource_id):
-    from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    stars = report.get('openness_score', -1)
-    return stars
-
-def get_star_text(resource_id):
-    stars = get_resource_stars(resource_id)
-    stars_text = str(stars) + "/5"
-    if (stars==4):
-        stars_text = "4/5 or 5/5"
-    return stars_text
-
-def star_report_reason(resource_id):
-    from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    return report.get('openness_score_reason')
-
-def star_report_updated(resource_id):
-    from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    return report.get('openness_updated')
 
 def groups_as_json(groups):
     import json
