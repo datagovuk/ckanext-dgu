@@ -19,5 +19,52 @@
 	${ Markup( h.render_tree( groups ))  }
  </py:def>
 
+  <div py:def="publisher_traffic_lights(publisher)" class="widget-container sidebar-publisher-report">
+    <?python
+      import ckanext.dgu.lib.helpers as dgu_helpers
+      lights = dgu_helpers.publisher_performance_data(publisher, False)
+      css_light = { 
+        'green':'success',
+        'amber':'warning',
+        'red':'error' 
+      }
+      text_light = { 
+        'green':'No problems.',
+        'amber':'Minor problems.',
+        'red':'Major problems.' 
+      }
+      # Publisher performance data defaults to not including sub-orgs because
+      # the NHS has hundreds and it takes about 12s.
+    ?>
+    <h4>Publisher report</h4>
+    <div class="alert alert-${css_light[lights['broken_links']]}">
+      <a href="${h.url_for('qa_organisation_action_id', action='broken_resource_links', id=publisher.name)}">(details)</a>
+      <b>Broken Links: </b>
+      ${text_light[lights['broken_links']]}
+    </div>
+
+    <div class="alert alert-${css_light[lights['openness']]}">
+      <a href="${h.url_for('qa_organisation_action_id', action='scores', id=publisher.name)}">(details)</a>
+      <b>Openness: </b>
+      ${text_light[lights['openness']]}
+    </div>
+
+    <py:if test="dgu_helpers.publisher_has_spend_data(publisher)">
+      <div class="alert alert-info">
+        <a href="${h.url_for('openspending_publisher_report', id=publisher.name)}">(details)</a>
+        <b>Spend reports: </b> check publisher needs it.<br/>
+        (green for up-to-date, amber for up to 3 months out of date)
+      </div>
+    </py:if>
+
+    <py:if test="h.issues_installed()">
+      <div class="alert alert-${css_light[lights.get('issues')]}">
+        <a href="${h.url_for(controller='ckanext.issues.controller:IssueController',action='publisher_issue_page', publisher_id=publisher.id)}">(details)</a>
+        <b>Dataset issues: </b>
+        ${text_light[lights['issues']]}
+      </div>
+    </py:if>
+  </div>
+
 
 </html>

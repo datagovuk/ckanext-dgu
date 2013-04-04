@@ -10,10 +10,10 @@ setup(
     classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     namespace_packages=['ckanext', 'ckanext.dgu'],
     zip_safe=False,
-    author='Open Knowledge Foundation',
-    author_email='info@okfn.org',
+    author='Cabinet Office, Open Knowledge Foundation',
+    author_email='david.read@hackneyworkshop.com',
     license='AGPL',
-    url='http://ckan.org/',
+    url='http://data.gov.uk/',
     description='CKAN DGU extensions',
     keywords='data packaging component tool server',
     install_requires=[
@@ -38,7 +38,6 @@ setup(
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
-        dgu_dataset_extent_map = ckanext.dgu.plugin:DguDatasetExtentMap
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load

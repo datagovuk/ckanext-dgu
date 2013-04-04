@@ -21,7 +21,7 @@
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
 
     <div py:if="c.pkg_dict.get('state') == 'deleted'" class="state-box boxed">
-      <p>NB: This ${resource_type} is <strong>${'withdrawn' if h.dataset_type(c.pkg_extras) == 'uklp' else 'deleted'}</strong>. Only administrators can view it in this state.</p>
+      <p>NB: This ${h.dataset_type(c.pkg_extras)} is <strong>${'withdrawn' if h.dataset_type(c.pkg_extras) == 'uklp' else 'deleted'}</strong>. Only administrators can view it in this state.</p>
     </div>
 
     <py:if test="c.pkg_revision_id">
@@ -54,14 +54,14 @@
     <script type="text/javascript">
       var DATASET_ID = '${c.pkg_dict.get('id')}';
     </script>
-    <py:if test="c.dataset_extent">
+    <py:if test="h.get_extent()">
       <script src="http://osinspiremappingprod.ordnancesurvey.co.uk/libraries/openlayers-openlayers-56e25fc/OpenLayers.js" type="text/javascript"></script>
       <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-dataset-map.js')}"></script>
       <script type="text/javascript">
         $(document).ready(function(){
-            CKAN.DguDatasetMap.tiles_url = "${c.tiles_url_ckan}";
+            CKAN.DguDatasetMap.tiles_url = "${h.get_tiles_url()}";
             CKAN.DguDatasetMap.map_type = 'os';
-            CKAN.DguDatasetMap.extent = '${c.dataset_extent}';
+            CKAN.DguDatasetMap.extent = '${h.get_extent()}';
             CKAN.DguDatasetMap.setup();
         })
       </script>

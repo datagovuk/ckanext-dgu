@@ -135,9 +135,9 @@
             <div class="clearfix"></div>
           </div>
         </div>
-        <div py:if="h.get_resource_stars(c.resource['id']) >= 0">
-          <h3 style="margin-bottom:5px;">Openness Score: &nbsp;${h.get_star_text(c.resource['id'])}</h3>
-          ${h.render_stars(h.get_resource_stars(c.resource['id']), h.star_report_reason(c.resource['id']), h.star_report_updated(c.resource['id']))}
+        <div>
+          <h3 style="margin-bottom:5px;">Openness Score:</h3>
+          ${h.render_resource_stars(c.resource['id'])}
         </div>
       </div>
 

@@ -12,20 +12,25 @@
     <div id="openspending_browser" class="row">
       <div class="span8 main-outer1">
         <div class="boxed">
-          <div class="browser_datatable"></div>
-          <p>Created by:
+          <div class="browser_datatable"><p>Loading - please wait...</p></div>
+        </div>
+      </div>
+      <div class="span4 sidebar-outer1">
+        <div class="browser_faceter boxed table-striped"></div>
+        <div class="boxed">
+          <p>Browse and search through items of major government expenditure using this tool.</p>
+          <p>All spending transactions over £25,000 made by UK central government are published monthly by departments on data.gov.uk, as <a href="http://www.number10.gov.uk/news/statements-and-articles/2010/05/letter-to-government-departments-on-opening-up-data-51204">directed by the Prime Minister 31st May 2010</a>. OpenSpending downloads these spreadsheets, parses them and <a href="/data/openspending-report">reports on how up-to-date departments are</a> (inevitably a small fraction of the data doesn't parse). Finally the data is imported into this tool every month or two for easy searching and browsing. Download the <a href="http://data.etl.openspending.org/uk25k/">CSV source data</a>. The currently loaded data is this one: <a href="http://data.etl.openspending.org/uk25k/spending-20120821.csv">spending-20120821.csv (2.7GB)</a> which was last updated in August 2012.</p>
+          <p><a href="http://openspending.org/ukgov-25k-spending/meta">More about this data</a>.</p>
+          <p>This OpenSpending tool is provided by:
               <a href="http://okfn.org">
                 <img alt="Open Knowledge Foundation" src="/images/okf_logo.png" />
               </a>
           </p>
         </div>
       </div>
-      <div class="span4 sidebar-outer1">
-        <div class="browser_faceter boxed table-striped"></div>
-      </div>
     </div>
-   <script type="text/javascript" src="http://openspending.org/static/openspendingjs/lib/vendor/yepnope.min.js"></script>
-   <script type="text/javascript" src="http://clients.openspending.org/data.gov.uk/load.js" defer="defer"></script>    
+    <script type="text/javascript" src="http://openspending.org/static/openspendingjs/lib/vendor/yepnope.min.js"></script>
+    <script type="text/javascript" src="http://clients.openspending.org/data.gov.uk/load.js" defer="defer"></script>
   </div>
 
   <xi:include href="../layout.html" />

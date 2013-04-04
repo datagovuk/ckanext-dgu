@@ -140,12 +140,12 @@
             </table>
             </py:if>
 
-            <py:if test="c.dataset_extent">
+            <py:if test="h.get_extent()">
               <div id="dataset-map-attribution"></div>
             </py:if>
           </div>
           <!-- Dataset Extent Map (only if present) -->
-          <py:if test="c.dataset_extent">
+          <py:if test="h.get_extent()">
             <div id="dataset-map-container"></div>
           </py:if>
           <div class="clearfix"></div>
@@ -155,6 +155,7 @@
           <h3>Additional Links <span class="badge badge-inverse resources-badge">${len(h.additional_resources()) + len(h.gemini_resources())}</span></h3>
           ${resource_table(h.additional_resources() + h.gemini_resources())}
         </py:if>
+
         <py:if test="not (h.dataset_type(c.pkg_extras) == 'uklp' or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
           <em>(none)</em>
         </py:if>
@@ -168,10 +169,10 @@
     <div id="dataset-information">
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size metadata-table">
       <tbody>
-        <tr py:if="h.get_stars_aggregate(c.pkg.id)">
+        <tr>
           <td class="dataset-label">Openness score:</td>
           <td class="dataset-details">
-            ${h.render_stars(h.get_stars_aggregate(c.pkg.id).value, h.get_stars_aggregate(c.pkg.id).reason, h.get_stars_aggregate(c.pkg.id).last_updated)}
+            ${h.render_dataset_stars(c.pkg.id)}
           </td>
         </tr>
         <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras))">

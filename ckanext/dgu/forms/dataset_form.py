@@ -129,7 +129,6 @@ class DatasetForm(SingletonPlugin):
         c.publishers = self.get_publishers()
         c.publishers_json = json.dumps(c.publishers)
 
-        c.is_sysadmin = Authorizer().is_sysadmin(c.user)
         c.resource_columns = ('description', 'url', 'format')
 
         ## This is messy as auths take domain object not data_dict

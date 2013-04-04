@@ -381,25 +381,3 @@ class ApiPlugin(SingletonPlugin):
         map.connect('/api/util/dataset-count', controller=api_controller, action='dataset_count')
         return map
 
-class DguDatasetExtentMap(SingletonPlugin):
-
-    implements(IGenshiStreamFilter)
-
-    def filter(self, stream):
-        from pylons import request, tmpl_context as c
-
-        route_dict = request.environ.get('pylons.routes_dict')
-        route = '%s/%s' % (route_dict.get('controller'), route_dict.get('action'))
-        routes_to_filter = config.get('ckan.spatial.dataset_extent_map.routes', 'package/read').split(' ')
-        if route in routes_to_filter and hasattr(c.pkg, 'id') and c.pkg.id:
-            extent = c.pkg.extras.get('spatial',None)
-            if extent:
-                GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
-                            'osinspiremappingprod.ordnancesurvey.co.uk') # Not '46.137.180.108'
-                c.tiles_url_ckan = config.get('ckanext-os.tiles.url', 'http://%s/geoserver/gwc/service/wms' % GEOSERVER_HOST)
-                api_key = config.get('ckanext-os.geoserver.apikey', '')
-                if api_key:
-                    c.tiles_url_ckan+= '?key=%s' % quote(api_key)
-                c.dataset_extent = extent
-        return stream
-

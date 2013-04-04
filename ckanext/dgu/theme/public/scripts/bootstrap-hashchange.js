@@ -134,8 +134,9 @@
   * ============ */
 
   $(document).on('click.tab.data-api', '[data-toggle="hashtab"], [data-toggle="hashpill"]', function (e) {
-    e.preventDefault()
-    $(this).hashtab('show')
+    e.preventDefault();
+    var disabled = $(this).attr('disabled') == 'disabled';
+    if (!disabled) { $(this).hashtab('show') }
   })
 
   /* HANDLE HASH CHANGES
@@ -146,7 +147,9 @@
       var hash = window.location.hash;
       if (hash.substr(0,5)=='#tab-') {
         var href = '#'+hash.substr(5);
-        $('a[data-toggle="hashtab"][href="'+href+'"]').hashtab('show');
+        var link = $('a[data-toggle="hashtab"][href="'+href+'"]');
+        var disabled = link.attr('disabled') == 'disabled';
+        if (!disabled) { link.hashtab('show'); }
       }
     });
     // Handle initial state
