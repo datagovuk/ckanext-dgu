@@ -72,8 +72,9 @@ ${h.top_level_init()}
              controller-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[0].split('.')[-1]}
              ${request.environ.get('pylons.routes_dict', {}).get('action')}
              ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
-             ${defined('body_class') and body_class()}
-  ">
+             ${defined('body_class') and body_class()}"
+      id="${defined('body_id') and body_id()}"
+  >
   <div id="blackbar" py:choose="defined('blackbar_content')">
     <py:when test="True">
       ${blackbar_content()}
