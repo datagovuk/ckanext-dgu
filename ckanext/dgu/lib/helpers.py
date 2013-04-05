@@ -360,9 +360,9 @@ def render_dataset_stars(dataset_id):
     stars_dict = get_stars_aggregate(dataset_id)
     if not stars_dict:
         return 'To be determined'
-    return render_stars(stars_dict.value,
-                        stars_dict.reason,
-                        stars_dict.last_updated)
+    return render_stars(stars_dict['value'],
+                        stars_dict['reason'],
+                        stars_dict['last_updated'])
 
 def render_resource_stars(resource_id):
     from ckanext.qa import reports
