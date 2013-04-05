@@ -11,7 +11,6 @@ from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
 from ckan.plugins import ITemplateHelpers
-from ckan.plugins import IGenshiStreamFilter
 from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
@@ -379,5 +378,6 @@ class ApiPlugin(SingletonPlugin):
         api_controller = 'ckanext.dgu.controllers.api:DguApiController'
         map.connect('/api/util/latest-datasets', controller=api_controller, action='latest_datasets')
         map.connect('/api/util/dataset-count', controller=api_controller, action='dataset_count')
+        map.connect('/api/util/revisions', controller=api_controller, action='revisions')
         return map
 
