@@ -12,13 +12,14 @@ import urllib
 from urlparse import urljoin
 from itertools import dropwhile
 import datetime
+import random
 
 import ckan.plugins.toolkit as t
-from webhelpers.html import literal
+c = t.c
 from webhelpers.text import truncate
-from pylons import tmpl_context as c, config
+from pylons import config
 
-from ckan.lib.helpers import icon, json
+from ckan.lib.helpers import icon, icon_html, json
 import ckan.lib.helpers
 from ckan.controllers.package import search_url, url_with_params
 from publisher_node import PublisherNode
@@ -243,10 +244,9 @@ def resource_display_name(resource_dict):
         return '[%s] %s' % (noname_string, resource_dict['id'])
 
 def _search_with_filter(k_search,k_replace):
-    from ckan.lib.base import request
     from ckan.controllers.package import search_url
     # most search operations should reset the page counter:
-    params_nopage = [(k, v) for k,v in request.params.items() if k != 'page']
+    params_nopage = [(k, v) for k,v in t.request.params.items() if k != 'page']
     params = set(params_nopage)
     params_filtered = set()
     for (k,v) in params:
@@ -273,7 +273,6 @@ def predict_if_resource_will_preview(resource_dict):
 def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
     from ckan import model
     from ckan.lib.base import h
-    from ckanext.dgu.plugins_toolkit import c
 
     if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
         return user
@@ -306,12 +305,12 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
         import ckan.authz
         if user:
             groups = user.get_groups('publisher')
-            if groups:
-                return h.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
+            if is_sysadmin(user):
+                return 'System Administrator'
+            elif groups:
+                return t.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
                                                      '/publisher/%s' % group.name) \
                                          for group in groups]))
-            elif ckan.authz.Authorizer().is_sysadmin(user):
-                return 'System Administrator'
             else:
                 return 'Staff'
         else:
@@ -355,15 +354,15 @@ def mini_stars_and_caption(num_stars):
         'Linkable data - served at URIs (e.g. RDF)',
         'Linked data - data URIs and linked to other data (e.g. RDF)'
         ]
-    return literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
+    return t.literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
 def render_dataset_stars(dataset_id):
     stars_dict = get_stars_aggregate(dataset_id)
     if not stars_dict:
         return 'To be determined'
-    return render_stars(stars_dict.value,
-                        stars_dict.reason,
-                        stars_dict.last_updated)
+    return render_stars(stars_dict['value'],
+                        stars_dict['reason'],
+                        stars_dict['last_updated'])
 
 def render_resource_stars(resource_id):
     from ckanext.qa import reports
@@ -380,16 +379,16 @@ def render_stars(stars, reason, last_updated):
     else:
         stars_html = stars * icon('star')
 
-    tooltip = literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
+    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > stars) else ''
-        tooltip += literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
+        tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
     if last_updated:
         datestamp = last_updated.strftime('%d/%m/%Y')
-        tooltip += literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
+        tooltip += t.literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
-    return literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
+    return t.literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
 
 def scraper_icon(res, alt=None):
     if not alt and 'scraped' in res and 'scraper_source' in res:
@@ -486,7 +485,7 @@ def dgu_resource_icon(res):
     if fmt is not None and fmt['icon']!='':
         icon_name = fmt['icon']
     url = '/images/fugue/%s.png' % icon_name
-    return ckan.lib.helpers.icon_html(url)
+    return icon_html(url)
 
 
 def name_for_uklp_type(package):
@@ -524,12 +523,10 @@ def formats_for_package(package):
     return formats
 
 def link_subpub():
-    from ckan.lib.base import request
-    return request.params.get('publisher','') and not request.params.get('parent_publishers','')
+    return t.request.params.get('publisher','') and not t.request.params.get('parent_publishers','')
 
 def facet_params_to_keep():
-    from ckan.lib.base import request
-    return [(k, v) for k,v in request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
+    return [(k, v) for k,v in t.request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
 
 def stars_label(stars):
     try:
@@ -552,7 +549,6 @@ def uklp_display_provider(package):
     return providers[0]['value'] if len(providers) else ''
 
 def random_tags():
-    import random
     from ckan.lib.base import h
     tags = h.unselected_facet_items('tags', limit=20)
     random.shuffle(tags)
@@ -560,8 +556,6 @@ def random_tags():
 
 def get_resource_fields(resource, pkg_extras):
     from ckan.lib.base import h
-    import re
-    import datetime
     from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
     field_names = ResourceFieldNames()
@@ -575,7 +569,7 @@ def get_resource_fields(resource, pkg_extras):
         'content_type': {'label': 'Content Type', 'value': ''},
         'scraper_url': {'label': 'Scraper',
             'label_title':'URL of the scraper used to obtain the data',
-            'value': h.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
+            'value': t.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraped')},
@@ -597,9 +591,7 @@ def get_resource_fields(resource, pkg_extras):
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
 def get_package_fields(package, pkg_extras, dataset_type):
-    import re
     from ckan.lib.base import h
-    from webhelpers.text import truncate
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
@@ -668,7 +660,6 @@ def get_package_fields(package, pkg_extras, dataset_type):
     primary_theme = pkg_extras.get('theme-primary') or ''
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
-        from ckan.lib.helpers import json
         try:
             # JSON for multiple values
             secondary_themes = ', '.join(json.loads(secondary_themes))
@@ -682,7 +673,7 @@ def get_package_fields(package, pkg_extras, dataset_type):
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
         'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': h.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
+        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
         'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
         'date-added-computed': {'label': 'Date added to data.gov.uk', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
         'date-updated-computed': {'label': 'Date updated on data.gov.uk', 'label_title': 'Date this record was updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
@@ -714,27 +705,23 @@ def results_sort_by():
     # Default to location if there is a bbox and no other parameters. Otherwise
     # relevancy if there is a keyword, otherwise popularity.
     # NB This ties in with the default sort set in ckanext/dgu/plugin.py
-    from ckan.lib.base import request
-    bbox = request.params.get('ext_bbox')
-    search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items()
+    bbox = t.request.params.get('ext_bbox')
+    search_params_apart_from_bbox_or_sort = [key for key, value in t.request.params.items()
                                          if key not in ('ext_bbox', 'sort') and value != '']
     return c.sort_by_fields or ('spatial' if not sort_by_location_disabled() else ('rank' if c.q else 'popularity'))
 
 def sort_by_location_disabled():
     # TODO: Duplicated code from above, needs tidying
-    from ckan.lib.base import request
-    bbox = request.params.get('ext_bbox')
-    search_params_apart_from_bbox_or_sort = [key for key, value in request.params.items()
+    bbox = t.request.params.get('ext_bbox')
+    search_params_apart_from_bbox_or_sort = [key for key, value in t.request.params.items()
                                          if key not in ('ext_bbox', 'sort') and value != '']
     return not(bool(bbox and not search_params_apart_from_bbox_or_sort))
 
 def relevancy_disabled():
-    from ckan.lib.base import request
-    return not(bool(request.params.get('q')))
+    return not(bool(t.request.params.get('q')))
 
 def get_resource_formats():
     from ckanext.dgu.lib.formats import Formats
-    import json
     return json.dumps(Formats.by_display_name().keys())
 
 
@@ -745,7 +732,6 @@ def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
 
 def groups_as_json(groups):
-    import json
     return json.dumps([group.title for group in groups])
 
 def user_display_name(user):
@@ -774,8 +760,7 @@ def spending_published_by(group_extras):
 
 def advanced_search_url():
     from ckan.controllers.package import search_url
-    from ckan.lib.base import request
-    params = dict(request.params)
+    params = dict(t.request.params)
     if not 'publisher' in params:
         params['parent_publishers'] = c.group.name
     return search_url(params.items())
@@ -806,13 +791,13 @@ def get_licenses(pkg):
     licence_extra_list = json_list(pkg.extras.get('licence') or '')
     for licence_extra in licence_extra_list:
         if licence_extra.startswith('http'):
-            licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
+            licence_extra = t.literal('<a href="%s">%s</a>' % (licence_extra, licence_extra))
             licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
 
     licence_url = pkg.extras.get('licence_url')
     if licence_url:
         licence_url_title = pkg.extras.get('licence_url_title') or licence_url
-        licence_html = HTML('<a href="%s">%s</a>' % (licence_url, licence_url_title))
+        licence_html = t.literal('<a href="%s">%s</a>' % (licence_url, licence_url_title))
         licenses.append((licence_html, True if (licence_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf') else None))
     return licenses
 
@@ -883,14 +868,11 @@ def is_sysadmin(u=None):
     user = u or c.userobj
     if not user:
         return False
-    return Authorizer().is_sysadmin(u or c.userobj)
+    return Authorizer().is_sysadmin(user)
 
 def prep_user_detail():
-    from ckan import model
-    from ckan.authz import Authorizer
-
     # Non-sysadmins cannot see personally identifiable information
-    if not c.is_myself and not Authorizer().is_sysadmin(c.user):
+    if not c.is_myself and not is_sysadmin():
         c.user_dict['about']        = ''
         c.about_formatted           = ''
         c.user_dict['display_name'] = c.user_dict['name']
@@ -900,10 +882,9 @@ def prep_user_detail():
 
 def user_get_groups(uid):
     from ckan import model
-    from ckan.authz import Authorizer
     groups = []
     u = model.User.get(uid)
-    if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or Authorizer().is_sysadmin(c.user):
+    if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or is_sysadmin():
         groups = u.get_groups('publisher' )
     return groups
 
@@ -1043,7 +1024,6 @@ def edit_publisher_group(data):
     return c.publishers.get(group_name, {}) if group_id else data
 
 def secondary_themes(data):
-    import re
     secondary_themes_raw = data.get('theme-secondary', '')
     if isinstance(secondary_themes_raw, basestring):
       secondary_themes = set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
@@ -1052,7 +1032,6 @@ def secondary_themes(data):
     return secondary_themes
 
 def free_tags(data):
-    import re
     all_tags = [t['name'] for t in data.get('tags', [])]
     return set(all_tags) - set([data.get('theme-primary', '')]) - secondary_themes(data)
 
@@ -1141,13 +1120,12 @@ def get_extent():
     return  c.pkg.extras.get('spatial', False)
 
 def get_tiles_url():
-    from urllib import quote
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
                 'osinspiremappingprod.ordnancesurvey.co.uk') # Not '46.137.180.108'
     tiles_url_ckan = config.get('ckanext-os.tiles.url', 'http://%s/geoserver/gwc/service/wms' % GEOSERVER_HOST)
     api_key = config.get('ckanext-os.geoserver.apikey', '')
     if api_key:
-        tiles_url_ckan+= '?key=%s' % quote(api_key)
+        tiles_url_ckan+= '?key=%s' % urllib.quote(api_key)
     return tiles_url_ckan
 
 

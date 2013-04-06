@@ -1,5 +1,6 @@
 import copy
 from nose.tools import assert_equal
+from nose.plugins.skip import SkipTest
 
 from ckan import model
 from ckan.lib.munge import munge_title_to_name
@@ -224,6 +225,7 @@ class TestDguApi(ControllerTestCase, TestSearchIndexer):
         assert 'application/json' in content_type, content_type
         res = json.loads(result.body)
         assert isinstance(res, list), res
+        assert 6 <= len(res) <= 10, len(res) # default number of revisions returned
         pkg = res[0]
         assert_equal(pkg['name'], 'latest')
         assert_equal(pkg['notes'], '<b>Latest</b> dataset.')
@@ -231,6 +233,139 @@ class TestDguApi(ControllerTestCase, TestSearchIndexer):
         assert set(pkg.keys()) >= set(('title', 'dataset_link', 'notes', 'publisher_title', 'publisher_link', 'metadata_modified')), pkg.keys()
 
         # try dataset_link
+        res = self.app.get(pkg['dataset_link'], status=[200])
+        assert 'latest' in res.body
+
+        # try publisher_link
+        res = self.app.get(pkg['publisher_link'], status=[200])
+        assert 'National Health Service' in res.body, res
+
+def pkg_id(pkg_name):
+    return model.Package.by_name(pkg_name).id
+
+class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
+    # i.e. the CKAN API that Drupal accesses
+    @classmethod
+    def setup_class(cls):
+        DguCreateTestData.create_dgu_test_data()
+        DguCreateTestData.create_arbitrary({'name': 'latest',
+                                            'notes': '<b>Latest</b> dataset.',
+                                            'tags': ['tag1', 'tag2'],
+                                            'extras': {'key': 'value'},
+                                            'groups': ['national-health-service']})
+        cls._assert_revision_created()
+
+
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+    def _last_revision(self):
+        '''Asks the Revision API to return the last revision.'''
+        rev = model.Session.query(model.Revision) \
+              .order_by(model.Revision.timestamp.desc()) \
+              .first()
+        offset = '/api/util/revisions?since-revision-id=%s' % rev.id
+        result = self.app.get(offset, status=[200])
+        res = json.loads(result.body)
+        assert isinstance(res, dict), res
+        return res
+
+    @classmethod
+    def _assert_revision_created(cls):
+        '''Asserts that a revision has been created since last time
+        this method was run.'''
+        latest_rev = model.Session.query(model.Revision) \
+                     .order_by(model.Revision.timestamp.desc()) \
+                     .first()
+        if '_previous_rev' in dir(cls):
+            assert latest_rev != cls._previous_rev
+        cls._previous_rev = latest_rev
+
+    def test_revision__package_create(self):
+        rev = model.repo.new_revision()
+        model.Session.add(model.Package(name='latest1', notes='<b>Latest1</b> dataset.'))
+        model.repo.commit_and_remove()
+        self._assert_revision_created()
+        res = self._last_revision()
+        assert_equal(res['datasets'][0]['name'], 'latest1')
+
+    def test_revision__package_edit(self):
+        rev = model.repo.new_revision()
+        model.Package.by_name('latest').version='changed'
+        model.repo.commit_and_remove()
+        self._assert_revision_created()
+        res = self._last_revision()
+        assert_equal(res['datasets'][0]['name'], 'latest')
+
+    def test_revision__tag(self):
+        rev = model.repo.new_revision()
+        tag = model.Tag.by_name('tag1')
+        model.Package.by_name('latest').remove_tag(tag)
+        model.repo.commit_and_remove()
+        self._assert_revision_created()
+        res = self._last_revision()
+        assert_equal(res['datasets'][0]['name'], 'latest')
+
+    def test_revision__extra(self):
+        rev = model.repo.new_revision()
+        model.Package.by_name('latest').extras = {u'genre':'romantic novel'}
+        model.repo.commit_and_remove()
+        self._assert_revision_created()
+        res = self._last_revision()
+        assert_equal(res['datasets'][0]['name'], 'latest')
+
+    def test_revision__resource_addition(self):
+        rev = model.repo.new_revision()
+        res = model.Resource(description="April to September 2010",
+                             format="CSV",
+                             url="http://www.barnsley.nhs.uk/spend.csv")
+        model.Session.add(res)
+        model.Package.by_name('latest').resource_groups[0].resources.append(res)
+        model.repo.commit_and_remove()
+        self._assert_revision_created()
+        res = self._last_revision()
+        assert_equal(res['datasets'][0]['name'], 'latest')
+
+    def test_revision__group(self):
+        rev = model.repo.new_revision()
+        pkg = model.Package.by_name('latest')
+        group = model.Group.by_name('dept-health')
+        membership1 = model.Session.query(model.Member).filter_by(table_id=pkg.id).delete()
+        model.Session.add(model.Member(group=group, table_id=pkg.id, table_name='package'))
+        model.repo.commit_and_remove()
+        self._assert_revision_created()
+        res = self._last_revision()
+        assert_equal(res['datasets'][0]['name'], 'latest')
+
+    def test_revisions__since_revision_id__latest(self):
+        # Get the last 2 revisions. The last one is empty, created needlessly by
+        # create_arbitrary. The last but one revision has the package revision in it.
+        # If other tests run first, then the last revision has the package in it in
+        # some form or another.
+        revs = model.Session.query(model.Revision) \
+              .order_by(model.Revision.timestamp.desc()) \
+              .all()
+        rev = revs[1]
+        offset = '/api/util/revisions?since-revision-id=%s' % rev.id
+        result = self.app.get(offset, status=[200])
+        res = json.loads(result.body)
+        assert isinstance(res, dict), res
+        assert set(res.keys()) >= set(('since_time', 'datasets')), res.keys()
+        assert_equal(res['since_revision_id'], rev.id)
+        assert_equal(res['newest_revision_id'], revs[0].id)
+        assert_equal(res['number_of_revisions'], 2)
+        assert_equal(res['results_limited'], False)
+        pkgs = res['datasets']
+        pkg = pkgs[0]
+        assert_equal(pkg['name'], 'latest')
+        assert_equal(pkg['notes'].strip(), 'Latest dataset.')
+        assert pkg['publisher_title'] in ('National Health Service', 'Department of Health'), pkg['publisher_title']
+        assert set(pkg.keys()) >= set(('title', 'dataset_link', 'notes', 'publisher_title', 'publisher_link', 'metadata_modified')), pkg.keys()
+
+        # try dataset_link
+        if model.engine_is_sqlite():
+            raise SkipTest("Link tests need postgres")
         res = self.app.get(pkg['dataset_link'], status=[200])
         assert 'latest' in res.body
 
