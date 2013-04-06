@@ -1,6 +1,40 @@
 @import "bootstrap.min.css.less";
 @import "elements.less";
 
+@font-face {
+    font-family: 'bebas_neueregular';
+    src: url('/font/babasneue/bebasneue-webfont.eot');
+    src: url('/font/babasneue/bebasneue-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/font/babasneue/bebasneue-webfont.woff') format('woff'),
+         url('/font/babasneue/bebasneue-webfont.ttf') format('truetype'),
+         url('/font/babasneue/bebasneue-webfont.svg#bebas_neueregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'actorregular';
+    src: url('/font/actor/actor-regular-webfont.eot');
+    src: url('/font/actor/actor-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/font/actor/actor-regular-webfont.woff') format('woff'),
+         url('/font/actor/actor-regular-webfont.ttf') format('truetype'),
+         url('/font/actor/actor-regular-webfont.svg#actorregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+/* Alternate fonts */
+/* --------------- */
+/*
+body {
+    font-family: actorregular;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'bebas_neueregular', Helvetica Neue, Helvetica;
+}
+*/
+
+
 /* Root Elements */
 /* ------------- */
 body {
@@ -608,6 +642,8 @@ ul#nav {
         input[type="text"] {
             position: absolute;
             width: auto;
+            /* IE hack */
+            *width: 84%;
             left: 8px;
             right: 86px;
             top: 11px;
@@ -641,6 +677,7 @@ ul#nav {
     }
     .facet {
         color: #333;
+        white-space: nowrap;
         font-size: 11px;
         background: lighten(#A4DF45,10%);
         margin: 0 5px 2px 5px;
@@ -648,7 +685,9 @@ ul#nav {
         float: left;
         .rounded(3px);
         .x {
-          float: right;
+          display: inline-block;
+          zoom: 1;
+          *display: inline;
           padding: 0 4px;
           margin-left: 4px;
           font-size: 12px;
@@ -715,7 +754,7 @@ ul#nav {
     h4 {
         color: #656565;
         padding: 5px 22px;
-        margin: 0 0 0 0;
+        margin: 0 7px;
         border-bottom: 1px solid #aaa;
     }
     .facet-options {
@@ -801,6 +840,8 @@ ul.common-dataset-list {
         margin-left: -17px;
         margin-right: -17px;
         color: #690;
+        word-wrap: break-word;
+        white-space: normal;
     }
     .dataset-header:hover {
         text-decoration: none;
@@ -817,12 +858,9 @@ ul.common-dataset-list {
         font-size: 12px;
         line-height: 18px;
     }
-    .format-list {
-      margin-left: 8px;
-      float: right;
-      .format-box {
-        float: right; 
-      }
+    .format-box {
+      float: right; 
+      margin-top: -2px;
     }
     .map-buttons {
         float: right;
@@ -859,7 +897,7 @@ ul.common-dataset-list {
   .resource-td-format {
     padding-left: 5px;
     padding-right: 2px;
-    width: 0;
+    overflow: visible;
   }
   .resource-td-title {
     position: relative;
@@ -1106,6 +1144,10 @@ body.controller-data.action-index {
 /* PAGE: Publisher/read */
 /* -------------------- */
 body.controller-publisher.action-read {
+    h1 .btn.edit {
+      float: right;
+      margin-left: 10px;
+    }
     .feed-icon {
       img {
         margin: -4px 0 0 4px;
@@ -1363,9 +1405,12 @@ body.controller-user.action-read {
 }
 /* PAGE: Publisher/index */
 /* -------------------- */
-body.controller-publisher.action-edit {
+body.controller-publisher.action-index {
     table.groups th {
         text-align: left;
+    }
+    .pagination-alphabet a {
+        padding: 0 5px;
     }
 }
 /* PAGE: Publisher/edit */

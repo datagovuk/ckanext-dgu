@@ -80,15 +80,12 @@
   </py:def>
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
-    <div class="pull-right">${openness_image(h.get_dataset_openness(c.pkg))}</div>
-
 
     <!-- Overview Section -->
     <div id="dataset-overview">
 
       <!-- Description -->
       <div py:if="str(c.pkg_notes_formatted).strip()">
-        <h3>Description</h3>
         <!--! Optional logo -->
         <div py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'">
           <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">

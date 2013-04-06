@@ -46,8 +46,8 @@
         <table class="facet-table">
           <py:def function="facet(label,kill_link)">
             <div class="facet">
-              <a class="x" href="${kill_link}">x</a>
               ${label}
+              <a class="x" href="${kill_link}">x</a>
             </div>
           </py:def>
           <py:for each="field in h.facet_keys(c.fields)">
@@ -89,12 +89,9 @@
      <div py:with="title=package.get('title') or package.get('name')">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
-         <div class="format-list">
-           <py:for each="format in h.formats_for_package(package)">
-             ${format_box(format.lower())}
-           </py:for>
-           <div class="clearfix"></div>
-         </div>
+         <py:for each="format in h.formats_for_package(package)">
+           ${format_box(format.lower())}
+         </py:for>
          <h3><span class="underlined">${title}</span></h3>
        </a>
        <span class="property pull-right">
@@ -162,10 +159,10 @@
                       </div>
                       <a id="${more_button}" class="facet-expand-collapse" href="#">
                         <div class="expander">
-                          Show more items &raquo;
+                          [ more ]
                         </div>
                         <div class="collapser">
-                          &laquo; Show fewer items
+                          [ less ]
                         </div>
                       </a>
                     </py:if>
