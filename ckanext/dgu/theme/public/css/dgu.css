@@ -889,7 +889,7 @@ ul.common-dataset-list{list-style-type:none;margin-left:0;}ul.common-dataset-lis
 .resource-table{overflow:hidden;}.resource-table>table{width:100%;max-width:100%;}
 .resource-table tbody tr:first-child td{border-top:0;}
 .resource-table tbody td{padding:1px 0;vertical-align:middle;height:28px;}
-.resource-table .resource-td-format{padding-left:5px;padding-right:2px;overflow:visible;}
+.resource-table .resource-td-format{padding-left:5px;padding-right:2px;overflow:visible;}.resource-table .resource-td-format .format-box{float:none;}
 .resource-table .resource-td-title{position:relative;white-space:nowrap;width:100%;max-width:508px;}.resource-table .resource-td-title .text-overlay{position:absolute;font-weight:normal;right:0;top:1px;background:#fff;}.resource-table .resource-td-title .text-overlay>.btn{float:left;margin-right:3px;min-width:46px;}
 .resource-table .resource-td-title .text-overlay>.btn-group{float:left;}
 .metadata-table td.dataset-label{font-weight:bold;text-align:right;width:180px;}
