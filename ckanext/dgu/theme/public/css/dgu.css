@@ -1745,6 +1745,51 @@ table.table thead .sorting_asc {
     font-size: 14px;
     background-color: white;
 }
+ #openspending_browser .dataTables_wrapper .dataTables_filter label {
+    font-size: 0em;
+    float: none;
+    width: 85%;
+}
+
+#openspending_browser .dataTables_wrapper .dataTables_filter input {
+  padding: 0.5em;
+  width: 98%;
+  margin-top: -0.5em;
+}
+
+#openspending_browser tr th {
+  width: 6em;
+}
+
+#openspending_browser h4 {
+  color: #656565;
+  padding-bottom: 3px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #CCC;
+}
+
+#openspending_browser tr th:first-child {
+  width: 3em !important;
+}
+
+#openspending_browser tr th:last-child {
+  width: 3em !important;
+}
+
+#openspending_browser .facets {
+  display: block;
+  max-height: 20em;
+  overflow-y: scroll;
+  width: 100%;
+  border-bottom: 1px solid #DDD;
+  border-radius: 0px;
+}
+#openspending_browser .unfilter {
+  font-weight: bold;
+  color: red !important;
+}
+
+
 
 .table-lat-long {
 }
