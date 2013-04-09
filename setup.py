@@ -74,6 +74,7 @@ setup(
         scrape_resources = ckanext.dgu.bin.scrape_resources:ScrapeResources
         ons_scrape = ckanext.dgu.bin.ons_scraper:ONSUpdateTask
         selenium_tests = ckanext.dgu.commands.selenium_tests:TestRunner
+        build_void = ckanext.dgu.commands.void_constructor:VoidConstructor
     """,
     test_suite = 'nose.collector',
 )
