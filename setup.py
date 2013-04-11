@@ -75,6 +75,7 @@ setup(
         ons_scrape = ckanext.dgu.bin.ons_scraper:ONSUpdateTask
         selenium_tests = ckanext.dgu.commands.selenium_tests:TestRunner
         build_void = ckanext.dgu.commands.void_constructor:VoidConstructor
+        stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
     """,
     test_suite = 'nose.collector',
 )
