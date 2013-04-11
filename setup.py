@@ -74,6 +74,7 @@ setup(
         update_licenses = ckanext.dgu.commands.license_updates:UpdateLicense
         scrape_resources = ckanext.dgu.bin.scrape_resources:ScrapeResources
         selenium_tests = ckanext.dgu.commands.selenium_tests:TestRunner
+        stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
     """,
     test_suite = 'nose.collector',
 )
