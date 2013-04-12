@@ -1,6 +1,7 @@
 import copy
 from nose.tools import assert_equal
 from nose.plugins.skip import SkipTest
+from urllib import urlencode
 
 from ckan import model
 from ckan.lib.munge import munge_title_to_name
@@ -254,6 +255,7 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
                                             'extras': {'key': 'value'},
                                             'groups': ['national-health-service']})
         cls._assert_revision_created()
+        model.Session.remove() # ensure last revision appears
 
 
     @classmethod
@@ -338,22 +340,29 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
         res = self._last_revision()
         assert_equal(res['datasets'][0]['name'], 'latest')
 
-    def test_revisions__since_revision_id__latest(self):
-        # Get the last 2 revisions. The last one is empty, created needlessly by
+    def _get_revisions(self):
+        return model.Session.query(model.Revision) \
+              .order_by(model.Revision.timestamp.asc()) \
+              .all()
+
+    def _get_last_and_penultimate_revisions(self):
+        # Get the last revision and penultimate one.
+        # The last one is empty, created needlessly by
         # create_arbitrary. The last but one revision has the package revision in it.
         # If other tests run first, then the last revision has the package in it in
         # some form or another.
-        revs = model.Session.query(model.Revision) \
-              .order_by(model.Revision.timestamp.desc()) \
-              .all()
-        rev = revs[1]
+        revs = self._get_revisions()
+        return revs[-1], revs[-2]
+
+    def test_revisions__since_revision_id__latest(self):
+        last_rev, rev = self._get_last_and_penultimate_revisions()
         offset = '/api/util/revisions?since-revision-id=%s' % rev.id
         result = self.app.get(offset, status=[200])
         res = json.loads(result.body)
         assert isinstance(res, dict), res
-        assert set(res.keys()) >= set(('since_time', 'datasets')), res.keys()
+        assert set(res.keys()) >= set(('since_timestamp', 'datasets')), res.keys()
         assert_equal(res['since_revision_id'], rev.id)
-        assert_equal(res['newest_revision_id'], revs[0].id)
+        assert_equal(res['newest_revision_id'], last_rev.id)
         assert_equal(res['number_of_revisions'], 2)
         assert_equal(res['results_limited'], False)
         pkgs = res['datasets']
@@ -361,7 +370,7 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
         assert_equal(pkg['name'], 'latest')
         assert_equal(pkg['notes'].strip(), 'Latest dataset.')
         assert pkg['publisher_title'] in ('National Health Service', 'Department of Health'), pkg['publisher_title']
-        assert set(pkg.keys()) >= set(('title', 'dataset_link', 'notes', 'publisher_title', 'publisher_link', 'metadata_modified')), pkg.keys()
+        assert set(pkg.keys()) >= set(('title', 'dataset_link', 'notes', 'publisher_title', 'publisher_link')), pkg.keys()
 
         # try dataset_link
         if model.engine_is_sqlite():
@@ -372,3 +381,27 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
         # try publisher_link
         res = self.app.get(pkg['publisher_link'], status=[200])
         assert 'National Health Service' in res.body, res
+
+    def test_revisions__since_timestamp(self):
+        last_rev, rev = self._get_last_and_penultimate_revisions()
+        offset = '/api/util/revisions?%s' % urlencode({'since-timestamp': rev.timestamp})
+        result = self.app.get(offset, status=[200])
+        res = json.loads(result.body)
+        assert isinstance(res, dict), res
+        assert set(res.keys()) >= set(('since_timestamp', 'datasets')), res.keys()
+        assert_equal(res['since_revision_id'], rev.id)
+        assert_equal(res['newest_revision_id'], last_rev.id)
+        assert_equal(res['number_of_revisions'], 2)
+        assert_equal(res['results_limited'], False)
+
+    def test_revisions__in_last_x_minutes(self):
+        offset = '/api/util/revisions?in-the-last-x-minutes=5'
+        result = self.app.get(offset, status=[200])
+        res = json.loads(result.body)
+        assert isinstance(res, dict), res
+        assert set(res.keys()) >= set(('since_timestamp', 'datasets')), res.keys()
+        revs = self._get_revisions()
+        assert_equal(res['since_revision_id'], revs[0].id)
+        assert_equal(res['newest_revision_id'], revs[-1].id)
+        assert 10 < res['number_of_revisions'] < 20, res['number_of_revisions']
+        assert_equal(res['results_limited'], False)

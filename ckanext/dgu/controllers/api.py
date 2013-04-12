@@ -1,9 +1,12 @@
+import datetime
+import logging
+
+from webhelpers.text import truncate
+
 from ckan.lib.base import model, abort, response, h, BaseController, request
 from ckan.controllers.api import ApiController
 from ckan.lib.helpers import OrderedDict, date_str_to_datetime, markdown_extract
-from webhelpers.text import truncate
 from ckanext.dgu.plugins_toolkit import get_action
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -53,85 +56,97 @@ class DguApiController(ApiController):
         Similar to the revision search API, lists all revisions for which
         a dataset or group changed in some way.
 
-        Params:
-          since_revision_id
-          since_time
-          in_the_last_x_minutes
+        URL Params:
+          since-revision-id
+          since-timestamp (utc)
+          in-the-last-x-minutes
         '''
         # parse options
         rev_id = request.params.get('since-revision-id')
-        since_time = request.params.get('since-time')
+        since_timestamp = request.params.get('since-timestamp')
         in_the_last_x_minutes = request.params.get('in-the-last-x-minutes')
-        if rev_id:
+        now = datetime.datetime.utcnow()
+        if rev_id is not None:
             rev = model.Session.query(model.Revision).get(rev_id)
             if not rev:
-                abort(400, 'Revision ID does not exist')
-            since_time = rev.timestamp
-        elif since_time:
+                abort(400, 'Revision ID "%s" does not exist' % rev_id)
+            since_timestamp = rev.timestamp
+        elif since_timestamp is not None:
             try:
-                since_time = date_str_to_datetime(since_time)
-            except ValueError, inst:
-                abort(400, 'Could not parse time/date "%s"' % since_time)
-        elif in_the_last_x_minutes:
+                since_timestamp = date_str_to_datetime(since_timestamp)
+            except (ValueError, TypeError), inst:
+                example = now.strftime('%Y-%m-%d%%20%H:%M') # e.g. 2013-11-30%2023:15
+                abort(400, 'Could not parse timestamp "%s": %s. Must be UTC. Example: since-time=%s' % (since_timestamp, inst, example))
+        elif in_the_last_x_minutes is not None:
             try:
                 in_the_last_x_minutes = int(in_the_last_x_minutes)
             except ValueError, inst:
-                abort(400, 'Could not parse number of minutes "%s"' % since_time)
-            since_time = datetime.datetime.now() - \
+                abort(400, 'Could not parse number of minutes "%s"' % in_the_last_x_minutes)
+            since_timestamp = now - \
                          datetime.timedelta(minutes=in_the_last_x_minutes)
         else:
-            abort(400, 'Must specify since_revision_id or since_time parameter')
+            abort(400, 'Must specify revisions parameter. It must be one from: since-revision-id since-timestamp in-the-last-x-minutes')
 
         # Get the revisions in the requested time frame
         revs = model.Session.query(model.Revision) \
-               .filter(model.Revision.timestamp >= since_time) \
+               .filter(model.Revision.timestamp >= since_timestamp) \
                .order_by(model.Revision.timestamp.asc()) \
                .limit(max_limit) \
                .all()
-        result = {'since_time': since_time.strftime('%Y-%m-%d %H:%M'),
-                  'since_revision_id': revs[0].id,
-                  'newest_revision_id': revs[-1].id,
-                  'number_of_revisions': len(revs),
-                  'results_limited': len(revs) == max_limit}
+        result = OrderedDict((
+            ('number_of_revisions', len(revs)),
+            ('since_timestamp', since_timestamp.strftime('%Y-%m-%d %H:%M')),
+            ('current_timestamp', now.strftime('%Y-%m-%d %H:%M')),
+            ('since_revision_id', revs[0].id if revs else None),
+            ('newest_revision_id', revs[-1].id if revs else None),
+            ('results_limited', len(revs) == max_limit)))
 
         # See which packages have changed in the time frame
         changed_package_ids = set()
         query = model.Session.query(model.PackageRevision) \
                 .join(model.Revision) \
-                .filter(model.Revision.timestamp >= since_time) \
+                .filter(model.Revision.timestamp >= since_timestamp) \
                 .limit(max_limit)
         if query.count() == max_limit:
             result['results_limited'] = True
-        changed_package_ids.update([pkg_rev.id for pkg_rev in query])
+        changed_package_ids.update([pkg_rev.id for pkg_rev in query.all()])
 
         for related_type in (model.PackageTagRevision,
                              model.PackageExtraRevision):
             query = model.Session.query(related_type) \
                     .join(model.Revision) \
-                    .filter(model.Revision.timestamp >= since_time) \
+                    .filter(model.Revision.timestamp >= since_timestamp) \
                     .limit(max_limit)
-            if query.count() == max_limit:
+            res = query.all()
+            if len(res) == max_limit:
                 result['results_limited'] = True
-            changed_package_ids.update([obj_rev.package.id for obj_rev in query])
+            changed_package_ids.update([obj_rev.package_id \
+                                        for obj_rev in res])
 
         query = model.Session.query(model.ResourceRevision) \
                 .join(model.Revision) \
-                .filter(model.Revision.timestamp >= since_time) \
+                .filter(model.Revision.timestamp >= since_timestamp) \
                 .join(model.ResourceGroup,
                       model.ResourceRevision.resource_group_id == model.ResourceGroup.id) \
                 .limit(max_limit)
-        if query.count() == max_limit:
+        res = query.all()
+        if len(res) == max_limit:
             result['results_limited'] = True
-        changed_package_ids.update([obj_rev.resource_group.package_id for obj_rev in query])
+        changed_package_ids.update([obj_rev.resource_group.package_id \
+                                    for obj_rev in res])
 
         query = model.Session.query(model.MemberRevision) \
                 .filter_by(table_name='package') \
                 .join(model.Revision) \
-                .filter(model.Revision.timestamp >= since_time) \
+                .filter(model.Revision.timestamp >= since_timestamp) \
                 .limit(max_limit)
-        if query.count() == max_limit:
+        res = query.all()
+        if len(res) == max_limit:
             result['results_limited'] = True
-        changed_package_ids.update([obj_rev.table_id for obj_rev in query])
+        changed_package_ids.update([obj_rev.table_id for obj_rev in res])
+
+        # due to corrupt old obj revision tables, some package_ids may be blank
+        changed_package_ids.discard(None)
 
         result['datasets'] = [self._mini_pkg_dict(pkg_id) for pkg_id in changed_package_ids]
         return self._finish_ok(result)
@@ -139,6 +154,8 @@ class DguApiController(ApiController):
     def _mini_pkg_dict(self, pkg_id):
         '''For a package id, return the basic details for the package in a
         dictionary.
+        Quite expensive - does two database lookups - so be careful with running it
+        lots of times.
         '''
         pkg = model.Session.query(model.Package).get(pkg_id)
         pubs = pkg.get_groups()
@@ -150,7 +167,8 @@ class DguApiController(ApiController):
                             ('dataset_link', '/dataset/%s' % pkg.name),
                             ('publisher_title', pub.title if pub else None),
                             ('publisher_link', '/publisher/%s' % pub.name if pub else None),
-                            ('metadata_modified', pkg.metadata_modified.isoformat()),
+                            # Metadata modified is a big query, so leave out unless required
+                            # ('metadata_modified', pkg.metadata_modified.isoformat()),
                             ))
 
     def dataset_count(self):
