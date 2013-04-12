@@ -95,9 +95,6 @@ class ONSUpdateTask(CkanCommand):
                 log.info("Package %s is not active" % dsname)
                 continue
 
-            if dsname[0] in ['a', 'b', 'c']:
-                continue
-
             counter = counter + 1
             time.sleep(1)
 
