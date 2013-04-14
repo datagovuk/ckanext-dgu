@@ -140,7 +140,7 @@
 
   <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count')">
       <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
-          <div class="facet-box">
+          <div class="facet-box-unboxed">
               <h4>${title}</h4>
               <div class="facet-options">
                 <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
@@ -217,7 +217,7 @@
           sort_by='name'
       )}
 
-    <div class="facet-box" id="map-based-search">
+    <div class="facet-box-unboxed" id="map-based-search">
       <h4>UK Location Map Search</h4>
       <div class="facet-options">
           <div class="facet-option">
@@ -234,7 +234,7 @@
     </div>
 
     <!-- Create a nested list of UKLP filters -->
-    <div class="facet-box">
+    <div class="facet-box-unboxed">
       <h4>UK Location Dataset Type</h4>
       <div class="facet-options" py:with="show_uklp = bool(len(h.unselected_facet_items('resource-type')))">
         <py:if test="show_uklp">
