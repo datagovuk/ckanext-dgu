@@ -52,10 +52,10 @@
           </py:def>
           <py:for each="field in h.facet_keys(c.fields)">
             <tr>
-              <td class="facet-table-left">${h.facet_title(field)}:</td>
+              <td class="facet-table-left">${h.render_facet_key(field)}:</td>
               <td class="facet-table-right">
                 <py:for each="value in h.facet_values(c.fields,field)">
-                  ${facet(value,c.remove_field(field, value))}
+                  ${facet(h.render_facet_value(field,value),c.remove_field(field, value))}
                 </py:for>
               </td>
             </tr>
@@ -120,11 +120,10 @@
   </div>
 
 
-  <py:def function="facet_line(facet_item, facet_key, label=None)">
+  <py:def function="facet_line(facet_item, facet_key)">
       <div class="facet-option">
         <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {facet_key: facet_item['name']})}">
-          <py:if test="label">${label(facet_item['name'])}</py:if>
-          <py:if test="not label">${facet_item['name']}</py:if>
+          ${h.render_facet_value(facet_key,facet_item['name'])}
         </a>
         (${facet_item['count']})
       </div>
@@ -135,11 +134,11 @@
         <a class="x" href="${c.remove_field(facet_key, facet_value)}">
           x
         </a>
-        ${facet_value}
+        ${h.render_facet_value(facet_key,facet_value)}
       </div>
   </py:def>
 
-  <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count', label=None)">
+  <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count')">
       <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
           <div class="facet-box">
               <h4>${title}</h4>
@@ -149,12 +148,12 @@
                 </py:for>
                 <py:if test="more_button">
                     <py:for each="facet_item in facet_items[:5]">
-                        ${facet_line(facet_item, facet_key, label=label)}
+                        ${facet_line(facet_item, facet_key)}
                     </py:for>
                     <py:if test="len(facet_items)>5">
                       <div id="${more_button}-items" style="display: None">
                         <py:for each="facet_item in facet_items[5:]">
-                          ${facet_line(facet_item, facet_key, label=label)}
+                          ${facet_line(facet_item, facet_key)}
                         </py:for>
                       </div>
                       <a id="${more_button}" class="facet-expand-collapse" href="#">
@@ -169,7 +168,7 @@
                 </py:if>
                 <py:if test="not more_button">
                     <py:for each="facet_item in facet_items">
-                        ${facet_line(facet_item, facet_key, label=label)}
+                        ${facet_line(facet_item, facet_key)}
                     </py:for>
                 </py:if>
                 <py:if test="facet_key=='publisher'">
@@ -191,8 +190,7 @@
       ${facet_box(
           'license_id-is-ogl', 
           'Licence', 
-          'There are no further licence filters to apply.',
-          label=lambda n: 'Open Government Licence' if n == 'true' else 'Non-Open Government Licence'
+          'There are no further licence filters to apply.'
       )}
       ${facet_box(
           'tags', 
@@ -210,14 +208,12 @@
           'publisher', 
           'Publisher', 
           'There are no further publisher filters to apply.', 
-          label=h.group_name_to_title, 
           more_button='more-publishers-button'
       )}
       ${facet_box(
           'openness_score', 
           'Openness Score (beta)', 
           'There are no further openness filters to apply.', 
-          label=h.stars_label, 
           sort_by='name'
       )}
 
@@ -243,7 +239,7 @@
       <div class="facet-options" py:with="show_uklp = bool(len(h.unselected_facet_items('resource-type')))">
         <py:if test="show_uklp">
           <py:for each="facet_item in h.unselected_facet_items('UKLP')">
-            ${facet_line(facet_item, 'UKLP', label=lambda n: 'UK Location')}
+            ${facet_line(facet_item, 'UKLP')}
           </py:for>
           <ul>
             <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">

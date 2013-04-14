@@ -537,17 +537,6 @@ def facet_params_to_keep():
     from ckan.lib.base import request
     return [(k, v) for k,v in request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
 
-def stars_label(stars):
-    try:
-        stars = int(stars)
-    except ValueError:
-        pass
-    else:
-        if stars == -1:
-            return 'TBC'
-        stars = mini_stars_and_caption(stars)
-    return stars
-
 def uklp_display_provider(package):
     uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
     is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
@@ -1268,3 +1257,30 @@ def publisher_has_spend_data(publisher):
     pth = os.path.join(folder, nm)
     log.debug("Looking for {p}".format(p=pth))
     return os.path.exists(pth)
+
+def render_facet_key(key,value=None):
+    if key=='license_id-is-ogl':
+        return 'Licence'
+    # Delegate to core CKAN
+    return ckan.lib.helpers.facet_title(key)
+
+def render_facet_value(key,value):
+    if key=='license_id-is-ogl':
+        if value=='true':
+            return 'Open Government Licence'
+        return 'Non-Open Government Licence'
+    if key=='openness_score':
+        try:
+            stars = int(value)
+        except ValueError:
+            return value
+        if stars == -1:
+            return 'TBC'
+        return mini_stars_and_caption(stars)
+    if key=='publisher':
+        return ckan.lib.helpers.group_name_to_title(value)
+    if key=='UKLP':
+        return 'UK Location'
+    return value
+
+
