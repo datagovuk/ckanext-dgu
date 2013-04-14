@@ -33,6 +33,15 @@ function compile(event, filename) {
       console.log(stdout, stderr);
     } else {
       console.log('[%s] recompiled ' + filename + ' in %sms', now(), duration);
+      var layout_base = __dirname + '/../ckanext/dgu/theme/templates/layout_base.html';
+      var updateQuerystringCommand = "sed -i \'\' \'s/\\(AUTO_QUERYSTRING_LINE.*?\\)[^\"]*/\\1"+Date.now()+"/' "+layout_base;
+      exec(updateQuerystringCommand, function (err2, stdout2, stderr2) {
+        if (err2) {
+          console.log('An error occurred updating layout_base:');
+          console.log(updateQuerystringCommand);
+          console.log(err2.message);
+        }
+      });
     }
   });
 }
