@@ -245,7 +245,7 @@
             <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">
               <li>
                 <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {'resource-type': facet_item['name']})}">
-                  ${facet_item['name']}
+                  ${h.render_facet_value('resource-type',facet_item['name'])}
                 </a>
                 ${ ' (%d)'% facet_item['count']}
                 <ul py:if="facet_item['name'] == 'service'">

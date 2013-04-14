@@ -1261,6 +1261,10 @@ def publisher_has_spend_data(publisher):
 def render_facet_key(key,value=None):
     if key=='license_id-is-ogl':
         return 'Licence'
+    if key=='UKLP':
+        return 'Type'
+    if key=='resource-type' or key=='spatial-data-service-type':
+        return 'UKLP Type'
     # Delegate to core CKAN
     return ckan.lib.helpers.facet_title(key)
 
@@ -1280,7 +1284,25 @@ def render_facet_value(key,value):
     if key=='publisher':
         return ckan.lib.helpers.group_name_to_title(value)
     if key=='UKLP':
-        return 'UK Location'
+        return 'UK Location Dataset'
+    if key=='resource-type':
+        mapping = {
+                'dataset' : 'Dataset',
+                'service' : 'Service',
+                'series' : 'Series',
+                'nonGeographicDataset' : 'Non-Geographic Dataset',
+                'application' : 'Application',
+            }
+        return mapping.get(value,value)
+    if key=='spatial-data-service-type':
+        mapping = {
+                'view' : 'View',
+                'other' : 'Other',
+                'OGC:WMS' : 'Web Map Service',
+                'download' : 'Download',
+                'discovery' : 'Discovery',
+            }
+        return mapping.get(value,value)
     return value
 
 
