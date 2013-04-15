@@ -919,6 +919,7 @@ body.controller-publisher.action-read h1 .btn.edit{float:right;margin-left:10px;
 body.controller-publisher.action-read .feed-icon img{margin:-4px 0 0 4px;}
 body.controller-publisher.action-read .state-box{background-color:#fdd;}
 body.controller-publisher.action-read .sidebar-publisher-report .alert{margin:9px 0;padding-right:12px;}body.controller-publisher.action-read .sidebar-publisher-report .alert a{float:right;display:block;color:#777;border-bottom:1px dashed #777;margin-left:10px;}body.controller-publisher.action-read .sidebar-publisher-report .alert a:hover{border-bottom:1px solid #777;text-decoration:none;}
+body.controller-package.action-search .search-area .left{width:265px;}
 body.controller-package.action-read img.dataset-logo{float:right;padding:5px;}
 body.controller-package.action-read #dataset-resources{margin-bottom:20px;}
 body.controller-package.action-read .one-line-link{display:block;word-wrap:break-word;white-space:normal !important;}

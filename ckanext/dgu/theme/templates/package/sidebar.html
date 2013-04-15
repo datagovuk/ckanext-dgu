@@ -13,18 +13,15 @@
 <div class="boxed">
   <div class="widget-container">
     <h4>Publisher</h4>
-    Published by:
-    <ul>
-      <li py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
-      </li>
-      <li py:if="dict(c.pkg_extras).get('provider')">
-        Provider: ${dict(c.pkg_extras).get('provider')}
-      </li>
-      <li py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('responsible-party')">
-        Responsible Party: ${dict(c.pkg_extras).get('responsible-party')}
-      </li>
-    </ul>
+    <p py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
+    </p>
+    <p py:if="dict(c.pkg_extras).get('provider')">
+      Provider: ${dict(c.pkg_extras).get('provider')}
+    </p>
+    <p py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('responsible-party')">
+      Responsible Party: ${dict(c.pkg_extras).get('responsible-party')}
+    </p>
     Enquiries:
     <ul>
         ${h.get_contact_name(c.pkg, dict(c.pkg_extras))}
@@ -66,10 +63,10 @@
   </div>
 
   <div class="widget-container">
-    <h4>About This Dataset</h4>
+    <h4>About this dataset</h4>
     <ul py:with="metadata=h.get_package_mini_metadata(c.pkg)">
-      <li><strong>Added: </strong>${metadata['date-added-computed']}</li>
-      <li><strong>Modified: </strong>${metadata['date-updated-computed']}</li>
+      <li><strong>Added to data.gov.uk: </strong>${metadata['date-added-computed']}</li>
+      <li><strong>Modified on data.gov.uk: </strong>${metadata['date-updated-computed']}</li>
       <li><a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">View history of changes</a></li>
       <li><a href="/dataset/${c.pkg_dict.get('name')}#developer-tools">JSON, API and URI for developers</a></li>
     </ul>
