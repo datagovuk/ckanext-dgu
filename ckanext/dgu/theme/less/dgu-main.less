@@ -22,16 +22,31 @@
     font-style: normal;
 
 }
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 300;
+  src: local('Open Sans Light'), local('OpenSans-Light'), url(http://themes.googleusercontent.com/static/fonts/robotocondensed/v7/b9QBgL0iMZfDSpmcXcE8nMrfajfqx5pse9BUPMmpr-I.woff) format('woff');
+}
+
 /* Alternate fonts */
 /* --------------- */
-/*
 body {
-    font-family: actorregular;
 }
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'bebas_neueregular', Helvetica Neue, Helvetica;
+  font-family: 'Open Sans', Helvetica Neue, Helvetica;
+  font-weight: normal;
 }
-*/
+p {
+  font-family: inherit;
+}
+.btn,
+.facet,
+a.tag,
+ul#nav li a {
+  font-family: 'Open Sans';
+}
 
 
 /* No-sidebar mode */
