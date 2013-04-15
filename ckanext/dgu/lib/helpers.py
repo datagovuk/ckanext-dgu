@@ -1165,6 +1165,9 @@ def publisher_performance_data(publisher, include_sub_publishers):
         else:
             issues = 'green'
 
+    spending = 'green'
+    if publisher_has_spend_data(publisher):
+        spending = 'red'
 
     # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
     # that returns count().  This is likely to be slow if there are lots of resource links broken
@@ -1202,18 +1205,9 @@ def publisher_performance_data(publisher, include_sub_publishers):
     return {
         'broken_links': broken_links,
         'openness': openness,
-        'issues': issues
+        'issues': issues,
+        'spending': spending
     }
 
 def publisher_has_spend_data(publisher):
-    # TODO: We should cache this to save checking the disk
-    # each time we want to know if there is data.
-    import os
-
-    nm = 'publisher-{name}.html'.format(name=publisher.name)
-    folder = os.path.expanduser(config.get(
-            'dgu.openspending_reports_dir',
-            '/var/lib/ckan/dgu/openspending_reports'))
-    pth = os.path.join(folder, nm)
-    log.debug("Looking for {p}".format(p=pth))
-    return os.path.exists(pth)
+    return publisher.extras.get('category','') == 'core-department'
