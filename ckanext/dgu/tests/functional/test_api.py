@@ -141,11 +141,12 @@ class TestRestApi(ControllerTestCase):
         assert_can_create('sysadmin', 'national-health-service')
         assert_can_create('sysadmin', '')
         assert_can_create('nhseditor', 'national-health-service')
+        assert_can_create('nhsadmin', 'barnsley-primary-care-trust')  # Admin can create in sub-groups
         assert_cannot_create('nhseditor', 'dept-health')
+
         assert_cannot_create('nhseditor', 'barnsley-primary-care-trust')
         assert_can_create('nhsadmin', 'national-health-service')
         assert_cannot_create('nhsadmin', 'dept-health')
-        assert_cannot_create('nhsadmin', 'barnsley-primary-care-trust')
         assert_cannot_create('user', 'national-health-service')
         assert_cannot_create('user', 'dept-health')
         assert_cannot_create('user', 'barnsley-primary-care-trust')
@@ -178,11 +179,11 @@ class TestRestApi(ControllerTestCase):
         assert_can_edit('sysadmin', 'national-health-service')
         assert_can_edit('sysadmin', '')
         assert_can_edit('nhseditor', 'national-health-service')
+        assert_can_edit('nhsadmin', 'national-health-service') # Admin can edit own group
+        assert_can_edit('nhsadmin', 'barnsley-primary-care-trust') # Admin can edit sub-groups
         assert_cannot_edit('nhseditor', 'dept-health')
         assert_cannot_edit('nhseditor', 'barnsley-primary-care-trust')
-        assert_can_edit('nhsadmin', 'national-health-service')
         assert_cannot_edit('nhsadmin', 'dept-health')
-        assert_cannot_edit('nhsadmin', 'barnsley-primary-care-trust')
         assert_cannot_edit('user', 'national-health-service')
         assert_cannot_edit('user', 'dept-health')
         assert_cannot_edit('user', 'barnsley-primary-care-trust')

@@ -82,10 +82,15 @@ def dgu_package_create(context, data_dict):
 
     if data_dict['groups'] and isinstance(data_dict['groups'][0], dict):
         package_group_names = [pub['name'] for pub in data_dict['groups']]
+    elif data_dict['groups'] and isinstance(data_dict['groups'], list):
+        # data_dict['groups'] is already a list of names at this point so we
+        # should just assign it.
+        package_group_names = data_dict['groups']
     else:
-        # Just get the group name in the rest interface and make sure it is a list
-        # so that the intersection works on names (rather than the decomposed name)
-        package_group_names = [data_dict['groups']]
+        # In the case where we have received a single string in the data_dict['groups']
+        # we should wrap it in a list to make sure the intersection check works
+        package_group_names = [data_dict['groups']] if data_dict['groups'] else []
+
 
     # If the user has a group (is a publisher), but there is no package
     # group name, then we need to continue to allow validation to cause the
