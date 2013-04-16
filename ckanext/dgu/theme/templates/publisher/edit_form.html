@@ -77,7 +77,7 @@ ${h.prep_group_edit_data(data)}
       </py:if>
       <py:if test="h.is_sysadmin()" class="parent-field">
         <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
-          <option value=""></option>
+          <option value="">No parent</option>
           <py:for each="pg in c.possible_parents">
             <option py:attrs="{'selected': 'selected' if c.parent and pg.id == c.parent.id else None}" value="${pg.id}">${pg.title}</option>
           </py:for>
