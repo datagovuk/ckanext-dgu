@@ -12,13 +12,7 @@
 
       <!-- Description -->
       <div py:if="str(c.pkg_notes_formatted).strip()">
-        <h3>Description
-
-          <py:if test="h.issues_installed">
-            <xi:include href="../issues/issues_util.html" />
-            ${add_issue_button(c.pkg,'float:right;')}
-          </py:if>
-        </h3>
+        <h3>Description</h3>
 
         <!--! Optional logo -->
         <div py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'">
