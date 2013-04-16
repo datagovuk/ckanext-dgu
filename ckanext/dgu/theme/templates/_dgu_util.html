@@ -17,7 +17,7 @@
   <table py:def="search_form()" class="search-area">
     <tr>
       <td class="left" py:if="not c.query_error">
-        <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
+        <h2 class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</h2>
         <py:if test="request.params">      
           <div class="result-count-footer">Results</div>
         </py:if>
