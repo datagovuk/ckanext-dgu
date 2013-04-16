@@ -39,8 +39,6 @@
       <li class="${'active' if c.action=='authz' else ''}" py:if="h.check_access('package_edit_permissions',{'id':c.pkg.id})">
         ${h.subnav_link(h.icon('lock') + _('Authorization'), controller='package', action='authz', id=c.pkg.name)}
       </li>
-      <li py:if="h.issues_installed" class="${'active' if c.action in ['issue_page','add'] else ''}">${h.subnav_link(h.icon('package') + 'Issues (%s)' % h.issue_count(c.pkg), controller='ckanext.issues.controller:IssueController', action='issue_page', package_id=c.pkg.name)}
-      </li>
 
     </ul>
   </py:match>
