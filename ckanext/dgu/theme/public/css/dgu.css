@@ -37,7 +37,7 @@ table.tablesorter th.header{background-image:url('/images/icons/sort.gif');curso
 .dropdown-menu li:hover a{color:#240;background:#eee;}
 .search-area{width:100%;}.search-area .left{width:30%;border-right:1px solid #ccc;padding:8px;vertical-align:middle;}
 .search-area .right{padding:15px 8px;}
-.search-area .result-count{font-size:40px;text-align:center;color:#333;margin-bottom:-5px;}
+.search-area .result-count{font-size:40px;text-align:center;color:#333;margin-bottom:-5px;border:none !important;}
 .search-area .result-count-footer{padding-top:15px;text-align:center;}
 .search-area .form-search{padding:9px;margin-left:10px;position:relative;height:50px;padding:0;}.search-area .form-search .textbox{position:absolute;width:auto;left:8px;right:86px;top:11px;}.search-area .form-search .textbox input[type="text"]{width:100%;}
 .search-area .form-search input[type="submit"]{position:absolute;right:8px;top:7px;width:80px;height:35px;font-size:14px;}
