@@ -105,12 +105,10 @@ body.controller-package.action-read .dataset-map .dataset-map-info #dataset-map-
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long th{padding-bottom:8px;}
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-label{text-align:right;padding:2px 8px;}body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-label div{-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;-webkit-box-shadow:1px 1px 3px #dddddd;-moz-box-shadow:1px 1px 3px #dddddd;box-shadow:1px 1px 3px #dddddd;border:1px solid #6a3;font-size:11px;padding:0 6px;}
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-value{white-space:nobreak;}
-body.controller-package.action-read .resource-table{overflow:hidden;}body.controller-package.action-read .resource-table>table{width:100%;max-width:100%;}
-body.controller-package.action-read .resource-table tbody tr:first-child td{border-top:0;}
-body.controller-package.action-read .resource-table tbody td{padding:1px 0;vertical-align:middle;height:28px;}
-body.controller-package.action-read .resource-table .resource-td-format{padding-left:5px;padding-right:2px;overflow:visible;}body.controller-package.action-read .resource-table .resource-td-format .format-box{float:none;}
-body.controller-package.action-read .resource-table .resource-td-title{position:relative;white-space:nowrap;width:100%;max-width:508px;}body.controller-package.action-read .resource-table .resource-td-title .text-overlay{position:absolute;font-weight:normal;right:0;top:1px;background:#fff;}body.controller-package.action-read .resource-table .resource-td-title .text-overlay>.btn{float:left;margin-right:3px;min-width:46px;}
-body.controller-package.action-read .resource-table .resource-td-title .text-overlay>.btn-group{float:left;}
+body.controller-package.action-read .resource-row{white-space:nowrap;padding:1px 0;vertical-align:middle;height:28px;width:584px;}body.controller-package.action-read .resource-row .resource-row-format{padding-left:5px;padding-right:2px;padding-top:3px;float:left;}body.controller-package.action-read .resource-row .resource-row-format .format-box{float:none;}
+body.controller-package.action-read .resource-row .resource-row-text{line-height:29px;overflow:hidden;}
+body.controller-package.action-read .resource-row .text-overlay{float:right;}body.controller-package.action-read .resource-row .text-overlay>.btn{float:left;margin-right:3px;min-width:46px;}
+body.controller-package.action-read .resource-row .text-overlay>.btn-group{float:left;}
 body.controller-package.action-resource_read div.resource-actions{position:relative;float:right;}body.controller-package.action-resource_read div.resource-actions .btn{bottom:3px;padding:8px 10px;margin:0 0 0 7px;}
 body.controller-package.action-resource_read div.resource-actions .download{padding-top:2px;padding-right:4px;}body.controller-package.action-resource_read div.resource-actions .download img{margin-top:1px;margin-right:0px;}
 body.controller-package.action-resource_read .quick-info>div{margin-bottom:9px;}

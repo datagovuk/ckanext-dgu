@@ -727,47 +727,33 @@ body.controller-package.action-read {
             }
         }
     }
-    .resource-table {
-      overflow: hidden;
-      > table {
-        width: 100%;
-        max-width: 100%;
-      }
-      tbody tr:first-child td {
-        border-top: 0;
-      }
-      tbody td {
-        padding: 1px 0;
-        vertical-align: middle;
-        height: 28px;
-      }
-      .resource-td-format {
+    .resource-row {
+      white-space: nowrap;
+      padding: 1px 0;
+      vertical-align: middle;
+      height: 28px;
+      width: 584px;
+      .resource-row-format {
         padding-left: 5px;
         padding-right: 2px;
-        overflow: visible;
-        .format-box {
-          float: none;
-        }
+        padding-top: 3px;
+        float: left;
+        /* IE7 */
+        .format-box { float: none; }
       }
-      .resource-td-title {
-        position: relative;
-        white-space: nowrap;
-        width: 100%;
-        max-width: 508px;
-        .text-overlay {
-          position: absolute;
-          font-weight: normal;
-          right: 0;
-          top: 1px;
-          background: #fff;
-          > .btn {
-            float: left;
-            margin-right: 3px;
-            min-width: 46px;
-          }
-          > .btn-group {
-            float: left;
-          }
+      .resource-row-text {
+        line-height: 29px;
+        overflow: hidden;
+      }
+      .text-overlay {
+        float: right;
+        > .btn {
+          float: left;
+          margin-right: 3px;
+          min-width: 46px;
+        }
+        > .btn-group {
+          float: left;
         }
       }
     }
