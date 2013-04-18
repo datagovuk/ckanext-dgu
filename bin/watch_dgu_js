@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+var path = require('path'),
+    nodeWatch = require('nodewatch'),
+    exec = require('child_process').exec;
+
+function script_path(f) {
+  return path.join(__dirname,'..','ckanext','dgu','theme','public','scripts',f);
+}
+
+var dgu_scripts = [
+  'dgu.js',
+  'dgu-basket.js',
+  'dgu-autocomplete.js'
+];
+for (var i=0;i<dgu_scripts.length;i++) {
+  dgu_scripts[i] = script_path(dgu_scripts[i]);
+}
+
+function compile(infiles, outfile) {
+  var out = 'java -jar '+path.join(__dirname,'..','..','dgu-joint-assets','js-closure-compiler.jar')+' --js=';
+  for (var i=0;i<infiles.length;i++) {
+    out += infiles[i]+' ';
+  }
+  out += '--js_output_file ' + outfile;
+  return out;
+}
+
+function now() {
+  return new Date().toISOString().replace('T', ' ').substr(0, 19);
+}
+
+function compile_dgu_scripts(event, filename) {
+  var output_file = script_path('dgu-compiled.js');
+  var exec_line = compile(dgu_scripts,output_file);
+  console.log('Recompiling DGU scripts...');
+  exec(exec_line,{maxBuffer: 2048*1024},function(err,stdout,stderr) {
+    if (err) {
+      console.log('Done with errors:');
+      console.log(err);
+    }
+    else {
+      console.log('Done. Written: ' + output_file);
+    }
+  });
+}
+
+
+var x = nodeWatch;
+for (var i=0;i<dgu_scripts.length;i++) {
+  x = x.add(dgu_scripts[i]);
+}
+x.onChange(compile_dgu_scripts);
+
+compile_dgu_scripts();

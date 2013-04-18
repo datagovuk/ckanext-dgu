@@ -56,7 +56,7 @@
                 <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.editors.count()} editor${h.pluralise_text(c.editors.count())}</a></li>
             </py:when>
             <py:otherwise>
-                <li py:for="editor in c.editors">${h.linked_user(editor, maxlength=40)}</li>
+                <li py:for="editor in c.editors">${h.linked_user(editor, maxlength=35)}</li>
             </py:otherwise>
         </py:choose>
         <li py:if="not c.editors.count()">No-one assigned</li>
@@ -187,8 +187,6 @@
       PUBLISHER_GROUP  = "node_${c.group.name}";
     </script>
     <script src="/scripts/dgu-publisher.js"></script>
-    <script src="/scripts/spin.min.js"></script>
-    <script src="/scripts/dgu-basket.js?1"></script>
   </py:def>
 
   <xi:include href="../layout.html" />

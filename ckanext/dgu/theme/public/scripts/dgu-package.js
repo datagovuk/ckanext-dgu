@@ -34,7 +34,7 @@ $(function() {
   var spinDiv = $('.comments-spinner')[0];
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
 
-  var url = '/comment/get/'+DATASET_ID;
+  var url = '/comment/get/'+window.DATASET_ID;
   $.ajax({
           url: url,
           data: '',

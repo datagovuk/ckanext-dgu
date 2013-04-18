@@ -18,6 +18,11 @@ $(function() {
   };
 
   var basketUiContainer = $('#shopping-basket-container');
+  if (basketUiContainer.length==0) {
+    // No basket exists on this page
+    return;
+  }
+
   var basketUi = $('#shopping-basket');
   var basketResetButton = $('#shopping-basket-reset');
   var basketSubmitButton = $('#shopping-basket-submit');

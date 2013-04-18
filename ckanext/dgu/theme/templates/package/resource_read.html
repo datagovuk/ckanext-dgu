@@ -61,10 +61,6 @@
       var preload_resource = ${h.literal(c.resource_json)};
       var embedPath = "${g.site_url+h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.package.id, resource_id=c.resource.id)}";
     </script>
-    <py:if test="h.is_wms(c.resource)">
-      <script src="/scripts/spin.min.js"></script>
-      <script src="/scripts/dgu-basket.js?1"></script>
-    </py:if>
   </py:def>
 
   <py:def function="page_title">
@@ -201,10 +197,9 @@
   <py:def py:if="not h.is_wms(c.resource)" function="optional_footer">
     <!-- data preview -->
     <script type="text/javascript" src="/scripts/application.js"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.mustache/jquery.mustache.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/flot/0.7/jquery.flot.js')}"></script>
-    <script src="${h.url_for_static('/scripts/vendor/recline/recline.js')}"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.mustache.js')}"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.flot-0.7.js')}"></script>
+    <script src="${h.url_for_static('/scripts/vendor/recline.js')}"></script>
     <script>
       // Monkey-patch broken functionality in Recline.
       // We aren't using maps, havent loaded Leaflet, so do not try to use it.
