@@ -25,7 +25,9 @@
         </td>
         <td class="right">
           <form id="dataset-search" class="form-search dataset-search" action="" method="GET">
-            <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+            <div class="textbox">
+              <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+            </div>
             <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
             <div id="dataset-search-ext"></div>
           </form>
