@@ -43,7 +43,7 @@ setup(
         dgu_api = ckanext.dgu.plugin:ApiPlugin
         dgu_resource_updates = ckanext.dgu.plugin:ResourceModificationPlugin
         dgu_resource_url_updates = ckanext.dgu.plugin:ResourceURLModificationPlugin
-        
+
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load
@@ -84,8 +84,9 @@ setup(
         build_void = ckanext.dgu.commands.void_constructor:VoidConstructor
         stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
         remap_govuk_resources = ckanext.dgu.commands.remap_govuk_resources:ResourceRemapper
-        derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker        
+        derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
+        precalc_reports = ckanext.dgu.commands.precalc_reports:ReportGenerator
     """,
     test_suite = 'nose.collector',
 )

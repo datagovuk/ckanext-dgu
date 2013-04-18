@@ -1274,9 +1274,8 @@ def publisher_performance_data(publisher, include_sub_publishers):
         spending = 'red'
 
     # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
-    # that returns count().  This is likely to be slow if there are lots of resource links broken
-    # such as for ONS.
-    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+    # that returns count().
+    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers, use_cache=True)
     broken_count = len(data['data'])
 
     if broken_count == 0 or rcount == 0:
@@ -1293,7 +1292,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
 
     openness = ''
     total, counters = publib.openness_scores(publisher, include_sub_publishers)
-    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+    number_x_or_above = lambda x: sum(counters.get(str(c),0) for c in xrange(x, 6))
 
     above_3 = number_x_or_above(3)
     pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0

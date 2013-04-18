@@ -18,6 +18,7 @@ from ckan.plugins import ISession
 from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
+from ckan.plugins import ICachedReport
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
                              dgu_package_create, dgu_package_update,
@@ -259,7 +260,7 @@ class PublisherPlugin(SingletonPlugin):
     implements(IRoutes, inherit=True)
     implements(IConfigurer)
     implements(ISession, inherit=True)
-
+    implements(ICachedReport)
 
     def before_commit(self, session):
         """
@@ -328,6 +329,29 @@ class PublisherPlugin(SingletonPlugin):
 
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
+
+    def register_reports(self):
+        """
+        This method will be called so that the plugin can register the
+        reports it wants run.  The reports will then be executed on a
+        24 hour schedule and the appropriate tasks called.
+
+        This call should return a dictionary, where the key is a description
+        and the value should be the function to run. This function should
+        take a single parameter, which is a list of the reports to generate
+        by key.  If the plugin is unable to process that key then it should
+        return immediately.  If no list of keys is supplied then the plugin
+        should generate all reports.
+        """
+        from ckanext.dgu.lib.publisher import cached_openness_scores
+        return { 'Cached Openness Scores': cached_openness_scores }
+
+    def list_report_keys(self):
+        """
+        Returns a list of the reports that the plugin can generate by
+        returning each key name as an item in a list.
+        """
+        return ['openness-scores', 'openness-scores-withsub']
 
 class SearchPlugin(SingletonPlugin):
     """
