@@ -642,8 +642,6 @@ def get_package_fields(package, pkg_extras, dataset_type):
         field_names.add_at_start('theme')
         if pkg_extras.get('theme-secondary'):
             field_names.add_after('theme', 'theme-secondary')
-    if c.is_an_official:
-        field_names.add(['state'])
 
     temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
     temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')

@@ -67,7 +67,8 @@
     <ul py:with="metadata=h.get_package_mini_metadata(c.pkg)">
       <li><strong>Added to data.gov.uk: </strong>${metadata['date-added-computed']}</li>
       <li><strong>Modified on data.gov.uk: </strong>${metadata['date-updated-computed']}</li>
-      <li><a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">View history of changes</a></li>
+      <li py:if="c.is_an_official"><strong>State: </strong>${c.pkg_dict['state']}</li>
+      <li><a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History of changes</a></li>
       <li><a href="/dataset/${c.pkg_dict.get('name')}#developer-tools">JSON, API and URI for developers</a></li>
     </ul>
   </div>
