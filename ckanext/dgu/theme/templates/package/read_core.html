@@ -229,18 +229,6 @@
     <!-- Dataset Information Section -->
     <h3>Additional Information</h3>
     <div id="dataset-information">
-            harvest_source_reference = pkg_extras.get('harvest_source_reference')
-            if harvest_source_reference and harvest_source_reference != harvest_guid:
-                field_names.add(['harvest_source_reference'])
-        if pkg_extras.get('resource-type') == 'service':
-            field_names.add(['spatial-data-service-type'])
-        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
-                       for date_dict in dgu_helpers.json_list(pkg_extras.get('dataset-reference-date'))])
-          (DateType.db_to_form(temporal_coverage_from),
-           DateType.db_to_form(temporal_coverage_to))
-                                                temporal_coverage_to)
-        'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
-        'access_constraints': {'label': 'Access constraints', 'value': dgu_helpers.render_json(pkg_extras.get('access_constraints'))},
     <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size">
       <tbody>
         <tr py:if="h.get_stars_aggregate(c.pkg.id)">
