@@ -1,4 +1,4 @@
-<html
+﻿<html
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:py="http://genshi.edgewall.org/"
@@ -21,7 +21,7 @@ if c.pkg.license:
   licenses.append((c.pkg.license.title.split('::')[-1], c.pkg.isopen()))
 elif c.pkg.license_id:
   licenses.append((c.pkg.license_id, None))
-licence_extra_list = dgu_helpers.json_list(c.pkg.extras.get('licence') or '')
+licence_extra_list = h.json_list(c.pkg.extras.get('licence') or '')
 for licence_extra in licence_extra_list:
   if licence_extra.startswith('http'):
     licence_extra = HTML('<a href="%s">%s</a>' % (licence_extra, licence_extra))
@@ -143,10 +143,13 @@ if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
   <li py:if="dataset_type == 'uklp' and pkg_extras.get('resource-type') in ('dataset', 'series', 'service')" class="widget-container">
     <h4>Coupled ${'Datasets' if pkg_extras.get('resource-type') == 'service' else 'Services'}</h4>
     <?python
-       from ckanext.spatial.lib.helpers import get_coupled_packages
-       coupled_pkg_tuples = get_coupled_packages(c.pkg)
+       try:
+         from ckanext.spatial.lib.helpers import get_coupled_packages
+         coupled_pkg_tuples = get_coupled_packages(c.pkg)
+       except ImportError:
+         coupled_pkg_tuples = []
     ?>
-    <ul py:if="coupled_pkg_tuples">
+    <ul>
       <li py:for="name, title in coupled_pkg_tuples">
         <a href="/dataset/${name}">${title}</a>
       </li>

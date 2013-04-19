@@ -14,12 +14,9 @@
    </py:for>
  </table>
 
-<?python
-      from ckanext.dgu.lib.helpers import render_tree
-?>
 
  <py:def function="publisher_tree(groups)">
-	${ Markup( render_tree( groups ))  }
+	${ Markup( h.render_tree( groups ))  }
  </py:def>
 
 

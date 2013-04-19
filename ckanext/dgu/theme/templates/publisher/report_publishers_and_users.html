@@ -22,7 +22,6 @@
         <th>Created</th>
       </tr>
 <?python
-from webhelpers.html.tags import link_to
 from ckan import model
 ?>
       <py:for each="g in c.page.items">
@@ -32,7 +31,7 @@ from ckan import model
           <td>${g.approval_status}</td>
           <td py:for="capacity in ('admin', 'editor')">
             <py:for each="user in g.members_of_type(model.User, capacity=capacity)">
-              ${link_to(user.display_name, h.url_for(controller='user', action='read', id=user.name))}
+              ${h.link_to(user.display_name, h.url_for(controller='user', action='read', id=user.name))}
             </py:for>
           </td>
           <td>${h.render_datetime(g.created, date_format="%d-%m-%Y")}</td>

@@ -1,4 +1,4 @@
-<html
+﻿<html
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:py="http://genshi.edgewall.org/"
@@ -17,7 +17,7 @@
     </div>
 
     <div py:if="c.user">
-      <?python import ckanext.dgu.lib.helpers as dgu_helpers ?>
+      <p>You are logged in as: ${h.dgu_linked_user(c.user, maxlength=100)}</p>
       <p>You are logged in as: ${dgu_helpers.dgu_linked_user(c.user, maxlength=100)}</p>
     </div>
   </div>

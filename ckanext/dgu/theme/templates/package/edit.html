@@ -1,8 +1,8 @@
-<html xmlns:py="http://genshi.edgewall.org/"
+﻿<html xmlns:py="http://genshi.edgewall.org/"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
-  
+
   <py:def function="page_title">${c.pkg.title or c.pkg.name} - Edit - Datasets</py:def>
 
   <py:def function="body_class">no-sidebar</py:def>
@@ -45,12 +45,7 @@
       ${select('*')}
 
       <script type="text/javascript">
-<?python
-from ckanext.dgu.lib.formats import Formats
-import json
-resource_formats = json.dumps(Formats.by_display_name().keys())
-?>
-        DGU_RESOURCE_FORMATS = ${resource_formats};
+        DGU_RESOURCE_FORMATS = ${h.get_resource_formats()}
       </script>
       <script type="text/javascript" src="/scripts/dgu-package-form.js?2"></script>
       <script type="text/javascript" src="${h.url_for('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js')}"></script>

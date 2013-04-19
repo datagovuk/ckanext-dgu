@@ -10,6 +10,7 @@ from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
 from ckan.plugins import IRoutes
 from ckan.plugins import IConfigurer
+from ckan.plugins import ITemplateHelpers
 from ckan.plugins import IGenshiStreamFilter
 from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
@@ -62,6 +63,7 @@ class ThemePlugin(SingletonPlugin):
     '''
     implements(IConfigurer)
     implements(IRoutes, inherit=True)
+    implements(ITemplateHelpers, inherit=True)
 
     from ckan.lib.base import h, BaseController
     # [Monkey patch] Replace h.linked_user with a version to hide usernames
@@ -78,6 +80,26 @@ class ThemePlugin(SingletonPlugin):
     def update_config(self, config):
         configure_template_directory(config, 'theme/templates')
         configure_public_directory(config, 'theme/public')
+
+    def get_helpers(self):
+        """
+        A dictionary of extra helpers that will be available to provide
+        dgu specific helpers to the templates.  We may be able to override
+        h.linked_user so that we don't need to monkey patch above.
+        """
+        from ckanext.dgu.lib import helpers
+        from inspect import getmembers, isfunction
+
+        helper_dict = {}
+
+        functions_list = [o for o in getmembers(helpers, isfunction)]
+        for name, fn in functions_list:
+            if name[0] != '_':
+                helper_dict[name] = fn
+
+        return helper_dict
+
+
 
     def before_map(self, map):
         """

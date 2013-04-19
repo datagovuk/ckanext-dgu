@@ -7,8 +7,15 @@ class LoginTests(t.TestBase):
         self.selenium.open('/data')
         self.selenium.click("link=Log in")
         self.wait()
-        self.fill_form("id=login",{"name=login": username,
-                                   "password": password})
+
+        # The button with an id of 's' is only available on the
+        # ckan login, not the drupal one.
+        if self.selenium.get_css_count("css=#s"):
+            self.fill_form("id=login",{"login": username,
+                                       "password": password})
+        else:
+            self.fill_form("id=user-login",{"edit-name": username,
+                                            "edit-pass": password})
 
         self.wait()
         assert "- User - CKAN" in self.selenium.get_title(),\

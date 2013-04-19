@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <!--[if IE 8 ]>    <html class="no-js ie8" lang="en"
       xmlns="http://www.w3.org/1999/xhtml"
@@ -79,9 +79,6 @@
   ${h.literal(getattr(g, 'template_head_end', ''))}
 </head>
 
-<?python
-data_controller = 'ckanext.dgu.controllers.data:DataController'
-?>
 <body class="${request.environ.get('pylons.routes_dict', {}).get('action')}
              ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
              ${defined('body_class') and body_class()}
@@ -96,21 +93,18 @@ data_controller = 'ckanext.dgu.controllers.data:DataController'
           <img src="/images/crown.png" />
           <img src="/images/crown-text.png" alt="HM Government" />
         </div>
-<?python
-is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
-?>
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
             You are logged-in as
-            <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
-            <a href="${'/logout' if is_drupal_auth else h.url_for('/data/user/logout')}">Log out</a>.
+            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
+            <a href="${'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}">Log out</a>.
           </div>
         </span>
         <span class="ckan-logged-out">
           <div id="login-or-signup">
-            <a href="${'/user' if is_drupal_auth else h.url_for(controller='user',action='login')}">Log in</a>
+            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}">Log in</a>
             or
-            <a href="${'/user/register' if is_drupal_auth else h.url_for(controller='user',action='register')}">sign up</a>
+            <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}">sign up</a>
           </div>
         </span>
       </div>
@@ -127,7 +121,7 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
     <div class="container">
       <ul id="nav">
         <li id="nav-home"><a href="/home"><div class="nav-icon"></div>Home</a></li>
-        <li id="nav-data" class="active"><a href="${h.url_for(controller=data_controller,action='index')}">Data</a></li>
+        <li id="nav-data" class="active"><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController',action='index')}">Data</a></li>
         <li id="nav-participate"><a href="/participate">Participate</a></li>
         <li id="nav-data-requests"><a href="/odug">Data requests</a></li>
         <li id="nav-apps"><a href="/apps">Apps</a></li>
@@ -142,57 +136,55 @@ is_drupal_auth = 'dgu_drupal_auth' in config['ckan.plugins']
     <ul id="subnav">
       <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span> -->
-      <?python
-          path = c.environ.get('CKAN_CURRENT_URL')
-      ?>
-      <li><a class="${'active' if path.startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if path.startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if path.startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if path.startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if path.startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
       <py:if test="config.get('dgu.openspending_reports_enabled')">
         <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if path.startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
       </py:if>
       <py:if test="h.ga_report_installed()">
         <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if path.startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
       </py:if>
     </ul>
 <?python
+# Change this usage to use the proper auth helpers
+#  <div py:if="is_edit_form and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
 import ckan.authz
 from ckanext.dgu.plugins_toolkit import c
 if 'is_sysadmin' not in dir(c):
     c.is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
-can_create_package = h.check_access('package_create')
 c.groups = c.userobj.get_groups(group_type='publisher') if c.userobj else []
 c.is_an_official = bool(c.groups or c.is_sysadmin)
 ?>
-    <ul id="subnav" py:if="c.is_sysadmin or can_create_package">
-      <py:if test="can_create_package">
+    <ul id="subnav" py:if="c.is_sysadmin or h.check_access('package_create')">
+      <py:if test="h.check_access('package_create')">
         <span class="divider-section">Publisher tools:</span>
         <py:for each="group in c.groups">
-          <li><a class="${'active' if path.startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.display_name}</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.display_name}</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
-        <li><a class="${'active' if path.startswith('/dataset/new') else ''}" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/dataset/new') else ''}" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
         <py:if test="c.groups">
           <span class="divider">&nbsp;|&nbsp;</span>
-          <li><a class="${'active' if path.startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
         </py:if>
       </py:if>
       <py:if test="c.is_sysadmin">
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Sys Admin:</span>
-        <li><a class="${'active' if path.startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if path.startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
       </py:if>
     </ul>
   </div>

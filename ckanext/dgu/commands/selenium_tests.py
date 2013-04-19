@@ -77,8 +77,12 @@ class TestRunner(CkanCommand):
             log.debug('No --configfile specified, so using default of: %s',
                       default_config_filepath)
             config_filepath = default_config_filepath
-        self.config.readfp(open(self.options.config_file or \
-                                default_config_filepath))
+
+        if cmd == "run":
+            # Currently only run uses config, and this will be generated for
+            # us by a fab task in most cases.
+            self.config.readfp(open(self.options.config_file or \
+                                    default_config_filepath))
 
         getattr(self, '%s_task' % cmd)()
 
@@ -92,12 +96,15 @@ class TestRunner(CkanCommand):
             "selenium-server-standalone-2.28.0.jar"))
 
     def run_task(self):
+        global log
         import urlparse
         from selenium import selenium
 
         selenium_url = self.options.selenium_url or self._run_selenium()
         target_url = self.options.target_url or "http://localhost:5000/data"
         obj = urlparse.urlparse(selenium_url)
+
+        print "Requesting selenium connect to: %s" % (target_url,)
 
         self.selenium = selenium(obj.hostname, obj.port, "*firefox", target_url)
         self.selenium.start()
