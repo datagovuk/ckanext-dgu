@@ -15,7 +15,9 @@
 
   <py:match path="primarysidebar">
 
+  <!--! DR: REMOVED FOR NOW ON STABLE BRANCH 
   ${publisher_traffic_lights(c.group)}
+  -->
 
     <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
