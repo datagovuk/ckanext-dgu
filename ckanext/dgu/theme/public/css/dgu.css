@@ -1675,6 +1675,7 @@ ul.ui-autocomplete li a.ui-state-hover{
 }
 
 /* OpenSpending reports */
+/* -------------------- */
 body.openspending_report .voluntary { display: none; }
 /* Hack: Resize content scraped from OpenSpending */
 body.openspending_report #content .boxed .row .span4 {
@@ -1696,6 +1697,55 @@ table.error-details {
     margin-top: 8px;
 }
 
+/* OpenSpending browser */
+/* -------------------- */
+table.table thead .sorting {
+    background-image: url('/images/icons/sort.gif');
+    cursor: pointer;
+    font-weight: bold;
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding-right: 20px;
+    border-right: 1px solid #dad9c7;
+    margin-left: -1px;
+}
+table.table thead .sorting_desc {
+    background-image: url('/images/icons/sort-desc.gif');
+    background-color: #eee;
+    cursor: pointer;
+    font-weight: bold;
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding-right: 20px;
+    border-right: 1px solid #dad9c7;
+    margin-left: -1px;
+}
+table.table thead .sorting_asc {
+    background-image: url('/images/icons/sort-asc.gif');
+    background-color: #eee;
+    cursor: pointer;
+    font-weight: bold;
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding-right: 20px;
+    border-right: 1px solid #dad9c7;
+    margin-left: -1px;
+}
+.dataTables_processing {
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    width: 250px;
+    height: 30px;
+    margin-left: -125px;
+    margin-top: -15px;
+    padding: 14px 0 2px 0;
+    border: 1px solid #ddd;
+    text-align: center;
+    font-size: 14px;
+    background-color: white;
+}
+
 .table-lat-long {
 }
 .table-lat-long th {
@@ -1714,4 +1764,19 @@ table.error-details {
 }
 .table-lat-long .extent-value {
   white-space: nobreak;
+
+.sidebar-publisher-report .alert {
+  margin: 9px 0;
+  padding-right: 12px;
+}
+.sidebar-publisher-report .alert a {
+  float: right;
+  display: block;
+  color: #777;
+  border-bottom: 1px dashed #777;
+  margin-left: 10px;
+}
+.sidebar-publisher-report .alert a:hover {
+  border-bottom: 1px solid #777;
+  text-decoration: none;
 }

@@ -98,7 +98,7 @@ class TestRunner(CkanCommand):
     def run_task(self):
         global log
         import urlparse
-        from selenium import selenium
+        from selenium import selenium, webdriver
 
         selenium_url = self.options.selenium_url or self._run_selenium()
         target_url = self.options.target_url or "http://localhost:5000/data"
@@ -106,8 +106,10 @@ class TestRunner(CkanCommand):
 
         print "Requesting selenium connect to: %s" % (target_url,)
 
-        self.selenium = selenium(obj.hostname, obj.port, "*firefox", target_url)
-        self.selenium.start()
+        self.selenium = selenium(obj.hostname, obj.port, "*webdriver", target_url)
+        driver = webdriver.Remote(command_executor="http://localhost:8910",
+            desired_capabilities={'takeScreenshot':False,'javascriptEnabled':True,'webdriver.remote.sessionid':1})
+        self.selenium.start(driver=driver)
 
         try:
             error_dict = collections.defaultdict(list) # {test_name: [message, ..]}

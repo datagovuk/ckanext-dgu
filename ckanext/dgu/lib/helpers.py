@@ -13,6 +13,7 @@ from urlparse import urljoin
 from itertools import dropwhile
 import datetime
 
+import ckan.plugins.toolkit as t
 from webhelpers.html import literal
 from webhelpers.text import truncate
 from pylons import tmpl_context as c, config
@@ -356,6 +357,23 @@ def mini_stars_and_caption(num_stars):
         'Linked data - data URIs and linked to other data (e.g. RDF)'
         ]
     return literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
+
+def render_dataset_stars(dataset_id):
+    stars_dict = get_stars_aggregate(dataset_id)
+    if not stars_dict:
+        return 'To be determined'
+    return render_stars(stars_dict.value,
+                        stars_dict.reason,
+                        stars_dict.last_updated)
+
+def render_resource_stars(resource_id):
+    from ckanext.qa import reports
+    report = reports.resource_five_stars(resource_id)
+    if not report:
+        return 'To be determined'
+    return render_stars(report.get('openness_score', -1),
+                        report.get('openness_score_reason'),
+                        report.get('openness_updated'))
 
 def render_stars(stars, reason, last_updated):
     if stars==0:
@@ -726,29 +744,6 @@ def get_wms_info_urls(pkg_dict):
 
 def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
-
-def get_resource_stars(resource_id):
-    from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    stars = report.get('openness_score', -1)
-    return stars
-
-def get_star_text(resource_id):
-    stars = get_resource_stars(resource_id)
-    stars_text = str(stars) + "/5"
-    if (stars==4):
-        stars_text = "4/5 or 5/5"
-    return stars_text
-
-def star_report_reason(resource_id):
-    from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    return report.get('openness_score_reason')
-
-def star_report_updated(resource_id):
-    from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    return report.get('openness_updated')
 
 def groups_as_json(groups):
     import json
@@ -1158,3 +1153,91 @@ def get_tiles_url():
 
 
 
+def publisher_performance_data(publisher, include_sub_publishers):
+    """
+        Returns additional info for publishers, as traffic lights so that
+        it can be viewed on the publisher read page.
+
+        broken_links - green = 0%, amber <= 60% broken links, red > 60% broken
+        openness - green if all > 4 *, amber for 50%> 3*, red otherwise
+    """
+    import time
+    from ckanext.qa.reports import broken_resource_links_for_organisation
+    from ckanext.dgu.lib import publisher as publib
+
+    start_time = time.time()
+
+    rcount = publib.resource_count(publisher, include_sub_publishers)
+    log.debug("{p} has {r} resources".format(p=publisher.name, r=rcount))
+
+    # Issues data
+    issues = "green"
+
+    if 'issues' in config['ckan.plugins']:
+        # If issues are installed then we can use the info to determine
+        # whether the issues are older than a month, between a fortnight
+        # and a month, or less than a fortnight.
+        from ckanext.issues.lib import util
+
+        more_than_month = util.old_unresolved(publisher, days=30)
+        more_than_fortnight = util.old_unresolved(publisher, days=14)
+
+        if more_than_month:
+            issues = 'red'
+        elif more_than_fortnight:
+            issues = 'amber'
+        else:
+            issues = 'green'
+
+
+    # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
+    # that returns count().  This is likely to be slow if there are lots of resource links broken
+    # such as for ONS.
+    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+    broken_count = len(data['data'])
+
+    if broken_count == 0 or rcount == 0:
+        pct = 0
+    else:
+        pct = int(100 * float(broken_count)/float(rcount))
+    log.debug("{d}% of resources in {p} are broken".format(d=pct, p=publisher.name))
+
+    broken_links = 'green'
+    if 1 < pct <= 60:
+        broken_links = 'amber'
+    elif pct > 60:
+        broken_links = 'red'
+
+    openness = ''
+    total, counters = publib.openness_scores(publisher, include_sub_publishers)
+    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+
+    above_3 = number_x_or_above(3)
+    pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
+
+    if number_x_or_above(4) == total:
+        openness = 'green'
+    elif pct_above_3 >= 50:
+        openness = 'amber'
+    else:
+        openness = 'red'
+
+    log.debug("publisher performance data took {d} seconds".format(d=time.time()-start_time))
+    return {
+        'broken_links': broken_links,
+        'openness': openness,
+        'issues': issues
+    }
+
+def publisher_has_spend_data(publisher):
+    # TODO: We should cache this to save checking the disk
+    # each time we want to know if there is data.
+    import os
+
+    nm = 'publisher-{name}.html'.format(name=publisher.name)
+    folder = os.path.expanduser(config.get(
+            'dgu.openspending_reports_dir',
+            '/var/lib/ckan/dgu/openspending_reports'))
+    pth = os.path.join(folder, nm)
+    log.debug("Looking for {p}".format(p=pth))
+    return os.path.exists(pth)
