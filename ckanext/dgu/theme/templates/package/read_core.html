@@ -79,10 +79,10 @@
           </ul>
         </py:if>
         <py:if test="h.timeseries_resources()">
-          <h3>Data Resources (${len(timeseries_resources)} in a time series)</h3>
+          <h3>Data Resources (${len(h.timeseries_resources())} in a time series)</h3>
           <ul class="resource-list">
-            <py:for each="res in timeseries_resources">
-            <li class="${'last-child' if res==timeseries_resources[-1] else ''}">
+            <py:for each="res in h.timeseries_resources()">
+            <li class="${'last-child' if res==h.timeseries_resources()[-1] else ''}">
               <div class="trimmed-text">
                 ${h.dgu_resource_icon(res)}
                 ${res.get('date')}
