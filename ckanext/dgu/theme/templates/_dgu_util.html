@@ -109,16 +109,10 @@
        <div class="dataset-description">
          ${h.markdown_extract(package.notes)}
        </div>
-        <py:if test="show_preview_buttons">
-          ${map_preview_buttons(package.id, package)}
-        </py:if>
-        <div class="owners">
-        </div>
-        <div class="clearfix"></div>
-          <!--!ul py:if="package.tags" class="tags">
-            <li py:for="tag in package.tags">${tag.name}</li>
-          </ul-->
-        </div>
+       <py:if test="show_preview_buttons">
+         ${map_preview_buttons(package.id, package)}
+       </py:if>
+     </div>
   </div>
 
 

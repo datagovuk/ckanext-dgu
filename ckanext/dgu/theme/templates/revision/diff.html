@@ -25,12 +25,12 @@
       </ul>
 
       <py:if test="c.diff">
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered table-striped revision-diff-table">
           <tr>
-            <th>Field</th><th>Difference</th>
+            <th class="revision-left">Field</th><th class="revision-right">Difference</th>
           </tr>
          <py:for each="field, diff in c.diff">
-            <tr><td>${field}</td><td><pre>${diff}</pre></td></tr>
+            <tr><td class="revision-left">${field}</td><td class="revision-right"><pre>${diff}</pre></td></tr>
           </py:for>
         </table>
       </py:if>

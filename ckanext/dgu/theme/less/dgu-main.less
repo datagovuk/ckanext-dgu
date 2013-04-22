@@ -465,8 +465,9 @@ ul.common-dataset-list {
       margin-top: -2px;
     }
     .map-buttons {
-        float: right;
+        height: 33px;
         margin-top: 4px;
+        text-align: right;
     }
     .btn-preview {
         margin-left: 5px;
@@ -612,6 +613,10 @@ body.controller-data.action-index {
             }
         }
     }
+    .dataset-header .format-box {
+        /* These look kind of broken on the front page */
+        display: none;
+    }
 }
 
 
@@ -679,6 +684,7 @@ body.controller-package.action-read {
       margin-left: 6px;
     }
     .dataset-map {
+        margin-top: 20px;
         #dataset-map-container {
             width: 350px;
             height: 280px;
@@ -981,6 +987,19 @@ body.controller-tag.action-index {
     }
     .pagination-alphabet a {
         padding: 0 10px;
+    }
+}
+
+/* PAGE: Revision/diff */
+body.controller-revision.action-diff {
+    .revision-diff-table {
+        table-layout: fixed;
+        .revision-left {
+            width: 240px;
+        }
+        .revision-right {
+            width: 610px;
+        }
     }
 }
 

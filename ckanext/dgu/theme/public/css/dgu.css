@@ -68,7 +68,7 @@ ul.common-dataset-list{list-style-type:none;margin-left:0;}ul.common-dataset-lis
 .dataset-summary div.property{margin:4px 0;}
 .dataset-summary .property{color:#666;font-size:12px;line-height:18px;}
 .dataset-summary .format-box{float:right;margin-top:-2px;}
-.dataset-summary .map-buttons{float:right;margin-top:4px;}
+.dataset-summary .map-buttons{height:33px;margin-top:4px;text-align:right;}
 .dataset-summary .btn-preview{margin-left:5px;}
 .dataset-summary .preview-add .btn-preview,.dataset-summary .preview-remove .btn-preview{width:160px;padding-left:0;padding-right:10px;}
 .metadata-table td.dataset-label{font-weight:bold;text-align:right;width:180px;}
@@ -90,6 +90,7 @@ body.controller-data.action-index .front-page-table tr.gutter td{height:20px;}
 body.controller-data.action-index .front-page-table td.gutter{width:20px;padding:0;}
 body.controller-data.action-index div#tagcloud{clear:both;margin:10px auto;text-align:center;}body.controller-data.action-index div#tagcloud *{display:inline-block;vertical-align:middle;line-height:0.9;}
 body.controller-data.action-index div#tagcloud a{text-decoration:none;}body.controller-data.action-index div#tagcloud a:hover{text-decoration:underline;}
+body.controller-data.action-index .dataset-header .format-box{display:none;}
 body.controller-publisher.action-read h1 .btn.edit{float:right;margin-left:10px;}
 body.controller-publisher.action-read .feed-icon img{margin:-4px 0 0 4px;}
 body.controller-publisher.action-read .state-box{background-color:#fdd;}
@@ -99,7 +100,7 @@ body.controller-package.action-read img.dataset-logo{float:right;padding:5px;}
 body.controller-package.action-read #dataset-resources{margin-bottom:20px;}
 body.controller-package.action-read .one-line-link{display:block;word-wrap:break-word;white-space:normal !important;}
 body.controller-package.action-read .resources-badge{vertical-align:2px;margin-left:6px;}
-body.controller-package.action-read .dataset-map #dataset-map-container{width:350px;height:280px;background:#ccc;margin-bottom:30px !important;}body.controller-package.action-read .dataset-map #dataset-map-container div.olControlAttribution{font-size:9px;font-family:helvetica,tahoma,verdana,sans-serif;line-height:12px;left:5px;bottom:3px;color:#666;}
+body.controller-package.action-read .dataset-map{margin-top:20px;}body.controller-package.action-read .dataset-map #dataset-map-container{width:350px;height:280px;background:#ccc;margin-bottom:30px !important;}body.controller-package.action-read .dataset-map #dataset-map-container div.olControlAttribution{font-size:9px;font-family:helvetica,tahoma,verdana,sans-serif;line-height:12px;left:5px;bottom:3px;color:#666;}
 body.controller-package.action-read .dataset-map .dataset-map-info{width:220px;float:right;}body.controller-package.action-read .dataset-map .dataset-map-info .map-buttons>div{text-align:right;margin-bottom:10px;}
 body.controller-package.action-read .dataset-map .dataset-map-info #dataset-map-attribution{font-size:9px;line-height:12px;text-align:right;margin-top:26px;}
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long th{padding-bottom:8px;}
@@ -143,6 +144,8 @@ body.controller-view.action-index .status{-webkit-border-radius:5px;-moz-border-
 body.controller-view.action-read .harvest-source-title,body.controller-view.action-read .harvest-source-config{display:none;}
 body.controller-tag.action-index .search-area{margin-bottom:25px;}
 body.controller-tag.action-index .pagination-alphabet a{padding:0 10px;}
+body.controller-revision.action-diff .revision-diff-table{table-layout:fixed;}body.controller-revision.action-diff .revision-diff-table .revision-left{width:240px;}
+body.controller-revision.action-diff .revision-diff-table .revision-right{width:610px;}
 body.openspending_report .voluntary{display:none;}
 body.openspending_report #content .boxed .row .span4{width:260px;}
 body.openspending_report .error-details .label{align:center;}
