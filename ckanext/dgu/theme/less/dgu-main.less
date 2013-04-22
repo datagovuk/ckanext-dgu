@@ -1027,8 +1027,10 @@ body.openspending_report {
 }
 body.openspending_browse {
     table.table thead {
-        .sorting {
-            background-image: url('/images/icons/sort.gif');
+        .sorting,
+        .sorting_asc,
+        .sorting_desc {
+            background-color: #eee;
             cursor: pointer;
             font-weight: bold;
             background-repeat: no-repeat;
@@ -1036,28 +1038,16 @@ body.openspending_browse {
             padding-right: 20px;
             border-right: 1px solid #dad9c7;
             margin-left: -1px;
+        }
+        .sorting {
+            background-image: url('/images/icons/sort.gif');
+            background-color: inherit;
         }
         .sorting_desc {
             background-image: url('/images/icons/sort-desc.gif');
-            background-color: #eee;
-            cursor: pointer;
-            font-weight: bold;
-            background-repeat: no-repeat;
-            background-position: center right;
-            padding-right: 20px;
-            border-right: 1px solid #dad9c7;
-            margin-left: -1px;
-        }
+          }
         .sorting_asc {
             background-image: url('/images/icons/sort-asc.gif');
-            background-color: #eee;
-            cursor: pointer;
-            font-weight: bold;
-            background-repeat: no-repeat;
-            background-position: center right;
-            padding-right: 20px;
-            border-right: 1px solid #dad9c7;
-            margin-left: -1px;
         }
     }
     .dataTables_processing {
