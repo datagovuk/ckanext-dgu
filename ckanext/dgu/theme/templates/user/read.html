@@ -7,23 +7,8 @@
   <py:def function="content_class">no-sidebar</py:def>
 
   <div py:match="content" py:strip="">
-    <?python
-      from ckan import model
-      from ckan.authz import Authorizer
-      groups = None
-      u = model.User.get(c.user_dict['id'])
-      if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or Authorizer().is_sysadmin(c.user):
-        groups = u.get_groups('publisher' )
+    ${h.prep_user_detail()}
 
-      # Non-sysadmins cannot see personally identifiable information
-      if not c.is_myself and not Authorizer().is_sysadmin(c.user):
-          c.user_dict['about']        = ''
-          c.about_formatted           = ''
-          c.user_dict['display_name'] = c.user_dict['name']
-          c.user_dict['fullname']     = None
-          c.user_dict['email']        = None
-          c.user_dict['openid']       = None
-    ?>
   <div class="row">
     <div class="span6">
       <div class="boxed">
@@ -73,8 +58,8 @@
         <h2>Publishers</h2>
         <a py:if="c.user == c.user_dict['name']" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply')}">Add a publisher to your account</a>
 
-        <ul py:if="groups">
-            <py:for each="group in groups">
+        <ul>
+            <py:for each="group in h.user_get_groups(c.user_dict['id'])">
             <li>
               <a href="/publisher/${group.name}">${group.title}</a>
             </li>

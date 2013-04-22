@@ -194,7 +194,17 @@ def command(config_file):
             dump_file.write(tmp_filepath, dump_filename)
             dump_file.close()
 
+            # Setup a symbolic link to dump_filepath from data.gov.uk-ckan-meta-data-latest.{0}.zip
+            # so that it is up-to-date with the latest version for both JSON and CSV.
+            link_filepath = os.path.join(dump_dir,
+                "data.gov.uk-ckan-meta-data-latest.{0}.zip".format(file_type))
+
+            if os.path.exists(link_filepath):
+                os.unlink(link_filepath)
+            os.symlink(dump_filepath, link_filepath)
+
             os.remove(tmp_filepath)
+
         report_time_taken(log)
 
         # Dump analysis

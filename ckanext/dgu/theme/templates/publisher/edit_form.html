@@ -21,17 +21,7 @@
 <input type="hidden" id="type" name="type" value="publisher" />
 <input type="hidden" id="approval_status" name="approval_status" value="pending" />
 
-<?python
-# Note when you get a fresh form the extras are in data['extras']. But
-# on validation error, the submitted values appear in data[key] with the original
-# values in data['extras']. Therefore populate the form with the data[key] values
-# in preference, and fall back on the data['extra'] values.
-original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
-                              for extra_dict in data.get('extras', {})])
-for key, value in original_extra_fields.items():
-    if key not in data:
-        data[key] = value
-?>
+${h.prep_group_edit_data(data)}
 
 <p>Details about the organisation that publishes data on data.gov.uk</p>
 
@@ -39,8 +29,8 @@ for key, value in original_extra_fields.items():
   <div class="control-group">
     <label class="control-label" for="name">Publisher name</label>
     <div class="controls">
-      <input py:if="not c.group or c.is_sysadmin" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
-      <span py:if="c.group and not c.is_sysadmin" class="js-title">
+      <input py:if="not c.group or h.is_sysadmin()" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+      <span py:if="c.group and not h.is_sysadmin()" class="js-title">
         ${data.get('title', '')}
       </span>
       <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
@@ -77,7 +67,7 @@ for key, value in original_extra_fields.items():
   <div class="control-group">
     <label py:if="c.is_superuser_or_groupadmin" class="control-label" for="parent">Parent publisher</label>
     <div class="controls">
-      <py:if test="c.group and not c.is_sysadmin">
+      <py:if test="c.group and not h.is_sysadmin()">
         <span py:if="c.parent is not None" class="js-title">
           ${c.parent.title}
         </span>
@@ -85,7 +75,7 @@ for key, value in original_extra_fields.items():
           No parent publisher
         </span>
       </py:if>
-      <py:if test="c.is_sysadmin" class="parent-field">
+      <py:if test="h.is_sysadmin()" class="parent-field">
         <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
           <option value=""></option>
           <py:for each="pg in c.possible_parents">
@@ -99,7 +89,7 @@ for key, value in original_extra_fields.items():
   <div class="control-group">
     <label class="control-label" for="state">State</label>
     <div class="controls state-field">
-      <py:if test="c.is_sysadmin or c.auth_for_change_state">
+      <py:if test="h.is_sysadmin() or c.auth_for_change_state">
         <select id="state" name="state" style="width:100px;">
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
@@ -177,22 +167,7 @@ for key, value in original_extra_fields.items():
     </div>
   </div>
 </fieldset>
-<?python
-users = data.get('users', [])
-?>
-<fieldset id="users" style="display: none;">
-  <h3>Users <span py:if="users">(${len(users)})</span></h3>
-  <dl py:if="users">
-    <py:for each="num, user in enumerate(users)">
-    <dd>
-      <label>${user['name']}</label>
-      <input type="hidden" name="users__${num}__name" value="${user['name']}"/>
-      <input type="hidden" name="users__${num}__capacity" value="${user['capacity']}"/>
-  </dd>
-    </py:for>
-  </dl>
-  <p py:if="not users">There are no users currently in this publisher.</p>
-</fieldset>
+
 <fieldset id="extras" style="display: none;">
 <!--!  <h3>Extras</h3> -->
   <py:with vars="extras = data.get('extras', [])">
@@ -230,11 +205,8 @@ users = data.get('users', [])
 </fieldset>
 
 <fieldset id="child-publishers" style="display: none;" py:if="c.group">
-<?python
-from ckanext.dgu.lib import publisher
-?>
   <ul>
-    <li py:for="num, publisher in enumerate(publisher.get_children(c.group))">
+    <li py:for="num, publisher in enumerate(h.get_children_for_group(c.group))">
       <label class="checkbox" for="groups__${num}__name">
         <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher.name}"/>
         ${publisher.title}

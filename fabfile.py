@@ -110,6 +110,7 @@ def setup_tests(server, create_drupal_user):
         ("user add %s password=%s" % (EDITOR_USERNAME, EDITOR_PASSWORD), "ckan",False),
         ("group add %s Test publisher" % (PUBLISHER), "ckan",False),
         ("group adduser %s %s admin" % (PUBLISHER,ADMIN_USERNAME), "ckan",False),
+        ("group adduser %s %s editor" % (PUBLISHER,EDITOR_USERNAME), "ckan",False),
     ]
 
 

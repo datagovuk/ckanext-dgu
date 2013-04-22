@@ -5,67 +5,14 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
 >
 
-<?python
-import json
-import re
-from pylons import config
-drupal_host = config.get('dgu.drupal_host', 'data.gov.uk')
-is_edit_form = bool(data.get('id', None)) and data.get('id') != 'None' #<!--! 'edit' as opposed to 'new'-->
-has_errors = bool(errors) #<!--! validation errors -->
-use_wizard = not has_errors and not is_edit_form #<!--! 'Wizard mode' stops you moving freely between sections - you need to use Back and Forward buttons -->
-are_timeseries_resources = False
-for res in data.get('timeseries_resources',[]):
-    if res.get('format') or res.get('url') or res.get('description') or res.get('date'):
-        are_timeseries_resources = True
-        break
-are_legacy_extras = False
-for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
-    if data[key]:
-        are_legacy_extras = True
-        break
-
-if has_errors:
-  # DGU uses different words for things compared to CKAN, so adjust
-  # the language of errors using mappings:
-  field_name_map = {
-        'groups': 'Publisher',
-        'individual_resources': 'Data Files',
-        'timeseries_resources': 'Data Files',
-        'title': 'Name',
-        'name': 'Unique identifier',
-        'url': 'URL',
-        'notes': 'Description',
-        'theme-primary': 'Primary Theme',
-        'license_id': 'Licence'
-  }
-  field_error_key_map = {
-        'group': 'publisher',
-        'description': 'title',
-  }
-  field_error_value_map = {
-        'That group name or ID does not exist.': 'Missing value',
-  }
-
-  def clean(o):
-    if isinstance(o, list) and len(o)==1:
-      o = o[0]
-    if isinstance(o, basestring):
-      o = field_name_map.get(o,o)
-      o = field_error_key_map.get(o,o)
-      o = field_error_value_map.get(o,o)
-      o = re.sub('[_-]', ' ', o)
-      if o[0].lower() == o[0]:
-        o = o.capitalize()
-    return o
-?>
-<!-- recursive function turns errors into hierarchical lists -->
+<!-- recursive function turns errors into hierarchical lists
+     TODO: Fix the dep on clean_obj-->
 <py:def function="dump(o)">
-  <?python o = clean(o) ?>
   <ul py:if="type(o) is dict and bool(o)">
     <li py:for="k,v in o.items()">
       <?python
-        k=clean(k)
-        v=clean(v)
+        k=h.clean_obj(k)
+        v=h.clean_obj(v)
       ?>
       <py:if test="type(v) in [str, unicode]">
         <b>${k}:</b> ${v}
@@ -86,15 +33,15 @@ if has_errors:
 </py:def>
 
 
-<div class="error-explanation" py:if="has_errors">
+<div class="error-explanation" py:if="bool(errors)">
 <h2>Errors in form</h2>
 <p>The form contains invalid entries:</p>
   ${dump(errors)}
 </div>
 
 <div id="form-tabs" class="tabbable tabs-left">
-  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled'} if use_wizard else {'data-toggle':'hashtab'}">
-    <li class="active"><a id="section-name" href="#section-name-fields" data-toggle="hashtab">Name</a></li>
+  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if h.use_wizard(data, errors) else {}">
+    <li class="active"><a data-toggle="hashtab" id="section-name" href="#section-name-fields">Name</a></li>
     <li><a data-toggle="hashtab" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
     <li><a data-toggle="hashtab" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
     <li><a data-toggle="hashtab" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
@@ -103,8 +50,8 @@ if has_errors:
     <li><a data-toggle="hashtab" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
     <li><a data-toggle="hashtab" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
     <li><a data-toggle="hashtab" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
-    <li py:if="h.is_package_edit_form(data) and (c.is_sysadmin or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
-    <li py:if="c.is_sysadmin"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
+    <li py:if="h.is_package_edit_form(data) and (h.is_sysadmin() or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+    <li py:if="h.is_sysadmin()"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
   </ul>
   <div class="tab-content">
 
@@ -127,12 +74,12 @@ if has_errors:
     <div class="controls">
       <span class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
         <div class="input-prepend" style="zoom:1; *display:inline;">
-          <span class="add-on">/dataset/</span><input py:attrs="{'readonly':'readonly'} if is_edit_form else {}" class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
+          <span class="add-on">/dataset/</span><input py:attrs="{'readonly':'readonly'} if h.is_package_edit_form(data) else {}" class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
         </div>
         <img src="/images/information-grey.png"/>
       </span>
       <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
-      <p py:if="not is_edit_form" class="js-url-is-valid">&nbsp;</p>
+      <p py:if="not h.is_package_edit_form(data)" class="js-url-is-valid">&nbsp;</p>
     </div>
   </div>
 </fieldset>
@@ -148,11 +95,11 @@ if has_errors:
       <tr>
         <td style="width: 30%;">
           <label class="radio">
-            <input py:attrs="{'checked': 'checked' if not are_timeseries_resources else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
+            <input py:attrs="{'checked': 'checked' if not h.are_timeseries_resources(data) else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
             A single file record
           </label>
           <label class="radio">
-            <input py:attrs="{'checked': 'checked' if are_timeseries_resources else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
+            <input py:attrs="{'checked': 'checked' if h.are_timeseries_resources(data) else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
             A timeseries record
           </label>
         </td>
@@ -175,7 +122,7 @@ if has_errors:
                       ${freq_desc}
                     </option>
                   </py:for>
-                  <option py:if="is_edit_form" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
+                  <option py:if="h.is_package_edit_form(data)" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
               </select>
               <img src="/images/information-grey.png" />
           </span>
@@ -209,20 +156,14 @@ if has_errors:
           </td>
           <py:for each="col in ('date',) + c.resource_columns">
             <td class="resource-${col}">
-              <?python
-                resource_errors = errors.get('timeseries_resources', [])
-                cell_has_error = resource_errors and \
-                                 num < len(resource_errors) and \
-                                 bool(resource_errors[num].get(col, False))
-              ?>
               <py:choose test="">
                 <input py:when="col=='description'"
                        id="timeseries_resources__${num}__${col}"
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-medium field_error' if cell_has_error else 'input-medium'}"/>
-                <span class="control-group ${'error' if cell_has_error else ''}" py:when="col=='url'">
+                       py:attrs="{'class': 'input-medium field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else 'input-medium'}"/>
+                <span class="control-group ${'error' if h.cell_has_errors(errors,'timeseries_resources', num, col)  else ''}" py:when="col=='url'">
                   <input id="timeseries_resources__${num}__${col}"
                          name="timeseries_resources__${num}__${col}"
                          type="text"
@@ -237,7 +178,7 @@ if has_errors:
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-small field_error' if cell_has_error else 'input-small'}"/>
+                       py:attrs="{'class': 'input-small field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else 'input-small'}"/>
 
               </py:choose>
             </td>
@@ -248,13 +189,7 @@ if has_errors:
                   ignore resource_type, id and resource_group_id.
 
                   Code is long hand to keep the list comp understandable -->
-            <?python
-                refs = set(res.keys()) - set(c.resource_columns)
-                timeseries_extra_fields = [r for r in res.keys() if r not in
-                                         ('id','resource_type','resource_group_id',
-                                          'revision_id', 'url','description','format','date')]
-            ?>
-            <py:for each="col in timeseries_extra_fields">
+            <py:for each="col in h.timeseries_extra_fields(res)">
               <input
                      id="timeseries_resources__${num}__${col}"
                      name="timeseries_resources__${num}__${col}"
@@ -303,20 +238,14 @@ if has_errors:
           </td>
           <py:for each="col in c.resource_columns">
             <td class="resource-${col}">
-            <?python
-              resource_errors = errors.get('individual_resources', [])
-              cell_has_error = resource_errors and \
-                               num < len(resource_errors) and \
-                               bool(resource_errors[num].get(col, False))
-            ?>
             <py:choose test="">
               <input py:when="col=='description'"
                      id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-                     py:attrs="{'class': 'input-large field_error' if cell_has_error else 'input-large'}"/>
-              <span class="control-group ${'error' if cell_has_error else ''}" py:when="col=='url'">
+                     py:attrs="{'class': 'input-large field_error' if h.cell_has_errors(errors,'individual_resources', num, col) else 'input-large'}"/>
+              <span class="control-group ${'error' if h.cell_has_errors(errors,'individual_resources', num, col) else ''}" py:when="col=='url'">
                 <input id="individual_resources__${num}__${col}"
                        name="individual_resources__${num}__${col}"
                        type="text"
@@ -332,13 +261,13 @@ if has_errors:
                      value="${res.get(col, '')}"
                      data-provider="typeahead"
                      data-items="8"
-                     py:attrs="{'class': 'input-small format-typeahead field_error' if cell_has_error else 'input-small format-typeahead'}"/>
+                     py:attrs="{'class': 'input-small format-typeahead field_error' if h.cell_has_errors(errors,'additional_resources', num, col) else 'input-small format-typeahead'}"/>
               <input py:otherwise=""
                      id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-                     py:attrs="{'class': 'input-small field_error' if cell_has_error else 'input-small'}"/>
+                     py:attrs="{'class': 'input-small field_error' if h.cell_has_errors(errors,'individual_resources', num, col) else 'input-small'}"/>
             </py:choose>
             </td>
           </py:for>
@@ -348,13 +277,7 @@ if has_errors:
                   ignore resource_type, id and resource_group_id.
 
                   Code is long hand to keep the list comp understandable -->
-            <?python
-                refs = set(res.keys()) - set(c.resource_columns)
-                resource_extra_fields = [r for r in res.keys() if r not in
-                                         ('id','resource_type','resource_group_id',
-                                          'revision_id', 'url','description','format')]
-            ?>
-            <py:for each="col in resource_extra_fields">
+            <py:for each="col in h.resource_extra_fields(res)">
               <input
                      id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
@@ -391,17 +314,6 @@ if has_errors:
 
 <fieldset class="tab-pane" id="section-licence-field">
   <h3>Licence</h3>
-    <?python
-      license_id = data.get('license_id', 'uk-ogl')
-      license_id_other = data.get('access_constraints', '')
-      available_license_ids = zip(*c.licenses)[1]
-      is_other_license = license_id not in available_license_ids
-      try:
-        license_extra = c.pkg.extras.get('licence')
-      except:
-        license_extra = None
-    ?>
-
     <div class="control-group">
     <label class="control-label" for="license_id">Licence:</label>
     <div class="controls">
@@ -428,26 +340,23 @@ if has_errors:
               extra fields.  ie - a harvested license.
      -->
 
-      <py:if test="not is_edit_form">
+      <py:if test="not h.is_package_edit_form(data)">
         <!-- If this is a new dataset, then we only offer OGL in the dropdown -->
         <py:for each="license_desc, license_id in filter(lambda (desc,id): id == 'uk-ogl', c.licenses)">
           <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
         </py:for>
       </py:if>
 
-      <py:if test="not license_extra and is_edit_form">
+      <py:if test="not h.get_license_extra(c.pkg) and h.is_package_edit_form(data)">
         <!-- If this is an edit form, then we want to offer the current license
              in the dropdown, unless it's a free-text license -->
-        <?python
-          license_choices = set(available_license_ids) & set([license_id, 'uk-ogl'])
-        ?>
-        <py:for each="license_desc, license_id in filter(lambda (desc,id): id in license_choices, c.licenses)">
+        <py:for each="license_desc, license_id in filter(lambda (desc,id): id in h.license_choices(data), c.licenses)">
           <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
         </py:for>
       </py:if>
 
-      <option py:if="license_extra" value="__extra__" selected="selected">Harvested license...</option>
-      <option py:if="not license_extra" value="" py:attrs="{'selected': 'selected' if is_other_license else None}">Specify other...</option>
+      <option py:if="h.get_license_extra(c.pkg)" value="__extra__" selected="selected">Harvested license...</option>
+      <option py:if="not h.get_license_extra(c.pkg)" value="" py:attrs="{'selected': 'selected' if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else None}">Specify other...</option>
 
     </select>
     <p class="instructions basic">The licence under which the dataset is released.</p>
@@ -458,9 +367,9 @@ if has_errors:
     <div class="control-group choose-other-licence">
       <label class="control-label" for="license_extra">Licence (other):</label>
       <div class="controls">
-        <textarea py:if="not license_extra" rows="1" cols="60" id="access_constraints" name="access_constraints">${license_id_other if license_id_other else (license_id if is_other_license else '')}</textarea>
-        <textarea py:if="license_extra" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${license_extra}</textarea>
-        <input py:if="license_extra" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
+        <textarea py:if="not h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="access_constraints">${data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else '')}</textarea>
+        <textarea py:if="h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${h.get_license_extra(c.pkg)}</textarea>
+        <input py:if="h.get_license_extra(c.pkg)" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
 
         <p py:if="errors.get('license_id')" class="field_error" style="display: block;">${errors.get('license_id','')}</p>
       </div>
@@ -469,34 +378,13 @@ if has_errors:
 
 <fieldset class="tab-pane" id="section-publisher-field">
   <h3>Publisher</h3>
-    <?python
-
-      if not data.get('groups'):
-        group_name = None
-        group_id = None
-      else:
-        group_id = data.get('groups')[0].get('id', '')
-        group_name = data.get('groups')[0].get('name', '')
-        if group_id:
-          groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
-          group_name = groups[0] if groups else ''
-      group = c.publishers.get(group_name, {}) if group_id else data
-
-      contact_name = group.get('contact-name', '')
-      contact_email = group.get('contact-email', '')
-      contact_phone = group.get('contact-phone', '')
-      foi_name = group.get('foi-name', '')
-      foi_email = group.get('foi-email', '')
-      foi_phone = group.get('foi-phone', '')
-      foi_web = group.get('foi-web', '')
-    ?>
     <div class="control-group">
       <label class="control-label" for="groups__0__name">Published by: </label>
       <div class="controls">
         <select id="groups__0__name" name="groups__0__name">
-          <option value=" " py:attrs="{'selected': 'selected' if not group_name else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in authorize.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
+          <option value=" " py:attrs="{'selected': 'selected' if not h.edit_publisher_group_name(data) else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in authorize.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if group_name == publisher_name else None}" >
+            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if h.edit_publisher_group_name(data) == publisher_name else None}" >
               ${publisher['title']}
             </option>
           </py:for>
@@ -508,14 +396,15 @@ if has_errors:
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
     <fieldset id="publisher-information-field" class="well" >
       <h3>Publisher Contact Details</h3>
+      <?python
+        group = h.edit_publisher_group(data) ?>
+      <p><b>Name: </b> <span id="contact-name-label">${group.get('contact-name', '')}</span></p>
+      <p><b>Email: </b><span id="contact-email-label">${group.get('contact-email', '')}</span></p>
+      <p><b>Phone: </b><span id="contact-phone-label">${group.get('contact-phone', '')}</span></p>
 
-      <p><b>Name: </b> <span id="contact-name-label">${contact_name}</span></p>
-      <p><b>Email: </b><span id="contact-email-label">${contact_email}</span></p>
-      <p><b>Phone: </b><span id="contact-phone-label">${contact_phone}</span></p>
-
-      <input id="contact-name" name="contact-name" type="hidden" value="${contact_name}"/>
-      <input id="contact-email" name="contact-email" type="hidden" value="${contact_email}"/>
-      <input id="contact-phone" name="contact-phone" type="hidden" value="${contact_phone}"/>
+      <input id="contact-name" name="contact-name" type="hidden" value="${group.get('contact-name', '')}"/>
+      <input id="contact-email" name="contact-email" type="hidden" value="${group.get('contact-email', '')}"/>
+      <input id="contact-phone" name="contact-phone" type="hidden" value="${group.get('contact-phone', '')}"/>
 
       <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
       <div style="display: none;" class="modal fade dgu-editor" id="edit-contact">
@@ -554,15 +443,15 @@ if has_errors:
     <fieldset class="well">
       <h3>FOI Request Contact Details</h3>
 
-      <p><b>Name: </b> <span id="foi-name-label">${foi_name}</span></p>
-      <p><b>Email: </b><span id="foi-email-label">${foi_email}</span></p>
-      <p><b>Web: </b><span id="foi-web-label">${foi_web}</span></p>
-      <p><b>Phone: </b><span id="foi-phone-label">${foi_phone}</span></p>
+      <p><b>Name: </b> <span id="foi-name-label">${group.get('foi-name', '')}</span></p>
+      <p><b>Email: </b><span id="foi-email-label">${group.get('foi-email', '')}</span></p>
+      <p><b>Web: </b><span id="foi-web-label">${group.get('foi-web', '')}</span></p>
+      <p><b>Phone: </b><span id="foi-phone-label">${group.get('foi-phone', '')}</span></p>
 
-      <input id="foi-name" name="foi-name" type="hidden" value="${foi_name}"/>
-      <input id="foi-email" name="foi-email" type="hidden" value="${foi_email}"/>
-      <input id="foi-web" name="foi-web" type="hidden" value="${foi_web}"/>
-      <input id="foi-phone" name="foi-phone" type="hidden" value="${foi_phone}"/>
+      <input id="foi-name" name="foi-name" type="hidden" value="${group.get('foi-name', '')}"/>
+      <input id="foi-email" name="foi-email" type="hidden" value="${group.get('foi-email', '')}"/>
+      <input id="foi-web" name="foi-web" type="hidden" value="${group.get('foi-web', '')}"/>
+      <input id="foi-phone" name="foi-phone" type="hidden" value="${group.get('foi-phone', '')}"/>
 
       <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
       <div style="display: none;" class="modal fade dgu-editor" id="edit-foi">
@@ -608,18 +497,6 @@ if has_errors:
 <fieldset class="tab-pane" id="section-themes-field">
   <h3>Theme &amp; tags</h3>
 
-  <?python
-    import re
-    all_tags = [t['name'] for t in data.get('tags', [])]
-    theme_primary = data.get('theme-primary', '')
-    secondary_themes_raw = data.get('theme-secondary', '')
-    if isinstance(secondary_themes_raw, basestring):
-      secondary_themes = set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
-    else:
-      secondary_themes = set(secondary_themes_raw)
-    free_tags = set(all_tags) - set([theme_primary]) - secondary_themes
-  ?>
-
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="theme-primary" name="theme-primary">
         <option value="" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == '' else None}">Please select a primary theme...</option>
@@ -639,15 +516,15 @@ if has_errors:
     <br/>
     <p>2. If there are other themes in this data, select them here:</p>
     <div class="well">
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Health" py:attrs="{'checked': 'checked' if 'Health' in secondary_themes else None}"/>Health</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in secondary_themes else None}"/>Environment</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Education" py:attrs="{'checked': 'checked' if 'Education' in secondary_themes else None}"/>Education</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in secondary_themes else None}"/>Finance</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Society" py:attrs="{'checked': 'checked' if 'Society' in secondary_themes else None}"/>Society</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in secondary_themes else None}"/>Defence</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in secondary_themes else None}"/>Transportation</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in secondary_themes else None}"/>Spending data</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Government" py:attrs="{'checked': 'checked' if 'Government' in secondary_themes else None}"/>Government</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Health" py:attrs="{'checked': 'checked' if 'Health' in h.secondary_themes(data) else None}"/>Health</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in h.secondary_themes(data) else None}"/>Environment</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Education" py:attrs="{'checked': 'checked' if 'Education' in h.secondary_themes(data) else None}"/>Education</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in h.secondary_themes(data) else None}"/>Finance</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Society" py:attrs="{'checked': 'checked' if 'Society' in h.secondary_themes(data) else None}"/>Society</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in h.secondary_themes(data) else None}"/>Defence</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in h.secondary_themes(data) else None}"/>Transportation</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in h.secondary_themes(data) else None}"/>Spending data</label>
+      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Government" py:attrs="{'checked': 'checked' if 'Government' in h.secondary_themes(data) else None}"/>Government</label>
     </div>
     </div>
 
@@ -658,7 +535,7 @@ if has_errors:
         <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
              data-tagcomplete-url="/api/2/util/tag/autocomplete"
              id="tag_string" name="tag_string" size="60" type="text"
-             value="${data.get('tag_string') or ', '.join(free_tags)}" />
+             value="${data.get('tag_string') or ', '.join(h.free_tags(data))}" />
       </div>
     </div>
 </fieldset>
@@ -687,13 +564,7 @@ if has_errors:
             </div>
           </td>
           <py:def function="apply_error_class(field,error_class)">
-            <?python
-              resource_errors = errors.get('additional_resources', None)
-              cell_has_error = resource_errors and \
-                             num < len(resource_errors) and \
-                             bool(resource_errors[num].get(field, False))
-                             ?>
-                             <py:if test="cell_has_error">${error_class}</py:if>
+                <py:if test="h.cell_has_errors(errors,'additional_resources', num, field)">${error_class}</py:if>
           </py:def>
           <td>
               <input id="additional_resources__${num}__description"
@@ -734,13 +605,7 @@ if has_errors:
                   ignore resource_type, id and resource_group_id.
 
                   Code is long hand to keep the list comp understandable -->
-            <?python
-                refs = set(res.keys()) - set(c.resource_columns)
-                additional_extra_fields = [r for r in res.keys() if r not in
-                                         ('id','resource_type','resource_group_id',
-                                          'revision_id', 'url','description','format', 'scraper_url')]
-            ?>
-            <py:for each="col in additional_extra_fields">
+            <py:for each="col in h.additional_extra_fields(res)">
               <input
                      id="additional_resources__${num}__${col}"
                      name="additional_resources__${num}__${col}"
@@ -939,14 +804,10 @@ if has_errors:
     </div>
   </div>
 
-  <div py:if="is_edit_form and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
-    <?python
-      hidden_extra_fields = [ e for e in data.get('extras', []) \
-                                if e['key'] not in c.schema_fields ]
-    ?>
+  <div py:if="h.is_package_edit_form(data) and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
     <fieldset>
     <h4>Extra Fields not in the Schema (sysadmin only)</h4>
-      <py:for each="num, extra in enumerate(hidden_extra_fields)">
+      <py:for each="num, extra in enumerate(h.hidden_extra_fields(data))">
         <py:with vars="key = extra.get('key'); value = extra.get('value')">
           <div class="control-group">
             <label class="control-label" for="extras__${num}__value">${key}:</label>
@@ -957,14 +818,14 @@ if has_errors:
           </div>
         </py:with>
       </py:for>
-      <p py:if="not hidden_extra_fields">
+      <p py:if="not h.hidden_extra_fields(data)">
         (None)
       </p>
     </fieldset>
   </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-state-field" py:if="c.is_sysadmin">
+<fieldset class="tab-pane" id="section-state-field" py:if="h.is_sysadmin()">
     <h4>State</h4>
     <div class="well">
       <p>NB: Dangerous operation! (Available to sysadmins only)</p>
@@ -984,7 +845,7 @@ if has_errors:
 <div class="form-actions">
   <div id="nav-controls" class="submit">
     <div class="nav-backnext">
-      <py:if test="not is_edit_form">
+      <py:if test="not h.is_package_edit_form(data)">
         <input disabled="disabled" class="btn btn-primary" type="button" id="back-button" value="&laquo; Back" />
         <input                     class="btn btn-primary" type="button" id="next-button" value="Next &raquo;" />
       </py:if>
@@ -993,7 +854,7 @@ if has_errors:
   <div id="disclaimer">
     <input id="save-button" class="btn btn-primary" name="save" type="submit" value="Save and Finish" />
     <p class="hints">
-      <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${drupal_host}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
+      <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${config.get('dgu.drupal_host', 'data.gov.uk')}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
     </p>
   </div>
 </div><!-- /form-actions -->

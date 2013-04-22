@@ -4,52 +4,8 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip=""
   >
-  <?python
-import ckanext.dgu.lib.helpers as dgu_helpers
-import re
-if c.pkg_dict:
-    # work out the dataset_type
-    dataset_type = 'form' # default - entered via the form
-    pkg_extras = dict(c.pkg_extras)
-    resource_type = 'dataset'
-    if pkg_extras.get('UKLP') == 'True' or pkg_extras.get('INSPIRE') == 'True':
-        dataset_type = 'uklp'
-        resource_type = pkg_extras.get('resource-type') + ' record' # dataset/service
-    elif pkg_extras.get('external_reference') == 'ONSHUB':
-        dataset_type = 'ons'
 
-    individual_resources = c.pkg_dict.get('individual_resources', [])
-    timeseries_resources = c.pkg_dict.get('timeseries_resources', [])
-    additional_resources = c.pkg_dict.get('additional_resources', [])
-    if dataset_type=='uklp':
-        harvest_object_id = pkg_extras.get('harvest_object_id')
-        gemini_resources = [
-            {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
-             'title': 'Source GEMINI2 record',
-             'type': 'XML',
-             'action': 'View',
-             'id': ''},
-            {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
-             'title': 'Source GEMINI2 record (formatted)',
-             'type': 'HTML',
-             'action': 'View',
-             'id': ''}]
-    else:
-        gemini_resources = []
-
-    # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary
-    if not individual_resources and not timeseries_resources and not additional_resources:
-        individual_resources = c.pkg_dict.get('resources', [])
-
-    # Core CKAN expects a resource dict to render in the navigation
-    if not 'resources' in c.pkg_dict:
-        c.pkg_dict['resources'] = individual_resources + timeseries_resources + additional_resources + gemini_resources
-
-    if c.resource:
-        from ckanext.dgu.lib.helpers import get_resource_wms
-        is_wms = bool(get_resource_wms(c.resource))
-?>
+  ${h.init_resources_for_nav()}
 
   <py:match path="minornavigation" py:if="c.pkg">
     <ul class="nav nav-pills">
