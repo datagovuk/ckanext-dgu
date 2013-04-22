@@ -152,9 +152,10 @@ body.openspending_report .error-details .label{align:center;}
 body.openspending_report table.error-details{table-layout:fixed;}
 body.openspending_report .error-details td{overflow:hidden;}
 body.openspending_report .text-warning{color:#C09853;}
-body.openspending_browse table.table thead .sorting{background-image:url('/images/icons/sort.gif');cursor:pointer;font-weight:bold;background-repeat:no-repeat;background-position:center right;padding-right:20px;border-right:1px solid #dad9c7;margin-left:-1px;}
-body.openspending_browse table.table thead .sorting_desc{background-image:url('/images/icons/sort-desc.gif');background-color:#eee;cursor:pointer;font-weight:bold;background-repeat:no-repeat;background-position:center right;padding-right:20px;border-right:1px solid #dad9c7;margin-left:-1px;}
-body.openspending_browse table.table thead .sorting_asc{background-image:url('/images/icons/sort-asc.gif');background-color:#eee;cursor:pointer;font-weight:bold;background-repeat:no-repeat;background-position:center right;padding-right:20px;border-right:1px solid #dad9c7;margin-left:-1px;}
+body.openspending_browse table.table thead .sorting,body.openspending_browse table.table thead .sorting_asc,body.openspending_browse table.table thead .sorting_desc{background-color:#eee;cursor:pointer;font-weight:bold;background-repeat:no-repeat;background-position:center right;padding-right:20px;border-right:1px solid #dad9c7;margin-left:-1px;}
+body.openspending_browse table.table thead .sorting{background-image:url('/images/icons/sort.gif');background-color:inherit;}
+body.openspending_browse table.table thead .sorting_desc{background-image:url('/images/icons/sort-desc.gif');}
+body.openspending_browse table.table thead .sorting_asc{background-image:url('/images/icons/sort-asc.gif');}
 body.openspending_browse .dataTables_processing{position:absolute;top:60%;left:50%;width:250px;height:30px;margin-left:-125px;margin-top:-15px;padding:14px 0 2px 0;border:1px solid #ddd;text-align:center;font-size:14px;background-color:white;}
 .harvest-metadata{overflow:hidden;}.harvest-metadata h1{padding-top:20px;}
 .harvest-metadata h2{font-size:20px;margin-left:20px;}
