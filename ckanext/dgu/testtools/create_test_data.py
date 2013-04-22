@@ -117,7 +117,7 @@ class DguCreateTestData(CreateTestData):
              {'url': "http://innovate-apps.direct.gov.uk/cota/",
               'format': 'HTML',
               'description': "Directgov Article Ratings",
-              'cache_last_updated': datetime.datetime(year=2012,month=6,day=12,hour=17,minute=33),
+              #'cache_last_updated': datetime.datetime(year=2012,month=6,day=12,hour=17,minute=33),
               'cache_url': 'http://data.gov.uk/data/resource_cache/89471cf8-013f-4695-ad56-12c028e167b7/cota.html',
               },
              ]

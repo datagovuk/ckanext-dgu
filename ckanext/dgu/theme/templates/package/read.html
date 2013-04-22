@@ -18,7 +18,7 @@
 
   <xi:include href="sidebar.html"/>
 
-  <div py:match="content">
+  <div py:match="content" class="package">
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
 
     <div py:if="c.pkg_dict.get('state') == 'deleted'" class="state-box boxed">
