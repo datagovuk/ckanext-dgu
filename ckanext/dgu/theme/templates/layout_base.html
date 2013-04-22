@@ -37,7 +37,7 @@
   <!--AUTO_QUERYSTRING_LINE--><link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}?1366285753229" />
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <py:if test="False">
+  <py:if test="config.get('dgu.use_raw_js')=='true'">
     <!-- Vendor scripts -->
     <script type="text/javascript" src="/assets/js/jqueryui/1.10.2/js/jquery-ui-1.10.2.custom.min.js"></script>
     <script type="text/javascript" src="/assets/js/underscore-1.1.6.js"></script>
@@ -56,7 +56,7 @@
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script> 
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-basket.js')}"></script>
   </py:if>
-  <py:if test="True">
+  <py:if test="config.get('dgu.use_raw_js')!='true'">
     <!-- Vendor scripts -->
     <script type="text/javascript" src="/assets/js/vendor.compiled.js"></script>
     <!-- CKAN DGU scripts -->
