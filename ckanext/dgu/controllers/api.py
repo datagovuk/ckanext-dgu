@@ -7,11 +7,11 @@ from ckan.lib.base import model, abort, response, h, BaseController, request
 from ckan.controllers.api import ApiController
 from ckan.lib.helpers import OrderedDict, date_str_to_datetime, markdown_extract
 from ckanext.dgu.plugins_toolkit import get_action
+from ckanext.dgu.lib.helpers import is_sysadmin
 
 log = logging.getLogger(__name__)
 
 default_limit = 10
-max_limit = 1000
 
 class DguApiController(ApiController):
     def latest_datasets(self):
@@ -87,6 +87,12 @@ class DguApiController(ApiController):
         else:
             abort(400, 'Must specify revisions parameter. It must be one from: since-revision-id since-timestamp in-the-last-x-minutes')
 
+        # limit is higher if sysadmin
+        if is_sysadmin():
+            max_limit = 1000
+        else:
+            max_limit = 50
+
         # Get the revisions in the requested time frame
         revs = model.Session.query(model.Revision) \
                .filter(model.Revision.timestamp >= since_timestamp) \
@@ -111,39 +117,42 @@ class DguApiController(ApiController):
             result['results_limited'] = True
         changed_package_ids.update([pkg_rev.id for pkg_rev in query.all()])
 
-        for related_type in (model.PackageTagRevision,
-                             model.PackageExtraRevision):
-            query = model.Session.query(related_type) \
+        if not result['results_limited']:
+            for related_type in (model.PackageTagRevision,
+                                 model.PackageExtraRevision):
+                query = model.Session.query(related_type) \
+                        .join(model.Revision) \
+                        .filter(model.Revision.timestamp >= since_timestamp) \
+                        .limit(max_limit)
+                res = query.all()
+                if len(res) == max_limit:
+                    result['results_limited'] = True
+                changed_package_ids.update([obj_rev.package_id \
+                                            for obj_rev in res])
+
+        if not result['results_limited']:
+            query = model.Session.query(model.ResourceRevision) \
+                    .join(model.Revision) \
+                    .filter(model.Revision.timestamp >= since_timestamp) \
+                    .join(model.ResourceGroup,
+                          model.ResourceRevision.resource_group_id == model.ResourceGroup.id) \
+                    .limit(max_limit)
+            res = query.all()
+            if len(res) == max_limit:
+                result['results_limited'] = True
+            changed_package_ids.update([obj_rev.resource_group.package_id \
+                                        for obj_rev in res])
+
+        if not result['results_limited']:
+            query = model.Session.query(model.MemberRevision) \
+                    .filter_by(table_name='package') \
                     .join(model.Revision) \
                     .filter(model.Revision.timestamp >= since_timestamp) \
                     .limit(max_limit)
             res = query.all()
             if len(res) == max_limit:
                 result['results_limited'] = True
-            changed_package_ids.update([obj_rev.package_id \
-                                        for obj_rev in res])
-
-        query = model.Session.query(model.ResourceRevision) \
-                .join(model.Revision) \
-                .filter(model.Revision.timestamp >= since_timestamp) \
-                .join(model.ResourceGroup,
-                      model.ResourceRevision.resource_group_id == model.ResourceGroup.id) \
-                .limit(max_limit)
-        res = query.all()
-        if len(res) == max_limit:
-            result['results_limited'] = True
-        changed_package_ids.update([obj_rev.resource_group.package_id \
-                                    for obj_rev in res])
-
-        query = model.Session.query(model.MemberRevision) \
-                .filter_by(table_name='package') \
-                .join(model.Revision) \
-                .filter(model.Revision.timestamp >= since_timestamp) \
-                .limit(max_limit)
-        res = query.all()
-        if len(res) == max_limit:
-            result['results_limited'] = True
-        changed_package_ids.update([obj_rev.table_id for obj_rev in res])
+            changed_package_ids.update([obj_rev.table_id for obj_rev in res])
 
         # due to corrupt old obj revision tables, some package_ids may be blank
         changed_package_ids.discard(None)
