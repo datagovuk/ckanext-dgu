@@ -570,7 +570,7 @@ def get_resource_fields(resource, pkg_extras):
         'content_type': {'label': 'Content Type', 'value': ''},
         'scraper_url': {'label': 'Scraper',
             'label_title':'URL of the scraper used to obtain the data',
-            'value': t.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
+            'value': t.literal(scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraped')},
