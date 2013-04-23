@@ -1,0 +1,1113 @@
+@import "elements.less";
+
+/* No-sidebar mode */
+/* --------------- */
+body.no-sidebar {
+    .main-outer {
+        width: 940px;
+    }
+    .sidebar-outer {
+        display: none;
+    }
+}
+
+
+/* -- Misc -- */
+/* ---------- */
+.format-box {
+    float: left;
+    padding: 3px 10px 2px 9px;
+    border: 1px solid rgba(0,0,0,0.1);
+    .rounded(10px);
+    color: #606060;
+    background: #f7f7f7;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-right: 7px;
+    font-size: 11px;
+    vertical-align: top;
+    line-height: 17px;
+    > .inline-icon {
+      padding-right: 0;
+    }
+}
+.flash-messages {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+.btn-preview {
+    padding: 5px 42px 5px 26px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.preview-stamp {
+    margin-left: -26px;
+    margin-top: -6px;
+    /* Mozilla hack works in webkit too. Lets you click the button beneath the icon */
+    pointer-events: none;
+}
+.inline-icon {
+    padding-right: 5px;
+    vertical-align: top;
+}
+textarea {
+    width: 80%;
+}
+img.arrow {
+    vertical-align: baseline;
+}
+h4 img.arrow {
+    padding-right: 3px;
+    padding-bottom: 1px;
+}
+img.open-data {
+    vertical-align: top;
+    margin-top: 1px;
+}
+.pagination {
+    text-align: center;
+}
+a.tag {
+    color: #333;
+    font-size: 11px;
+    background: lighten(#A4DF45,10%);
+    margin: 0 5px 2px 5px;
+    padding: 2px 5px 2px 8px;
+    float: left;
+    white-space: nowrap;
+    .rounded(3px);
+    &:hover {
+      text-decoration: none;
+      background: lighten(#470,10%);
+      color: #fff;
+    }
+}
+.notes {
+    margin-bottom: 10px;
+    padding: 8px;
+}
+.notes p:last-child {
+    margin-bottom: 0;
+}
+h1 .abbreviation {
+    color: #888;
+}
+
+.table-dgu-fixed-size {
+    table-layout: fixed;
+}
+.table-dgu-fixed-size td {
+    overflow: hidden;
+    white-space: nowrap;
+}
+.table-dgu-fixed-size td.dataset-details {
+    white-space: normal;
+    word-wrap: break-word;
+}
+button span {
+    white-space: nowrap;
+}
+ul.arrow-list {
+    list-style-image: url('/images/arrow-list.png');
+}
+ul.green-bullet {
+    list-style-image: url('/images/bullet-green.png');
+}
+.pagination ul {
+    background: #fff;
+}
+p.field_error, 
+span.field_error {
+    background: transparent url(../images/icons/error.png) left center no-repeat;
+    padding-left: 20px;
+    color: #FF6666;
+    display: inline;
+}
+.hints {
+    font-style: italic;
+    color: #666;
+    margin-top: 3px;
+    margin-bottom: 0;
+}
+.instructions {
+    &.basic {
+        margin: 3px 0;
+        line-height: 14px;
+    }
+    &.further {
+        font-size: 11px;
+        line-height: 12px;
+        color: #666;
+        margin: 3px 0 5px 0;
+        width: 80%;
+    }
+}
+ul.button-row {
+    margin-bottom: 5px;
+    li {
+        display: inline;
+        margin-right: 10px;
+    }
+}
+#publisher-tree {
+    /* publisher/index and publisher/read */
+    background-color: white;
+    .jstree ul {
+        list-style-image: none;
+    }
+}
+.tags ul li {
+    display: inline;
+    border: 1px;
+}
+
+
+
+/* Table Sorter */
+/* ------------ */
+table.tablesorter {
+    thead th.headerSortUp {
+        background-image: url('/images/icons/sort-asc.gif');
+        background-color: #eee;
+    }
+    thead th.headerSortDown {
+        background-image: url('/images/icons/sort-desc.gif');
+        background-color: #eee;
+    }
+    th.header {
+        background-image: url('/images/icons/sort.gif');
+        cursor: pointer;
+        font-weight: bold;
+        background-repeat: no-repeat;
+        background-position: center right;
+        padding-right: 20px;
+        border-right: 1px solid #dad9c7;
+        margin-left: -1px;
+    }
+}
+
+
+/* Dropdown menus */
+/* -------------- */
+.dropdown-menu {
+    min-width: 250px;
+    a {
+        padding: 5px 15px;
+        margin-bottom: 2px;
+        color: #690;
+    }
+    hr {
+        margin: 4px 0;
+    }
+    li:last-child a {
+        margin-bottom: 0;
+    }
+    li:hover a {
+        color: #240;
+        background: #eee;
+    }
+}
+
+
+/* Search box (used everywhere) */
+/* ---------------------------- */
+.search-area {
+    width: 100%;
+    .left {
+        width: 30%;
+        border-right: 1px solid #ccc;
+        padding: 8px;
+        vertical-align: middle;
+    }
+    .right {
+        padding: 15px 8px;
+    }
+    .result-count {
+        font-size: 40px;
+        text-align: center;
+        color: #333;
+        margin-bottom: -5px;
+        border: none !important;
+    }
+    .result-count-footer {
+        padding-top: 15px;
+        text-align: center;
+    }
+    .form-search {
+        padding: 9px;
+        margin-left: 10px;
+        position: relative;
+        /* Gradient */
+        height: 50px;
+        padding: 0;
+        .textbox {
+            position: absolute;
+            width: auto;
+            left: 8px;
+            right: 86px;
+            top: 11px;
+            input[type="text"] {
+              width: 100%;
+            }
+        }
+        input[type="submit"] {
+            position: absolute;
+            right: 8px;
+            top: 7px;
+            width: 80px;
+            height: 35px;
+            font-size: 14px;
+        }
+        .search-spinner {
+            width: 20px;
+            height: 20px;
+            position: absolute; 
+            right: 100px;
+            top: 15px;
+        }
+    }
+    .facet-table {
+      .facet-table-left {
+        text-align: right;
+        width: 120px;
+        vertical-align: top;
+        padding-top: 3px;
+      }
+      .facet-table-right {
+        padding-bottom: 5px;
+      }
+    }
+    .facet {
+        color: #333;
+        white-space: nowrap;
+        font-size: 11px;
+        background: lighten(#A4DF45,10%);
+        margin: 0 5px 2px 5px;
+        padding: 2px 5px 2px 8px;
+        float: left;
+        .rounded(3px);
+        .x {
+          display: inline-block;
+          zoom: 1;
+          *display: inline;
+          padding: 0 4px;
+          margin-left: 4px;
+          font-size: 12px;
+          color: #690;
+          .rounded(4px);
+          &:hover {
+            text-decoration: none;
+            background: lighten(#470,10%);
+            color: #fff;
+          }
+        }
+    }
+}
+
+/* Shopping Basket */
+/* --------------- */
+#shopping-basket-container {
+    display: none;
+    overflow: hidden;
+    white-space: nowrap;
+    #shopping-basket-container h4 {
+        margin-bottom: 0;
+    }
+    #shopping-basket {
+        min-height: 50px;
+        max-height: 150px;
+        overflow: scroll;
+        overflow-x: hidden;
+        white-space: nowrap;
+        border: 1px solid #ddd;
+        margin-top: 8px;
+        margin-left: 0;
+        padding: 5px 10px 5px 4px;
+        list-style-type: none;
+        .x-button {
+            padding: 0 6px;
+            margin-right: 5px;
+            vertical-align: top;
+        }
+    }
+    #shopping-basket-buttons {
+        margin: 10px 0 2px 0;
+    }
+    #shopping-basket-reset {
+        padding-left: 6px;
+        padding-right: 9px;
+    }
+    #shopping-basket-submit {
+        margin-left: 20px;
+        width: 180px;
+    }
+}
+
+
+
+/* Facet Menu */
+/* ---------- */
+.facet-box-unboxed {
+  /*
+    margin-bottom: 12px;
+    padding: 8px 10px 8px 15px;
+    */
+    margin: 12px -17px 25px -17px;
+    h4 {
+        color: #656565;
+        padding: 5px 17px;
+        margin: 0 7px;
+        border-bottom: 1px solid #aaa;
+    }
+    .facet-options {
+      padding: 4px 12px 4px 25px ;
+    }
+    .facet-expand-collapse {
+        text-align: right;
+        display: block;
+        padding: 5px 22px;
+        margin: 0 -17px;
+        color: #999;
+        font-weight: bold;
+        /* Class 'expanded' changes children */
+        .expander { display: block; }
+        .collapser { display: none; }
+        &.expanded .expander { display: none; }
+        &.expanded .collapser { display: block; }
+    }
+    .facet-option-selected {
+      padding: 2px 8px 2px 13px;
+      margin: 2px 0 2px -13px;
+      .rounded(3px);
+      display: block;
+      background: #b9e671;
+      color: #333;
+      .x {
+        float: right;
+        padding: 0 4px;
+        margin-left: 4px;
+        font-size: 12px;
+        color: #690;
+        .rounded(4px);
+        &:hover {
+          text-decoration: none;
+          background: lighten(#470,10%);
+          color: #fff;
+        }
+      }
+    }
+}
+
+
+/* common-dataset-list and dataset-summary */
+/* --------------------------------------- */
+.sort-by-controls {
+    text-align: right;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    form {
+      margin: 0 0 0 0;
+    }
+    .feed-icon {
+        float: right;
+        margin: 3px 15px 0 14px;
+    }
+}
+.feed-icon {
+    img {
+      .drop-shadow(0px, 2px, 6px, 0.25);
+    }
+}
+ul.common-dataset-list {
+    list-style-type: none;
+    margin-left: 0;
+    .dataset-summary {
+        margin-bottom: 30px;
+    }
+}
+.dataset-summary {
+    img.dataset-icon {
+        float: left;
+        width: 45px;
+        height: 45px;
+        margin-right: 10px;
+    }
+    .dataset-header {
+        display: block;
+        min-height: 52px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid #aaa;
+        padding-left: 17px;
+        padding-right: 17px;
+        margin-left: -17px;
+        margin-right: -17px;
+        color: #690;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+    .dataset-header:hover {
+        text-decoration: none;
+        color: #470;
+    }
+    .dataset-header:hover .underlined {
+        text-decoration: underline;
+    }
+    div.property {
+        margin: 4px 0;
+    }
+    .property {
+        color: #666;
+        font-size: 12px;
+        line-height: 18px;
+    }
+    .format-box {
+      float: right; 
+      margin-top: -2px;
+    }
+    .map-buttons {
+        height: 33px;
+        margin-top: 4px;
+        text-align: right;
+    }
+    .btn-preview {
+        margin-left: 5px;
+    }
+    .preview-add .btn-preview,
+    .preview-remove .btn-preview {
+        width: 160px;
+        padding-left: 0;
+        padding-right: 10px;
+    }
+}
+
+
+/* Dataset view and Resource view */
+/* ------------------------------ */
+.metadata-table {
+    td.dataset-label {
+        font-weight: bold;
+        text-align: right;
+        width: 180px;
+    }
+}
+
+
+/* Autocomplete dialog (from jquery-ui) */
+/* ------------------------------------ */
+ul.ui-autocomplete {
+    .box-shadow(0 2px 9px #777);
+    li a {
+        font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: #555;
+        font-size: 13px;
+        &:hover {
+            cursor: pointer;
+        }
+        &.ui-state-hover{
+            background: #9D2;
+            border-color: #690;
+        }
+    }
+}
+
+/* Common: Star-Rating for datasets */
+/* -------------------------------- */
+.star-rating {
+    > .tooltip {
+        display: none;
+    }
+    .inline-icon {
+        padding: 0;
+    }
+    .star-rating-reason {
+        margin-bottom: 2px;
+        border-bottom: 1px solid #999;
+    }
+    .star-rating-last-updated {
+        margin-top: 2px;
+        padding-top: 2px;
+        border-top: 1px solid #999;
+        text-align: left;
+    }
+    .star-rating-reason,
+    .star-rating-entry {
+        text-align: left;
+        padding: 2px 0;
+        &.fail {
+            color: #999;
+        }
+    }
+    > a {
+        color: #333;
+        &:hover {
+            text-decoration: none;
+        }
+    }
+    .last-updated {
+        font-size: 10px;
+    }
+}
+.star-rating-tooltip {
+    /* Tooltips hover at the top level of the DOM, remember */
+    opacity: 1 !important;
+    > .tooltip-inner {
+        background: #444;
+    }
+    > .tooltip-arrow {
+        border-right-color: #444 !important;
+    }
+}
+
+/* ckanext-social plugin: Minimal look */
+.social-sharethis {
+  .stButton .stArrow {
+    display: none;
+  }
+}
+
+
+/* PAGE: Front Page */
+/* ---------------- */
+body.controller-data.action-index {
+    h2 {
+        padding-bottom: 8px;
+        border-bottom: 1px solid #aaa;
+        padding-left: 17px;
+        padding-right: 17px;
+        margin-left: -17px;
+        margin-right: -17px;
+        &.no-underline {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+    }
+    .front-page-table {
+        width: 100%;
+        border-collapse: separate;
+        td.boxed {
+            width: 426px; /* 460px - (17px padding each side) */
+            vertical-align: top;
+        }
+        tr.gutter td {
+            height: 20px;
+        }
+        td.gutter {
+            width: 20px;
+            padding: 0;
+        }
+    }
+    div#tagcloud {
+        clear: both;
+        margin: 10px auto;
+        text-align: center;
+        * {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 0.9;
+            //line-height: 1.15; /* Fixes clipping on IE7. The "//" is ignored by IE7 */
+        }
+        a {
+            text-decoration: none;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+    .dataset-header .format-box {
+        /* These look kind of broken on the front page */
+        display: none;
+    }
+}
+
+
+/* PAGE: Publisher/read */
+/* -------------------- */
+body.controller-publisher.action-read {
+    h1 .btn.edit {
+      float: right;
+      margin-left: 10px;
+    }
+    .feed-icon {
+      img {
+        margin: -4px 0 0 4px;
+      }
+    }
+    .state-box {
+        background-color: #fdd;
+    }
+    .sidebar-publisher-report .alert {
+      margin: 9px 0;
+      padding-right: 12px;
+        a {
+            float: right;
+            display: block;
+            color: #777;
+            border-bottom: 1px dashed #777;
+            margin-left: 10px;
+            &:hover {
+              border-bottom: 1px solid #777;
+              text-decoration: none;
+            }
+        }
+    }
+}
+
+
+/* PAGE: Package/search */
+/* -------------------- */
+body.controller-package.action-search {
+
+  .search-area .left {
+    /* Need to get this to line up with the columns */
+    width: 265px;
+  }
+}
+
+
+/* PAGE: Package/read */
+/* ------------------ */
+body.controller-package.action-read {
+    img.dataset-logo {
+        float: right;
+        padding: 5px;
+    }
+    #dataset-resources {
+        margin-bottom: 20px;
+    }
+    .one-line-link {
+        display: block;
+        word-wrap: break-word;
+        white-space: normal !important;
+    }
+    .resources-badge {
+      vertical-align: 2px;
+      margin-left: 6px;
+    }
+    .dataset-map {
+        margin-top: 20px;
+        #dataset-map-container {
+            width: 350px;
+            height: 280px;
+            background: #ccc;
+            margin-bottom: 30px !important;
+            div.olControlAttribution {
+                font-size: 9px;
+                font-family: helvetica,tahoma,verdana,sans-serif;
+                line-height: 12px;
+                left: 5px;
+                bottom: 3px;
+                color: #666;
+            }
+        }
+        .dataset-map-info {
+            width: 220px;
+            float: right;
+            .map-buttons > div{
+                text-align: right;
+                margin-bottom: 10px;
+            }
+            #dataset-map-attribution{
+                font-size: 9px;
+                line-height: 12px;
+                text-align: right;
+                margin-top: 26px;
+            }
+            .table-lat-long {
+                th {
+                    padding-bottom: 8px;
+                }
+                .extent-label {
+                    text-align: right;
+                    padding: 2px 8px;
+                    div {
+                        .rounded(3px);
+                        .box-shadow(1px 1px 3px #ddd);
+                        border: 1px solid #6a3;
+                        font-size: 11px;
+                        padding: 0 6px;
+                    }
+                }
+                .extent-value {
+                    white-space: nobreak;
+                }
+            }
+        }
+    }
+    .resource-row {
+      white-space: nowrap;
+      padding: 1px 0;
+      vertical-align: middle;
+      height: 28px;
+      width: 584px;
+      .resource-row-format {
+        padding-left: 5px;
+        padding-right: 2px;
+        padding-top: 3px;
+        float: left;
+        /* IE7 */
+        .format-box { float: none; }
+      }
+      .resource-row-text {
+        line-height: 29px;
+        overflow: hidden;
+      }
+      .text-overlay {
+        float: right;
+        > .btn {
+          float: left;
+          margin-right: 3px;
+          min-width: 46px;
+        }
+        > .btn-group {
+          float: left;
+        }
+      }
+    }
+}
+
+/* PAGE: Resource/read */
+/* ------------------- */
+body.controller-package.action-resource_read {
+    div.resource-actions {
+        position: relative;
+        float: right;
+        .btn{
+            bottom: 3px;
+            padding: 8px 10px;
+            margin: 0 0 0 7px;
+        }
+        .download  {
+            padding-top: 2px;
+            padding-right: 4px;
+            img {
+                margin-top: 1px;
+                margin-right: 0px;
+            }
+        }
+    }
+    .quick-info {
+        > div {
+            margin-bottom: 9px;
+        }
+    }
+}
+
+/* PAGE: Package/new,
+ *       Package/edit 
+ * ------------------ */
+body.controller-package.action-new,
+body.controller-package.action-edit {
+    #package-edit ul.nav,
+    #package-edit ul.nav li {
+        width: 210px;
+        margin-right: -1px;
+        background: #fff;
+    }
+    .tab-content {
+        display: block;
+        width: auto;
+        > fieldset {
+            border: 1px solid #DDD;
+            padding: 20px;
+            min-height: 338px;
+        }
+    }
+    #section-description-field p {
+        margin-top: 10px;
+    }
+    .nav-backnext {
+        float: right;
+    }
+    #form-tabs {
+        #disclaimer p,
+        #disclaimer input {
+            display: inline-block;
+            *display: inline;
+            zoom: 1;
+            max-width: 400px;
+            vertical-align: top;
+            margin-left: 10px;
+        }
+        a.disabled {
+            color: #a6a6a6;
+            cursor: default;
+            &:hover {
+                background-color: transparent;
+                cursor: default;
+                border-color: transparent;
+            }
+        }
+    }
+    .fieldset_button_error {
+        background: transparent url(../images/icons/error.png) right center no-repeat;
+    }
+    table .field_error {
+        /* I *think* this applies to resources only? */
+        border-color: #FF6666;
+        background: transparent url(../images/icons/error.png) 98% center no-repeat;
+    }
+    .resources-well {
+        padding: 15px 8px;
+    }
+    .resource-move-cell {
+        width: 39px;
+        padding: 6px 1px 0 1px !important;
+        .btn {
+            padding: 5px 2px 2px 2px;
+        }
+    }
+    .resource-url .error input {
+        background: transparent url(../images/icons/error.png) 98% center no-repeat;
+    }
+    .resource .input-medium {
+        width: 130px;
+    }
+}
+
+/* PAGE: package/history */
+/* --------------------- */
+body.controller-package.action-history {
+    .history-table {
+        margin-top: 15px;
+        tr.selected td {
+            background: #ffa !important;
+        }
+        td.compare {
+            text-align: center;
+            width: 50px;
+        }
+    }
+}
+
+/* PAGE: user/read (Sysadmins only) */
+/* -------------------------------- */
+body.controller-user.action-read {
+    .user-page-table {
+        width: 100%;
+        border-collapse: separate;
+        td {
+            width: 426px; /* 460px - (17px padding each side) */
+            vertical-align: top;
+            min-height: 250px;
+        }
+        tr.gutter td {
+            height: 20px;
+        }
+        td.gutter {
+            width: 20px;
+            padding: 0;
+        }
+    }
+    ul.stats {
+        margin: 0 auto;
+        width: 280px;
+    }
+    ul.stats li {
+        width: 100px;
+        list-style-type: none;
+        float: left;
+        padding: 20px;
+        text-align: center
+    }
+    ul.stats strong {
+        font-size: 40px;
+    }
+    ul.stats span {
+        display: block;
+        color: #777;
+    }
+}
+/* PAGE: Publisher/index */
+/* -------------------- */
+body.controller-publisher.action-index {
+    table.groups th {
+        text-align: left;
+    }
+    .pagination-alphabet a {
+        padding: 0 5px;
+    }
+}
+/* PAGE: Publisher/edit */
+/* -------------------- */
+body.controller-publisher.action-edit {
+    hr.extras-divider {
+        border: none;
+        border-bottom: 1px dashed #ddd;
+        width: 65%;
+    }
+    span.extras-label {
+        display: inline-block;
+        min-width: 50px;
+        text-align: right;
+    }
+}
+/* PAGE: Publisher/read */
+/* -------------------- */
+body.controller-publisher.action-read {
+    .publisher-mini-tree {
+        overflow: auto;
+        overflow-x: hidden;
+        -ms-overflow-x: hidden; /*IE 8 only*/
+        max-height: 250px;
+    }
+}
+/* PAGE: Harvest/index */
+/* ------------------- */
+body.controller-view.action-index { 
+    /* fully: body.controller-view.action-read */
+    /* shouldnt this go into a CSS file in the harvest folder? */
+    #show-inactive-sources-content {
+        width: 180px !important;
+        label{
+            margin-top: 0 !important;
+        }
+    }
+    .status {
+        .rounded(5px);
+        .drop-shadow(0px, 2px, 6px, 0.25);
+        font-style:italic;
+        margin-bottom: 15px;
+        padding: 9px;
+        background: #ffe;
+    }
+}
+/* PAGE: Harvest/read */
+/* ------------------ */
+body.controller-view.action-read { 
+    .harvest-source-title,
+    .harvest-source-config{
+        display:none;
+    }
+}
+/* PAGE: Tag/index */
+/* --------------- */
+body.controller-tag.action-index {
+    .search-area {
+      margin-bottom: 25px;
+    }
+    .pagination-alphabet a {
+        padding: 0 10px;
+    }
+}
+
+/* PAGE: Revision/diff */
+body.controller-revision.action-diff {
+    .revision-diff-table {
+        table-layout: fixed;
+        .revision-left {
+            width: 240px;
+        }
+        .revision-right {
+            width: 610px;
+        }
+    }
+}
+
+/* PAGE: Openspending/reports */
+/* ------------------------ */
+body.openspending_report {
+    .voluntary { 
+        display: none; 
+    }
+    #content .boxed .row .span4 {
+        width: 260px;
+    }
+    .error-details .label {
+        align: center;
+    }
+    table.error-details {
+        table-layout: fixed;
+    }
+    .error-details td {
+        overflow: hidden;
+    }
+    .text-warning {
+        color: #C09853;
+    }
+}
+body.openspending_browse {
+    table.table thead {
+        .sorting,
+        .sorting_asc,
+        .sorting_desc {
+            background-color: #eee;
+            cursor: pointer;
+            font-weight: bold;
+            background-repeat: no-repeat;
+            background-position: center right;
+            padding-right: 20px;
+            border-right: 1px solid #dad9c7;
+            margin-left: -1px;
+        }
+        .sorting {
+            background-image: url('/images/icons/sort.gif');
+            background-color: inherit;
+        }
+        .sorting_desc {
+            background-image: url('/images/icons/sort-desc.gif');
+          }
+        .sorting_asc {
+            background-image: url('/images/icons/sort-asc.gif');
+        }
+    }
+    .dataTables_processing {
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        width: 250px;
+        height: 30px;
+        margin-left: -125px;
+        margin-top: -15px;
+        padding: 14px 0 2px 0;
+        border: 1px solid #ddd;
+        text-align: center;
+        font-size: 14px;
+        background-color: white;
+    }
+}
+
+/* TODO attach these to a page */
+
+.harvest-metadata {
+    overflow: hidden;
+    h1 {
+        padding-top: 20px;
+    }
+    h2 {
+        font-size: 20px;
+       margin-left:20px;
+    }
+    h3 {
+        font-size: 17px;
+       margin-left:40px;
+    }
+    h4 {
+        font-size: 15px;
+       margin-left:60px;
+    }
+    h5 {
+        font-size: 13px;
+         margin-left:80px;
+    }
+
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        content: ':';
+        margin-top: 5px;
+        margin-bottom: 0px;
+    }
+    h5 {
+        margin-bottom: 1px;
+    }
+    p {
+        margin-left:100px;
+        margin-bottom: 2px;
+    }
+    .list-item {
+        padding-bottom: 20px;
+    }
+}
+

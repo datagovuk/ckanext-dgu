@@ -15,6 +15,8 @@
 <xi:include href="_util.html" />
 <xi:include href="_dgu_util.html" />
 <head>
+  <!-- Chartbeat tracking: Page-load start time -->
+  <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
@@ -33,38 +35,35 @@
   </py:otherwise>
   </py:choose>
 
-  <link rel="stylesheet" href="${h.url_for_static('/css/bootstrap.min.css')}" />
-  <link rel="stylesheet" href="${h.url_for_static('/css/chosen.css')}" />
-  <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css?8a')}" />
-                                     <!--! Increase the url argument to force
-                                           browsers to update the CSS file. -->
-  <!--[if lt IE 9]>
-  <style>
-      .widget-container,
-      .facet-box,
-      .boxed {
-        border: 1px solid #ccc !important;
-        /* Support box-shadow #000 and border-radius */
-        -moz-box-shadow: none;
-        -o-box-shadow: none;
-        box-shadow: none;
-      }
-  </style>
-  <![endif]-->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/underscore/1.1.6/underscore.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/backbone/0.5.1/backbone.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/modernizr/1.7/modernizr.min.js')}"></script>
+  <link rel="stylesheet" href="/assets/css/dgu-joint.compiled.css" />
+  <!--AUTO_QUERYSTRING_LINE--><link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}?1366285753229" />
 
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/json2.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.tmpl/beta1/jquery.tmpl.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.cookie/jquery.cookie.min.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.chosen/0.9.7/chosen.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.placeholder/jquery.placeholder.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/bootstrap/2.0.3/bootstrap.min.js')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/bootstrap-hashchange.js?2')}"></script>
-  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js?1')}"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <py:if test="config.get('dgu.use_raw_js')=='true'">
+    <!-- Vendor scripts -->
+    <script type="text/javascript" src="/assets/js/jqueryui/1.10.2/js/jquery-ui-1.10.2.custom.min.js"></script>
+    <script type="text/javascript" src="/assets/js/underscore-1.1.6.js"></script>
+    <script type="text/javascript" src="/assets/js/backbone-0.5.1.js"></script>
+    <script type="text/javascript" src="/assets/js/modernizr-1.7.min.js"></script>
+    <script type="text/javascript" src="/assets/js/spin.min.js"></script>
+    <script type="text/javascript" src="/assets/js/json2.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.tmpl.beta1.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.cookie.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.chosen-0.9.7.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.placeholder.js"></script>
+    <script type="text/javascript" src="/assets/js/bootstrap-2.0.3.min.js"></script>
+    <script type="text/javascript" src="/assets/js/bootstrap-hashchange.js"></script>
+    <!-- CKAN DGU scripts -->
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script> 
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-basket.js')}"></script>
+  </py:if>
+  <py:if test="config.get('dgu.use_raw_js')!='true'">
+    <!-- Vendor scripts -->
+    <script type="text/javascript" src="/assets/js/vendor.compiled.js"></script>
+    <!-- CKAN DGU scripts -->
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-compiled.js')}"></script>
+  </py:if>
 
   <py:if test="defined('optional_head')">
     ${optional_head()}
@@ -81,10 +80,13 @@
 
 ${h.top_level_init()}
 
-<body class="${request.environ.get('pylons.routes_dict', {}).get('action')}
+<body class="action-${request.environ.get('pylons.routes_dict', {}).get('action')}
+             controller-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[0].split('.')[-1]}
+             ${request.environ.get('pylons.routes_dict', {}).get('action')}
              ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
-             ${defined('body_class') and body_class()}
-  ">
+             ${defined('body_class') and body_class()}"
+      id="${(defined('body_id') and body_id()) or ''}"
+  >
   <div id="blackbar" py:choose="defined('blackbar_content')">
     <py:when test="True">
       ${blackbar_content()}
@@ -112,25 +114,23 @@ ${h.top_level_init()}
       </div>
     </py:otherwise>
   </div>
-  <div id="blackbar-underlay">
-  </div>
   <div id="greenbar">
     <div class="container" id="branding">
       <a href="/">
-        <img src="/images/dgu-header.png" alt="DATA.GOV.UK - Opening up Government" />
+        <img src="/images/dgu-header-smaller.png" alt="DATA.GOV.UK - Opening up Government" />
       </a>
     </div>
     <div class="container">
       <ul id="nav">
-        <li id="nav-home"><a href="/home"><div class="nav-icon"></div>Home</a></li>
-        <li id="nav-data" class="active"><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController',action='index')}">Data</a></li>
-        <li id="nav-participate"><a href="/participate">Participate</a></li>
-        <li id="nav-data-requests"><a href="/odug">Data requests</a></li>
-        <li id="nav-apps"><a href="/apps">Apps</a></li>
-        <li id="nav-location"><a href="/location">Location</a></li>
-        <li id="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
-        <li id="nav-library"><a href="/library">Library</a></li>
-        <li id="nav-about"><a href="/about">About</a></li>
+        <li class="nav-home"><a href="/home"><div class="nav-icon"></div>Home</a></li>
+        <li class="nav-data active"><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController',action='index')}">Data</a></li>
+        <li class="nav-participate"><a href="/participate">Participate</a></li>
+        <li class="nav-data-requests"><a href="/odug">Data requests</a></li>
+        <li class="nav-apps"><a href="/apps">Apps</a></li>
+        <li class="nav-location"><a href="/location">Location</a></li>
+        <li class="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
+        <li class="nav-library"><a href="/library">Library</a></li>
+        <li class="nav-about"><a href="/about">About</a></li>
       </ul>
     </div>
   </div>
@@ -165,7 +165,7 @@ ${h.top_level_init()}
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
           <span class="divider">&nbsp;|&nbsp;</span>
         </py:for>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/dataset/new') else ''}" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+        <li><a class="btn btn-mini btn-info" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
         <py:if test="h.groups_for_current_user()">
           <span class="divider">&nbsp;|&nbsp;</span>
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
@@ -199,27 +199,20 @@ ${h.top_level_init()}
             <py:if test="defined('page_heading')">
               <h1>${page_heading()}</h1>
             </py:if>
-            <div class="${content_class() if defined('content_class') else 'boxed'}">
-              <div py:if="defined('content')">
-                ${content()}
-              </div>
-              <content>
-                <p>Master content template placeholder &hellip; please replace me.</p>
-              </content>
+            <div py:if="defined('content')">
+              ${content()}
             </div>
+            <content>
+              <p>Master content template placeholder &hellip; please replace me.</p>
+            </content>
           </div>
         </div><!-- /main -->
       </div><!-- /span8 -->
       <div class="span4 sidebar-outer">
         <div id="sidebar">
-          <ul class="widget-list">
-            <py:if test="defined('primary_sidebar_extras')">
-              ${primary_sidebar_extras()}
-            </py:if>
-            <primarysidebar>
-              <!-- Primary Side Bar Goes Here -->
-            </primarysidebar>
-          </ul>
+          <primarysidebar>
+            <!-- Primary Side Bar Goes Here -->
+          </primarysidebar>
         </div><!-- /#sidebar -->
       </div><!-- /span4 -->
     </div><!-- /row -->
@@ -310,6 +303,22 @@ ${h.top_level_init()}
                          e.preventDefault();
                          });
                  });
+  </script>
+  <script type="text/javascript">
+    var _sf_async_config = { uid: 47170, domain: 'data.gov.uk', useCanonical: true };
+    (function() {
+      function loadChartbeat() {
+        window._sf_endpt = (new Date()).getTime();
+        var e = document.createElement('script');
+        e.setAttribute('language', 'javascript');
+        e.setAttribute('type', 'text/javascript');
+        e.setAttribute('src','//static.chartbeat.com/js/chartbeat.js');
+        document.body.appendChild(e);
+      };
+      var oldonload = window.onload;
+      window.onload = (typeof window.onload != 'function') ?
+        loadChartbeat : function() { oldonload(); loadChartbeat(); };
+    })();
   </script>
   </py:if>
 

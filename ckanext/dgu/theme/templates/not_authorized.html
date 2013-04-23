@@ -6,18 +6,18 @@
   py:strip="">
 
   <py:def function="page_title">Not Authorized | data.gov.uk</py:def>
-  <py:def function="page_heading">Not Authorized</py:def>
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    This action is not authorized.
+    <h1>Not Authorized</h1>
+    <div class="boxed">
+      This action is not authorized.
 
-    <div py:if="not c.user">
-      <p>You may <a href="${'/user' if 'dgu_drupal_auth' in config['ckan.plugins'] else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
-    </div>
+      <div py:if="not c.user">
+        <p>You may <a href="${'/user' if 'dgu_drupal_auth' in config['ckan.plugins'] else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
+      </div>
 
     <div py:if="c.user">
-      <p>You are logged in as: ${h.dgu_linked_user(c.user, maxlength=100)}</p>
       <p>You are logged in as: ${dgu_helpers.dgu_linked_user(c.user, maxlength=100)}</p>
     </div>
   </div>

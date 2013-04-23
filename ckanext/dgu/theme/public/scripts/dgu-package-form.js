@@ -1,6 +1,4 @@
-
-(function ($) {
-  $(document).ready(function () {
+  $(function() {
     assert(window.form_errors, 'window.form_errors not set');
 
     var isDatasetNew = $('body.PackageController.new').length > 0;
@@ -168,5 +166,3 @@
     CKAN.Dgu.setupAdditionalResourcesScrapers();
 
   });
-}(jQuery));
-

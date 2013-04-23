@@ -6,12 +6,14 @@
   <xi:include href="publisher_util.html" />
 
   <py:def function="page_title">${c.group.display_name}</py:def>
-  <py:def function="page_heading">${c.group.display_name}
+  <py:def function="page_heading">
+    <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+    ${c.group.display_name}
     <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
-    <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn button" style="float:right;" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+    <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+      <img src="/images/rss.png" width="16" height="16"/>
+    </a>
   </py:def>
-  <py:def function="content_class"><!--unboxed--></py:def>
-
 
   <py:match path="primarysidebar">
 
@@ -31,47 +33,40 @@
       </ul>
     </div>
     <div py:if="c.userobj" class="widget-container">
-
-      <h4>Administrators:</h4>
+      <h4>Administrators</h4>
       <py:choose>
           <py:when test='(not c.is_an_official) and c.administrators.count()'>
-              <ul class="property-list">
+              <ul>
                 <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.administrators.count()} administrator${h.pluralise_text(c.administrators.count())}</a></li>
               </ul>
           </py:when>
           <py:otherwise>
-              <ul class="property-list" py:for="admin in c.administrators">
-                <li>${h.linked_user(admin, maxlength=40)}</li>
+              <ul>
+                <li py:for="admin in c.administrators">${h.linked_user(admin, maxlength=40)}</li>
               </ul>
           </py:otherwise>
       </py:choose>
       <p py:if="not c.administrators.count()">No-one assigned</p>
-
-      <h4>Editors:</h4>
-
-      <py:choose>
-          <py:when test='(not c.is_an_official) and c.editors.count()'>
-              <ul class="property-list">
-                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.editors.count()} editor${h.pluralise_text(c.editors.count())}</a></li>
-              </ul>
-          </py:when>
-          <py:otherwise>
-              <ul class="property-list" py:for="editor in c.editors">
-                <li>${h.linked_user(editor, maxlength=40)}</li>
-              </ul>
-          </py:otherwise>
-      </py:choose>
-      <p py:if="not c.editors.count()">No-one assigned</p>
-
+    </div>
+    <div py:if="c.userobj" class="widget-container">
+      <h4>Editors</h4>
       <ul>
+        <py:choose>
+            <py:when test='(not c.is_an_official) and c.editors.count()'>
+                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.editors.count()} editor${h.pluralise_text(c.editors.count())}</a></li>
+            </py:when>
+            <py:otherwise>
+                <li py:for="editor in c.editors">${h.linked_user(editor, maxlength=35)}</li>
+            </py:otherwise>
+        </py:choose>
+        <li py:if="not c.editors.count()">No-one assigned</li>
         <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
         </li>
-       </ul>
-
-        <div py:if="h.check_access('group_update', {'id':c.group.id})">
-          <a class="btn" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Edit user permissions</a>
-        </div>
+        <py:if test="h.check_access('group_update', {'id':c.group.id})">
+          <li><a class="btn btn-mini btn-info" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Edit user permissions</a></li>
+        </py:if>
+      </ul>
     </div>
 
     ${basket()}
@@ -99,7 +94,7 @@
 
     <div py:if="h.ga_report_installed()" class="widget-container">
         <h4>Popular datasets</h4>
-        ${h.most_popular_datasets(c.group, 10)}
+        ${h.most_popular_datasets(c.group, 5, preview_image="/images/graph_preview_thumbnail.png")}
     </div>
 
     <div class="widget-container">
@@ -108,7 +103,6 @@
       <div id="publisher-tree" class="publisher-mini-tree">
        ${Markup(h.render_mini_tree(c.all_groups, c.group))}
       </div>
-      <a style="display:none;" id="publisher-tree-expand" class="more-button"><img src="/images/arrow-down.png"/></a>
       </div>
 
           <br />
@@ -124,6 +118,7 @@
         <tr py:if="h.spending_published_by(c.group_extras)"><th>Spending data published by</th><td><a href="/publisher/${h.spending_published_by(c.group_extras).name}">${h.spending_published_by(c.group_extras).title}</a></td></tr>
       </table>
     </div>
+  </div>
 
   </py:match>
 
@@ -132,19 +127,23 @@
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
 
     <div class="group-dataset-list">
-      <div class="boxed search-area-box">
+      <div class="boxed">
         <div class="notes" py:if="str(c.description_formatted).strip()">
           ${c.description_formatted}
         </div>
+        <h4>Search Publisher</h4>
 
-          <form id="dataset-search-thin" class="form-search dataset-search" method="GET">
-            <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />
-
+        <div class="search-area">
+          <form class="form-search" method="GET">
+            <div class="textbox">
+              <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />
+            </div>
             <py:for each="(k, v) in c.fields">
               <input type="hidden" name="${k}" value="${v}" />
             </py:for>
             <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           </form>
+        </div>
 
           <div>
             <form action="">
@@ -163,15 +162,11 @@
 
 
       <div py:if="c.page.items">
-        <h3>Datasets:</h3>
         <!--!<div class="clearfix">&nbsp;</div>-->
-        <div class="ribbon-header publisher-header">
-          <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
-            <img src="/images/rss-on-white.png" width="16" height="16"/>
-          </a>
+        <div class="sort-by-controls">
+          <div class="clearfix"></div>
         </div>
         ${package_list_from_dict(c.page.items)}
-        <div class="ribbon-footer" />
         ${c.page.pager()}
 
       </div>
@@ -192,8 +187,6 @@
       PUBLISHER_GROUP  = "node_${c.group.name}";
     </script>
     <script src="/scripts/dgu-publisher.js"></script>
-    <script src="/scripts/spin.min.js"></script>
-    <script src="/scripts/dgu-basket.js?1"></script>
   </py:def>
 
   <xi:include href="../layout.html" />
