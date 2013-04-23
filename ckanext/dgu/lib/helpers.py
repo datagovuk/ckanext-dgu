@@ -234,6 +234,9 @@ def is_service(package):
 # variant of core ckan method of same name
 # but displays better string if no resource there
 def resource_display_name(resource_dict):
+    # Gemini resources special case
+    if resource_dict.get('gemini',False):
+        return resource_dict.get('title')
     name = resource_dict.get('name')
     description = resource_dict.get('description')
     if name and name != 'None':
@@ -478,16 +481,19 @@ def json_list(json_str):
         return obj.items()
     # json can't be anything else
 
-
-def dgu_resource_icon(res):
-    format_string = res.get('format','').strip().lower()
-    fmt = formats.Formats.match(format_string)
+def dgu_format_icon(format_string):
+    fmt = formats.Formats.match(format_string.strip().lower())
     icon_name = 'document'
     if fmt is not None and fmt['icon']!='':
         icon_name = fmt['icon']
     url = '/images/fugue/%s.png' % icon_name
     return icon_html(url)
 
+def dgu_format_name(format_string):
+    fmt = formats.Formats.match(format_string.strip().lower())
+    if fmt is not None:
+        return fmt['display_name']
+    return format_string
 
 def name_for_uklp_type(package):
     uklp_type = get_uklp_package_type(package)
@@ -516,11 +522,11 @@ def package_publisher_dict(package):
     return publishers[0] if publishers else {'name':'', 'title': ''}
 
 def formats_for_package(package):
-    formats = set([res.get('format') for res in package['resources']])
-    if None in formats:
-        formats.remove(None)
-    if '' in formats:
-        formats.remove('')
+    formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
+    # Strip empty strings, deduplicate and sort
+    formats = filter(bool,formats)
+    formats = set(formats)
+    formats = sorted(list(formats))
     return formats
 
 def link_subpub():
@@ -528,17 +534,6 @@ def link_subpub():
 
 def facet_params_to_keep():
     return [(k, v) for k,v in t.request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
-
-def stars_label(stars):
-    try:
-        stars = int(stars)
-    except ValueError:
-        pass
-    else:
-        if stars == -1:
-            return 'TBC'
-        stars = mini_stars_and_caption(stars)
-    return stars
 
 def uklp_display_provider(package):
     uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
@@ -640,8 +635,6 @@ def get_package_fields(package, pkg_extras, dataset_type):
         field_names.add_at_start('theme')
         if pkg_extras.get('theme-secondary'):
             field_names.add_after('theme', 'theme-secondary')
-    if c.is_an_official:
-        field_names.add(['state'])
 
     temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
     temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
@@ -676,8 +669,6 @@ def get_package_fields(package, pkg_extras, dataset_type):
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
         'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
         'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
-        'date-added-computed': {'label': 'Date added to data.gov.uk', 'label_title': 'Date this record was added to data.gov.uk', 'value': c.pkg.metadata_created.strftime("%d/%m/%Y")},
-        'date-updated-computed': {'label': 'Date updated on data.gov.uk', 'label_title': 'Date this record was updated on data.gov.uk', 'value': c.pkg.metadata_modified.strftime("%d/%m/%Y")},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
@@ -766,41 +757,40 @@ def advanced_search_url():
         params['parent_publishers'] = c.group.name
     return search_url(params.items())
 
-def get_license_url(pkg):
-    # Used as the fallback if the URL is not in the extras
-    license_url = None
-    if pkg.license and pkg.license.url:
-        license_url = c.pkg.license.url
-
-    licence_url = pkg.extras.get('licence_url')
-    if licence_url:
-        licence_url_title = pkg.extras.get('licence_url_title') or licence_url
-    return license_url
-
-
 def get_licenses(pkg):
-    license_url = None
-    if pkg.license and pkg.license.url:
-        license_url = c.pkg.license.url
+    # isopen is tri-state: True, False, None (for unknown)
+    licenses = [] # [(title, url, isopen), ... ]
 
-    licenses = [] # [(title, isopen), ... ]
     if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.isopen()))
+        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen()))
     elif pkg.license_id:
-        licenses.append((pkg.license_id, None))
+        licenses.append((pkg.license_id, None, None))
 
-    licence_extra_list = json_list(pkg.extras.get('licence') or '')
-    for licence_extra in licence_extra_list:
-        if licence_extra.startswith('http'):
-            licence_extra = t.literal('<a href="%s">%s</a>' % (licence_extra, licence_extra))
-            licenses.append((licence_extra, True if ('OGL' in licence_extra or 'OS OpenData Licence' in licence_extra) else None))
+    license_extra_list = json_list(pkg.extras.get('licence') or '')
+    for license_extra in license_extra_list:
+        license_extra_url = None
+        if license_extra.startswith('http'):
+            license_extra_url = license_extra
+        licenses.append((license_extra, license_extra_url, True if ('OGL' in license_extra or 'OS OpenData Licence' in license_extra) else None))
 
-    licence_url = pkg.extras.get('licence_url')
-    if licence_url:
-        licence_url_title = pkg.extras.get('licence_url_title') or licence_url
-        licence_html = t.literal('<a href="%s">%s</a>' % (licence_url, licence_url_title))
-        licenses.append((licence_html, True if (licence_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf') else None))
+    license_url = pkg.extras.get('licence_url')
+    if license_url:
+        license_url_title = pkg.extras.get('licence_url_title') or license_url
+        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+        licenses.append((license_url_title, license_url, True if isopen else None))
     return licenses
+
+def get_dataset_openness(pkg):
+    licenses = get_licenses(pkg) # [(title,url,isopen)...]
+    openness = [ x[2] for x in licenses ]
+    if True in openness:
+        # Definitely open. OpenDefinition icon.
+        return True
+    if False in openness:
+        # Definitely closed. Padlock icon.
+        return False
+    # Indeterminate
+    return None
 
 def get_contact_details(pkg, pkg_extras):
     publisher_groups = c.pkg.get_groups('publisher') # assume only one
@@ -949,37 +939,44 @@ def cell_has_errors(errors, res_type, num, col):
            bool(resource_errors[num].get(col, False))
 
 
-def clean_obj(o):
-    if isinstance(o, list) and len(o)==1:
-        o = o[0]
-    if isinstance(o, basestring):
-        # DGU uses different words for things compared to CKAN, so adjust
-        # the language of errors using mappings:
-        field_name_map = {
-            'groups': 'Publisher',
-            'individual_resources': 'Data Files',
-            'timeseries_resources': 'Data Files',
-            'title': 'Name',
-            'name': 'Unique identifier',
-            'url': 'URL',
-            'notes': 'Description',
-            'theme-primary': 'Primary Theme',
-            'license_id': 'Licence'
-        }
-        field_error_key_map = {
-            'group': 'publisher',
-            'description': 'title',
-        }
-        field_error_value_map = {
-            'That group name or ID does not exist.': 'Missing value',
-        }
+def iterate_error_dict(d):
+    for (k,v) in d.items():
+        if isinstance(v, list) and len(v)==1:
+            v = v[0]
+        if isinstance(k, basestring):
+            k = _translate_ckan_string(k)
+        if isinstance(v, basestring):
+            v = _translate_ckan_string(v)
+        yield (k,v)
 
-        o = field_name_map.get(o,o)
-        o = field_error_key_map.get(o,o)
-        o = field_error_value_map.get(o,o)
-        o = re.sub('[_-]', ' ', o)
-        if o[0].lower() == o[0]:
-            o = o.capitalize()
+def _translate_ckan_string(o):
+    """DGU uses different words for things compared to CKAN, so 
+    adjust the language of errors using mappings."""
+    field_name_map = {
+        'groups': 'Publisher',
+        'individual_resources': 'Data Files',
+        'timeseries_resources': 'Data Files',
+        'title': 'Name',
+        'name': 'Unique identifier',
+        'url': 'URL',
+        'notes': 'Description',
+        'theme-primary': 'Primary Theme',
+        'license_id': 'Licence'
+    }
+    field_error_key_map = {
+        'group': 'publisher',
+        'description': 'title',
+    }
+    field_error_value_map = {
+        'That group name or ID does not exist.': 'Missing value',
+    }
+
+    o = field_name_map.get(o,o)
+    o = field_error_key_map.get(o,o)
+    o = field_error_value_map.get(o,o)
+    o = re.sub('[_-]', ' ', o)
+    if o[0].lower() == o[0]:
+        o = o.capitalize()
     return o
 
 def get_license_extra(pkg):
@@ -1075,12 +1072,14 @@ def gemini_resources():
          'title': 'Source GEMINI2 record',
          'type': 'XML',
          'action': 'View',
-         'id': ''},
+         'id': '',
+         'gemini':True},
         {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
          'title': 'Source GEMINI2 record (formatted)',
          'type': 'HTML',
          'action': 'View',
-         'id': ''}]
+         'id': '',
+         'gemini':True}]
     return gemini_resources
 
 def individual_resources():
@@ -1116,6 +1115,21 @@ def has_bounding_box(extras):
     return pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and \
         pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
 
+def facet_keys(facet_tuples):
+    keys = [ x[0] for x in facet_tuples ]
+    keys = sorted( set(keys) )
+    return keys
+
+def facet_values(facet_tuples, facet_key):
+    values = [ v for (k,v) in facet_tuples if k==facet_key ]
+    values = sorted(values)
+    return values
+
+def get_package_mini_metadata(pkg):
+    return {
+        'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
+        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y"),
+    }
 
 def get_extent():
     return  c.pkg.extras.get('spatial', False)
@@ -1213,3 +1227,51 @@ def publisher_performance_data(publisher, include_sub_publishers):
 
 def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
+
+def render_facet_key(key,value=None):
+    if key=='license_id-is-ogl':
+        return 'Licence'
+    if key=='UKLP':
+        return 'Type'
+    if key=='resource-type' or key=='spatial-data-service-type':
+        return 'UKLP Type'
+    # Delegate to core CKAN
+    return ckan.lib.helpers.facet_title(key)
+
+def render_facet_value(key,value):
+    if key=='license_id-is-ogl':
+        if value=='true':
+            return 'Open Government Licence'
+        return 'Non-Open Government Licence'
+    if key=='openness_score':
+        try:
+            stars = int(value)
+        except ValueError:
+            return value
+        if stars == -1:
+            return 'TBC'
+        return mini_stars_and_caption(stars)
+    if key=='publisher':
+        return ckan.lib.helpers.group_name_to_title(value)
+    if key=='UKLP':
+        return 'UK Location Dataset'
+    if key=='resource-type':
+        mapping = {
+                'dataset' : 'Dataset',
+                'service' : 'Service',
+                'series' : 'Series',
+                'nonGeographicDataset' : 'Non-Geographic Dataset',
+                'application' : 'Application',
+            }
+        return mapping.get(value,value)
+    if key=='spatial-data-service-type':
+        mapping = {
+                'view' : 'View',
+                'other' : 'Other',
+                'OGC:WMS' : 'Web Map Service',
+                'download' : 'Download',
+                'discovery' : 'Discovery',
+            }
+        return mapping.get(value,value)
+    return value
+

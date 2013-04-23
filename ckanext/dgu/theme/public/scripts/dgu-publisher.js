@@ -23,5 +23,16 @@ $(function() {
      }
     );
 
+  jstree.bind('loaded.jstree', function() {
+    jstree.find('li a').each( function(i, el) {
+      el = $(el);
+      if (el.text().length > 32) {
+        el.tooltip({
+          title: '"'+$.trim(el.text())+'"',
+          placement: 'left'
+        });
+      }
+    });
+  });
 });
 

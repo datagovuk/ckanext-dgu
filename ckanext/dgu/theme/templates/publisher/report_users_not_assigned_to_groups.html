@@ -6,27 +6,29 @@
   <xi:include href="publisher_util.html" />
 
   <py:def function="page_title">Publisher report</py:def>
-  <py:def function="page_heading">Publisher report</py:def>
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <h3>Users not attached to a publisher (${ c.unassigned_users_count })</h3>
-    <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered table-striped">
-      <tr>
-        <th>Full Name</th>
-        <th>Username</th>
-        <th>Email</th>
-        <th>Created</th>
-      </tr>
-      <py:for each="user in c.unassigned_users">
+    <h1>Publisher report</h1>
+    <div class="boxed">
+      <h3>Users not attached to a publisher (${ c.unassigned_users_count })</h3>
+      <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered table-striped">
         <tr>
-          <td>${user.fullname}</td>
-          <td><a href="${h.url_for(controller='user', action='read', id=user.name)}">${"OPENID" if user.name.startswith('http') else user.name}</a></td>
-          <td><a href="mailto:${user.email}">${user.email}</a></td>
-          <td>${h.render_datetime(user.created, date_format="%d-%m-%Y")}</td>
+          <th>Full Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Created</th>
         </tr>
-      </py:for>
-    </table>
+        <py:for each="user in c.unassigned_users">
+          <tr>
+            <td>${user.fullname}</td>
+            <td><a href="${h.url_for(controller='user', action='read', id=user.name)}">${"OPENID" if user.name.startswith('http') else user.name}</a></td>
+            <td><a href="mailto:${user.email}">${user.email}</a></td>
+            <td>${h.render_datetime(user.created, date_format="%d-%m-%Y")}</td>
+          </tr>
+        </py:for>
+      </table>
+    </div>
   </div>
 
   <xi:include href="../layout.html" />

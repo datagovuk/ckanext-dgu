@@ -4,38 +4,43 @@
   py:strip="">
   
   <py:def function="page_title">Tags</py:def>
-  <py:def function="page_heading">Tags</py:def>
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <table class="search-area">
-     <tr>
-      <td class="left" py:if="not c.query_error">
-        <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
-        <py:if test="'q' in request.params">      
-          <div class="result-count-footer">Results</div>
-        </py:if>
-        <py:if test="'q' not in request.params">      
-          <div class="result-count-footer">Tags</div>
-        </py:if>
-      </td>
-      <td class="left" py:if="c.query_error">
-        <div class="result-count-footer">Search Error</div>
-      </td>
-      <td class="right">
-        <form id="dataset-search" class="form-search dataset-search" action="" method="GET">
-          <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
-          <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
-          <div id="dataset-search-ext"></div>
-        </form>
-      </td>
-     </tr>
-    </table>
+    <h1>Tags</h1>
+    <div class="boxed">
+      <table class="search-area">
+       <tr>
+        <td class="left" py:if="not c.query_error">
+          <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
+          <py:if test="'q' in request.params">      
+            <div class="result-count-footer">Results</div>
+          </py:if>
+          <py:if test="'q' not in request.params">      
+            <div class="result-count-footer">Tags</div>
+          </py:if>
+        </td>
+        <td class="left" py:if="c.query_error">
+          <div class="result-count-footer">Search Error</div>
+        </td>
+        <td class="right">
+          <form id="dataset-search" class="form-search dataset-search" action="" method="GET">
+            <div class="textbox">
+              <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+            </div>
+            <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
+            <div id="dataset-search-ext"></div>
+          </form>
+        </td>
+       </tr>
+      </table>
 
     ${c.page.pager(q=c.q)}
     <div class="clearfix"></div>
     ${tag_list_from_name(c.page.items)}
+    <div class="clearfix"></div>
     ${c.page.pager(q=c.q)}
+    </div>
         
   </div>
 

@@ -8,48 +8,26 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <py:def function="optional_head">
-    <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
-    <script>
+    <script type="text/javascript">
       var form_errors = ${c.errors_json};
       var publishers = ${c.publishers_json};
       var resources_json = ${h.literal(c.resources_json)};
+      window.DGU_RESOURCE_FORMATS = ${h.get_resource_formats()};
     </script>
+    <script type="text/javascript" src="/scripts/dgu-package-form.js?2"></script>
   </py:def>
 
-  <py:match path="primarysidebar">
-    <li class="widget-container widget_text">
-      <ul class="dataset-edit-nav">
-        <!-- One button for each fieldset -->
-        <li><a href="#section-basic-information">Basic Information</a></li>
-        <li><a href="#section-further-information">Further Information</a></li>
-        <li><a href="#section-resources">Resources</a></li>
-        <li><a href="#section-groups">Groups &amp; Tags</a></li>
-        <li><a href="#section-extras">Extras</a></li>
-      </ul>
-    </li>
-  </py:match>
-
   <div py:match="content" class="dataset-edit-form">
-    <h1>Edit: ${c.pkg.title or c.pkg.name}</h1>
-    <div id="minornavigation">
-      <div id="minornavigation-bg-left">
-      <div id="minornavigation-bg-right">
-        <minornavigation></minornavigation>
-      </div>
-      </div>
+    ${dataset_admin_buttons(c.pkg)}
+    <h1>
+      ${h.dataset_link(c.pkg)}
+      <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit Dataset</span>
+    </h1>
+    <div class="boxed">
+      ${c.form}
     </div>
-    ${c.form}
   </div>
 
-  <head py:match="head">
-      ${select('*')}
-
-      <script type="text/javascript">
-        DGU_RESOURCE_FORMATS = ${h.get_resource_formats()};
-      </script>
-      <script type="text/javascript" src="/scripts/dgu-package-form.js?2"></script>
-      <script type="text/javascript" src="${h.url_for('/scripts/vendor/jqueryui/1.8.14/jquery-ui.min.js')}"></script>
-  </head>
-  <xi:include href="layout.html" />
+  <xi:include href="../layout_base.html" />
 </html>
 

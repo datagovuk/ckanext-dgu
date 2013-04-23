@@ -9,46 +9,17 @@
 
   <py:def function="page_title">Data Search | data.gov.uk</py:def>
   <py:def function="page_heading">Data Search</py:def>
-  <py:def function="optional_head">
-    <script src="/scripts/spin.min.js"></script>
-    <script src="/scripts/dgu-basket.js?1"></script>
-    <link type="text/css" rel="stylesheet" media="all" href="/scripts/vendor/jqueryui/1.8.14/css/jquery-ui.custom.css" />
-  </py:def>
-
   <py:def function="body_class">no-sidebar</py:def>
-
-  <py:def function="content_class"><!--unboxed--></py:def>
 
   <div py:match="content">
     <div class="row">
       <div class="span12">
-        <div class="boxed search-area-box">
-          <xi:include href="search_form.html" />
+        <div class="boxed">
+          ${search_form()}
         </div>
-        <div class="clearfix"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="span4">
-        ${basket()}
-
-
-        <py:if test="c.page.item_count">
-          <div id="filter-heading">
-            <p>You can refine your search results using the filters below</p>
-          </div>
-
-          ${facet_filters()}
-        </py:if>
-      </div>
-      <div class="span8">
-        <py:if test="c.query_error">
-          <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
-              Please try again.</p>
-        </py:if>
-        <div class="ribbon-header sort-by-controls" py:if="c.page.item_count">
+        <div class="sort-by-controls" py:if="c.page.item_count">
           <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-            <img src="/images/rss-on-white.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+            <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
           </a>
           <form class="form-inline">
             <py:def function="sort_option(text, value, selected, disabled=False)">
@@ -65,9 +36,23 @@
             </select>
           </form>
         </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="span4">
+        ${basket()}
+
+        <py:if test="c.page.item_count">
+          ${facet_filters()}
+        </py:if>
+      </div>
+      <div class="span8">
+        <py:if test="c.query_error">
+          <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
+              Please try again.</p>
+        </py:if>
 
         ${package_list_from_dict(c.page.items)}
-        <div class="ribbon-footer" py:if="c.page.item_count"></div>
         <py:with vars="pager = c.page.pager(q=c.q)">
           <div py:if="pager" class="pager-container">
             ${pager}
