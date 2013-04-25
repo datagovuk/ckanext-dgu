@@ -24,7 +24,6 @@ Agri-Food and Biosciences Institute
 Agriculture and Rural Development (Northern Ireland)
 Business, Innovation and Skills
 Cabinet Office
-Child Maintenance and Enforcement Commission
 Communities and Local Government
 Culture, Media and Sport
 Defence
@@ -37,13 +36,12 @@ Environment (Northern Ireland)
 Environment, Food and Rural Affairs
 Food Standards Agency
 Forestry Commission
-HM Revenue and Customs
-HM Treasury
 Health
 Health and Safety Executive
-Health and Social Care Information Centre
 Health Protection Agency
 Health, Social Service and Public Safety (Northern Ireland)
+HM Revenue and Customs
+HM Treasury
 Home Office
 ISD Scotland (part of NHS National Services Scotland)
 International Development
@@ -60,14 +58,22 @@ Office of Qualifications and Examinations Regulation
 Office of the First and Deputy First Minister
 Passenger Focus
 Police Service of Northern Ireland (PSNI)
+Public Health England
 Regional Development (Northern Ireland)
 Scottish Government
 Social Development (Northern Ireland)
 Transport
 Welsh Government
 Work and Pensions
+Other statistics producers
 Civil Aviation Authority
+Child Maintenance and Enforcement Commission
+Health and Social Care Information Centre
 Higher Education Statistics Agency
+Independent Police Complaints Commission
+NHS England
+Scottish Consortium for Learning Disability
+International statistics organisations
 Eurostat
 '''
         # These are extra sources seen in the past ONS data, picked up from
@@ -76,11 +82,15 @@ Eurostat
 Cancer Registry Northern Ireland
 Welsh Assembly Government
         '''
+        pasted_lines_to_ignore = ('Government Statistical Departments',
+                                  'Other statistics producers',
+                                  'International statistics organisations',
+                                  )
         ckanclient = CkanClient(base_location=ckan_api_url)
         num_errors = 0
         sources = sources.split('\n')
         for source in sources:
-            if not source.strip():
+            if not source.strip() or source in pasted_lines_to_ignore:
                 continue
             publisher = OnsImporter._source_to_publisher_(source.strip(),
                                                           ckanclient)
@@ -96,7 +106,15 @@ if __name__ == '__main__':
     e.g. python %s http://data.gov.uk/api
 
     Test tool to check that the ONS sources can be translated into actual
-    DGU publishers. Run it against data.gov.uk or a test CKAN server.
+    DGU publishers.
+
+    It checks two things:
+      * Mappings for publisher names that ONS abbreviate - this is done
+        by ONS code running in this virtual environment.
+      * The list of publishers on a server is complete - this is done over
+        a CKAN API that you specify - data.gov.uk\'s API is the normal choice.
+
+    See ckanext/dgu/ons/README.txt
     ''' % (sys.argv[0], sys.argv[0])
 
     err = None
