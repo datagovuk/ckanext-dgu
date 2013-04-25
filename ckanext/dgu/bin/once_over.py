@@ -21,6 +21,7 @@ urls = [
     "/data/openspending-report/publisher-cabinet-office.html",
     "/data/site-usage",
     "/data/site-usage/publisher",
+    "/publisher/new",
 ]
 
 def build_url(name):
