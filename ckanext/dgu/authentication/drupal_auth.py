@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 class DrupalAuthMiddleware(object):
     '''Allows CKAN user to login via Drupal. It looks for the Drupal cookie
-    and gets user details from Drupal using XMLRPC. 
+    and gets user details from Drupal using XMLRPC.
     so works side-by-side with normal CKAN logins.'''
 
     def __init__(self, app, app_conf):
@@ -54,7 +54,12 @@ class DrupalAuthMiddleware(object):
     @staticmethod
     def _is_this_a_ckan_cookie(cookie_string):
         cookies = Cookie.SimpleCookie()
-        cookies.load(str(cookie_string))
+        try:
+            cookies.load(str(cookie_string))
+        except Cookie.CookieError:
+            log.warning("Received invalid cookie: %s" % cookie_string)
+            return False
+
         if not 'auth_tkt' in cookies:
             return False
         return True
@@ -87,8 +92,8 @@ class DrupalAuthMiddleware(object):
         new_headers = []
 
         self.do_drupal_login_logout(environ, new_headers)
-       
-	#log.debug('New headers: %r', new_headers) 
+
+	#log.debug('New headers: %r', new_headers)
         def cookie_setting_start_response(status, headers, exc_info=None):
             if headers:
                 headers.extend(new_headers)
@@ -96,7 +101,7 @@ class DrupalAuthMiddleware(object):
                 headers = new_headers
             return start_response(status, headers, exc_info)
         new_start_response = cookie_setting_start_response
-                
+
         return self.app(environ, new_start_response)
 
     def do_drupal_login_logout(self, environ, new_headers):
@@ -133,7 +138,7 @@ class DrupalAuthMiddleware(object):
                     # same request.)
                     new_headers[:] = [(key, value) for (key, value) in new_headers \
                                    if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
-                    #log.debug('Headers reduced to: %r', new_headers)                    
+                    #log.debug('Headers reduced to: %r', new_headers)
                     self._do_drupal_login(environ, drupal_session_id, new_headers)
                     #log.debug('Headers on log-out log-in result: %r', new_headers)
                     return
@@ -149,14 +154,14 @@ class DrupalAuthMiddleware(object):
             # Deal with the case where user is logged out of Drupal
             # i.e. user WAS were logged in with Drupal and the cookie was
             # deleted (probably because Drupal logged out)
-            
+
             # Is the logged in user a Drupal user?
             user_name = environ.get('REMOTE_USER', '')
             if user_name and user_name.startswith(self._user_name_prefix):
                 log.debug('Was logged in as Drupal user %r but Drupal cookie no longer there.', user_name)
                 self._log_out(environ, new_headers)
 
-                
+
     def _do_drupal_login(self, environ, drupal_session_id, new_headers):
         if self.drupal_client is None:
             self.drupal_client = DrupalClient()
@@ -180,7 +185,7 @@ class DrupalAuthMiddleware(object):
 
                 date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
                 user = model.User(
-                    name=ckan_user_name, 
+                    name=ckan_user_name,
                     fullname=unicode(user_properties['name']),  # NB may change in Drupal db
                     about=u'User account imported from Drupal system.',
                     email=user_properties['mail'], # NB may change in Drupal db
@@ -217,7 +222,7 @@ class DrupalAuthMiddleware(object):
 
         Restricted to sysadmin. Publishing roles initially imported during migration from
         Drupal.
-        
+
         Example drupal_roles:
         ['package admin', 'publisher admin', 'authenticated user', 'publishing user']
         where sysadmin roles are:
