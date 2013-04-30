@@ -304,6 +304,8 @@ ${h.top_level_init()}
                          });
                  });
   </script>
+  </py:if>
+
   <script type="text/javascript">
     var _sf_async_config = { uid: 47170, domain: 'data.gov.uk', useCanonical: true };
     (function() {
@@ -320,7 +322,6 @@ ${h.top_level_init()}
         loadChartbeat : function() { oldonload(); loadChartbeat(); };
     })();
   </script>
-  </py:if>
 
   <py:if test="defined('optional_footer')">
     ${optional_footer()}
