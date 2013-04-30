@@ -15,8 +15,10 @@
 <xi:include href="_util.html" />
 <xi:include href="_dgu_util.html" />
 <head>
-  <!-- Chartbeat tracking: Page-load start time -->
-  <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
+  <py:if test="h.asbool(config.get('dgu.chartbeat_enabled', 'false'))">
+    <!-- Chartbeat tracking: Page-load start time -->
+    <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
+  </py:if>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
@@ -304,6 +306,9 @@ ${h.top_level_init()}
                          });
                  });
   </script>
+  </py:if>
+
+  <py:if test="h.asbool(config.get('dgu.chartbeat_enabled', 'false'))">
   <script type="text/javascript">
     var _sf_async_config = { uid: 47170, domain: 'data.gov.uk', useCanonical: true };
     (function() {
