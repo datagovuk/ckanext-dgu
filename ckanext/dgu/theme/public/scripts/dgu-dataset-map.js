@@ -23,12 +23,14 @@ CKAN.DguDatasetMap = function($){
         extent: null,
 
         styles: {
+          /*
             "point":{
                 "externalGraphic": "/ckanext/spatial/marker.png",
                 "graphicWidth":14,
                 "graphicHeight":25,
                 "fillOpacity":1
             },
+            */
             "default":{
                 "fillColor":"#FCF6CF",
                 "strokeColor":"#B52",
@@ -90,8 +92,7 @@ CKAN.DguDatasetMap = function($){
                     "numZoomLevels": 18,
                     "maxResolution": 156543.0339,
                     "maxExtent": new OpenLayers.Bounds(-20037508, -20037508, 20037508, 20037508.34),
-                    "controls": controls,
-                    "theme":"/ckanext/spatial/js/openlayers/theme/default/style.css"
+                    "controls": controls
                 });
                 var internalProjection = new OpenLayers.Projection("EPSG:900913");
             } else if (this.map_type=='os') {
@@ -165,5 +166,5 @@ CKAN.DguDatasetMap = function($){
 }(jQuery)
 
 
-OpenLayers.ImgPath = "/ckanext/spatial/js/openlayers/img/";
+//OpenLayers.ImgPath = "/ckanext/spatial/js/openlayers/img/";
 
