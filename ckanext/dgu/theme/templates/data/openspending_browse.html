@@ -40,26 +40,13 @@
     <script type="text/javascript" src="${h.url_for_static('/scripts/openspending.data_table.js')}"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/openspending.faceter.js')}"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/openspending.browser.js')}"></script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu_openspending_integration.js')}"></script>
     <!--! Loaded elsewhere:
      (originally at http://clients.openspending.org/data.gov.uk/openspendingjs/)
      * jquery.js - 1.7.1 lib/vendor/jquery.js
      * bootstrap.js - lib/vendor/bootstrap.js
     -->
 
-    <script type="text/javascript">
-      $(function() {
-            var osPrefix = 'http://clients.openspending.org/data.gov.uk/openspendingjs/';
-            OpenSpending.scriptRoot = osPrefix;
-            OpenSpending.localeGroupSeparator = ",";
-            OpenSpending.localeDecimalSeparator = ".";
-            var b = new OpenSpending.Browser(
-              "#openspending_browser",
-              "ukgov-25k-spending",
-              {'source': 'http://openspending.org'}
-            );
-            b.init();
-      });
-    </script>
   </div>
 
   <xi:include href="../layout.html" />

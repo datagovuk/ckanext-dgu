@@ -77,6 +77,7 @@
           dim = _ref[_i];
           _results.push(_this._drawDimension(dim));
         }
+        _this.element.trigger('faceter:init');
         return _results;
       });
       return rq.fail(OpenSpending.ajaxError("Source request failed. Params: " + (JSON.stringify(params))));
