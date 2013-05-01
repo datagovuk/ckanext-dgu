@@ -47,18 +47,18 @@
     -->
 
     <script type="text/javascript">
-        var osPrefix = 'http://clients.openspending.org/data.gov.uk/openspendingjs/';
-        OpenSpending.scriptRoot = osPrefix;
-        OpenSpending.localeGroupSeparator = ",";
-        OpenSpending.localeDecimalSeparator = ".";
-
-	console.log($);
-        var b = new OpenSpending.Browser(
-          "#openspending_browser",
-          "ukgov-25k-spending",
-          {'source': 'http://openspending.org'}
-        );
-        b.init();
+      $(function() {
+            var osPrefix = 'http://clients.openspending.org/data.gov.uk/openspendingjs/';
+            OpenSpending.scriptRoot = osPrefix;
+            OpenSpending.localeGroupSeparator = ",";
+            OpenSpending.localeDecimalSeparator = ".";
+            var b = new OpenSpending.Browser(
+              "#openspending_browser",
+              "ukgov-25k-spending",
+              {'source': 'http://openspending.org'}
+            );
+            b.init();
+      });
     </script>
   </div>
 
