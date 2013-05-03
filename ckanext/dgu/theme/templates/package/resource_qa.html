@@ -1,0 +1,43 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+<div class="resource-qa">
+  <ul>
+    <py:if test="qa['is_broken']">
+      <li>
+          <span class="alert-error">URL gives an error</span><br/>
+          <py:for each="reason in qa['reason_list']">
+            ${reason}<br/>
+          </py:for>
+          <!--! Reason contains the format 
+                and (since it is a broken link) the date checked -->
+      </li>
+    </py:if>
+    <py:if test="not qa['is_broken']">
+      <py:if test="qa['value']==0 and is_data">
+        <!--! link works but scores 0 stars - show warning -->
+        <li><span class="alert-error">URL does not appear to be open data</span></li>
+        <li>${qa['reason']}</li>
+        <!--! Reason contains the format -->
+      </py:if>
+      <py:if test="not (qa['value']==0 and is_data)">
+        <!--! link works but since it is not data we don't care how many stars
+              so no need to show any warning -->
+        <li py:if="qa['is_broken']==False"><span class="alert-success">URL works</span></li>
+        <li>Detected format: ${qa['format']}</li>
+      </py:if>
+      <li py:if="resource_format_disagrees">
+         <span class="alert-error">Detected format "${qa['format']}" does not match the format described by the publisher "${resource_format}"</span>
+      </li>
+      <li>Last checked: ${qa['last_updated'].strftime("%d/%m/%Y")}</li>
+    </py:if>
+    <li py:if="qa.get('url_redirected_to')">URL redirects to: ${qa['url_redirected_to']}</li>
+  </ul>
+ </div>
+
+</html>
+
+
+

@@ -328,17 +328,16 @@
 
 
   <py:def function="list_licenses(pkg)">
-    <div property="dc:rights" id="dataset-license">
-     <ul py:with="all_licences = h.get_licenses(pkg)">
-        <li py:for="(license_text, url, isopen) in all_licences">
+    <!--! Usually only one licence, but UKLP might have more than one -->
+    <div property="dc:rights" id="dataset-license" py:with="all_licences = h.get_licenses(pkg)">
+        <p py:for="(license_text, url, isopen) in all_licences">
           <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
           <span py:if="not url" rel="dc:rights">${license_text}</span>
           &nbsp;${openness_image(isopen)}
-        </li>
-        <li py:if="len(all_licences)==0">
+        </p>
+        <p py:if="len(all_licences)==0">
           No licence specified
-        </li>
-     </ul>
+        </p>
     </div>
   </py:def>
 
