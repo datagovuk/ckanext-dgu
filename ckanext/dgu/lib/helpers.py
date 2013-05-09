@@ -533,18 +533,14 @@ def name_for_uklp_type(package):
         item_type = 'Dataset'
 
 def updated_string(package):
-    if package.get('metadata_modified') == package.get('metadata_created'):
+    if package.get('last_major_modification') == package.get('metadata_created'):
         updated_string = 'Created'
     else:
         updated_string = 'Updated'
     return updated_string
 
 def updated_date(package):
-    if package.get('metadata_modified') == package.get('metadata_created'):
-        updated_date = package.get('metadata_created')
-    else:
-        updated_date = package.get('metadata_modified')
-    return updated_date
+    return package.get('last_major_modification', package.get('metadata_created'))
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
