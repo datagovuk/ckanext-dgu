@@ -540,7 +540,10 @@ def updated_string(package):
     return updated_string
 
 def updated_date(package):
-    return package.get('last_major_modification', package.get('metadata_created'))
+    for k in package['extras']:
+        if k['key'] == 'last_major_modification':
+            return k['value']
+    return package.get('metadata_created')
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
