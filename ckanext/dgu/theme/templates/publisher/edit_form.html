@@ -168,6 +168,21 @@ ${h.prep_group_edit_data(data)}
   </div>
 </fieldset>
 
+
+<fieldset id="users" style="display: none;">
+  <h3>Users <span py:if="data.get('users', [])">(${len(data.get('users', []))})</span></h3>
+  <dl py:if="data.get('users', [])">
+    <py:for each="num, user in enumerate(data.get('users', []))">
+    <dd>
+      <label>${user['name']}</label>
+      <input type="hidden" name="users__${num}__name" value="${user['name']}"/>
+      <input type="hidden" name="users__${num}__capacity" value="${user['capacity']}"/>
+  </dd>
+    </py:for>
+  </dl>
+  <p py:if="not data.get('users', [])">There are no users currently in this publisher.</p>
+</fieldset>
+
 <fieldset id="extras" style="display: none;">
 <!--!  <h3>Extras</h3> -->
   <py:with vars="extras = data.get('extras', [])">
