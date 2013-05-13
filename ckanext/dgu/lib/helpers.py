@@ -540,10 +540,12 @@ def updated_string(package):
     return updated_string
 
 def updated_date(package):
-    for k in package['extras']:
-        if k['key'] == 'last_major_modification':
-            return k['value']
-    return package.get('metadata_created')
+    from ckan import model    
+    p = model.Package.get(package['name'])
+    if not p:
+        return package.get('metadata_created')    
+
+    return p.extras.get('last_major_modification', package.get('metadata_created'))
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
@@ -1157,7 +1159,7 @@ def facet_values(facet_tuples, facet_key):
 def get_package_mini_metadata(pkg):
     return {
         'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
-        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y"),
+        'date-updated-computed': render_datetime(pkg.extras.get('last_major_modification'),date_format="%d/%m/%Y"),
     }
 
 def get_extent():

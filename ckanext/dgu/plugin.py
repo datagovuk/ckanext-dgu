@@ -151,8 +151,11 @@ class ThemePlugin(SingletonPlugin):
 
 def update_package_major_time(package):
     import datetime
+    import ckan.model as model
+
     package.extras['last_major_modification'] = datetime.datetime.now().isoformat()
     log.debug("Updating last_major_modification in the package: %s" % package.name)
+    model.Session.add(package)
 
 
 class ResourceURLModificationPlugin(SingletonPlugin):
