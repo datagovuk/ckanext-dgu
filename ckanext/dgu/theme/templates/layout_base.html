@@ -236,10 +236,9 @@ ${h.top_level_init()}
         <li><a href="/terms-and-conditions">Terms &amp; Conditions</a></li>
       </ul>
       <div class="credits">
-        <div class="credit">
-          <strong>Powered by:</strong>
+        <div class="credit" style="width: 149px;">
           <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
-            <img src="/images/ckan_logo_box_64px_wide.png"/>
+            <img src="/images/powered-by-ckan.png" alt="Powered By CKAN"/>
           </a>
         </div>
         <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
