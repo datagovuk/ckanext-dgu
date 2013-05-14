@@ -324,7 +324,7 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
                              format="CSV",
                              url="http://www.barnsley.nhs.uk/spend.csv")
         model.Session.add(res)
-        model.Package.by_name('latest').resource_groups[0].resources.append(res)
+        model.Package.by_name('latest').resource_groups_all[0].resources_all.append(res)
         model.repo.commit_and_remove()
         self._assert_revision_created()
         res = self._last_revision()
@@ -334,6 +334,9 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
         rev = model.repo.new_revision()
         pkg = model.Package.by_name('latest')
         group = model.Group.by_name('dept-health')
+
+        # Delete the revision first
+        model.Session.query(model.MemberRevision).filter_by(table_id=pkg.id).delete()
         membership1 = model.Session.query(model.Member).filter_by(table_id=pkg.id).delete()
         model.Session.add(model.Member(group=group, table_id=pkg.id, table_name='package'))
         model.repo.commit_and_remove()
@@ -405,4 +408,4 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
         assert_equal(res['since_revision_id'], revs[0].id)
         assert_equal(res['newest_revision_id'], revs[-1].id)
         assert 10 < res['number_of_revisions'] < 20, res['number_of_revisions']
-        assert_equal(res['results_limited'], False)
+        assert res['results_limited'] == True, res['results_limited']

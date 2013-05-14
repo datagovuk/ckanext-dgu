@@ -26,6 +26,43 @@ from ckan.tests.html_check import HtmlCheckMethods
 from ckanext.dgu.plugins_toolkit import get_action
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 
+
+class ResourceHelper(object):
+    def get_additional_resources(self, package):
+        """Extract the additional resources from a package"""
+        return filter(self._is_additional_resource, package.get('resources'))
+
+    def get_timeseries_resources(self, package):
+        """Extract the timeseries resources from a package"""
+        return filter(self._is_timeseries_resource, package.get('resources'))
+
+    def _is_individual_resource(self,resource):
+        """
+        Returns true iff the given resource identifies as an individual resource.
+        """
+        return not self._is_additional_resource(resource) and \
+               not self._is_timeseries_resource(resource)
+
+    def get_individual_resources(self, package):
+        """Extract the individual resources from a package"""
+        return filter(self._is_individual_resource, package.get('resources'))
+
+    def _is_additional_resource(self, resource):
+        """
+        Returns true iff the given resource identifies as an additional resource.
+        """
+        return resource.get('resource_type', '') in ('documentation',)
+
+    def _is_timeseries_resource(self, resource):
+        """
+        Returns true iff the given resource identifies as a timeseries resource.
+        """
+        return not self._is_additional_resource(resource) and \
+               resource.get('date', None)
+
+
+
+
 class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
     """
     Test that the various fields are represented correctly in the form.
@@ -257,6 +294,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
         del expected_field_values['published_by']
         del expected_field_values['published_via']
 
+        helper = ResourceHelper()
         # Ensure the resources have been un-merged correctly.
         for resource_type in 'additional timeseries individual'.split():
             resource_type += '_resources'
@@ -265,7 +303,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
             for field_name in [f for f in self._expected_fields if f.startswith(resource_type)]:
                 fields.append(field_name.split('__')[-1])
 
-            resources = getattr(ckanext.dgu.lib.helpers, resource_type)(package)
+
+            resources = getattr(helper, "get_%s" % resource_type)(package)
             for index, resource in enumerate(resources):
                 for field in fields:
                     # eg. additional_resources__0__url
@@ -275,7 +314,7 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                     try:
                         expected_field_values[full_field_name] = resource[field]
                     except KeyError:
-                        expected_field_values[full_field_name] = resource['extras'][field]
+                        expected_field_values[full_field_name] = resource.get('extras',{}).get(field)
 
         for field_name, expected_value in expected_field_values.items():
 
@@ -284,6 +323,8 @@ class TestFormRendering(WsgiAppCase, HtmlCheckMethods, CommonFixtureMethods):
                                         '(input|textarea|select)',
                                         'name="%s"' % field_name,
                                         expected_value)
+
+
 
     def test_a_full_timeseries_dataset_edit_form(self):
         """
@@ -627,9 +668,10 @@ class TestPackageCreation(CommonFixtureMethods):
 
         # Extra data
         # Timeseries data
+        helper = ResourceHelper()
         expected_timeseries_keys = filter(lambda k: k.startswith('timeseries_resources'),
                                           package_data.keys())
-        timeseries_resources = ckanext.dgu.lib.helpers.timeseries_resources(pkg.as_dict())
+        timeseries_resources = helper.get_timeseries_resources(pkg.as_dict())
         assert_equal(len(timeseries_resources), 4)
         for key in expected_timeseries_keys:
             index, field = key.split('__')[1:]
@@ -661,9 +703,10 @@ class TestPackageCreation(CommonFixtureMethods):
                      set(tag.name for tag in pkg.get_tags()))
 
         # Additional resources
+        helper = ResourceHelper()
         expected_additional_keys = filter(lambda k: k.startswith('additional_resources'),
                                           package_data.keys())
-        additional_resources = ckanext.dgu.lib.helpers.additional_resources(pkg.as_dict())
+        additional_resources = helper.get_additional_resources(pkg.as_dict())
         assert_equal(len(additional_resources), 2)
         for key in expected_additional_keys:
             index, field = key.split('__')[1:]
@@ -1068,3 +1111,5 @@ _EXAMPLE_GROUPS = [
 ]
 
 _UKLP_DATASET = json.loads('{"maintainer": null, "maintainer_email": null, "metadata_created": "2011-06-03T12:17:54.351438", "relationships": [], "metadata_modified": "2011-12-22T16:40:15.831307", "author": null, "author_email": null, "state": "active", "version": null, "license_id": null, "type": null, "resources": [], "tags": ["Climate change", "Geological mapping", "Geology", "NERC_DDC"], "groups": [], "name": "1-1-5m-scale-geology-through-climate-change-map-covering-uk-mainland-northern-ireland-and-eire", "isopen": false, "license": null, "notes_rendered": "<p>1:1.5M scale \'Geology Through Climate Change\' map covering UK mainland, Northern Ireland and Eire. This poster map shows the rocks of Britain and Ireland in a new way, grouped and coloured according to the environment under which they were formed. Photographs illustrate modern-day environments, alongside images of the typical rock types which are formed in them. The ages of the rocks are shown in a timeline, which also shows global temperatures and sea levels changing through time. The changing positions of Britain and Ireland as they drifted northwards through geological time are illustrated too. It was jointly produced by the BGS, the Geological Survey of Northern Ireland and the Geological Survey of Ireland. It has been endorsed by a range of teaching organisations including WJEC, OCR, The Association of Teaching Organisations of Ireland and the Earth Science Teachers Association. Although primarily intended as a teaching resource, the poster map will be of interest to anyone seeking to understand the imprint geological time has left in the rocks of our islands. This poster map is free, all you pay is the postage and packing.\\n</p>", "url": null, "ckan_url": "http://releasetest.ckan.org/dataset/1-1-5m-scale-geology-through-climate-change-map-covering-uk-mainland-northern-ireland-and-eire", "notes": "1:1.5M scale \'Geology Through Climate Change\' map covering UK mainland, Northern Ireland and Eire. This poster map shows the rocks of Britain and Ireland in a new way, grouped and coloured according to the environment under which they were formed. Photographs illustrate modern-day environments, alongside images of the typical rock types which are formed in them. The ages of the rocks are shown in a timeline, which also shows global temperatures and sea levels changing through time. The changing positions of Britain and Ireland as they drifted northwards through geological time are illustrated too. It was jointly produced by the BGS, the Geological Survey of Northern Ireland and the Geological Survey of Ireland. It has been endorsed by a range of teaching organisations including WJEC, OCR, The Association of Teaching Organisations of Ireland and the Earth Science Teachers Association. Although primarily intended as a teaching resource, the poster map will be of interest to anyone seeking to understand the imprint geological time has left in the rocks of our islands. This poster map is free, all you pay is the postage and packing.", "license_title": null, "ratings_average": null, "extras": {"bbox-east-long": "180.0000", "temporal_coverage-from": "[]", "resource-type": "dataset", "bbox-north-lat": "90.0000", "coupled-resource": "[]", "guid": "9df8df53-2a24-37a8-e044-0003ba9b0d98", "bbox-south-lat": "-90.0000", "temporal_coverage-to": "[\\"2008\\"]", "spatial-reference-system": "urn:ogc:def:crs:EPSG::4326", "spatial": "{\\"type\\":\\"Polygon\\",\\"coordinates\\":[[[180.0000, -90.0000],[180.0000, 90.0000], [-180.0000, 90.0000], [-180.0000, -90.0000], [180.0000, -90.0000]]]}", "access_constraints": "[\\"copyright: The dataset is made freely available for access, e.g. via the Internet. Either no third party data / information is contained in the dataset or BGS has secured written permission from the owner(s) of any third party data / information contained in the dataset to make the dataset freely accessible.\\", \\"The poster is copyright of NERC, copyright of Geological Survey of Ireland and copyright of Geological Survey of Northern Ireland.\\"]", "contact-email": "enquiries@bgs.ac.uk", "bbox-west-long": "-180.0000", "metadata-date": "2011-12-16T17:19:00", "dataset-reference-date": "[{\\"type\\": \\"publication\\", \\"value\\": \\"2008\\"}]", "published_by": 15004, "frequency-of-update": "asNeeded", "licence": "[]", "harvest_object_id": "56b36936-a369-4991-bd44-9e65e0ae146e", "responsible-party": "British Geological Survey (distributor)", "UKLP": "True", "spatial-data-service-type": "", "metadata-language": "eng"}, "ratings_count": 0, "title": "1:1.5M scale \'Geology Through Climate Change\' Map Covering UK mainland, Northern Ireland and Eire.", "revision_id": "37dfbc09-9d70-4839-86a0-7e33cde8299a"}')
+
+

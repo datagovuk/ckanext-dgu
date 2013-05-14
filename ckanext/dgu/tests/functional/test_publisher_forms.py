@@ -5,7 +5,7 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.tests import WsgiAppCase, CommonFixtureMethods, url_for
 from ckan.tests.html_check import HtmlCheckMethods
 from ckan.tests.mock_mail_server import SmtpServerHarness
-
+from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 
 
@@ -25,7 +25,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset = url_for('/publisher/new')
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
         assert 'Add A Publisher' in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
 
         # Fill in form
         form['title'] = 'New publisher'
@@ -63,7 +63,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset = url_for('/publisher/edit/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
         assert 'Edit: %s' % group.title in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
         # TODO assert_equal(form['title'].value, 'National Health Service')
         assert_equal(form['name'].value, 'national-health-service')
         assert_equal(form['description'].value, '')
@@ -94,6 +94,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
 
         # Check saved object
         publisher = model.Group.by_name(publisher_name)
+        
         assert_equal(publisher.description, 'New description')
         assert_equal(publisher.extras['contact-name'], 'Head of Comms')
         assert_equal(publisher.extras['contact-email'], 'comms@nhs.gov.uk')
@@ -104,18 +105,20 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-web'], 'http://whatdotheyknow.com')
         assert_equal(publisher.extras['category'], 'alb')
         assert_equal(publisher.extras['abbreviation'], 'nhs')
-
+        
         # restore name for other tests
-        model.repo.new_revision()
-        publisher.name = 'national-health-service'
-        model.repo.commit_and_remove()
+        #model.repo.new_revision()
+        #publisher.name = 'national-health-service'
+        #model.repo.commit_and_remove()
+        model.repo.rebuild_db()
+        DguCreateTestData.create_dgu_test_data()
 
     def test_2_new_validation_error(self):
         # Load form
         offset = url_for('/publisher/new')
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
         assert 'Add A Publisher' in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
 
         # Fill in form
         form['title'] = 'New publisher'
@@ -134,7 +137,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert 'Errors in form' in res.body
 
         # Check redisplayed form
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
         assert_equal(form['title'].value, 'New publisher')
         assert_equal(form['description'].value, 'New description')
         assert_equal(form['contact-name'].value, 'Head of Comms')
@@ -154,7 +157,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset = url_for('/publisher/edit/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
         assert 'Edit: %s' % group.title in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
 
         # Fill in form
         # TODO form['title'] = 'Edit publisher'
@@ -173,7 +176,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert 'Errors in form' in res.body
 
         # Check redisplayed form
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
         # TODO assert_equal(form['title'].value, 'New publisher')
         assert_equal(form['description'].value, 'New description')
         assert_equal(form['contact-name'].value, 'Head of Comms')
@@ -194,10 +197,13 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             assert_equal(set([grp.name for grp in group.active_packages()]),
                          set([u'directgov-cota']))
             # parents
-            child_groups_of_doh = set([grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')])
-            assert publisher_name in child_groups_of_doh
+
+            doh = model.Group.by_name('dept-health')
+            child_groups_of_doh = [grp.name for grp in list(publib.go_down_tree(doh))]
+            assert publisher_name in child_groups_of_doh, child_groups_of_doh
             # children
-            child_groups = set([grp['name'] for grp in group.get_children_groups('publisher')])
+
+            child_groups = set([grp.name for grp in list(publib.go_down_tree(group))])
             assert set([u'newham-primary-care-trust', u'barnsley-primary-care-trust']) <= child_groups, child_groups
             # admins & editors
             assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='admin')]),
@@ -211,7 +217,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset = url_for('/publisher/edit/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
         assert 'Edit: %s' % group.title in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
 
         # Make edit
         form['description'] = 'New description'
@@ -243,7 +249,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert 'value="active" selected' in main_res, main_res
 
         # delete
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
         form['state'] = 'deleted'
         form['category'] = 'private' # to get it to validate
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
@@ -260,8 +266,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             assert_equal(set([grp.name for grp in group.active_packages()]),
                          set([u'directgov-cota']))
             # parents
-            child_groups = set([grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')])
-            assert publisher_name in child_groups
+            child_groups = [grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')]
+            assert publisher_name in child_groups, child_groups
 
         check_related_publisher_properties()
 
@@ -272,7 +278,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset = url_for('/publisher/users/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
         assert 'Users: %s' % group.title in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0] 
         assert_equal(form['users__0__name'].value, 'nhsadmin')
         assert_equal(form['users__0__capacity'].value, 'admin')
         assert_equal(form['users__1__name'].value, 'nhseditor')
@@ -318,7 +324,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
         assert 'Apply for membership' in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
         parent_publisher_id = form['parent'].value
         parent_publisher_name = model.Group.get(parent_publisher_id).name
         assert_equal(parent_publisher_name, publisher_name)
@@ -334,13 +340,13 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         assert_equal(len(msgs), 1)
         msg = msgs[0]
         assert_equal(msg[1], 'info@test.ckan.net') # from (ckan.mail_from in ckan/test-core.ini)
-        assert_equal(msg[2], ["coffice@gov.uk"]) # to (dgu.admin.name/email in dgu/test-core.ini)
+        assert_equal(msg[2], ["dohemail@localhost.local"]) # to (dgu.admin.name/email in dgu/test-core.ini)
 
     def assert_application_sent_to_right_person(self, publisher_name, to_email_addresses):
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
         assert 'Apply for membership' in res, res
-        form = res.forms['publisher-edit']
+        form = res.forms[0]
         form['reason'] = 'I am the director'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'user'})
         msgs = SmtpServerHarness.smtp_thread.get_smtp_messages()
