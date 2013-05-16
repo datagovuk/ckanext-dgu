@@ -188,10 +188,9 @@
           'There are no further licence filters to apply.'
       )}
       ${facet_box(
-          'tags', 
-          'Tags', 
-          'There are no further tag filters to apply.', 
-          more_button='more-tags-button'
+          'theme-primary', 
+          'Theme', 
+          'There are no further theme filters to apply.'
       )}
       ${facet_box(
           'res_format', 
@@ -204,6 +203,12 @@
           'Publisher', 
           'There are no further publisher filters to apply.', 
           more_button='more-publishers-button'
+      )}
+      ${facet_box(
+          'tags', 
+          'Tags', 
+          'There are no further tag filters to apply.', 
+          more_button='more-tags-button'
       )}
       ${facet_box(
           'openness_score', 
@@ -353,4 +358,29 @@
   </py:def>
 
 
+  <ul py:def="themed_package_list_from_dict(packages, theme)" class="common-dataset-list">
+   <li py:for="package in packages">
+     ${themed_package_summary(package, theme)}
+   </li>
+  </ul>
+
+  <div py:def="themed_package_summary(package, theme)" class="dataset dataset-summary boxed">
+     <div py:with="title=package.get('title') or package.get('name')">
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/theme-%s-icon.png' % theme if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
+         <h3><span class="underlined">${title}</span></h3>
+       </a>
+       <span class="property pull-right">
+         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+       </span>
+       <div class="property">
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+              ${h.package_publisher_dict(package).get('title', '')}
+            </a>
+       </div>
+       <div class="dataset-description">
+         ${h.markdown_extract(package.notes)}
+       </div>
+     </div>
+  </div>
 </html>

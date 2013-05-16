@@ -4,6 +4,20 @@ import datetime
 
 from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 
+THEMES = {
+    "health":           "Health",
+    "environment":      "Environment",
+    "education":        "Education",
+    "location":         "Location",      
+    "administration":   "Administration",
+    "defence":          "Defence",
+    "finance":          "Finance",     
+    "transportation":   "Transportation",    
+    "spending-data":    "Spending Data",    
+    "society":          "Society",    
+}
+
+
 government_depts_raw = """
 Attorney General's Office
 Cabinet Office

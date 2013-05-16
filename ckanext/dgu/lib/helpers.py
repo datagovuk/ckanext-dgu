@@ -1260,6 +1260,8 @@ def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
 
 def render_facet_key(key,value=None):
+    if key=='theme-primary':
+        return 'Theme'    
     if key=='license_id-is-ogl':
         return 'Licence'
     if key=='UKLP':
@@ -1304,5 +1306,8 @@ def render_facet_value(key,value):
                 'discovery' : 'Discovery',
             }
         return mapping.get(value,value)
+    if key=='theme-primary':
+        from ckanext.dgu.schema import THEMES
+        return THEMES.get(value,value)        
     return value
 
