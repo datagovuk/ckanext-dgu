@@ -533,18 +533,19 @@ def name_for_uklp_type(package):
         item_type = 'Dataset'
 
 def updated_string(package):
-    if package.get('metadata_modified') == package.get('metadata_created'):
+    if package.get('last_major_modification') == package.get('metadata_created'):
         updated_string = 'Created'
     else:
         updated_string = 'Updated'
     return updated_string
 
 def updated_date(package):
-    if package.get('metadata_modified') == package.get('metadata_created'):
-        updated_date = package.get('metadata_created')
-    else:
-        updated_date = package.get('metadata_modified')
-    return updated_date
+    from ckan import model    
+    p = model.Package.get(package['name'])
+    if not p:
+        return package.get('metadata_created')    
+
+    return p.extras.get('last_major_modification', package.get('metadata_created'))
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
@@ -1158,7 +1159,7 @@ def facet_values(facet_tuples, facet_key):
 def get_package_mini_metadata(pkg):
     return {
         'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
-        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y"),
+        'date-updated-computed': render_datetime(pkg.extras.get('last_major_modification'),date_format="%d/%m/%Y"),
     }
 
 def get_extent():

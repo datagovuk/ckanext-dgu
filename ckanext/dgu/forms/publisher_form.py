@@ -133,7 +133,7 @@ class PublisherForm(SingletonPlugin):
             'contact-name' : [convert_from_extras, ignore_missing, unicode],
             'contact-email': [convert_from_extras, ignore_missing, unicode],
             'contact-phone': [convert_from_extras, ignore_missing, unicode],
-            'category': [convert_from_extras],
+            'category': [convert_from_extras, ignore_missing],
             'abbreviation': [convert_from_extras, ignore_missing, unicode],
         }
         schema.update( default_group_schema() )

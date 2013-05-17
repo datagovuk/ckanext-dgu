@@ -4,14 +4,15 @@
   
   <py:def function="page_title">Differences - Revisions</py:def>
   <py:def function="body_class">${h.literal('no-sidebar')}</py:def>
+  <py:def>
+    ${h.dataset_link(c.pkg)}
+    <span class="subheading">
+      <img src="/images/arrow-down-right.png"/> <a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History</a>
+      <span class="subheading"><img src="/images/arrow-down-right.png"/> Revision Differences</span>
+    </span>
+  </py:def>
+
   <div py:match="content">
-    <h1>
-      ${h.dataset_link(c.pkg)}
-      <span class="subheading">
-        <img src="/images/arrow-down-right.png"/> <a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History</a>
-        <span class="subheading"><img src="/images/arrow-down-right.png"/> Revision Differences</span>
-      </span>
-    </h1>
     <div class="boxed">
       <h4>From</h4>
       <ul>

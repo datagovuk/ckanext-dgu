@@ -226,6 +226,7 @@ class DatasetForm(SingletonPlugin):
             'date_released': [ignore_missing, date_to_db, convert_to_extras],
             'date_updated': [ignore_missing, date_to_db, convert_to_extras],
             'date_update_future': [ignore_missing, date_to_db, convert_to_extras],
+            'last_major_modification': [ignore_missing, date_to_db, convert_to_extras],            
             'update_frequency': [ignore_missing, use_other, unicode, convert_to_extras],
             'update_frequency-other': [ignore_missing],
             'precision': [ignore_missing, unicode, convert_to_extras],
@@ -280,6 +281,7 @@ class DatasetForm(SingletonPlugin):
         schema = {
             'date_released': [convert_from_extras, ignore_missing, date_to_form],
             'date_updated': [convert_from_extras, ignore_missing, date_to_form],
+            'last_major_modification': [convert_from_extras, ignore_missing, date_to_form],
             'date_update_future': [convert_from_extras, ignore_missing, date_to_form],
             'update_frequency': [convert_from_extras, ignore_missing, extract_other(update_frequency)],
             'precision': [convert_from_extras, ignore_missing],
