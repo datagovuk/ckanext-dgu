@@ -7,9 +7,9 @@
 
   <py:def function="page_title">Publisher report</py:def>
   <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="page_heading">Publishers and Admins/Editors (${c.count})</py:def>
 
   <div py:match="content">
-    <h1>Publishers and Admins/Editors (${c.count})</h1>
     <div class="boxed">
       ${c.page.pager()}
 

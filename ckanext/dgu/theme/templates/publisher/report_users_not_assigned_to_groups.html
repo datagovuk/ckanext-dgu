@@ -7,9 +7,9 @@
 
   <py:def function="page_title">Publisher report</py:def>
   <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="page_heading">Publisher report</py:def>
 
   <div py:match="content">
-    <h1>Publisher report</h1>
     <div class="boxed">
       <h3>Users not attached to a publisher (${ c.unassigned_users_count })</h3>
       <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered table-striped">

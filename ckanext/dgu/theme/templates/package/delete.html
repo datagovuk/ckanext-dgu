@@ -4,11 +4,10 @@
   py:strip="">
   
   <py:def function="page_title">${c.pkg.title or c.pkg.name} - ${'Delete Dataset' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw Record'}</py:def>
-
   <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="page_heading">${'Delete' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw'}: ${c.pkg.title or c.pkg.name}</py:def>
 
   <div py:match="content" class="dataset-edit-form">
-    <h1>${'Delete' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw'}: ${c.pkg.title or c.pkg.name}</h1>
     <div class="boxed">
       <form id="package-delete" method="post"
             xmlns:i18n="http://genshi.edgewall.org/i18n"

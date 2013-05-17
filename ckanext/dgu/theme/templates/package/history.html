@@ -5,12 +5,13 @@
   
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets - History</py:def>
   <py:def function="body_class">no-sidebar</py:def>
-  <div py:match="content" class="dataset">
+  <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
-    <h1>
-      ${h.dataset_link(c.pkg)}
-      <span class="subheading"><img src="/images/arrow-down-right.png"/> History</span>
-    </h1>
+    ${h.dataset_link(c.pkg)}
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> History</span>
+  </py:def>
+
+  <div py:match="content" class="dataset">
     <div class="boxed">
       <h3>Revisions</h3>
       <form id="dataset-revisions" action="diff" method="post"
