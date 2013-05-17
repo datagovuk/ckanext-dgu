@@ -1,6 +1,7 @@
 import datetime
 import logging
 import csv
+import StringIO
 
 from webhelpers.text import truncate
 
@@ -216,7 +217,7 @@ class DguReportsController(ApiController):
             filename = 'resources%s.csv' % (('_' + id) if id else '')
             response.headers['Content-Type'] = 'application/csv'
             response.headers['Content-Disposition'] = str('attachment; filename=%s' % (filename))
-            return make_csv_from_dicts(result)
+            return make_csv_from_dicts(result['rows'])
         else:
             response.headers['Content-Type'] = 'application/json'
             return json.dumps(result)
