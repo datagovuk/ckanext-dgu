@@ -1,0 +1,79 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Reports</py:def>
+
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <div py:match="content">
+    <div class="report">
+      <h1>Report</h1>
+      <h2>Resources - 
+          <a href="/publisher/${c.data['publisher_name']}">
+            ${c.data['publisher_title']}
+          </a>
+      </h2>
+      <py:if test="(not c.data) or (not c.data['rows'])">
+        <p>No results found for this publisher.</p>
+      </py:if>
+
+      <py:if test="c.data and c.data['rows']">
+        <div class="pull-right">
+            <a class="btn" href="${h.url_for('reports_api', action=c.query.__name__, id=c.data['publisher_name'], format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}">Download report in CSV format</a>
+        </div>
+        <div>
+          <form action="">
+            <label class="checkbox">
+              <input type="checkbox" name="publisher-results-include-subpub" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
+              Include results from sub-publishers
+            </label>
+          </form>
+        </div>
+        <table class="table table-striped table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+         <thead>
+            <tr class="js-tooltip">
+              <th py:if="c.include_sub_publishers" style="width: 45px">Publisher</th>
+              <th style="width: 100px">Dataset</th>
+              <th style="width: 20px" title="Index/position of the resource in the dataset">Index</th>
+              <th style="width: 190px">URL</th>
+              <th style="width: 150px">Description</th>
+              <th style="width: 120px">Format</th>
+              <th>Created</th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr py:for="row_dict in c.data['rows']">
+              <td py:if="c.include_sub_publishers"><a href="/publisher/${row_dict['publisher_name']}">${row_dict['publisher_title']}</a></td>
+              <td><a href="${h.url_for(controller='package', action='read', id=row_dict['package_name'])}">${row_dict['package_title']}</a></td>
+              <td><a href="/dataset/${row_dict['package_name']}/resource/${row_dict['resource_id']}">${row_dict['resource_position']}</a></td>
+              <td><a href="${row_dict['resource_url']}" style="word-wrap:break-word;">${row_dict['resource_url']}</a></td>
+              <td>${row_dict.get('resource_description', 'not recorded')}</td>
+              <td>${row_dict.get('resource_format', 'not recorded')}</td>
+              <td>${row_dict.get('resource_created').strftime('%d/%m/%y  %H:%M') if row_dict.get('resource_created') else 'not recorded'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </py:if>
+    </div>
+  </div>
+
+  <py:def function="optional_footer">
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script> 
+    <script type="text/javascript">
+      //<![CDATA[ 
+      $(document).ready(function() 
+        { 
+          $("#report-table").tablesorter({
+              dateFormat: "uk",
+          }); 
+        } 
+      ); 
+    // ]]>
+    </script>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>
+

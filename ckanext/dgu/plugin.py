@@ -106,6 +106,7 @@ class ThemePlugin(SingletonPlugin):
         """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
         tag_controller = 'ckanext.dgu.controllers.tag:TagController'
+        reports_controller = 'ckanext.dgu.controllers.reports:ReportsController'
         map.redirect('/', '/data')
         map.connect('/data', controller=data_controller, action='index')
         map.connect('/data/tag', controller=tag_controller, action='index')
@@ -118,6 +119,7 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/carparks', controller=data_controller, action='carparks')
+        map.connect('reports', '/data/reports', controller=reports_controller, action='resources')
 
         # For test usage when Drupal is not running
         map.connect('/comment/get/{id}',
@@ -379,5 +381,11 @@ class ApiPlugin(SingletonPlugin):
         map.connect('/api/util/latest-datasets', controller=api_controller, action='latest_datasets')
         map.connect('/api/util/dataset-count', controller=api_controller, action='dataset_count')
         map.connect('/api/util/revisions', controller=api_controller, action='revisions')
+
+        reports_api_controller = 'ckanext.dgu.controllers.api:DguReportsController'
+        map.connect('reports_api',
+                    '/api/2/util/reports/{action}/:(id).:(format)',
+                    conditions=dict(method=['GET']),
+                    controller=reports_api_controller)
         return map
 
