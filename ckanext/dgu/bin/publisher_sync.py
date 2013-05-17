@@ -18,7 +18,7 @@ categories_dict = dict(categories)
 
 class Publishers(object):
     drupal_client = None
-    header = '"id","name","title","parent_publisher_name","category","spending_published_by"\n'
+    header = '"id","name","title","parent_publisher_name","parent_publisher_title","abbreviation","wdtk_name","website","contact_email","foi_email","category","spending_published_by"\n'
 
     @classmethod
     def export(cls, csv_filepath):
@@ -46,16 +46,26 @@ class Publishers(object):
                 if len(parent_publishers) > 1:
                     warn('Publisher has multiple parents. Just using first: %s %s', pub.name, parent_publishers)
                 parent_pub_name = parent_publishers[0].name if parent_publishers else ''
-                csv_line = '"%s","%s","%s","%s","%s","%s"' % \
+                parent_pub_title = parent_publishers[0].title if parent_publishers else ''
+                wdtk_id = ''#pub.extras
+                csv_row_values = \
                            (pub.id,
                             pub.name,
                             pub.title,
                             parent_pub_name,
+                            parent_pub_title,
+                            dict(pub.extras).get('abbreviation', ''),
+                            dict(pub.extras).get('wdtk-title', ''),
+                            dict(pub.extras).get('website-url', ''),
+                            dict(pub.extras).get('contact-email', ''),
+                            dict(pub.extras).get('foi-email', ''),
                             dict(pub.extras).get('category', ''),
                             dict(pub.extras).get('spending_published_by', ''),
                             )
-                log.info(csv_line)
-                f.write(csv_line + '\n')
+                # assume they are all strings
+                csv_row_str = ','.join(['"%s"' % cell for cell in csv_row_values])
+                log.info(csv_row_str)
+                f.write(csv_row_str.encode('utf8') + '\n')
                 f.flush()
 
         f.close()
