@@ -1,5 +1,6 @@
 
 import datetime
+from dateutil import parser as date_parser
 from nose.tools import assert_equal
 from nose.plugins.skip import SkipTest
 
@@ -8,11 +9,6 @@ from ckan.lib.create_test_data import CreateTestData
 from ckan.logic import get_action
 from ckan.tests import TestController as ControllerTestCase
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
-
-
-# No  last_major_modification in cadastreni-wms
-# nhs-spend-over-25k-barnsleypct
-# directgov-cota
 
 class TestResourceChanges(ControllerTestCase):
 
@@ -33,13 +29,15 @@ class TestResourceChanges(ControllerTestCase):
         p.add_resource(url="http://fake_url/", format="HTML", description="A test resource")
         model.Session.add(p)
         model.Session.commit()
-
+        
         p = model.Package.get("directgov-cota")
-
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = datetime.datetime.now().date()
         assert len(p.resources) == 2, "Resource wasn't added"
         assert "last_major_modification" in p.extras
-        assert p.extras["last_major_modification"] == today
+
+        lmm = date_parser.parse(p.extras["last_major_modification"])
+        assert  lmm.date() == today, lmm.date
+        
 
 
     def test_delete_resource(self):
@@ -57,10 +55,12 @@ class TestResourceChanges(ControllerTestCase):
 
         p = model.Package.get("cabinet-office-energy-use")
 
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = datetime.datetime.now().date()
         assert len(p.resources) != count, "Resource wasn't deleted"
         assert "last_major_modification" in p.extras
-        assert p.extras["last_major_modification"] == today
+
+        lmm = date_parser.parse(p.extras["last_major_modification"])
+        assert  lmm.date() == today, lmm.date
 
 
     def test_resource_url_change(self):
@@ -76,7 +76,9 @@ class TestResourceChanges(ControllerTestCase):
         model.Session.commit()
 
         p = model.Package.get("nhs-spend-over-25k-barnsleypct")
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = datetime.datetime.now().date()
         assert "last_major_modification" in p.extras
-        assert p.extras["last_major_modification"] == today
+        lmm = date_parser.parse(p.extras["last_major_modification"])
+        assert  lmm.date() == today, lmm.date
+
 
