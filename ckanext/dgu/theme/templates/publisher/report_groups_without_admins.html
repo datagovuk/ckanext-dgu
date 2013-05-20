@@ -7,9 +7,9 @@
 
   <py:def function="page_title">Publisher report</py:def>
   <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="page_heading">Publisher report</py:def>
 
   <div py:match="content">
-    <h1>Publisher report</h1>
     <div class="boxed">
       <h3>Publishers without admins (${ c.non_admin_count})</h3>
       <table id="admins" py:if="c.non_admin_count > 0" class="table table-bordered table-striped">

@@ -1,13 +1,17 @@
 import datetime
 import logging
+import csv
+import StringIO
 
 from webhelpers.text import truncate
 
 from ckan.lib.base import model, abort, response, h, BaseController, request
 from ckan.controllers.api import ApiController
-from ckan.lib.helpers import OrderedDict, date_str_to_datetime, markdown_extract
+from ckan.lib.helpers import OrderedDict, date_str_to_datetime, markdown_extract, json
 from ckanext.dgu.plugins_toolkit import get_action
+import ckan.plugins.toolkit as t
 from ckanext.dgu.lib.helpers import is_sysadmin
+from ckanext.dgu.lib import reports
 
 log = logging.getLogger(__name__)
 
@@ -201,3 +205,57 @@ class DguApiController(ApiController):
             count = 0
 
         return self._finish_ok(count)
+
+class DguReportsController(ApiController):
+    def organisation_resources(self, id, format='json'):
+        #return json.dumps(reports.organisation_resources(id, date_formatter))
+        include_sub_publishers = t.asbool(request.params.get('include_sub_publishers') or False)
+        result = reports.organisation_resources(id,
+            include_sub_organisations=include_sub_publishers,
+            date_formatter=reports.british_date_formatter)
+        if format == 'csv':
+            filename = 'resources%s.csv' % (('_' + id) if id else '')
+            response.headers['Content-Type'] = 'application/csv'
+            response.headers['Content-Disposition'] = str('attachment; filename=%s' % (filename))
+            return make_csv_from_dicts(result['rows'])
+        else:
+            response.headers['Content-Type'] = 'application/json'
+            return json.dumps(result)
+
+def make_csv_from_dicts(rows):
+    csvout = StringIO.StringIO()
+    csvwriter = csv.writer(
+        csvout,
+        dialect='excel',
+        quoting=csv.QUOTE_NONNUMERIC
+    )
+    # extract the headers by looking at all the rows and
+    # get a full list of the keys, retaining their ordering
+    headers_ordered = []
+    headers_set = set()
+    for row in rows:
+        new_headers = set(row.keys()) - headers_set
+        headers_set |= new_headers
+        for header in row.keys():
+            if header in new_headers:
+                headers_ordered.append(header)
+    csvwriter.writerow(headers_ordered)
+    for row in rows:
+        items = []
+        for header in headers_ordered:
+            item = row.get(header, 'no record')
+            if isinstance(item, datetime.datetime):
+                item = item.strftime('%Y-%m-%d %H:%M')
+            elif isinstance(item, (int, long, float)):
+                item = unicode(item)
+            elif item is None:
+                item = ''
+            else:
+                item = item.encode('utf8')
+            items.append(item)
+        try:
+            csvwriter.writerow(items)
+        except Exception, e:
+            raise Exception("%s: %s, %s"%(e, row, items))
+    csvout.seek(0)
+    return csvout.read()
