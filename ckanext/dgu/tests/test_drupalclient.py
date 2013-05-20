@@ -6,6 +6,8 @@ from ckanext.dgu.testtools.mock_drupal import get_mock_drupal_config, MOCK_DRUPA
 from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 
 class TestDrupalConnection(MockDrupalCase):
+
+
     def test_get_url(self):
         assert config['dgu.xmlrpc_domain']
         url, url_logsafe = DrupalClient.get_xmlrpc_url()

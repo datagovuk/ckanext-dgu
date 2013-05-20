@@ -1,6 +1,6 @@
 import os
 import re
-
+import signal
 from paste.script.appinstall import SetupCommand
 from pylons import config
 
@@ -243,6 +243,7 @@ class MockDrupalCase(BaseCase):
             response = drupal.system.listMethods()
         except socket.error, e:
             return
+
         raise DrupalSetupError('MockDrupal already seems to be running: %s.\n'
                                'Kill its process (paster) first.' % url)
 
@@ -267,10 +268,7 @@ class MockDrupalCase(BaseCase):
 
     @classmethod
     def _mock_drupal_stop(cls, process):
-        pid = process.pid
-        pid = int(pid)
-        if os.system("kill -9 %d" % pid):
-            raise Exception, "Can't kill foreign Mock Drupal instance (pid: %d)." % pid
+      process.terminate()
 
 def strip_organisation_id(org_name_with_id):
     # e.g. 'NHS [54]' becomes 'NHS [some_number]'

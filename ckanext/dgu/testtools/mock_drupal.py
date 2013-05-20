@@ -1,6 +1,6 @@
 import logging
 from xmlrpclib import Fault
-
+import signal
 import paste.script
 
 from ckanext.dgu.testtools.organisations import test_organisations, \
@@ -63,13 +63,24 @@ class Command(paste.script.command.Command):
             drupal.run()
 
 class MockDrupal(object):
+
+    quit_flag = False
+
     def __init__(self, lots_of_organisations=False):
         self.log = logging.getLogger(__name__)
         if lots_of_organisations:
             self.organisations = LotsOfOrganisations.get()
         else:
             self.organisations = test_organisations
-        
+        self.register_signal(signal.SIGQUIT)
+
+    def register_signal(self, signum):
+        signal.signal(signum, self.signal_handler)
+
+    def signal_handler(self, signum, frame):
+        print "Caught signal", signum
+        self.quit_flag = True
+
     def run(self):
         from SimpleXMLRPCServer import SimpleXMLRPCServer
         from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
@@ -179,4 +190,5 @@ dgu.xmlrpc_domain = %(rpc_host)s:%(rpc_port)s
         self.log.debug('CKAN options: %s',
                       ckan_opts)
         self.log.debug('%i organisations' % len(self.organisations))
-        server.serve_forever()
+        while not self.quit_flag:
+            server.handle_request()        
