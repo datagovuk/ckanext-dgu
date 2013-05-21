@@ -214,12 +214,12 @@ class MockDrupalCase(BaseCase):
     @classmethod
     def setup_class(cls):
         cls._check_drupal_not_already_running()
-        cls.process = cls._mock_drupal_start()
+        MockDrupalCase.process = cls._mock_drupal_start()
         cls._wait_for_drupal_to_start()
 
     @classmethod
     def teardown_class(cls):
-        cls._mock_drupal_stop(cls.process)
+        cls._mock_drupal_stop(MockDrupalCase.process)
 
     @classmethod
     def _mock_drupal_start(cls):
