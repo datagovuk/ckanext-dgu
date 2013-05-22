@@ -74,16 +74,19 @@ cd ..
 ####################################################
 ## Change configuration
 ####################################################
+echo `pwd`
 cd ckan 
 [ -e development.ini ] || paster make-config ckan development.ini
 
 # Uncomment solr
 # sed -i '.bak'  's/\#solr_url/solr_url/g' development.ini
+cd ..
 
 ####################################################
 ## Run the tests !!
 ####################################################
-cd $TEST_HOME
+
+cd ckanext-dgu
 echo `pwd`
 echo "Running tests"
 nosetests --with-pylons=test-core.ini ckanext/dgu/tests/
