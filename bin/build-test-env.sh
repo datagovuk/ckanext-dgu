@@ -15,13 +15,19 @@ TEST_HOME=`pwd`
 ####################################################
 cd ..
 [ -e bin/activate ] || virtualenv .
-. bin/activate
+source bin/activate
 
 ## Pre-setup some stuff.
 ## make sure that we get an up-to-date version of python-dateutil before a recent version
 ## is imported.
 pip install python-dateutil==1.5
 python -c 'import pkg_resources' || curl http://python-distribute.org/distribute_setup.py | python
+
+[ -d ckanext-dgu ] || git clone git@github.com:datagovuk/ckanext-dgu.git
+cd ckanext-dgu
+git pull origin master
+python setup.py develop
+cd ..
 
 [ -d ckan ] || git clone git@github.com:datagovuk/ckan.git
 cd ckan
@@ -67,11 +73,6 @@ cd ..
 cd ckanext-importlib
 git pull origin master
 python setup.py develop
-
-cd ../ckanext-dgu
-git pull origin master
-python setup.py develop
-cd ..
 
 ####################################################
 ## Change configuration
