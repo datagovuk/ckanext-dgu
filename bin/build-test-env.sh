@@ -69,7 +69,7 @@ cd ..
 cd ckanext-importlib
 git pull origin master
 python setup.py develop
-cd..
+cd ..
 
 ####################################################
 ## Change configuration
