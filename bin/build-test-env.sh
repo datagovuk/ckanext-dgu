@@ -1,7 +1,5 @@
 #!/bin/sh
 
-TEST_HOME=`pwd`
-
 ####################################################
 ## Have previously *manually* run the following 
 ## commands
@@ -13,8 +11,8 @@ TEST_HOME=`pwd`
 ####################################################
 ## Get and setup the code that we require
 ####################################################
-cd ..
-[ -e bin/activate ] || virtualenv .
+echo `pwd`
+[ -e virtualenv/activate ] || virtualenv .
 . bin/activate
 
 ## Pre-setup some stuff.
