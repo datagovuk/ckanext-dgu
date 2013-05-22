@@ -30,7 +30,7 @@ cd ckan
 git checkout release-v1.7.1-dgu
 git pull origin release-v1.7.1-dgu
 python setup.py develop
-sed -i '.bak'  '/ckan@release-v1.7.1#egg=ckan/d' pip-requirements.txt 
+sed -i '/ckan@release-v1.7.1#egg=ckan/d' pip-requirements.txt 
 pip install -r pip-requirements.txt
 pip install -r pip-requirements-test.txt
 git checkout pip-requirements.txt
