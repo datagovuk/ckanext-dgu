@@ -15,7 +15,7 @@ TEST_HOME=`pwd`
 ####################################################
 cd ..
 [ -e bin/activate ] || virtualenv .
-source bin/activate
+. bin/activate
 
 ## Pre-setup some stuff.
 ## make sure that we get an up-to-date version of python-dateutil before a recent version
