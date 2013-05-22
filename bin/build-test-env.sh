@@ -12,8 +12,6 @@
 ## Get and setup the code that we require
 ####################################################
 echo `pwd`
-[ -e virtualenv/activate ] || virtualenv .
-. bin/activate
 
 ## Pre-setup some stuff.
 ## make sure that we get an up-to-date version of python-dateutil before a recent version
