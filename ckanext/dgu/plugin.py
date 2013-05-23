@@ -5,7 +5,6 @@ from urllib import quote
 
 from pylons import config
 
-from middleware import BlockedUAMiddleware
 from ckan.lib.helpers import flash_notice
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
@@ -210,10 +209,6 @@ class AuthApiPlugin(SingletonPlugin):
     '''Adds functions that work out if the user is allowed to do
     certain edits.'''
     implements(IAuthFunctions, inherit=True)
-    implements(IMiddleware, inherit=True)
-
-    def make_middleware(self, app, config):
-        return BlockedUAMiddleware(app, config)
 
     def get_auth_functions(self):
         return {
