@@ -370,12 +370,42 @@ def render_dataset_stars(dataset_id):
 
 def render_resource_stars(resource_id):
     from ckanext.qa import reports
-    report = reports.resource_five_stars(resource_id)
-    if not report:
+    if not c.resource_five_stars or \
+           resource_id != c.resource_five_stars['resource_id']:
+        c.resource_five_stars = reports.resource_five_stars(resource_id)
+        c.resource_five_stars['resource_id'] = resource_id
+        if not c.resource_five_stars:
+            return 'To be determined'
+    return render_stars(c.resource_five_stars.get('openness_score', -1),
+                        c.resource_five_stars.get('openness_score_reason'),
+                        c.resource_five_stars.get('openness_updated'))
+
+def does_detected_format_disagree(detected_format, resource_format):
+    '''Returns boolean saying if there is an anomoly between the format of the
+    resolved URL detected by ckanext-qa and resource.format (as input by the
+    publisher).'''
+    if not detected_format or not resource_format:
+        return False
+    is_disagreement = detected_format.strip().lower() != resource_format.strip().lower()
+    return is_disagreement
+
+def render_qa_info_for_resource(resource_dict):
+    resource_id = resource_dict['id']
+    from ckanext.qa import reports
+    if not c.resource_five_stars or \
+           resource_id != c.resource_five_stars['resource_id']:
+        c.resource_five_stars = reports.resource_five_stars(resource_id)
+        if not c.resource_five_stars:
+            return 'To be determined'
+    if not c.resource_five_stars.get('reason'):
         return 'To be determined'
-    return render_stars(report.get('openness_score', -1),
-                        report.get('openness_score_reason'),
-                        report.get('openness_updated'))
+    c.resource_five_stars['reason_list'] = c.resource_five_stars['reason'].replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
+    ctx = {'qa': c.resource_five_stars,
+           'resource_format': resource_dict['format'],
+           'resource_format_disagrees': does_detected_format_disagree(c.resource_five_stars['format'], resource_dict['format']),
+           'is_data': resource_dict['resource_type'] in ('file', None),
+           }
+    return t.render_snippet('package/resource_qa.html', ctx)
 
 def render_stars(stars, reason, last_updated):
     if stars==0:

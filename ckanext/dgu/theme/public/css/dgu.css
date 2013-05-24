@@ -156,6 +156,11 @@ body.openspending_browse table.table thead .sorting,body.openspending_browse tab
 body.openspending_browse table.table thead .sorting{background-image:url('/images/icons/sort.gif');background-color:inherit;}
 body.openspending_browse table.table thead .sorting_desc{background-image:url('/images/icons/sort-desc.gif');}
 body.openspending_browse table.table thead .sorting_asc{background-image:url('/images/icons/sort-asc.gif');}
+body.openspending_browse table.trimmed{margin-bottom:0;}
+body.openspending_browse .openspending-more-button{text-align:right;display:block;padding:5px 22px;margin:0 -17px;color:#999;font-weight:bold;margin-bottom:10px;}body.openspending_browse .openspending-more-button .expander{display:block;}
+body.openspending_browse .openspending-more-button .collapser{display:none;}
+body.openspending_browse .openspending-more-button.expanded .expander{display:none;}
+body.openspending_browse .openspending-more-button.expanded .collapser{display:block;}
 body.openspending_browse .dataTables_processing{position:absolute;top:60%;left:50%;width:250px;height:30px;margin-left:-125px;margin-top:-15px;padding:14px 0 2px 0;border:1px solid #ddd;text-align:center;font-size:14px;background-color:white;}
 .harvest-metadata{overflow:hidden;}.harvest-metadata h1{padding-top:20px;}
 .harvest-metadata h2{font-size:20px;margin-left:20px;}

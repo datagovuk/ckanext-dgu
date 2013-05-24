@@ -169,12 +169,12 @@ class SearchIndexing(object):
         pkg = model.Session.query(model.Package).get(pkg_dict['id'])
         pkg_score = None
         for res in pkg.resources:
-            q = model.Session.query(model.TaskStatus).\
-                filter_by(entity_id=res.id).\
-                filter_by(task_type='qa').\
-                filter_by(key='openness_score')
-            if q.count():
-                score = q.first().value
+            status = model.Session.query(model.TaskStatus).\
+                     filter_by(entity_id=res.id).\
+                     filter_by(task_type='qa').\
+                     filter_by(key='status').first()
+            if status:
+                score = status.value
                 if not pkg_score or score > pkg_score:
                     pkg_score = score
         if not pkg.resources:
@@ -182,3 +182,4 @@ class SearchIndexing(object):
         if pkg_score is None:
             pkg_score = -1
         pkg_dict['openness_score'] = pkg_score
+        log.debug('Openness score %s: %s', pkg_score, pkg_dict['name'])
