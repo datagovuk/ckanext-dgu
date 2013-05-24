@@ -178,7 +178,7 @@
               </py:choose>
             </td>
           </py:for>
-          <td>
+          <td  class=".hidden-resource-fields">
             <!--! Because the resource fields are explicitly set in c.resource_columns, we need
                   to pull the others from the resource keys, strip the resource_columns and then
                   ignore resource_type, id and resource_group_id.
@@ -266,7 +266,7 @@
             </py:choose>
             </td>
           </py:for>
-          <td>
+          <td class="hidden-resource-fields">
             <!--! Because the resource fields are explicitly set in c.resource_columns, we need
                   to pull the others from the resource keys, strip the resource_columns and then
                   ignore resource_type, id and resource_group_id.
@@ -594,7 +594,7 @@
                        class="input_additional_resources_scraper input-small"
                        disabled="disabled" />
           </td>
-          <td>
+          <td class=".hidden-resource-fields">
             <!--! Because the resource fields are explicitly set in c.resource_columns, we need
                   to pull the others from the resource keys, strip the resource_columns and then
                   ignore resource_type, id and resource_group_id.
@@ -609,6 +609,7 @@
             </py:for>
 
             <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','')}"/>
+            <input name="additional_resources__${num}__id" type="hidden" value="${res.get('id','')}"/>            
             <a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a>
           </td>
         </tr>
