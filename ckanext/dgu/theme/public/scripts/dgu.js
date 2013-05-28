@@ -57,7 +57,7 @@ jQuery(function () {
 
     $('select[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
-      window.location = $(this).val();
+      window.location = $(this).val() + '#search-sort-by';
     });
     $('input[name="publisher-results-include-subpub"]').change(function(e){
       e.preventDefault();
