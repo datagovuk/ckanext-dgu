@@ -59,11 +59,9 @@
         </py:if>
       </div>
       <div class="resource-row-text">
-        <!-- Attached to resources which were scraped -->
-        <py:if test="res.get('scraped')">${h.scraper_icon(res)}</py:if>
         <!-- Attached to Additional Links which are scrape sources -->
-        <py:if test="res.get('scraper_url')">
-          ${h.scraper_icon(res, alt="This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'))}
+        <py:if test="res.get('scraped') or res.get('scraper_url')">
+          ${h.scraper_icon(res, alt=_if(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}
         </py:if>
         <!-- Attached to timeseries resources and additional resources -->
         <div class="hover-text">
