@@ -1,4 +1,27 @@
 $(function() {
+  // Truncate long .notes elements
+  var notes = $('.notes');
+  notes.dotdotdot({
+    height: 230,
+    tolerance: 10,
+    after: 'a.notes-read-more'
+  });
+  notes.trigger('isTruncated', function(isTruncated) {
+    if (!isTruncated) {
+      notes.find('a.notes-read-more').remove();
+    }
+    else {
+      notes.find('a.notes-read-more').click(function(e) {
+        e.preventDefault();
+        $('.notes').trigger('destroy.dot');
+        notes.find('a.notes-read-more').remove();
+        return false;
+      });
+    }
+  });
+
+
+
   var spinConfig = {
     lines: 9, // The number of lines to draw
     length: 5, // The length of each line
@@ -51,4 +74,6 @@ $(function() {
               .append($('<pre>').text(JSON.stringify(exception)));
           }
         });
+
+
 });
