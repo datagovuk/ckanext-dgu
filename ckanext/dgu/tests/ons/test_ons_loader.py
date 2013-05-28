@@ -51,20 +51,25 @@ class OnsLoaderBase(TestLoaderBase, MockDrupalCase):
             model.add_user_to_role(user, model.Role.ADMIN, model.System())
             model.repo.commit_and_remove()
 
+            publist = [g.name for g in model.Session.query(model.Group).all()]
+
             # create test publishers
             rev = model.repo.new_revision()
             for name, title in publishers.items():
-                model.Session.add(model.Group(name=unicode(name), title=title, type='publisher'))
+                if not name in publist:
+                    model.Session.add(model.Group(name=unicode(name), title=title, type='publisher'))
             model.repo.commit_and_remove()
-        except:
+        except Exception, e:
             # ensure that mock_drupal is destroyed
+            print e
             MockDrupalCase.teardown_class()
-            model.repo.rebuild_db()
+            #model.repo.rebuild_db()
             raise
 
     @classmethod
     def teardown_class(self):
-        super(OnsLoaderBase, self).teardown_class()
+        MockDrupalCase.teardown_class()
+        TestLoaderBase.teardown_class()
 
 class TestOnsLoadBasic(OnsLoaderBase):
     lots_of_publishers = True
@@ -288,6 +293,8 @@ class TestOnsLoadSeries(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadSeries, self).setup_class()
+        TestOnsLoadSeries.initial_resources = set()
+
         try:
             for filepath in [sample_filepath('4a'), sample_filepath('4b')]:
                 importer_ = importer.OnsImporter(filepath, self.testclient)
@@ -300,6 +307,12 @@ class TestOnsLoadSeries(OnsLoaderBase):
                     assert pkg_dict['extras']['date_updated'] == '', pkg_dict
                 loader = OnsLoader(self.testclient)
                 res = loader.load_packages(pkg_dicts)
+
+                for pid in res['pkg_ids']:
+                    p = model.Package.get(pid)
+                    if p:
+                        TestOnsLoadSeries.initial_resources = \
+                            TestOnsLoadSeries.initial_resources | set([d.id for d in p.resources])
                 assert res['num_errors'] == 0, res
         except:
             # ensure that mock_drupal is destroyed
@@ -313,6 +326,9 @@ class TestOnsLoadSeries(OnsLoaderBase):
         assert pkg.title == 'Regional Labour Market Statistics', pkg.title
         assert_equal(group_names(pkg), ['office-for-national-statistics'])
         assert len(pkg.resources) == 9, pkg.resources
+        res = set([r.id for r in pkg.resources])
+        assert len(res - TestOnsLoadSeries.initial_resources) == 0, \
+            len(res - TestOnsLoadSeries.initial_resources)
         assert_equal(pkg.extras['date_released'], '2010-08-10')
         assert_equal(pkg.extras['date_updated'], '2010-08-13')
 
@@ -504,6 +520,7 @@ class TestAgencyFind(OnsLoaderBase):
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
+        from nose.tools import set_trace; set_trace()
         assert_equal(names, [self.name])
         pkg = model.Package.by_name(self.name)
         assert pkg
