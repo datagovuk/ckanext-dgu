@@ -328,12 +328,18 @@ CKAN.Dgu = function($, my) {
         // we know there is at least one hidden field, the id and we should get them so we know
         // what we are swapping
         var hidden1 = tr1.find('.hidden-resource-fields')
+        console.log(hidden1)
         var id1 = hidden1.find('input[type="hidden"]').get(0)
-        id1 = $(id1).attr('id').match(/__\d+__/gi)[0]
+        console.log(id1)
+        id1 = $(id1).attr('name').match(/__\d+__/gi)[0]
+        console.log(id1)
 
         var hidden2 = tr2.find('.hidden-resource-fields')
-        var id2 = hidden2.find('input[type="hidden"]').get(0)
-        id2 = $(id2).attr('id').match(/__\d+__/gi)[0]        
+        console.log(hidden1)
+        var id2 = hidden2.find('input[type="hidden"]').get(0) 
+        console.log(id2)
+        id2 = $(id2).attr('name').match(/__\d+__/gi)[0]        
+                console.log(id2)
 
         // Swap the HTML over from one TD to the other.
         var swap = hidden2.html()
