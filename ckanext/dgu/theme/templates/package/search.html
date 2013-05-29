@@ -21,7 +21,7 @@
           <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
             <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
           </a>
-          <form class="form-inline">
+          <form class="form-inline" id="search-sort-by">
             <py:def function="sort_option(text, value, selected, disabled=False)">
               <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
             </py:def>

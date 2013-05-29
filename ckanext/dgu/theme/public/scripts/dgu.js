@@ -57,7 +57,7 @@ jQuery(function () {
 
     $('select[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
-      window.location = $(this).val();
+      window.location = $(this).val() + '#search-sort-by';
     });
     $('input[name="publisher-results-include-subpub"]').change(function(e){
       e.preventDefault();
@@ -315,7 +315,6 @@ CKAN.Dgu = function($, my) {
         assert(tr1.length);
         var input1 = tr1.find('input[type="text"]');
         var input2 = tr2.find('input[type="text"]');
-        assert( input1.length==input2.length, 'Rows should have matching structure' );
         assert( input1.length>0, 'Found no inputs to swap', tr1 );
         for (var i=0;i<input1.length;i++) {
           var a = $(input1[i]);
@@ -324,7 +323,47 @@ CKAN.Dgu = function($, my) {
           a.val( b.val() );
           b.val( swap );
         }
+
+        // Copy all elements inside tr1.hidden-resource-fields to tr1.hidden_resource-fields
+        // we know there is at least one hidden field, the id and we should get them so we know
+        // what we are swapping
+        var hidden1 = tr1.find('.hidden-resource-fields')
+        console.log(hidden1)
+        var id1 = hidden1.find('input[type="hidden"]').get(0)
+        console.log(id1)
+        id1 = $(id1).attr('name').match(/__\d+__/gi)[0]
+        console.log(id1)
+
+        var hidden2 = tr2.find('.hidden-resource-fields')
+        console.log(hidden1)
+        var id2 = hidden2.find('input[type="hidden"]').get(0) 
+        console.log(id2)
+        id2 = $(id2).attr('name').match(/__\d+__/gi)[0]        
+                console.log(id2)
+
+        // Swap the HTML over from one TD to the other.
+        var swap = hidden2.html()
+        hidden2.html(hidden1.html())
+        hidden1.html(swap)
+
+        var firstReplacer = new RegExp(id2, 'g')
+        var secondReplacer = new RegExp(id1, 'g')
+
+        hidden1.find('input[type="hidden"]').each(function(){
+            // Replace the old ID we copied across with the new ID for this container
+            var new_id = $(this).attr('name').replace(firstReplacer, id1)
+            $(this).attr('id', new_id)
+            $(this).attr('name', new_id)            
+        })
+
+        hidden2.find('input[type="hidden"]').each(function(){
+            // Replace the old ID we copied across with the new ID for this container          
+            var new_id = $(this).attr('name').replace(secondReplacer, id2)
+            $(this).attr('id', new_id)
+            $(this).attr('name', new_id)            
+        })        
       }
+
       if (up) {
         assert(index>1, 'First up button should be disabled');
         assert(index<rows.length-1, 'Last up button should be disabled');
