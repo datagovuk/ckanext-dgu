@@ -36,7 +36,11 @@ class DrupalAuthMiddleware(object):
     def _drupal_cookie_parse(cookie_string, server_name):
         '''Returns the Drupal Session ID from the cookie string.'''
         cookies = Cookie.SimpleCookie()
-        cookies.load(str(cookie_string))
+        try:
+            cookies.load(str(cookie_string))
+        except Cookie.CookieError:
+            log.error("Received invalid cookie: %s" % cookie_string)
+            return False       
         similar_cookies = []
         for cookie in cookies:
             if cookie.startswith('SESS'):
