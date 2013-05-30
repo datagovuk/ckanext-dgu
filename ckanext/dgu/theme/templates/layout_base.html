@@ -238,13 +238,16 @@ ${h.top_level_init()}
         <li><a href="/terms-and-conditions">Terms &amp; Conditions</a></li>
       </ul>
       <div class="credits">
-        <div class="credit" style="width: 149px;">
+        <div class="credit">
+          <strong>Powered by:</strong><br/>
           <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
-            <img src="/images/powered-by-ckan.png" alt="Powered By CKAN"/>
+            <div id="ckan-logo" class="retina-img">
+              <img src="/images/ckan-logo.png" alt="Powered By CKAN"/>
+            </div>
           </a>
         </div>
         <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
-          <strong>Map tool by:</strong>
+          <strong>Map tool by:</strong><br/>
           <a href="/location" title="UK Location Programme">
             <img src="/images/uk_location.gif" />
           </a>
