@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from logging import getLogger
 from urllib import quote
@@ -15,6 +15,7 @@ from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
 from ckan.plugins import ISession
+from ckan.plugins import IActions
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
                              dgu_package_create, dgu_package_update,
@@ -373,6 +374,7 @@ class SearchPlugin(SingletonPlugin):
 class ApiPlugin(SingletonPlugin):
     '''DGU-specific API'''
     implements(IRoutes, inherit=True)
+    implements(IActions)
 
     def before_map(self, map):
         api_controller = 'ckanext.dgu.controllers.api:DguApiController'
@@ -381,3 +383,8 @@ class ApiPlugin(SingletonPlugin):
         map.connect('/api/util/revisions', controller=api_controller, action='revisions')
         return map
 
+    def get_actions(self):
+        from ckanext.dgu.logic.action.get import publisher_show
+        return {
+            'publisher_show': publisher_show,
+            }
