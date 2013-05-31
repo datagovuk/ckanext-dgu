@@ -28,7 +28,9 @@ urls = [
 def build_url(name):
     if name == 'localhost':
         return "http://localhost"
-    if name == 'prod1':
+    elif name == 'localhost:8080':
+        return "http://localhost:8080"
+    elif name == 'prod1':
         return "http://data.gov.uk"
     return "http://co-{0}.dh.bytemark.co.uk".format(name)
 
