@@ -54,14 +54,20 @@ class StatsCount(dict):
             value = value[:self.report_value_limit] + '...'
         return (value, self[category])
 
-    def report(self, indent=1):
+    def report(self, indent=1, order_by_title=False):
         lines = []
         indent_str = '\t' * indent
         report_dict = dict()
         for category in self.keys():
             report_dict[category] = self.report_value(category)
-        for category, value_tuple in sorted(report_dict.iteritems(),
-                                            key=lambda x: -x[1][1]):
+
+        if order_by_title:
+            items = sorted(report_dict.iteritems())
+        else:
+            items = sorted(report_dict.iteritems(),
+                           key=lambda x: -x[1][1])
+
+        for category, value_tuple in items:
             value = value_tuple[0]
             lines.append(indent_str + '%s: %s' % (category, value))
         if not self:
