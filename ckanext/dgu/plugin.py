@@ -5,7 +5,6 @@ from urllib import quote
 
 from pylons import config
 
-from middleware import BlockedUAMiddleware
 from ckan.lib.helpers import flash_notice
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 from ckan.plugins import implements, SingletonPlugin
@@ -18,6 +17,7 @@ from ckan.plugins import IPackageController
 from ckan.plugins import ISession
 from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
+from ckan.plugins import IActions
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
                              dgu_package_create, dgu_package_update,
@@ -162,7 +162,7 @@ def update_package_major_time(package):
 
 
 class ResourceURLModificationPlugin(SingletonPlugin):
-    implements(IResourceUrlChange, inherit=True)    
+    implements(IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
         log.debug("URL for resource %s has changed" % resource.id)         
@@ -210,10 +210,6 @@ class AuthApiPlugin(SingletonPlugin):
     '''Adds functions that work out if the user is allowed to do
     certain edits.'''
     implements(IAuthFunctions, inherit=True)
-    implements(IMiddleware, inherit=True)
-
-    def make_middleware(self, app, config):
-        return BlockedUAMiddleware(app, config)
 
     def get_auth_functions(self):
         return {
@@ -429,6 +425,7 @@ class SearchPlugin(SingletonPlugin):
 class ApiPlugin(SingletonPlugin):
     '''DGU-specific API'''
     implements(IRoutes, inherit=True)
+    implements(IActions)
 
     def before_map(self, map):
         api_controller = 'ckanext.dgu.controllers.api:DguApiController'
@@ -443,3 +440,8 @@ class ApiPlugin(SingletonPlugin):
                     controller=reports_api_controller)
         return map
 
+    def get_actions(self):
+        from ckanext.dgu.logic.action.get import publisher_show
+        return {
+            'publisher_show': publisher_show,
+            }

@@ -52,6 +52,7 @@
     <script type="text/javascript" src="/assets/js/jquery.tmpl.beta1.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.cookie.min.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.chosen-0.9.7.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.dotdotdot-1.5.9.js"></script>
     <script type="text/javascript" src="/assets/js/jquery.placeholder.js"></script>
     <script type="text/javascript" src="/assets/js/bootstrap-2.0.3.min.js"></script>
     <script type="text/javascript" src="/assets/js/bootstrap-hashchange.js"></script>
@@ -95,9 +96,8 @@ ${h.top_level_init()}
     </py:when>
     <py:otherwise>
       <div class="container">
-        <div id="hm-government-link">
-          <!-- retina-enabled images -->
-          <img src="/images/crown-text-x2.png" width="127px;" alt="HM Government" />
+        <div id="hm-government-link" class="retina-img">
+          <img src="/images/crown-and-text.png" alt="HM Government" />
         </div>
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
@@ -119,8 +119,9 @@ ${h.top_level_init()}
   <div id="greenbar">
     <div class="container" id="branding">
       <a href="/">
-        <!-- retina-enabled image -->
-        <img src="/images/dgu-header-2x.png" style="width: 282px;" alt="DATA.GOV.UK - Opening up Government" />
+        <div id="dgu-header" class="retina-img">
+          <img src="/images/dgu-header.png" alt="DATA.GOV.UK - Opening up Government" />
+        </div>
       </a>
     </div>
     <div class="container">
@@ -237,13 +238,16 @@ ${h.top_level_init()}
         <li><a href="/terms-and-conditions">Terms &amp; Conditions</a></li>
       </ul>
       <div class="credits">
-        <div class="credit" style="width: 149px;">
+        <div class="credit">
+          <strong>Powered by:</strong><br/>
           <a href="http://ckan.org/" title="CKAN Version:${c.__version__}">
-            <img src="/images/powered-by-ckan.png" alt="Powered By CKAN"/>
+            <div id="ckan-logo" class="retina-img">
+              <img src="/images/ckan-logo.png" alt="Powered By CKAN"/>
+            </div>
           </a>
         </div>
         <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
-          <strong>Map tool by:</strong>
+          <strong>Map tool by:</strong><br/>
           <a href="/location" title="UK Location Programme">
             <img src="/images/uk_location.gif" />
           </a>

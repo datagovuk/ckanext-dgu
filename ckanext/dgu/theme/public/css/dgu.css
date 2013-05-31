@@ -11,8 +11,7 @@ h4 img.arrow{padding-right:3px;padding-bottom:1px;}
 img.open-data{vertical-align:top;margin-top:1px;}
 .pagination{text-align:center;}
 a.tag{color:#333;font-size:11px;background:#b9e671;margin:0 5px 2px 5px;padding:2px 5px 2px 8px;float:left;white-space:nowrap;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}a.tag:hover{text-decoration:none;background:#61aa00;color:#fff;}
-.notes{margin-bottom:10px;padding:8px;}
-.notes p:last-child{margin-bottom:0;}
+.notes{margin-bottom:10px;padding:8px;}.notes .notes-read-more{font-weight:bold;}
 h1 .abbreviation{color:#888;}
 .table-dgu-fixed-size{table-layout:fixed;}
 .table-dgu-fixed-size td{overflow:hidden;white-space:nowrap;}
