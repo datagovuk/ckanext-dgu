@@ -13,7 +13,7 @@
       this.dataset = dataset;
       this.element = $(element);
       this.options = $.extend(true, {}, this.options, options);
-      this.req = $.getJSON(this.options.source + '/' + this.dataset + '/dimensions.json');
+      this.req = $.getJSON(this.options.source + '/' + this.dataset + '/dimensions.json?callback=?');
       this._buildTable();
       this._buildFacets();
     }
