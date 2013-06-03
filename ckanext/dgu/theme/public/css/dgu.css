@@ -82,7 +82,6 @@ ul.ui-autocomplete li a.ui-state-hover{background:#9D2;border-color:#690;}
 .star-rating .last-updated{font-size:10px;}
 .star-rating-tooltip{opacity:1 !important;}.star-rating-tooltip>.tooltip-inner{background:#444;}
 .star-rating-tooltip>.tooltip-arrow{border-right-color:#444 !important;}
-.social-sharethis .stButton .stArrow{display:none;}
 body.controller-data.action-index h2{padding-bottom:8px;border-bottom:1px solid #aaa;padding-left:17px;padding-right:17px;margin-left:-17px;margin-right:-17px;}body.controller-data.action-index h2.no-underline{padding-bottom:0;border-bottom:none;}
 body.controller-data.action-index .front-page-table{width:100%;border-collapse:separate;}body.controller-data.action-index .front-page-table td.boxed{width:426px;vertical-align:top;}
 body.controller-data.action-index .front-page-table tr.gutter td{height:20px;}
