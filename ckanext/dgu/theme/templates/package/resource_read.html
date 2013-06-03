@@ -120,27 +120,7 @@
 
       ${data_viewer_embed_dialog()}
 
-      <div class="quick-info">
-        <div py:if="c.resource['last_modified']">
-          <h3 style="margin-bottom:0;">Last updated:</h3>
-          ${h.time_ago_in_words_from_str(c.resource['last_modified'], granularity='day')}
-        </div>
-        <div>
-          <h3 style="margin-bottom: 0;">Format:</h3>
-          <div class="notes">
-            ${format_box(c.resource.get('format','Unknown').lower())}
-            <div class="clearfix"></div>
-          </div>
-          <h3>Licence</h3>
-          ${list_licenses(c.pkg)}
-        </div>
-        <div>
-          <h3 style="margin-bottom:5px;">Openness Score:</h3>
-          ${h.render_resource_stars(c.resource['id'])}
-        </div>
-      </div>
-
-      <h3 style="margin-bottom: 0;">Resource Description</h3>
+      <h3 style="margin-bottom: 0;">Description</h3>
       <div class="notes" property="rdfs:label">
         <py:if test="c.resource.get('description')">
           <div>
@@ -160,6 +140,33 @@
             <div><em>(No description)</em></div>
           </py:if>
         </py:if>
+      </div>
+
+      <div class="quick-info">
+        <div py:if="c.resource['last_modified']">
+          <h3 style="margin-bottom:0;">Last updated:</h3>
+          ${h.render_datestamp(c.resource['last_modified'])}
+        </div>
+        <div>
+          <h3 style="margin-bottom: 0;">Format:</h3>
+          <div class="notes">
+            ${format_box(c.resource.get('format','Unknown').lower())}
+            <div class="clearfix"></div>
+          </div>
+        </div>
+        <div py:if="c.resource.get('resource_type') in ('file', None)">
+          <!--! This is data, so show 5 stars of openness -->
+          <h3 style="margin-bottom:5px;">Openness Score:</h3>
+          ${h.render_resource_stars(c.resource['id'])}
+        </div>
+        <div>
+          <h3 style="margin-bottom:5px;">Quality Check:</h3>
+          ${h.render_qa_info_for_resource(c.resource)}
+        </div>
+        <div>
+          <h3>Licence</h3>
+          ${list_licenses(c.pkg)}
+        </div>
       </div>
 
       <div class="recline-read-only resource-preview">

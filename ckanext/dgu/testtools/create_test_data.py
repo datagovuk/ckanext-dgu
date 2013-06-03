@@ -1,4 +1,4 @@
-import copy
+﻿import copy
 import logging
 import datetime
 
@@ -28,7 +28,8 @@ class DguCreateTestData(CreateTestData):
          'password': 'pass'},
         {'name': 'dh_admin',
          'fullname': 'Dept Health Admin',
-         'password': 'pass'},
+         'password': 'pass',
+         'email': 'dohemail@localhost.local'},
         {'name': 'co_admin',
          'fullname': 'Cabinet Office Admin',
          'password': 'pass'},
@@ -469,7 +470,7 @@ Alternative title: GDP and Labour Market coherence""",
                 del group['parent']
             groups.append(group)
         cls.create_groups(groups, auth_profile='publisher')
-
+        
         # Add in the hierarchy (similar to bin/import_publishers.py)
         model.repo.new_revision()
         for publisher in publishers:

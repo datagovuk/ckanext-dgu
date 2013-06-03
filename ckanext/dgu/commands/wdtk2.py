@@ -60,12 +60,14 @@ class PublisherMatch(CkanCommand):
         self.authorities_file = self._get_authorities_csv()
 
         # Read in the WDTK publishers and store in matcher
+        wdtk_publishers = {} # slug: name
         matcher = PublisherMatcher()
         with open(self.authorities_file, 'rU') as f:
             reader = csv.reader(f)
             for row in reader:
                 name, short_name, slug = row[0:3]
                 matcher.add_external_publisher(slug, name, short_name)
+                wdtk_publishers[slug] = name.replace('\x92', "'").decode('utf8')
 
         # Match up DGU publishers
         publishers = model.Session.query(model.Group) \
@@ -104,6 +106,13 @@ class PublisherMatch(CkanCommand):
 
             # Save the publisher
             log.info('%s matches WDTK %s', publisher.name, match)
+
+            # Store the match. Used for publisher_sync and publicbodies/nomen work.
+            if not DRY_RUN and publisher.get('wdtk-id') != match and \
+               publisher.get('wdtk-title') != wdtk_publishers[match]:
+                publisher.extras['wdtk-id'] = match
+                publisher.extras['wdtk-title'] = wdtk_publishers[match]
+                model.Session.commit()
 
             # Check if previous WDTK details are still correct
             wdtk_url = WDTK_REQUEST_URL % match

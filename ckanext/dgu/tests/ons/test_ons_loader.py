@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from nose.tools import assert_equal
 from nose.plugins.skip import SkipTest
@@ -40,21 +40,27 @@ def group_names(package):
 class OnsLoaderBase(TestLoaderBase, MockDrupalCase):
     @classmethod
     def setup_class(self):
-        search.clear()
-        setup_test_search_index()
-        super(OnsLoaderBase, self).setup_class()
+        try:
+            search.clear()
+            setup_test_search_index()
+            super(OnsLoaderBase, self).setup_class()
 
-        # make annafan a sysadmin to allow package creation
-        rev = model.repo.new_revision()
-        user = model.User.by_name(u'annafan')
-        model.add_user_to_role(user, model.Role.ADMIN, model.System())
-        model.repo.commit_and_remove()
+            # make annafan a sysadmin to allow package creation
+            rev = model.repo.new_revision()
+            user = model.User.by_name(u'annafan')
+            model.add_user_to_role(user, model.Role.ADMIN, model.System())
+            model.repo.commit_and_remove()
 
-        # create test publishers
-        rev = model.repo.new_revision()
-        for name, title in publishers.items():
-            model.Session.add(model.Group(name=unicode(name), title=title, type='publisher'))
-        model.repo.commit_and_remove()
+            # create test publishers
+            rev = model.repo.new_revision()
+            for name, title in publishers.items():
+                model.Session.add(model.Group(name=unicode(name), title=title, type='publisher'))
+            model.repo.commit_and_remove()
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     @classmethod
     def teardown_class(self):
@@ -66,15 +72,21 @@ class TestOnsLoadBasic(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadBasic, self).setup_class()
-        user = model.User.by_name(u'annafan')
-        assert user
-        test_ckan_client = WsgiCkanClient(self.app, api_key=user.apikey)
-        importer_ = importer.OnsImporter(sample_filepath(''), test_ckan_client)
-        self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+        try:
+            user = model.User.by_name(u'annafan')
+            assert user
+            test_ckan_client = WsgiCkanClient(self.app, api_key=user.apikey)
+            importer_ = importer.OnsImporter(sample_filepath(''), test_ckan_client)
+            self.pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
 
-        self.loader = OnsLoader(self.testclient)
-        self.res = self.loader.load_packages(self.pkg_dicts)
-        assert self.res['num_errors'] == 0, self.res
+            self.loader = OnsLoader(test_ckan_client)
+            self.res = self.loader.load_packages(self.pkg_dicts)
+            assert self.res['num_errors'] == 0, self.res
+        except Exception:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_0_search_options(self):
         field_keys = ['title', 'groups']
@@ -172,13 +184,19 @@ class TestOnsLoadTwice(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadTwice, self).setup_class()
-        # sample_filepath(2 has the same packages as 1, but slightly updated
-        for filepath in [sample_filepath(''), sample_filepath(2)]:
-            importer_ = importer.OnsImporter(filepath)
-            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-            loader = OnsLoader(self.testclient)
-            res = loader.load_packages(pkg_dicts)
-            assert res['num_errors'] == 0, res
+        try:
+            # sample_filepath(2 has the same packages as 1, but slightly updated
+            for filepath in [sample_filepath(''), sample_filepath(2)]:
+                importer_ = importer.OnsImporter(filepath, self.testclient)
+                pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+                loader = OnsLoader(self.testclient)
+                res = loader.load_packages(pkg_dicts)
+                assert res['num_errors'] == 0, res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_packages(self):
         pkg = model.Package.by_name(u'uk_official_holdings_of_international_reserves')
@@ -197,14 +215,20 @@ class TestOnsLoadClashTitle(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadClashTitle, self).setup_class()
-        # ons items have been split into 3 files, because search needs to
-        # do indexing in between
-        for suffix in 'abc':
-            importer_ = importer.OnsImporter(sample_filepath('3' + suffix))
-            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-            loader = OnsLoader(self.testclient)
-            self.res = loader.load_packages(pkg_dicts)
-            assert self.res['num_errors'] == 0, self.res
+        try:
+            # ons items have been split into 3 files, because search needs to
+            # do indexing in between
+            for suffix in 'abc':
+                importer_ = importer.OnsImporter(sample_filepath('3' + suffix), self.testclient)
+                pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+                loader = OnsLoader(self.testclient)
+                self.res = loader.load_packages(pkg_dicts)
+                assert self.res['num_errors'] == 0, self.res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_ons_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings')
@@ -212,8 +236,8 @@ class TestOnsLoadClashTitle(OnsLoaderBase):
         assert_equal(group_names(pkg), ['office-for-national-statistics'])
         assert 'Office for National Statistics' in pkg.notes, pkg.notes
         assert len(pkg.resources) == 2, pkg.resources
-        assert '2007 Results Phase 3 Tables' in pkg.resources[1].description, pkg.resources
-        assert '2007 Pensions Results' in pkg.resources[0].description, pkg.resources
+        assert '2007 Results Phase 3 Tables' in pkg.resources[0].description, pkg.resources
+        assert '2007 Pensions Results' in pkg.resources[1].description, pkg.resources
 
     def test_welsh_package(self):
         pkg = model.Package.by_name(u'annual_survey_of_hours_and_earnings_')
@@ -230,21 +254,27 @@ class TestOnsLoadClashSource(OnsLoaderBase):
     def setup_class(self):
         super(TestOnsLoadClashSource, self).setup_class()
 
-        self.clash_name = u'cereals_and_oilseeds_production_harvest'
-        CreateTestData.create_arbitrary([
-            {'name':self.clash_name,
-             'title':'Test clash',
-             'groups':['department-for-environment-food-and-rural-affairs'],
-             'extras':{
-                 'import_source':'DECC-Jan-09',
-                 },
-             }
-            ])
-        importer_ = importer.OnsImporter(sample_filepath(''))
-        pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-        loader = OnsLoader(self.testclient)
-        self.res = loader.load_packages(pkg_dicts)
-        assert self.res['num_errors'] == 0, self.res
+        try:
+            self.clash_name = u'cereals_and_oilseeds_production_harvest'
+            CreateTestData.create_arbitrary([
+                {'name':self.clash_name,
+                 'title':'Test clash',
+                 'groups':['department-for-environment-food-and-rural-affairs'],
+                 'extras':{
+                     'import_source':'DECC-Jan-09',
+                     },
+                 }
+                ])
+            importer_ = importer.OnsImporter(sample_filepath(''), self.testclient)
+            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+            loader = OnsLoader(self.testclient)
+            self.res = loader.load_packages(pkg_dicts)
+            assert self.res['num_errors'] == 0, self.res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_names(self):
         pkg1 = model.Package.by_name(self.clash_name)
@@ -257,18 +287,24 @@ class TestOnsLoadSeries(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsLoadSeries, self).setup_class()
-        for filepath in [sample_filepath('4a'), sample_filepath('4b')]:
-            importer_ = importer.OnsImporter(filepath)
-            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-            for pkg_dict in pkg_dicts:
-                assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
-                assert_equal(pkg_dict['groups'],
-                             ['office-for-national-statistics'])
-                assert '2010-08-' in pkg_dict['extras']['date_released'], pkg_dict
-                assert pkg_dict['extras']['date_updated'] == '', pkg_dict
-            loader = OnsLoader(self.testclient)
-            res = loader.load_packages(pkg_dicts)
-            assert res['num_errors'] == 0, res
+        try:
+            for filepath in [sample_filepath('4a'), sample_filepath('4b')]:
+                importer_ = importer.OnsImporter(filepath, self.testclient)
+                pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+                for pkg_dict in pkg_dicts:
+                    assert pkg_dict['title'] == 'Regional Labour Market Statistics', pkg_dict
+                    assert_equal(pkg_dict['groups'],
+                                 ['office-for-national-statistics'])
+                    assert '2010-08-' in pkg_dict['extras']['date_released'], pkg_dict
+                    assert pkg_dict['extras']['date_updated'] == '', pkg_dict
+                loader = OnsLoader(self.testclient)
+                res = loader.load_packages(pkg_dicts)
+                assert res['num_errors'] == 0, res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_packages(self):
         pkg = model.Package.by_name(u'regional_labour_market_statistics')
@@ -286,23 +322,29 @@ class TestOnsLoadMissingDept(OnsLoaderBase):
     def setup_class(self):
         super(TestOnsLoadMissingDept, self).setup_class()
 
-        self.orig_pkg_dict = {
-             "name": u"measuring_subjective_wellbeing_in_the_uk",
-             "title": "Measuring Subjective Wellbeing in the UK",
-             "notes": "This report reviews:\n\nWhat is subjective wellbeing and why should we measure it?\n\nHow subjective wellbeing is currently measured in the UK - what subjective wellbeing questions are already being asked on major social surveys in the UK\n\nThe potential uses of subjective wellbeing data collected via these surveys\n\n\nIt concludes that subjective wellbeing is a valid construct that can be measured reliably. This is the first output of ONS' work on subjective wellbeing.\n\nSource agency: Office for National Statistics\n\nDesignation: Supporting material\n\nLanguage: English\n\nAlternative title: Working Paper: Measuring Subjective Wellbeing in the UK",
-             "license_id": "ukcrown-withrights",
-             "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
-             "groups": ['office-for-national-statistics'],
-             "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographic_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
-            "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010", "extras":{"hub-id":"77-31166"}}],
-             }
-        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+        try:
+            self.orig_pkg_dict = {
+                 "name": u"measuring_subjective_wellbeing_in_the_uk",
+                 "title": "Measuring Subjective Wellbeing in the UK",
+                 "notes": "This report reviews:\n\nWhat is subjective wellbeing and why should we measure it?\n\nHow subjective wellbeing is currently measured in the UK - what subjective wellbeing questions are already being asked on major social surveys in the UK\n\nThe potential uses of subjective wellbeing data collected via these surveys\n\n\nIt concludes that subjective wellbeing is a valid construct that can be measured reliably. This is the first output of ONS' work on subjective wellbeing.\n\nSource agency: Office for National Statistics\n\nDesignation: Supporting material\n\nLanguage: English\n\nAlternative title: Working Paper: Measuring Subjective Wellbeing in the UK",
+                 "license_id": "ukcrown-withrights",
+                 "tags": ["communities", "health-well-being-and-care", "people-and-places", "societal-wellbeing", "subjective-wellbeing-subjective-well-being-objective-measures-subjective-measures", "well-being"],
+                 "groups": ['office-for-national-statistics'],
+                 "extras": {"geographic_coverage": "111100: United Kingdom (England, Scotland, Wales, Northern Ireland)", "geographic_granularity": "UK and GB", "external_reference": "ONSHUB", "temporal_granularity": "", "date_updated": "", "precision": "", "temporal_coverage_to": "", "temporal_coverage_from": "", "national_statistic": "no", "import_source": "ONS-ons_data_7_days_to_2010-09-17", "update_frequency": "", "date_released": "2010-09-14", "categories": "People and Places"},
+                "resources": [{"url": "http://www.ons.gov.uk/about-statistics/measuring-equality/wellbeing/news-and-events/index.html", "format": "", "description": "2010", "extras":{"hub-id":"77-31166"}}],
+                 }
+            CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
-        # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(sample_filepath(5))
-        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
-        loader = OnsLoader(self.testclient)
-        self.res = loader.load_package(self.pkg_dict)
+            # same data is imported, but should find record and add department
+            importer_ = importer.OnsImporter(sample_filepath(5), self.testclient)
+            self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+            loader = OnsLoader(self.testclient)
+            self.res = loader.load_package(self.pkg_dict)
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_reload(self):
         # Check that another package has not been created
@@ -316,17 +358,23 @@ class TestNationalParkDuplicate(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestNationalParkDuplicate, self).setup_class()
-        filepath = sample_filepath(6)
-        importer_ = importer.OnsImporter(filepath)
-        pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-        self.name = u'national_park_parliamentary_constituency_and_ward_level_mid-year_population_estimates_experimental'
-        for pkg_dict in pkg_dicts:
-            assert pkg_dict['name'] == self.name, pkg_dict['name']
-            assert pkg_dict['title'] == 'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)', pkg_dict
-            assert_equal(pkg_dict['groups'], ['office-for-national-statistics'])
-        loader = OnsLoader(self.testclient)
-        res = loader.load_packages(pkg_dicts)
-        assert res['num_errors'] == 0, res
+        try:
+            filepath = sample_filepath(6)
+            importer_ = importer.OnsImporter(filepath, self.testclient)
+            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+            self.name = u'national_park_parliamentary_constituency_and_ward_level_mid-year_population_estimates_experimental'
+            for pkg_dict in pkg_dicts:
+                assert pkg_dict['name'] == self.name, pkg_dict['name']
+                assert pkg_dict['title'] == 'National Park, Parliamentary Constituency and Ward level mid-year population estimates (experimental)', pkg_dict
+                assert_equal(pkg_dict['groups'], ['office-for-national-statistics'])
+            loader = OnsLoader(self.testclient)
+            res = loader.load_packages(pkg_dicts)
+            assert res['num_errors'] == 0, res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
@@ -339,46 +387,52 @@ class TestDeathsOverwrite(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestDeathsOverwrite, self).setup_class()
-        self.orig_pkg_dict = {
-            "name": u"weekly_provisional_figures_on_deaths_registered_in_england_and_wales",
-            "title": "Weekly provisional figures on deaths registered in England and Wales",
-            "version": None, "url": None, "author": "Office for National Statistics", "author_email": None, "maintainer": None, "maintainer_email": None,
-            "notes": "Weekly death figures provide provisional counts of the number of deaths registered in England and Wales in the latest four weeks for which data are available up to the end of 2009. From week one 2010 the latest eight weeks for which data are available will be published.\n\nSource agency: Office for National Statistics\n\nDesignation: National Statistics\n\nLanguage: English\n\nAlternative title: Weekly deaths",
-            "license_id": "ukcrown-withrights",
-            "tags": ["death", "deaths", "life-events", "life-in-the-community", "mortality-rates", "population", "weekly-deaths"],
-            "groups": ['office-for-national-statistics'],
-            "extras": {
-                "geographic_coverage": "101000: England, Wales",
-                "geographic_granularity": "Country",
-                "external_reference": "ONSHUB",
-                "temporal_coverage-from": "",
-                "temporal_granularity": "",
-                "date_updated": "",
-                "series": "Weekly provisional figures on deaths registered in England and Wales",
-                "precision": "",
-                "geographic_granularity": "",
-                "temporal_coverage_to": "",
-                "temporal_coverage_from": "",
-                "taxonomy_url": "",
-                "import_source": "ONS-ons_data_60_days_to_2010-09-22",
-                "date_released": "2010-08-03",
-                "temporal_coverage-to": "",
-                "update_frequency": "",
-                "national_statistic": "yes",
-                "categories": "Population"},
-            "resources": [
-                {"url": "http://www.statistics.gov.uk/StatBase/Prep/9684.asp", "format": "", "description": "17/07/2009", "hash": "", "extras": {"hub-id": "77-27942"} }],
-            }
+        try:
+            self.orig_pkg_dict = {
+                "name": u"weekly_provisional_figures_on_deaths_registered_in_england_and_wales",
+                "title": "Weekly provisional figures on deaths registered in England and Wales",
+                "version": None, "url": None, "author": "Office for National Statistics", "author_email": None, "maintainer": None, "maintainer_email": None,
+                "notes": "Weekly death figures provide provisional counts of the number of deaths registered in England and Wales in the latest four weeks for which data are available up to the end of 2009. From week one 2010 the latest eight weeks for which data are available will be published.\n\nSource agency: Office for National Statistics\n\nDesignation: National Statistics\n\nLanguage: English\n\nAlternative title: Weekly deaths",
+                "license_id": "ukcrown-withrights",
+                "tags": ["death", "deaths", "life-events", "life-in-the-community", "mortality-rates", "population", "weekly-deaths"],
+                "groups": ['office-for-national-statistics'],
+                "extras": {
+                    "geographic_coverage": "101000: England, Wales",
+                    "geographic_granularity": "Country",
+                    "external_reference": "ONSHUB",
+                    "temporal_coverage-from": "",
+                    "temporal_granularity": "",
+                    "date_updated": "",
+                    "series": "Weekly provisional figures on deaths registered in England and Wales",
+                    "precision": "",
+                    "geographic_granularity": "",
+                    "temporal_coverage_to": "",
+                    "temporal_coverage_from": "",
+                    "taxonomy_url": "",
+                    "import_source": "ONS-ons_data_60_days_to_2010-09-22",
+                    "date_released": "2010-08-03",
+                    "temporal_coverage-to": "",
+                    "update_frequency": "",
+                    "national_statistic": "yes",
+                    "categories": "Population"},
+                "resources": [
+                    {"url": "http://www.statistics.gov.uk/StatBase/Prep/9684.asp", "format": "", "description": "17/07/2009", "hash": "", "extras": {"hub-id": "77-27942"} }],
+                }
 
-        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+            CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
-        # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(sample_filepath(7))
-        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
-        loader = OnsLoader(self.testclient)
-        print self.pkg_dict
-        self.res = loader.load_package(self.pkg_dict)
-        self.name = self.orig_pkg_dict['name']
+            # same data is imported, but should find record and add department
+            importer_ = importer.OnsImporter(sample_filepath(7), self.testclient)
+            self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+            loader = OnsLoader(self.testclient)
+            print self.pkg_dict
+            self.res = loader.load_package(self.pkg_dict)
+            self.name = self.orig_pkg_dict['name']
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
@@ -393,50 +447,56 @@ class TestAgencyFind(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestAgencyFind, self).setup_class()
-        self.orig_pkg_dict = {
-            "name": u"national_child_measurement_programme",
-            "title": "National Child Measurement Programme",
-            "version": None, "url": None, "author": None, "author_email": None, "maintainer": None, "maintainer_email": None,
-            "notes": "The National Child Measurement Programme weighs and measures primary school children.\r\nThis publication was formerly announced as \"National Child Measurement Programme - Statistics on Child Obesity 2008-09\" but the title has been amended to reflect suggestions from the UKSA Assessments Board.\r\nSource agency: Information Centre for Health and Social Care\r\nDesignation: National Statistics\r\nLanguage: English\r\nAlternative title: National Child Measurement Programme",
-            "license_id": "uk-ogl",
-            "tags": ["health", "health-and-social-care", "health-of-the-population", "lifestyles-and-behaviours", "nhs", "well-being-and-care"],
-            "groups": ['nhs-information-centre-for-health-and-social-care'],
-            "extras": {
-                "geographic_coverage": "100000: England",
-                "geographic_granularity": "Country",
-                "external_reference": "ONSHUB",
-                "temporal_coverage-from": "",
-                "temporal_granularity": "",
-                "date_updated": "",
-                "precision": "",
-                "geographic_granularity": "",
-                "temporal_coverage_to": "",
-                "temporal_coverage_from": "",
-                "taxonomy_url": "",
-                "import_source": "ONS-ons_data_2009-12",
-                "date_released": "2009-12-10",
-                "temporal_coverage-to": "",
-                "update_frequency": "",
-                "national_statistic": "yes",
-                "categories": "Health and Social Care"},
-            "resources": [{"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "England, 2008/09 School Year", "extras":{"hub-id":"119-37085"}},
-                          {"url": "http://www.dh.gov.uk/en/Publichealth/Healthimprovement/Healthyliving/DH_073787", "format": "", "description": "2008", "extras":{"hub-id":"119-31792"}},
-                          {"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "Statistics on child obesity 2007-08", "extras":{"hub-id":"119-31784"}}],
-            }
+        try:
+            self.orig_pkg_dict = {
+                "name": u"national_child_measurement_programme",
+                "title": "National Child Measurement Programme",
+                "version": None, "url": None, "author": None, "author_email": None, "maintainer": None, "maintainer_email": None,
+                "notes": "The National Child Measurement Programme weighs and measures primary school children.\r\nThis publication was formerly announced as \"National Child Measurement Programme - Statistics on Child Obesity 2008-09\" but the title has been amended to reflect suggestions from the UKSA Assessments Board.\r\nSource agency: Information Centre for Health and Social Care\r\nDesignation: National Statistics\r\nLanguage: English\r\nAlternative title: National Child Measurement Programme",
+                "license_id": "uk-ogl",
+                "tags": ["health", "health-and-social-care", "health-of-the-population", "lifestyles-and-behaviours", "nhs", "well-being-and-care"],
+                "groups": ['nhs-information-centre-for-health-and-social-care'],
+                "extras": {
+                    "geographic_coverage": "100000: England",
+                    "geographic_granularity": "Country",
+                    "external_reference": "ONSHUB",
+                    "temporal_coverage-from": "",
+                    "temporal_granularity": "",
+                    "date_updated": "",
+                    "precision": "",
+                    "geographic_granularity": "",
+                    "temporal_coverage_to": "",
+                    "temporal_coverage_from": "",
+                    "taxonomy_url": "",
+                    "import_source": "ONS-ons_data_2009-12",
+                    "date_released": "2009-12-10",
+                    "temporal_coverage-to": "",
+                    "update_frequency": "",
+                    "national_statistic": "yes",
+                    "categories": "Health and Social Care"},
+                "resources": [{"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "England, 2008/09 School Year", "extras":{"hub-id":"119-37085", "publish-date":"2008-01-01"}},
+                              {"url": "http://www.dh.gov.uk/en/Publichealth/Healthimprovement/Healthyliving/DH_073787", "format": "", "description": "2008", "extras":{"hub-id":"119-31792", "publish-date":"2007-01-01"}},
+                              {"url": "http://www.ic.nhs.uk/ncmp", "format": "", "description": "Statistics on child obesity 2007-08", "extras":{"hub-id":"119-31784", "publish-date":"2009-01-01"}}],
+                }
 
-        CreateTestData.create_arbitrary([self.orig_pkg_dict])
+            CreateTestData.create_arbitrary([self.orig_pkg_dict])
 
-        # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(sample_filepath(8))
-        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
-        assert self.pkg_dict['groups'][0].startswith('nhs-information')
-        loader = OnsLoader(self.testclient)
-        print self.pkg_dict
-        # load package twice, to ensure reload works too
-        self.res = loader.load_package(self.pkg_dict)
-        self.res = loader.load_package(self.pkg_dict)
-        self.name = self.orig_pkg_dict['name']
-        self.num_resources_originally = len(self.orig_pkg_dict['resources'])
+            # same data is imported, but should find record and add department
+            importer_ = importer.OnsImporter(sample_filepath(8), self.testclient)
+            self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+            assert self.pkg_dict['groups'][0].startswith('nhs-information')
+            loader = OnsLoader(self.testclient)
+            print self.pkg_dict
+            # load package twice, to ensure reload works too
+            self.res = loader.load_package(self.pkg_dict)
+            self.res = loader.load_package(self.pkg_dict)
+            self.name = self.orig_pkg_dict['name']
+            self.num_resources_originally = len(self.orig_pkg_dict['resources'])
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
@@ -446,67 +506,78 @@ class TestAgencyFind(OnsLoaderBase):
         assert_equal(len(pkg.resources), self.num_resources_originally + 1)
 
     def test_resources_sorted(self):
+        # since #145, resources are sorted by the publication date
         pkg = model.Package.by_name(self.name)
-        hub_ids = [int(res.extras['hub-id'].replace('-', '')) for res in pkg.resources]
-        assert_equal(hub_ids, sorted(hub_ids))
+        res_dates = [(res.extras['publish-date'], res.extras['hub-id'])  for res in pkg.resources]
+        previous_date = None
+        for date, id_ in res_dates:
+            if previous_date:
+                assert date >= previous_date, res_dates
+            previous_date = date
 
 
 class TestDeletedDecoyWhenAdmin(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestDeletedDecoyWhenAdmin, self).setup_class()
-        self.orig_pkg_dict = {
-            "name": u"quarterly_epidemiological_commentary",
-            "title": "Quarterly Epidemiological Commentary",
-            "version": None, "url": None, "author": None, "author_email": None, "maintainer": None, "maintainer_email": None,
-            "notes": "Epidemiological analyses of Mandatory surveillance data on MRSA bacteraemia and C. difficile infection covering at least nine quarters\r\nSource agency: Health Protection Agency\r\nDesignation: Official Statistics not designated as National Statistics\r\nLanguage: English\r\nAlternative title: Quarterly Epi Commentary",
-            "license_id": "uk-ogl",
-            "tags": ["conditions-and-diseases", "health", "health-and-social-care", "health-of-the-population", "nhs-trust-hcai-pct-mrsa-mrsa-bacteraemia-c-difficile-c-diff-clostridium-difficile-healthcare-associa", "well-being-and-care"],
-            "groups": ['health-protection-agency'],
-            "extras": {
-                "geographic_coverage": "100000: England",
-                "geographic_granularity": "Other",
-                "external_reference": "ONSHUB",
-                "temporal_coverage-from": "",
-                "temporal_granularity": "",
-                "date_updated": "",
-                "precision": "",
-                "geographic_granularity": "",
-                "temporal_coverage_to": "",
-                "temporal_coverage_from": "",
-                "taxonomy_url": "",
-                "import_source": "ONS-ons_data_7_days_to_2010-06-23",
-                "date_released": "2010-06-18",
-                "temporal_coverage-to": "",
-                "update_frequency": "quarterly",
-                "national_statistic": "no",
-                "categories": "Health and Social Care"
-                },
-            "resources": []            
-            }
-        self.deleted_decoy_pkg_dict = {
-            "name": u"quarterly_epidemiological_commentary_-_none",
-            "title": "Quarterly Epidemiological Commentary",
-            "groups": ['health-protection-agency'],
-            }
-        CreateTestData.create_arbitrary([self.orig_pkg_dict])
-        CreateTestData.create_arbitrary([self.deleted_decoy_pkg_dict],
-                                        extra_user_names=[u'testsysadmin'])
+        try:
+            self.orig_pkg_dict = {
+                "name": u"quarterly_epidemiological_commentary",
+                "title": "Quarterly Epidemiological Commentary",
+                "version": None, "url": None, "author": None, "author_email": None, "maintainer": None, "maintainer_email": None,
+                "notes": "Epidemiological analyses of Mandatory surveillance data on MRSA bacteraemia and C. difficile infection covering at least nine quarters\r\nSource agency: Health Protection Agency\r\nDesignation: Official Statistics not designated as National Statistics\r\nLanguage: English\r\nAlternative title: Quarterly Epi Commentary",
+                "license_id": "uk-ogl",
+                "tags": ["conditions-and-diseases", "health", "health-and-social-care", "health-of-the-population", "nhs-trust-hcai-pct-mrsa-mrsa-bacteraemia-c-difficile-c-diff-clostridium-difficile-healthcare-associa", "well-being-and-care"],
+                "groups": ['health-protection-agency'],
+                "extras": {
+                    "geographic_coverage": "100000: England",
+                    "geographic_granularity": "Other",
+                    "external_reference": "ONSHUB",
+                    "temporal_coverage-from": "",
+                    "temporal_granularity": "",
+                    "date_updated": "",
+                    "precision": "",
+                    "geographic_granularity": "",
+                    "temporal_coverage_to": "",
+                    "temporal_coverage_from": "",
+                    "taxonomy_url": "",
+                    "import_source": "ONS-ons_data_7_days_to_2010-06-23",
+                    "date_released": "2010-06-18",
+                    "temporal_coverage-to": "",
+                    "update_frequency": "quarterly",
+                    "national_statistic": "no",
+                    "categories": "Health and Social Care"
+                    },
+                "resources": []            
+                }
+            self.deleted_decoy_pkg_dict = {
+                "name": u"quarterly_epidemiological_commentary_-_none",
+                "title": "Quarterly Epidemiological Commentary",
+                "groups": ['health-protection-agency'],
+                }
+            CreateTestData.create_arbitrary([self.orig_pkg_dict])
+            CreateTestData.create_arbitrary([self.deleted_decoy_pkg_dict],
+                                            extra_user_names=[u'testsysadmin'])
 
-        # make a sysadmin user
-        rev = model.repo.new_revision()
-        testsysadmin = model.User.by_name(u'testsysadmin')
-        model.add_user_to_role(testsysadmin, model.Role.ADMIN, model.System())
+            # make a sysadmin user
+            rev = model.repo.new_revision()
+            testsysadmin = model.User.by_name(u'testsysadmin')
+            model.add_user_to_role(testsysadmin, model.Role.ADMIN, model.System())
 
-        # delete decoy
-        decoy_pkg = model.Package.by_name(self.deleted_decoy_pkg_dict['name'])
-        assert decoy_pkg
-        decoy_pkg.delete()
-        model.repo.commit_and_remove()
+            # delete decoy
+            decoy_pkg = model.Package.by_name(self.deleted_decoy_pkg_dict['name'])
+            assert decoy_pkg
+            decoy_pkg.delete()
+            model.repo.commit_and_remove()
 
-        # same data is imported, but should find record and add department
-        importer_ = importer.OnsImporter(sample_filepath(9))
-        self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+            # same data is imported, but should find record and add department
+            importer_ = importer.OnsImporter(sample_filepath(9), self.testclient)
+            self.pkg_dict = [pkg_dict for pkg_dict in importer_.pkg_dict()][0]
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     @classmethod
     def teardown(self):
@@ -533,16 +604,22 @@ class TestOnsUnknownPublisher(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestOnsUnknownPublisher, self).setup_class()
-        for filepath in (sample_filepath('10'),):
-            importer_ = importer.OnsImporter(filepath)
-            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-            assert_equal(len(pkg_dicts), 1)
-            pkg_dict = pkg_dicts[0]
-            assert_equal(pkg_dict['title'], 'NHS Cancer Waiting Times in Wales')
-            assert_equal(pkg_dict['groups'], [])
-            loader = OnsLoader(self.testclient)
-            res = loader.load_packages(pkg_dicts)
-            assert res['num_errors'] == 0, res
+        try:
+            for filepath in (sample_filepath('10'),):
+                importer_ = importer.OnsImporter(filepath, self.testclient)
+                pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+                assert_equal(len(pkg_dicts), 1)
+                pkg_dict = pkg_dicts[0]
+                assert_equal(pkg_dict['title'], 'NHS Cancer Waiting Times in Wales')
+                assert_equal(pkg_dict['groups'], [])
+                loader = OnsLoader(self.testclient)
+                res = loader.load_packages(pkg_dicts)
+                assert res['num_errors'] == 0, res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
 
     def test_packages(self):
         pkg = model.Package.by_name(u'nhs_cancer_waiting_times_in_wales')
@@ -554,13 +631,19 @@ class TestReloadUnknownPublisher(OnsLoaderBase):
     @classmethod
     def setup_class(self):
         super(TestReloadUnknownPublisher, self).setup_class()
-        for filepath in (sample_filepath('10'), sample_filepath('10')):
-            importer_ = importer.OnsImporter(filepath)
-            pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
-            assert_equal(len(pkg_dicts), 1)
-            loader = OnsLoader(self.testclient)
-            res = loader.load_packages(pkg_dicts)
-            assert res['num_errors'] == 0, res
+        try:
+            for filepath in (sample_filepath('10'), sample_filepath('10')):
+                importer_ = importer.OnsImporter(filepath, self.testclient)
+                pkg_dicts = [pkg_dict for pkg_dict in importer_.pkg_dict()]
+                assert_equal(len(pkg_dicts), 1)
+                loader = OnsLoader(self.testclient)
+                res = loader.load_packages(pkg_dicts)
+                assert res['num_errors'] == 0, res
+        except:
+            # ensure that mock_drupal is destroyed
+            MockDrupalCase.teardown_class()
+            model.repo.rebuild_db()
+            raise
     def test_packages(self):
         pkg = model.Package.by_name(u'nhs_cancer_waiting_times_in_wales')
         assert pkg

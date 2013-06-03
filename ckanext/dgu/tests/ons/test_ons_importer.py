@@ -5,6 +5,7 @@ from sqlalchemy.util import OrderedDict
 from nose.tools import assert_equal
 
 from ckan.tests import *
+from ckan import model
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.producers import get_ons_producers
 from ckanext.dgu.schema import DrupalHelper
@@ -54,7 +55,7 @@ class TestOnsData1:
 
 class TestOnsImporter(MockDrupalCase):
     lots_of_publishers = True
-    
+
     def test_split_title(self):
         expected_data = [
             (u'UK Official Holdings of International Reserves - December 2009',
@@ -84,23 +85,6 @@ class TestOnsImporter(MockDrupalCase):
             coverage_db = importer.OnsImporter._parse_geographic_coverage(coverage_str)
             assert_equal(coverage_db, expected_coverage_db)
 
-    def test_publishers(self):
-        expected_results = [
-            # (hub:source-agency value, published_by, published_via)
-            ('HM Treasury', 'Her Majesty\'s Treasury [some_number]', ''),
-            ('Information Centre for Health and Social Care', 'NHS Information Centre for Health and Social Care [some_number]', ''),
-            ('Environment (Northern Ireland)', 'Northern Ireland Executive [some_number]', 'Department of the Environment [some_number]'),
-            ('Office for National Statistics', 'Office for National Statistics [some_number]', ''),
-            ]
-        for source_agency, expected_published_by, expected_published_via in expected_results:
-            department, agency, published_by, published_via = importer.OnsImporter._source_to_organisations(source_agency)
-            assert published_by is not None, source_agency
-            assert published_via is not None, source_agency
-            published_by = strip_organisation_id(published_by)
-            published_via = strip_organisation_id(published_via)
-            assert_equal(published_by, expected_published_by or u'')
-            assert_equal(published_via, expected_published_via or u'')
-
     def test_dept_to_organisation(self):
         for source_agency in get_ons_producers():
             publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
@@ -125,25 +109,34 @@ class TestOnsImporter(MockDrupalCase):
             (u'hub:keywords', u'reserves;currency;assets;liabilities;gold;reserves;currency;assets;liabilities;gold'),
             (u'hub:altTitle', u'UK Reserves'),
             (u'hub:nscl', u'Economy;Government Receipts and Expenditure;Public Sector Finance;Economy;Government Receipts and Expenditure;Public Sector Finance')])
-        ons_importer_ = importer.OnsImporter(filepaths=SAMPLE_FILEPATH_1)
-        package_dict = ons_importer_.record_2_package(record)
+
+        # Mock-up the source_to_publisher routine, to avoid having to
+        # provide the ckanclient via a WsgiCkanClient etc
+        def mock_source_to_publisher(cls, source, ckanclient):
+            return {'HM Treasury': 'hm-treasury'}[source]
+        original_method = importer.OnsImporter._source_to_publisher_
+        importer.OnsImporter._source_to_publisher_ = mock_source_to_publisher
+        try:
+            ons_importer_ = importer.OnsImporter(filepaths=SAMPLE_FILEPATH_1, ckanclient=None)
+            package_dict = ons_importer_.record_2_package(record)
+        finally:
+            importer.OnsImporter._source_to_publisher_ = original_method
     
         expected_package_dict = OrderedDict([
             ('name', u'uk_official_holdings_of_international_reserves'),
             ('title', u'UK Official Holdings of International Reserves'),
             ('version', None),
             ('url', None),
-            ('author', u"Her Majesty's Treasury"),
-            ('author_email', None),
             ('maintainer', None),
             ('maintainer_email', None),
             ('notes', u"Monthly breakdown for government's net reserves, detailing gross reserves and gross liabilities.\n\nSource agency: HM Treasury\n\nLanguage: English\n\nAlternative title: UK Reserves"),
             ('license_id', u'uk-ogl'),
             ('tags', [u'assets', u'currency', u'economics-and-finance', u'economy', u'gold', u'government-receipts-and-expenditure', u'liabilities', u'public-sector-finance', u'reserves']),
-            ('groups', []),
+            ('groups', ['hm-treasury']),
             ('resources', [OrderedDict([
                 ('url', u'http://www.hm-treasury.gov.uk/national_statistics.htm'),
                 ('description', u'December 2009'),
+                ('publish-date', '2010-01-06'),
                 ('hub-id', u'119-36345'),
                 ])]),
             ('extras', OrderedDict([
@@ -161,10 +154,6 @@ class TestOnsImporter(MockDrupalCase):
                 ('date_released', '2010-01-06'),
                 ('categories', u'Economy'),
                 ('series', u'UK Official Holdings of International Reserves'),
-                ('published_by', u"Her Majesty's Treasury [some_number]"),
-                ('published_via', u''),
                 ])),
             ])
-        for extra_key in ('published_by', 'published_via'):
-            package_dict['extras'][extra_key] = strip_organisation_id(package_dict['extras'][extra_key])
         PackageDictUtil.check_dict(package_dict, expected_package_dict)
