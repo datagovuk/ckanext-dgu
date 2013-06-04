@@ -137,14 +137,17 @@ class ONSUpdateTask(CkanCommand):
 
                     resource_count = resource_count + 1
                     # Add the resource along with a scraped_date
-                    ckan.add_package_resource(dataset['name'], r['url'],
-                                              resource_type='data',
-                                              format=r['url'][-3:],
-                                              description=r['description'],
-                                              name=r['title'],
-                                              scraped=datetime.datetime.now().isoformat(),
-                                              scraper_source=r['original']['url'])
-                    log.info("Set source to %s" % r['original']['url'])
+                    try:
+                        ckan.add_package_resource(dataset['name'], r['url'],
+                                                  resource_type='data',
+                                                  format=r['url'][-3:],
+                                                  description=r['description'],
+                                                  name=r['title'],
+                                                  scraped=datetime.datetime.now().isoformat(),
+                                                  scraper_source=r['original']['url'])
+                        log.info("Set source to %s" % r['original']['url'])
+                    except Exception, err:
+                        log.error(err)
 
         self.csv_file.close()
         log.info("Processed %d datasets" % (counter))
