@@ -82,7 +82,6 @@ ul.ui-autocomplete li a.ui-state-hover{background:#9D2;border-color:#690;}
 .star-rating .last-updated{font-size:10px;}
 .star-rating-tooltip{opacity:1 !important;}.star-rating-tooltip>.tooltip-inner{background:#444;}
 .star-rating-tooltip>.tooltip-arrow{border-right-color:#444 !important;}
-.social-sharethis .stButton .stArrow{display:none;}
 body.controller-data.action-index h2{padding-bottom:8px;border-bottom:1px solid #aaa;padding-left:17px;padding-right:17px;margin-left:-17px;margin-right:-17px;}body.controller-data.action-index h2.no-underline{padding-bottom:0;border-bottom:none;}
 body.controller-data.action-index .front-page-table{width:100%;border-collapse:separate;}body.controller-data.action-index .front-page-table td.boxed{width:426px;vertical-align:top;}
 body.controller-data.action-index .front-page-table tr.gutter td{height:20px;}
@@ -106,7 +105,7 @@ body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-lo
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-label{text-align:right;padding:2px 8px;}body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-label div{-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;-webkit-box-shadow:1px 1px 3px #dddddd;-moz-box-shadow:1px 1px 3px #dddddd;box-shadow:1px 1px 3px #dddddd;border:1px solid #6a3;font-size:11px;padding:0 6px;}
 body.controller-package.action-read .dataset-map .dataset-map-info .table-lat-long .extent-value{white-space:nobreak;}
 body.controller-package.action-read .resource-row{white-space:nowrap;padding:1px 0;vertical-align:middle;height:28px;width:584px;}body.controller-package.action-read .resource-row .resource-row-format{padding-left:5px;padding-right:2px;padding-top:3px;float:left;}body.controller-package.action-read .resource-row .resource-row-format .format-box{float:none;}
-body.controller-package.action-read .resource-row .resource-row-text{line-height:29px;overflow:hidden;}
+body.controller-package.action-read .resource-row .resource-row-text{line-height:29px;overflow:hidden;}body.controller-package.action-read .resource-row .resource-row-text .inline-icon{vertical-align:middle;padding-bottom:2px;}
 body.controller-package.action-read .resource-row .text-overlay{float:right;}body.controller-package.action-read .resource-row .text-overlay>.btn{float:left;margin-right:3px;min-width:46px;}
 body.controller-package.action-read .resource-row .text-overlay>.btn-group{float:left;}
 body.controller-package.action-resource_read div.resource-actions{position:relative;float:right;}body.controller-package.action-resource_read div.resource-actions .btn{bottom:3px;padding:8px 10px;margin:0 0 0 7px;}

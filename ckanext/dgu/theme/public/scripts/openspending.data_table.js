@@ -130,7 +130,7 @@
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         s = _ref[_i];
-        _results.push([this.columnOrder.indexOf(s[0]), s[1]]);
+        _results.push([_.indexOf(this.columnOrder,s[0]), s[1]]);
       }
       return _results;
     };

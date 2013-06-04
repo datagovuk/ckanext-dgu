@@ -558,13 +558,6 @@ ul.ui-autocomplete {
     }
 }
 
-/* ckanext-social plugin: Minimal look */
-.social-sharethis {
-  .stButton .stArrow {
-    display: none;
-  }
-}
-
 
 /* PAGE: Front Page */
 /* ---------------- */
@@ -750,6 +743,11 @@ body.controller-package.action-read {
       .resource-row-text {
         line-height: 29px;
         overflow: hidden;
+        .inline-icon {
+          /* Applies to 'scraped' cog icon */
+          vertical-align: middle;
+          padding-bottom: 2px;
+        }
       }
       .text-overlay {
         float: right;

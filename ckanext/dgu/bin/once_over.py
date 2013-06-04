@@ -12,6 +12,7 @@ urls = [
     "/data",
     "/publisher",
     "/publisher/office-for-national-statistics",
+    "/data/search",
     "/data/map-based-search",
     "/dataset/uk-tariff-codes-2009-2010",
     "/dataset/mot-active-vts/resource/2ac8abba-4a71-4f12-af1b-57ad0e36b6a4",
@@ -21,21 +22,42 @@ urls = [
     "/data/openspending-report/publisher-cabinet-office.html",
     "/data/site-usage",
     "/data/site-usage/publisher",
-    "/publisher/new",
+    ("/publisher/new", 401),
 ]
 
 def build_url(name):
-    if name == 'prod1':
+    if name == 'localhost':
+        return "http://localhost"
+    elif name == 'localhost:8080':
+        return "http://localhost:8080"
+    elif name == 'prod1':
         return "http://data.gov.uk"
     return "http://co-{0}.dh.bytemark.co.uk".format(name)
 
 servers = []
 server_name = build_url(sys.argv[1] if len(sys.argv) > 1 else "dev1")
 print "Testing {0}".format(server_name)
+error_occurred = False
 
 for url in urls:
+    if isinstance(url, tuple):
+        url, expected_status = url
+    else:
+        expected_status = 200
     target = urljoin(server_name, url)
     s = time.time()
     r = requests.get(target)
     took = time.time() - s
-    print r.status_code, "{0:.2}s".format(took), target
+    if r.status_code == expected_status:
+        msg = 'OK'
+    else:
+        msg = 'STATUS ERROR'
+        error_occurred = True
+    print msg, r.status_code, "{0:.2}s".format(took), target
+
+print
+if error_occurred:
+    print 'ERROR OCCURRED'
+    sys.exit(1)
+else:
+    print 'All OK'
