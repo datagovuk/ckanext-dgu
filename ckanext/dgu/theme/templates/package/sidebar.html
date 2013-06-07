@@ -83,24 +83,17 @@
     </ul>
   </div>
 
-  <div class="widget-container" py:with="current_url=h.url_for(controller='package',action='read',id=c.id,qualified=True)">
-    <a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-    <a class="btn btn-small" style="
-      vertical-align: top;
-      padding: 2px 5px 0 5px;
-      line-height: 13px;
-      font-size: 11px;
-      height: 16px;" href="https://www.facebook.com/sharer/sharer.php?u=$current_url" target="_blank">
-      <strong>
-        <img style="width: 14px; vertical-align: top;" src="/images/share_facebook_logo.png"/> Share
-      </strong>
-    </a>
-    <script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script>
-    <div class="g-plusone" data-size="medium" data-annotation="none" data-width="80"></div>
-  
-
+  <div class="widget-container" py:with="
+    current_url=h.url_for(controller='package',action='read',id=c.id,qualified=True);
+    title=c.pkg_dict.get('title', c.pkg_dict['name'])
+    ">
+    <div style="text-align: center;">
+      <a href="${h.social_url_twitter(current_url,title)}" target="_blank"><img src="/images/share_twitter.png" style="height:20px;" /></a>
+      <a href="${h.social_url_facebook(current_url)}" target="_blank"><img src="/images/share_facebook.png" style="height:20px;" /></a>
+      <a href="${h.social_url_google(current_url)}" target="_blank"><img src="/images/share_google.png" style="height:20px;" /></a>
+    </div>
   </div>
 </div>
 </py:match>
 </html>
+
