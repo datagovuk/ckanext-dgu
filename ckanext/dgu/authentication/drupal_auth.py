@@ -196,7 +196,7 @@ class DrupalAuthMiddleware(object):
 	    user_properties = self.drupal_client.get_user_properties(drupal_user_id)
 
             # see if user already exists in CKAN
-            ckan_user_name = self._munge_drupal_id_to_ckan_user_name(drupal_user_id)
+            ckan_user_name = DrupalUserMapping.drupal_id_to_ckan_user_name(drupal_user_id)
             from ckan import model
             from ckan.model.meta import Session
             query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
@@ -291,3 +291,18 @@ class DrupalAuthMiddleware(object):
         log.debug('Seconds since checking Drupal cookie: %s (threshold=%s)', age_in_seconds, self.seconds_between_checking_drupal_cookie)
         return age_in_seconds > self.seconds_between_checking_drupal_cookie
 
+class DrupalUserMapping:
+    _user_name_prefix = 'user_d'
+
+    @classmethod
+    def drupal_id_to_ckan_user_name(cls, drupal_id):
+        # Drupal ID is always a number
+        drupal_id.lower().replace(' ', '_') # just in case
+        return u'%s%s' % (cls._user_name_prefix, drupal_id)
+
+    @classmethod
+    def ckan_user_name_to_drupal_id(cls, ckan_user_name):
+        if ckan_user_name.startswith(cls._user_name_prefix):
+            return ckan_user_name[len(cls._user_name_prefix):]
+        else:
+            return None # Not a Drupal user

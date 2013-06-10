@@ -23,7 +23,10 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       keep_extras,
                                      )
 from ckanext.dgu.lib.publisher import go_up_tree
-
+from ckanext.dgu.authentication.drupal_auth import DrupalUserMapping
+from ckanext.dgu.drupalclient import DrupalClient
+from ckan.plugins import PluginImplementations
+from ckanext.dgu.plugin import DrupalAuthPlugin
 
 log = logging.getLogger(__name__)
 
@@ -180,6 +183,29 @@ class PublisherController(GroupController):
         data_dict = clean_dict(unflatten(
                 tuplize_dict(parse_params(request.params))))
         data_dict['id'] = group.id
+
+        # Check that the user being added, if they are a Drupal user, has
+        # verified their email address
+        new_users = [user['name'] for user in data_dict['users'] \
+                     if not 'capacity' in user or user['capacity'] == 'undefined']
+        for user_name in new_users:
+            drupal_id = DrupalUserMapping.ckan_user_name_to_drupal_id(user_name)
+            if drupal_id:
+                if not PluginImplementations(DrupalAuthPlugin):
+                    # joint auth with Drupal is not activated, so cannot
+                    # check with Drupal
+                    log.warning('Drupal user made editor/admin but without checking email is verified.')
+                    break
+                if 'drupal_client' not in dir(self):
+                    self.drupal_client = DrupalClient()
+                user_properties = self.drupal_client.get_user_properties(drupal_id)
+                roles = user_properties['roles'].values()
+                if 'unverified' in roles:
+                    h.flash_error("There was a problem with your submission, \
+                                     please correct it and try again")
+                    errors = {"reason": ["User has not verified their email address yet"]}
+                    return self.apply(group.id, errors=errors,
+                                      error_summary=error_summary(errors))
 
         # Temporary fix for strange caching during dev
         l = data_dict['users']
