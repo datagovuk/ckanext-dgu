@@ -19,6 +19,10 @@ class DrupalAuthMiddleware(object):
         self.drupal_client = None
         self._user_name_prefix = 'user_d'
 
+        minutes_between_checking_drupal_cookie = app_conf.get('minutes_between_checking_drupal_cookie', 30) 
+        self.seconds_between_checking_drupal_cookie = int(minutes_between_checking_drupal_cookie) * 60
+        # if that int() raises a ValueError then the app will not start
+
     def _parse_cookies(self, environ):
         is_ckan_cookie = [False]
         drupal_session_id = [False]
@@ -93,6 +97,13 @@ class DrupalAuthMiddleware(object):
         log.debug('Logged out Drupal user')
 
     def __call__(self, environ, start_response):
+        '''
+        Middleware that sets the CKAN logged-in/logged-out status according
+        to Drupal's logged-in/logged-out status.
+
+        Every request comes through here before hitting CKAN because it is
+        configured as middleware.
+        '''
         new_headers = []
 
         self.do_drupal_login_logout(environ, new_headers)
@@ -137,18 +148,19 @@ class DrupalAuthMiddleware(object):
                     log.debug('Drupal cookie session has changed.')
                     #log.debug('Drupal cookie session has changed from %r to %r.', authtkt_drupal_session_id, drupal_session_id)
                     self._log_out(environ, new_headers)
-		    # since we are about to login again, we need to get rid of the headers like
-                    # ('Set-Cookie', 'auth_tkt="INVALID"...' since we are about to set them again in this
-                    # same request.)
-                    new_headers[:] = [(key, value) for (key, value) in new_headers \
-                                   if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
-                    #log.debug('Headers reduced to: %r', new_headers)
                     self._do_drupal_login(environ, drupal_session_id, new_headers)
                     #log.debug('Headers on log-out log-in result: %r', new_headers)
                     return
                 else:
 	            log.debug('Drupal cookie session stayed the same.')
-                    # Drupal cookie session matches the authtkt - leave user logged in
+                    # Drupal cookie session matches the authtkt - leave user logged ini
+
+                    # Just check that authtkt cookie is not too old - in the
+                    # mean-time, Drupal may have invalidated the user, for example.
+                    if self.is_authtkt_cookie_too_old(authtkt_identity):
+                        log.info('Rechecking Drupal cookie')
+                        self._log_out(environ, new_headers)
+                        self._do_drupal_login(environ, drupal_session_id, new_headers)
                     return
             else:
                 # There's a Drupal cookie, but user is logged in as a normal CKAN user.
@@ -167,6 +179,10 @@ class DrupalAuthMiddleware(object):
 
 
     def _do_drupal_login(self, environ, drupal_session_id, new_headers):
+        '''Given a Drupal cookie\'s session ID, check it with Drupal, create/modify
+        the equivalent CKAN user with properties copied from Drupal and log the
+        person in with auth_tkt and its cookie.
+        '''
         if self.drupal_client is None:
             self.drupal_client = DrupalClient()
         # ask drupal for the drupal_user_id for this session
@@ -180,7 +196,7 @@ class DrupalAuthMiddleware(object):
 	    user_properties = self.drupal_client.get_user_properties(drupal_user_id)
 
             # see if user already exists in CKAN
-            ckan_user_name = self._munge_drupal_id_to_ckan_user_name(drupal_user_id)
+            ckan_user_name = DrupalUserMapping.drupal_id_to_ckan_user_name(drupal_user_id)
             from ckan import model
             from ckan.model.meta import Session
             query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
@@ -203,6 +219,16 @@ class DrupalAuthMiddleware(object):
                 log.debug('Drupal user found in CKAN: %s', user.name)
 
             self.set_roles(ckan_user_name, user_properties['roles'].values())
+
+            # There is a chance that on this request we needed to get authtkt
+            # to log-out. This would have created headers like this:
+            #   'Set-Cookie', 'auth_tkt="INVALID"...'
+            # but since we are about to login again, which will create a header
+            # setting that same cookie, we need to get rid of the invalidation
+            # header first.
+            new_headers[:] = [(key, value) for (key, value) in new_headers \
+                              if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
+            #log.debug('Headers reduced to: %r', new_headers)
 
             # Ask auth_tkt to remember this user so that subsequent requests
             # will be authenticated by auth_tkt.
@@ -257,3 +283,26 @@ class DrupalAuthMiddleware(object):
             needs_commit = True
         if needs_commit:
             model.repo.commit_and_remove()
+
+    def is_authtkt_cookie_too_old(self, authtkt_identity):
+        authtkt_time = datetime.datetime.fromtimestamp(authtkt_identity['timestamp'])
+        age = datetime.datetime.now() - authtkt_time
+        age_in_seconds = age.seconds + age.days * 24 * 3600
+        log.debug('Seconds since checking Drupal cookie: %s (threshold=%s)', age_in_seconds, self.seconds_between_checking_drupal_cookie)
+        return age_in_seconds > self.seconds_between_checking_drupal_cookie
+
+class DrupalUserMapping:
+    _user_name_prefix = 'user_d'
+
+    @classmethod
+    def drupal_id_to_ckan_user_name(cls, drupal_id):
+        # Drupal ID is always a number
+        drupal_id.lower().replace(' ', '_') # just in case
+        return u'%s%s' % (cls._user_name_prefix, drupal_id)
+
+    @classmethod
+    def ckan_user_name_to_drupal_id(cls, ckan_user_name):
+        if ckan_user_name.startswith(cls._user_name_prefix):
+            return ckan_user_name[len(cls._user_name_prefix):]
+        else:
+            return None # Not a Drupal user

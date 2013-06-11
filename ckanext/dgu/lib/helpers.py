@@ -1305,3 +1305,22 @@ def render_facet_value(key,value):
         return mapping.get(value,value)
     return value
 
+def social_url_twitter(url,title):
+    import urllib
+    twitter_parameters = {
+      'original_referer':url,
+      'text':title,
+      'tw_p':'tweetbutton',
+      'url':url,
+    }
+    twitter_url = 'https://twitter.com/intent/tweet?' + urllib.urlencode(twitter_parameters)
+    return twitter_url
+
+def social_url_facebook(url):
+    facebook_url = 'https://www.facebook.com/sharer/sharer.php?u='+url
+    return facebook_url
+
+def social_url_google(url):
+    google_url = 'https://plus.google.com/share?url='+url
+    return google_url
+
