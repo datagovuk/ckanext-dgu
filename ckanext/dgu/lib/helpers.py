@@ -1116,10 +1116,9 @@ def gemini_resources():
 def individual_resources():
     r = c.pkg_dict.get('individual_resources', [])
     # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary
+    # three keys. So combine them if necessary   
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
-
     return r
 
 def init_resources_for_nav():

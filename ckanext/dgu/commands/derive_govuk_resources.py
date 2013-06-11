@@ -15,6 +15,11 @@ from ckanext.dgu.bin.running_stats import StatsCount
 
 log = logging.getLogger("ckanext")
 
+ACCEPTED_FORMATS = ['application/vnd.ms-excel', 
+    'text/csv', 
+    'application/rdf+xml', 
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+
 
 class GovUkResourceChecker(CkanCommand):
     """
@@ -35,6 +40,11 @@ class GovUkResourceChecker(CkanCommand):
         self.parser.add_option("-p", "--pretend",
                   dest="pretend", action="store_true",
                   help="Pretends to update the database, but doesn't really.")        
+        self.parser.add_option("-s", "--single",
+                  dest="single", 
+                  default="",
+                  help="Specifies a single dataset to work with")        
+
         self.local_resource_map = collections.defaultdict(list)
         self.remap_stats = StatsCount()
 
@@ -76,6 +86,7 @@ class GovUkResourceChecker(CkanCommand):
             if r.url not in seen:
                 seen.append(r.url)
             else:
+                print "Found a duplicate"
                 dupes.append(r)
                 resources.remove(r)
 
@@ -98,7 +109,7 @@ class GovUkResourceChecker(CkanCommand):
             attachments = []
             for att in data.get('attachments',[]):
                 content_type = att.get('content_type')
-                if content_type in ['application/vnd.ms-excel', 'text/csv']:
+                if content_type in ACCEPTED_FORMATS:
                     self.remap_stats.increment('Attachments found')    
                     log.info(" - Found {0}".format(att.get("url")))
                     attachments.append(att)
@@ -111,9 +122,13 @@ class GovUkResourceChecker(CkanCommand):
 
             for attachment in attachments:
                 fmt = "CSV"
-                if attachment.get('url', '').endswith('.xls'):
+                u = attachment.get('url', '').lower()
+                if u.endswith('.xls') or u.endswith('xlsx'):
                     fmt = "XLS"
                     self.remap_stats.increment('XLS')    
+                elif attachment.get('url', '').lower().endswith('.rdf'):
+                    fmt = "RDF"
+                    self.remap_stats.increment('RDF')    
                 else:
                     self.remap_stats.increment('CSV')                        
 
@@ -122,10 +137,14 @@ class GovUkResourceChecker(CkanCommand):
                 self.remap_stats.increment('Attachments added')                    
                 self.record_transaction(dataset, resource, "Created new from resource info")
                 if not self.options.pretend:
+                    # This should be the same type as the original to make sure we correctly
+                    # handle time-series resources.
                     dataset.add_resource(url="http://www.gov.uk" + attachment.get('url'), 
                              format=fmt,
+                             resource_type=resource.resource_type,
                              description=attachment.get('title',''))
-                    # model.Session.add(dataset)
+                    model.Session.add(dataset)
+                    model.Session.commit()
 
                 resource.resource_type = "documentation"
                 resource.format = "HTML"
@@ -138,20 +157,23 @@ class GovUkResourceChecker(CkanCommand):
 
         # Handle the dupes, ignore them if they have a hub-id, potentially delete
         # them if they don't.
+        log.info("Processing {} duplicates".format(len(dupes)))
         for resource in dupes:
             if 'hub-id' in resource.extras:
                 # Don't delete ONS imported dataset
+                log.info("Resource {} is an ONS resource, not deleting".format(resource.id))
                 self.remap_stats.increment('ONS resources *not* deleted')                              
                 continue
 
-            log.info(" - Deleting duplicate {0}/{1}/{2}".format(resource.name or "Unnamed", resource.url, resource.id))       
-            resource.state == 'deleted'
+            log.info(" - Deleting duplicate {0} -> {1}".format(resource.url, resource.id))       
+            resource.state = 'deleted'
             self.remap_stats.increment('Deleted resource')                                
             self.record_transaction(dataset, resource, "Deleted dupe")            
-            if not self.options.pretend:            
+            if not self.options.pretend:   
                 model.Session.add(resource)
                 model.Session.commit()
-
+                log.info(" -- deleted {}".format(resource.id))
+        model.Session.flush()
 
     def _get_attachment(self, resource):
         json_url = "".join([resource.url, ".json"])
@@ -176,17 +198,23 @@ class GovUkResourceChecker(CkanCommand):
             filter(model.Resource.url.like("%/www.gov.uk/%")).\
             filter(not_(model.Resource.url.ilike("%.csv"))).\
             filter(not_(model.Resource.url.ilike("%.xls"))).\
+            filter(not_(model.Resource.url.ilike("%.xlsx"))).\
             filter(not_(model.Resource.url.ilike("%.pdf"))).\
             filter(not_(model.Resource.url.ilike("%.rdf"))).\
             filter(not_(model.Resource.url.ilike("%.json"))).\
             filter(not_(model.Resource.url.ilike("%.doc"))).\
             filter(not_(model.Resource.resource_type=='documentation')).\
-            filter(not_(model.Resource.resource_type=='timeseries')).\
-            filter(model.Resource.state=='active')            
+            filter(not_(model.Resource.resource_type=='timeseries'))
+            #filter(model.Resource.state=='active')
 
         log.info("Found %d resources for www.gov.uk links" % resources.count())
-        for r in resources[0:15]:
+        for r in resources:
             pkg = r.resource_group.package
+
+            # If we only want one, then skip the others
+            if self.options.single and not pkg.name == self.options.single:
+                continue
+
             if pkg.state == 'active':
                 self.local_resource_map[pkg].append(r)
 
