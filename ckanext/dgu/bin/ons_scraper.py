@@ -286,6 +286,6 @@ class ONSUpdateTask(CkanCommand):
             return None
         else:
             self._log(line, "OK")
-            log.debug("Found {} link(s) on the data page".format(len(items)))
+            log.debug("Found {0} link(s) on the data page".format(len(items)))
 
         return items
