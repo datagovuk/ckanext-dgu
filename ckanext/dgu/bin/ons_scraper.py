@@ -116,7 +116,7 @@ class ONSUpdateTask(CkanCommand):
             moved_resources = False
             l = self.scrape_ons_publication(dataset)
             if l:
-                l = list(itertools.chain.from_iterable(l)) # Flatten the list and remove dupes
+                l = list(set(itertools.chain.from_iterable(l))) # Flatten the list and remove dupes
                 new_resources = sorted(l, key=lambda r: r['title']) if l else []
 
             if new_resources:
@@ -151,13 +151,14 @@ class ONSUpdateTask(CkanCommand):
                     try:
                         if not self.options.pretend:
                             ckan.add_package_resource(dataset['name'], r['url'],
-                                                      resource_type='file',
+                                                      resource_type='',
                                                       format=r['url'][-3:],
                                                       description=r['description'],
                                                       name=r['title'],
                                                       scraped=datetime.datetime.now().isoformat(),
                                                       scraper_source=r['original']['url'])
                             log.info("Set source to %s" % r['original']['url'])
+                        log.info("  Added {0}".format(r['url']))
                     except Exception, err:
                         log.error(err)
 
