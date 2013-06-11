@@ -116,7 +116,7 @@ class ONSUpdateTask(CkanCommand):
             moved_resources = False
             l = self.scrape_ons_publication(dataset)
             if l:
-                l = list(set(itertools.chain.from_iterable(l))) # Flatten the list and remove dupes
+                l = set(list(itertools.chain.from_iterable(l))) # Flatten the list and remove dupes
                 new_resources = sorted(l, key=lambda r: r['title']) if l else []
 
             if new_resources:
