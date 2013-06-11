@@ -22,6 +22,7 @@ import datetime
 import time
 import logging
 import requests
+import itertools
 from urlparse import urljoin
 from lxml.html import fromstring
 
@@ -47,9 +48,17 @@ class ONSUpdateTask(CkanCommand):
             default=False,
             dest='delete_resources',
             help='If specified, old resources that are replaced will be deleted')
+        self.parser.add_option('-p', '--pretend',
+            action='store_true',
+            default=False,
+            dest='pretend',
+            help='Whether we should only pretend to write')        
         self.parser.add_option('-s', '--server',
             dest='server',
             help='Allows an alternative server URL to be used')
+        self.parser.add_option('-t', '--test',
+            dest='test',
+            help='Allows testing with a single url')
 
     def command(self):
         """
@@ -79,9 +88,12 @@ class ONSUpdateTask(CkanCommand):
         if len(self.args) == 1:
             q = self.args[0].replace(',', '')
 
-        search_results = ckan.package_search(q, opts)
-        log.debug("There are %d results" % search_results['count'])
-        datasets = search_results['results']
+        if self.options.test:
+            datasets = [self.options.test]
+        else:
+            search_results = ckan.package_search(q, opts)
+            log.debug("There are %d results" % search_results['count'])
+            datasets = search_results['results']
 
         self.csv_file = open("ons_scrape.csv", "wb")
         self.csv_log = csv.writer(self.csv_file)
@@ -95,17 +107,17 @@ class ONSUpdateTask(CkanCommand):
                 log.info("Package %s is not active" % dsname)
                 continue
 
-            if dsname[0] in ['a', 'b', 'c']:
-                continue
-
             counter = counter + 1
             time.sleep(1)
 
             log.info('Processing %s' % (dsname,))
 
+            new_resources = None
             moved_resources = False
             l = self.scrape_ons_publication(dataset)
-            new_resources = sorted(l, key=lambda r: r['title']) if l else []
+            if l:
+                l = list(itertools.chain.from_iterable(l)) # Flatten the list and remove dupes
+                new_resources = sorted(l, key=lambda r: r['title']) if l else []
 
             if new_resources:
                 # Update the old resources, if they need to have their type set.
@@ -117,13 +129,12 @@ class ONSUpdateTask(CkanCommand):
                         r['resource_type'] = 'documentation'
                         moved_resources = True
                     else:
-                        log.info("Not marking %s resource documentation, scraped? %s" %
+                        log.info("Resource is %s, not updating type. Was it prev scraped? %s" %
                             (r['resource_type'], 'scraped' in r))
-
 
                 # Save the update to the resources for this dataset if we moved
                 # any to become documentation
-                if moved_resources:
+                if moved_resources and not self.options.pretend:
                     dataset['resources'] = sorted(dataset['resources'], key=lambda r: r['name'])
                     ckan.package_entity_put(dataset)
 
@@ -138,14 +149,15 @@ class ONSUpdateTask(CkanCommand):
                     resource_count = resource_count + 1
                     # Add the resource along with a scraped_date
                     try:
-                        ckan.add_package_resource(dataset['name'], r['url'],
-                                                  resource_type='data',
-                                                  format=r['url'][-3:],
-                                                  description=r['description'],
-                                                  name=r['title'],
-                                                  scraped=datetime.datetime.now().isoformat(),
-                                                  scraper_source=r['original']['url'])
-                        log.info("Set source to %s" % r['original']['url'])
+                        if not self.options.pretend:
+                            ckan.add_package_resource(dataset['name'], r['url'],
+                                                      resource_type='file',
+                                                      format=r['url'][-3:],
+                                                      description=r['description'],
+                                                      name=r['title'],
+                                                      scraped=datetime.datetime.now().isoformat(),
+                                                      scraper_source=r['original']['url'])
+                            log.info("Set source to %s" % r['original']['url'])
                     except Exception, err:
                         log.error(err)
 
@@ -159,7 +171,14 @@ class ONSUpdateTask(CkanCommand):
         and processed by this scraper.
         """
         resources = []
+        print dataset['resources'][0]['resource_type']
         for resource in dataset['resources']:
+            if resource['resource_type'] == 'documentation':
+                continue
+
+            if resource['url'].endswith('.xls') or resource['url'].endswith('.csv'):
+                continue
+
             if url_regex.match(resource['url']):
                 resources.append(resource)
 
@@ -176,6 +195,16 @@ class ONSUpdateTask(CkanCommand):
         self.csv_log.writerow([line["dataset"], line["resource"], line["url"],
                               line["status code"], err_msg])
         self.csv_file.flush()
+
+    def _get_paged_url(self, href):
+        """
+        We should convert a URL like 
+        http://www.ons.gov.uk/ons/publications/re-reference-tables.html?edition=tcm%3A77-263579
+        to a url like 
+        http://www.ons.gov.uk/ons/publications/re-reference-tables.html?newquery=*&pageSize=2000&edition=tcm%3A77-263579
+        to make sure we get every page
+        """
+        return "{0}{1}".format(href, "&newquery=*&pageSize=2000")
 
     def _process_ons_resource(self, dataset, resource):
         log = logging.getLogger(__name__)
@@ -211,6 +240,7 @@ class ONSUpdateTask(CkanCommand):
             if h and follow_regex.match(h):
                 # Will return href if it includes proto://host..
                 href = urljoin(resource['url'], h)
+                href = self._get_paged_url(href)
                 break
 
         if not href:
@@ -231,6 +261,7 @@ class ONSUpdateTask(CkanCommand):
         outerdivs = page.cssselect('.table-info')
         url, title, description = None, None, None
 
+        items = []
         for odiv in outerdivs:
 
             # URL
@@ -244,15 +275,17 @@ class ONSUpdateTask(CkanCommand):
             description = dlinfo.cssselect('div')[2].text_content()
             description = description.strip()[len('Description: '):]
 
+            items.append({'url': urljoin(resource['url'], url),
+                'description': description,
+                'title': title,
+                'original': resource})
+
         if not url:
             self._log(line, "No link to data page")
             log.info("Could not find a link on the data page at %s" % (href,))
             return None
         else:
             self._log(line, "OK")
-            log.debug("Found a link on the data page")
+            log.debug("Found {} link(s) on the data page".format(len(items)))
 
-        return {'url': urljoin(resource['url'], url),
-                'description': description,
-                'title': title,
-                'original': resource}
+        return items
