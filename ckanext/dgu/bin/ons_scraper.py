@@ -129,7 +129,7 @@ class ONSUpdateTask(CkanCommand):
 
             new_resources = self.scraper.scrape(dataset)
             if not new_resources:
-                log.info("No new resources for {0}".format(dataset))
+                log.info("No new resources for {0}".format(dataset['name']))
                 continue
 
             new_resources = sorted(new_resources, key=lambda r: r['title'])
@@ -184,7 +184,7 @@ class ONSUpdateTask(CkanCommand):
                                 break
                             except:
                                 got = got - 1
-                                
+
                         log.info("Set source to %s" % r['original']['url'])
                     log.info("  Added {0}".format(r['url']))
                 except Exception, err:
