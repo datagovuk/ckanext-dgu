@@ -172,7 +172,6 @@ class ONSUpdateTask(CkanCommand):
         and processed by this scraper.
         """
         resources = []
-        print dataset['resources'][0]['resource_type']
         for resource in dataset['resources']:
             if resource['resource_type'] == 'documentation':
                 continue
@@ -224,6 +223,7 @@ class ONSUpdateTask(CkanCommand):
             self._log(line, "HTTP error")
             return None
 
+
         # need to follow the link to the data page. Somewhere on the page
         # is a link that looks like
         #  ^.*ons/publications/re-reference-tables.html.*$
@@ -233,12 +233,41 @@ class ONSUpdateTask(CkanCommand):
             self._log(line, "Page was empty")
             return None
 
+        items = []
+        seen = []
         page = fromstring(r.content)
+
+        # Attempt at the inner block (not the data link)
+        attempt_inner = page.cssselect('#page-content a')
+
+        for node in attempt_inner:
+            h = node.get('href')
+            if h and h.lower().endswith('.html'):
+                seen.append(h)
+
+                h = urljoin(resource['url'], h)
+                ar = requests.get(h)
+
+                if ar.status_code == 200:
+                    ap = fromstring(ar.content)
+                    links = ap.cssselect("#page-content a")
+                    for link in links:
+                        l = link.get('href')
+                        if not l:
+                            continue
+                        if l.lower().endswith(".csv") or l.lower().endswith(".xls"):
+                            items.append({'url': urljoin(resource['url'], l),
+                                         'description': '',
+                                         'title': link.get('title', ''),
+                                         'original': resource})
+                            log.debug("Found an item from a direct link")                           
+
+        # Try all of the URLs to find the data link
         nodes = page.cssselect('a')
         href = None
         for node in nodes:
             h = node.get('href')
-            if h and follow_regex.match(h):
+            if h and follow_regex.match(h) and not h in seen:
                 # Will return href if it includes proto://host..
                 href = urljoin(resource['url'], h)
                 href = self._get_paged_url(href)
@@ -248,45 +277,49 @@ class ONSUpdateTask(CkanCommand):
             self._log(line, "No data page")
             log.debug("Unable to find the 'data' page which contains links " +
                 "to resources")
-            return None
+            if not items:
+                return None
+            else:
+                log.debug("Continuing because we have already found items")
 
-        r = requests.get(href)
-        if r.status_code != 200:
-            self._log(line, "Failed to fetch data page")
-            log.error("Failed to fetch data page %s, got status %s" %
-                (resource['url'], r.status_code))
-            return None
+        if href:
+            r = requests.get(href)
+            if r.status_code != 200:
+                self._log(line, "Failed to fetch data page")
+                log.error("Failed to fetch data page %s, got status %s" %
+                    (resource['url'], r.status_code))
+                return None
 
-        log.debug("Found 'data' page content")
-        page = fromstring(r.content)
-        outerdivs = page.cssselect('.table-info')
-        url, title, description = None, None, None
+            log.debug("Found 'data' page content")
+            page = fromstring(r.content)
+            outerdivs = page.cssselect('.table-info')
+            url, title, description = None, None, None
 
-        items = []
-        for odiv in outerdivs:
+            for odiv in outerdivs:
 
-            # URL
-            dldiv = odiv.cssselect('.download-options ul li a')[0]
-            url = dldiv.get('href')
+                # URL
+                dldiv = odiv.cssselect('.download-options ul li a')[0]
+                url = dldiv.get('href')
 
-            # Title
-            dlinfo = odiv.cssselect('.download-info')[0]
-            title = dlinfo.cssselect('h3')[0].text_content()
+                # Title
+                dlinfo = odiv.cssselect('.download-info')[0]
+                title = dlinfo.cssselect('h3')[0].text_content()
 
-            description = dlinfo.cssselect('div')[2].text_content()
-            description = description.strip()[len('Description: '):]
+                description = dlinfo.cssselect('div')[2].text_content()
+                description = description.strip()[len('Description: '):]
 
-            items.append({'url': urljoin(resource['url'], url),
-                'description': description,
-                'title': title,
-                'original': resource})
+                items.append({'url': urljoin(resource['url'], url),
+                    'description': description,
+                    'title': title,
+                    'original': resource})
 
-        if not url:
-            self._log(line, "No link to data page")
-            log.info("Could not find a link on the data page at %s" % (href,))
-            return None
-        else:
-            self._log(line, "OK")
-            log.debug("Found {0} link(s) on the data page".format(len(items)))
+            if not url:
+                self._log(line, "No link to data page")
+                log.info("Could not find a link on the data page at %s" % (href,))
+                return None
+            else:
+                self._log(line, "OK")
+                
+        log.debug("Found {0} link(s) on the data page (and direct)".format(len(items)))
 
         return items
