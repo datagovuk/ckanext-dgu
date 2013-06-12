@@ -127,7 +127,15 @@ class ONSUpdateTask(CkanCommand):
             new_resources = None
             moved_resources = False
 
-            new_resources = self.scraper.scrape(dataset)
+            new_resources, to_be_deleted = self.scraper.scrape(dataset)
+            if to_be_deleted and self.options.delete_resources:
+                dataset['resources'] = [r for r in dataset['resources'] if not r['id'] in to_be_deleted]          
+                for tbd in to_be_deleted:
+                    _log({"dataset": dataset['name'], "resource": tbd,
+                       "url": "", "status code": "404"},
+                       "Deleted resource (was a 404)")
+
+
             if not new_resources:
                 log.info("No new resources for {0}".format(dataset['name']))
                 continue
@@ -201,6 +209,8 @@ class ONSScraper(object):
         When provided with a dataset this class will iterate through resources looking for 
         an ons.gov short url (.xml redirection) will attempt to find actually data on the page
         redirected to, and a specific 'data page' linked from there.
+
+        This class may not currently be thread safe
     """
     def __init__(self, *args, **kwargs):
         self.url_regex = re.compile('^http://www.ons.gov.uk/ons/.*$')
@@ -212,6 +222,7 @@ class ONSScraper(object):
         Narrows down the datasets, and resources that can be scraped
         and processed by this scraper.
         """
+        self.to_be_deleted = []
         resources = []
         rsrcs = dataset['resources']
         if rsrc:
@@ -234,7 +245,7 @@ class ONSScraper(object):
             return None
 
         results = filter(None, [self._process_ons_resource(dataset, r) for r in resources])
-        return list(itertools.chain.from_iterable(results)) 
+        return list(itertools.chain.from_iterable(results)), self.to_be_deleted
 
 
     def _process_ons_resource(self, dataset, resource):
@@ -249,6 +260,11 @@ class ONSScraper(object):
         r = requests.get(resource['url'])
         line["status code"] = r.status_code
         if r.status_code != 200:
+            if r.status_code == 404:
+                # delete the resource
+                self.to_be_deleted.append(resource['id'])
+                log.info("Added resource {0} to be deleted".format(resource['id']))
+
             log.error("Failed to fetch %s, got status %s" %
                 (resource['url'], r.status_code))
             _log(line, "HTTP error")
