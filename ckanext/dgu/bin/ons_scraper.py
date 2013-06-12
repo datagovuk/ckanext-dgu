@@ -242,7 +242,7 @@ class ONSScraper(object):
             _log({"dataset": dataset['name'], "resource": "",
                        "url": resource["url"], "status code": ""},
                        "No matching resources found on dataset")
-            return None
+            return None, self.to_be_deleted
 
         results = filter(None, [self._process_ons_resource(dataset, r) for r in resources])
         return list(itertools.chain.from_iterable(results)), self.to_be_deleted
