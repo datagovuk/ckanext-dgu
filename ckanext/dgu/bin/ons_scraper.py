@@ -28,8 +28,16 @@ from lxml.html import fromstring
 
 from ckan.lib.cli import CkanCommand
 
-url_regex = re.compile('^http://www.ons.gov.uk/ons/.*$')
-follow_regex = re.compile('^.*ons/publications/re-reference-tables.html.*$')
+# Logging setup
+csv_file = open("ons_scrape.csv", "wb")
+csv_log = csv.writer(csv_file)
+csv_log.writerow(["dataset", "resource", "url", "status code", "error"])
+
+def _log(line, err_msg):
+    """ Helper that writes out a CSV file with the output of this scraping session """
+    csv_log.writerow([line["dataset"], line["resource"], line["url"],
+                          line["status code"], err_msg])
+    csv_file.flush()
 
 
 class ONSUpdateTask(CkanCommand):
@@ -43,6 +51,8 @@ class ONSUpdateTask(CkanCommand):
 
     def __init__(self, name):
         super(ONSUpdateTask, self).__init__(name)
+        self.scraper = ONSScraper()
+
         self.parser.add_option('-d', '--delete-resources',
             action='store_true',
             default=False,
@@ -61,8 +71,6 @@ class ONSUpdateTask(CkanCommand):
             help='Allows testing with a single url')
 
     def command(self):
-        """
-        """
         import ckanclient
         from ckan.logic import get_action
 
@@ -95,10 +103,6 @@ class ONSUpdateTask(CkanCommand):
             log.debug("There are %d results" % search_results['count'])
             datasets = search_results['results']
 
-        self.csv_file = open("ons_scrape.csv", "wb")
-        self.csv_log = csv.writer(self.csv_file)
-        self.csv_log.writerow(["dataset", "resource", "url", "status code", "error"])
-
         counter = 0
         resource_count = 0
         for dsname in datasets:
@@ -114,97 +118,102 @@ class ONSUpdateTask(CkanCommand):
 
             new_resources = None
             moved_resources = False
-            l = self.scrape_ons_publication(dataset)
-            if l:
-                l = list(itertools.chain.from_iterable(l)) # Flatten the list and remove dupes
-                new_resources = sorted(l, key=lambda r: r['title']) if l else []
 
-            if new_resources:
-                # Update the old resources, if they need to have their type set.
-                for r in dataset['resources']:
-                    # Only move resources to documentation if they are a link to a documentation
-                    # page and haven't been added by scraping.
-                    if r['resource_type'] != 'documentation' and not 'scraped' in r:
-                        log.info("Marking resource documentation as it was not previously scraped")
-                        r['resource_type'] = 'documentation'
-                        moved_resources = True
-                    else:
-                        log.info("Resource is %s, not updating type. Was it prev scraped? %s" %
-                            (r['resource_type'], 'scraped' in r))
+            new_resources = self.scraper.scrape(dataset)
+            if not new_resources:
+                log.info("No new resources for {0}".format(dataset))
+                continue
 
-                # Save the update to the resources for this dataset if we moved
-                # any to become documentation
-                if moved_resources and not self.options.pretend:
-                    dataset['resources'] = sorted(dataset['resources'], key=lambda r: r['name'])
-                    ckan.package_entity_put(dataset)
+            new_resources = sorted(new_resources, key=lambda r: r['title'])
 
-                for r in new_resources:
-                    # Check if the URL already appears in the dataset's
-                    # resources, and if so then skip it.
-                    existing = [x for x in dataset['resources'] if x['url'] == r['url']]
-                    if existing:
-                        log.error("The URL for this resource was already found in this dataset")
-                        continue
+            # Update the old resources, if they need to have their type set.
+            for r in dataset['resources']:
+                # Only move resources to documentation if they are a link to a documentation
+                # page and haven't been added by scraping.
+                if r['resource_type'] != 'documentation' and not 'scraped' in r:
+                    log.info("Marking resource documentation as it was not previously scraped")
+                    r['resource_type'] = 'documentation'
+                    moved_resources = True
+                else:
+                    log.info("Resource is %s, not updating type. Was it prev scraped? %s" %
+                        (r['resource_type'], 'scraped' in r))
 
-                    resource_count = resource_count + 1
-                    # Add the resource along with a scraped_date
-                    try:
-                        if not self.options.pretend:
-                            ckan.add_package_resource(dataset['name'], r['url'],
-                                                      resource_type='',
-                                                      format=r['url'][-3:],
-                                                      description=r['description'],
-                                                      name=r['title'],
-                                                      scraped=datetime.datetime.now().isoformat(),
-                                                      scraper_source=r['original']['url'])
-                            log.info("Set source to %s" % r['original']['url'])
-                        log.info("  Added {0}".format(r['url']))
-                    except Exception, err:
-                        log.error(err)
+            # Save the update to the resources for this dataset if we moved
+            # any old resources to become documentation
+            if moved_resources and not self.options.pretend:
+                dataset['resources'] = sorted(dataset['resources'], key=lambda r: r['name'])
+                ckan.package_entity_put(dataset)
 
-        self.csv_file.close()
+            for r in new_resources:
+                # Check if the URL already appears in the dataset's
+                # resources, and if so, skip it.
+                existing = [x for x in dataset['resources'] if x['url'] == r['url']]
+                if existing:
+                    log.error("The URL for this resource was already found in this dataset")
+                    continue
+
+                # Add the resource along with a scraped_date
+                try:
+                    resource_count = resource_count + 1                    
+                    if not self.options.pretend:
+                        ckan.add_package_resource(dataset['name'], r['url'],
+                                                  resource_type='',
+                                                  format=r['url'][-3:],
+                                                  description=r['description'],
+                                                  name=r['title'],
+                                                  scraped=datetime.datetime.now().isoformat(),
+                                                  scraper_source=r['original']['url'])
+                        log.info("Set source to %s" % r['original']['url'])
+                    log.info("  Added {0}".format(r['url']))
+                except Exception, err:
+                    log.error(err)
+
+        # Cleanup
+        csv_file.close()
         log.info("Processed %d datasets" % (counter))
         log.info("Added %d resources" % (resource_count))
 
-    def scrape_ons_publication(self, dataset):
+
+class ONSScraper(object):
+    """ 
+        When provided with a dataset this class will iterate through resources looking for 
+        an ons.gov short url (.xml redirection) will attempt to find actually data on the page
+        redirected to, and a specific 'data page' linked from there.
+    """
+    def __init__(self, *args, **kwargs):
+        self.url_regex = re.compile('^http://www.ons.gov.uk/ons/.*$')
+        self.follow_regex = re.compile('^.*ons/publications/re-reference-tables.html.*$')
+
+
+    def scrape(self, dataset, rsrc=None):
         """
         Narrows down the datasets, and resources that can be scraped
         and processed by this scraper.
         """
         resources = []
-        for resource in dataset['resources']:
+        rsrcs = dataset['resources']
+        if rsrc:
+            rsrcs = [rsrc]
+            
+        for resource in rsrcs:
             if resource['resource_type'] == 'documentation':
                 continue
 
-            if resource['url'].endswith('.xls') or resource['url'].endswith('.csv'):
+            if self._is_tabular_url(resource['url']):
                 continue
 
-            if url_regex.match(resource['url']):
+            if self.url_regex.match(resource['url']):
                 resources.append(resource)
 
         if not resources:
-            self._log({"dataset": dataset['name'], "resource": "",
+            _log({"dataset": dataset['name'], "resource": "",
                        "url": resource["url"], "status code": ""},
                        "No matching resources found on dataset")
             return None
 
-        return filter(None, [self._process_ons_resource(dataset, r) for r in resources])
+        results = filter(None, [self._process_ons_resource(dataset, r) for r in resources])
+        return list(itertools.chain.from_iterable(results)) 
 
-    def _log(self, line, err_msg):
-        """ Writes out a CSV file with the output of this scraping session """
-        self.csv_log.writerow([line["dataset"], line["resource"], line["url"],
-                              line["status code"], err_msg])
-        self.csv_file.flush()
-
-    def _get_paged_url(self, href):
-        """
-        We should convert a URL like 
-        http://www.ons.gov.uk/ons/publications/re-reference-tables.html?edition=tcm%3A77-263579
-        to a url like 
-        http://www.ons.gov.uk/ons/publications/re-reference-tables.html?newquery=*&pageSize=2000&edition=tcm%3A77-263579
-        to make sure we get every page
-        """
-        return "{0}{1}".format(href, "&newquery=*&pageSize=2000")
 
     def _process_ons_resource(self, dataset, resource):
         log = logging.getLogger(__name__)
@@ -220,7 +229,7 @@ class ONSUpdateTask(CkanCommand):
         if r.status_code != 200:
             log.error("Failed to fetch %s, got status %s" %
                 (resource['url'], r.status_code))
-            self._log(line, "HTTP error")
+            _log(line, "HTTP error")
             return None
 
 
@@ -230,7 +239,7 @@ class ONSUpdateTask(CkanCommand):
         if not r.content:
             log.debug("Successfully fetched %s but page was empty" %
                 (resource['url'],))
-            self._log(line, "Page was empty")
+            _log(line, "Page was empty")
             return None
 
         items = []
@@ -255,7 +264,7 @@ class ONSUpdateTask(CkanCommand):
                         l = link.get('href')
                         if not l:
                             continue
-                        if l.lower().endswith(".csv") or l.lower().endswith(".xls"):
+                        if self._is_tabular_url(l):
                             items.append({'url': urljoin(resource['url'], l),
                                          'description': '',
                                          'title': link.get('title', ''),
@@ -267,14 +276,14 @@ class ONSUpdateTask(CkanCommand):
         href = None
         for node in nodes:
             h = node.get('href')
-            if h and follow_regex.match(h) and not h in seen:
+            if h and self.follow_regex.match(h) and not h in seen:
                 # Will return href if it includes proto://host..
                 href = urljoin(resource['url'], h)
                 href = self._get_paged_url(href)
                 break
 
         if not href:
-            self._log(line, "No data page")
+            _log(line, "No data page")
             log.debug("Unable to find the 'data' page which contains links " +
                 "to resources")
             if not items:
@@ -285,7 +294,7 @@ class ONSUpdateTask(CkanCommand):
         if href:
             r = requests.get(href)
             if r.status_code != 200:
-                self._log(line, "Failed to fetch data page")
+                _log(line, "Failed to fetch data page")
                 log.error("Failed to fetch data page %s, got status %s" %
                     (resource['url'], r.status_code))
                 return None
@@ -314,12 +323,25 @@ class ONSUpdateTask(CkanCommand):
                     'original': resource})
 
             if not url:
-                self._log(line, "No link to data page")
+                _log(line, "No link to data page")
                 log.info("Could not find a link on the data page at %s" % (href,))
                 return None
             else:
-                self._log(line, "OK")
+                _log(line, "OK")
                 
         log.debug("Found {0} link(s) on the data page (and direct)".format(len(items)))
 
         return items
+
+    def _is_tabular_url(self, url):
+        return url.lower().endswith('.xls') or url.lower().endswith('.csv')
+
+    def _get_paged_url(self, href):
+        """
+        We should convert a URL like 
+        http://www.ons.gov.uk/ons/publications/re-reference-tables.html?edition=tcm%3A77-263579
+        to a url like 
+        http://www.ons.gov.uk/ons/publications/re-reference-tables.html?newquery=*&pageSize=2000&edition=tcm%3A77-263579
+        to make sure we get every page
+        """
+        return "{0}{1}".format(href, "&newquery=*&pageSize=2000")
