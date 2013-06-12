@@ -106,7 +106,15 @@ class ONSUpdateTask(CkanCommand):
         counter = 0
         resource_count = 0
         for dsname in datasets:
-            dataset = ckan.package_entity_get(dsname)
+            got = 3
+            while got >= 0:
+                try:
+                    dataset = ckan.package_entity_get(dsname)
+                    break
+                except:
+                    got = got - 1
+                    time.sleep(2)
+
             if dataset['state'] != 'active':
                 log.info("Package %s is not active" % dsname)
                 continue
@@ -142,7 +150,14 @@ class ONSUpdateTask(CkanCommand):
             # any old resources to become documentation
             if moved_resources and not self.options.pretend:
                 dataset['resources'] = sorted(dataset['resources'], key=lambda r: r['name'])
-                ckan.package_entity_put(dataset)
+                got = 3
+                while got >= 0:
+                    try:
+                        ckan.package_entity_put(dataset)
+                        break
+                    except:
+                        got = got - 1
+                        time.sleep(2)
 
             for r in new_resources:
                 # Check if the URL already appears in the dataset's
@@ -156,13 +171,20 @@ class ONSUpdateTask(CkanCommand):
                 try:
                     resource_count = resource_count + 1                    
                     if not self.options.pretend:
-                        ckan.add_package_resource(dataset['name'], r['url'],
-                                                  resource_type='',
-                                                  format=r['url'][-3:],
-                                                  description=r['description'],
-                                                  name=r['title'],
-                                                  scraped=datetime.datetime.now().isoformat(),
-                                                  scraper_source=r['original']['url'])
+                        got = 4
+                        while got >= 0:
+                            try:
+                                ckan.add_package_resource(dataset['name'], r['url'],
+                                                          resource_type='',
+                                                          format=r['url'][-3:],
+                                                          description=r['description'],
+                                                          name=r['title'],
+                                                          scraped=datetime.datetime.now().isoformat(),
+                                                          scraper_source=r['original']['url'])
+                                break
+                            except:
+                                got = got - 1
+                                
                         log.info("Set source to %s" % r['original']['url'])
                     log.info("  Added {0}".format(r['url']))
                 except Exception, err:
@@ -194,7 +216,7 @@ class ONSScraper(object):
         rsrcs = dataset['resources']
         if rsrc:
             rsrcs = [rsrc]
-            
+
         for resource in rsrcs:
             if resource['resource_type'] == 'documentation':
                 continue
