@@ -41,7 +41,7 @@ ${h.prep_group_edit_data(data)}
     <label class="control-label" for="url">Url</label>
     <div class="controls name-field">
       <div class="input-prepend">
-        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" />
+        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {}"/> 
       </div>
       <p class="js-url-is-valid">&nbsp;</p>
       <p>2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>

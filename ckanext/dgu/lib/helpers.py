@@ -921,6 +921,8 @@ def prep_group_edit_data(data):
     # on validation error, the submitted values appear in data[key] with the original
     # values in data['extras']. Therefore populate the form with the data[key] values
     # in preference, and fall back on the data['extra'] values.
+    if c.group:
+        c.editing = True
     original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
                                 for extra_dict in data.get('extras', {})])
     for key, value in original_extra_fields.items():
