@@ -279,6 +279,19 @@ class PublisherController(GroupController):
 
         return render('publisher/users.html')
 
+    def _redirect_if_previous_name(self, id):
+        # If we can find id in the extras for any group we will use it 
+        # to re-direct the user to the new name for the group. If not then
+        # we'll just let it fail.  If we find multiple groups with the name
+        # we'll just redirect to the first match.
+        import ckan.model as model
+
+        match = model.Session.query(model.GroupExtra).\
+            filter(model.GroupExtra.key.like('previous-name-%')).\
+            filter(model.GroupExtra.value == id).\
+            filter(model.GroupExtra.state=='active').order_by('key desc').first()
+        if match:
+            h.redirect_to( 'publisher_read', id=match.group.name)
 
     def read(self, id):
         from ckan.lib.search import SearchError
@@ -304,6 +317,7 @@ class PublisherController(GroupController):
             c.group_dict = get_action('group_show')(context, data_dict)
             c.group = context['group']
         except ObjectNotFound:
+            self._redirect_if_previous_name(id)
             abort(404, _('Group not found'))
         except NotAuthorized:
             abort(401, _('Unauthorized to read group %s') % id)
