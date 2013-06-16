@@ -1316,10 +1316,10 @@ def render_facet_value(key,value):
 def social_url_twitter(url,title):
     import urllib
     twitter_parameters = {
-      'original_referer':url,
-      'text':title,
+      'original_referer':url.encode('utf-8'),
+      'text':title.encode('utf-8'),
       'tw_p':'tweetbutton',
-      'url':url,
+      'url':url.encode('utf-8'),
     }
     twitter_url = 'https://twitter.com/intent/tweet?' + urllib.urlencode(twitter_parameters)
     return twitter_url
