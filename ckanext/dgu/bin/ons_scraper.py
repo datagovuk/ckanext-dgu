@@ -106,6 +106,8 @@ class ONSUpdateTask(CkanCommand):
         counter = 0
         resource_count = 0
         for dsname in datasets:
+            dataset = None
+
             got = 3
             while got >= 0:
                 try:
@@ -113,9 +115,9 @@ class ONSUpdateTask(CkanCommand):
                     break
                 except:
                     got = got - 1
-                    time.sleep(2)
+                    time.sleep(1)
 
-            if dataset['state'] != 'active':
+            if not dataset or dataset['state'] != 'active':
                 log.info("Package %s is not active" % dsname)
                 continue
 
@@ -182,13 +184,18 @@ class ONSUpdateTask(CkanCommand):
                         got = 4
                         while got >= 0:
                             try:
+                                # Get either the original name (or description) to prepend
+                                # to the new resources description
+                                desc = "%s - %s" % (r['original']['description'], r['description'],)
+                                name = "%s - %s" % (r['original']['description'], r['title'],)
                                 ckan.add_package_resource(dataset['name'], r['url'],
                                                           resource_type='',
                                                           format=r['url'][-3:],
-                                                          description=r['description'],
-                                                          name=r['title'],
+                                                          description=desc,
+                                                          name=name,
                                                           scraped=datetime.datetime.now().isoformat(),
                                                           scraper_source=r['original']['url'])
+                                # If we get here we can break out of the re-try loop
                                 break
                             except:
                                 got = got - 1
