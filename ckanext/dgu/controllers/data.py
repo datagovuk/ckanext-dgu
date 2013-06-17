@@ -3,7 +3,7 @@ import pylons
 import os
 import logging
 
-import ckan.authz
+import ckan.new_authz as new_authz
 from ckan.lib.base import BaseController, model, abort, h, g
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
 
@@ -64,7 +64,7 @@ class DataController(BaseController):
         return render('data/api.html')
 
     def system_dashboard(self):
-        is_sysadmin = ckan.authz.Authorizer().is_sysadmin(c.userobj) if c.userobj else False
+        is_sysadmin = new_authz.is_sysadmin(c.userobj) if c.userobj else False
         if not is_sysadmin:
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')

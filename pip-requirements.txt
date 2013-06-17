@@ -1,26 +1,43 @@
-# This file allows you to install DGU and all it's dependencies
-# in a virtual environment.
+# This file allows you to install CKAN extensions related to
+# ckanext-dgu and the dependencies for ckanext-dgu. After running
+# this, some of the installed CKAN extensions have their own
+# pip-requirements.txt to install too.
 #
 # Use it like this:
 #
-#   pip install --ignore-installed -r pip-requirements.txt
+#   pip install -r pip-requirements.txt
 
--e git+https://github.com/okfn/ckanext-dgu.git#egg=ckanext-dgu
+## ckanext-dgu dependencies
+-r pip-requirements-local.txt
 
-# DGU Dependencies
--r requires/lucid_missing.txt
+## Related extensions
 
-# pastescript isn't required as a dependency, but it *is* required
-# in order to be able to run paster commands within the correct
-# virtualenv when deployed.
-pastescript
+# ckanext-csw
+-e git+https://github.com/okfn/ckanext-csw.git@#egg=ckanext-csw
 
-# ApacheMiddleware
-apachemiddleware
+# ckanext-harvest
+-e git+https://github.com/datagovuk/ckanext-harvest.git@dgu#egg=ckanext-harvest
 
-# Beautiful Soup for gov_daily.py
-beautifulsoup4
+# ckanext-spatial
+-e git+https://github.com/datagovuk/ckanext-spatial.git@dgu#egg=ckanext-spatial
 
-# Selenium driver for Python
-selenium==2.28.0
-fabric==1.5.3
+# ckanext-qa
+-e git+https://github.com/datagovuk/ckanext-qa.git@temp_working#egg=ckanext-qa
+
+# ckanext-archiver
+-e git+https://github.com/datagovuk/ckanext-archiver.git#egg=ckanext-archiver
+
+# ckanext-ga-report
+-e git+https://github.com/datagovuk/ckanext-ga-report.git#egg=ckanext-ga-report
+
+# ckanext-datapreview
+-e git+https://github.com/datagovuk/ckanext-datapreview.git#egg=ckanext-datapreview
+
+## Related extension dependencies
+
+# Copied from ckanext-spatial's pip-requirements.txt:
+GeoAlchemy>=0.6
+Shapely>=1.2.13
+owslib
+lxml<=2.2.99
+argparse

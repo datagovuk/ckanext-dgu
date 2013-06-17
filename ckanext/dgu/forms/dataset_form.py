@@ -1,6 +1,6 @@
 ﻿import json
 
-from ckan.authz import Authorizer
+from ckan import new_authz
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
@@ -131,12 +131,6 @@ class DatasetForm(SingletonPlugin):
 
         c.resource_columns = ('description', 'url', 'format')
 
-        ## This is messy as auths take domain object not data_dict
-        pkg = context.get('package') or c.pkg
-        if pkg:
-            c.auth_for_change_state = Authorizer().am_authorized(
-                c, model.Action.CHANGE_STATE, pkg)
-
         c.schema_fields = set(self.form_to_db_schema().keys())
 
     def form_to_db_schema_options(self, options={}):
@@ -160,10 +154,10 @@ class DatasetForm(SingletonPlugin):
         # section of code does.
         pkg = context.get('package')
         user = context.get('user', '')
-        if Authorizer().is_sysadmin(unicode(user)) and \
+        if new_authz.is_sysadmin(unicode(user)) and \
            pkg and pkg.extras.get('UKLP', 'False') == 'True':
             schema.update(self._uklp_sysadmin_schema_updates)
-        if Authorizer().is_sysadmin(unicode(user)) and \
+        if new_authz.is_sysadmin(unicode(user)) and \
            pkg and pkg.extras.get('external_reference') == 'ONSHUB':
             self._ons_sysadmin_schema_updates(schema)
         return schema
@@ -332,7 +326,7 @@ class DatasetForm(SingletonPlugin):
     def get_publishers(self):
         from ckan.model.group import Group
 
-        if Authorizer().is_sysadmin(c.user):
+        if new_authz.is_sysadmin(c.user):
             groups = Group.all(group_type='publisher')
         elif c.userobj:
             # need to get c.userobj again as it may be detached from the

@@ -263,14 +263,14 @@ class DrupalAuthMiddleware(object):
                    'publishing user' - anyone who has registered - includes spammers
         '''
         from ckan import model
-        from ckan.authz import Authorizer
+        from ckan import new_authz
         needs_commit = False
         user = model.User.by_name(user_name)
 
         # Sysadmin or not
         log.debug('User roles in Drupal: %r', drupal_roles)
         should_be_sysadmin = bool(set(('administrator', 'package admin', 'publisher admin')) & set(drupal_roles))
-        is_sysadmin = Authorizer().is_sysadmin(user)
+        is_sysadmin = new_authz.is_sysadmin(user)
         if should_be_sysadmin and not is_sysadmin:
             # Make user a sysadmin
             model.add_user_to_role(user, model.Role.ADMIN, model.System())

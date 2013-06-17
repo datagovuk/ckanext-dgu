@@ -1,0 +1,31 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">CKAN login</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+  <div py:match="content" py:strip="">
+
+    <h1>CKAN login</h1>
+    <form action="/data/user/login_generic" method="post" class="form-horizontal">
+      <div class="control-group">
+        <label for="login">Username:</label>
+        <input type="text" name="login" value="" />
+      </div>
+      <div class="control-group">
+        <label for="password">Password:</label>
+        <input type="password" name="password" value="" />
+      </div>
+      <!-- optional 2 year cookie expiry -->
+      <div class="control-group form-inline">
+        <label for="remember" class="form-inline">Remember me:</label>
+        <input type="checkbox" name="remember" value="63072000" checked="checked" />
+      </div>
+
+      <input name="s" id="s" type="submit" class="btn primary" value="Sign In"/>
+    </form>
+
+  </div>
+
+  <xi:include href="../layout.html" />
+</html>

@@ -89,7 +89,7 @@ ${h.prep_group_edit_data(data)}
   <div class="control-group">
     <label class="control-label" for="state">State</label>
     <div class="controls state-field">
-      <py:if test="h.is_sysadmin() or c.auth_for_change_state">
+      <py:if test="h.check_access('group_change_state', {'id': c.group_dict.id})">
         <select id="state" name="state" style="width:100px;">
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>

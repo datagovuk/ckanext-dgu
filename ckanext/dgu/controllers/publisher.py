@@ -6,14 +6,11 @@ from ckanext.dgu.plugins_toolkit import c, request, render, _, ObjectNotFound, N
 from ckan.lib.base import BaseController, model, h, g
 from ckan.lib.base import abort, gettext
 from pylons.i18n import get_lang
-import ckan.authz as authz
 from ckan.lib.alphabet_paginate import AlphaPage
 from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
-from ckan.authz import Authorizer
 from ckan.logic import tuplize_dict, clean_dict, parse_params
 from ckan.lib.dictization.model_dictize import package_dictize
 from ckan.controllers.group import GroupController
-import ckan.forms
 import ckan.model as model
 from ckan.lib.helpers import json
 from ckan.lib.navl.validators import (ignore_missing,
@@ -282,6 +279,7 @@ class PublisherController(GroupController):
 
     def read(self, id):
         from ckan.lib.search import SearchError
+        import ckan.logic
         import genshi
 
         group_type = self._get_group_type(id.split('@')[0])
@@ -318,8 +316,6 @@ class PublisherController(GroupController):
         except Exception, e:
             error_msg = "<span class='inline-warning'>%s</span>" % _("Cannot render description")
             c.description_formatted = genshi.HTML(error_msg)
-
-        c.group_admins = self.authorizer.get_admins(c.group)
 
         context['return_query'] = True
 
@@ -424,9 +420,9 @@ class PublisherController(GroupController):
 
         # Add the group's activity stream (already rendered to HTML) to the
         # template context for the group/read.html template to retrieve later.
-        c.group_activity_stream = \
-                ckan.logic.action.get.group_activity_list_html(context,
-                    {'id': c.group_dict['id']})
+        #c.group_activity_stream = \
+        #        ckan.logic.action.get.group_activity_list_html(context,
+        #            {'id': c.group_dict['id']})
 
         c.body_class = "group view"
 
@@ -442,7 +438,7 @@ class PublisherController(GroupController):
             if extra.get('state') == 'deleted':
                 continue
             k, v = extra['key'], extra['value']
-            v = json.loads(v)
+            # (Value is no longer in JSON, due to https://github.com/okfn/ckan/issues/381 )
             c.group_extras.append((k, v))
         c.group_extras = dict(c.group_extras)
 

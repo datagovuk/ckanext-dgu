@@ -22,7 +22,7 @@ from pylons import config
 from ckan.lib.helpers import icon, icon_html, json
 import ckan.lib.helpers
 
-from ckan.controllers.package import search_url, url_with_params
+# not importing ckan.controllers here, since we need to monkey patch it in plugin.py
 from publisher_node import PublisherNode
 from ckanext.dgu.lib import formats
 
@@ -306,7 +306,6 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
             return truncate(user_name, length=maxlength)
     else:
         # joe public just gets a link to the user's publisher(s)
-        import ckan.authz
         if user:
             groups = user.get_groups('publisher')
             if is_sysadmin(user):
@@ -343,6 +342,10 @@ def get_stars_aggregate(dataset_id):
     returns a dict of details including:
       {'value': 3, 'last_updated': '2012-06-15T13:20:11.699', ...}
     '''
+    try:
+        import ckanext.qa
+    except ImportError:
+        return None
     from ckanext.qa.reports import dataset_five_stars
     stars_dict = dataset_five_stars(dataset_id)
     return stars_dict
@@ -391,7 +394,10 @@ def does_detected_format_disagree(detected_format, resource_format):
 
 def render_qa_info_for_resource(resource_dict):
     resource_id = resource_dict['id']
-    from ckanext.qa import reports
+    try:
+        from ckanext.qa import reports
+    except ImportError:
+        return ''
     if not c.resource_five_stars or \
            resource_id != c.resource_five_stars['resource_id']:
         c.resource_five_stars = reports.resource_five_stars(resource_id)
@@ -471,6 +477,7 @@ def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
                     List of (key, value) pairs.
     added_params: Dict of params to add, for this facet option
     '''
+    from ckan.controllers.package import search_url, url_with_params
     params = set(params_to_keep)
     params |= set(added_params.items())
     if alternative_url:
@@ -635,7 +642,6 @@ def get_package_fields(package, pkg_extras, dataset_type):
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
-        from ckanext.harvest.model import HarvestObject
         try:
             context = {'model': model, 'session': model.Session}
             harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':package.id})
@@ -644,15 +650,20 @@ def get_package_fields(package, pkg_extras, dataset_type):
             harvest_url = 'Metadata not available'
         harvest_object_id = pkg_extras.get('harvest_object_id')
         if harvest_object_id:
-            harvest_object = HarvestObject.get(harvest_object_id)
-            if harvest_object:
-                harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
+            try:
+                from ckanext.harvest.model import HarvestObject
+            except ImportError:
+                pass
             else:
-                harvest_date = 'Metadata not available'
-            harvest_guid = pkg_extras.get('guid')
-            harvest_source_reference = pkg_extras.get('harvest_source_reference')
-            if harvest_source_reference and harvest_source_reference != harvest_guid:
-                field_names.add(['harvest_source_reference'])
+                harvest_object = HarvestObject.get(harvest_object_id)
+                if harvest_object:
+                    harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
+                else:
+                    harvest_date = 'Metadata not available'
+                harvest_guid = pkg_extras.get('guid')
+                harvest_source_reference = pkg_extras.get('harvest_source_reference')
+                if harvest_source_reference and harvest_source_reference != harvest_guid:
+                    field_names.add(['harvest_source_reference'])
         if pkg_extras.get('resource-type') == 'service':
             field_names.add(['spatial-data-service-type'])
         dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
@@ -886,11 +897,11 @@ def is_package_deleted(pkg):
 
 
 def is_sysadmin(u=None):
-    from ckan.authz import Authorizer
+    from ckan import new_authz
     user = u or c.userobj
     if not user:
         return False
-    return Authorizer().is_sysadmin(user)
+    return new_authz.is_sysadmin(user)
 
 def prep_user_detail():
     # Non-sysadmins cannot see personally identifiable information
@@ -1183,6 +1194,10 @@ def publisher_performance_data(publisher, include_sub_publishers):
         broken_links - green = 0%, amber <= 60% broken links, red > 60% broken
         openness - green if all > 4 *, amber for 50%> 3*, red otherwise
     """
+    try:
+        import ckanext.qa
+    except ImportError:
+        return None
     import time
     from ckanext.qa.reports import broken_resource_links_for_organisation
     from ckanext.dgu.lib import publisher as publib
@@ -1266,7 +1281,7 @@ def render_facet_key(key,value=None):
     if key=='resource-type' or key=='spatial-data-service-type':
         return 'UKLP Type'
     # Delegate to core CKAN
-    return ckan.lib.helpers.facet_title(key)
+    return ckan.lib.helpers.get_facet_title(key)
 
 def render_facet_value(key,value):
     if key=='license_id-is-ogl':

@@ -19,11 +19,11 @@ from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
-from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
-                             dgu_package_create, dgu_package_update,
-                             dgu_package_create_rest, dgu_package_update_rest,
-                             dgu_extra_fields_editable,
-                             dgu_dataset_delete, dgu_user_list, dgu_user_show)
+## from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
+##                              dgu_package_create, dgu_package_update,
+##                              dgu_package_create_rest, dgu_package_update_rest,
+##                              dgu_extra_fields_editable,
+##                              dgu_dataset_delete, dgu_user_list, dgu_user_show)
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
@@ -59,6 +59,9 @@ def not_found(self, url):
     from ckan.lib.base import abort
     abort(404)
 
+def _guess_package_type(self, expecting_name=False):
+    return 'dataset'
+
 class ThemePlugin(SingletonPlugin):
     '''
     DGU Visual Theme for a CKAN install embedded in dgu/Drupal.
@@ -78,6 +81,10 @@ class ThemePlugin(SingletonPlugin):
     # and there is no need to attempt to barf on their unicode characters
     from ckan.controllers.template import TemplateController
     TemplateController.view = not_found
+    # [Monkey patch] Stop autodetecting package-type by the URL since it seems
+    # to think /data/search should search for 'search' packages!
+    from ckan.controllers.package import PackageController
+    PackageController._guess_package_type = _guess_package_type
 
     def update_config(self, config):
         configure_template_directory(config, 'theme/templates')
@@ -209,21 +216,21 @@ class DrupalAuthPlugin(SingletonPlugin):
 class AuthApiPlugin(SingletonPlugin):
     '''Adds functions that work out if the user is allowed to do
     certain edits.'''
-    implements(IAuthFunctions, inherit=True)
+    ##implements(IAuthFunctions, inherit=True)
 
-    def get_auth_functions(self):
-        return {
-            'group_update' : dgu_group_update,
-            'group_create' : dgu_group_create,
-            'package_create' : dgu_package_create,
-            'package_update' : dgu_package_update,
-            'package_create_rest' : dgu_package_create_rest,
-            'package_update_rest' : dgu_package_update_rest,
-            'package_extra_fields_editable' : dgu_extra_fields_editable,
-            'package_delete': dgu_dataset_delete,
-            'user_list': dgu_user_list,
-            'user_show': dgu_user_show,
-        }
+    ## def get_auth_functions(self):
+    ##     return {
+    ##         'group_update' : dgu_group_update,
+    ##         'group_create' : dgu_group_create,
+    ##         'package_create' : dgu_package_create,
+    ##         'package_update' : dgu_package_update,
+    ##         'package_create_rest' : dgu_package_create_rest,
+    ##         'package_update_rest' : dgu_package_update_rest,
+    ##         'package_extra_fields_editable' : dgu_extra_fields_editable,
+    ##         'package_delete': dgu_dataset_delete,
+    ##         'user_list': dgu_user_list,
+    ##         'user_show': dgu_user_show,
+    ##     }
 
 
 class DguForm(SingletonPlugin):
@@ -252,7 +259,6 @@ class DguForm(SingletonPlugin):
 class PublisherPlugin(SingletonPlugin):
 
     implements(IRoutes, inherit=True)
-    implements(IConfigurer)
     implements(ISession, inherit=True)
 
 
@@ -262,7 +268,7 @@ class PublisherPlugin(SingletonPlugin):
         items are users so we can notify them to apply for publisher access.
         """
         from pylons.i18n import _
-        from ckan.model.group import User
+        from ckan.model import User
 
         session.flush()
         if not hasattr(session, '_object_cache'):
@@ -317,13 +323,6 @@ class PublisherPlugin(SingletonPlugin):
     def after_map(self, map):
         return map
 
-    def update_config(self, config):
-        # set the auth profile to use the publisher based auth
-        config['ckan.auth.profile'] = 'publisher'
-
-        # same for the harvesting auth profile
-        config['ckan.harvest.auth.profile'] = 'publisher'
-
 class SearchPlugin(SingletonPlugin):
     """
     DGU-specific searching.
@@ -342,7 +341,7 @@ class SearchPlugin(SingletonPlugin):
     well as the group name.
     """
 
-    implements(IPackageController)
+    implements(IPackageController, inherit=True)
 
     def read(self, entity):
         pass
@@ -417,7 +416,8 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.resource_format_cleanup(pkg_dict)
         SearchIndexing.add_field__group_titles(pkg_dict)
         SearchIndexing.add_field__publisher(pkg_dict)
-        SearchIndexing.add_field__harvest_document(pkg_dict)
+        if is_plugin_enabled('harvest'):
+            SearchIndexing.add_field__harvest_document(pkg_dict)
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         return pkg_dict
@@ -445,3 +445,6 @@ class ApiPlugin(SingletonPlugin):
         return {
             'publisher_show': publisher_show,
             }
+
+def is_plugin_enabled(plugin_name):
+    return plugin_name in config.get('ckan.plugins', '').split()

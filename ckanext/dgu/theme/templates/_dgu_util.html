@@ -88,7 +88,7 @@
   </ul>
 
   <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary boxed">
-     <div py:with="title=package.get('title') or package.get('name')">
+     <div py:if="package" py:with="title=package.get('title') or package.get('name')">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
          <py:for each="format in h.formats_for_package(package)">
@@ -316,11 +316,6 @@
       <py:if test="h.check_access('package_update',{'id':pkg.id})">
         <a class="btn btn-info" href="${h.url_for(controller='package', action='edit', id=pkg.name)}">
           Edit
-        </a>
-      </py:if>
-      <py:if test="h.check_access('package_edit_permissions',{'id':pkg.id})">
-        <a class="btn btn-info" href="${h.url_for(controller='package', action='authz', id=pkg.name)}">
-          Authorization
         </a>
       </py:if>
     </div>

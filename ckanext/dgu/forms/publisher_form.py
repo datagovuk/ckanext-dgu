@@ -1,5 +1,4 @@
 import os, logging
-from ckan.authz import Authorizer
 import ckan.logic.action.create as create
 import ckan.logic.action.update as update
 import ckan.logic.action.get as get
@@ -7,7 +6,6 @@ from ckan.logic.converters import date_to_db, date_to_form, convert_to_extras, c
 from ckan.logic import tuplize_dict, clean_dict, parse_params
 import ckan.logic.schema as default_schema
 from ckan.logic.schema import group_form_schema
-from ckan.logic.schema import package_form_schema
 import ckan.logic.validators as val
 from ckan.lib.base import BaseController, model, abort
 from ckan.lib.base import redirect, config, h
