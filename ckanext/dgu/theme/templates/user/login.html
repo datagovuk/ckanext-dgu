@@ -7,6 +7,16 @@
   <div py:match="content" py:strip="">
 
     <h1>CKAN login</h1>
+<!--! Am using a python block because I can't seem to get this to work:
+      py:if="'error_summary' in dir()" -->
+<?python
+err_msg = error_summary.values()[0] if 'error_summary' in dir() else None
+?>
+    <div py:if="err_msg" class="alert">
+      <h3>Login Error</h3>
+      <p>${err_msg}</p>
+    </div>
+
     <form action="/data/user/login_generic" method="post" class="form-horizontal">
       <div class="control-group">
         <label for="login">Username:</label>
