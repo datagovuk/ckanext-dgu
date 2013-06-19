@@ -86,6 +86,19 @@ class SearchIndexing(object):
                         'already contains a key of that name')
 
     @classmethod
+    def add_field__group_abbreviation(cls, pkg_dict):
+        '''Adds any group abbreviation '''
+        abbrs = []
+        for g in [Group.get(g) for g in pkg_dict['groups']]:
+            abbr = g.extras.get('abbreviation')
+            if abbr:
+                abbrs.append(abbr)
+
+        if abbrs:
+            pkg_dict['group_abbreviation'] = abbrs
+            log.debug('Abbreviations %s: %s', pkg_dict['name'], abbrs)
+
+    @classmethod
     def add_field__publisher(cls, pkg_dict):
         '''Adds the 'publisher' based on group.'''
         import ckan.model as model
