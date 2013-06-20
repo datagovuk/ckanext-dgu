@@ -755,7 +755,13 @@ def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
 
 def groups_as_json(groups):
-    return json.dumps([group.title for group in groups])
+    l = []
+    for group in groups:
+        l.append(group.title)
+        abbr = group.extras.get('abbreviation')
+        if abbr:
+            l.append(abbr)
+    return json.dumps(l)
 
 def user_display_name(user):
     user_str = ''
@@ -921,6 +927,8 @@ def prep_group_edit_data(data):
     # on validation error, the submitted values appear in data[key] with the original
     # values in data['extras']. Therefore populate the form with the data[key] values
     # in preference, and fall back on the data['extra'] values.
+    if c.group:
+        c.editing = True
     original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
                                 for extra_dict in data.get('extras', {})])
     for key, value in original_extra_fields.items():
@@ -1116,10 +1124,9 @@ def gemini_resources():
 def individual_resources():
     r = c.pkg_dict.get('individual_resources', [])
     # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary
+    # three keys. So combine them if necessary   
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
-
     return r
 
 def init_resources_for_nav():
@@ -1309,10 +1316,10 @@ def render_facet_value(key,value):
 def social_url_twitter(url,title):
     import urllib
     twitter_parameters = {
-      'original_referer':url,
-      'text':title,
+      'original_referer':url.encode('utf-8'),
+      'text':title.encode('utf-8'),
       'tw_p':'tweetbutton',
-      'url':url,
+      'url':url.encode('utf-8'),
     }
     twitter_url = 'https://twitter.com/intent/tweet?' + urllib.urlencode(twitter_parameters)
     return twitter_url

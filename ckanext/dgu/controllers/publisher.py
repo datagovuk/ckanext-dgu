@@ -25,7 +25,7 @@ from ckan.lib.navl.validators import (ignore_missing,
 from ckanext.dgu.lib.publisher import go_up_tree
 from ckanext.dgu.authentication.drupal_auth import DrupalUserMapping
 from ckanext.dgu.drupalclient import DrupalClient
-from ckan.plugins import PluginImplementations
+from ckan.plugins import PluginImplementations, IMiddleware
 from ckanext.dgu.plugin import DrupalAuthPlugin
 
 log = logging.getLogger(__name__)
@@ -146,6 +146,7 @@ class PublisherController(GroupController):
         if id:
             c.group = model.Group.by_name(id)
             if not c.group:
+                log.warning('Could not find publisher for name %s', id)
                 abort(404, _('Publisher not found'))
             if 'save' in request.params and not errors:
                 return self._send_application(c.group, request.params.get('reason', None))
@@ -177,7 +178,7 @@ class PublisherController(GroupController):
             h.flash_error(_("There was a problem with your submission, \
                              please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
-            return self.apply(group.id, errors=errors,
+            return self.users(group.name, errors=errors,
                               error_summary=error_summary(errors))
 
         data_dict = clean_dict(unflatten(
@@ -191,7 +192,7 @@ class PublisherController(GroupController):
         for user_name in new_users:
             drupal_id = DrupalUserMapping.ckan_user_name_to_drupal_id(user_name)
             if drupal_id:
-                if not PluginImplementations(DrupalAuthPlugin):
+                if not is_drupal_auth_activated():
                     # joint auth with Drupal is not activated, so cannot
                     # check with Drupal
                     log.warning('Drupal user made editor/admin but without checking email is verified.')
@@ -200,11 +201,16 @@ class PublisherController(GroupController):
                     self.drupal_client = DrupalClient()
                 user_properties = self.drupal_client.get_user_properties(drupal_id)
                 roles = user_properties['roles'].values()
-                if 'unverified' in roles:
-                    h.flash_error("There was a problem with your submission, \
-                                     please correct it and try again")
-                    errors = {"reason": ["User has not verified their email address yet"]}
-                    return self.apply(group.id, errors=errors,
+                if 'unverified user' in roles:
+                    user = model.User.by_name(user_name)
+                    h.flash_error("There was a problem with your submission - see the error message below.")
+                    errors = {"reason": ['User "%s" has not verified their email address yet. '
+                                         'Please ask them to do this and then try again. ' % \
+                                          user.fullname]}
+                    log.warning('Trying to add user (%r %s) who is not verified to group %s',
+                                user.fullname, user_name, group.name)
+                    # NB Other values in the form are lost, but that is probably ok
+                    return self.users(group.name, errors=errors,
                                       error_summary=error_summary(errors))
 
         # Temporary fix for strange caching during dev
@@ -273,6 +279,19 @@ class PublisherController(GroupController):
 
         return render('publisher/users.html')
 
+    def _redirect_if_previous_name(self, id):
+        # If we can find id in the extras for any group we will use it 
+        # to re-direct the user to the new name for the group. If not then
+        # we'll just let it fail.  If we find multiple groups with the name
+        # we'll just redirect to the first match.
+        import ckan.model as model
+
+        match = model.Session.query(model.GroupExtra).\
+            filter(model.GroupExtra.key.like('previous-name-%')).\
+            filter(model.GroupExtra.value == id).\
+            filter(model.GroupExtra.state=='active').order_by('key desc').first()
+        if match:
+            h.redirect_to( 'publisher_read', id=match.group.name)
 
     def read(self, id):
         from ckan.lib.search import SearchError
@@ -298,6 +317,7 @@ class PublisherController(GroupController):
             c.group_dict = get_action('group_show')(context, data_dict)
             c.group = context['group']
         except ObjectNotFound:
+            self._redirect_if_previous_name(id)
             abort(404, _('Group not found'))
         except NotAuthorized:
             abort(401, _('Unauthorized to read group %s') % id)
@@ -530,3 +550,7 @@ class PublisherController(GroupController):
             c.is_superuser_or_groupadmin = False
 
         return super(PublisherController, self).new(data, errors, error_summary)
+
+def is_drupal_auth_activated():
+    '''Returns whether the DrupalAuthPlugin is activated'''
+    return any(isinstance(plugin, DrupalAuthPlugin) for plugin in PluginImplementations(IMiddleware))
