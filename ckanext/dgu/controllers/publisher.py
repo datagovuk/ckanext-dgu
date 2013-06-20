@@ -418,9 +418,9 @@ class PublisherController(GroupController):
 
         # Add the group's activity stream (already rendered to HTML) to the
         # template context for the group/read.html template to retrieve later.
-        c.group_activity_stream = \
-                ckan.logic.action.get.group_activity_list_html(context,
-                    {'id': c.group_dict['id']})
+        #c.group_activity_stream = \
+        #        ckan.logic.action.get.group_activity_list_html(context,
+        #            {'id': c.group_dict['id']})
 
         c.body_class = "group view"
 
