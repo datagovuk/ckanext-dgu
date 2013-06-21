@@ -27,7 +27,7 @@ class ResourceFieldNames(FieldNames):
     # For building a list of the fields to display and their order
     def __init__(self):
         # core fields
-        self._field_names = ['url', 'date-updated-computed', 'scraper_url', 'scraped']
+        self._field_names = ['url', 'date-updated-computed', 'scraper_url', 'scraped', 'release_date']
 
 class DisplayableFields:
     # For collecting the key and value to display each field

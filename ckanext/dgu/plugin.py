@@ -129,6 +129,10 @@ class ThemePlugin(SingletonPlugin):
                     controller='ckanext.dgu.controllers.package:CommentProxy',
                     action='get_comments')
 
+        with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
+            m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
+            m.connect('/dataset/{id:.*}/release', action='release')            
+
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
             m.connect('/data/user/edit', action='edit')

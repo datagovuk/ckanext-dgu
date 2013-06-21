@@ -16,8 +16,15 @@
 
   <xi:include href="sidebar.html"/>
   <py:def function="page_heading">
-    ${dataset_admin_buttons(c.pkg)}
+    ${dataset_admin_buttons(c.pkg)}    
+    <py:if test="not c.sub_heading">
     ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+    </py:if>
+
+    <py:if test="c.sub_heading">
+    ${h.dataset_link(c.pkg)}
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> ${c.sub_heading}</span>    
+     </py:if>    
   </py:def>
 
   <div py:match="content" class="package">
@@ -34,7 +41,12 @@
       </div>
     </py:if>
 
-    <div class="boxed">
+
+    <div class="boxed" py:if="c.include_template">
+      <xi:include href="${c.include_template}" />
+    </div>
+
+    <div class="boxed" py:if="not c.include_template">
       <xi:include href="read_core.html" />
     </div>
 

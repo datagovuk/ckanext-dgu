@@ -586,9 +586,9 @@ def get_resource_fields(resource, pkg_extras):
     from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
     field_names = ResourceFieldNames()
-    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 
+                                         'mimetype-inner', 'name']
     res_dict = dict(resource)
-
     field_value_map = {
         # field_name : {display info}
         'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
@@ -599,10 +599,13 @@ def get_resource_fields(resource, pkg_extras):
             'value': t.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
-            'value': res_dict.get('scraped')},
+            'value': h.render_datetime(res_dict.get('scraped'), "%d/%m/%Y")},
         'scraper_source': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraper_source')},
+        'release_date': {'label': 'ONS Release',
+            'label_title':'The ONS release',
+            'value': res_dict.get('release_date', 'not found')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
@@ -1128,6 +1131,22 @@ def individual_resources():
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
     return r
+
+def has_group_ons_resources():
+    resources = individual_resources()
+    if not resources:
+        return False
+
+    return resources[0].get('release_date', False)
+
+def group_ons_resources():
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return groupings
+
 
 def init_resources_for_nav():
     # Core CKAN expects a resource dict to render in the navigation

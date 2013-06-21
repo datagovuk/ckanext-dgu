@@ -186,18 +186,18 @@ class ONSUpdateTask(CkanCommand):
                             try:
                                 # Get either the original name (or description) to prepend
                                 # to the new resources description
-                                desc = "%s - %s" % (r['original']['description'], r['description'],)
-                                name = "%s - %s" % (r['original']['description'], r['title'],)
                                 ckan.add_package_resource(dataset['name'], r['url'],
                                                           resource_type='',
                                                           format=r['url'][-3:],
-                                                          description=desc,
-                                                          name=name,
+                                                          description=r['original']['description'],
+                                                          name=r['title'],
                                                           scraped=datetime.datetime.now().isoformat(),
-                                                          scraper_source=r['original']['url'])
+                                                          scraper_source=r['original']['url'],
+                                                          release_date=r.get('release-date', ''))
                                 # If we get here we can break out of the re-try loop
                                 break
-                            except:
+                            except Exception, e:
+                                raise e
                                 got = got - 1
 
                         log.info("Set source to %s" % r['original']['url'])
@@ -313,7 +313,8 @@ class ONSScraper(object):
                             items.append({'url': urljoin(resource['url'], l),
                                          'description': '',
                                          'title': link.get('title', ''),
-                                         'original': resource})
+                                         'original': resource,
+                                         'release-date': resource.get('publish-date', '')})
                             log.debug("Found an item from a direct link")                           
 
         # Try all of the URLs to find the data link
