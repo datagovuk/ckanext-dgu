@@ -117,6 +117,7 @@ class ThemePlugin(SingletonPlugin):
         data_controller = 'ckanext.dgu.controllers.data:DataController'
         tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         reports_controller = 'ckanext.dgu.controllers.reports:ReportsController'
+        user_controller = 'ckanext.dgu.controllers.user:UserController'
         map.redirect('/', '/data')
         map.connect('/data', controller=data_controller, action='index')
         map.connect('/data/tag', controller=tag_controller, action='index')
@@ -136,6 +137,10 @@ class ThemePlugin(SingletonPlugin):
                     controller='ckanext.dgu.controllers.package:CommentProxy',
                     action='get_comments')
 
+        # Remap the /user/me to the DGU version of the User controller
+        with SubMapper(map, controller=user_controller) as m:
+            m.connect('/data/user/me', action='me')
+
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
             m.connect('/data/user/edit', action='edit')
@@ -148,11 +153,12 @@ class ThemePlugin(SingletonPlugin):
             m.connect('/data/user/logged_out', action='logged_out')
             m.connect('/data/user/logged_out_redirect', action='logged_out_page')
             m.connect('/data/user/reset', action='request_reset')
-            m.connect('/data/user/me', action='me')
+            #NB not /data/user/me
             m.connect('/data/user/set_lang/{lang}', action='set_lang')
             m.connect('/data/user/{id:.*}', action='read')
             m.connect('/data/user', action='index')
 
+        map.redirect('/dashboard', '/data/user/me')
 
         return map
 

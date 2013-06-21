@@ -1,0 +1,21 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">CKAN logout first</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+  <div py:match="content" py:strip="">
+
+    <h1>CKAN login</h1>
+    <div class="alert">
+      <h3>Error</h3>
+      <p>You must 
+         <a href="${'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}">log out</a>
+         before you can login.
+      </p>
+    </div>
+
+  </div>
+
+  <xi:include href="../layout.html" />
+</html>

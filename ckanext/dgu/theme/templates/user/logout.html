@@ -1,0 +1,18 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">CKAN logout</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+  <div py:match="content" py:strip="">
+
+  <!--! Overriding the OKF template only because we do not have a
+        DGU base template in Jinja yet -->
+
+    <h1>CKAN log out</h1>
+    <p>You are now logged out.</p>
+
+  </div>
+
+  <xi:include href="../layout.html" />
+</html>
