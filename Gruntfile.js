@@ -45,15 +45,18 @@ module.exports = function(grunt) {
     },
     watch: {
       styles: {
-        files: 'ckanext/dgu/theme/src/css/*',
+        files: 'ckanext/dgu/theme/src/css/**/*',
         tasks: 'styles'
       },
       scripts: {
-        files: 'ckanext/dgu/heme/public/scripts/*',
+        files: 'ckanext/dgu/theme/public/scripts/**/*',
         tasks: 'scripts'
+      },
+      scripts: {
+        files: 'ckanext/dgu/theme/src/images/**/*',
+        tasks: 'images'
       }
     },
-    /*
     imagemin: {
       build: {
         options: { 
@@ -62,20 +65,27 @@ module.exports = function(grunt) {
         files: [
           {
             expand: true,
-            src: '*.jpg',
-            cwd: 'assets/src/img/',
-            dest: 'assets/img/'
-          },
-          {
-            expand: true,
-            src: '*.png',
-            cwd: 'assets/src/img/',
-            dest: 'assets/img/'
+            src: '**/*.{jpg,png}',
+            cwd: 'ckanext/dgu/theme/src/images/',
+            dest: 'ckanext/dgu/theme/public/images/'
           }
         ]
       },
     },
-    */
+    copy: {
+      images: {
+        /* Imagemin will only handle PNG and JPEG. Other images need to be straight copied. */
+        files: [
+          {
+            expand: true,
+            cwd: 'ckanext/dgu/theme/src/images/',
+            src: '**/*.{gif,ico}',
+            dest: 'ckanext/dgu/theme/public/images/',
+            filter: 'isFile'
+          }
+        ]
+      }
+    },
     timestamp: {
       build: {
         dest: 'ckanext/dgu/theme/timestamp.py'
@@ -91,11 +101,12 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-contrib-imagemin');
+  grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Default task(s).
   grunt.registerTask('styles', ['concat:styles','less:build','timestamp']);
   grunt.registerTask('scripts', ['concat:scripts','uglify:build','timestamp']);
-  grunt.registerTask('default', ['styles','scripts','timestamp']);
-  //grunt.registerTask('default', ['styles','scripts','imagemin','timestamp']);
+  grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
+  grunt.registerTask('default', ['styles','scripts','images','timestamp']);
 };
