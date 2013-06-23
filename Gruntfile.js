@@ -18,8 +18,8 @@ module.exports = function(grunt) {
       },
       styles: {
         src: [  /* Order of resources is important. */
-          'ckanext/dgu/theme/less/elements.less',
-          'ckanext/dgu/theme/less/dgu-main.less',
+          'ckanext/dgu/theme/src/css/elements.less',
+          'ckanext/dgu/theme/src/css/dgu-main.less',
         ],
         dest: 'ckanext/dgu/theme/public/css/dgu.less'
       }
@@ -45,7 +45,7 @@ module.exports = function(grunt) {
     },
     watch: {
       styles: {
-        files: 'ckanext/dgu/theme/less/*',
+        files: 'ckanext/dgu/theme/src/css/*',
         tasks: 'styles'
       },
       scripts: {
@@ -96,5 +96,6 @@ module.exports = function(grunt) {
   // Default task(s).
   grunt.registerTask('styles', ['concat:styles','less:build','timestamp']);
   grunt.registerTask('scripts', ['concat:scripts','uglify:build','timestamp']);
-  grunt.registerTask('default', ['styles','scripts','imagemin','timestamp']);
+  grunt.registerTask('default', ['styles','scripts','timestamp']);
+  //grunt.registerTask('default', ['styles','scripts','imagemin','timestamp']);
 };
