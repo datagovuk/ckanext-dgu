@@ -366,7 +366,8 @@ class ONSScraper(object):
                 items.append({'url': urljoin(resource['url'], url),
                     'description': description,
                     'title': title,
-                    'original': resource})
+                    'original': resource,
+                    'release-date': resource.get('publish-date', '')})
 
             if not url:
                 _log(line, "No link to data page")
