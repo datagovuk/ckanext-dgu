@@ -1,0 +1,33 @@
+{
+  "name": "ckanext-dgu",
+  "version": "1.0.0",
+  "description": "Data.gov.uk's CKAN extension. Package.json required for front-end development with Grunt.js.",
+  "main": "",
+  "dependencies": {},
+  "devDependencies": {
+    "nodewatch": "~0.3.1",
+    "watch-lessc": "~0.0.2",
+    "less": "~1.3.3",
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-contrib-less": "~0.6.1",
+    "grunt-contrib-watch": "~0.4.4",
+    "grunt-contrib-imagemin": "~0.1.4",
+    "grunt-contrib-copy": "~0.4.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/datagovuk/ckanext-dgu"
+  },
+  "author": "",
+  "license": "",
+  "readmeFilename": "README.md",
+  "gitHead": "9df642337923cd7fb0b8618a5a6a79e856654c4a",
+  "bugs": {
+    "url": "https://github.com/datagovuk/ckanext-dgu/issues"
+  }
+}

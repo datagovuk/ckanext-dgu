@@ -1351,3 +1351,6 @@ def social_url_google(url):
     google_url = 'https://plus.google.com/share?url='+url
     return google_url
 
+def ckan_asset_timestamp():
+    from ckanext.dgu.theme.timestamp import asset_build_timestamp
+    return asset_build_timestamp
