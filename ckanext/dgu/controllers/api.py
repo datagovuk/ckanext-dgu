@@ -27,6 +27,7 @@ class DguApiController(ApiController):
             limit = int(request.params.get('limit', default_limit))
         except ValueError:
             limit = default_limit
+
         limit = min(100, limit) # max value
         query = model.Session.query(model.PackageRevision)
         query = query.filter(model.PackageRevision.state=='active')

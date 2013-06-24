@@ -75,7 +75,7 @@
 
   <py:def function="ons_grouped_table(ons_grouping)">
   <?python
-    SHOW_MAX = 2
+    SHOW_MAX = 10
   ?>
     <py:for each="k, resources in ons_grouping.iteritems()">
       <h4 style='margin-top: 4px;'>ONS Release: ${k or "No name"}

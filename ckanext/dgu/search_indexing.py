@@ -88,15 +88,14 @@ class SearchIndexing(object):
     @classmethod
     def add_field__group_abbreviation(cls, pkg_dict):
         '''Adds any group abbreviation '''
-        abbrs = []
+        abbr = None
         for g in [Group.get(g) for g in pkg_dict['groups']]:
             abbr = g.extras.get('abbreviation')
-            if abbr:
-                abbrs.append(abbr)
+            break
 
-        if abbrs:
-            pkg_dict['group_abbreviation'] = abbrs
-            log.debug('Abbreviations %s: %s', pkg_dict['name'], abbrs)
+        if abbr:
+            pkg_dict['group_abbreviation'] = abbr
+            log.debug('Abbreviations %s: %s', pkg_dict['name'], abbr)
 
     @classmethod
     def add_field__publisher(cls, pkg_dict):

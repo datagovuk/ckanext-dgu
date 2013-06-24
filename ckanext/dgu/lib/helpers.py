@@ -1137,7 +1137,7 @@ def has_group_ons_resources():
     if not resources:
         return False
 
-    return resources[0].get('release_date', False)
+    return any(r.get('release_date', False) for r in resources)
 
 def group_ons_resources():
     import collections
