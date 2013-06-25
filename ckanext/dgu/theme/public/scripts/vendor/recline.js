@@ -3128,6 +3128,9 @@ this.recline.Backend = this.recline.Backend || {};
           dfd.reject(results.error);
         }
 
+        if ( results.extra_text ) {
+          $('#ckanext-datapreview-extra').html(results.extra_text)
+        }
         // Rename duplicate fieldIds as each field name needs to be
         // unique.
         var seen = {};
