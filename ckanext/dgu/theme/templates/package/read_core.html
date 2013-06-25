@@ -72,75 +72,7 @@
     </div>
     </py:for>
   </py:def>
-
-  <py:def function="ons_grouped_table(ons_grouping)">
-  <?python
-    SHOW_MAX = 10
-  ?>
-    <py:for each="k, resources in ons_grouping.iteritems()">
-      <h4 style='margin-top: 4px;'>ONS Release: ${k or "No name"}
-      (${len(resources)})
-      </h4>
-      <py:for each="res in resources[0:SHOW_MAX]">
-      <div class="resource-row">
-        <div class="text-overlay">
-          <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
-          <div class="btn-group">
-            <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
-              Download
-            </a>
-            <button class="btn btn-primary dropdown-toggle"
-              data-toggle="dropdown"
-              py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-              <li>
-                <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
-                  Download
-                </a>
-              </li>
-              <li>
-                <py:if test="h.get_cache_url(res)">
-                  <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
-                    Cached
-                  </a>
-                </py:if>
-                <py:if test="not h.get_cache_url(res)">
-                  <a class="disabled">(no cache available)</a>
-                </py:if>
-              </li>
-            </ul>
-          </div>
-          <div class="clearfix"></div>
-        </div>
-        <div class="resource-row-format">
-          <py:if test="res.get('gemini',False)">
-            ${format_box(res.get('type',''))}
-          </py:if>
-          <py:if test="not res.get('gemini',False)">
-            ${format_box(res.get('format',''))}
-          </py:if>
-        </div>
-        <div class="resource-row-text">
-          <!-- Attached to timeseries resources and additional resources -->
-          <div class="hover-text">
-            <!-- Attached to Additional Links which are scrape sources -->
-            <py:if test="res.get('scraped') or res.get('scraper_url')">
-              ${h.scraper_icon(res, alt=if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}
-            </py:if>
-            ${res.get('date')}
-            ${h.resource_display_name(res)}
-          </div>          
-        </div>
-      </div>      
-      </py:for>
-      <div style="margin:10px;" >
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='release', id=c.pkg.name, release_name=k)}" class="notes-read-more">View all resources&raquo;</a>
-      </div>
-      <div class="clearfix"></div>
-    </py:for>
-  </py:def>
+  
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
 
@@ -179,9 +111,12 @@
           <py:if test="not h.has_group_ons_resources()">
             ${resource_table(h.individual_resources())}
           </py:if>
-          <py:if test="h.has_group_ons_resources()">
-            ${ons_grouped_table(h.group_ons_resources())}
-          </py:if>          
+          <py:if test="h.has_group_ons_resources() and c.all_resources">
+            ${ons_grouped_table(h.get_ons_releases())}
+          </py:if>
+          <py:if test="h.has_group_ons_resources() and not c.all_resources">
+            ${ons_grouped_table(h.get_limited_ons_releases())}
+          </py:if>
         </py:if>
         <py:if test="h.timeseries_resources()">
           <h3>Data Resources (<span class="badge badge-inverse resources-badge">${len(h.timeseries_resources())}</span> in a time series)</h3>

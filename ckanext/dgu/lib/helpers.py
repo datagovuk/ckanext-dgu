@@ -1139,7 +1139,32 @@ def has_group_ons_resources():
 
     return any(r.get('release_date', False) for r in resources)
 
-def group_ons_resources():
+
+
+def get_ons_releases():
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return sorted(groupings.keys(), reverse=True)
+
+def ons_release_count():
+    return len(get_ons_releases())
+
+def get_limited_ons_releases():
+    gps = get_ons_releases()
+    return [gps[0]]
+
+def get_resources_for_ons_release(release):
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return groupings[release]
+
+def get_resources_for_ons():
     import collections
     resources = individual_resources()
     groupings = collections.defaultdict(list)

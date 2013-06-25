@@ -17,47 +17,15 @@ log = logging.getLogger(__name__)
 
 class PackageController(ckan.controllers.package.PackageController):
 
+    def __before__(self, action, **params):
+        super(PackageController, self).__before__(action, **params)
+        c.all_resources = 'all' in request.params.keys()
+
     def history(self, id):
         """ Auth is different for DGU than for publisher default """
         # TODO Replace user names with department names
         return super(PackageController, self).history(id)
 
-    def release(self, id, release_name=None):
-        """ Shows all of the resources for a specific release should they
-            be available """
-        if not release_name:
-            release_name = ''
-
-        context = {
-            'model': model,
-            'session': model.Session,
-            'user': c.user,
-        }
-
-        pkg = None
-        try:
-            c.pkg_dict = get_action('package_show')(context, {'id':id})
-            c.pkg = context['package']
-            #c.resources_json = json.dumps(c.pkg_dict.get('resources',[]))
-        except ObjectNotFound:
-            abort(404, _('Dataset not found'))
-        except NotAuthorized:
-            abort(401, _('Unauthorized to read package %s') % id)
-
-        resources_dicts = []
-        for dct in c.pkg_dict['resources'][:]:
-            if dct['resource_type'] == 'documentation':
-                continue
-
-            if dct['release_date'] == release_name:
-                resources_dicts.append(dct)
-
-        c.pkg_dict['resources'] = resources_dicts
-
-        c.include_template = "release.html"
-        c.sub_heading = "ONS Release: {0}".format(release_name or "No name")
-        PackageSaver().render_package(c.pkg_dict, context)        
-        return render("package/read.html")
 
 
     def delete(self, id):
