@@ -11,13 +11,13 @@
 
   <xi:include href="package/basket.html" />
 
- <py:def function="ons_grouped_table(keys)">
+ <py:def function="ons_grouped_table(keys, res_count=None)">
     <py:for each="k in keys">
       <div py:if="len(keys) > 1" style='margin-top: 12px;'>
         <h4 >ONS Release: ${k or "No name"} <span class="badge resources-badge">${len(h.get_resources_for_ons_release(k))}</span>
         </h4>
     </div>
-      <py:for each="res in h.get_resources_for_ons_release(k)">
+      <py:for each="res in h.get_resources_for_ons_release(k, res_count)">
       <div class="resource-row">
         <div class="text-overlay">
           <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>

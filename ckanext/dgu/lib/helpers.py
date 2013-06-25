@@ -1139,8 +1139,6 @@ def has_group_ons_resources():
 
     return any(r.get('release_date', False) for r in resources)
 
-
-
 def get_ons_releases():
     import collections
     resources = individual_resources()
@@ -1156,12 +1154,14 @@ def get_limited_ons_releases():
     gps = get_ons_releases()
     return [gps[0]]
 
-def get_resources_for_ons_release(release):
+def get_resources_for_ons_release(release, count=None):
     import collections
     resources = individual_resources()
     groupings = collections.defaultdict(list)
     for r in resources:
         groupings[r['release_date']].append(r)
+    if count:
+        return groupings[release][:count]
     return groupings[release]
 
 def get_resources_for_ons():
