@@ -605,7 +605,7 @@ def get_resource_fields(resource, pkg_extras):
             'value': res_dict.get('scraper_source')},
         'release_date': {'label': 'ONS Release',
             'label_title':'The ONS release',
-            'value': res_dict.get('release_date', 'not found')},
+            'value': res_dict.get('release_date')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
