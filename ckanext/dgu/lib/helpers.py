@@ -1317,6 +1317,8 @@ def render_facet_key(key,value=None):
         return 'Type'
     if key=='resource-type' or key=='spatial-data-service-type':
         return 'UKLP Type'
+    if key=='all_themes':
+        return 'Theme'
     # Delegate to core CKAN
     return ckan.lib.helpers.facet_title(key)
 
