@@ -20,7 +20,7 @@ from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
-                             dgu_package_create, dgu_package_update,
+                             dgu_package_create, dgu_package_update, dgu_package_show,
                              dgu_package_create_rest, dgu_package_update_rest,
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show)
@@ -131,7 +131,7 @@ class ThemePlugin(SingletonPlugin):
 
         with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
             m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
-            m.connect('/dataset/{id:.*}/release', action='release')            
+            m.connect('/dataset/{id:.*}/release', action='release')
 
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
@@ -169,12 +169,12 @@ class ResourceURLModificationPlugin(SingletonPlugin):
     implements(IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
-        log.debug("URL for resource %s has changed" % resource.id)         
+        log.debug("URL for resource %s has changed" % resource.id)
         update_package_major_time(resource.resource_group.package)
 
 
 class ResourceModificationPlugin(SingletonPlugin):
-    implements(IDomainObjectModification, inherit=True)    
+    implements(IDomainObjectModification, inherit=True)
 
     def notify(self, entity, operation):
         from ckan import model
@@ -184,7 +184,7 @@ class ResourceModificationPlugin(SingletonPlugin):
 
         if not entity.resource_group:
             log.debug("Resource has no resource_group")
-            return 
+            return
 
         model.Session.flush()
         pkg = entity.resource_group.package
@@ -193,11 +193,11 @@ class ResourceModificationPlugin(SingletonPlugin):
             log.debug("A new resource was created")
             update_package_major_time(pkg)
         elif operation == model.DomainObjectOperation.changed:
-            # If we get a change, then we should just check if the 
-            # state is deleted, if so then we should update the 
+            # If we get a change, then we should just check if the
+            # state is deleted, if so then we should update the
             # modification date on the package. If the state isn't
             # deleted then we will instead catch the URL change with
-            #  IResourceUrlChange            
+            #  IResourceUrlChange
             if entity.state == 'deleted':
                 log.debug("A resource was deleted")
                 update_package_major_time(pkg)
@@ -227,6 +227,7 @@ class AuthApiPlugin(SingletonPlugin):
             'package_delete': dgu_dataset_delete,
             'user_list': dgu_user_list,
             'user_show': dgu_user_show,
+            'package_show': dgu_package_show,
         }
 
 
@@ -316,6 +317,7 @@ class PublisherPlugin(SingletonPlugin):
         map.connect('publisher_read',
                     '/publisher/:id',
                     controller=pub_ctlr, action='read' )
+
         return map
 
     def after_map(self, map):
@@ -327,6 +329,37 @@ class PublisherPlugin(SingletonPlugin):
 
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
+
+
+class InventoryPlugin(SingletonPlugin):
+
+    implements(IRoutes, inherit=True)
+    implements(IConfigurer)
+    implements(ISession, inherit=True)
+
+
+    def before_commit(self, session):
+        pass
+
+    def before_map(self, map):
+        inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
+        map.connect('/inventory/:id/edit',
+                    controller=inv_ctlr, action='edit' )
+        map.connect('/inventory/:id/edit/download',
+                    controller=inv_ctlr, action='download' )
+        map.connect('/inventory/:id/edit/template',
+                    controller=inv_ctlr, action='template' )
+        map.connect('/inventory/:id/edit/upload',
+                    controller=inv_ctlr, action='upload' )
+
+        return map
+
+    def after_map(self, map):
+        return map
+
+    def update_config(self, config):
+        pass
+
 
 class SearchPlugin(SingletonPlugin):
     """
@@ -403,6 +436,12 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
+
+        # Temporarily make sure we don't show any datasets from inventory
+        if search_params.get('fq'):
+            search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
+        else:
+            search_params['fq'] = 'inventory:"false"'
         return search_params
 
     def after_search(self, search_results, search_params):
@@ -425,6 +464,7 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
+        SearchIndexing.add_inventory(pkg_dict)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):

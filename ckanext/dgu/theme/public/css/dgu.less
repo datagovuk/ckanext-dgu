@@ -1,4 +1,4 @@
-/*! DGU+CKAN Application JS concatenated 2013-06-23 */
+/*! DGU+CKAN Application JS concatenated 2013-07-17 */
 /*---------------------------------------------------
     LESS Elements 0.9
   ---------------------------------------------------
@@ -297,7 +297,7 @@ ul.green-bullet {
 .pagination ul {
     background: #fff;
 }
-p.field_error, 
+p.field_error,
 span.field_error {
     background: transparent url(../images/icons/error.png) left center no-repeat;
     padding-left: 20px;
@@ -442,7 +442,7 @@ table.tablesorter {
         .search-spinner {
             width: 20px;
             height: 20px;
-            position: absolute; 
+            position: absolute;
             right: 100px;
             top: 15px;
         }
@@ -642,7 +642,7 @@ ul.common-dataset-list {
         line-height: 18px;
     }
     .format-box {
-      float: right; 
+      float: right;
       margin-top: -2px;
     }
     .map-buttons {
@@ -826,6 +826,24 @@ body.controller-publisher.action-read {
     }
 }
 
+/* PAGE: Inventory*/
+/* -------------------- */
+body.controller-inventory {
+    h1 .btn.edit {
+      float: right;
+      margin-left: 10px;
+    }
+    .feed-icon {
+      img {
+        margin: -4px 0 0 4px;
+      }
+    }
+    .state-box {
+        background-color: #fdd;
+    }
+}
+
+
 
 /* PAGE: Package/search */
 /* -------------------- */
@@ -972,7 +990,7 @@ body.controller-package.action-resource_read {
 }
 
 /* PAGE: Package/new,
- *       Package/edit 
+ *       Package/edit
  * ------------------ */
 body.controller-package.action-new,
 body.controller-package.action-edit {
@@ -1132,7 +1150,7 @@ body.controller-publisher.action-read {
 }
 /* PAGE: Harvest/index */
 /* ------------------- */
-body.controller-view.action-index { 
+body.controller-view.action-index {
     /* fully: body.controller-view.action-read */
     /* shouldnt this go into a CSS file in the harvest folder? */
     #show-inactive-sources-content {
@@ -1152,7 +1170,7 @@ body.controller-view.action-index {
 }
 /* PAGE: Harvest/read */
 /* ------------------ */
-body.controller-view.action-read { 
+body.controller-view.action-read {
     .harvest-source-title,
     .harvest-source-config{
         display:none;
@@ -1185,8 +1203,8 @@ body.controller-revision.action-diff {
 /* PAGE: Openspending/reports */
 /* ------------------------ */
 body.openspending_report {
-    .voluntary { 
-        display: none; 
+    .voluntary {
+        display: none;
     }
     #content .boxed .row .span4 {
         width: 260px;

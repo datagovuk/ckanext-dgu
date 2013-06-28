@@ -88,10 +88,10 @@
     <tr>
       <td class="left" py:if="not c.query_error">
         <h2 class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</h2>
-        <py:if test="request.params">      
+        <py:if test="request.params">
           <div class="result-count-footer">Results</div>
         </py:if>
-        <py:if test="not request.params">      
+        <py:if test="not request.params">
           <div class="result-count-footer">Datasets</div>
         </py:if>
       </td>
@@ -106,8 +106,8 @@
           <div class="search-spinner">&nbsp;</div>
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
-          <py:for each="(k, v) in c.fields"> 
-            <input type="hidden" name="${k}" value="${v}" />  
+          <py:for each="(k, v) in c.fields">
+            <input type="hidden" name="${k}" value="${v}" />
           </py:for>
           </span>
           <py:if test="request.params.get('ext_bbox','')">
@@ -151,7 +151,7 @@
 
   <ul py:def="package_list_from_dict(packages)" class="common-dataset-list">
    <li py:for="package in packages">
-     ${package_summary(package, show_preview_buttons=True)}
+      ${package_summary(package, show_preview_buttons=True)}
    </li>
   </ul>
 
@@ -182,6 +182,29 @@
        </py:if>
      </div>
   </div>
+
+  <div py:def="inventory_summary(package, show_preview_buttons)" class="wrapper dataset dataset-summary boxed" style='background-color: #dedede;'>
+     <div py:with="title=package.get('title') or package.get('name')">
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/inventory-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
+         <h3><span class="underlined">Inventory: ${title}</span></h3>
+       </a>
+       <span class="property pull-right">
+         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+       </span>
+       <div class="property">
+          Publisher:&nbsp;
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+              ${h.package_publisher_dict(package).get('title', '')}
+            </a>
+       </div>
+       <div py:if="h.uklp_display_provider(package)" class="property">Provider:&nbsp; ${h.uklp_display_provider(package).strip('"')}</div>
+       <div class="dataset-description">
+         ${h.markdown_extract(package.notes)}
+       </div>
+     </div>
+  </div>
+
 
   <py:def function="facet_line(facet_item, facet_key)">
       <div class="facet-option">
@@ -251,32 +274,32 @@
   <div py:def="facet_filters()" class="datasets">
     <div class="boxed">
       ${facet_box(
-          'license_id-is-ogl', 
-          'Licence', 
+          'license_id-is-ogl',
+          'Licence',
           'There are no further licence filters to apply.'
       )}
       ${facet_box(
-          'tags', 
-          'Tags', 
-          'There are no further tag filters to apply.', 
+          'tags',
+          'Tags',
+          'There are no further tag filters to apply.',
           more_button='more-tags-button'
       )}
       ${facet_box(
-          'res_format', 
-          'Resource Format', 
-          'There are no further resource format filters to apply.', 
+          'res_format',
+          'Resource Format',
+          'There are no further resource format filters to apply.',
           more_button='more-formats-button'
       )}
       ${facet_box(
-          'publisher', 
-          'Publisher', 
-          'There are no further publisher filters to apply.', 
+          'publisher',
+          'Publisher',
+          'There are no further publisher filters to apply.',
           more_button='more-publishers-button'
       )}
       ${facet_box(
-          'openness_score', 
-          'Openness Score (beta)', 
-          'There are no further openness filters to apply.', 
+          'openness_score',
+          'Openness Score (beta)',
+          'There are no further openness filters to apply.',
           sort_by='name'
       )}
 

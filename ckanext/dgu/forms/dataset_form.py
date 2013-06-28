@@ -26,7 +26,8 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_license, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
-     remove_blank_resources
+     remove_blank_resources, \
+     allow_empty_if_inventory
 
 geographic_granularity = [('', ''),
                           ('national', 'national'),
@@ -267,7 +268,15 @@ class DatasetForm(SingletonPlugin):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'theme-primary': [not_empty, unicode, val.tag_string_convert, convert_to_extras],
+            'inventory': [ignore_missing, bool, convert_to_extras],
+            'economic-growth-score': [ignore_missing, int, convert_to_extras],
+            'social-growth-score': [ignore_missing, int, convert_to_extras],
+            'effective-public-services-score': [ignore_missing, int, convert_to_extras],
+            'connective-reference-data-score': [ignore_missing, int, convert_to_extras],
+            'other-public-services-score': [ignore_missing, int, convert_to_extras],
+
+
+            'theme-primary': [ignore_missing, unicode, val.tag_string_convert, convert_to_extras],
             'theme-secondary': [ignore_missing, val.tag_string_convert, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
@@ -314,6 +323,14 @@ class DatasetForm(SingletonPlugin):
             'foi-email': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
             'foi-phone': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
             'foi-web': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
+
+            'inventory': [convert_from_extras, ignore_missing],
+            'economic-growth-score': [convert_from_extras, ignore_missing],
+            'social-growth-score': [convert_from_extras, ignore_missing],
+            'effective-public-services-score': [convert_from_extras, ignore_missing],
+            'connective-reference-data-score': [convert_from_extras, ignore_missing],
+            'other-public-services-score': [convert_from_extras, ignore_missing],
+
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],

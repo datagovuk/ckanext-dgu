@@ -1379,3 +1379,8 @@ def social_url_google(url):
 def ckan_asset_timestamp():
     from ckanext.dgu.theme.timestamp import asset_build_timestamp
     return asset_build_timestamp
+
+def is_inventory_item(package):
+    return get_from_flat_dict(package['extras'], 'inventory')
+
+

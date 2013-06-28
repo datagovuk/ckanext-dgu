@@ -26,8 +26,6 @@ class PackageController(ckan.controllers.package.PackageController):
         # TODO Replace user names with department names
         return super(PackageController, self).history(id)
 
-
-
     def delete(self, id):
         """Provide a delete ('withdraw') action, but only for UKLP datasets"""
         from ckan.lib.search import SearchIndexError

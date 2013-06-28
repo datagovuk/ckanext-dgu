@@ -1,0 +1,113 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="inventory_util.html" />
+
+  <py:def function="page_title">${c.group.display_name}</py:def>
+  <py:def function="page_heading">
+    <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+
+    <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.group.display_name}</a>
+    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> Inventory tools</span>
+  </py:def>
+
+
+  <py:match path="primarysidebar">
+      ${publisher_sidebar()}
+  </py:match>
+
+
+  <py:match path="content">
+    <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
+    <div class="boxed">
+      <div class="notes" py:if="str(c.description_formatted).strip()">
+        ${c.description_formatted}
+      </div>
+
+      <div class="notes">
+        The tools available on this page will allow you to download your current inventory as a
+        CSV file that will be readable in Microsoft Excel, or Open Office, and then also upload a
+        modified file to update your inventory.  Modifications uploaded <strong>will only</strong>
+        update the inventory items, and <strong>not</strong> existing published datasets.
+      </div>
+
+      <hr/>
+
+      <h3>Download inventory</h3>
+
+      <div class="row">
+        <div class="notes">
+          <p class="span5">
+          You may download your inventory file here and load it into Microsoft Office, or Open Office
+          to view the list of current datasets that ${c.group.display_name} currently holds on data.gov.uk
+          as well as inventory items that have previously been added.
+          </p>
+
+          <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='download', id=c.group.name)}" method="GET" enctype="multipart/form-data" class="form-inline pull-right">
+            <input type="submit" class="btn btn-primary" value="Download inventory"/>
+            <br/>
+            <label for="include_sub">
+              <input type="checkbox" name="include_sub" value="true"/> Include subdepartments
+            </label>
+          </form>
+
+
+        </div>
+      </div>
+      <div class="clearfix"></div>
+
+      <hr/>
+
+      <h3>Upload inventory</h3>
+
+      <div class="row">
+        <div class="notes span7">
+          <p>
+          To upload a file that contains new inventory items, you should first use the download tool
+          above and add the new records to that file.
+         </p>
+
+          <ul>
+            <li>New entries should not contain a <em>short-name</em></li>
+            <li>Existing inventory items will be updated should any field other than the <em>short-name</em> have changed.</li>
+            <li>Existing datasets will be ignored</li>
+            <li>Existing datasets removed from the file will <strong>not</strong> be removed from data.gov.uk</li>
+          </ul>
+
+        </div>
+      </div>
+      <div class="clearfix"></div>
+
+
+      <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload', id=c.group.name)}" method="POST" enctype="multipart/form-data" class="form-inline" style="text-align:center;">
+        <input type="file" name="upload"/>
+        <input type="submit" class="btn btn-primary" value="Upload"/>
+      </form>
+
+    </div>
+  </py:match>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
+    href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+  </py:def>
+
+  <py:def function="optional_footer">
+    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
+    <script>
+      // Pollute the global namespace
+      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
+      PUBLISHER_GROUP  = "node_${c.group.name}";
+    </script>
+    <script src="/scripts/dgu-publisher.js"></script>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>
+
+
