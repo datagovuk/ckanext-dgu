@@ -1,0 +1,164 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Themes</py:def>
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <div py:match="content">
+    <h1>Themes</h1>
+
+    <div class="row" style="margin-top: 30px;">
+      <div class="boxed">
+        Themed datasets are a collection of datasets and app idea around a specific type of data.  There
+        are currently 10 themes listed below. Not every dataset is yet assigned to a theme, but this will 
+        improve over time.
+      </div>
+    </div>
+
+    <div class="row">
+        <div class="span3 ct f">
+          <div style="padding:4px;">
+            <h2>Health<br/>
+              <span class='count'>${c.themes_datasets.get('health')} datasets</span></h2>
+            <p>
+              PIC - Datasets directly related to health, mostly within the <a href="/publisher/department-of-health">Department of Health</a> or related
+              publisher.
+            </p>
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='health')}" class="theme-link">View health data</a>
+          </div>
+        </div>
+        <div class="span3 ct">
+          <div style="padding:4px;">          
+            <h2>Environment<br/>
+              <span class='count'>${c.themes_datasets.get('environment')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='environment')}" class="theme-link">View environment data</a>
+          </div>
+        </div>
+        <div class="span3 ct">
+          <div style="padding:4px;">          
+            <h2>Education<br/>
+              <span class='count'>${c.themes_datasets.get('education')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='education')}" class="theme-link">View education data</a>
+          </div>
+        </div>        
+        <div class="span3 ct">
+          <div style="padding:4px;">          
+            <h2>Location<br/>
+            <span class='count'>${c.themes_datasets.get('location')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='location')}" class="theme-link">View location data</a>
+          </div>
+        </div>                
+    </div>
+    <div class="row">
+        <div class="span3 ct f">
+          <div style="padding:4px;">          
+            <h2>Administration<br/>
+              <span class='count'>${c.themes_datasets.get('administration')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='administration')}" class="theme-link">View administration data</a>
+          </div>
+        </div>
+        <div class="span3 ct">
+          <div style="padding:4px;">          
+            <h2>Defence<br/>
+            <span class='count'>${c.themes_datasets.get('defence')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='defence')}" class="theme-link">View defence data</a>          
+          </div>
+        </div>
+        <div class="span3 ct">
+          <div style="padding:4px;">          
+            <h2>Finance<br/>
+            <span class='count'>${c.themes_datasets.get('finance')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='finance')}" class="theme-link">View finance data</a>
+          </div>
+        </div>        
+        <div class="span3 ct">
+          <div style="padding:4px;">          
+            <h2>Transportation<br/>
+              <span class='count'>${c.themes_datasets.get('transportation')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='transportation')}" class="theme-link">View transportation data</a>
+          </div>
+        </div>                
+    </div>    
+    <div class="row">
+        <div class="span6 ct f">
+          <div style="padding:4px;">          
+            <h2>Spending Data<br/>
+            <span class='count'>${c.themes_datasets.get('spending-data')} datasets</span></h2>
+                      
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='spending-data')}" class="theme-link">View spending data</a>
+          </div>
+        </div>
+        <div class="span6 ct">
+          <div style="padding:4px;">          
+            <h2>Society<br/>
+            <span class='count'>${c.themes_datasets.get('society')} datasets</span></h2>
+            <p>
+              PIC  blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.
+              Blah blah blah, blah blah blah blah blah. Blah blah blah, blah blah blah blah blah.            
+            </p>          
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='named_theme',name='society')}" class="theme-link">View society data</a>
+          </div>
+        </div>                
+    </div>        
+  </div>
+
+  <py:def function="optional_footer">
+    <style>
+      .count {
+        font-size: small;
+        color: #999;
+      }
+      .theme-link {
+        float: right;
+      }
+      .ct h2 { 
+        text-align: center;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+      }
+      .ct { 
+        background-color: white;
+        border: solid 2px #e0e0e0;
+        margin: 2px;
+        padding:2px;
+        border-radius: 6px;
+      }
+    </style>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>
