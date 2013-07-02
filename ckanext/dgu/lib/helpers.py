@@ -227,6 +227,13 @@ def get_from_flat_dict(list_of_dicts, key, default=None):
 def get_uklp_package_type(package):
     return get_from_flat_dict(package.get('extras', []), 'resource-type', '')
 
+def get_primary_theme(package):
+    return get_from_flat_dict(package.get('extras', []), 'theme-primary', '')
+
+def get_secondary_themes(package):
+    secondary_themes_raw = get_from_flat_dict(package.get('extras', []), 'theme-secondary', '')
+    return secondary_themes({'theme-secondary':secondary_themes_raw})
+
 def is_service(package):
     res_type = get_uklp_package_type(package)
     return res_type == 'service'
