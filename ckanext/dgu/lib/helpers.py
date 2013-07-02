@@ -1326,6 +1326,8 @@ def render_facet_key(key,value=None):
         return 'UKLP Type'
     if key=='all_themes':
         return 'Theme'
+    if key=='theme-primary':
+        return 'Primary Theme'
     # Delegate to core CKAN
     return ckan.lib.helpers.facet_title(key)
 

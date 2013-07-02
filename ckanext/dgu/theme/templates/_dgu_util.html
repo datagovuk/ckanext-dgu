@@ -163,8 +163,8 @@
            ${format_box(format.lower())}
          </py:for>
          <h3><span class="underlined">${title}</span></h3>
-         <!--h5><strong>${h.get_primary_theme(package)}</strong> ${', '.join(h.get_secondary_themes(package))}</h5-->
        </a>
+       <p class="themes">Themes: <strong>${h.get_primary_theme(package)}</strong> ${', '.join(h.get_secondary_themes(package))}</p>
        <span class="property pull-right">
          ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
        </span>
@@ -257,8 +257,14 @@
           'There are no further licence filters to apply.'
       )}
       ${facet_box(
+          'theme-primary', 
+          'Primary Theme', 
+          'There are no further theme filters to apply.', 
+          more_button='more-prithemes-button'
+      )}
+      ${facet_box(
           'all_themes', 
-          'Theme', 
+          'Combined Themes', 
           'There are no further theme filters to apply.', 
           more_button='more-themes-button'
       )}
