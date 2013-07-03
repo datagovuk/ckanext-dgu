@@ -18,6 +18,7 @@ import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
 from pylons import config
+from pylons import request
 
 from ckan.lib.helpers import icon, icon_html, json
 import ckan.lib.helpers
@@ -1390,3 +1391,26 @@ def social_url_google(url):
 def ckan_asset_timestamp():
     from ckanext.dgu.theme.timestamp import asset_build_timestamp
     return asset_build_timestamp
+
+def search_theme_mode_primary():
+    # Return True if searching by Primary Theme.
+    return 'theme-primary' in request.params.keys()
+
+def search_theme_mode_secondary():
+    # Return True if searching by Any Theme.
+    return (not search_theme_mode_primary()) and 'all_themes' in request.params.keys()
+
+def search_theme_mode_none():
+    # True when no Theme facet is active.
+    # The user can select whether their Theme facet is restricted to the _primary_ theme.
+    return not (search_theme_mode_primary() or search_theme_mode_secondary())
+
+
+def search_theme_mode_attrs():
+    out = {}
+    if not search_theme_mode_none():
+        out['disabled'] = 'disabled'
+    if not search_theme_mode_secondary():
+        out['checked'] = 'checked'
+    return out
+

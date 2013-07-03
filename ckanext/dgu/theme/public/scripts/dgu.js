@@ -71,11 +71,19 @@ jQuery(function () {
     });
   });
 
+  $('input#search-theme-mode').change( CKAN.Dgu.toggleSearchThemeMode );
 });
 
 var CKAN = CKAN || {};
 
 CKAN.Dgu = function($, my) {
+
+  my.toggleSearchThemeMode = function(e) {
+    var isChecked = !!( $(e.delegateTarget).attr('checked') );
+    console.log(isChecked);
+    $('.facets-theme-primary').addClass(isChecked?'enabled':'disabled').removeClass(isChecked?'disabled':'enabled');
+    $('.facets-theme-all').addClass(isChecked?'disabled':'enabled').removeClass(isChecked?'enabled':'disabled');
+  };
 
   my.setupEditorDialogs = function() {
     // Bind to the 'save' button, which writes values back to the document
