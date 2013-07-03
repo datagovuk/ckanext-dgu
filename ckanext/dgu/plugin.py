@@ -431,8 +431,11 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         # Extract multiple theme values (concatted with ' ') into one multi-value schema field
         pkg_dict['all_themes'] = []
-        for value in ( pkg_dict['theme-primary'],pkg_dict['theme-secondary'] ):
-            pkg_dict['all_themes'] += value.split(' ')
+        for value in ( pkg_dict.get('theme-primary',''), pkg_dict.get('theme-secondary','') ):
+            for theme in value.split(' '):
+                if theme:
+                    pkg_dict['all_themes'].append(theme)
+        # Kill empty strings
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):
