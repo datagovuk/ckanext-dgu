@@ -7,19 +7,15 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
+    <h1>Themes</h1>
     <div class="boxed" style="padding: 0 0 0 0;">
-      <div style="padding: 18px 18px;">
-        Themed datasets are a collection of datasets and app idea around a specific type of data.  There
-        are currently 10 themes listed below. Not every dataset is yet assigned to a theme, but this will 
-        improve over time.
-      </div>
       <div class="themes-row">
         <div class="theme-box-quarter">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Health">
               <h2>Health</h2>
               <img src="/images/health.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('health')} datasets</h3>
               <p>
@@ -32,10 +28,10 @@
         </div>
         <div class="theme-box-quarter">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Environment">
               <h2>Environment</h2>
               <img style="top:-24%;" src="/images/environment.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('environment')} datasets</h3>
               <p>
@@ -47,10 +43,10 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
         </div>
         <div class="theme-box-quarter">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Education">
               <h2>Education</h2>
               <img style="top:-7%;" src="/images/education.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('education')} datasets</h3>
               <p>
@@ -62,10 +58,10 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
         </div>
         <div class="theme-box-quarter">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Location">
               <h2>Location</h2>
               <img src="/images/location.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('location')} datasets</h3>
               <p>
@@ -80,10 +76,10 @@ dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla par
       <div class="themes-row">
         <div class="theme-box-half">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Spending+Data">
               <h2>Spending</h2>
               <img style="top:-4%;" src="/images/spending.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('spending-data')} datasets</h3>
               <p>
@@ -95,10 +91,10 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
         </div>
         <div class="theme-box-quarter">
           <div class="theme-box">
-          <div class="img-container">
+          <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Administration">
             <h2>Administration</h2>
             <img src="/images/administration.jpg"/>
-          </div>
+          </a>
           <div class="inner-text">
             <h3>${c.themes_datasets.get('administration')} datasets</h3>
             <p>
@@ -110,10 +106,10 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
         </div>
         <div class="theme-box-quarter">
           <div class="theme-box">
-          <div class="img-container">
+          <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Defence">
             <h2>Defence</h2>
             <img src="/images/defence.jpg"/>
-          </div>
+          </a>
           <div class="inner-text">
             <h3>${c.themes_datasets.get('defence')} datasets</h3>
             <p>
@@ -128,10 +124,10 @@ dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla par
       <div class="themes-row">
         <div class="theme-box-quarter">
           <div class="theme-box">
-          <div class="img-container">
+          <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Finance">
             <h2>Finance</h2>
             <img src="/images/finance.jpg"/>
-          </div>
+          </a>
           <div class="inner-text">
             <h3>${c.themes_datasets.get('finance')} datasets</h3>
             <p>
@@ -143,10 +139,10 @@ dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla par
         </div>
         <div class="theme-box-half">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Society">
               <h2>Society</h2>
               <img style="top:-25%;" src="/images/society.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('society')} datasets</h3>
               <p>
@@ -158,10 +154,10 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor 
         </div>
         <div class="theme-box-quarter">
           <div class="theme-box">
-            <div class="img-container">
+            <a class="img-container" href="${h.url_for(controller='package', action='search')}?theme-primary=Transportation">
               <h2>Transportation</h2>
               <img src="/images/transport.jpg"/>
-            </div>
+            </a>
             <div class="inner-text">
               <h3>${c.themes_datasets.get('transportation')} datasets</h3>
               <p>
