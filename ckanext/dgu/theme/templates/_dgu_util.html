@@ -164,7 +164,6 @@
          </py:for>
          <h3><span class="underlined">${title}</span></h3>
        </a>
-       <p class="themes">Themes: <strong>${h.get_primary_theme(package)}</strong> ${', '.join(h.get_secondary_themes(package))}</p>
        <span class="property pull-right">
          ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
        </span>
@@ -182,6 +181,7 @@
          ${map_preview_buttons(package.id, package)}
        </py:if>
      </div>
+     <p class="themes"><span class="secondary">${', '.join(h.get_secondary_themes(package))}</span> ${h.get_primary_theme(package)}</p>
   </div>
 
   <py:def function="facet_line(facet_item, facet_key)">
