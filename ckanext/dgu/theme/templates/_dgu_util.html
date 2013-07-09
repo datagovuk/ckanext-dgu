@@ -423,7 +423,12 @@
     <div property="dc:rights" id="dataset-license" py:with="all_licences = h.get_licenses(pkg)">
         <p py:for="(license_text, url, isopen) in all_licences">
           <py:if test="'Open Government Licen' in license_text">
-            <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
+            <a py:if="url" href="${url}">
+              <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
+            </a>
+            <span py:if="not url">
+              <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
+            </span>
           </py:if>
           <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
           <span py:if="not url" rel="dc:rights">${license_text}</span>
