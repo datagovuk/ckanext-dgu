@@ -540,10 +540,10 @@ def updated_string(package):
     return updated_string
 
 def updated_date(package):
-    from ckan import model    
+    from ckan import model
     p = model.Package.get(package['name'])
     if not p:
-        return package.get('metadata_created')    
+        return package.get('metadata_created')
 
     return p.extras.get('last_major_modification', package.get('metadata_created'))
 
@@ -586,7 +586,7 @@ def get_resource_fields(resource, pkg_extras):
     from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
     field_names = ResourceFieldNames()
-    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype',
                                          'mimetype-inner', 'name']
     res_dict = dict(resource)
     field_value_map = {
@@ -992,7 +992,7 @@ def iterate_error_dict(d):
         yield (k,v)
 
 def _translate_ckan_string(o):
-    """DGU uses different words for things compared to CKAN, so 
+    """DGU uses different words for things compared to CKAN, so
     adjust the language of errors using mappings."""
     field_name_map = {
         'groups': 'Publisher',
@@ -1127,7 +1127,7 @@ def gemini_resources():
 def individual_resources():
     r = c.pkg_dict.get('individual_resources', [])
     # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary   
+    # three keys. So combine them if necessary
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
     return r
@@ -1379,3 +1379,38 @@ def social_url_google(url):
 def ckan_asset_timestamp():
     from ckanext.dgu.theme.timestamp import asset_build_timestamp
     return asset_build_timestamp
+
+def tidy_url(url):
+    '''
+    Given a URL it does various checks before returning a tidied version
+    suitable for calling.
+    '''
+    import urlparse
+
+    # Find out if it has unicode characters, and if it does, quote them
+    # so we are left with an ascii string
+    try:
+        url = url.decode('ascii')
+    except:
+        parts = list(urlparse.urlparse(url))
+        parts[2] = urllib.quote(parts[2].encode('utf-8'))
+        url = urlparse.urlunparse(parts)
+    url = str(url)
+
+    # strip whitespace from url
+    # (browsers appear to do this)
+    url = url.strip()
+
+    try:
+        parsed_url = urlparse.urlparse(url)
+    except Exception, e:
+        raise Exception('URL parsing failure: %s' % e)
+
+    # Check we aren't using any schemes we shouldn't be
+    if not parsed_url.scheme in ('http', 'https', 'ftp'):
+        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+
+    if not parsed_url.netloc:
+        raise Exception('URL parsing failure - did not find a host name')
+
+    return url

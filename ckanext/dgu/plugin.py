@@ -123,6 +123,7 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/carparks', controller=data_controller, action='carparks')
         map.connect('reports', '/data/reports', controller=reports_controller, action='resources')
+        map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
 
         # For test usage when Drupal is not running
         map.connect('/comment/get/{id}',
@@ -131,7 +132,7 @@ class ThemePlugin(SingletonPlugin):
 
         with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
             m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
-            m.connect('/dataset/{id:.*}/release', action='release')            
+            m.connect('/dataset/{id:.*}/release', action='release')
 
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
@@ -169,12 +170,12 @@ class ResourceURLModificationPlugin(SingletonPlugin):
     implements(IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
-        log.debug("URL for resource %s has changed" % resource.id)         
+        log.debug("URL for resource %s has changed" % resource.id)
         update_package_major_time(resource.resource_group.package)
 
 
 class ResourceModificationPlugin(SingletonPlugin):
-    implements(IDomainObjectModification, inherit=True)    
+    implements(IDomainObjectModification, inherit=True)
 
     def notify(self, entity, operation):
         from ckan import model
@@ -184,7 +185,7 @@ class ResourceModificationPlugin(SingletonPlugin):
 
         if not entity.resource_group:
             log.debug("Resource has no resource_group")
-            return 
+            return
 
         model.Session.flush()
         pkg = entity.resource_group.package
@@ -193,11 +194,11 @@ class ResourceModificationPlugin(SingletonPlugin):
             log.debug("A new resource was created")
             update_package_major_time(pkg)
         elif operation == model.DomainObjectOperation.changed:
-            # If we get a change, then we should just check if the 
-            # state is deleted, if so then we should update the 
+            # If we get a change, then we should just check if the
+            # state is deleted, if so then we should update the
             # modification date on the package. If the state isn't
             # deleted then we will instead catch the URL change with
-            #  IResourceUrlChange            
+            #  IResourceUrlChange
             if entity.state == 'deleted':
                 log.debug("A resource was deleted")
                 update_package_major_time(pkg)
