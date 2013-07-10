@@ -3,7 +3,7 @@ from ckan.lib.cli import CkanCommand
 from ckan.lib.dictization.model_dictize import package_dictize
 import sys
 import os
-import csv
+import unicodecsv
 
 log = logging.getLogger('ckanext')
 
@@ -22,6 +22,8 @@ class RefinePackages(CkanCommand):
     # To update: See export_row() and import_row()
     csv_headers = [
             'name',
+            'title',
+            'description',
             'theme-primary',
             'theme-secondary::Health',
             'theme-secondary::Environment',
@@ -66,6 +68,7 @@ class RefinePackages(CkanCommand):
         """Inverse of self._contract()."""
         # Expand secondary themes list into multiple fields
         tmp = row_dict.pop('theme-secondary')
+        assert type(tmp) in (type(None),list,unicode,str), type(tmp)
         if tmp is None:
             tmp = []
         if type(tmp) is not list: 
@@ -81,10 +84,13 @@ class RefinePackages(CkanCommand):
         tmp = []
         for key,value in rowdict.items():
             if key.startswith('theme-secondary::') and bool(value):
-                tmp.append(key[17:])
+                theme_name = key.split('::')[1]
+                assert type(theme_name) in (unicode,str)
+                tmp.append(theme_name)
                 del rowdict[key]
         if len(tmp)==1:
             tmp = tmp[0]
+            assert type(tmp) in (unicode,str)
         if len(tmp)==0:
             tmp = None
         rowdict['theme-secondary'] = tmp
@@ -93,7 +99,7 @@ class RefinePackages(CkanCommand):
         """Iterate all packages and dump a very large CSV file of chosen data for Refine to crunch."""
         log.info('Exporting to file: %s' % filename)
         with open(filename,'w') as f:
-            writer = csv.DictWriter(f,self.csv_headers)
+            writer = unicodecsv.DictWriter(f,self.csv_headers)
             writer.writeheader()
             q = model.Session.query(model.Package)
             count = q.count()
@@ -102,6 +108,8 @@ class RefinePackages(CkanCommand):
             for pkg in q:
                 row = {
                     'name':pkg.name,
+                    'title':pkg.title,
+                    'description':pkg.notes,
                     'theme-primary': pkg.extras.get('theme-primary'),
                     'theme-secondary': pkg.extras.get('theme-secondary')
                 }
@@ -118,12 +126,12 @@ class RefinePackages(CkanCommand):
         log.info('Importing file: %s' % filename)
         log.info('Saving changelog to file: %s' % filename_changelog)
         with open(filename_changelog,'w') as file_changelog:
-            changelog = csv.writer(file_changelog)
+            changelog = unicodecsv.writer(file_changelog)
             changelog.writerow(['name','status','detail'])
             log.info('Processing CSV file')
             data = {}
             with open(filename,'r') as f:
-                reader = csv.DictReader(f)
+                reader = unicodecsv.DictReader(f)
                 assert set(reader.fieldnames)<=set(self.csv_headers), 'Unexpected incoming CSV headers: %s' % str(list(set(reader.fieldnames)-set(self.csv_headers)))
                 for row in reader:
                     data[row['name']] = row
@@ -138,13 +146,17 @@ class RefinePackages(CkanCommand):
                 if row is None:
                     changelog.writerow([pkg.name,'not_in_csv',''])
                     continue
+                # Allowing the CSV to modify other fields? Code goes here...
                 # Make changes as appropriate
                 for key in ['theme-primary','theme-secondary']:
                     before = pkg.extras.get(key)
                     after = row.get(key)
                     if (before or after) and (before!=after):
                         changelog.writerow([row['name'],'change:%s' % key,' %s -> %s '%(str(before),str(after))])
-                        pkg.extras[key] = after
+                        if after is None:
+                            del pkg.extras[key]
+                        else:
+                            pkg.extras[key] = after
                         model.Session.add(pkg)
                 n += 1
                 if (n%100)==0:
