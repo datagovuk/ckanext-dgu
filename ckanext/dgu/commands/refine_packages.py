@@ -22,8 +22,10 @@ class RefinePackages(CkanCommand):
     # To update: See export_row() and import_row()
     csv_headers = [
             'name',
+            'publisher',
             'title',
             'description',
+            'tags',
             'theme-primary',
             'theme-secondary::Health',
             'theme-secondary::Environment',
@@ -101,15 +103,22 @@ class RefinePackages(CkanCommand):
         with open(filename,'w') as f:
             writer = unicodecsv.DictWriter(f,self.csv_headers)
             writer.writeheader()
-            q = model.Session.query(model.Package)
+            q = model.Session.query(model.Package).filter_by(state='active')
             count = q.count()
             log.info('Iterating over %d packages...' % count)
             n = 0
+            def extract_publisher(pkg):
+                groups = pkg.get_groups()
+                if len(groups):
+                    return groups[0].title
+                return ''
             for pkg in q:
                 row = {
                     'name':pkg.name,
                     'title':pkg.title,
                     'description':pkg.notes,
+                    'tags':str(pkg.get_tags()),
+                    'publisher': extract_publisher(pkg),
                     'theme-primary': pkg.extras.get('theme-primary'),
                     'theme-secondary': pkg.extras.get('theme-secondary')
                 }
@@ -137,7 +146,7 @@ class RefinePackages(CkanCommand):
                     data[row['name']] = row
                     self._contract(row)
             log.info('CSV datafile contains %d packages.' % len(data))
-            q = model.Session.query(model.Package)
+            q = model.Session.query(model.Package).filter_by(state='active')
             count = q.count()
             log.info('Walking through %d packages in DB...' % count)
             n = 0
