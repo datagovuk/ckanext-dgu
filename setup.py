@@ -85,7 +85,7 @@ setup(
         stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
         remap_govuk_resources = ckanext.dgu.commands.remap_govuk_resources:ResourceRemapper
         derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker        
-        clean_themes = ckanext.dgu.commands.clean_themes:CleanThemes
+        refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
     """,
     test_suite = 'nose.collector',
 )
