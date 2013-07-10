@@ -144,10 +144,13 @@ class RefinePackages(CkanCommand):
                     after = row.get(key)
                     if (before or after) and (before!=after):
                         changelog.writerow([row['name'],'change:%s' % key,' %s -> %s '%(str(before),str(after))])
+                        pkg.extras[key] = after
+                        model.Session.add(pkg)
                 n += 1
                 if (n%100)==0:
                     log.info('[%d/%d] Processing...' % (n,count))
             log.info('Committing database...')
+            model.Session.commit()
             # If data still has entries, these are packages not found in our DB
             for row in data.values():
                 changelog.writerow([row.get('name'),'not_in_db',''])
