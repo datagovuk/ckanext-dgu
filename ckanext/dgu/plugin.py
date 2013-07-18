@@ -123,6 +123,7 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/carparks', controller=data_controller, action='carparks')
         map.connect('reports', '/data/reports', controller=reports_controller, action='resources')
+        map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
 
         # For test usage when Drupal is not running
         map.connect('/comment/get/{id}',
