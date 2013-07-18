@@ -102,7 +102,13 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
             group_members[member.table_id].append( member.group_id )
 
     def get_groups(group):
-        return [group_lookup[i] for i in group_members[group.id]]
+        # Protect against missing values (which may have been removed)
+        # by checking the group has members. If it doesn't appears in
+        # group_members then we should just return an empty list for now
+        # which will mean it gets added to the root.
+        if group.id in group_members:
+            return [group_lookup[i] for i in group_members[group.id]]
+        return []
 
     for group in groups:
         slug, title = group.name, title_for_group(group)
