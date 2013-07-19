@@ -33,6 +33,10 @@ from ckan.config.routing import SubMapper
 
 log = getLogger(__name__)
 
+def task_imports():
+    return ['ckanext.dgu.tasks']
+
+
 def configure_template_directory(config, relative_path):
     configure_served_directory(config, relative_path, 'extra_template_paths')
 
@@ -352,6 +356,10 @@ class InventoryPlugin(SingletonPlugin):
                     controller=inv_ctlr, action='template' )
         map.connect('/inventory/:id/edit/upload',
                     controller=inv_ctlr, action='upload' )
+        map.connect('/inventory/:id/edit/upload_complete',
+                    controller=inv_ctlr, action='upload_complete' )
+        map.connect('/inventory/:id/edit/upload/:upload_id',
+                    controller=inv_ctlr, action='upload_status' )
 
         return map
 

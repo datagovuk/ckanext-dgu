@@ -28,26 +28,61 @@
 
   <py:match path="content">
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
+
     <div class="boxed">
       <div class="notes" py:if="str(c.description_formatted).strip()">
         ${c.description_formatted}
       </div>
+      <h2>Inventory upload<span class="pull-right">${h.render_datestamp(c.task.last_updated.isoformat(), format="%d/%m/%Y %H:%M")}</span></h2>
 
-      <h2>Upload results</h2>
-      <div py:if="c.errors">
-        <div class="alert alert-danger">
-          <p  py:for="e in c.errors">${h.literal(e)}</p>
-        </div>
-      </div>
-      <div py:if="not c.errors">
-        <div class="alert alert-success">
-          Your Inventory document has been successfully uploaded to data.gov.uk
-        </div>
-
-        <p>These items will appear in a list of your uploaded inventory items within 2-4 hours.  To track of the status of Your Inventory uploads go to <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload_status',id=c.group.name, upload_id=c.job_id )}">${h.render_datestamp(c.job_timestamp)} - ${h.render_datestamp(c.job_timestamp,format="%H:%M")}</a> or click the '${h.render_datestamp(c.job_timestamp)} - ${h.render_datestamp(c.job_timestamp,format="%H:%M")}' link from the 'Recent Inventory Uploads' section of the side-bar.</p>
-      </div>
       <hr/>
+      <h4>Status: ${c.task.state}</h4>
 
+      <py:if test="c.task.state != 'Started'">
+        <hr/>
+        <div>
+            <h4>Errors</h4>
+            <p py:if="not c.task.error">No errors.</p>
+
+            <p py:if="c.task.error">
+              <py:for each="error in c.task.error">
+                <ul>
+                    <li>${error}</li>
+                </ul>
+              </py:for>
+            </p>
+        </div>
+
+        <hr/>
+
+        <div>
+            <h4>Items processed</h4>
+            <p py:if="not c.task.packages">No items processed</p>
+
+            <table class="table table-bordered table-striped" py:if="c.task.packages">
+              <thead>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Department</th>
+                <th>Publish Date</th>
+                <th>Release notes</th>
+                <th>Action</th>
+              </thead>
+              <tbody>
+                <py:for each="pkg,grp,pub_date,release,action in h.inventory_status(c.task.packages)">
+                  <tr>
+                    <td>${pkg.title}</td>
+                    <td title="${pkg.notes}">${h.truncate(pkg.notes, length=40, whole_word=True)}</td>
+                    <td>${grp.title}</td>
+                    <td>${h.render_datestamp(pub_date)}</td>
+                    <td title="${release}">${h.truncate(release, length=40, whole_word=True)}</td>
+                    <td>${action}</td>
+                  </tr>
+                </py:for>
+              </tbody>
+            </table>
+        </div>
+      </py:if>
     </div>
   </py:match>
 

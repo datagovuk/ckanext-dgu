@@ -1417,3 +1417,15 @@ def tidy_url(url):
         raise Exception('URL parsing failure - did not find a host name')
 
     return url
+
+def inventory_status(package_items):
+    from ckan import model
+    for p in package_items:
+        pid = p['package']
+        action = p['action']
+        pkg = model.Package.get(pid)
+        grp = pkg.get_groups('publisher')[0]
+
+        yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
+
+

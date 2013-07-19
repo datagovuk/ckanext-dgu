@@ -21,6 +21,7 @@
 
 
   <py:match path="primarysidebar">
+    ${inventory_jobs()}
     ${publisher_sidebar()}
   </py:match>
 
@@ -35,26 +36,26 @@
       <h2>Take part in the data.gov.uk inventory<br/>Manage and Update us on forthcoming datasets</h2>
 
       <div class="notes">
-        <p>Use this inventory tool to download an inventory of all the datasets and inventory items you have published on data.gov.uk to date. This tool allows you to give us prior knowledge of pending datasets including those with a partially open or ‘closed’ licence.</p>
-        <ul>
-          <li>You can download your latest ‘read only ‘ dataset list anytime</li>
-          <li>You can complete the blank inventory template and upload at any time if you have frequent updates</li>
-          <li>Download templates are in a CSV file that will be readable in Microsoft Excel, or Open Office, and then also upload a modified file to update your inventory.</li>
-        </ul>
+        <p>Use this inventory tool to download an inventory of all the datasets and inventory items you have published on data.gov.uk to date. This tool allows you to give us prior knowledge of pending datasets including those that are not currently under Open Government Licence. Read the <a href="http://www.data.gov.uk/library/guidance-to-departments-on-developing-the-uk-national-information-infrastructure-nii">draft full guidance</a> to find out more about the background to this inventory. Follow the 3 steps below to get started. </p>
       </div>
 
       <hr/>
 
       <h3>Step 1: Download the read-only dataset list to review your existing open data</h3>
 
-      <div class="row notes">
-        <div class="notes">
+      <div class="notes">
           <p>
-          Download and review your list of datasets and inventory items recently published or submitted to data.gov.uk. This is only for review and not for uploading new datasets.
+          Download a list of all the datasets and inventory items you have published on data.gov.uk to date. By regularly reviewing this list you can give us prior knowledge of pending datasets including any other datasets that may not be currently published for specific reasons.
           </p>
-          <p><strong>Important</strong>: Please review this list before submitting any new inventory items.
+          <p>
+          <ul>
+            <li>You can download your latest 'read only' dataset list anytime </li>
+            <li>You can complete the inventory template and upload at any time if you have frequent updates</li>
+            <li>Download templates are in an Excel file that will be readable in Microsoft Excel, or Open Office, and can then be uploaded to update your inventory </li>
+            <li>You may wish to store local copies of this download for your own record.</li>
+          </ul>
           </p>
-        </div>
+      </div>
         <div class="row notes">
             <div class="notes span5">
               <em>Tick the sub-department box if you need a complete list of datasets held by other parties under your authority, whom with you may wish to delegate the review of ‘data held’ to.</em>
@@ -67,18 +68,26 @@
               </label>
             </form>
         </div>
-      </div>
 
       <div class="clearfix"></div>
       <hr/>
 
-      <h3>Step 2: Download the blank inventory template </h3>
-      <div class="row notes">
-        <div class="notes">
-          <p>Complete the blank template based on your initial review of the read-only dataset list.<br/>
-          <a href="http://data.gov.uk/inventory-help-guide">See specific guidance</a> on completing this template.</p>
+      <h3>Step 2: Download the inventory template </h3>
+      <div class="notes">
+          <p>Create new entries to inform us about datasets not yet published.<br/>
+
+          <ul>
+              <li>Firstly, review your existing list of datasets items available from step 1 </li>
+              <li><a href="/inventory-help-guide">See specific guidance</a> on completing the template.</li>
+              <li>As a publisher administrator you can share this spreadsheet with other colleagues to complete and send to you for upload.</li>
+              <li>Save the completed template on your PC or local network once complete ready for upload and always keep a local copy as backup.</li>
+              <li>Please include datasets that at present may not be available on Open Licence</li>
+
+          </ul>
+        </p>
+        <div class="row notes">
+        <a href="/inventory/template/xls_template.php?publisher=${c.group.title}" class="btn btn-primary pull-right">Download inventory template</a>
         </div>
-        <a href="/inventory/template/xls_template.php?publisher=${c.group.title}" class="btn btn-primary pull-right">Download blank inventory template</a>
       </div>
 
       <div class="clearfix"></div>
@@ -86,20 +95,22 @@
 
 
       <h3>Step 3: Upload the completed inventory template</h3>
-      <div class="row notes">
         <div class="notes">
-          <p>Upload the completed template, taking care that you have not changed the structure of the template e.g. don't change the styling or location of columns.</p>
-          <p><strong>Important</strong>: This template will be verified on upload.</p>
+          <p>Upload your saved and completed template, taking care that you have not changed the structure of the template e.g. don't change the styling or location of columns. You will get an on screen acknowledgement if this is successful.</p>
+          <p>Contact <a href="mailto:team@data.gov.uk?Subject=Inventory">team@data.gov.uk</a> if  you have any queries about this process.</p>
         </div>
 
+        <div class="notes">
         <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload', id=c.group.name)}" method="POST" enctype="multipart/form-data" class="form-inline pull-right" style="" >
           <input type="file" name="upload"/>
-          <input type="submit" class="btn btn-primary" value="Upload"/>
+          <input type="submit" class="btn btn-primary" value="Upload completed template"/>
         </form>
+        </div>
+        <br/>
 
-      </div>
 
       <div class="clearfix"></div>
+
     </div>
   </py:match>
 

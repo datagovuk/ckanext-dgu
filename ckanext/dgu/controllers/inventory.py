@@ -2,8 +2,9 @@ import os
 import csv
 import json
 
-from pylons import response
+from pylons import response, config
 from ckan import model
+from ckan.model.types import make_uuid
 from ckan.lib.helpers import Page, flash_notice
 from ckan.lib.base import h, BaseController, abort
 from ckanext.dgu.lib.publisher import go_down_tree
@@ -54,6 +55,74 @@ class InventoryController(BaseController):
         return render('inventory/edit.html')
 
 
+    def upload_status(self, id, upload_id):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'for_view': True}
+
+        try:
+            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group = context['group']
+        except ObjectNotFound:
+            self._redirect_if_previous_name(id)
+            abort(404, 'Group not found')
+        except NotAuthorized:
+            abort(401, 'Unauthorized to read group %s' % id)
+
+        try:
+            context['group'] = c.group
+            check_access('group_update', context)
+        except NotAuthorized, e:
+            abort(401, 'User %r not authorized to view internal inventory' % (c.user))
+
+        self._get_group_info()
+
+        root = model.Session.query(model.TaskStatus).filter(model.TaskStatus.id==upload_id).first()
+        if not root:
+            abort(404, 'Upload details not found')
+
+        tasks = model.Session.query(model.TaskStatus).filter(model.TaskStatus.entity_id==root.entity_id).all()
+
+        c.task = root
+        c.task.packages = None
+
+        for t in tasks:
+            # Looks for a completed version with errors and stuff
+            if t.state == 'Complete':
+                c.task = t
+
+                if t.error:
+                    c.task.error = json.loads(t.error)
+
+                if t.value:
+                    c.task.packages = json.loads(t.value)
+
+        return render('inventory/status.html')
+
+    def upload_complete(self, id):
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'for_view': True}
+
+        try:
+            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group = context['group']
+        except ObjectNotFound:
+            abort(404, 'Group not found')
+        except NotAuthorized:
+            abort(401, 'Unauthorized to read group %s' % id)
+
+        try:
+            context['group'] = c.group
+            check_access('group_update', context)
+        except NotAuthorized, e:
+            abort(401, 'User %r not authorized to upload inventory' % (c.user))
+
+        self._get_group_info()
+
+        c.job_id = c.jobs[0][0]
+        c.job_timestamp = c.jobs[0][1]
+
+        return render('inventory/upload.html')
+
     def upload(self, id):
         """
         Upload of an inventory file, accepts a POST request with a file and
@@ -81,51 +150,26 @@ class InventoryController(BaseController):
             return h.redirect_to( controller="ckanext.dgu.controllers.inventory:InventoryController",
                 action="edit", id=c.group.name)
 
-        self._get_group_info()
-        c.messages = []
-        with inventory_lib.UploadFileHelper(request.POST['upload'].filename, request.POST['upload'].file) as f:
-            import messytables
+        incoming = request.POST['upload'].filename
+        file_root = config.get('inventory.temporary.storage', '/tmp')
+        filename = os.path.join(file_root, make_uuid()) + "-{0}".format(incoming)
 
-            c.errors = []
+        with inventory_lib.UploadFileHelper(incoming, request.POST['upload'].file) as f:
+            open(filename, 'wb').write(f.read())
 
-            tableset = None
-            try:
-                _, ext = os.path.splitext( f.name )
-                tableset = messytables.any_tableset(f,extension=ext[1:])
-            except Exception, e:
-                if str(e) == "Unrecognized MIME type: text/plain":
-                    tableset = messytables.any_tableset(f, mimetype="text/csv")
-                else:
-                    c.errors.append("Unable to load file: {0}".format(e))
 
-            if not tableset:
-                c.errors.append("Unable to row data from uploaded file. Please contact a sysadmin.")
-                return render('inventory/upload.html')
+        job_id, timestamp = inventory_lib.enqueue_document(c.userobj, filename, c.group)
+        jobdict = c.group.extras.get('inventory.jobs', {})
+        jobdict[job_id] = timestamp
 
-            first = True
-            pos = 0
-            for row in tableset.tables[0]:
-                pos = pos + 1
-                if first:
-                    # Validate the header row to make sure it hasn't been modified
-                    ok, msg = inventory_lib.validate_incoming_inventory_header(row)
-                    if not ok:
-                        c.errors.append("<strong>Upload error</strong>: {0}".format(msg))
-                        break
-                    first = False
-                    continue
+        # Update the jobs list for this group
+        c.group.extras['inventory.jobs'] = jobdict
+        model.repo.new_revision()
+        model.Session.add(c.group)
+        model.Session.commit()
 
-                try:
-                    pkg, grp, pub_date, msg = inventory_lib.process_incoming_inventory_row(pos, row, c.group.name)
-                    if pkg:
-                        c.messages.append((pkg, grp, pub_date, msg,))
-                except Exception, exc:
-                    c.errors.append(str(exc))
-
-            if pos < 2 and len(c.errors) == 0:
-                c.errors.append("There was not enough data in the upload file")
-
-        return render('inventory/upload.html')
+        return h.redirect_to( controller="ckanext.dgu.controllers.inventory:InventoryController",
+                action="upload_complete", id=c.group.name)
 
     def _get_group_info(self):
         """ Helper to get group information to be shown on each page """
@@ -145,6 +189,10 @@ class InventoryController(BaseController):
             v = json.loads(v)
             c.group_extras.append((k, v))
         c.group_extras = dict(c.group_extras)
+
+        c.jobs = [(k, v,) for k,v in c.group.extras.get('inventory.jobs', {}).iteritems()]
+        c.jobs = sorted(c.jobs, key=lambda x: x[1], reverse=True)
+
 
 
     def download(self, id):

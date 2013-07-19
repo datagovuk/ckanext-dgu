@@ -1,174 +1,62 @@
 import os
 import datetime
+import json
 import ckan.lib.munge as munge
 from ckanext.dgu.plugins_toolkit import (c, NotAuthorized,
     ValidationError, get_action, check_access)
 from ckan.lib.search import SearchIndexError
 
-def render_inventory_template(writer):
-    # Renders a template for completion by the department admin
-    writer.writerow(["Dataset title",
-                     "Description of dataset",
-                     "Update frequency",
-                     "Recommendation"])
 
-
-def validate_incoming_inventory_header(header_row):
+def enqueue_document(user, filename, publisher):
     """
-    Simple validation of the header row to make sure we have the 4 headers we
-    expect in the right place.
+    Uses the provided data to send a job to the priority celery queue so that
+    the spreadsheet is processed. We should create a job_started message header_row
+    to ensure that the user sees immediately that something is happening.
     """
-    if len(header_row) < 4:
-        return False, "There are not enough columns in the spreadsheet."
-
-    if header_row[0].value.strip() != 'Title' or \
-            header_row[1].value.strip() != 'Description' or \
-            header_row[2].value.strip() != 'Owner':
-        return False, "Header row titles have been changed"
-
-
-    return True, ""
-
-def process_incoming_inventory_row(row_number, row, default_group_name):
-    """
-    Reads the provided row and updates the information found in the
-    database where appropriate.
-
-    The text of any exception raised will be shown to the user and the
-    processing aborted.
-    """
+    from pylons import config
     from ckan import model
+    from ckan.model.types import make_uuid
+    from ckan.lib.celery_app import celery
 
-    title = row[0].value
-    description = row[1].value
-    publisher_name = row[2].value
-    publish_date = row[3].value
+    site_user = get_action('get_site_user')(
+        {'model': model, 'ignore_auth': True, 'defer_commit': True}, {})
 
-    if isinstance(publish_date, datetime.datetime):
-        publish_date = publish_date.isoformat()
+    task_id = make_uuid()
 
-    group = model.Session.query(model.Group).filter(model.Group.title == publisher_name).first()
+    # Create the task for the queue
+    context = json.dumps({
+        'username': user.name,
+        'site_url': config.get('ckan.site_url_internally') or config.get('ckan.site_url'),
+        'apikey': user.apikey,
+        'site_user_apikey': site_user['apikey']
+    })
+    data = json.dumps({
+        'file': filename,
+        'publisher': publisher.name,
+        'publisher_id': publisher.id,
+        'jobid': task_id
+    })
+    celery.send_task("inventory.process", args=[context, data], task_id=task_id, queue='priority')
 
-    # First validation check, make sure we have enough to either update or create an
-    # inventory item
-    errors = []
-    if not title.strip():
-        errors.append("Dataset title")
-
-    if not description.strip():
-        errors.append("Description of dataset")
-
-    if not group:
-        errors.append("Owner")
-
-    if errors:
-        raise Exception("The following fields were missing in row {0}: {1}".format(row_number, ", ".join(errors)))
-
-    context = {
-        'model': model,
-        'session': model.Session,
-        'user': c.user,
-        'allow_partial_update': True,
-        'extras_as_string': True,
+    # Create a task status.... and update it so that the user knows it has been started.
+    inventory_task_status = {
+        'entity_id': task_id,
+        'entity_type': u'inventory',
+        'task_type': u'inventory',
+        'key': u'celery_task_id',
+        'value': task_id,
+        'error': u'',
+        'state': 'Started',
+        'last_updated': datetime.datetime.now().isoformat()
     }
+    inventory_task_context = {
+        'model': model,
+        'user': user.name,
+        'ignore_auth': True
+    }
+    res = get_action('task_status_update')(inventory_task_context, inventory_task_status)
+    return res['id'], inventory_task_status['last_updated']
 
-
-    # Check if we can find the dataset by title (for inventory items)
-    # If this happens it's kinda hard to work out which we want.  The group might be different
-    # to the one that the user just sent us, it might be that it belongs to someone else.
-    editable = []
-    existing_pkg = None
-    for p in model.Session.query(model.Package).filter(model.Package.title==title).all():
-        # We'll do an auth check on all of them to see which we can edit.
-        try:
-            local_ctx = {'model': model, 'session': model.Session, 'user': c.user, 'for_view': False, 'package': p}
-            check_access('package_update', local_ctx)
-            if p.extras.get('inventory', False):
-                editable.append(p)
-        except NotAuthorized, e:
-            pass
-
-    # If we can edit only one of them, then we should do that.
-    if len(editable) == 1:
-        existing_pkg = editable[0]
-    elif len(editable) > 1:
-        raise Exception("Found {0} existing inventory items with title '{1}' editable by you".format(len(editable), title))
-    else:
-        existing_pkg = None # Just to be clear...
-
-    if existing_pkg:
-        # We have found a single inventory item, accessible to this user, with the same title and
-        # we have already completed the auth check.
-        model.repo.new_revision()
-        existing_pkg.extras['publish-date'] = publish_date
-        existing_pkg.notes = description or pkg.notes
-
-        groups = existing_pkg.get_groups()
-        if groups and groups[0].title != publisher_name:
-            # We need to update the group once we have checked that the current
-            # user can add to that group
-            # Delete existing membership for package
-            mx = model.Session.query(model.Member).filter(model.Member.group_id==groups[0].id).\
-                filter(model.Member.table_id==existing_pkg.id).\
-                filter(model.Member.table_name=='package').first()
-            mx.state = 'deleted'
-            model.Session.add(mx)
-            m = model.Member(group_id=group.id, table_id=p.id, table_name='package', capacity='public')
-            model.Session.add(m)
-
-        model.Session.add(existing_pkg)
-        model.Session.commit()
-
-        return (existing_pkg, group, publish_date, "Updated",)
-
-    # Looks like a new inventory item, so we'll create a new one.
-
-    def get_clean_name(s):
-        current = s
-        counter = 1
-        while True:
-            current = munge.munge_title_to_name(current)
-            if not model.Package.get(current):
-                break
-            current = "{0}_{1}".format(current,counter)
-        return current
-
-    package = {}
-    package["title"] = title
-    package["name"] = get_clean_name(title)
-    package["notes"] = description or " "
-    package["access_constraints"] = "Not yet chosen"
-    package["api_version"] = "3"
-    package['license_id']  = ""
-    package['foi-name'] = ""
-    package['foi-email'] = ""
-    package['foi-web'] = ""
-    package['foi-phone'] = ""
-    package['contact-email'] = ""
-    package['contact-phone'] = ""
-    package['contact-name'] = ""
-    package['theme-primary'] = ""
-
-    package['groups'] = [{"name": group.name}]
-
-    # Setup inventory specific items
-    package['inventory'] = True
-    package['publish-date'] = publish_date
-
-    try:
-        pkg = get_action("package_create")(context, package)
-    except NotAuthorized:
-        raise Exception("Not authorised to create this dataset")
-    except DataError:
-        raise Exception("There was a problem with the integrity of the data")
-    except SearchIndexError, e:
-        raise Exception("Failed to add the dataset to search index")
-    except ValidationError, e:
-        raise Exception("There was an error validating the data: %s" % str(e))
-
-    pkg = context['package']
-
-    return (pkg, group, publish_date, "Added",)
 
 def render_inventory_header(writer):
     # Add
