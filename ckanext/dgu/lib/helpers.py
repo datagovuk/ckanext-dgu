@@ -277,7 +277,7 @@ def predict_if_resource_will_preview(resource_dict):
     normalised_format = format.lower().split('/')[-1]
     return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml',
                                   'xml', 'n-triples', 'turtle', 'plain',
-                                  'txt', 'atom', 'tsv', 'rss'))
+                                  'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
 def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
