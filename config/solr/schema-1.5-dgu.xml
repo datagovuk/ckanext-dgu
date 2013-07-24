@@ -18,19 +18,19 @@
 
 <schema name="ckan" version="1.5">
   <!-- attribute "name" is the name of this schema and is only used for display purposes.
-       version="x.y" is Solr's version number for the schema syntax and 
+       version="x.y" is Solr's version number for the schema syntax and
        semantics.  It should not normally be changed by applications.
 
-       1.0: multiValued attribute did not exist, all fields are multiValued 
+       1.0: multiValued attribute did not exist, all fields are multiValued
             by nature
-       1.1: multiValued attribute introduced, false by default 
-       1.2: omitTermFreqAndPositions attribute introduced, true by default 
+       1.1: multiValued attribute introduced, false by default
+       1.2: omitTermFreqAndPositions attribute introduced, true by default
             except for text fields.
        1.3: removed optional field compress feature
        1.4: autoGeneratePhraseQueries attribute introduced to drive QueryParser
-            behavior when a single string produces multiple tokens.  Defaults 
+            behavior when a single string produces multiple tokens.  Defaults
             to off for version >= 1.4
-       1.5: omitNorms defaults to true for primitive field types 
+       1.5: omitNorms defaults to true for primitive field types
             (int, float, boolean, string...)
      -->
 
@@ -133,7 +133,7 @@
     <field name="tags" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="group_titles" type="text" indexed="true" stored="true" multiValued="true"/>
-    <field name="group_abbreviation" type="text" indexed="true" stored="true" multiValued="true"/>    
+    <field name="group_abbreviation" type="text" indexed="true" stored="true" multiValued="true"/>
 
     <field name="capacity" type="string" indexed="true" stored="true" multiValued="false"/>
 
@@ -159,6 +159,7 @@
     <field name="resources_accessed_total" type="int" indexed="true" stored="false"/>
     <field name="resources_accessed_recent" type="int" indexed="true" stored="false"/>
     <field name="popularity" type="int" indexed="true" stored="true" default="0"/>
+    <field name="inventory" type="boolean" indexed="true" stored="true" multiValued="true"/>
 
     <field name="metadata_created" type="date" indexed="true" stored="true" multiValued="false"/>
     <field name="metadata_modified" type="date" indexed="true" stored="true" multiValued="false"/>
@@ -180,7 +181,7 @@
     <dynamicField name="*" type="string" indexed="true"  stored="false"/>
  </fields>
 
- <!-- Field to use to determine and enforce document uniqueness. 
+ <!-- Field to use to determine and enforce document uniqueness.
       Unless this field is marked with required="false", it will be a required field
    -->
  <uniqueKey>id</uniqueKey>
@@ -200,7 +201,7 @@
   The default is OR, which is generally assumed so it is not a good idea to change it
   globally here.  The "q.op" request parameter takes precedence over this.
 -->
- <solrQueryParser defaultOperator="AND"/> 
+ <solrQueryParser defaultOperator="AND"/>
 
 
   <copyField source="url" dest="urls"/>
