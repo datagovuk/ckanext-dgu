@@ -1385,6 +1385,9 @@ def ckan_asset_timestamp():
     from ckanext.dgu.theme.timestamp import asset_build_timestamp
     return asset_build_timestamp
 
+def is_inventory_item(package):
+    return get_from_flat_dict(package['extras'], 'inventory')
+
 def tidy_url(url):
     '''
     Given a URL it does various checks before returning a tidied version
@@ -1419,3 +1422,14 @@ def tidy_url(url):
         raise Exception('URL parsing failure - did not find a host name')
 
     return url
+
+def inventory_status(package_items):
+    from ckan import model
+    for p in package_items:
+        pid = p['package']
+        action = p['action']
+        pkg = model.Package.get(pid)
+        grp = pkg.get_groups('publisher')[0]
+
+        yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
+

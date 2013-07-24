@@ -21,7 +21,7 @@ from ckan.plugins import IActions
 from ckan.plugins import ICachedReport
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
-                             dgu_package_create, dgu_package_update,
+                             dgu_package_create, dgu_package_update, dgu_package_show,
                              dgu_package_create_rest, dgu_package_update_rest,
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show)
@@ -33,6 +33,10 @@ from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
 
 log = getLogger(__name__)
+
+def task_imports():
+    return ['ckanext.dgu.tasks']
+
 
 def configure_template_directory(config, relative_path):
     configure_served_directory(config, relative_path, 'extra_template_paths')
@@ -229,6 +233,7 @@ class AuthApiPlugin(SingletonPlugin):
             'package_delete': dgu_dataset_delete,
             'user_list': dgu_user_list,
             'user_show': dgu_user_show,
+            'package_show': dgu_package_show,
         }
 
 
@@ -318,6 +323,7 @@ class PublisherPlugin(SingletonPlugin):
         map.connect('publisher_read',
                     '/publisher/:id',
                     controller=pub_ctlr, action='read' )
+
         return map
 
     def after_map(self, map):
@@ -352,6 +358,42 @@ class PublisherPlugin(SingletonPlugin):
         returning each key name as an item in a list.
         """
         return ['openness-scores', 'openness-scores-withsub']
+
+
+class InventoryPlugin(SingletonPlugin):
+
+    implements(IRoutes, inherit=True)
+    implements(IConfigurer)
+    implements(ISession, inherit=True)
+
+
+    def before_commit(self, session):
+        pass
+
+    def before_map(self, map):
+        inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
+        map.connect('/inventory/:id/edit',
+                    controller=inv_ctlr, action='edit' )
+        map.connect('/inventory/:id/edit/download',
+                    controller=inv_ctlr, action='download' )
+        map.connect('/inventory/:id/edit/template',
+                    controller=inv_ctlr, action='template' )
+        map.connect('/inventory/:id/edit/upload',
+                    controller=inv_ctlr, action='upload' )
+        map.connect('/inventory/:id/edit/upload_complete',
+                    controller=inv_ctlr, action='upload_complete' )
+        map.connect('/inventory/:id/edit/upload/:upload_id',
+                    controller=inv_ctlr, action='upload_status' )
+
+        return map
+
+    def after_map(self, map):
+        return map
+
+    def update_config(self, config):
+        pass
+
+
 
 class SearchPlugin(SingletonPlugin):
     """
@@ -428,6 +470,12 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
+
+        # Temporarily make sure we don't show any datasets from inventory
+        if search_params.get('fq'):
+            search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
+        else:
+            search_params['fq'] = 'inventory:"false"'
         return search_params
 
     def after_search(self, search_results, search_params):
@@ -450,6 +498,7 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
+        SearchIndexing.add_inventory(pkg_dict)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):

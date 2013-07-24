@@ -35,6 +35,7 @@ setup(
         dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
         dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin
         dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
+        dgu_inventory = ckanext.dgu.plugin:InventoryPlugin
         dgu_theme = ckanext.dgu.plugin:ThemePlugin
         dgu_search = ckanext.dgu.plugin:SearchPlugin
         dgu_publisher_form = ckanext.dgu.forms.publisher_form:PublisherForm
@@ -70,6 +71,9 @@ setup(
 
         [curate.actions]
         report=ckanext.dgu.curation:report
+
+        [ckan.celery_task]
+        tasks = ckanext.dgu.plugin:task_imports
 
         [paste.paster_command]
         mock_drupal = ckanext.dgu.testtools.mock_drupal:Command

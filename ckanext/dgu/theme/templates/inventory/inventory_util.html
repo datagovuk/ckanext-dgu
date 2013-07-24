@@ -1,0 +1,27 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
+
+
+<py:def function="inventory_jobs()">
+    <div class="boxed">
+      <div class="widget-container">
+        <h4>Recent Inventory Uploads</h4>
+        <p py:if="not c.jobs">There are no recent uploads</p>
+        <p py:if="c.jobs">
+            <ul>
+              <py:for each="jid, tstamp in c.jobs">
+                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload_status',id=c.group.name, upload_id=jid )}">${h.render_datestamp(tstamp)} - ${h.render_datestamp(tstamp,format="%H:%M")}</a></li>
+              </py:for>
+            </ul>
+        </p>
+      </div>
+    </div>
+</py:def>
+
+</html>
+

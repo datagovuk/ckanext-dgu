@@ -1,0 +1,108 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="inventory_util.html" />
+  <xi:include href="../publisher/publisher_util.html" />
+
+  <py:def function="page_title">${c.group.display_name}</py:def>
+  <py:def function="page_heading">
+    <py:if test="h.check_access('group_update', {'id':c.group.id})">
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage inventory</a>
+      <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+    </py:if>
+      <a class="feed-icon" href="${h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}">${c.group.display_name}</a>
+      <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+      <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+        <img src="/images/rss.png" width="16" height="16"/>
+      </a>
+  </py:def>
+
+
+  <py:match path="primarysidebar">
+    ${inventory_jobs()}
+    ${publisher_sidebar()}
+  </py:match>
+
+
+  <py:match path="content">
+    <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
+
+    <div class="boxed">
+      <div class="notes" py:if="str(c.description_formatted).strip()">
+        ${c.description_formatted}
+      </div>
+      <h2>Inventory upload<span class="pull-right">${h.render_datestamp(c.task.last_updated.isoformat(), format="%d/%m/%Y %H:%M")}</span></h2>
+
+      <hr/>
+      <h4>Status: ${c.task.state}</h4>
+
+      <py:if test="c.task.state != 'Started'">
+        <hr/>
+        <div>
+            <h4>Errors</h4>
+            <p py:if="not c.task.error">No errors.</p>
+
+            <p py:if="c.task.error">
+              <py:for each="error in c.task.error">
+                <ul>
+                    <li>${error}</li>
+                </ul>
+              </py:for>
+            </p>
+        </div>
+
+        <hr/>
+
+        <div>
+            <h4>Items processed</h4>
+            <p py:if="not c.task.packages">No items processed</p>
+
+            <table class="table table-bordered table-striped" py:if="c.task.packages">
+              <thead>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Department</th>
+                <th>Publish Date</th>
+                <th>Release notes</th>
+                <th>Action</th>
+              </thead>
+              <tbody>
+                <py:for each="pkg,grp,pub_date,release,action in h.inventory_status(c.task.packages)">
+                  <tr>
+                    <td>${pkg.title}</td>
+                    <td title="${pkg.notes}">${h.truncate(pkg.notes, length=40, whole_word=True)}</td>
+                    <td>${grp.title}</td>
+                    <td>${h.render_datestamp(pub_date)}</td>
+                    <td title="${release}">${h.truncate(release, length=40, whole_word=True)}</td>
+                    <td>${action}</td>
+                  </tr>
+                </py:for>
+              </tbody>
+            </table>
+        </div>
+      </py:if>
+    </div>
+  </py:match>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
+    href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+  </py:def>
+
+  <py:def function="optional_footer">
+    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
+    <script>
+      // Pollute the global namespace
+      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
+      PUBLISHER_GROUP  = "node_${c.group.name}";
+    </script>
+    <script src="/scripts/dgu-publisher.js"></script>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>
+
+
