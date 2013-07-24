@@ -227,7 +227,7 @@ class DatasetForm(SingletonPlugin):
             'date_released': [ignore_missing, date_to_db, convert_to_extras],
             'date_updated': [ignore_missing, date_to_db, convert_to_extras],
             'date_update_future': [ignore_missing, date_to_db, convert_to_extras],
-            'last_major_modification': [ignore_missing, date_to_db, convert_to_extras],            
+            'last_major_modification': [ignore_missing, date_to_db, convert_to_extras],
             'update_frequency': [ignore_missing, use_other, unicode, convert_to_extras],
             'update_frequency-other': [ignore_missing],
             'precision': [ignore_missing, unicode, convert_to_extras],
@@ -269,12 +269,6 @@ class DatasetForm(SingletonPlugin):
             'state': [val.ignore_not_admin, ignore_missing],
 
             'inventory': [ignore_missing, bool, convert_to_extras],
-            'economic-growth-score': [ignore_missing, int, convert_to_extras],
-            'social-growth-score': [ignore_missing, int, convert_to_extras],
-            'effective-public-services-score': [ignore_missing, int, convert_to_extras],
-            'connective-reference-data-score': [ignore_missing, int, convert_to_extras],
-            'other-public-services-score': [ignore_missing, int, convert_to_extras],
-
 
             'theme-primary': [ignore_missing, unicode, val.tag_string_convert, convert_to_extras],
             'theme-secondary': [ignore_missing, val.tag_string_convert, convert_to_extras],
