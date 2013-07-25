@@ -69,7 +69,6 @@ class DguApiController(ApiController):
                 ))
             pkg_dicts.append(pkg_dict)
         return self._finish_ok(pkg_dicts)
-
     def revisions(self):
         '''
         Similar to the revision search API, lists all revisions for which
