@@ -1305,3 +1305,52 @@ def render_facet_value(key,value):
         return mapping.get(value,value)
     return value
 
+def is_inventory_item(package):
+    return get_from_flat_dict(package['extras'], 'inventory')
+
+def tidy_url(url):
+    '''
+    Given a URL it does various checks before returning a tidied version
+    suitable for calling.
+    '''
+    import urlparse
+
+    # Find out if it has unicode characters, and if it does, quote them
+    # so we are left with an ascii string
+    try:
+        url = url.decode('ascii')
+    except:
+        parts = list(urlparse.urlparse(url))
+        parts[2] = urllib.quote(parts[2].encode('utf-8'))
+        url = urlparse.urlunparse(parts)
+    url = str(url)
+
+    # strip whitespace from url
+    # (browsers appear to do this)
+    url = url.strip()
+
+    try:
+        parsed_url = urlparse.urlparse(url)
+    except Exception, e:
+        raise Exception('URL parsing failure: %s' % e)
+
+    # Check we aren't using any schemes we shouldn't be
+    if not parsed_url.scheme in ('http', 'https', 'ftp'):
+        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+
+    if not parsed_url.netloc:
+        raise Exception('URL parsing failure - did not find a host name')
+
+    return url
+
+def inventory_status(package_items):
+    from ckan import model
+    for p in package_items:
+        pid = p['package']
+        action = p['action']
+        pkg = model.Package.get(pid)
+        grp = pkg.get_groups('publisher')[0]
+
+        yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
+
+

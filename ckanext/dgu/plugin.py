@@ -31,6 +31,10 @@ from ckan.config.routing import SubMapper
 
 log = getLogger(__name__)
 
+def task_imports():
+    return ['ckanext.dgu.tasks']
+
+
 def configure_template_directory(config, relative_path):
     configure_served_directory(config, relative_path, 'extra_template_paths')
 
@@ -272,6 +276,41 @@ class PublisherPlugin(SingletonPlugin):
 
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
+
+
+class InventoryPlugin(SingletonPlugin):
+
+    implements(IRoutes, inherit=True)
+    implements(IConfigurer)
+    implements(ISession, inherit=True)
+
+
+    def before_commit(self, session):
+        pass
+
+    def before_map(self, map):
+        inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
+        map.connect('/inventory/:id/edit',
+                    controller=inv_ctlr, action='edit' )
+        map.connect('/inventory/:id/edit/download',
+                    controller=inv_ctlr, action='download' )
+        map.connect('/inventory/:id/edit/template',
+                    controller=inv_ctlr, action='template' )
+        map.connect('/inventory/:id/edit/upload',
+                    controller=inv_ctlr, action='upload' )
+        map.connect('/inventory/:id/edit/upload_complete',
+                    controller=inv_ctlr, action='upload_complete' )
+        map.connect('/inventory/:id/edit/upload/:upload_id',
+                    controller=inv_ctlr, action='upload_status' )
+
+        return map
+
+    def after_map(self, map):
+        return map
+
+    def update_config(self, config):
+        pass
+
 
 class SearchPlugin(SingletonPlugin):
     """
