@@ -42,7 +42,7 @@ class DguApiController(ApiController):
                 'rows':0,
                 'start':0,
                 'rows': limit,
-                'sort': 'last_major_modification desc'
+                'sort': 'metadata_modified desc'
             }
             query = get_action('package_search')(context,data_dict)
         except SearchError, se:
