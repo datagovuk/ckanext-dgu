@@ -25,6 +25,11 @@ class SearchIndexing(object):
 
         pkg_dict['popularity'] = score
 
+    @classmethod
+    def add_inventory(cls, pkg_dict):
+        ''' Sets inventory to false if not present '''
+        pkg_dict['inventory'] = pkg_dict.get('inventory', False)
+        log.debug('Inventory? %s: %s', pkg_dict['inventory'], pkg_dict['name'])
 
     @classmethod
     def add_field__is_ogl(cls, pkg_dict):

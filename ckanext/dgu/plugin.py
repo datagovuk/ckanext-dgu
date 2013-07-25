@@ -20,7 +20,7 @@ from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
                              dgu_package_create, dgu_package_update,
                              dgu_package_create_rest, dgu_package_update_rest,
-                             dgu_extra_fields_editable,
+                             dgu_extra_fields_editable, dgu_package_show,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show)
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
@@ -176,6 +176,7 @@ class AuthApiPlugin(SingletonPlugin):
             'package_delete': dgu_dataset_delete,
             'user_list': dgu_user_list,
             'user_show': dgu_user_show,
+	    'package_show': dgu_package_show,	
         }
 
 
@@ -408,6 +409,7 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__harvest_document(pkg_dict)
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
+        SearchIndexing.add_inventory(pkg_dict)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):

@@ -6,6 +6,22 @@ from ckan.logic.auth.publisher import _groups_intersect
 from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
 from ckanext.dgu.lib import publisher as publib
 
+def dgu_package_show(context, data_dict):
+    """
+    Pre-auth check for showing a package to make sure it isn't an
+    inventory item before we show it.  If it is inventory then we
+    will abort with a 404.
+    """
+    from ckan.logic.auth.publisher.get import package_show
+    from pylons.controllers.util import abort
+
+    if context.get('for_view', False):
+        pkg = get_package_object(context, data_dict)
+        if pkg and pkg.extras.get('inventory', False):
+            abort(404)
+
+    return package_show(context, data_dict)
+
 def dgu_group_update(context, data_dict):
     """
     Group edit permission.  Checks that a valid user is supplied and that the user is
