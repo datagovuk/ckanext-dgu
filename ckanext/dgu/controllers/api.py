@@ -65,7 +65,7 @@ class DguApiController(ApiController):
                 ('dataset_link', '/dataset/%s' % pkg.name),
                 ('publisher_title', pub_title),
                 ('publisher_link', pub_link),
-                ('metadata_modified', pkg.extras.get('last_major_modification')),
+                ('metadata_modified', pkg.metadata_modified.isoformat(),
                 ))
             pkg_dicts.append(pkg_dict)
         return self._finish_ok(pkg_dicts)
