@@ -388,6 +388,11 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
+        # Temporarily make sure we don't show any datasets from inventory
+        if search_params.get('fq'):
+            search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
+        else:
+            search_params['fq'] = 'inventory:"false"'
         return search_params
 
     def after_search(self, search_results, search_params):
