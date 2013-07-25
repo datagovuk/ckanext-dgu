@@ -29,15 +29,29 @@ class DguApiController(ApiController):
             limit = default_limit
 
         limit = min(100, limit) # max value
-        query = model.Session.query(model.PackageRevision)
-        query = query.filter(model.PackageRevision.state=='active')
-        query = query.filter(model.PackageRevision.current==True)
-        
-        query = query.order_by(model.package_revision_table.c.revision_timestamp.desc())
-        query = query.limit(limit)
+
+        from ckan.lib.search import SearchError
+        try:
+            # package search
+            context = {'model': model, 'session': model.Session,
+                       'user': 'visitor'}
+            data_dict = {
+                'q':'',
+                'fq': 'capacity:"public"',
+                'facet':'false',
+                'rows':0,
+                'start':0,
+                'rows': limit,
+                'sort': 'last_major_modification desc'
+            }
+            query = get_action('package_search')(context,data_dict)
+        except SearchError, se:
+            log.error('Search error: %s', se)
+            count = 0
+
         pkg_dicts = []
-        for pkg_rev in query:
-            pkg = pkg_rev.continuity
+        for pkg_dict in query['results']:
+            pkg = model.Package.get(pkg_dict['id'])
             publishers = pkg.get_groups('publisher')
             if publishers:
                 pub_title = publishers[0].title
