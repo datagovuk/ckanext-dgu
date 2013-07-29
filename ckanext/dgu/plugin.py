@@ -194,6 +194,7 @@ class DguForm(SingletonPlugin):
         map.connect('/dataset/{id}.{format}', controller=dgu_package_controller, action='read')
         map.connect('/dataset/{id}', controller=dgu_package_controller, action='read')
         map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
+
         return map
 
     def after_map(self, map):
@@ -389,10 +390,11 @@ class SearchPlugin(SingletonPlugin):
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
         # Temporarily make sure we don't show any datasets from inventory
-        if search_params.get('fq'):
-            search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
-        else:
-            search_params['fq'] = 'inventory:"false"'
+        if not sort_by_location_enabled:
+            if search_params.get('fq'):
+                search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
+            else:
+                search_params['fq'] = 'inventory:"false"'
         return search_params
 
     def after_search(self, search_results, search_params):
