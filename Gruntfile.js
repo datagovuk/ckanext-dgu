@@ -6,7 +6,7 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       options: {
-        banner: '/*! DGU+CKAN Application JS concatenated <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        banner: '/*! DGU+CKAN Application JS concatenated by Grunt */\n'
       },
       scripts: {
         src: [ /* Order of resources is important */
@@ -26,7 +26,7 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        banner: '/*! DGU+CKAN Application JS minified <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        banner: '/*! DGU+CKAN Application JS minified by Grunt */\n'
       },
       build: {
         src: 'ckanext/dgu/theme/public/scripts/dgu-compiled.unmin.js',
@@ -35,7 +35,7 @@ module.exports = function(grunt) {
     },
     less: {
       options: {
-        banner: '/* DGU+CKAN stylesheet compiled <%= grunt.template.today("yyyy-mm-dd") %> */\n',
+        banner: '/* DGU+CKAN stylesheet compiled by Grunt */\n',
         yuicompress: true
       },
       build: {

@@ -220,6 +220,11 @@ There are a number of command-line scripts for processing data. To run one of th
     ons_loader --help
 
 
+Asset management
+================
+
+Assets (images, javascript, css) are managed by a tool called Grunt. Developers should run Grunt before committing changes to assets, so that it can compress/minify, concatenate and record a timestamp. Read more about it and its use here: https://github.com/datagovuk/dgu_theme/blob/master/README.md
+
 Tests
 =====
 
