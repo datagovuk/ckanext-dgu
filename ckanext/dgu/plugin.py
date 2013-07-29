@@ -471,7 +471,12 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
-        # Temporarily make sure we don't show any datasets from inventory
+        # For the first stage of the inventory work, we do not want inventory items to
+        # appear in the search results, and so temporarily we will only show items whose
+        # inventory extra is set to false.  This won't work when we are doing a spatial
+        # query and so we need to make sure that we don't add search params in that case.
+        # None of the inventory items will have location and so won't show up when doing
+        # a location base search.
         if not sort_by_location_enabled:
             if search_params.get('fq'):
                 search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
