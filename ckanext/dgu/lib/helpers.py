@@ -805,25 +805,36 @@ def advanced_search_url():
 
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen), ... ]
+    licenses = [] # [(title, url, isopen, isogl), ... ]
 
+    # Normal datasets (created in the form) store the licence in the
+    # pkg.license value as a License.id value.
     if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen()))
+        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
     elif pkg.license_id:
-        licenses.append((pkg.license_id, None, None))
+        # However if the user selects 'free text' in the form, that is stored in
+        # the same pkg.license field.
+        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
 
+    # UKLP might have multiple licenses and don't adhere to the License
+    # values, so are in the 'licence' extra.
     license_extra_list = json_list(pkg.extras.get('licence') or '')
     for license_extra in license_extra_list:
         license_extra_url = None
         if license_extra.startswith('http'):
             license_extra_url = license_extra
-        licenses.append((license_extra, license_extra_url, True if ('OGL' in license_extra or 'OS OpenData Licence' in license_extra) else None))
+        # british-waterways-inspire-compliant-service-metadata specifies OGL as
+        # only one of many licenses. Set is_ogl bar a little higher - licence
+        # text must start off saying it is OGL.
+        is_ogl = license_extra.startswith('Open Government Licen')
+        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
 
+    # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
         license_url_title = pkg.extras.get('licence_url_title') or license_url
         isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None))
+        licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
