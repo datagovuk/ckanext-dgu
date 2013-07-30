@@ -6,6 +6,43 @@ from ckanext.dgu.plugins_toolkit import (c, NotAuthorized,
     ValidationError, get_action, check_access)
 from ckan.lib.search import SearchIndexError
 
+def inventory_dumper(tmpfile, query):
+    """ Dumps all of the inventory items to the open tmpfile using the
+        packages provided by query """
+    import csv
+    import dateutil.parser
+
+    writer = csv.writer(tmpfile)
+    writer.writerow(["Name", "Description", "Department", "Publish date", "Release notes"])
+    for pkg in query.all():
+        if not pkg.extras.get('inventory', False):
+            continue
+
+        grps = pkg.get_groups('publisher')
+        if not grps:
+            # This should not happen, but does appear in test data during development
+            grp = 'Unknown'
+        else:
+            grp = grps[0].title
+
+
+        publish_date = pkg.extras.get('publish-date', '')
+        if publish_date:
+            try:
+                dt = dateutil.parser.parse(publish_date)
+                publish_date = dt.strftime('%d/%m/%Y')
+            except ValueError:
+                publish_date = ""
+
+        row = [pkg.title.encode('utf-8')]
+        row.append(pkg.notes.encode('utf-8') or "")
+        row.append(grp)
+        row.append(publish_date)
+        row.append(pkg.extras.get('release-notes', '').encode('utf-8'))
+
+        writer.writerow(row)
+
+
 
 def enqueue_document(user, filename, publisher):
     """
