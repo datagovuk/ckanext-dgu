@@ -78,6 +78,7 @@ def command(config_file):
 
     import ckan.model as model
     import ckan.lib.dumper as dumper
+    from ckanext.dgu.lib.inventory import inventory_dumper
 
     # Check database looks right
     num_packages_before = model.Session.query(model.Package).count()
@@ -182,6 +183,7 @@ def command(config_file):
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
         for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
                                   ('json', dumper.SimpleDumper().dump_json),
+                                  ('inventory.csv', inventory_dumper),
                                  ):
             dump_filename = '%s.%s' % (dump_file_base, file_type)
             dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')
