@@ -364,8 +364,7 @@ class PublisherController(GroupController):
 
         def remove_field(key, value):
             params = list(params_nopage)
-            if (key, value) in params:
-                params.remove((key, value))
+            params.remove((key, value))
             return search_url(params)
 
         c.remove_field = remove_field

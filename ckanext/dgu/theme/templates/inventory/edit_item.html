@@ -1,0 +1,32 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">${c.pkg.title or c.pkg.name} - Edit - Inventory</py:def>
+
+  <py:def function="body_class">no-sidebar</py:def>
+
+  <py:def function="optional_head">
+    <script type="text/javascript">
+      var form_errors = ${c.errors_json};
+      window.DGU_RESOURCE_FORMATS = ${h.get_resource_formats()};
+    </script>
+    <script type="text/javascript" src="/scripts/dgu-package-form.js?2"></script>
+  </py:def>
+
+  <py:def function="page_heading">
+    ${dataset_admin_buttons(c.pkg)}
+    ${h.dataset_link(c.pkg)}
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit unpublished item</span>
+  </py:def>
+
+  <div py:match="content" class="dataset-edit-form">
+    <div class="boxed">
+      ${c.form}
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

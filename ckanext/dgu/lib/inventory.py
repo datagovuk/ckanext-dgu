@@ -15,7 +15,7 @@ def inventory_dumper(tmpfile, query):
     writer = csv.writer(tmpfile)
     writer.writerow(["Name", "Description", "Department", "Publish date", "Release notes"])
     for pkg in query.all():
-        if not pkg.extras.get('inventory', False):
+        if not pkg.extras.get('unpublished', False):
             continue
 
         grps = pkg.get_groups('publisher')
@@ -99,7 +99,7 @@ def render_inventory_header(writer):
     # Add
     #   - Reason for non-release
     writer.writerow(["Department", "Dataset title", "Description of dataset",
-                     "Number of resources", "Inventory item?", "Status"])
+                     "Number of resources", "Unpublished", "Status"])
 
 def render_inventory_row(writer, datasets, group):
     """
@@ -115,7 +115,7 @@ def render_inventory_row(writer, datasets, group):
         row.append(encode(dataset.title))        # Dataset name
         row.append(encode(dataset.notes or "No description").strip())    # Dataset description
         row.append(str(len(dataset.resources)))  # Number of resources
-        row.append(encode(unicode(dataset.extras.get('inventory',False))))
+        row.append(encode(unicode(dataset.extras.get('unpublished',False))))
         row.append(encode(dataset.state))        # Status
         writer.writerow(row)
 

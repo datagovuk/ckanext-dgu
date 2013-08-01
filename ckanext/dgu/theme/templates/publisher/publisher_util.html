@@ -24,7 +24,7 @@
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}">Edit publisher properties</a>
         </li>
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage inventory</a>
+    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage unpublished datasets</a>
         </li>
         <li py:if="h.check_access('package_create', {'groups':c.group.name})">
           <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
@@ -100,7 +100,14 @@
       <h4>Publisher Hierarchy</h4>
       <div id="publisher-tree-wrapper">
       <div id="publisher-tree" class="publisher-mini-tree">
-       ${Markup(h.render_mini_tree(c.all_groups, c.group))}
+
+        <py:if test="c.unpublished">
+          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='unpublished'))}
+       </py:if>
+        <py:if test="not c.unpublished">
+          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='publisher'))}
+       </py:if>
+
       </div>
       </div>
 

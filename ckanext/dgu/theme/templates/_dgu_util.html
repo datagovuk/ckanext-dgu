@@ -100,20 +100,51 @@
       </td>
       <td class="right">
         <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
+
           <div class="textbox">
             <input id="q" type="text" class="input-medium" name="q" value="${c.q}" results="0" placeholder="${_('Search...')}" />
           </div>
           <div class="search-spinner">&nbsp;</div>
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
+
           <span py:if="c.fields">
           <py:for each="(k, v) in c.fields">
-            <input type="hidden" name="${k}" value="${v}" />
+            <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished'" />
           </py:for>
           </span>
           <py:if test="request.params.get('ext_bbox','')">
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="${request.params.get('ext_bbox','')}" />
           </py:if>
+
           <div id="dataset-search-ext"></div>
+
+          <div class="pull-right">
+            <br/><br/><br/>
+
+            <form action="">
+              Show
+              <label class="radio">
+                <input type="radio" name="unpublished" value="" class="inline" py:attrs="{'checked': 'checked' if not 'unpublished' in request.params or request.params.get('unpublished',None) == '' else None}"/>
+                All
+              </label>
+
+              <label class="radio">
+                <input type="radio" name="unpublished" value="false" class="inline" py:attrs="{'checked': 'checked' if h.search_has_term('unpublished', 'false') and c.remove_field('unpublished', 'false') else None}"/>
+                Published
+              </label>
+
+              <label class="radio">
+                <input type="radio" name="unpublished" value="true" class="inline" py:attrs="{'checked': 'checked' if h.search_has_term('unpublished', 'true') and c.remove_field('unpublished','true') else None}"/>
+                Unpublished
+              </label>
+
+              <span style="display:none" py:if="request.params.get('unpublished', None)">
+                <!--! This is hacky, not sure how else to remove the field -->
+                ${c.remove_field('unpublished', request.params['unpublished'])}
+              </span>
+            </form>
+          </div>
+
         </form>
         <table class="facet-table">
           <py:def function="facet(label,kill_link)">
@@ -151,7 +182,12 @@
 
   <ul py:def="package_list_from_dict(packages)" class="common-dataset-list">
    <li py:for="package in packages">
-      ${package_summary(package, show_preview_buttons=True)}
+      <py:if test="not h.is_unpublished_item(package)">
+        ${package_summary(package, show_preview_buttons=True)}
+      </py:if>
+      <py:if test="h.is_unpublished_item(package)">
+        ${unpublished_summary(package)}
+      </py:if>
    </li>
   </ul>
 
@@ -183,32 +219,82 @@
      </div>
   </div>
 
-  <div py:def="inventory_summary(package, show_preview_buttons)" class="wrapper dataset dataset-summary boxed" style='background-color: #dedede;'>
+  <div py:def="unpublished_summary(package)" class="wrapper dataset dataset-summary boxed">
      <div py:with="title=package.get('title') or package.get('name')">
-       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <img class="dataset-icon" src="${'/images/inventory-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
-         <h3><span class="underlined">Inventory: ${title}</span></h3>
-       </a>
+      <div class="dataset-header">
+        <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="/images/inventory-icon.png" title="${h.name_for_uklp_type(package)}"/>
+        </a>
+
+         <h3><span class="underlined">
+         <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span><br/>
+         <small py:with='cmtcount = h.feedback_comment_count(package); usrcnt=h.feedback_user_count(package)'>${cmtcount} comment${h.pluralise_text(cmtcount)} from ${usrcnt} user${h.pluralise_text(usrcnt)}</small></h3>
+
+       </div>
+
        <span class="property pull-right">
          ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+         <py:if test="h.unpublished_release_date(package)">
+           <br/>
+           Release date: ${h.render_datetime(h.unpublished_release_date(package), with_hours=False)}
+          </py:if>
        </span>
        <div class="property">
           Publisher:&nbsp;
             <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
               ${h.package_publisher_dict(package).get('title', '')}
             </a>
+
        </div>
-       <div py:if="h.uklp_display_provider(package)" class="property">Provider:&nbsp; ${h.uklp_display_provider(package).strip('"')}</div>
+
        <div class="dataset-description">
          ${h.markdown_extract(package.notes)}
        </div>
+       <table width="100%" style="margin-top: 10px;" py:with="comment_dict=h.unpublished_comments_lookup(package)">
+          <tr>
+              <td align='center'>
+                <div style="padding: 8px; background: #eee;">
+                  Economic growth:
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['economic']}</a>
+                </div>
+              </td>
+              <td align='center'>
+                <div style="padding: 8px; background: #eee;">
+                  Social growth:
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['social']}</a>
+                </div>
+              </td>
+              <td align='center'>
+                <div style="padding: 8px; background: #eee;">
+                  Effective public services:
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['effective']}</a>
+                </div>
+              </td>
+          </tr>
+          <tr>
+              <td align='center' colspan="2">
+                <div style="padding: 8px; background: #eee;">
+                    Potential links to other datasets
+                    <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['linked']}</a>
+                 </div>
+              </td>
+              <td align='center'>
+                <div style="padding: 8px; background: #eee;">
+                  Other key data:
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['other']}</a>
+                </div>
+              </td>
+          </tr>
+       </table>
+
+       <div class="clearfix"></div>
      </div>
   </div>
 
 
-  <py:def function="facet_line(facet_item, facet_key)">
+  <py:def function="facet_line(facet_item, facet_key, alternative_url=None)">
       <div class="facet-option">
-        <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {facet_key: facet_item['name']})}">
+        <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {facet_key: facet_item['name']}, alternative_url=alternative_url)}">
           ${h.render_facet_value(facet_key,facet_item['name'])}
         </a>
         (${facet_item['count']})
@@ -224,22 +310,22 @@
       </div>
   </py:def>
 
-  <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count')">
+  <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count', alternative_url=None)">
       <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
           <div class="facet-box-unboxed">
               <h4>${title}</h4>
               <div class="facet-options">
-                <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
+                <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key and not k=='unpublished']">
                   ${facet_unline(facet_key,preselected)}
                 </py:for>
                 <py:if test="more_button">
                     <py:for each="facet_item in facet_items[:5]">
-                        ${facet_line(facet_item, facet_key)}
+                        ${facet_line(facet_item, facet_key, alternative_url=alternative_url)}
                     </py:for>
                     <py:if test="len(facet_items)>5">
                       <div id="${more_button}-items" style="display: None">
                         <py:for each="facet_item in facet_items[5:]">
-                          ${facet_line(facet_item, facet_key)}
+                          ${facet_line(facet_item, facet_key, alternative_url=alternative_url)}
                         </py:for>
                       </div>
                       <a id="${more_button}" class="facet-expand-collapse" href="#">
@@ -254,16 +340,16 @@
                 </py:if>
                 <py:if test="not more_button">
                     <py:for each="facet_item in facet_items">
-                        ${facet_line(facet_item, facet_key)}
+                        ${facet_line(facet_item, facet_key, alternative_url=alternative_url)}
                     </py:for>
                 </py:if>
                 <py:if test="facet_key=='publisher'">
                     <div class="facet-option" py:if="h.link_subpub()">
-                      <a href="${h.search_with_subpub()}">Include sub-publishers</a>
+                      <a href="${h.search_with_subpub(alternative_url)}">Include sub-publishers</a>
                     </div>
                     <div class="facet-option" py:if="not facet_items and not h.link_subpub()">${if_empty}</div>
                 </py:if>
-                <py:if test="facet_key!='publisher'">
+                <py:if test="facet_key not in ['publisher', 'unpublished', 'publish_restricted']">
                     <div class="facet-option" py:if="not facet_items">${if_empty}</div>
                 </py:if>
               </div>
@@ -272,7 +358,16 @@
   </py:def>
 
   <div py:def="facet_filters()" class="datasets">
-    <div class="boxed">
+    <div class="boxed" py:if="request.params.get('unpublished', 'false') == 'true'">
+      ${facet_box(
+          'publisher',
+          'Publisher',
+          'There are no further publisher filters to apply.',
+          more_button='more-publishers-button'
+      )}
+    </div>
+
+    <div class="boxed" py:if="request.params.get('unpublished', 'false') != 'true'">
       ${facet_box(
           'license_id-is-ogl',
           'Licence',
@@ -405,8 +500,14 @@
   <py:def function="dataset_admin_buttons(pkg)">
     <div class="btn-group pull-right">
       <py:if test="h.check_access('package_update',{'id':pkg.id})">
-        <a class="btn btn-info" href="${h.url_for(controller='package', action='edit', id=pkg.name)}">
+        <a py:if="not h.is_unpublished_item(c.pkg_dict)" class="btn btn-info" href="${h.url_for(controller='package', action='edit', id=pkg.name)}">
           Edit
+        </a>
+        <a py:if="h.is_unpublished_item(c.pkg_dict)" class="btn btn-info" href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=pkg.name)}">
+          Edit unpublished item
+        </a>
+        <a py:if="h.is_unpublished_item(c.pkg_dict)" class="btn btn-success" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=pkg.name)}">
+          Convert to dataset
         </a>
       </py:if>
       <py:if test="h.check_access('package_edit_permissions',{'id':pkg.id})">

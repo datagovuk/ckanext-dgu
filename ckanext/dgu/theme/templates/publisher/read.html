@@ -8,7 +8,7 @@
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">
   <py:if test="h.check_access('group_update', {'id':c.group.id})">
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage inventory</a>
+    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage Unpublished Datasets</a>
     <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:if>
     ${c.group.display_name}
@@ -43,6 +43,33 @@
               <input type="hidden" name="${k}" value="${v}" />
             </py:for>
             <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
+
+            <div class="pull-right">
+              <br/><br/><br/><br/>
+            <form action="">
+              Show
+              <label class="radio">
+                <input type="radio" name="unpublished" value="" class="inline" py:attrs="{'checked': 'checked' if not 'unpublished' in request.params or request.params.get('unpublished',None) == '' else None}"/>
+                All
+              </label>
+
+              <label class="radio">
+                <input type="radio" name="unpublished" value="false" class="inline" py:attrs="{'checked': 'checked' if h.search_has_term('unpublished', 'false') and c.remove_field('unpublished', 'false') else None}"/>
+                Published
+              </label>
+
+              <label class="radio">
+                <input type="radio" name="unpublished" value="true" class="inline" py:attrs="{'checked': 'checked' if h.search_has_term('unpublished', 'true') and c.remove_field('unpublished','true') else None}"/>
+                Unpublished
+              </label>
+
+              <span style="display:none" py:if="request.params.get('unpublished', None)">
+                <!--! This is hacky, not sure how else to remove the field -->
+                ${c.remove_field('unpublished', request.params['unpublished'])}
+              </span>
+
+            </form>
+            </div>
           </form>
         </div>
 

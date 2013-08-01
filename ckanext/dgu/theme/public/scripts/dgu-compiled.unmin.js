@@ -7,6 +7,38 @@ function assert( code, errorMessage ) {
   }
 }
 
+function feedback_publish(itemid) {
+  $.ajax( {
+      url: "/data/feedback/moderate/" + itemid,
+      data: {action: 'publish'},
+      dataType: "json",
+      method: "POST",
+      success: function () {
+          $('#' + itemid).slideUp('slow')
+          return false
+      }
+  })
+  return false
+}
+
+function feedback_delete(itemid, andban) {
+  var data = {action: 'delete'}
+  if (andban) {
+    data['action'] = 'delete_and_ban'
+  }
+  $.ajax( {
+      url: "/data/feedback/moderate/" + itemid,
+      data: data,
+      dataType: "json",
+      method: "POST",
+      success: function () {
+          $('#' + itemid).slideUp('slow')
+          return false
+      }
+  })
+  return false
+}
+
 /* Utility: Global console.log() function for all browsers */
 (function (con) {
   var method;
@@ -721,7 +753,7 @@ $(function() {
       error: catchError
     });
   };
-
+  
   var clickX = function(e) {
     var packageId = $(e.target).parents('li').attr('id');
     // Inform the server
@@ -812,8 +844,8 @@ $(function() {
 
   var pollApi = function(request,response) {
     $.ajax({
-      url: url,
-      data: { fl: 'title', q: request.term },
+      url: url, 
+      data: { fl: 'title', q: request.term }, 
       success: function (data) {
         var array = data.results;
         var out = [];

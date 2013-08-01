@@ -228,7 +228,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
 
 
     # First validation check, make sure we have enough to either update or create an
-    # inventory item
+    # unpublished item
     errors = []
     if not title.strip():
         errors.append("Dataset title")
@@ -266,9 +266,9 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
             log.info("{0} does not match title {1}".format(possible_pkg['title'], title) )
             continue
 
-        if not possible_pkg['extras'].get('inventory', False):
+        if not possible_pkg['extras'].get('unpublished', False):
             # If the title has matched exactly, and the thing we matched isn't an
-            # inventory item, we should alert the user to the existing of the dataset
+            # unpublished item, we should alert the user to the existing of the dataset
             raise Exception("The non-inventory dataset '{0}' already exists".format(title))
 
         if not group['name'] in possible_pkg['groups']:
@@ -286,7 +286,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     if len(possibles) == 1:
         existing_pkg = possibles[0]
     elif len(possibles) > 1:
-        raise Exception("Found {0} existing inventory items with title '{1}'".format(len(possibles), title))
+        raise Exception("Found {0} existing unpublished items with title '{1}'".format(len(possibles), title))
 
     log.debug("Existing package? {0}".format(not existing_pkg is None))
     if existing_pkg:
@@ -300,7 +300,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
 
 
     log.info("Creating new dataset: {0}".format(title))
-    # Looks like a new inventory item, so we'll create a new one.
+    # Looks like a new unpublished item, so we'll create a new one.
 
     def get_clean_name(s):
         current = s
@@ -331,15 +331,15 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
 
     package['groups'] = [group['name']]
 
-    # Setup inventory specific items
+    # Setup unublished specific items
     extras = {
-        'inventory': True,
+        'unpublished': True,
         'publish-date': publish_date,
         'release-notes':release_notes
     }
     package['extras'] = extras
 
-    log.info("Creating new inventory package: {0}".format(package['name']))
+    log.info("Creating new unpublished package: {0}".format(package['name']))
 
     try:
         package = client.package_register_post(package)

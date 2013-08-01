@@ -159,7 +159,9 @@
     <field name="resources_accessed_total" type="int" indexed="true" stored="false"/>
     <field name="resources_accessed_recent" type="int" indexed="true" stored="false"/>
     <field name="popularity" type="int" indexed="true" stored="true" default="0"/>
-    <field name="inventory" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
 
     <field name="metadata_created" type="date" indexed="true" stored="true" multiValued="false"/>
     <field name="metadata_modified" type="date" indexed="true" stored="true" multiValued="false"/>

@@ -66,6 +66,7 @@ setup(
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
 
+
         [ckan.forms]
         package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
 
@@ -91,6 +92,7 @@ setup(
         derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
         precalc_reports = ckanext.dgu.commands.precalc_reports:ReportGenerator
+        inventory_init = ckanext.dgu.commands.inventory_init:InitDB
     """,
     test_suite = 'nose.collector',
 )

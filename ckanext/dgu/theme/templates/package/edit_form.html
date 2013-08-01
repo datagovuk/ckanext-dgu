@@ -61,6 +61,14 @@
         <img src="/images/information-grey.png"/>
       </span>
       <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
+
+      <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
+      <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
+
+      <py:if test="h.is_unpublished_item(c.pkg_dict)">
+        <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
+        <input id="extras__101__value" name="extras__101__value" type="hidden" value="false" />
+      </py:if>
     </div>
   </div>
 

@@ -58,7 +58,7 @@
     <script type="text/javascript" src="/assets/js/bootstrap-hashchange.js"></script>
     <!-- CKAN DGU scripts -->
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script> 
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-basket.js')}"></script>
   </py:if>
   <py:if test="config.get('dgu.use_raw_js')!='true'">
@@ -142,7 +142,9 @@ ${h.top_level_init()}
     <ul id="subnav">
       <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') and request.params.get('unpublished', 'false') != 'true' else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') and request.params.get('unpublished', 'false') == 'true' else ''}" href="${h.url_for(controller='package', action='search')}?unpublished=true">Unpublished datasets</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
@@ -179,8 +181,10 @@ ${h.top_level_init()}
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Sys Admin:</span>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
-          <span class="divider">&nbsp;|&nbsp;</span>
+        <span class="divider">&nbsp;|&nbsp;</span>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/feedback/moderation') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
       </py:if>
     </ul>
   </div>

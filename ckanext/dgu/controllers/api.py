@@ -17,8 +17,25 @@ log = logging.getLogger(__name__)
 
 default_limit = 10
 
+
 class DguApiController(ApiController):
-    def latest_datasets(self):
+
+
+    def popular_unpublished(self):
+        """
+        Returns the most popular unpublished items after it has calculated a score
+        for each criteria. We need to be able to calculate the score for this.
+        """
+        return self._finish_ok([])
+
+    def latest_unpublished(self):
+        """
+        Designed for use with the DGU homepage, it simply returns information
+        about the latest unpublished items that have been added
+        """
+        return self.latest_datasets(unpublished_only=True)
+
+    def latest_datasets(self, unpublished_only=False):
         '''Designed for the dgu home page, shows lists the latest datasets
         that got changed (exluding extra, group and tag changes) with lots
         of details about each dataset.
@@ -31,15 +48,18 @@ class DguApiController(ApiController):
         limit = min(100, limit) # max value
 
         from ckan.lib.search import SearchError
+        fq = 'capacity:"public"'
+        if unpublished_only:
+             fq = fq + ' unpublished:true'
+
         try:
             # package search
             context = {'model': model, 'session': model.Session,
                        'user': 'visitor'}
             data_dict = {
                 'q':'',
-                'fq': 'capacity:"public"',
+                'fq': fq,
                 'facet':'false',
-                'rows':0,
                 'start':0,
                 'rows': limit,
                 'sort': 'metadata_modified desc'
@@ -67,8 +87,12 @@ class DguApiController(ApiController):
                 ('publisher_link', pub_link),
                 ('metadata_modified', pkg.metadata_modified.isoformat()),
                 ))
+            if unpublished_only:
+                pkg_dict['publish_date'] = pkg.extras.get('publish-date', '')
+                pkg_dict['release_notes'] = pkg.extras.get('release-notes', '')
             pkg_dicts.append(pkg_dict)
         return self._finish_ok(pkg_dicts)
+
     def revisions(self):
         '''
         Similar to the revision search API, lists all revisions for which

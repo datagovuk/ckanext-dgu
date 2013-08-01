@@ -13,11 +13,11 @@ from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
 
 def allow_empty_if_inventory(key, data, errors, context):
-    """ Allow a specific field to not be required if inventory=true """
-    inventory = data.get('inventory', False)
+    """ Allow a specific field to not be required if unpublished=true """
+    unpublished = data.get('unpublished', False)
     value = data.get(key)
 
-    if inventory:
+    if unpublished:
         if value is missing or value is None:
             data.pop(key, None)
             raise StopOnError
@@ -29,7 +29,7 @@ def allow_empty_if_inventory(key, data, errors, context):
 
 
 def required_if_inventory(key, data, errors, context):
-    """ Make a field required if inventory=true in extras """    
+    """ Make a field required if inventory=true in extras """
     pass
 
 def drop_if_same_as_publisher(key, data, errors, context):
@@ -102,7 +102,7 @@ def validate_license(key, data, errors, context):
     if data[('license_id',)]== '__extra__': # harvested dataset
         data[('license_id',)] = None
         return
-    
+
     license_id = bool(data[('license_id',)])
     license_id_other = bool(data[('access_constraints',)])
 
@@ -114,7 +114,7 @@ def validate_license(key, data, errors, context):
             errors[('license_id',)] = ['Please enter the access constraints.']
 
     if not license_id:
-        data[('license_id',)] = data[('access_constraints',)] 
+        data[('license_id',)] = data[('access_constraints',)]
     del data[('access_constraints',)]
     del errors[('access_constraints',)]
 
@@ -144,14 +144,14 @@ def merge_resources(key, data, errors, context):
         raise Exception('The merge_resources function should only be '
                         'called as a post-processing function.  '
                         'Called with "%s"' % key)
-    
+
     for value in errors.values():
         if value:
             return
 
     _merge_dict(data)
     _merge_dict(errors)
-            
+
 def _merge_dict(d):
     """
     Helper function that performs a resource merge on the given dict.
@@ -181,7 +181,7 @@ def _merge_dict(d):
         for (_,_,field) in values:
             d[('resources', num, field)] = d[(resource_type, original_index, field)]
 
-            # delete the original key from the d, e.g. 
+            # delete the original key from the d, e.g.
             del d[(resource_type, original_index, field)]
 
 def unmerge_resources(key, data, errors, context):
@@ -196,7 +196,7 @@ def unmerge_resources(key, data, errors, context):
         raise Exception('The unmerge_resources function should only be '
                         'called as a post-processing function.  '
                         'Called with "%s"' % key)
-    
+
     for value in errors.values():
         if value:
             return
@@ -219,7 +219,7 @@ def unmerge_resources(key, data, errors, context):
             for field in error_resource.keys():
                 error_key = ('%s_resources'%resource_type, index, field)
                 errors[error_key] = []
-    
+
     for key in ( key for key in errors.keys() if key[0] == 'resources' ):
         del errors[key]
 
@@ -230,7 +230,7 @@ def _validate_resource_types(allowed_types, default=None):
     If a resource_type is False-like, then it returns a default value when
     available.
     """
-    
+
     def _converter(value):
         if not value and default:
             return default
@@ -270,7 +270,7 @@ def remove_blank_resources(key, data, errors, context):
                              individual_resources))
 
     user_filled_fields = set(('description', 'format', 'url', 'date'))
-    
+
     for (resource, values_iter) in groupby(resources, lambda t: t[:2]):
         resource_type, original_index = resource
         is_blank_resource = True
@@ -309,4 +309,4 @@ def validate_publisher_category(key, data, errors, context):
             errors[('category',)] = ['Category is not valid.']
         else:
             errors[('category',)] = ['Please supply a value for the Category.']
-            
+
