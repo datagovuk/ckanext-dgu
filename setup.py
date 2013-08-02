@@ -73,7 +73,7 @@ setup(
         report=ckanext.dgu.curation:report
 
         [ckan.celery_task]
-        tasks = ckanext.dgu.plugin:task_imports
+        tasks = ckanext.dgu.celery_import:task_imports
 
         [paste.paster_command]
         mock_drupal = ckanext.dgu.testtools.mock_drupal:Command

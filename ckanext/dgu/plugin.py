@@ -31,11 +31,9 @@ from ckanext.dgu.lib.search import solr_escape
 import ckanext.dgu
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
+from ckan.exceptions import CkanUrlException
 
 log = getLogger(__name__)
-
-def task_imports():
-    return ['ckanext.dgu.tasks']
 
 
 def configure_template_directory(config, relative_path):
@@ -283,7 +281,14 @@ class PublisherPlugin(SingletonPlugin):
         pubctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
         for obj in set( session._object_cache['new'] ):
             if isinstance(obj, (User)):
-                url = url_for(controller=pubctlr, action='apply')
+                try:
+                    url = url_for(controller=pubctlr, action='apply')
+                except CkanUrlException:
+                    # This occurs when Routes has not yet been initialized
+                    # yet, which would be before a WSGI request has been
+                    # made. In this case, there will be no flash message
+                    # required anyway.
+                    return
                 msg = "You can now <a href='%s'>apply for publisher access</a>" % url
                 try:
                     flash_notice(_(msg), allow_html=True)
