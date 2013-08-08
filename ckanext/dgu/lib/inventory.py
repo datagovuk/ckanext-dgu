@@ -31,7 +31,7 @@ def inventory_dumper(tmpfile, query):
             try:
                 dt = dateutil.parser.parse(publish_date)
                 publish_date = dt.strftime('%d/%m/%Y')
-            except ValueError:
+            except Exception, e:
                 publish_date = ""
 
         row = [pkg.title.encode('utf-8')]
