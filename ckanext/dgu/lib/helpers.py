@@ -540,7 +540,7 @@ def updated_string(package):
     return updated_string
 
 def updated_date(package):
-    for extra in package_dict['extras']:
+    for extra in package['extras']:
         if extra['key'] == 'last_major_modification':
             return extra['value']
     return get_last_major_modification(package)
