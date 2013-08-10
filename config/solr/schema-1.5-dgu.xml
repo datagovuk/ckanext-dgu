@@ -136,6 +136,8 @@
     <field name="group_abbreviation" type="text" indexed="true" stored="true" multiValued="true"/>
     <field name="inventory" type="boolean" indexed="true" stored="true" multiValued="true"/>
 
+    <field name="all_themes" type="string" indexed="true" stored="true" multiValued="true"/>
+
     <field name="capacity" type="string" indexed="true" stored="true" multiValued="false"/>
 
     <field name="res_description" type="textgen" indexed="true" stored="true" multiValued="true"/>
