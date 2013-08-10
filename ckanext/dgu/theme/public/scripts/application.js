@@ -1560,7 +1560,7 @@ CKAN.DataPreview = function ($, my) {
       var dataset = new recline.Model.Dataset(resourceData, 'elasticsearch');
       initializeDataExplorer(dataset);
     }
-    else if (resourceData.formatNormalized in {'csv': '', 'xls': '', 'tsv': ''}) {
+    else if (resourceData.formatNormalized in {'csv': '', 'xls': '', 'tsv': '', 'ods': ''}) {
       // set format as this is used by Recline in setting format for DataProxy
       resourceData.format = resourceData.formatNormalized;
       var dataset = new recline.Model.Dataset(resourceData, 'dataproxy');

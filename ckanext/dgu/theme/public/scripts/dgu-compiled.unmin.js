@@ -1,4 +1,4 @@
-/*! DGU+CKAN Application JS concatenated 2013-07-03 */
+/*! DGU+CKAN Application JS concatenated by Grunt */
 /* Utility: Global assertion function */
 function assert( code, errorMessage ) {
   if (!code) {

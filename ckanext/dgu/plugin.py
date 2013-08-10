@@ -18,9 +18,10 @@ from ckan.plugins import ISession
 from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
+from ckan.plugins import ICachedReport
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
-                             dgu_package_create, dgu_package_update,
+                             dgu_package_create, dgu_package_update, dgu_package_show,
                              dgu_package_create_rest, dgu_package_update_rest,
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show)
@@ -30,8 +31,10 @@ from ckanext.dgu.lib.search import solr_escape
 import ckanext.dgu
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
+from ckan.exceptions import CkanUrlException
 
 log = getLogger(__name__)
+
 
 def configure_template_directory(config, relative_path):
     configure_served_directory(config, relative_path, 'extra_template_paths')
@@ -123,6 +126,7 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/carparks', controller=data_controller, action='carparks')
         map.connect('reports', '/data/reports', controller=reports_controller, action='resources')
+        map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')
@@ -135,7 +139,7 @@ class ThemePlugin(SingletonPlugin):
 
         with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
             m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
-            m.connect('/dataset/{id:.*}/release', action='release')            
+            m.connect('/dataset/{id:.*}/release', action='release')
 
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
@@ -173,12 +177,12 @@ class ResourceURLModificationPlugin(SingletonPlugin):
     implements(IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
-        log.debug("URL for resource %s has changed" % resource.id)         
+        log.debug("URL for resource %s has changed" % resource.id)
         update_package_major_time(resource.resource_group.package)
 
 
 class ResourceModificationPlugin(SingletonPlugin):
-    implements(IDomainObjectModification, inherit=True)    
+    implements(IDomainObjectModification, inherit=True)
 
     def notify(self, entity, operation):
         from ckan import model
@@ -188,7 +192,7 @@ class ResourceModificationPlugin(SingletonPlugin):
 
         if not entity.resource_group:
             log.debug("Resource has no resource_group")
-            return 
+            return
 
         model.Session.flush()
         pkg = entity.resource_group.package
@@ -197,11 +201,11 @@ class ResourceModificationPlugin(SingletonPlugin):
             log.debug("A new resource was created")
             update_package_major_time(pkg)
         elif operation == model.DomainObjectOperation.changed:
-            # If we get a change, then we should just check if the 
-            # state is deleted, if so then we should update the 
+            # If we get a change, then we should just check if the
+            # state is deleted, if so then we should update the
             # modification date on the package. If the state isn't
             # deleted then we will instead catch the URL change with
-            #  IResourceUrlChange            
+            #  IResourceUrlChange
             if entity.state == 'deleted':
                 log.debug("A resource was deleted")
                 update_package_major_time(pkg)
@@ -231,6 +235,7 @@ class AuthApiPlugin(SingletonPlugin):
             'package_delete': dgu_dataset_delete,
             'user_list': dgu_user_list,
             'user_show': dgu_user_show,
+            'package_show': dgu_package_show,
         }
 
 
@@ -248,6 +253,7 @@ class DguForm(SingletonPlugin):
         map.connect('/dataset/{id}.{format}', controller=dgu_package_controller, action='read')
         map.connect('/dataset/{id}', controller=dgu_package_controller, action='read')
         map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
+
         return map
 
     def after_map(self, map):
@@ -262,7 +268,7 @@ class PublisherPlugin(SingletonPlugin):
     implements(IRoutes, inherit=True)
     implements(IConfigurer)
     implements(ISession, inherit=True)
-
+    implements(ICachedReport)
 
     def before_commit(self, session):
         """
@@ -279,7 +285,14 @@ class PublisherPlugin(SingletonPlugin):
         pubctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
         for obj in set( session._object_cache['new'] ):
             if isinstance(obj, (User)):
-                url = url_for(controller=pubctlr, action='apply')
+                try:
+                    url = url_for(controller=pubctlr, action='apply')
+                except CkanUrlException:
+                    # This occurs when Routes has not yet been initialized
+                    # yet, which would be before a WSGI request has been
+                    # made. In this case, there will be no flash message
+                    # required anyway.
+                    return
                 msg = "You can now <a href='%s'>apply for publisher access</a>" % url
                 try:
                     flash_notice(_(msg), allow_html=True)
@@ -320,6 +333,7 @@ class PublisherPlugin(SingletonPlugin):
         map.connect('publisher_read',
                     '/publisher/:id',
                     controller=pub_ctlr, action='read' )
+
         return map
 
     def after_map(self, map):
@@ -331,6 +345,65 @@ class PublisherPlugin(SingletonPlugin):
 
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
+
+    def register_reports(self):
+        """
+        This method will be called so that the plugin can register the
+        reports it wants run.  The reports will then be executed on a
+        24 hour schedule and the appropriate tasks called.
+
+        This call should return a dictionary, where the key is a description
+        and the value should be the function to run. This function should
+        take a single parameter, which is a list of the reports to generate
+        by key.  If the plugin is unable to process that key then it should
+        return immediately.  If no list of keys is supplied then the plugin
+        should generate all reports.
+        """
+        from ckanext.dgu.lib.publisher import cached_openness_scores
+        return { 'Cached Openness Scores': cached_openness_scores }
+
+    def list_report_keys(self):
+        """
+        Returns a list of the reports that the plugin can generate by
+        returning each key name as an item in a list.
+        """
+        return ['openness-scores', 'openness-scores-withsub']
+
+
+class InventoryPlugin(SingletonPlugin):
+
+    implements(IRoutes, inherit=True)
+    implements(IConfigurer)
+    implements(ISession, inherit=True)
+
+
+    def before_commit(self, session):
+        pass
+
+    def before_map(self, map):
+        inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
+        map.connect('/inventory/:id/edit',
+                    controller=inv_ctlr, action='edit' )
+        map.connect('/inventory/:id/edit/download',
+                    controller=inv_ctlr, action='download' )
+        map.connect('/inventory/:id/edit/template',
+                    controller=inv_ctlr, action='template' )
+        map.connect('/inventory/:id/edit/upload',
+                    controller=inv_ctlr, action='upload' )
+        map.connect('/inventory/:id/edit/upload_complete',
+                    controller=inv_ctlr, action='upload_complete' )
+        map.connect('/inventory/:id/edit/upload/:upload_id',
+                    controller=inv_ctlr, action='upload_status' )
+
+        return map
+
+    def after_map(self, map):
+        return map
+
+    def update_config(self, config):
+        pass
+
+
 
 class SearchPlugin(SingletonPlugin):
     """
@@ -407,6 +480,17 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
+        # For the first stage of the inventory work, we do not want inventory items to
+        # appear in the search results, and so temporarily we will only show items whose
+        # inventory extra is set to false.  This won't work when we are doing a spatial
+        # query and so we need to make sure that we don't add search params in that case.
+        # None of the inventory items will have location and so won't show up when doing
+        # a location base search.
+        if not sort_by_location_enabled:
+            if search_params.get('fq'):
+                search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
+            else:
+                search_params['fq'] = 'inventory:"false"'
         return search_params
 
     def after_search(self, search_results, search_params):
@@ -429,13 +513,13 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
+        SearchIndexing.add_inventory(pkg_dict)
         # Extract multiple theme values (concatted with ' ') into one multi-value schema field
         pkg_dict['all_themes'] = []
         for value in ( pkg_dict.get('theme-primary',''), pkg_dict.get('theme-secondary','') ):
             for theme in value.split(' '):
                 if theme:
                     pkg_dict['all_themes'].append(theme)
-        # Kill empty strings
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):

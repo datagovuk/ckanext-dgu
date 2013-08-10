@@ -88,10 +88,10 @@
     <tr>
       <td class="left" py:if="not c.query_error">
         <h2 class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</h2>
-        <py:if test="request.params">      
+        <py:if test="request.params">
           <div class="result-count-footer">Results</div>
         </py:if>
-        <py:if test="not request.params">      
+        <py:if test="not request.params">
           <div class="result-count-footer">Datasets</div>
         </py:if>
       </td>
@@ -106,8 +106,8 @@
           <div class="search-spinner">&nbsp;</div>
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
-          <py:for each="(k, v) in c.fields"> 
-            <input type="hidden" name="${k}" value="${v}" />  
+          <py:for each="(k, v) in c.fields">
+            <input type="hidden" name="${k}" value="${v}" />
           </py:for>
           </span>
           <py:if test="request.params.get('ext_bbox','')">
@@ -151,7 +151,7 @@
 
   <ul py:def="package_list_from_dict(packages)" class="common-dataset-list">
    <li py:for="package in packages">
-     ${package_summary(package, show_preview_buttons=True)}
+      ${package_summary(package, show_preview_buttons=True)}
    </li>
   </ul>
 
@@ -181,8 +181,30 @@
          ${map_preview_buttons(package.id, package)}
        </py:if>
      </div>
-     <p class="themes"><span class="secondary">${', '.join(h.get_secondary_themes(package))}</span> ${h.get_primary_theme(package)}</p>
   </div>
+
+  <div py:def="inventory_summary(package, show_preview_buttons)" class="wrapper dataset dataset-summary boxed" style='background-color: #dedede;'>
+     <div py:with="title=package.get('title') or package.get('name')">
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/inventory-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
+         <h3><span class="underlined">Inventory: ${title}</span></h3>
+       </a>
+       <span class="property pull-right">
+         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+       </span>
+       <div class="property">
+          Publisher:&nbsp;
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+              ${h.package_publisher_dict(package).get('title', '')}
+            </a>
+       </div>
+       <div py:if="h.uklp_display_provider(package)" class="property">Provider:&nbsp; ${h.uklp_display_provider(package).strip('"')}</div>
+       <div class="dataset-description">
+         ${h.markdown_extract(package.notes)}
+       </div>
+     </div>
+  </div>
+
 
   <py:def function="facet_line(facet_item, facet_key)">
       <div class="facet-option">
@@ -252,42 +274,25 @@
   <div py:def="facet_filters()" class="datasets">
     <div class="boxed">
       ${facet_box(
-          'license_id-is-ogl', 
-          'Licence', 
+          'license_id-is-ogl',
+          'Licence',
           'There are no further licence filters to apply.'
       )}
-      <div class="search-theme-mode-container">
-        <label class="checkbox">
-          <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
-          Only primary theme
-        </label>
-      </div>
-      <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
           'theme-primary', 
           'Theme', 
-          'There are no further theme filters to apply.', 
-          more_button='more-prithemes-button'
+          'There are no further theme filters to apply.'
       )}
-      </div>
-      <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
-          'all_themes', 
-          'Themes', 
-          'There are no further theme filters to apply.', 
-          more_button='more-themes-button'
-      )}
-      </div>
-      ${facet_box(
-          'res_format', 
-          'Resource Format', 
-          'There are no further resource format filters to apply.', 
+          'res_format',
+          'Resource Format',
+          'There are no further resource format filters to apply.',
           more_button='more-formats-button'
       )}
       ${facet_box(
-          'publisher', 
-          'Publisher', 
-          'There are no further publisher filters to apply.', 
+          'publisher',
+          'Publisher',
+          'There are no further publisher filters to apply.',
           more_button='more-publishers-button'
       )}
       ${facet_box(
@@ -420,18 +425,18 @@
 
   <py:def function="list_licenses(pkg)">
     <!--! Usually only one licence, but UKLP might have more than one -->
-    <div property="dc:rights" id="dataset-license" py:with="all_licences = h.get_licenses(pkg)">
-        <p py:for="(license_text, url, isopen) in all_licences">
-          <py:if test="'Open Government Licen' in license_text">
-            <a py:if="url" href="${url}">
+    <div class="licenses" property="dc:rights" id="dataset-license" py:with="all_licences = h.get_licenses(pkg)">
+        <p py:for="(license_text, url, isopen, isogl) in all_licences">
+          <py:if test="isogl">
+            <a href="${url or 'http://reference.data.gov.uk/id/open-government-licence'}" rel="dc:rights">
+              Open Government Licence
               <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
             </a>
-            <span py:if="not url">
-              <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
-            </span>
           </py:if>
-          <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
-          <span py:if="not url" rel="dc:rights">${license_text}</span>
+          <py:if test="not isogl">
+            <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
+            <span py:if="not url" rel="dc:rights">${license_text}</span>
+          </py:if>
           &nbsp;${openness_image(isopen)}
         </p>
         <p py:if="len(all_licences)==0">

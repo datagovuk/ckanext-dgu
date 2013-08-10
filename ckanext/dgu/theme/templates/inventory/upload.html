@@ -1,0 +1,73 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="inventory_util.html" />
+  <xi:include href="../publisher/publisher_util.html" />
+
+  <py:def function="page_title">${c.group.display_name}</py:def>
+  <py:def function="page_heading">
+    <py:if test="h.check_access('group_update', {'id':c.group.id})">
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage inventory</a>
+      <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+    </py:if>
+      <a class="feed-icon" href="${h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}">${c.group.display_name}</a>
+      <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+      <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+        <img src="/images/rss.png" width="16" height="16"/>
+      </a>
+  </py:def>
+
+
+  <py:match path="primarysidebar">
+    ${inventory_jobs()}
+    ${publisher_sidebar()}
+  </py:match>
+
+
+  <py:match path="content">
+    <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
+    <div class="boxed">
+      <div class="notes" py:if="str(c.description_formatted).strip()">
+        ${c.description_formatted}
+      </div>
+
+      <h2>Upload results</h2>
+      <div py:if="c.errors">
+        <div class="alert alert-danger">
+          <p  py:for="e in c.errors">${h.literal(e)}</p>
+        </div>
+      </div>
+      <div py:if="not c.errors">
+        <div class="alert alert-success">
+          Your Inventory document has been successfully uploaded to data.gov.uk
+        </div>
+
+        <p>These items will appear in a list of your uploaded inventory items within 2-4 hours.  To track of the status of Your Inventory uploads go to <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload_status',id=c.group.name, upload_id=c.job_id )}">${h.render_datestamp(c.job_timestamp)} - ${h.render_datestamp(c.job_timestamp,format="%H:%M")}</a> or click the '${h.render_datestamp(c.job_timestamp)} - ${h.render_datestamp(c.job_timestamp,format="%H:%M")}' link from the 'Recent Inventory Uploads' section of the side-bar.</p>
+      </div>
+      <hr/>
+
+    </div>
+  </py:match>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
+    href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+  </py:def>
+
+  <py:def function="optional_footer">
+    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
+    <script>
+      // Pollute the global namespace
+      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
+      PUBLISHER_GROUP  = "node_${c.group.name}";
+    </script>
+    <script src="/scripts/dgu-publisher.js"></script>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>
+
+

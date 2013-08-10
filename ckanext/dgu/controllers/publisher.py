@@ -280,7 +280,7 @@ class PublisherController(GroupController):
         return render('publisher/users.html')
 
     def _redirect_if_previous_name(self, id):
-        # If we can find id in the extras for any group we will use it 
+        # If we can find id in the extras for any group we will use it
         # to re-direct the user to the new name for the group. If not then
         # we'll just let it fail.  If we find multiple groups with the name
         # we'll just redirect to the first match.
@@ -306,8 +306,10 @@ class PublisherController(GroupController):
         fq = ''
 
         # TODO: Deduplicate this code copied from index()
-        # TODO: Fix this up, we only really need to do this when we are
-        # showing the hierarchy (and then we should load on demand really).
+        # We shouldn't need ALL of the groups to build a sub-tree, either
+        # parent.get_children() (if there's a parent), or c.group.get_childen()
+        # should be enough.  Rather than fix this, we should load the group
+        # hierarchy dynamically
         c.all_groups = model.Session.query(model.Group).\
                        filter(model.Group.type == 'publisher').\
                        filter(model.Group.state == 'active').\

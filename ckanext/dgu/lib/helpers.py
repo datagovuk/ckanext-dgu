@@ -103,7 +103,13 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
             group_members[member.table_id].append( member.group_id )
 
     def get_groups(group):
-        return [group_lookup[i] for i in group_members[group.id]]
+        # Protect against missing values (which may have been removed)
+        # by checking the group has members. If it doesn't appears in
+        # group_members then we should just return an empty list for now
+        # which will mean it gets added to the root.
+        if group.id in group_members:
+            return [group_lookup[i] for i in group_members[group.id]]
+        return []
 
     for group in groups:
         slug, title = group.name, title_for_group(group)
@@ -279,7 +285,7 @@ def predict_if_resource_will_preview(resource_dict):
     normalised_format = format.lower().split('/')[-1]
     return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml',
                                   'xml', 'n-triples', 'turtle', 'plain',
-                                  'txt', 'atom', 'tsv', 'rss'))
+                                  'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
 def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
@@ -548,10 +554,10 @@ def updated_string(package):
     return updated_string
 
 def updated_date(package):
-    from ckan import model    
+    from ckan import model
     p = model.Package.get(package['name'])
     if not p:
-        return package.get('metadata_created')    
+        return package.get('metadata_created')
 
     return p.extras.get('last_major_modification', package.get('metadata_created'))
 
@@ -594,7 +600,7 @@ def get_resource_fields(resource, pkg_extras):
     from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
     field_names = ResourceFieldNames()
-    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype',
                                          'mimetype-inner', 'name']
     res_dict = dict(resource)
     field_value_map = {
@@ -807,25 +813,36 @@ def advanced_search_url():
 
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen), ... ]
+    licenses = [] # [(title, url, isopen, isogl), ... ]
 
+    # Normal datasets (created in the form) store the licence in the
+    # pkg.license value as a License.id value.
     if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen()))
+        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
     elif pkg.license_id:
-        licenses.append((pkg.license_id, None, None))
+        # However if the user selects 'free text' in the form, that is stored in
+        # the same pkg.license field.
+        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
 
+    # UKLP might have multiple licenses and don't adhere to the License
+    # values, so are in the 'licence' extra.
     license_extra_list = json_list(pkg.extras.get('licence') or '')
     for license_extra in license_extra_list:
         license_extra_url = None
         if license_extra.startswith('http'):
             license_extra_url = license_extra
-        licenses.append((license_extra, license_extra_url, True if ('OGL' in license_extra or 'OS OpenData Licence' in license_extra) else None))
+        # british-waterways-inspire-compliant-service-metadata specifies OGL as
+        # only one of many licenses. Set is_ogl bar a little higher - licence
+        # text must start off saying it is OGL.
+        is_ogl = license_extra.startswith('Open Government Licen')
+        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
 
+    # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
         license_url_title = pkg.extras.get('licence_url_title') or license_url
         isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None))
+        licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
@@ -1000,7 +1017,7 @@ def iterate_error_dict(d):
         yield (k,v)
 
 def _translate_ckan_string(o):
-    """DGU uses different words for things compared to CKAN, so 
+    """DGU uses different words for things compared to CKAN, so
     adjust the language of errors using mappings."""
     field_name_map = {
         'groups': 'Publisher',
@@ -1135,7 +1152,7 @@ def gemini_resources():
 def individual_resources():
     r = c.pkg_dict.get('individual_resources', [])
     # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary   
+    # three keys. So combine them if necessary
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
     return r
@@ -1276,9 +1293,8 @@ def publisher_performance_data(publisher, include_sub_publishers):
         spending = 'red'
 
     # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
-    # that returns count().  This is likely to be slow if there are lots of resource links broken
-    # such as for ONS.
-    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+    # that returns count().
+    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers, use_cache=True)
     broken_count = len(data['data'])
 
     if broken_count == 0 or rcount == 0:
@@ -1295,7 +1311,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
 
     openness = ''
     total, counters = publib.openness_scores(publisher, include_sub_publishers)
-    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+    number_x_or_above = lambda x: sum(counters.get(str(c),0) for c in xrange(x, 6))
 
     above_3 = number_x_or_above(3)
     pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
@@ -1405,7 +1421,6 @@ def search_theme_mode_none():
     # The user can select whether their Theme facet is restricted to the _primary_ theme.
     return not (search_theme_mode_primary() or search_theme_mode_secondary())
 
-
 def search_theme_mode_attrs():
     out = {}
     if not search_theme_mode_none():
@@ -1413,4 +1428,52 @@ def search_theme_mode_attrs():
     if not search_theme_mode_secondary():
         out['checked'] = 'checked'
     return out
+
+def is_inventory_item(package):
+    return get_from_flat_dict(package['extras'], 'inventory')
+
+def tidy_url(url):
+    '''
+    Given a URL it does various checks before returning a tidied version
+    suitable for calling.
+    '''
+    import urlparse
+
+    # Find out if it has unicode characters, and if it does, quote them
+    # so we are left with an ascii string
+    try:
+        url = url.decode('ascii')
+    except:
+        parts = list(urlparse.urlparse(url))
+        parts[2] = urllib.quote(parts[2].encode('utf-8'))
+        url = urlparse.urlunparse(parts)
+    url = str(url)
+
+    # strip whitespace from url
+    # (browsers appear to do this)
+    url = url.strip()
+
+    try:
+        parsed_url = urlparse.urlparse(url)
+    except Exception, e:
+        raise Exception('URL parsing failure: %s' % e)
+
+    # Check we aren't using any schemes we shouldn't be
+    if not parsed_url.scheme in ('http', 'https', 'ftp'):
+        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+
+    if not parsed_url.netloc:
+        raise Exception('URL parsing failure - did not find a host name')
+
+    return url
+
+def inventory_status(package_items):
+    from ckan import model
+    for p in package_items:
+        pid = p['package']
+        action = p['action']
+        pkg = model.Package.get(pid)
+        grp = pkg.get_groups('publisher')[0]
+
+        yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
