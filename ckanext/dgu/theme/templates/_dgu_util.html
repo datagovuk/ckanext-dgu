@@ -278,11 +278,28 @@
           'Licence',
           'There are no further licence filters to apply.'
       )}
+      <div class="search-theme-mode-container">
+        <label class="checkbox">
+          <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
+          Only primary theme
+        </label>
+      </div>
+      <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
           'theme-primary', 
           'Theme', 
-          'There are no further theme filters to apply.'
+          'There are no further theme filters to apply.', 
+          more_button='more-prithemes-button'
       )}
+      </div>
+      <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
+      ${facet_box(
+          'all_themes', 
+          'Themes', 
+          'There are no further theme filters to apply.', 
+          more_button='more-themes-button'
+      )}
+      </div>
       ${facet_box(
           'res_format',
           'Resource Format',
