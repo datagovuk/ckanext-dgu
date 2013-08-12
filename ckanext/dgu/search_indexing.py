@@ -198,6 +198,9 @@ class SearchIndexing(object):
         # use the actual package object, since the pkg_dict passed in might
         # not have the latest value, which is written in before_commit.
         last_mod = pkg.extras.get('last_major_modification')
+        if not last_mod:
+            log.warning('last_major_modification value not found - the plugins are probably not enabled')
+            return
 
         # SOLR is quite picky with dates, and only accepts ISO dates
         # with UTC time (i.e trailing Z)

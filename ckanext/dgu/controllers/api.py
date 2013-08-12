@@ -38,7 +38,7 @@ class DguApiController(ApiController):
                 'rows':0,
                 'start':0,
                 'rows': limit,
-                'sort': 'metadata_modified desc'
+                'sort': 'last_major_modification desc'
             }
             query = get_action('package_search')(context,data_dict)
         except SearchError, se:
@@ -54,6 +54,7 @@ class DguApiController(ApiController):
                 pub_link = '/publisher/%s' % publishers[0].name
             else:
                 pub_title = pub_link = None
+            last_modified = date_str_to_datetime(pkg.extras.get('last_major_modification'))
             pkg_dict = OrderedDict((
                 ('name', pkg.name),
                 ('title', pkg.title),
@@ -61,7 +62,7 @@ class DguApiController(ApiController):
                 ('dataset_link', '/dataset/%s' % pkg.name),
                 ('publisher_title', pub_title),
                 ('publisher_link', pub_link),
-                ('metadata_modified', pkg.extras.get('last_major_modification')),
+                ('metadata_modified', last_modified.isoformat()),
                 ))
             pkg_dicts.append(pkg_dict)
         return self._finish_ok(pkg_dicts)

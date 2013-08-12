@@ -176,57 +176,47 @@ def update_package_major_time(package):
     # now that it is flushed, the change will get committed in the commit we
     # are in (this code is called in a before_commit())
 
-class PackageModificationPlugin(SingletonPlugin):
+class LastMajorModificationPlugin1(SingletonPlugin):
     implements(IDomainObjectModification, inherit=True)
 
     def notify(self, entity, operation):
         from ckan import model
-        if not isinstance(entity, model.Package):
-            return
-        if operation != model.DomainObjectOperation.new:
-            return
-        log.debug("Package created: %s" % entity.name)
-        update_package_major_time(entity)
+        if isinstance(entity, model.Package):
+            if operation != model.DomainObjectOperation.new:
+                return
+            log.debug("Package created: %s" % entity.name)
+            update_package_major_time(entity)
+
+        elif isinstance(entity, model.Resource):
+            if not entity.resource_group:
+                log.warning("Resource has no resource_group")
+                return
+
+            model.Session.flush()
+            pkg = entity.resource_group.package
+
+            if operation == model.DomainObjectOperation.new:
+                log.debug("A new resource was created")
+                update_package_major_time(pkg)
+            elif operation == model.DomainObjectOperation.changed:
+                # If we get a change, then we should just check if the
+                # state is deleted, if so then we should update the
+                # modification date on the package. If the state isn't
+                # deleted then we will instead catch the URL change with
+                #  IResourceUrlChange
+                if entity.state == 'deleted':
+                    log.debug("A resource was deleted")
+                    update_package_major_time(pkg)
+                else:
+                    ensure_package_major_time_remains(pkg)
 
 
-class ResourceURLModificationPlugin(SingletonPlugin):
-    implements(IResourceUrlChange, inherit=True)    
+class LastMajorModificationPlugin2(SingletonPlugin):
+    implements(IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
         log.debug("URL for resource %s has changed" % resource.id)         
         update_package_major_time(resource.resource_group.package)
-
-
-class ResourceModificationPlugin(SingletonPlugin):
-    implements(IDomainObjectModification, inherit=True)    
-
-    def notify(self, entity, operation):
-        from ckan import model
-
-        if not isinstance(entity, model.Resource):
-            return
-
-        if not entity.resource_group:
-            log.debug("Resource has no resource_group")
-            return 
-
-        model.Session.flush()
-        pkg = entity.resource_group.package
-
-        if operation == model.DomainObjectOperation.new:
-            log.debug("A new resource was created")
-            update_package_major_time(pkg)
-        elif operation == model.DomainObjectOperation.changed:
-            # If we get a change, then we should just check if the 
-            # state is deleted, if so then we should update the 
-            # modification date on the package. If the state isn't
-            # deleted then we will instead catch the URL change with
-            #  IResourceUrlChange            
-            if entity.state == 'deleted':
-                log.debug("A resource was deleted")
-                update_package_major_time(pkg)
-            else:
-                ensure_package_major_time_remains(pkg)
 
 
 class DrupalAuthPlugin(SingletonPlugin):
