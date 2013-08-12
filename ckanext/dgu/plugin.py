@@ -16,6 +16,8 @@ from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
 from ckan.plugins import ISession
 from ckan.plugins import IActions
+from ckan.plugins import IDomainObjectModification
+from ckan.plugins import IResourceUrlChange
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
                              dgu_package_create, dgu_package_update,
@@ -151,6 +153,53 @@ class ThemePlugin(SingletonPlugin):
 
     def after_map(self, map):
         return map
+
+def update_package_major_time(package):
+    import datetime
+    import ckan.model as model
+
+    package.extras['last_major_modification'] = datetime.datetime.now().isoformat()
+    log.debug("Updating last_major_modification in the package: %s" % package.name)
+    model.Session.add(package)
+
+
+class ResourceURLModificationPlugin(SingletonPlugin):
+    implements(IResourceUrlChange, inherit=True)    
+
+    def notify(self, resource):
+        log.debug("URL for resource %s has changed" % resource.id)         
+        update_package_major_time(resource.resource_group.package)
+
+
+class ResourceModificationPlugin(SingletonPlugin):
+    implements(IDomainObjectModification, inherit=True)    
+
+    def notify(self, entity, operation):
+        from ckan import model
+
+        if not isinstance(entity, model.Resource):
+            return
+
+        if not entity.resource_group:
+            log.debug("Resource has no resource_group")
+            return 
+
+        model.Session.flush()
+        pkg = entity.resource_group.package
+
+        if operation == model.DomainObjectOperation.new:
+            log.debug("A new resource was created")
+            update_package_major_time(pkg)
+        elif operation == model.DomainObjectOperation.changed:
+            # If we get a change, then we should just check if the 
+            # state is deleted, if so then we should update the 
+            # modification date on the package. If the state isn't
+            # deleted then we will instead catch the URL change with
+            #  IResourceUrlChange            
+            if entity.state == 'deleted':
+                log.debug("A resource was deleted")
+                update_package_major_time(pkg)
+
 
 class DrupalAuthPlugin(SingletonPlugin):
     '''Reads Drupal login cookies to log user in.'''

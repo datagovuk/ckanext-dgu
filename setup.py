@@ -27,6 +27,9 @@ setup(
     include_package_data=True,
     package_data={'ckan': ['i18n/*/LC_MESSAGES/*.mo']},
     entry_points="""
+        [nose.plugins]
+        pylons = pylons.test:PylonsPlugin
+
         [ckan.plugins]
         dgu_form = ckanext.dgu.plugin:DguForm
         dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
@@ -39,6 +42,9 @@ setup(
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
+        dgu_resource_updates = ckanext.dgu.plugin:ResourceModificationPlugin
+        dgu_resource_url_updates = ckanext.dgu.plugin:ResourceURLModificationPlugin
+        
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load
@@ -55,6 +61,7 @@ setup(
         ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
         ons_uksa_data4nr = ckanext.dgu.bin.ons_uksa_data4nr:command
         ons_merge_duplicates = ckanext.dgu.bin.ons_merge_duplicates:command
+        last_mod_init = ckanext.dgu.bin.initial_last_major_modification:command
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
