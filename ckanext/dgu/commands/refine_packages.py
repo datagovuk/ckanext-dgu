@@ -27,18 +27,18 @@ class RefinePackages(CkanCommand):
             'description',
             'tags',
             'theme-primary',
-            'theme-secondary::Health',
-            'theme-secondary::Environment',
-            'theme-secondary::Education',
-            'theme-secondary::Finance',
-            'theme-secondary::Society',
             'theme-secondary::Defence',
-            'theme-secondary::Transportation',
-            'theme-secondary::Location',
-            'theme-secondary::Spending data',
+            'theme-secondary::Education',
+            'theme-secondary::Geography',
+            'theme-secondary::Economy',
             'theme-secondary::Government',
+            'theme-secondary::Health',
+            'theme-secondary::Location',
+            'theme-secondary::Society',
             'theme-secondary::Spending',
-    ]
+            'theme-secondary::Crime',
+            'theme-secondary::Transport',
+            ]
 
     def __init__(self, name):
         super(RefinePackages, self).__init__(name)
@@ -66,36 +66,14 @@ class RefinePackages(CkanCommand):
         if cmd=='import':
             self._import_csv(model,filename)
 
-    def _expand(self,row_dict):
-        """Inverse of self._contract()."""
-        # Expand secondary themes list into multiple fields
-        tmp = row_dict.pop('theme-secondary')
-        assert type(tmp) in (type(None),list,unicode,str), type(tmp)
-        if tmp is None:
-            tmp = []
-        if type(tmp) is not list: 
-            tmp = [tmp]
-        for x in tmp:
-            row_dict['theme-secondary::%s'%x] = 'True'
-        # Verify CSV structure
-        assert set(row_dict.keys()) < set(self.csv_headers), set(row_dict.keys())-set(self.csv_headers)
-
-    def _contract(self,rowdict):
-        """Inverse of self._expand()."""
-        # Contract the secondary themes list into a single field
-        tmp = []
+    def _get_secondary_themes(self,rowdict):
+        out = set()
         for key,value in rowdict.items():
             if key.startswith('theme-secondary::') and bool(value):
                 theme_name = key.split('::')[1]
                 assert type(theme_name) in (unicode,str)
-                tmp.append(theme_name)
-                del rowdict[key]
-        if len(tmp)==1:
-            tmp = tmp[0]
-            assert type(tmp) in (unicode,str)
-        if len(tmp)==0:
-            tmp = None
-        rowdict['theme-secondary'] = tmp
+                out.add(theme_name)
+        return out
 
     def _export_csv(self,model,filename):
         """Iterate all packages and dump a very large CSV file of chosen data for Refine to crunch."""
@@ -120,9 +98,12 @@ class RefinePackages(CkanCommand):
                     'tags':str(pkg.get_tags()),
                     'publisher': extract_publisher(pkg),
                     'theme-primary': pkg.extras.get('theme-primary'),
-                    'theme-secondary': pkg.extras.get('theme-secondary')
                 }
-                self._expand(row)
+                ts = pkg.extras.get('theme-secondary',[])
+                if type(ts)!=list:
+                    ts = [ts]
+                for x in ts:
+                    row['theme-secondary::%s'%x] = 'True'
                 writer.writerow(row)
                 n += 1
                 if (n%100)==0:
@@ -144,7 +125,6 @@ class RefinePackages(CkanCommand):
                 assert set(reader.fieldnames)<=set(self.csv_headers), 'Unexpected incoming CSV headers: %s' % str(list(set(reader.fieldnames)-set(self.csv_headers)))
                 for row in reader:
                     data[row['name']] = row
-                    self._contract(row)
             log.info('CSV datafile contains %d packages.' % len(data))
             q = model.Session.query(model.Package).filter_by(state='active')
             count = q.count()
@@ -156,17 +136,27 @@ class RefinePackages(CkanCommand):
                     changelog.writerow([pkg.name,'not_in_csv',''])
                     continue
                 # Allowing the CSV to modify other fields? Code goes here...
-                # Make changes as appropriate
-                for key in ['theme-primary','theme-secondary']:
-                    before = pkg.extras.get(key)
-                    after = row.get(key)
-                    if (before or after) and (before!=after):
-                        changelog.writerow([row['name'],'change:%s' % key,' %s -> %s '%(str(before),str(after))])
-                        if after is None:
-                            del pkg.extras[key]
-                        else:
-                            pkg.extras[key] = after
-                        model.Session.add(pkg)
+                before = pkg.extras.get('theme-primary')
+                after = row.get('theme-primary')
+                if (before or after) and (before!=after):
+                    changelog.writerow([row['name'],'change:theme-primary',' %s -> %s '%(str(before),str(after))])
+                    if after is None:
+                        del pkg.extras['theme-primary']
+                    else:
+                        pkg.extras['theme-primary'] = after
+                    model.Session.add(pkg)
+                _before = pkg.extras.get('theme-secondary')
+                if type(_before)==list:
+                    before = set(_before)
+                else:
+                    before = set()
+                    if _before:
+                        before.add(_before)
+                after = self._get_secondary_themes(row)
+                if (before or after) and (before!=after):
+                    changelog.writerow([row['name'],'change:theme-secondary',' %s -> %s '%(sorted(list(before)),sorted(list(after)))])
+                    pkg.extras['theme-secondary'] = sorted(list(after))
+                    model.Session.add(pkg)
                 n += 1
                 if (n%100)==0:
                     log.info('[%d/%d] Processing...' % (n,count))
