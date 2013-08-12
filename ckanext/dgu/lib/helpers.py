@@ -539,7 +539,8 @@ def name_for_uklp_type(package):
         item_type = 'Dataset'
 
 def updated_string(package):
-    if package.get('last_major_modification') == package.get('metadata_created'):
+    if package.get('metadata_modified') == package.get('metadata_created') or \
+           updated_date(package) == package.get('metadata_created'):
         updated_string = 'Created'
     else:
         updated_string = 'Updated'
@@ -549,7 +550,8 @@ def updated_date(package):
     for extra in package['extras']:
         if extra['key'] == 'last_major_modification':
             return extra['value']
-    return get_last_major_modification(package)
+    log.warning('Could not get value for "last_major_modification": %s', package['name'])
+    return package['metadata_modified']
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
