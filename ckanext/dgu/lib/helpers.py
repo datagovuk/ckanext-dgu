@@ -540,829 +540,836 @@ def updated_string(package):
     return updated_string
 
 def updated_date(package):
-    from ckan import model    
-    p = model.Package.get(package['name'])
-    if not p:
-        return package.get('metadata_created')    
-
-    return p.extras.get('last_major_modification', package.get('metadata_created'))
+    for extra in package_dict['extras']:
+        if extra['key'] == 'last_major_modification':
+            return extra['value']
+    return get_last_major_modification(package)
 
 def package_publisher_dict(package):
-    groups = package.get('groups', [])
-    publishers = [ g for g in groups if g.get('type') == 'publisher' ]
-    return publishers[0] if publishers else {'name':'', 'title': ''}
+groups = package.get('groups', [])
+publishers = [ g for g in groups if g.get('type') == 'publisher' ]
+return publishers[0] if publishers else {'name':'', 'title': ''}
 
 def formats_for_package(package):
-    formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
-    # Strip empty strings, deduplicate and sort
-    formats = filter(bool,formats)
-    formats = set(formats)
-    formats = sorted(list(formats))
-    return formats
+formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
+# Strip empty strings, deduplicate and sort
+formats = filter(bool,formats)
+formats = set(formats)
+formats = sorted(list(formats))
+return formats
 
 def link_subpub():
-    return t.request.params.get('publisher','') and not t.request.params.get('parent_publishers','')
+return t.request.params.get('publisher','') and not t.request.params.get('parent_publishers','')
 
 def facet_params_to_keep():
-    return [(k, v) for k,v in t.request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
+return [(k, v) for k,v in t.request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
 
 def uklp_display_provider(package):
-    uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
-    is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
-    if not is_uklp:
-        return None
+uklps = [d for d in package.get('extras', {}) if d['key'] in ('UKLP', 'INSPIRE')]
+is_uklp = uklps[0]['value'] == '"True"' if len(uklps) else False
+if not is_uklp:
+return None
 
-    providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider')]
-    return providers[0]['value'] if len(providers) else ''
+providers = [d for d in package.get('extras', {}) if (d['key'] == 'provider')]
+return providers[0]['value'] if len(providers) else ''
 
 def random_tags():
-    from ckan.lib.base import h
-    tags = h.unselected_facet_items('tags', limit=20)
-    random.shuffle(tags)
-    return tags
+from ckan.lib.base import h
+tags = h.unselected_facet_items('tags', limit=20)
+random.shuffle(tags)
+return tags
 
 def get_resource_fields(resource, pkg_extras):
-    from ckan.lib.base import h
-    from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
+from ckan.lib.base import h
+from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
-    field_names = ResourceFieldNames()
-    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
-    res_dict = dict(resource)
+field_names = ResourceFieldNames()
+field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+res_dict = dict(resource)
 
-    field_value_map = {
-        # field_name : {display info}
-        'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
-        'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': render_datestamp(res_dict.get('revision_timestamp'))},
-        'content_type': {'label': 'Content Type', 'value': ''},
-        'scraper_url': {'label': 'Scraper',
-            'label_title':'URL of the scraper used to obtain the data',
-            'value': t.literal(scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
-        'scraped': {'label': 'Scrape date',
-            'label_title':'The date when this data was scraped',
-            'value': res_dict.get('scraped')},
-        'scraper_source': {'label': 'Scrape date',
-            'label_title':'The date when this data was scraped',
-            'value': res_dict.get('scraper_source')},
-        '': {'label': '', 'value': ''},
-        '': {'label': '', 'value': ''},
-        '': {'label': '', 'value': ''},
-        '': {'label': '', 'value': ''},
-    }
+field_value_map = {
+# field_name : {display info}
+'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
+'date-updated-computed': {'label': 'Date updated', 'label_title': 'Date updated on data.gov.uk', 'value': render_datestamp(res_dict.get('revision_timestamp'))},
+'content_type': {'label': 'Content Type', 'value': ''},
+'scraper_url': {'label': 'Scraper',
+    'label_title':'URL of the scraper used to obtain the data',
+    'value': t.literal(scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
+'scraped': {'label': 'Scrape date',
+    'label_title':'The date when this data was scraped',
+    'value': res_dict.get('scraped')},
+'scraper_source': {'label': 'Scrape date',
+    'label_title':'The date when this data was scraped',
+    'value': res_dict.get('scraper_source')},
+'': {'label': '', 'value': ''},
+'': {'label': '', 'value': ''},
+'': {'label': '', 'value': ''},
+'': {'label': '', 'value': ''},
+}
 
-    # add in fields that only display if they have a value
-    for field_name in field_names_display_only_if_value:
-        if pkg_extras.get(field_name):
-            field_names.add([field_name])
+# add in fields that only display if they have a value
+for field_name in field_names_display_only_if_value:
+if pkg_extras.get(field_name):
+    field_names.add([field_name])
 
-    # calculate displayable field values
-    return  DisplayableFields(field_names, field_value_map, pkg_extras)
+# calculate displayable field values
+return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
 def get_package_fields(package, pkg_extras, dataset_type):
-    from ckan.lib.base import h
-    from ckan.lib.field_types import DateType
-    from ckanext.dgu.schema import GeoCoverageType
-    from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
+from ckan.lib.base import h
+from ckan.lib.field_types import DateType
+from ckanext.dgu.schema import GeoCoverageType
+from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
-    field_names = DatasetFieldNames()
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
-    if c.is_an_official:
-        field_names_display_only_if_value.append('external_reference')
-    # work out the dataset_type
-    pkg_extras = dict(pkg_extras)
-    harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
-    if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
-        field_names.remove(['geographic_coverage', 'mandate'])
-        from ckan.logic import get_action, NotFound
-        from ckan import model
-        from ckanext.harvest.model import HarvestObject
-        try:
-            context = {'model': model, 'session': model.Session}
-            harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':package.id})
-            harvest_url = harvest_source['url']
-        except NotFound:
-            harvest_url = 'Metadata not available'
-        harvest_object_id = pkg_extras.get('harvest_object_id')
-        if harvest_object_id:
-            harvest_object = HarvestObject.get(harvest_object_id)
-            if harvest_object:
-                harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
-            else:
-                harvest_date = 'Metadata not available'
-            harvest_guid = pkg_extras.get('guid')
-            harvest_source_reference = pkg_extras.get('harvest_source_reference')
-            if harvest_source_reference and harvest_source_reference != harvest_guid:
-                field_names.add(['harvest_source_reference'])
-        if pkg_extras.get('resource-type') == 'service':
-            field_names.add(['spatial-data-service-type'])
-        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
-                       for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
-    elif dataset_type == 'ons':
-        field_names.add(['national_statistic', 'categories'])
-        field_names.remove(['mandate'])
-        if c.is_an_official:
-            field_names.add(['external_reference', 'import_source'])
-    elif dataset_type == 'form':
-        field_names.add_at_start('theme')
-        if pkg_extras.get('theme-secondary'):
-            field_names.add_after('theme', 'theme-secondary')
-
-    temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
-    temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
-    if temporal_coverage_from and temporal_coverage_to:
-        temporal_coverage = '%s - %s' % \
-          (DateType.db_to_form(temporal_coverage_from),
-           DateType.db_to_form(temporal_coverage_to))
-    elif temporal_coverage_from or temporal_coverage_to:
-        temporal_coverage = DateType.db_to_form(temporal_coverage_from or \
-                                                temporal_coverage_to)
+field_names = DatasetFieldNames()
+field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+if c.is_an_official:
+field_names_display_only_if_value.append('external_reference')
+# work out the dataset_type
+pkg_extras = dict(pkg_extras)
+harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
+if dataset_type == 'uklp':
+field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
+field_names.remove(['geographic_coverage', 'mandate'])
+from ckan.logic import get_action, NotFound
+from ckan import model
+from ckanext.harvest.model import HarvestObject
+try:
+    context = {'model': model, 'session': model.Session}
+    harvest_source = get_action('harvest_source_for_a_dataset')(context,{'id':package.id})
+    harvest_url = harvest_source['url']
+except NotFound:
+    harvest_url = 'Metadata not available'
+harvest_object_id = pkg_extras.get('harvest_object_id')
+if harvest_object_id:
+    harvest_object = HarvestObject.get(harvest_object_id)
+    if harvest_object:
+	harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
     else:
-        temporal_coverage = ''
+	harvest_date = 'Metadata not available'
+    harvest_guid = pkg_extras.get('guid')
+    harvest_source_reference = pkg_extras.get('harvest_source_reference')
+    if harvest_source_reference and harvest_source_reference != harvest_guid:
+	field_names.add(['harvest_source_reference'])
+if pkg_extras.get('resource-type') == 'service':
+    field_names.add(['spatial-data-service-type'])
+dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+	       for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
+elif dataset_type == 'ons':
+field_names.add(['national_statistic', 'categories'])
+field_names.remove(['mandate'])
+if c.is_an_official:
+    field_names.add(['external_reference', 'import_source'])
+elif dataset_type == 'form':
+field_names.add_at_start('theme')
+if pkg_extras.get('theme-secondary'):
+    field_names.add_after('theme', 'theme-secondary')
 
-    taxonomy_url = pkg_extras.get('taxonomy_url') or ''
-    if taxonomy_url and taxonomy_url.startswith('http'):
-        taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
-    primary_theme = pkg_extras.get('theme-primary') or ''
-    secondary_themes = pkg_extras.get('theme-secondary')
-    if secondary_themes:
-        try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(json.loads(secondary_themes))
-        except ValueError:
-            # string for single value
-            secondary_themes = str(secondary_themes)
+temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
+temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
+if temporal_coverage_from and temporal_coverage_to:
+temporal_coverage = '%s - %s' % \
+  (DateType.db_to_form(temporal_coverage_from),
+   DateType.db_to_form(temporal_coverage_to))
+elif temporal_coverage_from or temporal_coverage_to:
+temporal_coverage = DateType.db_to_form(temporal_coverage_from or \
+					temporal_coverage_to)
+else:
+temporal_coverage = ''
 
-    field_value_map = {
-        # field_name : {display info}
-        'state': {'label': 'State', 'value': c.pkg.state},
-        'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
-        'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
-        'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
-        'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
-        'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
-        'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
-        'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
-        'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
-        'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
-        'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
-        'access_constraints': {'label': 'Access constraints', 'value': render_json(pkg_extras.get('access_constraints'))},
-        'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
-        'theme': {'label': 'Theme', 'value': primary_theme},
-        'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
-        'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
-        'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
-        'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
-        '': {'label': '', 'value': ''},
-    }
+taxonomy_url = pkg_extras.get('taxonomy_url') or ''
+if taxonomy_url and taxonomy_url.startswith('http'):
+taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
+primary_theme = pkg_extras.get('theme-primary') or ''
+secondary_themes = pkg_extras.get('theme-secondary')
+if secondary_themes:
+try:
+    # JSON for multiple values
+    secondary_themes = ', '.join(json.loads(secondary_themes))
+except ValueError:
+    # string for single value
+    secondary_themes = str(secondary_themes)
 
-    # add in fields that only display if they have a value
-    for field_name in field_names_display_only_if_value:
-        if pkg_extras.get(field_name):
-            field_names.add([field_name])
+field_value_map = {
+# field_name : {display info}
+'state': {'label': 'State', 'value': c.pkg.state},
+'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
+'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
+'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
+'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
+'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
+'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
+'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
+'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
+'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
+'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
+'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
+'access_constraints': {'label': 'Access constraints', 'value': render_json(pkg_extras.get('access_constraints'))},
+'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
+'theme': {'label': 'Theme', 'value': primary_theme},
+'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
+'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
+'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
+'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
+'': {'label': '', 'value': ''},
+}
 
-    # calculate displayable field values
-    return DisplayableFields(field_names, field_value_map, pkg_extras)
+# add in fields that only display if they have a value
+for field_name in field_names_display_only_if_value:
+if pkg_extras.get(field_name):
+    field_names.add([field_name])
+
+# calculate displayable field values
+return DisplayableFields(field_names, field_value_map, pkg_extras)
 
 def results_sort_by():
-    # Default to location if there is a bbox and no other parameters. Otherwise
-    # relevancy if there is a keyword, otherwise popularity.
-    # NB This ties in with the default sort set in ckanext/dgu/plugin.py
-    bbox = t.request.params.get('ext_bbox')
-    search_params_apart_from_bbox_or_sort = [key for key, value in t.request.params.items()
-                                         if key not in ('ext_bbox', 'sort') and value != '']
-    return c.sort_by_fields or ('spatial' if not sort_by_location_disabled() else ('rank' if c.q else 'popularity'))
+# Default to location if there is a bbox and no other parameters. Otherwise
+# relevancy if there is a keyword, otherwise popularity.
+# NB This ties in with the default sort set in ckanext/dgu/plugin.py
+bbox = t.request.params.get('ext_bbox')
+search_params_apart_from_bbox_or_sort = [key for key, value in t.request.params.items()
+				 if key not in ('ext_bbox', 'sort') and value != '']
+return c.sort_by_fields or ('spatial' if not sort_by_location_disabled() else ('rank' if c.q else 'popularity'))
 
 def sort_by_location_disabled():
-    # TODO: Duplicated code from above, needs tidying
-    bbox = t.request.params.get('ext_bbox')
-    search_params_apart_from_bbox_or_sort = [key for key, value in t.request.params.items()
-                                         if key not in ('ext_bbox', 'sort') and value != '']
-    return not(bool(bbox and not search_params_apart_from_bbox_or_sort))
+# TODO: Duplicated code from above, needs tidying
+bbox = t.request.params.get('ext_bbox')
+search_params_apart_from_bbox_or_sort = [key for key, value in t.request.params.items()
+				 if key not in ('ext_bbox', 'sort') and value != '']
+return not(bool(bbox and not search_params_apart_from_bbox_or_sort))
 
 def relevancy_disabled():
-    return not(bool(t.request.params.get('q')))
+return not(bool(t.request.params.get('q')))
 
 def get_resource_formats():
-    from ckanext.dgu.lib.formats import Formats
-    return json.dumps(Formats.by_display_name().keys())
+from ckanext.dgu.lib.formats import Formats
+return json.dumps(Formats.by_display_name().keys())
 
 
 def get_wms_info_urls(pkg_dict):
-    return get_wms_info(pkg_dict)[0]
+return get_wms_info(pkg_dict)[0]
 
 def get_wms_info_extent(pkg_dict):
-    return get_wms_info(pkg_dict)[1]
+return get_wms_info(pkg_dict)[1]
 
 def groups_as_json(groups):
-    return json.dumps([group.title for group in groups])
+return json.dumps([group.title for group in groups])
 
 def user_display_name(user):
-    user_str = ''
-    if user.get('fullname'):
-        user_str += user['fullname']
-    user_str += ' [%s]' % user['name']
-    return user_str
+user_str = ''
+if user.get('fullname'):
+user_str += user['fullname']
+user_str += ' [%s]' % user['name']
+return user_str
 
 def pluralise_text(num):
-    return 's' if num > 1 else ''
+return 's' if num > 1 else ''
 
 def group_category(group_extras):
-    category = group_extras.get('category')
-    if category:
-        from ckanext.dgu.forms.validators import categories
-        return dict(categories).get(category, category)
-    return None
+category = group_extras.get('category')
+if category:
+from ckanext.dgu.forms.validators import categories
+return dict(categories).get(category, category)
+return None
 
 def spending_published_by(group_extras):
-    from ckan import model
-    spb = group_extras.get('spending_published_by')
-    if spb:
-        return model.Group.by_name(spb)
-    return None
+from ckan import model
+spb = group_extras.get('spending_published_by')
+if spb:
+return model.Group.by_name(spb)
+return None
 
 def advanced_search_url():
-    from ckan.controllers.package import search_url
-    params = dict(t.request.params)
-    if not 'publisher' in params:
-        params['parent_publishers'] = c.group.name
-    return search_url(params.items())
+from ckan.controllers.package import search_url
+params = dict(t.request.params)
+if not 'publisher' in params:
+params['parent_publishers'] = c.group.name
+return search_url(params.items())
 
 def get_licenses(pkg):
-    # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen, isogl), ... ]
+# isopen is tri-state: True, False, None (for unknown)
+licenses = [] # [(title, url, isopen, isogl), ... ]
 
-    # Normal datasets (created in the form) store the licence in the
-    # pkg.license value as a License.id value.
-    if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id:
-        # However if the user selects 'free text' in the form, that is stored in
-        # the same pkg.license field.
-        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
+# Normal datasets (created in the form) store the licence in the
+# pkg.license value as a License.id value.
+if pkg.license:
+licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
+elif pkg.license_id:
+# However if the user selects 'free text' in the form, that is stored in
+# the same pkg.license field.
+licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
 
-    # UKLP might have multiple licenses and don't adhere to the License
-    # values, so are in the 'licence' extra.
-    license_extra_list = json_list(pkg.extras.get('licence') or '')
-    for license_extra in license_extra_list:
-        license_extra_url = None
-        if license_extra.startswith('http'):
-            license_extra_url = license_extra
-        # british-waterways-inspire-compliant-service-metadata specifies OGL as
-        # only one of many licenses. Set is_ogl bar a little higher - licence
-        # text must start off saying it is OGL.
-        is_ogl = license_extra.startswith('Open Government Licen')
-        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
+# UKLP might have multiple licenses and don't adhere to the License
+# values, so are in the 'licence' extra.
+license_extra_list = json_list(pkg.extras.get('licence') or '')
+for license_extra in license_extra_list:
+license_extra_url = None
+if license_extra.startswith('http'):
+    license_extra_url = license_extra
+# british-waterways-inspire-compliant-service-metadata specifies OGL as
+# only one of many licenses. Set is_ogl bar a little higher - licence
+# text must start off saying it is OGL.
+is_ogl = license_extra.startswith('Open Government Licen')
+licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
 
-    # UKLP might also have a URL to go with its licence
-    license_url = pkg.extras.get('licence_url')
-    if license_url:
-        license_url_title = pkg.extras.get('licence_url_title') or license_url
-        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None, False))
-    return licenses
+# UKLP might also have a URL to go with its licence
+license_url = pkg.extras.get('licence_url')
+if license_url:
+license_url_title = pkg.extras.get('licence_url_title') or license_url
+isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+licenses.append((license_url_title, license_url, True if isopen else None, False))
+return licenses
 
 def get_dataset_openness(pkg):
-    licenses = get_licenses(pkg) # [(title,url,isopen)...]
-    openness = [ x[2] for x in licenses ]
-    if True in openness:
-        # Definitely open. OpenDefinition icon.
-        return True
-    if False in openness:
-        # Definitely closed. Padlock icon.
-        return False
-    # Indeterminate
-    return None
+licenses = get_licenses(pkg) # [(title,url,isopen)...]
+openness = [ x[2] for x in licenses ]
+if True in openness:
+# Definitely open. OpenDefinition icon.
+return True
+if False in openness:
+# Definitely closed. Padlock icon.
+return False
+# Indeterminate
+return None
 
 def get_contact_details(pkg, pkg_extras):
-    publisher_groups = c.pkg.get_groups('publisher') # assume only one
-    name = pkg_extras.get('contact-name')
-    email = pkg_extras.get('contact-email')
-    phone = pkg_extras.get('contact-phone')
-    web_url = web_name = None
-    if not (name or email or phone) and publisher_groups:
-             extras = publisher_groups[0].extras
-             name = extras.get('contact-name')
-             email = extras.get('contact-email')
-             phone = extras.get('contact-phone')
-             web_url = extras.get('website-url')
-             web_name = extras.get('website-name')
+publisher_groups = c.pkg.get_groups('publisher') # assume only one
+name = pkg_extras.get('contact-name')
+email = pkg_extras.get('contact-email')
+phone = pkg_extras.get('contact-phone')
+web_url = web_name = None
+if not (name or email or phone) and publisher_groups:
+     extras = publisher_groups[0].extras
+     name = extras.get('contact-name')
+     email = extras.get('contact-email')
+     phone = extras.get('contact-phone')
+     web_url = extras.get('website-url')
+     web_name = extras.get('website-name')
 
-    return (name, email, phone, web_url, web_name,)
+return (name, email, phone, web_url, web_name,)
 
 def have_foi_contact_details(pkg, pkg_extras):
-    return any(get_foi_contact_details(pkg, pkg_extras))
+return any(get_foi_contact_details(pkg, pkg_extras))
 
 def get_contact_name(pkg, extras):
-    name = extras.get('contact-name')
-    if not name:
-        publisher_groups = pkg.get_groups('publisher')
-        if publisher_groups:
-            name = publisher_groups[0].extras.get('contact-name')
-    return name
+name = extras.get('contact-name')
+if not name:
+publisher_groups = pkg.get_groups('publisher')
+if publisher_groups:
+    name = publisher_groups[0].extras.get('contact-name')
+return name
 
 def get_foi_contact_name(pkg, extras):
-    name = extras.get('foi-name')
-    if not name:
-        publisher_groups = pkg.get_groups('publisher')
-        if publisher_groups:
-            name = publisher_groups[0].extras.get('foi-name')
-    return name
+name = extras.get('foi-name')
+if not name:
+publisher_groups = pkg.get_groups('publisher')
+if publisher_groups:
+    name = publisher_groups[0].extras.get('foi-name')
+return name
 
 def get_foi_contact_details(pkg, pkg_extras):
-    publisher_groups = c.pkg.get_groups('publisher') # assume only one
-    foi_name = pkg_extras.get('foi-name')
-    foi_email = pkg_extras.get('foi-email')
-    foi_phone = pkg_extras.get('foi-phone')
-    foi_web = pkg_extras.get('foi-web')
-    if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
-             extras = publisher_groups[0].extras
-             foi_name = extras.get('foi-name')
-             foi_email = extras.get('foi-email')
-             foi_phone = extras.get('foi-phone')
-             foi_web = extras.get('foi-web')
-    return (foi_name, foi_email, foi_phone, foi_web, None,)
+publisher_groups = c.pkg.get_groups('publisher') # assume only one
+foi_name = pkg_extras.get('foi-name')
+foi_email = pkg_extras.get('foi-email')
+foi_phone = pkg_extras.get('foi-phone')
+foi_web = pkg_extras.get('foi-web')
+if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
+     extras = publisher_groups[0].extras
+     foi_name = extras.get('foi-name')
+     foi_email = extras.get('foi-email')
+     foi_phone = extras.get('foi-phone')
+     foi_web = extras.get('foi-web')
+return (foi_name, foi_email, foi_phone, foi_web, None,)
 
 def coupled_pkg_tuples(pkg):
-    try:
-        from ckanext.spatial.lib.helpers import get_coupled_packages
-        coupled_pkg_tuples = get_coupled_packages(pkg)
-    except ImportError:
-        coupled_pkg_tuples = []
-    return  coupled_pkg_tuples
+try:
+from ckanext.spatial.lib.helpers import get_coupled_packages
+coupled_pkg_tuples = get_coupled_packages(pkg)
+except ImportError:
+coupled_pkg_tuples = []
+return  coupled_pkg_tuples
 
 def is_package_deleted(pkg):
-    from ckan.model import State
-    return pkg.state == State.DELETED
+from ckan.model import State
+return pkg.state == State.DELETED
 
 
 def is_sysadmin(u=None):
-    from ckan.authz import Authorizer
-    user = u or c.userobj
-    if not user:
-        return False
-    return Authorizer().is_sysadmin(user)
+from ckan.authz import Authorizer
+user = u or c.userobj
+if not user:
+return False
+return Authorizer().is_sysadmin(user)
 
 def prep_user_detail():
-    # Non-sysadmins cannot see personally identifiable information
-    if not c.is_myself and not is_sysadmin():
-        c.user_dict['about']        = ''
-        c.about_formatted           = ''
-        c.user_dict['display_name'] = c.user_dict['name']
-        c.user_dict['fullname']     = None
-        c.user_dict['email']        = None
-        c.user_dict['openid']       = None
+# Non-sysadmins cannot see personally identifiable information
+if not c.is_myself and not is_sysadmin():
+c.user_dict['about']        = ''
+c.about_formatted           = ''
+c.user_dict['display_name'] = c.user_dict['name']
+c.user_dict['fullname']     = None
+c.user_dict['email']        = None
+c.user_dict['openid']       = None
 
 def user_get_groups(uid):
-    from ckan import model
-    groups = []
-    u = model.User.get(uid)
-    if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or is_sysadmin():
-        groups = u.get_groups('publisher' )
-    return groups
+from ckan import model
+groups = []
+u = model.User.get(uid)
+if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or is_sysadmin():
+groups = u.get_groups('publisher' )
+return groups
 
 
 def group_get_users(group, capacity):
-    import ckan.model as model
-    return group.members_of_type(model.User, capacity=capacity)
+import ckan.model as model
+return group.members_of_type(model.User, capacity=capacity)
 
 
 def prep_group_edit_data(data):
-    # Note when you get a fresh form the extras are in data['extras']. But
-    # on validation error, the submitted values appear in data[key] with the original
-    # values in data['extras']. Therefore populate the form with the data[key] values
-    # in preference, and fall back on the data['extra'] values.
-    original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
-                                for extra_dict in data.get('extras', {})])
-    for key, value in original_extra_fields.items():
-        if key not in data:
-            data[key] = value
+# Note when you get a fresh form the extras are in data['extras']. But
+# on validation error, the submitted values appear in data[key] with the original
+# values in data['extras']. Therefore populate the form with the data[key] values
+# in preference, and fall back on the data['extra'] values.
+original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
+			for extra_dict in data.get('extras', {})])
+for key, value in original_extra_fields.items():
+if key not in data:
+    data[key] = value
 
 def get_children_for_group(group):
-    from ckanext.dgu.lib import publisher
-    return publisher.get_children(group)
+from ckanext.dgu.lib import publisher
+return publisher.get_children(group)
 
 def top_level_init():
-    # Top level initialisation previously done in layout_base to make sure it
-    # is available to all sub-templates. This is a bit nasty, and I think we
-    # would be better off splitting these c.* things either into separate helpers
-    # or into our own BaseController. Perhaps. TODO.
-    c.groups = groups_for_current_user()
-    c.is_an_official = bool(c.groups or is_sysadmin())
+# Top level initialisation previously done in layout_base to make sure it
+# is available to all sub-templates. This is a bit nasty, and I think we
+# would be better off splitting these c.* things either into separate helpers
+# or into our own BaseController. Perhaps. TODO.
+c.groups = groups_for_current_user()
+c.is_an_official = bool(c.groups or is_sysadmin())
 
 def groups_for_current_user():
-    return c.userobj.get_groups(group_type='publisher') if c.userobj else []
+return c.userobj.get_groups(group_type='publisher') if c.userobj else []
 
 
 def additional_extra_fields(res):
-    return [r for r in res.keys() if r not in
-            ('id','resource_type','resource_group_id',
-             'revision_id', 'url','description','format', 'scraper_url')]
+return [r for r in res.keys() if r not in
+    ('id','resource_type','resource_group_id',
+     'revision_id', 'url','description','format', 'scraper_url')]
 
 
 def hidden_extra_fields(data):
-    return [ e for e in data.get('extras', []) \
-                        if e['key'] not in c.schema_fields ]
+return [ e for e in data.get('extras', []) \
+		if e['key'] not in c.schema_fields ]
 
 def timeseries_extra_fields(res):
-    return [r for r in res.keys() if r not in
-            ('id','resource_type','resource_group_id',
-            'revision_id', 'url','description','format','date')]
+return [r for r in res.keys() if r not in
+    ('id','resource_type','resource_group_id',
+    'revision_id', 'url','description','format','date')]
 
 def resource_extra_fields(res):
-    return [r for r in res.keys() if r not in
-            ('id','resource_type','resource_group_id',
-            'revision_id', 'url','description','format')]
+return [r for r in res.keys() if r not in
+    ('id','resource_type','resource_group_id',
+    'revision_id', 'url','description','format')]
 
 def cell_has_errors(errors, res_type, num, col):
-    resource_errors = errors.get('individual_resources', [])
-    return resource_errors and \
-           num < len(resource_errors) and \
-           bool(resource_errors[num].get(col, False))
+resource_errors = errors.get('individual_resources', [])
+return resource_errors and \
+   num < len(resource_errors) and \
+   bool(resource_errors[num].get(col, False))
 
 
 def iterate_error_dict(d):
-    for (k,v) in d.items():
-        if isinstance(v, list) and len(v)==1:
-            v = v[0]
-        if isinstance(k, basestring):
-            k = _translate_ckan_string(k)
-        if isinstance(v, basestring):
-            v = _translate_ckan_string(v)
-        yield (k,v)
+for (k,v) in d.items():
+if isinstance(v, list) and len(v)==1:
+    v = v[0]
+if isinstance(k, basestring):
+    k = _translate_ckan_string(k)
+if isinstance(v, basestring):
+    v = _translate_ckan_string(v)
+yield (k,v)
 
 def _translate_ckan_string(o):
-    """DGU uses different words for things compared to CKAN, so 
-    adjust the language of errors using mappings."""
-    field_name_map = {
-        'groups': 'Publisher',
-        'individual_resources': 'Data Files',
-        'timeseries_resources': 'Data Files',
-        'title': 'Name',
-        'name': 'Unique identifier',
-        'url': 'URL',
-        'notes': 'Description',
-        'theme-primary': 'Primary Theme',
-        'license_id': 'Licence'
-    }
-    field_error_key_map = {
-        'group': 'publisher',
-        'description': 'title',
-    }
-    field_error_value_map = {
-        'That group name or ID does not exist.': 'Missing value',
-    }
+"""DGU uses different words for things compared to CKAN, so 
+adjust the language of errors using mappings."""
+field_name_map = {
+'groups': 'Publisher',
+'individual_resources': 'Data Files',
+'timeseries_resources': 'Data Files',
+'title': 'Name',
+'name': 'Unique identifier',
+'url': 'URL',
+'notes': 'Description',
+'theme-primary': 'Primary Theme',
+'license_id': 'Licence'
+}
+field_error_key_map = {
+'group': 'publisher',
+'description': 'title',
+}
+field_error_value_map = {
+'That group name or ID does not exist.': 'Missing value',
+}
 
-    o = field_name_map.get(o,o)
-    o = field_error_key_map.get(o,o)
-    o = field_error_value_map.get(o,o)
-    o = re.sub('[_-]', ' ', o)
-    if o[0].lower() == o[0]:
-        o = o.capitalize()
-    return o
+o = field_name_map.get(o,o)
+o = field_error_key_map.get(o,o)
+o = field_error_value_map.get(o,o)
+o = re.sub('[_-]', ' ', o)
+if o[0].lower() == o[0]:
+o = o.capitalize()
+return o
 
 def get_license_extra(pkg):
-    try:
-        license_extra = pkg.extras.get('licence')
-    except:
-        license_extra = None
-    return license_extra
+try:
+license_extra = pkg.extras.get('licence')
+except:
+license_extra = None
+return license_extra
 
 def available_license_ids():
-    return zip(*c.licenses)[1]
+return zip(*c.licenses)[1]
 
 def license_choices(data):
-    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
+return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
 
 def edit_publisher_group_name(data):
-    if not data.get('groups'):
-        group_name = None
-        group_id = None
-    else:
-        group_id = data.get('groups')[0].get('id', '')
-        group_name = data.get('groups')[0].get('name', '')
+if not data.get('groups'):
+group_name = None
+group_id = None
+else:
+group_id = data.get('groups')[0].get('id', '')
+group_name = data.get('groups')[0].get('name', '')
 
-    if group_id:
-      groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
-      group_name = groups[0] if groups else ''
+if group_id:
+groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
+group_name = groups[0] if groups else ''
 
-    return group_name
-    #return c.publishers.get(group_name, {}) if group_id else data
+return group_name
+#return c.publishers.get(group_name, {}) if group_id else data
 
 def edit_publisher_group(data):
-    if not data.get('groups'):
-        group_name = None
-        group_id = None
-    else:
-        group_id = data.get('groups')[0].get('id', '')
-        group_name = data.get('groups')[0].get('name', '')
+if not data.get('groups'):
+group_name = None
+group_id = None
+else:
+group_id = data.get('groups')[0].get('id', '')
+group_name = data.get('groups')[0].get('name', '')
 
-    if group_id:
-      groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
-      group_name = groups[0] if groups else ''
+if group_id:
+groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
+group_name = groups[0] if groups else ''
 
-    return c.publishers.get(group_name, {}) if group_id else data
+return c.publishers.get(group_name, {}) if group_id else data
 
 def secondary_themes(data):
-    secondary_themes_raw = data.get('theme-secondary', '')
-    if isinstance(secondary_themes_raw, basestring):
-      secondary_themes = set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
-    else:
-      secondary_themes = set(secondary_themes_raw)
-    return secondary_themes
+secondary_themes_raw = data.get('theme-secondary', '')
+if isinstance(secondary_themes_raw, basestring):
+secondary_themes = set(map(lambda s: s.strip(), re.sub('[["\]]', '', data.get('theme-secondary', '')).split(',')))
+else:
+secondary_themes = set(secondary_themes_raw)
+return secondary_themes
 
 def free_tags(data):
-    all_tags = [t['name'] for t in data.get('tags', [])]
-    return set(all_tags) - set([data.get('theme-primary', '')]) - secondary_themes(data)
+all_tags = [t['name'] for t in data.get('tags', [])]
+return set(all_tags) - set([data.get('theme-primary', '')]) - secondary_themes(data)
 
 def is_package_edit_form(data):
-    return bool(data.get('id', None)) and data.get('id') != 'None'
+return bool(data.get('id', None)) and data.get('id') != 'None'
 
 def use_wizard(data, errors):
-    return not bool(errors) and not is_package_edit_form(data)
+return not bool(errors) and not is_package_edit_form(data)
 
 def are_timeseries_resources(data):
-    are_timeseries_resources = False
-    for res in data.get('timeseries_resources',[]):
-        if res.get('format') or res.get('url') or res.get('description') or res.get('date'):
-            are_timeseries_resources = True
-            break
-    return are_timeseries_resources
+are_timeseries_resources = False
+for res in data.get('timeseries_resources',[]):
+if res.get('format') or res.get('url') or res.get('description') or res.get('date'):
+    are_timeseries_resources = True
+    break
+return are_timeseries_resources
 
 def are_legacy_extras(data):
-    are_legacy_extras = False
-    for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
-        if data[key]:
-            are_legacy_extras = True
-            break
-    return are_legacy_extras
+are_legacy_extras = False
+for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
+if data[key]:
+    are_legacy_extras = True
+    break
+return are_legacy_extras
 
 
 def timeseries_resources():
-    return c.pkg_dict.get('timeseries_resources', [])
+return c.pkg_dict.get('timeseries_resources', [])
 
 def additional_resources():
-    return c.pkg_dict.get('additional_resources', [])
+return c.pkg_dict.get('additional_resources', [])
 
 def gemini_resources():
-    extras = dict(c.pkg_extras)
-    if not dataset_type(extras)  == 'uklp':
-        return []
-    harvest_object_id = extras.get('harvest_object_id')
-    gemini_resources = [
-        {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
-         'title': 'Source GEMINI2 record',
-         'type': 'XML',
-         'action': 'View',
-         'id': '',
-         'gemini':True},
-        {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
-         'title': 'Source GEMINI2 record (formatted)',
-         'type': 'HTML',
-         'action': 'View',
-         'id': '',
-         'gemini':True}]
-    return gemini_resources
+extras = dict(c.pkg_extras)
+if not dataset_type(extras)  == 'uklp':
+return []
+harvest_object_id = extras.get('harvest_object_id')
+gemini_resources = [
+{'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
+ 'title': 'Source GEMINI2 record',
+ 'type': 'XML',
+ 'action': 'View',
+ 'id': '',
+ 'gemini':True},
+{'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
+ 'title': 'Source GEMINI2 record (formatted)',
+ 'type': 'HTML',
+ 'action': 'View',
+ 'id': '',
+ 'gemini':True}]
+return gemini_resources
 
 def individual_resources():
-    r = c.pkg_dict.get('individual_resources', [])
-    # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary
-    if not r and not timeseries_resources() and not additional_resources():
-        r = dict(c.pkg_dict).get('resources', [])
+r = c.pkg_dict.get('individual_resources', [])
+# In case the schema changes, the resources may or may not be split up into
+# three keys. So combine them if necessary
+if not r and not timeseries_resources() and not additional_resources():
+r = dict(c.pkg_dict).get('resources', [])
 
-    return r
+return r
 
 def init_resources_for_nav():
-    # Core CKAN expects a resource dict to render in the navigation
-    if c.pkg_dict:
-        if not 'resources' in dict(c.pkg_dict):
-            c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
-                additional_resources() + gemini_resources()
+# Core CKAN expects a resource dict to render in the navigation
+if c.pkg_dict:
+if not 'resources' in dict(c.pkg_dict):
+    c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
+	additional_resources() + gemini_resources()
 
 
 def dataset_type(pkg_extras):
-    dataset_type = 'form' # default - entered via the form
-    resource_type = 'dataset'
-    extras = dict(pkg_extras)
-    if extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True':
-        dataset_type = 'uklp'
-        resource_type = extras.get('resource-type') + ' record' # dataset/service
-    elif extras.get('external_reference') == 'ONSHUB':
-        dataset_type = 'ons'
-    return dataset_type
+dataset_type = 'form' # default - entered via the form
+resource_type = 'dataset'
+extras = dict(pkg_extras)
+if extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True':
+dataset_type = 'uklp'
+resource_type = extras.get('resource-type') + ' record' # dataset/service
+elif extras.get('external_reference') == 'ONSHUB':
+dataset_type = 'ons'
+return dataset_type
 
 def has_bounding_box(extras):
-    pkg_extras = dict(extras)
-    return pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and \
-        pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
+pkg_extras = dict(extras)
+return pkg_extras.get('bbox-north-lat') and pkg_extras.get('bbox-south-lat') and \
+pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
 
 def facet_keys(facet_tuples):
-    keys = [ x[0] for x in facet_tuples ]
-    keys = sorted( set(keys) )
-    return keys
+keys = [ x[0] for x in facet_tuples ]
+keys = sorted( set(keys) )
+return keys
 
 def facet_values(facet_tuples, facet_key):
-    values = [ v for (k,v) in facet_tuples if k==facet_key ]
-    values = sorted(values)
-    return values
+values = [ v for (k,v) in facet_tuples if k==facet_key ]
+values = sorted(values)
+return values
 
 def get_package_mini_metadata(pkg):
-    return {
-        'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
-        'date-updated-computed': render_datetime(pkg.extras.get('last_major_modification'),date_format="%d/%m/%Y"),
-    }
+return {
+'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
+'date-updated-computed': render_datetime(pkg.extras.get('last_major_modification'),date_format="%d/%m/%Y"),
+}
 
 def get_extent():
-    return  c.pkg.extras.get('spatial', False)
+return  c.pkg.extras.get('spatial', False)
 
 def get_tiles_url():
-    GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
-                'osinspiremappingprod.ordnancesurvey.co.uk') # Not '46.137.180.108'
-    tiles_url_ckan = config.get('ckanext-os.tiles.url', 'http://%s/geoserver/gwc/service/wms' % GEOSERVER_HOST)
-    api_key = config.get('ckanext-os.geoserver.apikey', '')
-    if api_key:
-        tiles_url_ckan+= '?key=%s' % urllib.quote(api_key)
-    return tiles_url_ckan
+GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
+	'osinspiremappingprod.ordnancesurvey.co.uk') # Not '46.137.180.108'
+tiles_url_ckan = config.get('ckanext-os.tiles.url', 'http://%s/geoserver/gwc/service/wms' % GEOSERVER_HOST)
+api_key = config.get('ckanext-os.geoserver.apikey', '')
+if api_key:
+tiles_url_ckan+= '?key=%s' % urllib.quote(api_key)
+return tiles_url_ckan
 
 
 
 def publisher_performance_data(publisher, include_sub_publishers):
-    """
-        Returns additional info for publishers, as traffic lights so that
-        it can be viewed on the publisher read page.
+"""
+Returns additional info for publishers, as traffic lights so that
+it can be viewed on the publisher read page.
 
-        broken_links - green = 0%, amber <= 60% broken links, red > 60% broken
-        openness - green if all > 4 *, amber for 50%> 3*, red otherwise
-    """
-    import time
-    from ckanext.qa.reports import broken_resource_links_for_organisation
-    from ckanext.dgu.lib import publisher as publib
+broken_links - green = 0%, amber <= 60% broken links, red > 60% broken
+openness - green if all > 4 *, amber for 50%> 3*, red otherwise
+"""
+import time
+from ckanext.qa.reports import broken_resource_links_for_organisation
+from ckanext.dgu.lib import publisher as publib
 
-    start_time = time.time()
+start_time = time.time()
 
-    rcount = publib.resource_count(publisher, include_sub_publishers)
-    log.debug("{p} has {r} resources".format(p=publisher.name, r=rcount))
+rcount = publib.resource_count(publisher, include_sub_publishers)
+log.debug("{p} has {r} resources".format(p=publisher.name, r=rcount))
 
-    # Issues data
-    issues = "green"
+# Issues data
+issues = "green"
 
-    if 'issues' in config['ckan.plugins']:
-        # If issues are installed then we can use the info to determine
-        # whether the issues are older than a month, between a fortnight
-        # and a month, or less than a fortnight.
-        from ckanext.issues.lib import util
+if 'issues' in config['ckan.plugins']:
+# If issues are installed then we can use the info to determine
+# whether the issues are older than a month, between a fortnight
+# and a month, or less than a fortnight.
+from ckanext.issues.lib import util
 
-        more_than_month = util.old_unresolved(publisher, days=30)
-        more_than_fortnight = util.old_unresolved(publisher, days=14)
+more_than_month = util.old_unresolved(publisher, days=30)
+more_than_fortnight = util.old_unresolved(publisher, days=14)
 
-        if more_than_month:
-            issues = 'red'
-        elif more_than_fortnight:
-            issues = 'amber'
-        else:
-            issues = 'green'
+if more_than_month:
+    issues = 'red'
+elif more_than_fortnight:
+    issues = 'amber'
+else:
+    issues = 'green'
 
-    spending = 'green'
-    if publisher_has_spend_data(publisher):
-        spending = 'red'
+spending = 'green'
+if publisher_has_spend_data(publisher):
+spending = 'red'
 
-    # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
-    # that returns count().  This is likely to be slow if there are lots of resource links broken
-    # such as for ONS.
-    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
-    broken_count = len(data['data'])
+# TODO: Add a count to result of broken_resource_links_for_organisation or write a version
+# that returns count().  This is likely to be slow if there are lots of resource links broken
+# such as for ONS.
+data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+broken_count = len(data['data'])
 
-    if broken_count == 0 or rcount == 0:
-        pct = 0
-    else:
-        pct = int(100 * float(broken_count)/float(rcount))
-    log.debug("{d}% of resources in {p} are broken".format(d=pct, p=publisher.name))
+if broken_count == 0 or rcount == 0:
+pct = 0
+else:
+pct = int(100 * float(broken_count)/float(rcount))
+log.debug("{d}% of resources in {p} are broken".format(d=pct, p=publisher.name))
 
-    broken_links = 'green'
-    if 1 < pct <= 60:
-        broken_links = 'amber'
-    elif pct > 60:
-        broken_links = 'red'
+broken_links = 'green'
+if 1 < pct <= 60:
+broken_links = 'amber'
+elif pct > 60:
+broken_links = 'red'
 
-    openness = ''
-    total, counters = publib.openness_scores(publisher, include_sub_publishers)
-    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+openness = ''
+total, counters = publib.openness_scores(publisher, include_sub_publishers)
+number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
 
-    above_3 = number_x_or_above(3)
-    pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
+above_3 = number_x_or_above(3)
+pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
 
-    if number_x_or_above(4) == total:
-        openness = 'green'
-    elif pct_above_3 >= 50:
-        openness = 'amber'
-    else:
-        openness = 'red'
+if number_x_or_above(4) == total:
+openness = 'green'
+elif pct_above_3 >= 50:
+openness = 'amber'
+else:
+openness = 'red'
 
-    log.debug("publisher performance data took {d} seconds".format(d=time.time()-start_time))
-    return {
-        'broken_links': broken_links,
-        'openness': openness,
-        'issues': issues,
-        'spending': spending
-    }
+log.debug("publisher performance data took {d} seconds".format(d=time.time()-start_time))
+return {
+'broken_links': broken_links,
+'openness': openness,
+'issues': issues,
+'spending': spending
+}
 
 def publisher_has_spend_data(publisher):
-    return publisher.extras.get('category','') == 'core-department'
+return publisher.extras.get('category','') == 'core-department'
 
 def render_facet_key(key,value=None):
-    if key=='license_id-is-ogl':
-        return 'Licence'
-    if key=='UKLP':
-        return 'Type'
-    if key=='resource-type' or key=='spatial-data-service-type':
-        return 'UKLP Type'
-    # Delegate to core CKAN
-    return ckan.lib.helpers.facet_title(key)
+if key=='license_id-is-ogl':
+return 'Licence'
+if key=='UKLP':
+return 'Type'
+if key=='resource-type' or key=='spatial-data-service-type':
+return 'UKLP Type'
+# Delegate to core CKAN
+return ckan.lib.helpers.facet_title(key)
 
 def render_facet_value(key,value):
-    if key=='license_id-is-ogl':
-        if value=='true':
-            return 'Open Government Licence'
-        return 'Non-Open Government Licence'
-    if key=='openness_score':
-        try:
-            stars = int(value)
-        except ValueError:
-            return value
-        if stars == -1:
-            return 'TBC'
-        return mini_stars_and_caption(stars)
-    if key=='publisher':
-        return ckan.lib.helpers.group_name_to_title(value)
-    if key=='UKLP':
-        return 'UK Location Dataset'
-    if key=='resource-type':
-        mapping = {
-                'dataset' : 'Dataset',
-                'service' : 'Service',
-                'series' : 'Series',
-                'nonGeographicDataset' : 'Non-Geographic Dataset',
-                'application' : 'Application',
-            }
-        return mapping.get(value,value)
-    if key=='spatial-data-service-type':
-        mapping = {
-                'view' : 'View',
-                'other' : 'Other',
-                'OGC:WMS' : 'Web Map Service',
-                'download' : 'Download',
-                'discovery' : 'Discovery',
-            }
-        return mapping.get(value,value)
+if key=='license_id-is-ogl':
+if value=='true':
+    return 'Open Government Licence'
+return 'Non-Open Government Licence'
+if key=='openness_score':
+try:
+    stars = int(value)
+except ValueError:
     return value
+if stars == -1:
+    return 'TBC'
+return mini_stars_and_caption(stars)
+if key=='publisher':
+return ckan.lib.helpers.group_name_to_title(value)
+if key=='UKLP':
+return 'UK Location Dataset'
+if key=='resource-type':
+mapping = {
+	'dataset' : 'Dataset',
+	'service' : 'Service',
+	'series' : 'Series',
+	'nonGeographicDataset' : 'Non-Geographic Dataset',
+	'application' : 'Application',
+    }
+return mapping.get(value,value)
+if key=='spatial-data-service-type':
+mapping = {
+	'view' : 'View',
+	'other' : 'Other',
+	'OGC:WMS' : 'Web Map Service',
+	'download' : 'Download',
+	'discovery' : 'Discovery',
+    }
+return mapping.get(value,value)
+return value
 
 def is_inventory_item(package):
-    return get_from_flat_dict(package['extras'], 'inventory')
+return get_from_flat_dict(package['extras'], 'inventory')
 
 def tidy_url(url):
-    '''
-    Given a URL it does various checks before returning a tidied version
-    suitable for calling.
-    '''
-    import urlparse
+'''
+Given a URL it does various checks before returning a tidied version
+suitable for calling.
+'''
+import urlparse
 
-    # Find out if it has unicode characters, and if it does, quote them
-    # so we are left with an ascii string
-    try:
-        url = url.decode('ascii')
-    except:
-        parts = list(urlparse.urlparse(url))
-        parts[2] = urllib.quote(parts[2].encode('utf-8'))
-        url = urlparse.urlunparse(parts)
-    url = str(url)
+# Find out if it has unicode characters, and if it does, quote them
+# so we are left with an ascii string
+try:
+url = url.decode('ascii')
+except:
+parts = list(urlparse.urlparse(url))
+parts[2] = urllib.quote(parts[2].encode('utf-8'))
+url = urlparse.urlunparse(parts)
+url = str(url)
 
-    # strip whitespace from url
-    # (browsers appear to do this)
-    url = url.strip()
+# strip whitespace from url
+# (browsers appear to do this)
+url = url.strip()
 
-    try:
-        parsed_url = urlparse.urlparse(url)
-    except Exception, e:
-        raise Exception('URL parsing failure: %s' % e)
+try:
+parsed_url = urlparse.urlparse(url)
+except Exception, e:
+raise Exception('URL parsing failure: %s' % e)
 
-    # Check we aren't using any schemes we shouldn't be
-    if not parsed_url.scheme in ('http', 'https', 'ftp'):
-        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+# Check we aren't using any schemes we shouldn't be
+if not parsed_url.scheme in ('http', 'https', 'ftp'):
+raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
 
-    if not parsed_url.netloc:
-        raise Exception('URL parsing failure - did not find a host name')
+if not parsed_url.netloc:
+raise Exception('URL parsing failure - did not find a host name')
 
-    return url
+return url
 
 def inventory_status(package_items):
-    from ckan import model
-    for p in package_items:
-        pid = p['package']
-        action = p['action']
-        pkg = model.Package.get(pid)
-        grp = pkg.get_groups('publisher')[0]
+from ckan import model
+for p in package_items:
+pid = p['package']
+action = p['action']
+pkg = model.Package.get(pid)
+grp = pkg.get_groups('publisher')[0]
 
-        yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
+yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
-
+def upsert_extra(extras_dict_list, key, value):
+    '''Given a list of extras dicts, update or insert the given
+    key-value pair. Changes the extras_dict_list in-place.'''
+    for extra in extras_dict_list:
+        if extra['key'] == key:
+            extra['value'] = value
+            break
+    else:
+        extras_dict_list.append({'key': key,
+                                 'value': value})

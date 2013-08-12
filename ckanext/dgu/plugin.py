@@ -154,13 +154,39 @@ class ThemePlugin(SingletonPlugin):
     def after_map(self, map):
         return map
 
+def ensure_package_major_time_remains(package):
+    '''A write to the package may remove the last_major_modification extra,
+    so make sure it remains.'''
+    import ckan.model as model
+    extra = model.Session.query(model.PackageExtra).filter_by(package_id=package.id).filter_by(key='last_major_modification').first()
+    if extra.state == 'deleted':
+        extra.state = 'active'
+        model.Session.flush()
+
 def update_package_major_time(package):
     import datetime
     import ckan.model as model
 
-    package.extras['last_major_modification'] = datetime.datetime.now().isoformat()
-    log.debug("Updating last_major_modification in the package: %s" % package.name)
-    model.Session.add(package)
+    package.extras['last_major_modification'] = model.Session.revision.timestamp.isoformat()
+
+    log.debug("Updating last_major_modification in the package: %s %s" % \
+              (package.name, package.extras['last_major_modification']))
+
+    model.Session.flush()
+    # now that it is flushed, the change will get committed in the commit we
+    # are in (this code is called in a before_commit())
+
+class PackageModificationPlugin(SingletonPlugin):
+    implements(IDomainObjectModification, inherit=True)
+
+    def notify(self, entity, operation):
+        from ckan import model
+        if not isinstance(entity, model.Package):
+            return
+        if operation != model.DomainObjectOperation.new:
+            return
+        log.debug("Package created: %s" % entity.name)
+        update_package_major_time(entity)
 
 
 class ResourceURLModificationPlugin(SingletonPlugin):
@@ -199,6 +225,8 @@ class ResourceModificationPlugin(SingletonPlugin):
             if entity.state == 'deleted':
                 log.debug("A resource was deleted")
                 update_package_major_time(pkg)
+            else:
+                ensure_package_major_time_remains(pkg)
 
 
 class DrupalAuthPlugin(SingletonPlugin):
@@ -282,7 +310,7 @@ class PublisherPlugin(SingletonPlugin):
                 except TypeError:
                     # Raised when there is no session registered, and this is
                     # the case when using the paster commands.
-                    log.warning('Failed to add a flash message due to a missing session: %s' % msg)
+                    log.debug('Did not add a flash message due to a missing session: %s' % msg)
 
 
     def before_map(self, map):
@@ -468,9 +496,10 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__group_titles(pkg_dict)
         SearchIndexing.add_field__publisher(pkg_dict)
         SearchIndexing.add_field__harvest_document(pkg_dict)
-        SearchIndexing.add_field__openness(pkg_dict)
+        pkg = SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_field__last_major_modification(pkg_dict, pkg)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):

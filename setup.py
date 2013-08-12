@@ -42,6 +42,7 @@ setup(
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
+        dgu_package_updates = ckanext.dgu.plugin:PackageModificationPlugin
         dgu_resource_updates = ckanext.dgu.plugin:ResourceModificationPlugin
         dgu_resource_url_updates = ckanext.dgu.plugin:ResourceURLModificationPlugin
         
@@ -61,7 +62,6 @@ setup(
         ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
         ons_uksa_data4nr = ckanext.dgu.bin.ons_uksa_data4nr:command
         ons_merge_duplicates = ckanext.dgu.bin.ons_merge_duplicates:command
-        last_mod_init = ckanext.dgu.bin.initial_last_major_modification:command
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
