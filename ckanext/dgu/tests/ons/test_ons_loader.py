@@ -520,7 +520,6 @@ class TestAgencyFind(OnsLoaderBase):
 
     def test_packages(self):
         names = [pkg.name for pkg in model.Session.query(model.Package).all()]
-        from nose.tools import set_trace; set_trace()
         assert_equal(names, [self.name])
         pkg = model.Package.by_name(self.name)
         assert pkg
