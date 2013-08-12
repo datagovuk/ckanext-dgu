@@ -304,3 +304,36 @@ class HarvestFixture(object):
     @classmethod
     def teardown_class(cls):
         model.repo.rebuild_db()
+
+def assert_solr_schema_is_the_dgu_variant():
+    '''
+        Checks if the schema version of the SOLR server is compatible
+        with DGU.
+
+        Based on ckan.lib.search.check_solr_schema_version
+    '''
+
+    import urllib2
+    from ckan.lib.search.common import is_available, SolrSettings
+    from ckan.lib.search import SOLR_SCHEMA_FILE_OFFSET
+
+    if not is_available():
+        # Something is wrong with the SOLR server
+        log.warn('Problems were found while connecting to the SOLR server')
+        return False
+
+    # Request the schema XML file to extract the version
+    solr_url, solr_user, solr_password = SolrSettings.get()
+    http_auth = None
+    if solr_user is not None and solr_password is not None:
+        http_auth = solr_user + ':' + solr_password
+        http_auth = 'Basic ' + http_auth.encode('base64').strip()
+
+    url = solr_url.strip('/') + SOLR_SCHEMA_FILE_OFFSET
+
+    req = urllib2.Request(url=url)
+    if http_auth:
+        req.add_header('Authorization', http_auth)
+
+    solr_schema = urllib2.urlopen(req).read()
+    assert 'DGU variant' in solr_schema, 'Change your development.ini to use the DGU schema.'

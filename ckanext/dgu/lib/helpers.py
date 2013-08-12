@@ -547,19 +547,19 @@ def name_for_uklp_type(package):
         item_type = 'Dataset'
 
 def updated_string(package):
-    if package.get('last_major_modification') == package.get('metadata_created'):
+    if package.get('metadata_modified') == package.get('metadata_created') or \
+           updated_date(package) == package.get('metadata_created'):
         updated_string = 'Created'
     else:
         updated_string = 'Updated'
     return updated_string
 
 def updated_date(package):
-    from ckan import model
-    p = model.Package.get(package['name'])
-    if not p:
-        return package.get('metadata_created')
-
-    return p.extras.get('last_major_modification', package.get('metadata_created'))
+    for extra in package['extras']:
+        if extra['key'] == 'last_major_modification':
+            return extra['value']
+    log.warning('Could not get value for "last_major_modification": %s', package['name'])
+    return package['metadata_modified']
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
@@ -1477,3 +1477,13 @@ def inventory_status(package_items):
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
+def upsert_extra(extras_dict_list, key, value):
+    '''Given a list of extras dicts, update or insert the given
+    key-value pair. Changes the extras_dict_list in-place.'''
+    for extra in extras_dict_list:
+        if extra['key'] == key:
+            extra['value'] = value
+            break
+    else:
+        extras_dict_list.append({'key': key,
+                                 'value': value})
