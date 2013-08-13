@@ -1396,6 +1396,22 @@ def ckan_asset_timestamp():
     from ckanext.dgu.theme.timestamp import asset_build_timestamp
     return asset_build_timestamp
 
+shared_assets_timestamp = None
+def get_shared_assets_timestamp():
+    global shared_assets_timestamp
+    if shared_assets_timestamp is None:
+        import os
+        this_file = os.path.dirname(os.path.realpath(__file__))
+        assets_file = os.path.join(this_file,'..','theme','public','assets','timestamp')
+        try:
+            with open(assets_file) as f:
+                shared_assets_timestamp = f.read()
+        except Exception as e:
+            log.error('failed to load shared assets timestamp: %s' % e)
+            shared_assets_timestamp = '-1'
+    return shared_assets_timestamp
+
+
 def is_inventory_item(package):
     return get_from_flat_dict(package['extras'], 'inventory')
 
