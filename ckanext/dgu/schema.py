@@ -5,16 +5,16 @@ import datetime
 from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 
 THEMES = {
-    "health":           "Health",
-    "environment":      "Environment",
-    "education":        "Education",
-    "location":         "Location",      
-    "administration":   "Administration",
-    "defence":          "Defence",
-    "finance":          "Finance",     
-    "transportation":   "Transportation",    
-    "spending-data":    "Spending Data",    
-    "society":          "Society",    
+    "health":      u"Health",
+    "geography":   u"Geography",
+    "education":   u"Education",
+    "crime":       u"Crime",      
+    "government":  u"Government",
+    "defence":     u"Defence",
+    "economy":     u"Economy",
+    "transport":   u"Transport",
+    "spending":    u"Spending",
+    "society":     u"Society",    
 }
 
 

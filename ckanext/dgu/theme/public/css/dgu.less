@@ -1310,31 +1310,26 @@ body.openspending_browse {
 /* PAGE: Themes */
 /* ------------------------ */
 body.controller-theme {
-  .themes-row {
     //border-top: 1px solid #ccc;
-    .theme-box-quarter {
-      float: left;
-      width: 25%;
+  .theme-box {
+    height: 250px;
+    .inner-text {
+      height: 80px;
+      padding: 2px 10px;
+      position: relative;
     }
-    .theme-box-half {
-      float: left;
-      width: 50%;
+    h2 {
+      color: #555;
+      small { color: #aaa; }
     }
-    .theme-box {
-      height: 300px;
-      //border-right: 1px solid #ccc;
-      .inner-text {
-        height: 130px;
-        padding: 2px 10px;
-        position: relative;
-        .theme-link {
-          position: absolute;
-          right: 10px;
-          bottom: 5px;
-        }
+    &:hover {
+      h2 {
+        color: #000;
+        small { color: #333; }
       }
+      text-decoration: none;
     }
-}
+  }
   .img-container {
     display: block;
     width: 100%;
@@ -1342,14 +1337,6 @@ body.controller-theme {
     overflow: hidden;
     position: relative;
     margin-bottom: 8px;
-    h2 {
-      position: absolute;
-      z-index: 10;
-      top: 10px;
-      right: 10px;
-      text-shadow: 0px 0px 3px #000, -2px 1px 3px #000;
-      color: #fff;
-    }
     img {
       position: absolute;
       left: -8%;
