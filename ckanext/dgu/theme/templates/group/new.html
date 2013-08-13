@@ -7,7 +7,9 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content" class="group-create-form">
-    ${Markup(c.form)}
+    <div class="boxed">    
+        ${Markup(c.form)}
+    </div>
   </div>
 
   <xi:include href="layout.html" />

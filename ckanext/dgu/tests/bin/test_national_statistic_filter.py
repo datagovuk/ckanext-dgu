@@ -77,6 +77,11 @@ class TestFilter(TestController):
         
         self.testclient = WsgiCkanClient(self.app, api_key=user.apikey)
 
+    @classmethod
+    def teardown_class(self):
+        model.repo.rebuild_db()
+
+
     def test_filter(self):
         # Skip this test until the mock data reflects the new permission model
         # (each dataset *needs* to belong to a group

@@ -10,14 +10,14 @@
   <table class="user-page-table">
     <tr>
       <td class="boxed">
-        <h1>
+        <h2>
           <py:if test="c.user_dict['fullname']">
             <span>${c.user_dict['fullname']}</span>
           </py:if>
           <py:if test="not c.user_dict['fullname']">
             <span>${c.user_dict['name']}</span>
           </py:if>
-        </h1>
+        </h2>
         <dl class="vcard">
           <dt>ID</dt>
           <dd>${c.user_dict['name']}</dd>

@@ -47,11 +47,6 @@ def get_pkg_fixture(name):
         'notes': u'Test',
         }
 
-
-# No  last_major_modification in cadastreni-wms
-# nhs-spend-over-25k-barnsleypct
-# directgov-cota
-
 class TestResourceChanges(ControllerTestCase):
 
     @classmethod

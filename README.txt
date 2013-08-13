@@ -18,13 +18,126 @@ Plugins
 
 This extension contains a number of elements, principally:
 
- * DGU's package form - includes a number of custom fields such as temporal_coverage and geographic_coverage.
+ * dgu_form - DGU's package form (??) - includes a number of custom fields such as temporal_coverage and geographic_coverage.
  * Harvest Object inserted into the CKAN package view page.
  * gov_daily - a script (for running daily) that save the database dumps for end-users (JSON/CSV) and backups (SQL).
  * ons_loader - an import script for data from the Office of National Statistics.
  * cospread - an import script for packages listed in a standardised spreadsheet format.
  * various other command-line utilities
 
+dgu_form
+--------
+
+ckanext.dgu.plugin:DguForm
+ckanext.dgu.controllers.package:PackageController
+Based on PackageController but at /dataset/* rather than /package/* and adds the delete function. Proxy for getting Drupal comments (only for running in paster). NO FORM HERE
+
+dgu_drupal_auth
+---------------
+
+ckanext.dgu.plugin:DrupalAuthPlugin
+ckanext.dgu.authentication.drupal_auth:DrupalAuthMiddleware
+
+Middleware to log-in the user based on Drupal cookies and requests to Drupal.
+
+dgu_auth_api
+------------
+
+ckanext.dgu.plugin:AuthApiPlugin
+ckanext.dgu.authorize
+Changes permissions:
+* hierarchy structure - edit package/group if is an editor for the group or an admin for the group or its parents.
+* All package creations/edits need an API key - no anonymous ones
+* UKLP packages can't be edited through the form or API - only by harvesting (unless sysadmin)
+* ONS packages can't be edited through the form or API - only by ONS loader (unless sysadmin)
+* Packages can only be deleted by sysadmin or UKLP packages by their editor/admin.
+* Users can only be viewed by the user and sysadmin
+* User list can only be viewed by sysadmin, editors, admins.
+
+dgu_publishers
+--------------
+
+ckanext.dgu.plugin:PublisherPlugin
+ckanext.dgu.controllers.publisher:PublisherController
+
+Sets 'ckan.auth.profile' to 'publisher' (and same for harvesting: 'ckan.harvest.auth.profile' = 'publisher').
+Publisher controller, based on Group:
+* Publisher browse page includes hierarchy, alpha-browse and search.
+* Apply to be a publisher editor or admin.
+* Edit admins/editors for a publisher
+* Publisher read shows publisher hierarchy, search pane with results and pager
+* Display publisher's admins/editors for appropriate users.
+* Report pages - users not assigned to groups, groups without admins, publishers vs users, users
+When user is created, flashes "You can now <a>apply for publisher access</a>"
+
+dgu_theme
+--------
+
+ckanext.dgu.plugin:ThemePlugin
+ckanext.dgu.controllers.data:DataController
+ckanext.dgu.controllers.tag:TagController
+ckanext.dgu.controllers.reports:ReportsController
+from ckanext.dgu.lib import helpers
+ckanext/dgu/theme/templates
+ckanext/dgu/theme/public
+
+Data, Tag and Reports Controllers. Templates, helper functions. 
+Random extras:
+* Viewing user names (e.g. in History) change them for dept if not editor/admin.
+* Add 'Vary: Cookie' header to all responses.
+
+dgu_search
+----------
+
+ckanext.dgu.plugin:SearchPlugin
+from ckanext.dgu.search_indexing import SearchIndexing
+
+Add fields to search index. Default sort-by. Escape SOLR characters. Search field weighting adjusted.
+
+dgu_publisher_form
+------------------
+
+ckanext.dgu.forms.publisher_form:PublisherForm
+
+New group form, type 'publisher' with schema. Added fields: contact, foi contacts, category, abbreviation.
+
+dgu_dataset_form
+----------------
+
+ckanext.dgu.forms.dataset_form:DatasetForm
+ckanext.dgu.forms.validators
+ckanext.dgu.schema:GeoCoverageType
+
+New dataset form. Lots of schema and validation customisation.
+
+dgu_api
+-------
+
+ckanext.dgu.plugin:ApiPlugin
+ckanext.dgu.controllers.api:DguApiController
+ckanext.dgu.controllers.api:DguReportsController
+ckanext.dgu.lib.reports
+
+Util API for Drupal - latest-datasets (front page), dataset-count (front page), revisions (unused). 
+Reports, starting with organisation_resources.
+
+dgu_resource_updates/dgu_resource_url_updates
+---------------------------------------------
+
+ckanext.dgu.plugin:ResourceModificationPlugin
+ckanext.dgu.plugin:ResourceURLModificationPlugin
+
+When a resource is created/deleted/URL-changed, this updates the last_major_modification date of its package.
+
+Non-plugin code
+===============
+
+ckanext/dgu/schema.py - mostly not used now
+ckanext/dgu/drupalclient.py - for getting user info from Drupal
+dgu/ckanext/dgu/bin/ - scripts used at one time or another
+dgu/ckanext/dgu/commands/ - scripts used at one time or another
+dgu/ckanext/dgu/cospread/ - v old scripts for importing spreadsheets of metadata
+dgu/ckanext/dgu/ons/ - scripts for importing ONS data
 
 Install
 =======
@@ -106,6 +219,11 @@ There are a number of command-line scripts for processing data. To run one of th
     . pyenv/bin/activate
     ons_loader --help
 
+
+Asset management
+================
+
+Assets (images, javascript, css) are managed by a tool called Grunt. Developers should run Grunt before committing changes to assets, so that it can compress/minify, concatenate and record a timestamp. Read more about it and its use here: https://github.com/datagovuk/dgu_theme/blob/master/README.md
 
 Tests
 =====

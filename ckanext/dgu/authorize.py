@@ -6,6 +6,7 @@ from ckan.logic.auth.publisher import _groups_intersect
 from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
 from ckanext.dgu.lib import publisher as publib
 
+
 def dgu_package_show(context, data_dict):
     """
     Pre-auth check for showing a package to make sure it isn't an
@@ -21,6 +22,7 @@ def dgu_package_show(context, data_dict):
             abort(404)
 
     return package_show(context, data_dict)
+
 
 def dgu_group_update(context, data_dict):
     """

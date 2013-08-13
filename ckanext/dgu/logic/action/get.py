@@ -26,6 +26,7 @@ def publisher_show(context, data_dict):
     group = model.Group.get(id)
 
     parent_groups = publisher_lib.get_parents(group)
-    group_dict['parent_group'] = parent_groups[0].name if parent_groups else None
+    group_dict['parent_group'] = {'id': parent_groups[0].id, 'name': parent_groups[0].name} \
+                                 if parent_groups else None
 
     return group_dict

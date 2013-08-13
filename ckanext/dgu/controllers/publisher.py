@@ -23,7 +23,10 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       keep_extras,
                                      )
 from ckanext.dgu.lib.publisher import go_up_tree
-
+from ckanext.dgu.authentication.drupal_auth import DrupalUserMapping
+from ckanext.dgu.drupalclient import DrupalClient
+from ckan.plugins import PluginImplementations, IMiddleware
+from ckanext.dgu.plugin import DrupalAuthPlugin
 
 log = logging.getLogger(__name__)
 
@@ -143,6 +146,7 @@ class PublisherController(GroupController):
         if id:
             c.group = model.Group.by_name(id)
             if not c.group:
+                log.warning('Could not find publisher for name %s', id)
                 abort(404, _('Publisher not found'))
             if 'save' in request.params and not errors:
                 return self._send_application(c.group, request.params.get('reason', None))
@@ -174,12 +178,40 @@ class PublisherController(GroupController):
             h.flash_error(_("There was a problem with your submission, \
                              please correct it and try again"))
             errors = {"reason": ["No reason was supplied"]}
-            return self.apply(group.id, errors=errors,
+            return self.users(group.name, errors=errors,
                               error_summary=error_summary(errors))
 
         data_dict = clean_dict(unflatten(
                 tuplize_dict(parse_params(request.params))))
         data_dict['id'] = group.id
+
+        # Check that the user being added, if they are a Drupal user, has
+        # verified their email address
+        new_users = [user['name'] for user in data_dict['users'] \
+                     if not 'capacity' in user or user['capacity'] == 'undefined']
+        for user_name in new_users:
+            drupal_id = DrupalUserMapping.ckan_user_name_to_drupal_id(user_name)
+            if drupal_id:
+                if not is_drupal_auth_activated():
+                    # joint auth with Drupal is not activated, so cannot
+                    # check with Drupal
+                    log.warning('Drupal user made editor/admin but without checking email is verified.')
+                    break
+                if 'drupal_client' not in dir(self):
+                    self.drupal_client = DrupalClient()
+                user_properties = self.drupal_client.get_user_properties(drupal_id)
+                roles = user_properties['roles'].values()
+                if 'unverified user' in roles:
+                    user = model.User.by_name(user_name)
+                    h.flash_error("There was a problem with your submission - see the error message below.")
+                    errors = {"reason": ['User "%s" has not verified their email address yet. '
+                                         'Please ask them to do this and then try again. ' % \
+                                          user.fullname]}
+                    log.warning('Trying to add user (%r %s) who is not verified to group %s',
+                                user.fullname, user_name, group.name)
+                    # NB Other values in the form are lost, but that is probably ok
+                    return self.users(group.name, errors=errors,
+                                      error_summary=error_summary(errors))
 
         # Temporary fix for strange caching during dev
         l = data_dict['users']
@@ -247,6 +279,19 @@ class PublisherController(GroupController):
 
         return render('publisher/users.html')
 
+    def _redirect_if_previous_name(self, id):
+        # If we can find id in the extras for any group we will use it
+        # to re-direct the user to the new name for the group. If not then
+        # we'll just let it fail.  If we find multiple groups with the name
+        # we'll just redirect to the first match.
+        import ckan.model as model
+
+        match = model.Session.query(model.GroupExtra).\
+            filter(model.GroupExtra.key.like('previous-name-%')).\
+            filter(model.GroupExtra.value == id).\
+            filter(model.GroupExtra.state=='active').order_by('key desc').first()
+        if match:
+            h.redirect_to( 'publisher_read', id=match.group.name)
 
     def read(self, id):
         from ckan.lib.search import SearchError
@@ -261,8 +306,10 @@ class PublisherController(GroupController):
         fq = ''
 
         # TODO: Deduplicate this code copied from index()
-        # TODO: Fix this up, we only really need to do this when we are
-        # showing the hierarchy (and then we should load on demand really).
+        # We shouldn't need ALL of the groups to build a sub-tree, either
+        # parent.get_children() (if there's a parent), or c.group.get_childen()
+        # should be enough.  Rather than fix this, we should load the group
+        # hierarchy dynamically
         c.all_groups = model.Session.query(model.Group).\
                        filter(model.Group.type == 'publisher').\
                        filter(model.Group.state == 'active').\
@@ -272,6 +319,7 @@ class PublisherController(GroupController):
             c.group_dict = get_action('group_show')(context, data_dict)
             c.group = context['group']
         except ObjectNotFound:
+            self._redirect_if_previous_name(id)
             abort(404, _('Group not found'))
         except NotAuthorized:
             abort(401, _('Unauthorized to read group %s') % id)
@@ -392,9 +440,9 @@ class PublisherController(GroupController):
 
         # Add the group's activity stream (already rendered to HTML) to the
         # template context for the group/read.html template to retrieve later.
-        c.group_activity_stream = \
-                ckan.logic.action.get.group_activity_list_html(context,
-                    {'id': c.group_dict['id']})
+        #c.group_activity_stream = \
+        #        ckan.logic.action.get.group_activity_list_html(context,
+        #            {'id': c.group_dict['id']})
 
         c.body_class = "group view"
 
@@ -504,3 +552,7 @@ class PublisherController(GroupController):
             c.is_superuser_or_groupadmin = False
 
         return super(PublisherController, self).new(data, errors, error_summary)
+
+def is_drupal_auth_activated():
+    '''Returns whether the DrupalAuthPlugin is activated'''
+    return any(isinstance(plugin, DrupalAuthPlugin) for plugin in PluginImplementations(IMiddleware))

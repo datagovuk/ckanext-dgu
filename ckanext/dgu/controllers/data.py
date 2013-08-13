@@ -1,7 +1,10 @@
-import sqlalchemy
-import pylons
-import os
+import json
 import logging
+import os
+import pylons
+import re
+import sqlalchemy
+import urlparse
 
 import ckan.authz
 from ckan.lib.base import BaseController, model, abort, h, g
@@ -98,3 +101,86 @@ class DataController(BaseController):
 
     def carparks(self):
         return render('data/carparks.html')
+
+
+    def resource_cache(self, root, resource_id, filename):
+        """
+        Called when a request is made for an item in the resource cache and
+        is responsible for rendering the data.  When the data to be rendered
+        is HTML it will add a header to show that the content is cached, and
+        set a <base> header if not present to make sure all relative links are
+        resolved correctly.
+        """
+        from pylons import response
+        from paste.fileapp import FileApp
+        from ckanext.dgu.lib.helpers import tidy_url
+
+        archive_root = pylons.config.get('ckanext-archiver.archive_dir')
+        if not archive_root:
+            # Bad configuration likely to cause this.
+            abort(404, "Could not find archive folder")
+
+        resource = model.Resource.get(resource_id)
+        is_html = False
+        content_type = "application/octet-stream"
+
+        fmt = ""
+        task_status = model.Session.query(model.TaskStatus).\
+                      filter(model.TaskStatus.task_type=='qa').\
+                      filter(model.TaskStatus.key=='status').\
+                      filter(model.TaskStatus.entity_id==resource.id).first()
+        if task_status:
+            status = json.loads(task_status.error)
+            fmt = status['format']
+
+        # Make an attempt at getting the correct content type but fail with
+        # application/octet-stream in cases where we don't know.
+        formats = {
+            "CSV": "application/csv",
+            "XLS": "application/vnd.ms-excel",
+            "HTML": 'text/html; charset=utf-8' }
+        content_type = formats.get(fmt, "application/octet-stream")
+
+        is_html = fmt == "HTML"
+
+        filepath = os.path.join(archive_root, root, resource_id, filename).decode('utf-8')
+        if not os.path.exists(filepath):
+            abort(404, "Resource is not cached")
+
+        file_size = os.path.getsize(filepath)
+        if not is_html:
+            headers = [('Content-Type', content_type),
+                       ('Content-Length', str(file_size))]
+            fapp = FileApp(filepath, headers=headers)
+            return fapp(request.environ, self.start_response)
+
+        origin = tidy_url(resource.url)
+        parts = urlparse.urlparse(origin)
+        url = "{0}://{1}".format(parts.scheme, parts.netloc)
+        base_string = "<head><base href='{0}'>".format(url)
+
+        response.headers['Content-Type'] = content_type
+        with open(filepath, "r") as f:
+            content = f.read()
+
+            if not re.search("<base ", content, re.IGNORECASE):
+                compiled_head = re.compile(re.escape("<head>"), re.IGNORECASE)
+                content = compiled_head.sub( base_string, content, re.IGNORECASE)
+
+            if not '__archiver__cache__header__' in content:
+                # We should insert our HTML block at the bottom of the page with
+                # the appropriate CSS to render it at the top.  Easier to insert
+                # before </body>.
+                c.url = resource.url
+                replacement = render("data/cache_header.html")
+                try:
+                    compiled_body = re.compile(re.escape("</body>"), re.IGNORECASE)
+                    content = compiled_body.sub( "{0}</body>".format(replacement), content, re.IGNORECASE)
+                except Exception, e:
+                    log.error("Failed to do the replacement in resource<{0}> and file: {1}".format(resource.id, filepath))
+                    return
+
+            response.write(content)
+
+
+

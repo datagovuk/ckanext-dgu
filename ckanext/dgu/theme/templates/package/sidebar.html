@@ -83,11 +83,17 @@
     </ul>
   </div>
 
-  <div id="social_media" class="widget-container">
-    <!--! Uses ckanext-social extension -->
-    ${h.social_sharethis()}
+  <div class="widget-container" py:with="
+    current_url=h.url_for(controller='package',action='read',id=c.id,qualified=True);
+    title=c.pkg_dict.get('title', c.pkg_dict['name'])
+    ">
+    <div style="text-align: center;">
+      <a href="${h.social_url_twitter(current_url,title)}" target="_blank"><img src="/images/share_twitter.png" /></a>
+      <a href="${h.social_url_facebook(current_url)}" target="_blank"><img src="/images/share_facebook.png" /></a>
+      <a href="${h.social_url_google(current_url)}" target="_blank"><img src="/images/share_google.png" /></a>
+    </div>
   </div>
-  
 </div>
 </py:match>
 </html>
+

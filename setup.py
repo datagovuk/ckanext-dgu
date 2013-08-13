@@ -45,6 +45,7 @@ setup(
         dgu_last_major_modification_1 = ckanext.dgu.plugin:LastMajorModificationPlugin1
         dgu_last_major_modification_2 = ckanext.dgu.plugin:LastMajorModificationPlugin2
 
+
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load
         cospread_loader = ckanext.dgu.cospread:load
@@ -71,13 +72,13 @@ setup(
         report=ckanext.dgu.curation:report
 
         [ckan.celery_task]
-        tasks = ckanext.dgu.plugin:task_imports
+        tasks = ckanext.dgu.celery_import:task_imports
 
         [paste.paster_command]
         mock_drupal = ckanext.dgu.testtools.mock_drupal:Command
         create-test-data=ckanext.dgu.lib.cli:DguCreateTestDataCommand
         prod = ckanext.dgu.testtools.prodder:ProdCommand
-        uklpreports = ckanext.dgu.lib.reports:UKLPReports
+        uklpreports = ckanext.dgu.lib.reports_uklp:UKLPReports
         wdtk_publisher_match = ckanext.dgu.commands.wdtk2:PublisherMatch
         update_licenses = ckanext.dgu.commands.license_updates:UpdateLicense
         scrape_resources = ckanext.dgu.bin.scrape_resources:ScrapeResources
@@ -86,7 +87,9 @@ setup(
         build_void = ckanext.dgu.commands.void_constructor:VoidConstructor
         stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
         remap_govuk_resources = ckanext.dgu.commands.remap_govuk_resources:ResourceRemapper
+        derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
+        precalc_reports = ckanext.dgu.commands.precalc_reports:ReportGenerator
     """,
     test_suite = 'nose.collector',
 )

@@ -2,6 +2,7 @@ import xml.sax
 import re
 import os
 import glob
+import HTMLParser
 
 from ckanext.importlib.importer import PackageImporter
 from ckanext.dgu import schema
@@ -138,7 +139,7 @@ class OnsImporter(PackageImporter):
 
         tags = schema.TagSuggester.suggest_tags(pkg_dict)
         for keyword in item['hub:ipsv'].split(';') + \
-                item['hub:keywords'].split(';') + \
+                self._split_keywords(item['hub:keywords']) + \
                 item['hub:nscl'].split(';'):
             tag = schema.tag_munge(keyword)
             if tag and len(tag) > 1:
@@ -148,6 +149,27 @@ class OnsImporter(PackageImporter):
         pkg_dict['tags'] = tags
 
         return pkg_dict
+
+    @classmethod
+    def _split_keywords(cls, keyword_str):
+        # some HTML-encoded characters in here, like '&amp;'
+        if not '_html_parser' in dir(cls):
+            cls._html_parser = HTMLParser.HTMLParser()
+        keyword_str = cls._html_parser.unescape(keyword_str)
+        # ampersand in particular would be better as a word
+        if '&' in keyword_str:
+            pos = keyword_str.find('&')
+            keyword_str = keyword_str[:pos].strip() + ' and ' + keyword_str[pos+1:].strip()
+        # some keyword lists are comma separated and some are semi-colon!
+        if ';' in keyword_str:
+            # semi-colon separated
+            keywords = keyword_str.split(';')
+        else:
+            # comma separated
+            keywords = keyword_str.split(', ')
+        # sometimes there is trailing punctuation
+        keywords = [keyword.strip(' .,') for keyword in keywords]
+        return keywords
 
     @staticmethod
     def _parse_geographic_coverage(coverage_str):

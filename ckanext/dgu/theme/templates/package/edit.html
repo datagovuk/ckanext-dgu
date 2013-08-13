@@ -17,12 +17,13 @@
     <script type="text/javascript" src="/scripts/dgu-package-form.js?2"></script>
   </py:def>
 
-  <div py:match="content" class="dataset-edit-form">
+  <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
-    <h1>
-      ${h.dataset_link(c.pkg)}
-      <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit Dataset</span>
-    </h1>
+    ${h.dataset_link(c.pkg)}
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit Dataset</span>
+  </py:def>
+
+  <div py:match="content" class="dataset-edit-form">
     <div class="boxed">
       ${c.form}
     </div>

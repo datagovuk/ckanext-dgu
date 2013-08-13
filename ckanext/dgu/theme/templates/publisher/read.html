@@ -7,7 +7,7 @@
 
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">
-<py:if test="h.check_access('group_update', {'id':c.group.id})">
+  <py:if test="h.check_access('group_update', {'id':c.group.id})">
     <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage inventory</a>
     <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
   </py:if>
@@ -16,7 +16,7 @@
     <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
       <img src="/images/rss.png" width="16" height="16"/>
     </a>
-  
+
   </py:def>
 
   <py:match path="primarysidebar">

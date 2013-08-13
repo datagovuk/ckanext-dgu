@@ -68,13 +68,13 @@
     ${h.resource_display_name(c.resource)} - Dataset - Resource
   </py:def>
 
+  <py:def function="page_heading">
+    ${dataset_admin_buttons(c.package)}
+    ${h.dataset_link(c.package)}
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> ${h.resource_display_name(c.resource)}</span>
+  </py:def>
 
   <div py:match="content">
-    ${dataset_admin_buttons(c.package)}
-    <h1>
-      ${h.dataset_link(c.package)}
-      <span class="subheading"><img src="/images/arrow-down-right.png"/> ${h.resource_display_name(c.resource)}</span>
-    </h1>
     <div class="boxed">
       <div class="resource-actions">
         <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
@@ -181,6 +181,7 @@
           </py:if>
         </div>
         <div id="ckanext-datapreview"></div>
+        <div id="ckanext-datapreview-extra"></div>
       </div>
 
       <br/>

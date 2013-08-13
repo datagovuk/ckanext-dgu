@@ -15,11 +15,12 @@
   - Datasets</py:def>
 
   <xi:include href="sidebar.html"/>
+  <py:def function="page_heading">
+    ${dataset_admin_buttons(c.pkg)}    
+    ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+  </py:def>
 
   <div py:match="content" class="package">
-    ${dataset_admin_buttons(c.pkg)}
-    <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])}</h1>
-
     <div py:if="c.pkg_dict.get('state') == 'deleted'" class="state-box boxed">
       <p>NB: This ${h.dataset_type(c.pkg_extras)} is <strong>${'withdrawn' if h.dataset_type(c.pkg_extras) == 'uklp' else 'deleted'}</strong>. Only administrators can view it in this state.</p>
     </div>

@@ -102,7 +102,13 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
             group_members[member.table_id].append( member.group_id )
 
     def get_groups(group):
-        return [group_lookup[i] for i in group_members[group.id]]
+        # Protect against missing values (which may have been removed)
+        # by checking the group has members. If it doesn't appears in
+        # group_members then we should just return an empty list for now
+        # which will mean it gets added to the root.
+        if group.id in group_members:
+            return [group_lookup[i] for i in group_members[group.id]]
+        return []
 
     for group in groups:
         slug, title = group.name, title_for_group(group)
@@ -271,7 +277,7 @@ def predict_if_resource_will_preview(resource_dict):
     normalised_format = format.lower().split('/')[-1]
     return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml',
                                   'xml', 'n-triples', 'turtle', 'plain',
-                                  'txt', 'atom', 'tsv', 'rss'))
+                                  'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
 def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
@@ -586,9 +592,9 @@ def get_resource_fields(resource, pkg_extras):
     from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
     field_names = ResourceFieldNames()
-    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype',
+                                         'mimetype-inner', 'name']
     res_dict = dict(resource)
-
     field_value_map = {
         # field_name : {display info}
         'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
@@ -599,10 +605,13 @@ def get_resource_fields(resource, pkg_extras):
             'value': t.literal(scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
-            'value': res_dict.get('scraped')},
+            'value': h.render_datetime(res_dict.get('scraped'), "%d/%m/%Y")},
         'scraper_source': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraper_source')},
+        'release_date': {'label': 'ONS Release',
+            'label_title':'The ONS release',
+            'value': res_dict.get('release_date')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
@@ -755,7 +764,13 @@ def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
 
 def groups_as_json(groups):
-    return json.dumps([group.title for group in groups])
+    l = []
+    for group in groups:
+        l.append(group.title)
+        abbr = group.extras.get('abbreviation')
+        if abbr:
+            l.append(abbr)
+    return json.dumps(l)
 
 def user_display_name(user):
     user_str = ''
@@ -932,6 +947,8 @@ def prep_group_edit_data(data):
     # on validation error, the submitted values appear in data[key] with the original
     # values in data['extras']. Therefore populate the form with the data[key] values
     # in preference, and fall back on the data['extra'] values.
+    if c.group:
+        c.editing = True
     original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
                                 for extra_dict in data.get('extras', {})])
     for key, value in original_extra_fields.items():
@@ -992,7 +1009,7 @@ def iterate_error_dict(d):
         yield (k,v)
 
 def _translate_ckan_string(o):
-    """DGU uses different words for things compared to CKAN, so 
+    """DGU uses different words for things compared to CKAN, so
     adjust the language of errors using mappings."""
     field_name_map = {
         'groups': 'Publisher',
@@ -1130,8 +1147,48 @@ def individual_resources():
     # three keys. So combine them if necessary
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
-
     return r
+
+def has_group_ons_resources():
+    resources = individual_resources()
+    if not resources:
+        return False
+
+    return any(r.get('release_date', False) for r in resources)
+
+def get_ons_releases():
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return sorted(groupings.keys(), reverse=True)
+
+def ons_release_count():
+    return len(get_ons_releases())
+
+def get_limited_ons_releases():
+    gps = get_ons_releases()
+    return [gps[0]]
+
+def get_resources_for_ons_release(release, count=None):
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    if count:
+        return groupings[release][:count]
+    return groupings[release]
+
+def get_resources_for_ons():
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return groupings
+
 
 def init_resources_for_nav():
     # Core CKAN expects a resource dict to render in the navigation
@@ -1228,9 +1285,8 @@ def publisher_performance_data(publisher, include_sub_publishers):
         spending = 'red'
 
     # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
-    # that returns count().  This is likely to be slow if there are lots of resource links broken
-    # such as for ONS.
-    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+    # that returns count().
+    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers, use_cache=True)
     broken_count = len(data['data'])
 
     if broken_count == 0 or rcount == 0:
@@ -1247,7 +1303,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
 
     openness = ''
     total, counters = publib.openness_scores(publisher, include_sub_publishers)
-    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+    number_x_or_above = lambda x: sum(counters.get(str(c),0) for c in xrange(x, 6))
 
     above_3 = number_x_or_above(3)
     pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
@@ -1317,6 +1373,45 @@ def render_facet_value(key,value):
         return mapping.get(value,value)
     return value
 
+def social_url_twitter(url,title):
+    import urllib
+    twitter_parameters = {
+      'original_referer':url.encode('utf-8'),
+      'text':title.encode('utf-8'),
+      'tw_p':'tweetbutton',
+      'url':url.encode('utf-8'),
+    }
+    twitter_url = 'https://twitter.com/intent/tweet?' + urllib.urlencode(twitter_parameters)
+    return twitter_url
+
+def social_url_facebook(url):
+    facebook_url = 'https://www.facebook.com/sharer/sharer.php?u='+url
+    return facebook_url
+
+def social_url_google(url):
+    google_url = 'https://plus.google.com/share?url='+url
+    return google_url
+
+def ckan_asset_timestamp():
+    from ckanext.dgu.theme.timestamp import asset_build_timestamp
+    return asset_build_timestamp
+
+shared_assets_timestamp = None
+def get_shared_assets_timestamp():
+    global shared_assets_timestamp
+    if shared_assets_timestamp is None:
+        import os
+        this_file = os.path.dirname(os.path.realpath(__file__))
+        assets_file = os.path.join(this_file,'..','theme','public','assets','timestamp')
+        try:
+            with open(assets_file) as f:
+                shared_assets_timestamp = f.read()
+        except Exception as e:
+            log.error('failed to load shared assets timestamp: %s' % e)
+            shared_assets_timestamp = '-1'
+    return shared_assets_timestamp
+
+
 def is_inventory_item(package):
     return get_from_flat_dict(package['extras'], 'inventory')
 
@@ -1375,4 +1470,3 @@ def upsert_extra(extras_dict_list, key, value):
     else:
         extras_dict_list.append({'key': key,
                                  'value': value})
-
