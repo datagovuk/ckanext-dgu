@@ -495,32 +495,18 @@
     <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
       <select id="theme-primary" name="theme-primary">
         <option value="" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == '' else None}">Please select a primary theme...</option>
-        <option value="Health" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Health' else None}">Health</option>
-        <option value="Environment" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Environment' else None}">Environment</option>
-        <option value="Education" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Education' else None}">Education</option>
-        <option value="Finance" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Finance' else None}">Finance</option>
-        <option value="Society" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Society' else None}">Society</option>
-        <option value="Defence" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Defence' else None}">Defence</option>
-        <option value="Transportation" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Transportation' else None}">Transportation</option>
-        <option value="Location" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Location' else None}">Location</option>
-        <option value="Administration" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Administration' else None}">Administration</option>
-        <option value="Spending Data" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == 'Spending Data' else None}">Spending Data</option>
+        <py:for each="x in h.all_themes()">
+          <option value="${x}" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == x else None}">${x}</option>
+        </py:for>
       </select>
       <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
     <div>
     <br/>
     <p>2. If there are other themes in this data, select them here:</p>
     <div class="well">
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Health" py:attrs="{'checked': 'checked' if 'Health' in h.secondary_themes(data) else None}"/>Health</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Environment" py:attrs="{'checked': 'checked' if 'Environment' in h.secondary_themes(data) else None}"/>Environment</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Education" py:attrs="{'checked': 'checked' if 'Education' in h.secondary_themes(data) else None}"/>Education</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Finance" py:attrs="{'checked': 'checked' if 'Finance' in h.secondary_themes(data) else None}"/>Finance</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Society" py:attrs="{'checked': 'checked' if 'Society' in h.secondary_themes(data) else None}"/>Society</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Defence" py:attrs="{'checked': 'checked' if 'Defence' in h.secondary_themes(data) else None}"/>Defence</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Transportation" py:attrs="{'checked': 'checked' if 'Transportation' in h.secondary_themes(data) else None}"/>Transportation</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Location" py:attrs="{'checked': 'checked' if 'Location' in h.secondary_themes(data) else None}"/>Location</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Spending data" py:attrs="{'checked': 'checked' if 'Spending data' in h.secondary_themes(data) else None}"/>Spending data</label>
-      <label class="checkbox"><input type="checkbox" name="theme-secondary" value="Government" py:attrs="{'checked': 'checked' if 'Government' in h.secondary_themes(data) else None}"/>Government</label>
+      <py:for each="x in h.all_themes()">
+        <label class="checkbox"><input type="checkbox" name="theme-secondary" value="${x}" py:attrs="{'checked': 'checked' if x in h.secondary_themes(data) else None}"/>${x}</label>
+      </py:for>
     </div>
     </div>
 

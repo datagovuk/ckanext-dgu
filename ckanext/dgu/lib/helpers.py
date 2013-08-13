@@ -1502,3 +1502,8 @@ def upsert_extra(extras_dict_list, key, value):
     else:
         extras_dict_list.append({'key': key,
                                  'value': value})
+
+def all_themes():
+    from ckanext.dgu.schema import THEMES
+    return sorted(THEMES.values())
+
