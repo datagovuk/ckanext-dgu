@@ -26,16 +26,16 @@
           <div class="pull-right">
             <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
           </div>
-          <h2>Tags</h2>
+          <h2>Themes</h2>
           <div id="tagcloud">
-            <py:for each="tag_dict in h.random_tags()">
-              <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
+            <py:for each="theme in h.all_themes()">
+              <a rel="${c.themes_datasets.get(theme)}" title="${theme}" href="${h.url_for(controller='package', action='search')}?theme-primary=${theme}">${theme}</a>
             </py:for>
           </div>
           <script type="text/javascript" charset="utf-8">
     /* Tag cloud */
     $.fn.tagcloud.defaults = {
-      size: {start: 8, end: 24, unit: "pt"},
+      size: {start: 12, end: 28, unit: "pt"},
       color: {start: '#bbb', end: '#66aa44'}
     };
     $('#tagcloud a').tagcloud();

@@ -6,6 +6,7 @@ import re
 import sqlalchemy
 import urlparse
 
+from ckanext.dgu.schema import THEMES
 import ckan.authz
 from ckan.lib.base import BaseController, model, abort, h, g
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
@@ -56,6 +57,17 @@ class DataController(BaseController):
             log.error('Search error: %s', se)
             c.package_count = 0
             c.groups = []
+
+
+        # Count the datasets per theme
+        c.themes_datasets = {}
+        for theme in THEMES.values():
+            x = model.Session.query(model.Package)\
+                .join(model.PackageExtra)\
+                .filter(model.PackageExtra.key=='theme-primary')\
+                .filter(model.PackageExtra.value==theme)\
+                .filter(model.Package.state=='active').count()
+            c.themes_datasets[theme] = x
 
         #c.recently_changed_packages_activity_stream = \
         #    get_action('recently_changed_packages_activity_list_html')(
