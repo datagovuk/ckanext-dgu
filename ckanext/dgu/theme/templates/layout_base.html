@@ -144,9 +144,9 @@ ${h.top_level_init()}
         <span class="divider">&nbsp;|&nbsp;</span> -->
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/themes') else ''}" href="/data/themes">Themes</a></li>      
-      <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/themes') else ''}" href="/data/themes">Themes</a></li>      
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>

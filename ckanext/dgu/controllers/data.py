@@ -58,17 +58,6 @@ class DataController(BaseController):
             c.package_count = 0
             c.groups = []
 
-
-        # Count the datasets per theme
-        c.themes_datasets = {}
-        for theme in THEMES.values():
-            x = model.Session.query(model.Package)\
-                .join(model.PackageExtra)\
-                .filter(model.PackageExtra.key=='theme-primary')\
-                .filter(model.PackageExtra.value==theme)\
-                .filter(model.Package.state=='active').count()
-            c.themes_datasets[theme] = x
-
         #c.recently_changed_packages_activity_stream = \
         #    get_action('recently_changed_packages_activity_list_html')(
         #            context, {})

@@ -1383,6 +1383,9 @@ def render_facet_value(key,value):
                 'discovery' : 'Discovery',
             }
         return mapping.get(value,value)
+    if key=='theme-primary' or key=='all_themes':
+        from ckanext.dgu.schema import THEMES
+        return THEMES.get(value,value)
     return value
 
 def social_url_twitter(url,title):
@@ -1503,7 +1506,20 @@ def upsert_extra(extras_dict_list, key, value):
         extras_dict_list.append({'key': key,
                                  'value': value})
 
-def all_themes():
+def themes_count():
     from ckanext.dgu.schema import THEMES
-    return sorted(THEMES.values())
+    from ckan import model
+    theme_count = {}
+    for theme in THEMES.keys():
+        count = model.Session.query(model.Package)\
+            .join(model.PackageExtra)\
+            .filter(model.PackageExtra.key=='theme-primary')\
+            .filter(model.PackageExtra.value==theme)\
+            .filter(model.Package.state=='active').count()
+        theme_count[theme] = count
+    return theme_count
+
+def themes_displayname():
+    from ckanext.dgu.schema import THEMES
+    return THEMES
 

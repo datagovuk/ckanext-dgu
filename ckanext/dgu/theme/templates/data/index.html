@@ -27,9 +27,9 @@
             <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
           </div>
           <h2>Themes</h2>
-          <div id="tagcloud">
-            <py:for each="theme in h.all_themes()">
-              <a rel="${c.themes_datasets.get(theme)}" title="${theme}" href="${h.url_for(controller='package', action='search')}?theme-primary=${theme}">${theme}</a>
+          <div id="tagcloud" py:with="theme_count=h.themes_count()">
+            <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(),key=lambda x:x[1])">
+            <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
           <script type="text/javascript" charset="utf-8">
