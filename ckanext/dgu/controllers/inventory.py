@@ -173,6 +173,8 @@ class InventoryController(BaseController):
 
     def _get_group_info(self):
         """ Helper to get group information to be shown on each page """
+        from urllib import quote
+
         c.group_admins = self.authorizer.get_admins(c.group)
         c.body_class = "group view"
 
@@ -189,6 +191,8 @@ class InventoryController(BaseController):
             v = json.loads(v)
             c.group_extras.append((k, v))
         c.group_extras = dict(c.group_extras)
+
+        c.group.encoded_title = quote(c.group.title)
 
         c.jobs = [(k, v,) for k,v in c.group.extras.get('inventory.jobs', {}).iteritems()]
         c.jobs = sorted(c.jobs, key=lambda x: x[1], reverse=True)
