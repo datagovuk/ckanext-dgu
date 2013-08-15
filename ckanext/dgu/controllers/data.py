@@ -137,13 +137,14 @@ class DataController(BaseController):
         content_type = "application/octet-stream"
 
         fmt = ""
-        task_status = model.Session.query(model.TaskStatus).\
-                      filter(model.TaskStatus.task_type=='qa').\
-                      filter(model.TaskStatus.key=='status').\
-                      filter(model.TaskStatus.entity_id==resource.id).first()
-        if task_status:
-            status = json.loads(task_status.error)
-            fmt = status['format']
+        if resource:
+            task_status = model.Session.query(model.TaskStatus).\
+                          filter(model.TaskStatus.task_type=='qa').\
+                          filter(model.TaskStatus.key=='status').\
+                          filter(model.TaskStatus.entity_id==resource.id).first()
+            if task_status:
+                status = json.loads(task_status.error)
+                fmt = status['format']
 
         # Make an attempt at getting the correct content type but fail with
         # application/octet-stream in cases where we don't know.
