@@ -490,26 +490,29 @@
 </fieldset>
 
 <fieldset class="tab-pane" id="section-themes-field">
-  <h3>Theme &amp; tags</h3>
-
-    <p>1. Please choose a primary theme which this data record falls under from the options below.  These will be used for grouping datasets on the main page of data.gov.uk.</p>
-      <select id="theme-primary" name="theme-primary">
-        <option value="" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == '' else None}">Please select a primary theme...</option>
-        <py:for each="x in h.all_themes()">
-          <option value="${x}" py:attrs="{'selected': 'selected' if data.get('theme-primary', '') == x else None}">${x}</option>
-        </py:for>
-      </select>
-      <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
-    <div>
-    <br/>
-    <p>2. If there are other themes in this data, select them here:</p>
-    <div class="well">
-      <py:for each="x in h.all_themes()">
-        <label class="checkbox"><input type="checkbox" name="theme-secondary" value="${x}" py:attrs="{'checked': 'checked' if x in h.secondary_themes(data) else None}"/>${x}</label>
+    <div style="width: 45%; float: left; margin-right: 4%;">
+    <h3 style="font-weight: bold;">Primary Theme</h3>
+    <p>1. Please choose a primary theme which this data record falls under from the options below.<br/>See the <a href="/data/themes" target="_blank"><strong>themes page</strong></a> for more information.</p>
+      <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(), key=lambda x:x[1])">
+      <label class="radio">
+        <input type="radio" name="theme-primary" value="${dbname}" py:attrs="{'checked': 'checked' if data.get('theme-primary', '') == dbname else None}" />
+          ${displayname}
+      </label>
       </py:for>
+      <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
     </div>
+    <div style="width: 45%; float: left; padding-left: 4%; border-left: 1px solid #aaa;">
+      <h3>Secondary Theme</h3>
+      <p>2. If there are other themes in this data, select them here:</p>
+      <div class="well">
+        <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(), key=lambda x:x[1])">
+          <label class="checkbox"><input type="checkbox" name="theme-secondary" value="${dbname}" py:attrs="{'checked': 'checked' if dbname in h.secondary_themes(data) else None}"/>${displayname}</label>
+        </py:for>
+      </div>
     </div>
+    <div class="clearfix">&nbsp;</div>
 
+    <h3>Tags</h3>
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
     <div class="control-group">
       <label class="control-label" for="tag_string">Tags</label>

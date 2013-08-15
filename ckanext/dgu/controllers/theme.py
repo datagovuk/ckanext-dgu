@@ -23,19 +23,6 @@ log = logging.getLogger(__name__)
 class ThemeController(BaseController):
 
     def index(self):
-        """ 
-
-        """
-        c.themes = THEMES
-        c.themes_datasets = {}
-        for k,v in c.themes.iteritems():
-            x = model.Session.query(model.Package)\
-                .join(model.PackageExtra)\
-                .filter(model.PackageExtra.key=='theme-primary')\
-                .filter(model.PackageExtra.value==v)\
-                .filter(model.Package.state=='active').count()
-            c.themes_datasets[k] = x
-
         return render('themed/index.html')
 
     def named_theme(self, name):
@@ -44,6 +31,7 @@ class ThemeController(BaseController):
         to *just* that theme, popular and new datasets as well as recent apps+ideas from 
         the front end.
         """
+        raise NotImplementedError('Cannot view theme pages yet.')
         c.theme = name
         c.theme_name = THEMES.get(name)
         if not c.theme_name:
@@ -65,6 +53,7 @@ class ThemeController(BaseController):
         Helper for retrieving just a handful of popular/recent datasets for the 
         current theme. 
         """
+        raise NotImplementedError('Cannot view theme pages yet.')
         from ckan.lib.search import SearchError
         packages = []
         try:
