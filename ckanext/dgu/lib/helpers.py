@@ -639,6 +639,7 @@ def get_package_fields(package, pkg_extras, dataset_type):
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
+    from ckanext.dgu.schema import THEMES
 
     field_names = DatasetFieldNames()
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
@@ -700,15 +701,19 @@ def get_package_fields(package, pkg_extras, dataset_type):
     if taxonomy_url and taxonomy_url.startswith('http'):
         taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
     primary_theme = pkg_extras.get('theme-primary') or ''
+    primary_theme = THEMES.get(primary_theme, primary_theme)
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
             # JSON for multiple values
-            secondary_themes = ', '.join(json.loads(secondary_themes))
+            secondary_themes = ', '.join(
+                [THEMES.get(theme, theme) \
+                 for theme in json.loads(secondary_themes)])
         except ValueError:
             # string for single value
             secondary_themes = str(secondary_themes)
-
+            secondary_themes = THEMES.get(secondary_themes,
+                                          secondary_themes)
     field_value_map = {
         # field_name : {display info}
         'state': {'label': 'State', 'value': c.pkg.state},
