@@ -144,7 +144,7 @@ class DataController(BaseController):
 
         is_html = fmt == "HTML"
 
-        filepath = os.path.join(archive_root, root, resource_id, filename)
+        filepath = os.path.join(archive_root, root, resource_id, filename).encode('utf-8')
         if not os.path.exists(filepath):
             abort(404, "Resource is not cached")
 
