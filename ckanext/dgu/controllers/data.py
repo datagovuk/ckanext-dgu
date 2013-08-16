@@ -145,7 +145,7 @@ class DataController(BaseController):
 
         is_html = fmt == "HTML"
 
-        filepath = os.path.join(archive_root, root, resource_id, filename).decode('utf-8')
+        filepath = os.path.join(archive_root, root, resource_id, filename)
         if not os.path.exists(filepath):
             abort(404, "Resource is not cached")
 
@@ -162,27 +162,33 @@ class DataController(BaseController):
         base_string = "<head><base href='{0}'>".format(url)
 
         response.headers['Content-Type'] = content_type
-        with open(filepath, "r") as f:
-            content = f.read()
+        try:
+            f = open(filepath, "r")
+        except IOError:
+            log.error('Error reading resource cache file: %s', filepath)
+            abort(403, "The system was unable to read this resource from the cache. Admins have been notified")
 
-            if not re.search("<base ", content, re.IGNORECASE):
-                compiled_head = re.compile(re.escape("<head>"), re.IGNORECASE)
-                content = compiled_head.sub( base_string, content, re.IGNORECASE)
+        content = f.read()
+        f.close()
 
-            if not '__archiver__cache__header__' in content:
-                # We should insert our HTML block at the bottom of the page with
-                # the appropriate CSS to render it at the top.  Easier to insert
-                # before </body>.
-                c.url = resource.url
-                replacement = render("data/cache_header.html")
-                try:
-                    compiled_body = re.compile(re.escape("</body>"), re.IGNORECASE)
-                    content = compiled_body.sub( "{0}</body>".format(replacement), content, re.IGNORECASE)
-                except Exception, e:
-                    log.error("Failed to do the replacement in resource<{0}> and file: {1}".format(resource.id, filepath))
-                    return
+        if not re.search("<base ", content, re.IGNORECASE):
+            compiled_head = re.compile(re.escape("<head>"), re.IGNORECASE)
+            content = compiled_head.sub( base_string, content, re.IGNORECASE)
 
-            response.write(content)
+        if not '__archiver__cache__header__' in content:
+            # We should insert our HTML block at the bottom of the page with
+            # the appropriate CSS to render it at the top.  Easier to insert
+            # before </body>.
+            c.url = resource.url
+            replacement = render("data/cache_header.html")
+            try:
+                compiled_body = re.compile(re.escape("</body>"), re.IGNORECASE)
+                content = compiled_body.sub( "{0}</body>".format(replacement), content, re.IGNORECASE)
+            except Exception, e:
+                log.error("Failed to do the replacement in resource<{0}> and file: {1}".format(resource.id, filepath))
+                return
+
+        response.write(content)
 
 
 
