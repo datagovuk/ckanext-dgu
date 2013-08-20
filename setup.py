@@ -35,15 +35,16 @@ setup(
         dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
         dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin
         dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
+        dgu_inventory = ckanext.dgu.plugin:InventoryPlugin
         dgu_theme = ckanext.dgu.plugin:ThemePlugin
         dgu_search = ckanext.dgu.plugin:SearchPlugin
         dgu_publisher_form = ckanext.dgu.forms.publisher_form:PublisherForm
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
-        dgu_resource_updates = ckanext.dgu.plugin:ResourceModificationPlugin
-        dgu_resource_url_updates = ckanext.dgu.plugin:ResourceURLModificationPlugin
-        
+        dgu_last_major_modification_1 = ckanext.dgu.plugin:LastMajorModificationPlugin1
+        dgu_last_major_modification_2 = ckanext.dgu.plugin:LastMajorModificationPlugin2
+
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load
@@ -60,7 +61,6 @@ setup(
         ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
         ons_uksa_data4nr = ckanext.dgu.bin.ons_uksa_data4nr:command
         ons_merge_duplicates = ckanext.dgu.bin.ons_merge_duplicates:command
-        last_mod_init = ckanext.dgu.bin.initial_last_major_modification:command
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
@@ -70,6 +70,9 @@ setup(
 
         [curate.actions]
         report=ckanext.dgu.curation:report
+
+        [ckan.celery_task]
+        tasks = ckanext.dgu.celery_import:task_imports
 
         [paste.paster_command]
         mock_drupal = ckanext.dgu.testtools.mock_drupal:Command
@@ -84,7 +87,9 @@ setup(
         build_void = ckanext.dgu.commands.void_constructor:VoidConstructor
         stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
         remap_govuk_resources = ckanext.dgu.commands.remap_govuk_resources:ResourceRemapper
-        derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker        
+        derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker
+        refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
+        precalc_reports = ckanext.dgu.commands.precalc_reports:ReportGenerator
     """,
     test_suite = 'nose.collector',
 )

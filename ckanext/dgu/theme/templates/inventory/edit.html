@@ -1,0 +1,136 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="inventory_util.html" />
+  <xi:include href="../publisher/publisher_util.html" />
+
+  <py:def function="page_title">${c.group.display_name}</py:def>
+  <py:def function="page_heading">
+  <py:if test="h.check_access('group_update', {'id':c.group.id})">
+    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage inventory</a>
+    <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
+  </py:if>
+    <a class="feed-icon" href="${h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}">${c.group.display_name}</a>
+    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
+    <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+      <img src="/images/rss.png" width="16" height="16"/>
+    </a>
+  </py:def>
+
+
+  <py:match path="primarysidebar">
+    ${inventory_jobs()}
+    ${publisher_sidebar()}
+  </py:match>
+
+
+  <py:match path="content">
+    <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
+    <div class="boxed">
+      <div class="notes" py:if="str(c.description_formatted).strip()">
+        ${c.description_formatted}
+      </div>
+
+      <h2>Take part in the data.gov.uk inventory<br/>Manage and Update us on forthcoming datasets</h2>
+
+      <div class="notes">
+        <p>Use this inventory tool to download an inventory of all the datasets and inventory items you have published on data.gov.uk to date. This tool allows you to give us prior knowledge of pending datasets including those that are not currently under Open Government Licence. Read the <a href="http://www.data.gov.uk/library/guidance-to-departments-on-developing-the-uk-national-information-infrastructure-nii">full guidance</a> to find out more about the background to this inventory. Follow the 3 steps below to get started. </p>
+      </div>
+
+      <hr/>
+
+      <h3>Step 1: Download the read-only dataset list to review your existing open data</h3>
+
+      <div class="notes">
+          <p>
+          Download a list of all the datasets and inventory items you have published on data.gov.uk to date. By regularly reviewing this list you can give us prior knowledge of pending datasets including any other datasets that may not be currently published for specific reasons.
+          </p>
+          <p>
+          <ul>
+            <li>You can download your latest 'read only' dataset list anytime </li>
+            <li>You can complete the inventory template and upload at any time if you have frequent updates</li>
+            <li>Download templates are in an Excel file that will be readable in Microsoft Excel, or Open Office, and can then be uploaded to update your inventory </li>
+            <li>You may wish to store local copies of this download for your own record.</li>
+          </ul>
+          </p>
+      </div>
+        <div class="row notes">
+            <div class="notes span5">
+              <em>Tick the sub-department box if you need a complete list of datasets held by other parties under your authority, whom with you may wish to delegate the review of ‘data held’ to.</em>
+            </div>
+
+            <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='download', id=c.group.name)}" method="GET" enctype="multipart/form-data" class="form-inline pull-right">
+              <input type="submit" class="btn btn-primary" value="Download dataset list"/><br/><br/>
+              <label for="include_sub">
+                <input type="checkbox" name="include_sub" value="true"/> Include sub-departments
+              </label>
+            </form>
+        </div>
+
+      <div class="clearfix"></div>
+      <hr/>
+
+      <h3>Step 2: Download the inventory template </h3>
+      <div class="notes">
+          <p>Create new entries to inform us about datasets not yet published.<br/>
+
+          <ul>
+              <li>Firstly, review your existing lists of datasets and inventory items available from step 1</li>
+              <li><a href="/inventory-help-guide">See specific guidance</a> on completing the template.</li>
+              <li>As a publisher administrator you can share this spreadsheet with other colleagues to complete and send to you for upload.</li>
+              <li>Save the completed template on your PC or local network once complete ready for upload and always keep a local copy as backup.</li>
+              <li>Please include datasets that at present may not be available on Open Licence</li>
+
+          </ul>
+        </p>
+        <div class="row notes">
+        <a href="/inventory/template/xls_template.php?publisher=${c.group.encoded_title}" class="btn btn-primary pull-right">Download inventory template</a>
+        </div>
+      </div>
+
+      <div class="clearfix"></div>
+      <hr/>
+
+
+      <h3>Step 3: Upload the completed inventory template</h3>
+        <div class="notes">
+          <p>Upload your saved and completed template, taking care that you have not changed the structure of the template e.g. don't change the styling or location of columns. You will get an on screen acknowledgement if this is successful.</p>
+          <p>Contact <a href="mailto:team@data.gov.uk?Subject=Inventory">team@data.gov.uk</a> if  you have any queries about this process.</p>
+        </div>
+
+        <div class="notes">
+        <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload', id=c.group.name)}" method="POST" enctype="multipart/form-data" class="form-inline pull-right" style="" >
+          <input type="file" name="upload"/>
+          <input type="submit" class="btn btn-primary" value="Upload completed template"/>
+        </form>
+        </div>
+        <br/>
+
+
+      <div class="clearfix"></div>
+
+    </div>
+  </py:match>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
+    href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+  </py:def>
+
+  <py:def function="optional_footer">
+    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
+    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
+    <script>
+      // Pollute the global namespace
+      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
+      PUBLISHER_GROUP  = "node_${c.group.name}";
+    </script>
+    <script src="/scripts/dgu-publisher.js"></script>
+  </py:def>
+
+  <xi:include href="../layout.html" />
+</html>
+
+

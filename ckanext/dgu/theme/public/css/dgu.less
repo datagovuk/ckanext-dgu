@@ -1,4 +1,185 @@
-@import "elements.less";
+/*! DGU+CKAN Application JS concatenated by Grunt */
+/*---------------------------------------------------
+    LESS Elements 0.9
+  ---------------------------------------------------
+    A set of useful LESS mixins
+    More info at: http://lesselements.com
+  ---------------------------------------------------*/
+
+.gradient(@color: #F5F5F5, @start: #EEE, @stop: #FFF) {
+  background: @color;
+  background: -webkit-gradient(linear,
+                               left bottom,
+                               left top,
+                               color-stop(0, @start),
+                               color-stop(1, @stop));
+  background: -ms-linear-gradient(bottom,
+                                  @start,
+                                  @stop);
+  background: -moz-linear-gradient(center bottom,
+                                   @start 0%,
+                                   @stop 100%);
+  background: -o-linear-gradient(@stop,
+                                 @start);
+  filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",@stop,@start));
+}
+.bw-gradient(@color: #F5F5F5, @start: 0, @stop: 255) {
+  background: @color;
+  background: -webkit-gradient(linear,
+                               left bottom,
+                               left top,
+                               color-stop(0, rgb(@start,@start,@start)),
+                               color-stop(1, rgb(@stop,@stop,@stop)));
+  background: -ms-linear-gradient(bottom,
+                                  rgb(@start,@start,@start) 0%,
+                                  rgb(@stop,@stop,@stop) 100%);
+  background: -moz-linear-gradient(center bottom,
+                                   rgb(@start,@start,@start) 0%,
+                                   rgb(@stop,@stop,@stop) 100%);
+  background: -o-linear-gradient(rgb(@stop,@stop,@stop),
+                                 rgb(@start,@start,@start));
+  filter: e(%("progid:DXImageTransform.Microsoft.gradient(startColorstr='%d', endColorstr='%d', GradientType=0)",rgb(@stop,@stop,@stop),rgb(@start,@start,@start)));
+}
+.bordered(@top-color: #EEE, @right-color: #EEE, @bottom-color: #EEE, @left-color: #EEE) {
+  border-top: solid 1px @top-color;
+  border-left: solid 1px @left-color;
+  border-right: solid 1px @right-color;
+  border-bottom: solid 1px @bottom-color;
+}
+.drop-shadow(@x-axis: 0, @y-axis: 1px, @blur: 2px, @alpha: 0.1) {
+  -webkit-box-shadow: @x-axis @y-axis @blur rgba(0, 0, 0, @alpha);
+  -moz-box-shadow: @x-axis @y-axis @blur rgba(0, 0, 0, @alpha);
+  box-shadow: @x-axis @y-axis @blur rgba(0, 0, 0, @alpha);
+}
+.rounded(@radius: 2px) {
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+  border-radius: @radius;
+}
+.border-radius(@topright: 0, @bottomright: 0, @bottomleft: 0, @topleft: 0) {
+  -webkit-border-top-right-radius: @topright;
+  -webkit-border-bottom-right-radius: @bottomright;
+  -webkit-border-bottom-left-radius: @bottomleft;
+  -webkit-border-top-left-radius: @topleft;
+  -moz-border-radius-topright: @topright;
+  -moz-border-radius-bottomright: @bottomright;
+  -moz-border-radius-bottomleft: @bottomleft;
+  -moz-border-radius-topleft: @topleft;
+  border-top-right-radius: @topright;
+  border-bottom-right-radius: @bottomright;
+  border-bottom-left-radius: @bottomleft;
+  border-top-left-radius: @topleft;
+  .background-clip(padding-box);
+}
+.opacity(@opacity: 0.5) {
+  -moz-opacity: @opacity;
+  -khtml-opacity: @opacity;
+  -webkit-opacity: @opacity;
+  opacity: @opacity;
+  @opperc: @opacity * 100;
+  -ms-filter: ~"progid:DXImageTransform.Microsoft.Alpha(opacity=@{opperc})";
+  filter: ~"alpha(opacity=@{opperc})";
+}
+.transition-duration(@duration: 0.2s) {
+  -moz-transition-duration: @duration;
+  -webkit-transition-duration: @duration;
+  -o-transition-duration: @duration;
+  transition-duration: @duration;
+}
+.transform(...) {
+  -webkit-transform: @arguments;
+  -moz-transform: @arguments;
+  -o-transform: @arguments;
+  -ms-transform: @arguments;
+  transform: @arguments;
+}
+.rotation(@deg:5deg){
+  .transform(rotate(@deg));
+}
+.scale(@ratio:1.5){
+  .transform(scale(@ratio));
+}
+.transition(@duration:0.2s, @ease:ease-out) {
+  -webkit-transition: all @duration @ease;
+  -moz-transition: all @duration @ease;
+  -o-transition: all @duration @ease;
+  transition: all @duration @ease;
+}
+.inner-shadow(@horizontal:0, @vertical:1px, @blur:2px, @alpha: 0.4) {
+  -webkit-box-shadow: inset @horizontal @vertical @blur rgba(0, 0, 0, @alpha);
+  -moz-box-shadow: inset @horizontal @vertical @blur rgba(0, 0, 0, @alpha);
+  box-shadow: inset @horizontal @vertical @blur rgba(0, 0, 0, @alpha);
+}
+.box-shadow(@arguments) {
+  -webkit-box-shadow: @arguments;
+  -moz-box-shadow: @arguments;
+  box-shadow: @arguments;
+}
+.box-shadow-double(@arguments, @arguments2) {
+  -webkit-box-shadow: @arguments, @arguments2;
+  -moz-box-shadow: @arguments, @arguments2;
+  box-shadow: @arguments, @arguments2;
+}
+.box-sizing(@sizing: border-box) {
+  -ms-box-sizing: @sizing;
+  -moz-box-sizing: @sizing;
+  -webkit-box-sizing: @sizing;
+  box-sizing: @sizing;
+}
+.user-select(@argument: none) {
+  -webkit-user-select: @argument;
+  -moz-user-select: @argument;
+  -ms-user-select: @argument;
+  user-select: @argument;
+}
+.columns(@colwidth: 250px, @colcount: 0, @colgap: 50px, @columnRuleColor: #EEE, @columnRuleStyle: solid, @columnRuleWidth: 1px) {
+  -moz-column-width: @colwidth;
+  -moz-column-count: @colcount;
+  -moz-column-gap: @colgap;
+  -moz-column-rule-color: @columnRuleColor;
+  -moz-column-rule-style: @columnRuleStyle;
+  -moz-column-rule-width: @columnRuleWidth;
+  -webkit-column-width: @colwidth;
+  -webkit-column-count: @colcount;
+  -webkit-column-gap: @colgap;
+  -webkit-column-rule-color: @columnRuleColor;
+  -webkit-column-rule-style: @columnRuleStyle;
+  -webkit-column-rule-width: @columnRuleWidth;
+  column-width: @colwidth;
+  column-count: @colcount;
+  column-gap: @colgap;
+  column-rule-color: @columnRuleColor;
+  column-rule-style: @columnRuleStyle;
+  column-rule-width: @columnRuleWidth;
+}
+.translate(@x:0, @y:0) {
+  .transform(translate(@x, @y));
+}
+.background-clip(@argument: padding-box) {
+  -moz-background-clip: @argument;
+  -webkit-background-clip: @argument;
+  background-clip: @argument;
+}
+.rounded-top-left(@radius: 2px) {
+  -webkit-border-radius-topleft: @radius;
+  -moz-border-radius-topleft: @radius;
+  border-top-left-radius: @radius;
+}
+.rounded-bottom-left(@radius: 2px) {
+  -webkit-border-radius-bottomleft: @radius;
+  -moz-border-radius-bottomleft: @radius;
+  border-bottom-left-radius: @radius;
+}
+.rounded-top-right(@radius: 2px) {
+  -webkit-border-radius-topright: @radius;
+  -moz-border-radius-topright: @radius;
+  border-top-right-radius: @radius;
+}
+.rounded-bottom-right(@radius: 2px) {
+  -webkit-border-radius-bottomright: @radius;
+  -moz-border-radius-bottomright: @radius;
+  border-bottom-right-radius: @radius;
+}
 
 /* No-sidebar mode */
 /* --------------- */
@@ -64,6 +245,10 @@ img.open-data {
     vertical-align: top;
     margin-top: 1px;
 }
+img.open-government-licence {
+    margin-top: -5px;
+    height: 12px;
+}
 .pagination {
     text-align: center;
 }
@@ -88,6 +273,10 @@ a.tag {
     .notes-read-more {
       font-weight: bold;
     }
+}
+.licenses {
+    margin-bottom: 10px;
+    padding-left: 8px;
 }
 h1 .abbreviation {
     color: #888;
@@ -116,7 +305,7 @@ ul.green-bullet {
 .pagination ul {
     background: #fff;
 }
-p.field_error, 
+p.field_error,
 span.field_error {
     background: transparent url(../images/icons/error.png) left center no-repeat;
     padding-left: 20px;
@@ -261,7 +450,7 @@ table.tablesorter {
         .search-spinner {
             width: 20px;
             height: 20px;
-            position: absolute; 
+            position: absolute;
             right: 100px;
             top: 15px;
         }
@@ -397,6 +586,20 @@ table.tablesorter {
       }
     }
 }
+.search-theme-mode-container {
+  float: right;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+.facets-theme-primary,
+.facets-theme-all {
+  &.enabled {
+    display: block;
+  }
+  &.disabled {
+    display: none;
+  }
+}
 
 
 /* common-dataset-list and dataset-summary */
@@ -460,8 +663,23 @@ ul.common-dataset-list {
         font-size: 12px;
         line-height: 18px;
     }
+    .themes {
+        color: #666;
+        margin: 0 -17px;
+        margin-top: 14px;
+        margin-bottom: -10px;
+        padding: 2px 15px;
+        padding-top: 4px;
+        border-top: 1px solid #aaa;
+        text-align: right;
+        font-weight: bold;
+        .secondary {
+          font-weight: normal;
+          color: #aaa;
+        }
+    }
     .format-box {
-      float: right; 
+      float: right;
       margin-top: -2px;
     }
     .map-buttons {
@@ -645,6 +863,24 @@ body.controller-publisher.action-read {
     }
 }
 
+/* PAGE: Inventory*/
+/* -------------------- */
+body.controller-inventory {
+    h1 .btn.edit {
+      float: right;
+      margin-left: 10px;
+    }
+    .feed-icon {
+      img {
+        margin: -4px 0 0 4px;
+      }
+    }
+    .state-box {
+        background-color: #fdd;
+    }
+}
+
+
 
 /* PAGE: Package/search */
 /* -------------------- */
@@ -791,7 +1027,7 @@ body.controller-package.action-resource_read {
 }
 
 /* PAGE: Package/new,
- *       Package/edit 
+ *       Package/edit
  * ------------------ */
 body.controller-package.action-new,
 body.controller-package.action-edit {
@@ -951,7 +1187,7 @@ body.controller-publisher.action-read {
 }
 /* PAGE: Harvest/index */
 /* ------------------- */
-body.controller-view.action-index { 
+body.controller-view.action-index {
     /* fully: body.controller-view.action-read */
     /* shouldnt this go into a CSS file in the harvest folder? */
     #show-inactive-sources-content {
@@ -971,7 +1207,7 @@ body.controller-view.action-index {
 }
 /* PAGE: Harvest/read */
 /* ------------------ */
-body.controller-view.action-read { 
+body.controller-view.action-read {
     .harvest-source-title,
     .harvest-source-config{
         display:none;
@@ -1004,8 +1240,8 @@ body.controller-revision.action-diff {
 /* PAGE: Openspending/reports */
 /* ------------------------ */
 body.openspending_report {
-    .voluntary { 
-        display: none; 
+    .voluntary {
+        display: none;
     }
     #content .boxed .row .span4 {
         width: 260px;
@@ -1070,6 +1306,86 @@ body.openspending_browse {
         background-color: white;
     }
 }
+
+/* PAGE: Themes */
+/* ------------------------ */
+body.controller-theme {
+    //border-top: 1px solid #ccc;
+  .theme-box {
+    height: 250px;
+    .inner-text {
+      height: 80px;
+      padding: 2px 10px;
+      position: relative;
+    }
+    h2 {
+      color: #555;
+      small { color: #aaa; }
+    }
+    &:hover {
+      h2 {
+        color: #000;
+        small { color: #333; }
+      }
+      text-decoration: none;
+      .img-scrollbox .description {
+        -webkit-transition: all 300ms ease-out;  
+        -moz-transition: all 300ms ease-out;  
+        -o-transition: all 300ms ease-out;  
+        -ms-transition: all 300ms ease-out;  
+        transition: all 300ms ease-out;  
+        -moz-transform: translateX(-100%);  
+        -o-transform: translateX(-100%);  
+        -webkit-transform: translateX(-100%);  
+        opacity: 1;  
+        transform: translateX(-100%);  
+      }  
+    }
+  }
+  .img-scrollbox {  
+    width: 100%;
+    background: #fcc;
+    height: 150px;
+    position: relative;  
+    overflow: hidden;  
+    margin-bottom: 8px;
+    -webkit-box-shadow: 1px 1px 1px 1px #ccc;  
+    -moz-box-shadow: 1px 1px 1px 1px #ccc;  
+    box-shadow: 1px 1px 1px 1px #ccc;  
+    .img-container {  
+        img {
+          position: absolute;
+          left: -8%;
+          width: 116%;
+        }
+        overflow: hidden;
+        width: 100%;
+        height: 150px;
+        position: absolute;  
+    }  
+    .description {  
+      background-color: rgba(0,0,0,0.8);  
+      position: absolute;  
+      color: #fff;  
+      z-index: 100;  
+      -webkit-transition: all 100ms ease-out;  
+      -moz-transition: all 100ms ease-out;  
+      -o-transition: all 100ms ease-out;  
+      -ms-transition: all 100ms ease-out;  
+      transition: all 100ms ease-out;  
+      left: 0;  
+      width: 100%;
+      height: 170px;  
+      text-align: left;  
+      padding: 0 0 0 0;
+      left: 100%;
+      .inner {
+        padding: 10px;
+      }
+    }  
+  }  
+}
+
 
 /* TODO attach these to a page */
 

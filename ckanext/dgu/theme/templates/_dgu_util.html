@@ -11,6 +11,76 @@
 
   <xi:include href="package/basket.html" />
 
+ <py:def function="ons_grouped_table(keys, res_count=None)">
+    <py:for each="k in keys">
+      <div py:if="len(keys) > 1" style='margin-top: 12px;'>
+        <h4 >ONS Release: ${k or "No name"} <span class="badge resources-badge">${len(h.get_resources_for_ons_release(k))}</span>
+        </h4>
+    </div>
+      <py:for each="res in h.get_resources_for_ons_release(k, res_count)">
+      <div class="resource-row">
+        <div class="text-overlay">
+          <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}" class="btn">${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}</a>
+          <div class="btn-group">
+            <a href="${res.get('url', '')}" class="btn btn-primary" onclick="${h.ga_download_tracking(res)}">
+              Download
+            </a>
+            <button class="btn btn-primary dropdown-toggle"
+              data-toggle="dropdown"
+              py:attrs="{'disabled':'disabled'} if not h.get_cache_url(res) else {}">
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
+                  Download
+                </a>
+              </li>
+              <li>
+                <py:if test="h.get_cache_url(res)">
+                  <a href="${h.get_cache_url(res)}" class="js-tooltip" title="Cached by data.gov.uk on: ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
+                    Cached
+                  </a>
+                </py:if>
+                <py:if test="not h.get_cache_url(res)">
+                  <a class="disabled">(no cache available)</a>
+                </py:if>
+              </li>
+            </ul>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+        <div class="resource-row-format">
+          <py:if test="res.get('gemini',False)">
+            ${format_box(res.get('type',''))}
+          </py:if>
+          <py:if test="not res.get('gemini',False)">
+            ${format_box(res.get('format',''))}
+          </py:if>
+        </div>
+        <div class="resource-row-text">
+          <!-- Attached to timeseries resources and additional resources -->
+          <div class="hover-text">
+            <!-- Attached to Additional Links which are scrape sources -->
+            <py:if test="res.get('scraped') or res.get('scraper_url')">
+              ${h.scraper_icon(res, alt=if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}
+            </py:if>
+            ${res.get('date')}
+            ${h.resource_display_name(res)}
+          </div>
+        </div>
+      </div>
+      </py:for>
+      <div class="clearfix"></div>
+    </py:for>
+      <div py:if="not c.all_resources and len(h.get_ons_releases()) > 1" style="margin:10px;" >
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='read', id=c.pkg.name)}?all" class="notes-read-more">View all ${len(h.individual_resources())} resources in ${h.ons_release_count()} releases&raquo;</a>
+      </div>
+      <div py:if="c.all_resources" style="margin:10px;" >
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='read', id=c.pkg.name)}" class="notes-read-more">View less resources &raquo;</a>
+      </div>
+  </py:def>
+
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
@@ -18,10 +88,10 @@
     <tr>
       <td class="left" py:if="not c.query_error">
         <h2 class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</h2>
-        <py:if test="request.params">      
+        <py:if test="request.params">
           <div class="result-count-footer">Results</div>
         </py:if>
-        <py:if test="not request.params">      
+        <py:if test="not request.params">
           <div class="result-count-footer">Datasets</div>
         </py:if>
       </td>
@@ -36,8 +106,8 @@
           <div class="search-spinner">&nbsp;</div>
           <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
           <span py:if="c.fields">
-          <py:for each="(k, v) in c.fields"> 
-            <input type="hidden" name="${k}" value="${v}" />  
+          <py:for each="(k, v) in c.fields">
+            <input type="hidden" name="${k}" value="${v}" />
           </py:for>
           </span>
           <py:if test="request.params.get('ext_bbox','')">
@@ -79,11 +149,9 @@
     </tr>
   </table>
 
-
-
   <ul py:def="package_list_from_dict(packages)" class="common-dataset-list">
    <li py:for="package in packages">
-     ${package_summary(package, show_preview_buttons=True)}
+      ${package_summary(package, show_preview_buttons=True)}
    </li>
   </ul>
 
@@ -114,6 +182,29 @@
        </py:if>
      </div>
   </div>
+
+  <div py:def="inventory_summary(package, show_preview_buttons)" class="wrapper dataset dataset-summary boxed" style='background-color: #dedede;'>
+     <div py:with="title=package.get('title') or package.get('name')">
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/inventory-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
+         <h3><span class="underlined">Inventory: ${title}</span></h3>
+       </a>
+       <span class="property pull-right">
+         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+       </span>
+       <div class="property">
+          Publisher:&nbsp;
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+              ${h.package_publisher_dict(package).get('title', '')}
+            </a>
+       </div>
+       <div py:if="h.uklp_display_provider(package)" class="property">Provider:&nbsp; ${h.uklp_display_provider(package).strip('"')}</div>
+       <div class="dataset-description">
+         ${h.markdown_extract(package.notes)}
+       </div>
+     </div>
+  </div>
+
 
   <py:def function="facet_line(facet_item, facet_key)">
       <div class="facet-option">
@@ -183,27 +274,49 @@
   <div py:def="facet_filters()" class="datasets">
     <div class="boxed">
       ${facet_box(
-          'license_id-is-ogl', 
-          'Licence', 
+          'license_id-is-ogl',
+          'Licence',
           'There are no further licence filters to apply.'
+      )}
+      <div class="search-theme-mode-container">
+        <label class="checkbox">
+          <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
+          Only primary theme
+        </label>
+      </div>
+      <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
+      ${facet_box(
+          'theme-primary', 
+          'Theme', 
+          'There are no further theme filters to apply.', 
+          more_button='more-prithemes-button'
+      )}
+      </div>
+      <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
+      ${facet_box(
+          'all_themes', 
+          'Themes', 
+          'There are no further theme filters to apply.', 
+          more_button='more-themes-button'
+      )}
+      </div>
+      ${facet_box(
+          'res_format',
+          'Resource Format',
+          'There are no further resource format filters to apply.',
+          more_button='more-formats-button'
+      )}
+      ${facet_box(
+          'publisher',
+          'Publisher',
+          'There are no further publisher filters to apply.',
+          more_button='more-publishers-button'
       )}
       ${facet_box(
           'tags', 
           'Tags', 
           'There are no further tag filters to apply.', 
           more_button='more-tags-button'
-      )}
-      ${facet_box(
-          'res_format', 
-          'Resource Format', 
-          'There are no further resource format filters to apply.', 
-          more_button='more-formats-button'
-      )}
-      ${facet_box(
-          'publisher', 
-          'Publisher', 
-          'There are no further publisher filters to apply.', 
-          more_button='more-publishers-button'
       )}
       ${facet_box(
           'openness_score', 
@@ -324,15 +437,24 @@
 
   <py:def function="list_licenses(pkg)">
     <!--! Usually only one licence, but UKLP might have more than one -->
-    <div property="dc:rights" id="dataset-license" py:with="all_licences = h.get_licenses(pkg)">
-        <p py:for="(license_text, url, isopen) in all_licences">
-          <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
-          <span py:if="not url" rel="dc:rights">${license_text}</span>
+    <div class="licenses" property="dc:rights" id="dataset-license" py:with="all_licences = h.get_licenses(pkg)">
+        <p py:for="(license_text, url, isopen, isogl) in all_licences">
+          <py:if test="isogl">
+            <a href="${url or 'http://reference.data.gov.uk/id/open-government-licence'}" rel="dc:rights">
+              Open Government Licence
+              <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
+            </a>
+          </py:if>
+          <py:if test="not isogl">
+            <a py:if="url" href="${url}" rel="dc:rights">${license_text}</a>
+            <span py:if="not url" rel="dc:rights">${license_text}</span>
+          </py:if>
           &nbsp;${openness_image(isopen)}
         </p>
         <p py:if="len(all_licences)==0">
           No licence specified
         </p>
+        <div class="clearfix"></div>
     </div>
   </py:def>
 
@@ -348,4 +470,29 @@
   </py:def>
 
 
+  <ul py:def="themed_package_list_from_dict(packages, theme)" class="common-dataset-list">
+   <li py:for="package in packages">
+     ${themed_package_summary(package, theme)}
+   </li>
+  </ul>
+
+  <div py:def="themed_package_summary(package, theme)" class="dataset dataset-summary boxed">
+     <div py:with="title=package.get('title') or package.get('name')">
+       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+         <img class="dataset-icon" src="${'/images/theme-%s-icon.png' % theme if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
+         <h3><span class="underlined">${title}</span></h3>
+       </a>
+       <span class="property pull-right">
+         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+       </span>
+       <div class="property">
+            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+              ${h.package_publisher_dict(package).get('title', '')}
+            </a>
+       </div>
+       <div class="dataset-description">
+         ${h.markdown_extract(package.notes)}
+       </div>
+     </div>
+  </div>
 </html>

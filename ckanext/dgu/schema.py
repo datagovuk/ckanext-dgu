@@ -4,6 +4,21 @@ import datetime
 
 from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 
+# Map: Database entry -> Displayname
+THEMES = {
+    u"Health"     : u"Health",
+    u"Geography"  : u"Geography",
+    u"Education"  : u"Education",
+    u"Crime"      : u"Crime & Justice",      
+    u"Government" : u"Government",
+    u"Defence"    : u"Defence",
+    u"Economy"    : u"Business & Economy",
+    u"Transport"  : u"Transport",
+    u"Spending"   : u"Government Spending",
+    u"Society"    : u"Society",    
+}
+
+
 government_depts_raw = """
 Attorney General's Office
 Cabinet Office

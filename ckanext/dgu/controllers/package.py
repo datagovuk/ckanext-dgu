@@ -11,10 +11,15 @@ from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import missing
 import ckan.controllers.package
 from ckanext.dgu.lib.helpers import get_from_flat_dict
+from ckan.lib.package_saver import PackageSaver
 
 log = logging.getLogger(__name__)
 
 class PackageController(ckan.controllers.package.PackageController):
+
+    def __before__(self, action, **params):
+        super(PackageController, self).__before__(action, **params)
+        c.all_resources = 'all' in request.params.keys()
 
     def history(self, id):
         """ Auth is different for DGU than for publisher default """

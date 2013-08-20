@@ -24,18 +24,18 @@
         <td class="gutter"></td>
         <td class="boxed">
           <div class="pull-right">
-            <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
+            <a href="/data/themes" class="btn btn-primary viewall">View all themes</a>
           </div>
-          <h2>Tags</h2>
-          <div id="tagcloud">
-            <py:for each="tag_dict in h.random_tags()">
-              <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
+          <h2>Themes</h2>
+          <div id="tagcloud" py:with="theme_count=h.themes_count()">
+            <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(),key=lambda x:x[1])">
+            <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
           <script type="text/javascript" charset="utf-8">
     /* Tag cloud */
     $.fn.tagcloud.defaults = {
-      size: {start: 8, end: 24, unit: "pt"},
+      size: {start: 12, end: 28, unit: "pt"},
       color: {start: '#bbb', end: '#66aa44'}
     };
     $('#tagcloud a').tagcloud();
@@ -85,7 +85,14 @@
             <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
           </div>
           <h2>Featured dataset</h2>
-          ${package_summary(h.single_popular_dataset(20), show_preview_buttons=False)}
+          <py:with vars="featured=h.single_popular_dataset(20)">
+            <py:if test="featured">
+              ${package_summary(featured, show_preview_buttons=False)}
+            </py:if>
+            <py:if test="not featured">
+              <em>The catalogue contains no datasets.</em>
+            </py:if>
+          </py:with>
         </td>
         <td class="gutter"></td>
         <td class="boxed">

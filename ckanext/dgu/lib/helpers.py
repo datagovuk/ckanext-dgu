@@ -18,6 +18,7 @@ import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
 from pylons import config
+from pylons import request
 
 from ckan.lib.helpers import icon, icon_html, json
 import ckan.lib.helpers
@@ -102,7 +103,13 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
             group_members[member.table_id].append( member.group_id )
 
     def get_groups(group):
-        return [group_lookup[i] for i in group_members[group.id]]
+        # Protect against missing values (which may have been removed)
+        # by checking the group has members. If it doesn't appears in
+        # group_members then we should just return an empty list for now
+        # which will mean it gets added to the root.
+        if group.id in group_members:
+            return [group_lookup[i] for i in group_members[group.id]]
+        return []
 
     for group in groups:
         slug, title = group.name, title_for_group(group)
@@ -227,6 +234,13 @@ def get_from_flat_dict(list_of_dicts, key, default=None):
 def get_uklp_package_type(package):
     return get_from_flat_dict(package.get('extras', []), 'resource-type', '')
 
+def get_primary_theme(package):
+    return get_from_flat_dict(package.get('extras', []), 'theme-primary', '')
+
+def get_secondary_themes(package):
+    secondary_themes_raw = get_from_flat_dict(package.get('extras', []), 'theme-secondary', '')
+    return secondary_themes({'theme-secondary':secondary_themes_raw})
+
 def is_service(package):
     res_type = get_uklp_package_type(package)
     return res_type == 'service'
@@ -271,7 +285,7 @@ def predict_if_resource_will_preview(resource_dict):
     normalised_format = format.lower().split('/')[-1]
     return normalised_format in (('csv', 'xls', 'rdf+xml', 'owl+xml',
                                   'xml', 'n-triples', 'turtle', 'plain',
-                                  'txt', 'atom', 'tsv', 'rss'))
+                                  'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
 def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
@@ -540,19 +554,19 @@ def name_for_uklp_type(package):
         item_type = 'Dataset'
 
 def updated_string(package):
-    if package.get('last_major_modification') == package.get('metadata_created'):
+    if package.get('metadata_modified') == package.get('metadata_created') or \
+           updated_date(package) == package.get('metadata_created'):
         updated_string = 'Created'
     else:
         updated_string = 'Updated'
     return updated_string
 
 def updated_date(package):
-    from ckan import model    
-    p = model.Package.get(package['name'])
-    if not p:
-        return package.get('metadata_created')    
-
-    return p.extras.get('last_major_modification', package.get('metadata_created'))
+    for extra in package['extras']:
+        if extra['key'] == 'last_major_modification':
+            return extra['value']
+    log.warning('Could not get value for "last_major_modification": %s', package['name'])
+    return package['metadata_modified']
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
@@ -593,9 +607,9 @@ def get_resource_fields(resource, pkg_extras):
     from ckanext.dgu.lib.resource_helpers import ResourceFieldNames, DisplayableFields
 
     field_names = ResourceFieldNames()
-    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype', 'mimetype-inner', 'name']
+    field_names_display_only_if_value = ['content_type', 'content_length', 'mimetype',
+                                         'mimetype-inner', 'name']
     res_dict = dict(resource)
-
     field_value_map = {
         # field_name : {display info}
         'url': {'label': 'URL', 'value': h.link_to(res_dict['url'], res_dict['url'])},
@@ -606,10 +620,13 @@ def get_resource_fields(resource, pkg_extras):
             'value': t.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
-            'value': res_dict.get('scraped')},
+            'value': h.render_datetime(res_dict.get('scraped'), "%d/%m/%Y")},
         'scraper_source': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraper_source')},
+        'release_date': {'label': 'ONS Release',
+            'label_title':'The ONS release',
+            'value': res_dict.get('release_date')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
@@ -629,6 +646,7 @@ def get_package_fields(package, pkg_extras, dataset_type):
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
+    from ckanext.dgu.schema import THEMES
 
     field_names = DatasetFieldNames()
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
@@ -694,15 +712,19 @@ def get_package_fields(package, pkg_extras, dataset_type):
     if taxonomy_url and taxonomy_url.startswith('http'):
         taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
     primary_theme = pkg_extras.get('theme-primary') or ''
+    primary_theme = THEMES.get(primary_theme, primary_theme)
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
             # JSON for multiple values
-            secondary_themes = ', '.join(json.loads(secondary_themes))
+            secondary_themes = ', '.join(
+                [THEMES.get(theme, theme) \
+                 for theme in json.loads(secondary_themes)])
         except ValueError:
             # string for single value
             secondary_themes = str(secondary_themes)
-
+            secondary_themes = THEMES.get(secondary_themes,
+                                          secondary_themes)
     field_value_map = {
         # field_name : {display info}
         'state': {'label': 'State', 'value': c.pkg.state},
@@ -766,7 +788,13 @@ def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
 
 def groups_as_json(groups):
-    return json.dumps([group.title for group in groups])
+    l = []
+    for group in groups:
+        l.append(group.title)
+        abbr = group.extras.get('abbreviation')
+        if abbr:
+            l.append(abbr)
+    return json.dumps(l)
 
 def user_display_name(user):
     user_str = ''
@@ -801,25 +829,36 @@ def advanced_search_url():
 
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen), ... ]
+    licenses = [] # [(title, url, isopen, isogl), ... ]
 
+    # Normal datasets (created in the form) store the licence in the
+    # pkg.license value as a License.id value.
     if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen()))
+        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
     elif pkg.license_id:
-        licenses.append((pkg.license_id, None, None))
+        # However if the user selects 'free text' in the form, that is stored in
+        # the same pkg.license field.
+        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
 
+    # UKLP might have multiple licenses and don't adhere to the License
+    # values, so are in the 'licence' extra.
     license_extra_list = json_list(pkg.extras.get('licence') or '')
     for license_extra in license_extra_list:
         license_extra_url = None
         if license_extra.startswith('http'):
             license_extra_url = license_extra
-        licenses.append((license_extra, license_extra_url, True if ('OGL' in license_extra or 'OS OpenData Licence' in license_extra) else None))
+        # british-waterways-inspire-compliant-service-metadata specifies OGL as
+        # only one of many licenses. Set is_ogl bar a little higher - licence
+        # text must start off saying it is OGL.
+        is_ogl = license_extra.startswith('Open Government Licen')
+        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
 
+    # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
         license_url_title = pkg.extras.get('licence_url_title') or license_url
         isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None))
+        licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
@@ -932,6 +971,8 @@ def prep_group_edit_data(data):
     # on validation error, the submitted values appear in data[key] with the original
     # values in data['extras']. Therefore populate the form with the data[key] values
     # in preference, and fall back on the data['extra'] values.
+    if c.group:
+        c.editing = True
     original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
                                 for extra_dict in data.get('extras', {})])
     for key, value in original_extra_fields.items():
@@ -992,7 +1033,7 @@ def iterate_error_dict(d):
         yield (k,v)
 
 def _translate_ckan_string(o):
-    """DGU uses different words for things compared to CKAN, so 
+    """DGU uses different words for things compared to CKAN, so
     adjust the language of errors using mappings."""
     field_name_map = {
         'groups': 'Publisher',
@@ -1127,10 +1168,51 @@ def gemini_resources():
 def individual_resources():
     r = c.pkg_dict.get('individual_resources', [])
     # In case the schema changes, the resources may or may not be split up into
-    # three keys. So combine them if necessary   
+    # three keys. So combine them if necessary
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
     return r
+
+def has_group_ons_resources():
+    resources = individual_resources()
+    if not resources:
+        return False
+
+    return any(r.get('release_date', False) for r in resources)
+
+def get_ons_releases():
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return sorted(groupings.keys(), reverse=True)
+
+def ons_release_count():
+    return len(get_ons_releases())
+
+def get_limited_ons_releases():
+    gps = get_ons_releases()
+    return [gps[0]]
+
+def get_resources_for_ons_release(release, count=None):
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    if count:
+        return groupings[release][:count]
+    return groupings[release]
+
+def get_resources_for_ons():
+    import collections
+    resources = individual_resources()
+    groupings = collections.defaultdict(list)
+    for r in resources:
+        groupings[r['release_date']].append(r)
+    return groupings
+
 
 def init_resources_for_nav():
     # Core CKAN expects a resource dict to render in the navigation
@@ -1231,9 +1313,8 @@ def publisher_performance_data(publisher, include_sub_publishers):
         spending = 'red'
 
     # TODO: Add a count to result of broken_resource_links_for_organisation or write a version
-    # that returns count().  This is likely to be slow if there are lots of resource links broken
-    # such as for ONS.
-    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers)
+    # that returns count().
+    data = broken_resource_links_for_organisation(publisher.name, include_sub_publishers, use_cache=True)
     broken_count = len(data['data'])
 
     if broken_count == 0 or rcount == 0:
@@ -1250,7 +1331,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
 
     openness = ''
     total, counters = publib.openness_scores(publisher, include_sub_publishers)
-    number_x_or_above = lambda x: sum(counters[c] for c in xrange(x, 6))
+    number_x_or_above = lambda x: sum(counters.get(str(c),0) for c in xrange(x, 6))
 
     above_3 = number_x_or_above(3)
     pct_above_3 = int(100 * float(total)/float(above_3)) if above_3 else 0
@@ -1280,6 +1361,10 @@ def render_facet_key(key,value=None):
         return 'Type'
     if key=='resource-type' or key=='spatial-data-service-type':
         return 'UKLP Type'
+    if key=='all_themes':
+        return 'Theme'
+    if key=='theme-primary':
+        return 'Primary Theme'
     # Delegate to core CKAN
     return ckan.lib.helpers.get_facet_title(key)
 
@@ -1318,15 +1403,18 @@ def render_facet_value(key,value):
                 'discovery' : 'Discovery',
             }
         return mapping.get(value,value)
+    if key=='theme-primary' or key=='all_themes':
+        from ckanext.dgu.schema import THEMES
+        return THEMES.get(value,value)
     return value
 
 def social_url_twitter(url,title):
     import urllib
     twitter_parameters = {
-      'original_referer':url,
-      'text':title,
+      'original_referer':url.encode('utf-8'),
+      'text':title.encode('utf-8'),
       'tw_p':'tweetbutton',
-      'url':url,
+      'url':url.encode('utf-8'),
     }
     twitter_url = 'https://twitter.com/intent/tweet?' + urllib.urlencode(twitter_parameters)
     return twitter_url
@@ -1338,4 +1426,120 @@ def social_url_facebook(url):
 def social_url_google(url):
     google_url = 'https://plus.google.com/share?url='+url
     return google_url
+
+def ckan_asset_timestamp():
+    from ckanext.dgu.theme.timestamp import asset_build_timestamp
+    return asset_build_timestamp
+
+shared_assets_timestamp = None
+def get_shared_assets_timestamp():
+    global shared_assets_timestamp
+    if shared_assets_timestamp is None:
+        import os
+        this_file = os.path.dirname(os.path.realpath(__file__))
+        assets_file = os.path.join(this_file,'..','theme','public','assets','timestamp')
+        try:
+            with open(assets_file) as f:
+                shared_assets_timestamp = f.read()
+        except Exception as e:
+            log.error('failed to load shared assets timestamp: %s' % e)
+            shared_assets_timestamp = '-1'
+    return shared_assets_timestamp
+
+def search_theme_mode_primary():
+    # Return True if searching by Primary Theme.
+    return 'theme-primary' in request.params.keys()
+
+def search_theme_mode_secondary():
+    # Return True if searching by Any Theme.
+    return (not search_theme_mode_primary()) and 'all_themes' in request.params.keys()
+
+def search_theme_mode_none():
+    # True when no Theme facet is active.
+    # The user can select whether their Theme facet is restricted to the _primary_ theme.
+    return not (search_theme_mode_primary() or search_theme_mode_secondary())
+
+def search_theme_mode_attrs():
+    out = {}
+    if not search_theme_mode_none():
+        out['disabled'] = 'disabled'
+    if not search_theme_mode_secondary():
+        out['checked'] = 'checked'
+    return out
+
+def is_inventory_item(package):
+    return get_from_flat_dict(package['extras'], 'inventory')
+
+def tidy_url(url):
+    '''
+    Given a URL it does various checks before returning a tidied version
+    suitable for calling.
+    '''
+    import urlparse
+
+    # Find out if it has unicode characters, and if it does, quote them
+    # so we are left with an ascii string
+    try:
+        url = url.decode('ascii')
+    except:
+        parts = list(urlparse.urlparse(url))
+        parts[2] = urllib.quote(parts[2].encode('utf-8'))
+        url = urlparse.urlunparse(parts)
+    url = str(url)
+
+    # strip whitespace from url
+    # (browsers appear to do this)
+    url = url.strip()
+
+    try:
+        parsed_url = urlparse.urlparse(url)
+    except Exception, e:
+        raise Exception('URL parsing failure: %s' % e)
+
+    # Check we aren't using any schemes we shouldn't be
+    if not parsed_url.scheme in ('http', 'https', 'ftp'):
+        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+
+    if not parsed_url.netloc:
+        raise Exception('URL parsing failure - did not find a host name')
+
+    return url
+
+def inventory_status(package_items):
+    from ckan import model
+    for p in package_items:
+        pid = p['package']
+        action = p['action']
+        pkg = model.Package.get(pid)
+        grp = pkg.get_groups('publisher')[0]
+
+        yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
+
+def upsert_extra(extras_dict_list, key, value):
+    '''Given a list of extras dicts, update or insert the given
+    key-value pair. Changes the extras_dict_list in-place.'''
+    for extra in extras_dict_list:
+        if extra['key'] == key:
+            extra['value'] = value
+            break
+    else:
+        extras_dict_list.append({'key': key,
+                                 'value': value})
+
+def themes_count():
+    from ckanext.dgu.schema import THEMES
+    from ckan import model
+    theme_count = {}
+    for theme in THEMES.keys():
+        count = model.Session.query(model.Package)\
+            .join(model.PackageExtra)\
+            .filter(model.PackageExtra.key=='theme-primary')\
+            .filter(model.PackageExtra.value==theme)\
+            .filter(model.Package.state=='active').count()
+        theme_count[theme] = count
+    return theme_count
+
+def themes_displayname():
+    from ckanext.dgu.schema import THEMES
+    return THEMES
 

@@ -85,7 +85,7 @@ class DguCreateTestData(CreateTestData):
         ('dh_admin', 'admin', 'dept-health'),
         ('co_admin', 'admin', 'cabinet-office'),
         ('co_editor', 'editor', 'cabinet-office'),
-        ('barnsley_admin', 'editor', 'barnsley-primary-care-trust'),
+        ('barnsley_admin', 'admin', 'barnsley-primary-care-trust'),
         ('barnsley_editor', 'editor', 'barnsley-primary-care-trust'),
         ]
     _packages = [
@@ -383,7 +383,7 @@ Alternative title: GDP and Labour Market coherence""",
              'spatial-data-service-type': "view",
              'metadata-language': "eng",
              # Deliberately missing for test
-             #'last_major_modification': "2000-01-01",             
+             #'last_major_modification': "2000-01-01",
             },
          'resources': [
              {'hash': "",
@@ -476,7 +476,7 @@ Alternative title: GDP and Labour Market coherence""",
                 del group['parent']
             groups.append(group)
         cls.create_groups(groups, auth_profile='publisher')
-        
+
         # Add in the hierarchy (similar to bin/import_publishers.py)
         model.repo.new_revision()
         for publisher in publishers:

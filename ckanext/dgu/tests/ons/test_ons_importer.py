@@ -70,6 +70,23 @@ class TestOnsImporter(MockDrupalCase):
             assert_equal(title, res_title)
             assert_equal(date, res_date)
 
+    def test_split_keywords(self):
+        expected_data = [
+            ('Tax', ['Tax']),
+            ('Children;Care', ['Children', 'Care']),
+            ('mental illness;armed forces', ['mental illness', 'armed forces']),
+            ('staff, nhs', ['staff', 'nhs']),
+            ('staff, nhs,', ['staff', 'nhs']),
+            ('population forecast, future population', ['population forecast', 'future population']),
+            ('victimisation;property crime.', ['victimisation', 'property crime']),
+            ('Clinker;Bricks, Concrete Building Blocks', ['Clinker', 'Bricks, Concrete Building Blocks']),
+            ('A&amp;E, accident and emergency', ['A and E', 'accident and emergency']),
+            ('article, &#8216;regional economic analysis&#8217;, &#8216;regional analysis&#8217;', ['article', u'\u2018regional economic analysis\u2019', u'\u2018regional analysis\u2019']),
+            ]
+        for keywords_field, expected_keywords in expected_data:
+            keywords = importer.OnsImporter._split_keywords(keywords_field)
+            assert_equal(keywords, expected_keywords)
+
     def test_geo_coverage(self):
         coverage_tests = [
             ('UK', '111100: United Kingdom (England, Scotland, Wales, Northern Ireland)'),

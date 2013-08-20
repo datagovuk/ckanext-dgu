@@ -27,12 +27,12 @@ class ResourceFieldNames(FieldNames):
     # For building a list of the fields to display and their order
     def __init__(self):
         # core fields
-        self._field_names = ['url', 'date-updated-computed', 'scraper_url', 'scraped']
+        self._field_names = ['url', 'date-updated-computed', 'scraper_url', 'scraped', 'release_date']
 
 class DisplayableFields:
     # For collecting the key and value to display each field
     def __init__(self, field_names, field_value_map, pkg_extras):
-        self._fields_requiring_values = ['scraper_url', 'scraped']
+        self._fields_requiring_values = ['scraper_url', 'scraped', 'release_date']
         self.fields = []
         for field_name in field_names:
             value_dict = field_value_map.get(field_name, {})

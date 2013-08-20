@@ -4,7 +4,7 @@
   
   <py:def function="page_title">Differences - Revisions</py:def>
   <py:def function="body_class">${h.literal('no-sidebar')}</py:def>
-  <py:def>
+  <py:def function="page_heading">
     ${h.dataset_link(c.pkg)}
     <span class="subheading">
       <img src="/images/arrow-down-right.png"/> <a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History</a>

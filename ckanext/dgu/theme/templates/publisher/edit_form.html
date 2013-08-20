@@ -29,10 +29,12 @@ ${h.prep_group_edit_data(data)}
   <div class="control-group">
     <label class="control-label" for="name">Publisher name</label>
     <div class="controls">
-      <input py:if="not c.group or h.is_sysadmin()" class="js-title" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+      <input py:if="not c.group or h.is_sysadmin()" id="title" name="title" type="text" value="${data.get('title', '')}" py:attrs="{} if c.editing else {'class':'js-title'}"/>
       <span py:if="c.group and not h.is_sysadmin()" class="js-title">
         ${data.get('title', '')}
       </span>
+        <span py:if="c.group and not h.is_sysadmin()" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
+
       <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
     </div>
   </div>
@@ -41,7 +43,8 @@ ${h.prep_group_edit_data(data)}
     <label class="control-label" for="url">Url</label>
     <div class="controls name-field">
       <div class="input-prepend">
-        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" />
+        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {}"/> 
+        <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
       </div>
       <p class="js-url-is-valid">&nbsp;</p>
       <p>2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>

@@ -62,7 +62,12 @@ class ONSUpdateTask(CkanCommand):
             action='store_true',
             default=False,
             dest='pretend',
-            help='Whether we should only pretend to write')        
+            help='Whether we should only pretend to write')
+        self.parser.add_option('--force',
+            action='store_true',
+            default=False,
+            dest='force',
+            help='Forces the use of only documentation resources')
         self.parser.add_option('-s', '--server',
             dest='server',
             help='Allows an alternative server URL to be used')
@@ -106,6 +111,8 @@ class ONSUpdateTask(CkanCommand):
         counter = 0
         resource_count = 0
         for dsname in datasets:
+            dataset = None
+
             got = 3
             while got >= 0:
                 try:
@@ -113,9 +120,9 @@ class ONSUpdateTask(CkanCommand):
                     break
                 except:
                     got = got - 1
-                    time.sleep(2)
+                    time.sleep(1)
 
-            if dataset['state'] != 'active':
+            if not dataset or dataset['state'] != 'active':
                 log.info("Package %s is not active" % dsname)
                 continue
 
@@ -127,14 +134,13 @@ class ONSUpdateTask(CkanCommand):
             new_resources = None
             moved_resources = False
 
-            new_resources, to_be_deleted = self.scraper.scrape(dataset)
+            new_resources, to_be_deleted = self.scraper.scrape(dataset, options=self.options)
             if to_be_deleted and self.options.delete_resources:
                 dataset['resources'] = [r for r in dataset['resources'] if not r['id'] in to_be_deleted]          
                 for tbd in to_be_deleted:
                     _log({"dataset": dataset['name'], "resource": tbd,
                        "url": "", "status code": "404"},
                        "Deleted resource (was a 404)")
-
 
             if not new_resources:
                 log.info("No new resources for {0}".format(dataset['name']))
@@ -177,24 +183,27 @@ class ONSUpdateTask(CkanCommand):
 
                 # Add the resource along with a scraped_date
                 try:
-                    resource_count = resource_count + 1                    
                     if not self.options.pretend:
+                        # Only add resource if the URL for the resource isn't already
+                        # in the resource list
                         got = 4
                         while got >= 0:
                             try:
                                 ckan.add_package_resource(dataset['name'], r['url'],
                                                           resource_type='',
                                                           format=r['url'][-3:],
-                                                          description=r['description'],
+                                                          description=r['original']['description'],
                                                           name=r['title'],
                                                           scraped=datetime.datetime.now().isoformat(),
-                                                          scraper_source=r['original']['url'])
+                                                          scraper_source=r['original']['url'],
+                                                          release_date=r.get('release-date', ''))
+                                resource_count = resource_count + 1
+                                # If we get here we can break out of the re-try loop
                                 break
-                            except:
+                            except Exception, e:
                                 got = got - 1
 
-                        log.info("Set source to %s" % r['original']['url'])
-                    log.info("  Added {0}".format(r['url']))
+                        log.info("  Added {0}".format(r['url']))
                 except Exception, err:
                     log.error(err)
 
@@ -217,20 +226,36 @@ class ONSScraper(object):
         self.follow_regex = re.compile('^.*ons/publications/re-reference-tables.html.*$')
 
 
-    def scrape(self, dataset, rsrc=None):
+    def scrape(self, dataset, options, rsrc=None):
         """
         Narrows down the datasets, and resources that can be scraped
         and processed by this scraper.
         """
+        log = logging.getLogger(__name__)
+
         self.to_be_deleted = []
         resources = []
         rsrcs = dataset['resources']
         if rsrc:
             rsrcs = [rsrc]
 
+        if options.force:
+            log.info("Forcing processing of only documentation resources")
+        else:
+            log.info("Processing data resources")
+
         for resource in rsrcs:
-            if resource['resource_type'] == 'documentation':
-                continue
+            if options.force:
+                # If we are forcing the use of documentation resources
+                # then we should skip this if it isn't a documentation resource
+                if resource['resource_type'] != 'documentation':
+                    log.debug("Skipping non-documentation: {0}".format(resource['id']))
+                    continue
+            else:
+                # By default we are not replacing documentation resources.
+                if resource['resource_type'] == 'documentation':
+                    log.debug("Skipping documentation: {0}".format(resource['id']))
+                    continue
 
             if self._is_tabular_url(resource['url']):
                 continue
@@ -306,7 +331,8 @@ class ONSScraper(object):
                             items.append({'url': urljoin(resource['url'], l),
                                          'description': '',
                                          'title': link.get('title', ''),
-                                         'original': resource})
+                                         'original': resource,
+                                         'release-date': resource.get('publish-date', '')})
                             log.debug("Found an item from a direct link")                           
 
         # Try all of the URLs to find the data link
@@ -358,7 +384,8 @@ class ONSScraper(object):
                 items.append({'url': urljoin(resource['url'], url),
                     'description': description,
                     'title': title,
-                    'original': resource})
+                    'original': resource,
+                    'release-date': resource.get('publish-date', '')})
 
             if not url:
                 _log(line, "No link to data page")
