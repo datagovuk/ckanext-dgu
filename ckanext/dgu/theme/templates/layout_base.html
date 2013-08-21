@@ -37,25 +37,13 @@
   </py:otherwise>
   </py:choose>
 
-  <link rel="stylesheet" href="/assets/css/dgu-joint.compiled.css?${h.get_shared_assets_timestamp()}" />
+  <link rel="stylesheet" href="/assets/css/datagovuk.min.css?${h.get_shared_assets_timestamp()}" />
   <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}?${h.ckan_asset_timestamp()}" />
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
   <py:if test="config.get('dgu.use_raw_js')=='true'">
     <!-- Vendor scripts -->
-    <script type="text/javascript" src="/assets/js/jquery-ui-1.10.2.custom.js"></script>
-    <script type="text/javascript" src="/assets/js/underscore-1.1.6.js"></script>
-    <script type="text/javascript" src="/assets/js/backbone-0.5.1.js"></script>
-    <script type="text/javascript" src="/assets/js/modernizr-2.6.2.custom.js"></script>
-    <script type="text/javascript" src="/assets/js/spin.min.js"></script>
-    <script type="text/javascript" src="/assets/js/json2.js"></script>
-    <script type="text/javascript" src="/assets/js/jquery.tmpl.beta1.js"></script>
-    <script type="text/javascript" src="/assets/js/jquery.cookie.min.js"></script>
-    <script type="text/javascript" src="/assets/js/jquery.chosen-0.9.7.js"></script>
-    <script type="text/javascript" src="/assets/js/jquery.dotdotdot-1.5.9.js"></script>
-    <script type="text/javascript" src="/assets/js/jquery.placeholder.js"></script>
-    <script type="text/javascript" src="/assets/js/bootstrap-2.0.3.min.js"></script>
-    <script type="text/javascript" src="/assets/js/bootstrap-hashchange.js"></script>
+    <script type="text/javascript" src="/assets/js/vendor.js"></script>
     <!-- CKAN DGU scripts -->
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script> 
@@ -63,7 +51,7 @@
   </py:if>
   <py:if test="config.get('dgu.use_raw_js')!='true'">
     <!-- Vendor scripts -->
-    <script type="text/javascript" src="/assets/js/vendor.compiled.js?${h.get_shared_assets_timestamp()}"></script>
+    <script type="text/javascript" src="/assets/js/vendor.min.js?${h.get_shared_assets_timestamp()}"></script>
     <!-- CKAN DGU scripts -->
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-compiled.js')}?${h.ckan_asset_timestamp()}"></script>
   </py:if>
