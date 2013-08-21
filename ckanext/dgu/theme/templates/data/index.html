@@ -11,6 +11,16 @@
 
   <py:def function="optional_head">
     <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.tagcloud.js')}"></script>
+    <script type="text/javascript" charset="utf-8">
+      $(function() {
+        /* Tag cloud */
+        $.fn.tagcloud.defaults = {
+          size: {start: 12, end: 28, unit: "pt"},
+          color: {start: '#bbb', end: '#66aa44'}
+        };
+        $('#tagcloud a').tagcloud();
+      });
+  </script>
   </py:def>
 
   <div py:match="content">
@@ -32,14 +42,6 @@
             <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
-          <script type="text/javascript" charset="utf-8">
-    /* Tag cloud */
-    $.fn.tagcloud.defaults = {
-      size: {start: 12, end: 28, unit: "pt"},
-      color: {start: '#bbb', end: '#66aa44'}
-    };
-    $('#tagcloud a').tagcloud();
-        </script>
         </td>
       </tr>
       <tr class="gutter">
