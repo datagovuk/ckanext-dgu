@@ -11,7 +11,6 @@ import sqlalchemy
 import pylons
 import os
 import logging
-import ckan.authz
 from ckan.lib.base import (BaseController, abort)
 from ckanext.dgu.plugins_toolkit import (c, render, get_action)
 from ckanext.dgu.schema import THEMES

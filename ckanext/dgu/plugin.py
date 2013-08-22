@@ -330,7 +330,8 @@ class PublisherPlugin(SingletonPlugin):
                 except TypeError:
                     # Raised when there is no session registered, and this is
                     # the case when using the paster commands.
-                    log.debug('Did not add a flash message due to a missing session: %s' % msg)
+                    #log.debug('Did not add a flash message due to a missing session: %s' % msg)
+                    pass
 
 
     def before_map(self, map):

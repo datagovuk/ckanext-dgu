@@ -532,7 +532,6 @@ Alternative title: GDP and Labour Market coherence""",
 
     @classmethod
     def create_dgu_test_data(cls):
-        ckan.lib.activity.logger.disabled = 1
         cls.create_users(cls._users)
         cls.create_publishers(cls._publishers)
         cls.create_roles(cls._roles)
