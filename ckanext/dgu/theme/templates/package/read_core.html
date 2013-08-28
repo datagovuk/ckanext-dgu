@@ -77,23 +77,6 @@
 
   <div id="dataset"><!--! id=dataset for ckanext-spatial -->
 
-  <!--! Traffic light -->
-  <div id='publish-status' py:if="h.is_unpublished_item(c.pkg_dict)" py:with="will_be_published,when = h.will_be_published(c.pkg_dict)" py:attrs="{'class': 'alert alert-danger' if not will_be_published else 'alert alert-success' if will_be_published and when else 'alert'}">
-
-      <py:if test="will_be_published">
-        <center>
-        This dataset will be published <py:if test="when">on ${when}</py:if>
-        </center>
-
-      </py:if>
-      <py:if test="not will_be_published">
-        <center>
-        This dataset will not be published, see <a href="#release-notes">Release notes</a>
-        </center>
-      </py:if>
-
-  </div>
-
     <!-- Overview Section -->
     <div id="dataset-overview">
 
