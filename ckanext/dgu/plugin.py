@@ -399,9 +399,14 @@ class InventoryPlugin(SingletonPlugin):
         map.connect('/dataset/:id/feedback/add',
                     controller=fb_ctlr, action='add')
 
+
+        # As users have been sent out a direct link to /inventory/publisher-name/edit
+        # we will (at least for a short while) allow /inventory to redirect to
+        # /unpublished
+        map.redirect('/unpublished', '/data/search?unpublished=true')
+        map.redirect('/inventory/{url:.*}', '/unpublished/{url}')
+
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
-        # To be left (as people have been sent the URLs) but will
-        # eventually merge into /publisher
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
         map.connect('/unpublished/:id/edit',
@@ -416,7 +421,6 @@ class InventoryPlugin(SingletonPlugin):
                     controller=inv_ctlr, action='upload_complete' )
         map.connect('/unpublished/:id/edit/upload/:upload_id',
                     controller=inv_ctlr, action='upload_status' )
-
         return map
 
     def after_map(self, map):
