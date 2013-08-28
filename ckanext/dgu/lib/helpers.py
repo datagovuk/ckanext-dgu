@@ -1463,6 +1463,17 @@ def linked_username(userid):
 
     return t.literal("<a href='/user/{0}'>{1}</a>".format(userid, user.fullname or userid))
 
+def will_be_published(package):
+    from paste.deploy.converters import asbool
+    has_restriction = asbool(get_from_flat_dict(package['extras'], 'publish-restricted', False))
+    if not has_restriction:
+        return True, unpublished_release_date(package)
+    return False, None
+
+def unpublished_release_date(package):
+    return get_from_flat_dict(package['extras'], 'publish-date')
+
+
 def is_unpublished_item(package):
     from paste.deploy.converters import asbool
     return asbool(get_from_flat_dict(package['extras'], 'unpublished'))
@@ -1478,9 +1489,6 @@ def feedback_comment_count(pkg):
     from ckanext.dgu.model.feedback import Feedback
     return Feedback.comments_count(pkg)
 
-
-def unpublished_release_date(package):
-    return get_from_flat_dict(package['extras'], 'publish-date')
 
 def unpublished_release_notes(package):
     return get_from_flat_dict(package['extras'], 'release-notes')

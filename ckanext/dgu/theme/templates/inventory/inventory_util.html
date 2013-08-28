@@ -87,7 +87,7 @@
   <div class="notes">
     <div class="row-fluid ">
       <h5 class='pull-left'  py:with="ccount = h.feedback_comment_count(package); ucount = h.feedback_user_count(package)">
-        <span id='unpublished_comments_total'>${ccount}</span> comment${h.pluralize_text(ccount)} from <span id='unpublished_comments_usertotal'>${ucount}</span> user${h.pluralize_text(ucount)}
+        <span id='unpublished_comments_total'>${ccount}</span> comment${h.pluralise_text(ccount)} from <span id='unpublished_comments_usertotal'>${ucount}</span> user${h.pluralise_text(ucount)}
       </h5>
       <span class="pull-right">
         <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}" class="btn">View feedback</a>
