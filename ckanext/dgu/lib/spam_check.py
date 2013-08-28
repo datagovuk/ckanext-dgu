@@ -10,7 +10,7 @@ MOLLOM_UNSURE = 3
 
 log = logging.getLogger(__name__)
 
-def is_spam(content):
+def is_spam(content, author=None):
     """
     Checks whether the provided content is spam.  Returns a boolean
     denoted a successful call and a SPAM flag which is one of MOLLOM_HAM,
@@ -28,7 +28,12 @@ def is_spam(content):
             publicKey=public_key,
             privateKey=private_key)
 
-        cc = mollom_api.checkContent(postBody=content)
+        params = { 'postBody': content}
+        if author:
+            params['authorName'] = author.fullname or ''
+            params['authorMail'] = author.email
+
+        cc = mollom_api.checkContent(**params)
     except Exception, e:
         log.warning("Failed to perform a spam check with mollom")
         log.exception(e)

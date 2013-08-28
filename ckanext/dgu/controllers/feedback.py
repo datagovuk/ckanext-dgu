@@ -103,7 +103,7 @@ class FeedbackController(BaseController):
                     data["linked_comment"] or '']
         content = [ct for ct in comments if ct.strip() != u""]
         if ''.join(content).strip():
-            success, flag = is_spam('\n'.join(content))
+            success, flag = is_spam('\n'.join(content), c.userobj)
         else:
             log.warning("No comments to send for spam check")
             success,flag = True, MOLLOM_HAM
