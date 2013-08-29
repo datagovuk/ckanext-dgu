@@ -209,7 +209,6 @@
               ${h.package_publisher_dict(package).get('title', '')}
             </a>
        </div>
-       <div py:if="h.uklp_display_provider(package)" class="property">Provider:&nbsp; ${h.uklp_display_provider(package).strip('"')}</div>
        <div class="dataset-description">
          ${h.markdown_extract(package.notes)}
        </div>
@@ -227,8 +226,8 @@
         </a>
 
          <h3><span class="underlined">
-         <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span><br/>
-         <small py:with='cmtcount = h.feedback_comment_count(package); usrcnt=h.feedback_user_count(package)'>${cmtcount} comment${h.pluralise_text(cmtcount)} from ${usrcnt} user${h.pluralise_text(usrcnt)}</small></h3>
+         <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span>
+         </h3>
 
        </div>
 
@@ -250,47 +249,23 @@
        <div class="dataset-description">
          ${h.markdown_extract(package.notes)}
        </div>
-       <table width="100%" style="margin-top: 10px;" py:with="comment_dict=h.unpublished_comments_lookup(package)">
-          <tr>
-              <td align='center'>
-                <div style="padding: 8px; background: #eee;">
-                  Economic growth:
-                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['economic']}</a>
-                </div>
-              </td>
-              <td align='center'>
-                <div style="padding: 8px; background: #eee;">
-                  Social growth:
-                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['social']}</a>
-                </div>
-              </td>
-              <td align='center'>
-                <div style="padding: 8px; background: #eee;">
-                  Effective public services:
-                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['effective']}</a>
-                </div>
-              </td>
-          </tr>
-          <tr>
-              <td align='center' colspan="2">
-                <div style="padding: 8px; background: #eee;">
-                    Potential links to other datasets
-                    <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['linked']}</a>
-                 </div>
-              </td>
-              <td align='center'>
-                <div style="padding: 8px; background: #eee;">
-                  Other key data:
-                  <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><img src="/images/comment.png"/>  ${comment_dict['other']}</a>
-                </div>
-              </td>
-          </tr>
-       </table>
-
-       <div class="clearfix"></div>
+       <div class="property">
+         ${feedback_summary(package)}
+       </div>
      </div>
   </div>
 
+  <py:def function="feedback_summary(package)">
+    <div class="feedback-summary" py:with="comment_dict=h.unpublished_comments_lookup(package)">
+      <div class="pull-left feedback-summary-title">Feedback:</div>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Economic growth" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-gbp"></i>  ${comment_dict['economic']}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Social growth" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-group"></i>  ${comment_dict['social']}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Effective public services" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-road"></i>  ${comment_dict['effective']}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Potential links to other datasets" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-code-fork"></i>  ${comment_dict['linked']}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Other key data" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-quote-left"></i>  ${comment_dict['other']}</a>
+      <div class="clearfix"></div>
+    </div>
+  </py:def>
 
   <py:def function="facet_line(facet_item, facet_key, alternative_url=None)">
       <div class="facet-option">
