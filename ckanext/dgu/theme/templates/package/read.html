@@ -53,7 +53,7 @@
     <script type="text/javascript">
       window.DATASET_ID = '${c.pkg_dict.get('id')}';
     </script>
-    <py:if test="h.get_extent()">
+    <py:if test="h.get_extent() and not h.is_unpublished_item(c.pkg_dict)">
       <script src="http://osinspiremappingprod.ordnancesurvey.co.uk/libraries/openlayers-openlayers-56e25fc/OpenLayers.js" type="text/javascript"></script>
       <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-dataset-map.js?1')}"></script>
       <script type="text/javascript">
