@@ -110,11 +110,6 @@
         </div>
       </div>
 
-      <div py:if="h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('publish-date') and not c.pkg.extras.get('publish-restricted', False)">
-        <h4>Publication date:</h4>
-        <div class="notes clearfix"> ${c.pkg.extras.get('publish-date') or "Not specified"}</div>
-      </div>
-
     <py:if test="not h.is_unpublished_item(c.pkg_dict)">
       <div>
         <h3>Licence</h3>
