@@ -87,6 +87,21 @@ jQuery(function () {
       $('#'+id+'-items').toggle('fast');
     });
 
+    $('.read-more-parent .link-read-more, .read-more-parent .link-read-less').click(function(e) {
+      e.preventDefault();
+      var target = $(e.delegateTarget);
+      var expand = target.hasClass('link-read-more');
+      var parentElement = target.parents('.read-more-parent');
+      if (expand) {
+        parentElement.find('.expanded').show('fast');
+        parentElement.find('.collapsed').hide();
+      }
+      else {
+        parentElement.find('.collapsed').show('fast');
+        parentElement.find('.expanded').hide();
+      }
+    });
+
     $('select[name="dataset-results-sort"]').change(function(e){
       e.preventDefault();
       window.location = $(this).val() + '#search-sort-by';

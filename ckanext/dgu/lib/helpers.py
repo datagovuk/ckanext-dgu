@@ -1556,3 +1556,14 @@ def inventory_status(package_items):
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
+def span_read_more(text, word_limit, classes=""):
+    trimmed = truncate(text,length=word_limit,whole_word=True)
+    if trimmed==text:
+        return t.literal('<span class="%s">%s</span>' % (classes,text))
+    return t.literal('<span class="read-more-parent">\
+            <span style="display:none;" class="expanded %s">%s</span>\
+            <span class="collapsed %s">%s</span>\
+            <a href="#" class="collapsed link-read-more">Read more &raquo;</a>\
+            <a href="#" class="expanded link-read-less" style="display:none;">&laquo; Hide</a>\
+            </span>' % (classes,text,classes,trimmed))
+
