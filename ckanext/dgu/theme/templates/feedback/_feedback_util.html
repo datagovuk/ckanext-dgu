@@ -6,100 +6,60 @@
   py:strip=""
   >
 
-  <div py:def="feedback_item(item, package)" class="wrapper dataset dataset-summary boxed" id="${item.id}">
-     <div py:with="title=package.get('title') or package.get('name')">
-      <div class="dataset-header">
-        <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <img class="dataset-icon" src="/images/inventory-feedback.png" title="${h.name_for_uklp_type(package)}"/>
-        </a>
+  <py:def function="feedback_comment(text,title)">
+    <strong>${title}</strong>
+    <p py:if="text" class="comment">${text}</p>
+    <p py:if="not text" class="comment no-comment">(no comment)</p>
+  </py:def>
 
-        <span class="pull-right" py:if="item.is_publisher">
-          Publisher
-        </span>
-
-         <h3><span class="underlined"><a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span></h3>
-
-       </div>
-
-       <div>
-          <span>
-            <strong>Submitted by</strong>: ${h.linked_username(item.user_id)} on ${h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}
-          </span>
-
-          <span class="pull-right" py:if="item.organisation_name">
-            <strong>Organisation</strong>: ${item.organisation_name}
-          </span>
-       </div>
-       <div>
-          <span>
-            <strong>Response type</strong>:
-            <py:if test="item.responding_as=='individual'">Private individual</py:if>
-            <py:if test="item.responding_as=='organisation'">Organisation</py:if>
-          </span>
-        </div>
-
+  <div py:def="feedback_item(item, package)" class="feedback-item" id="${item.id}">
+      <!--p class="pull-right" py:if="item.is_publisher">
+        Publisher
+      </p-->
+      <hr/>
+      <div class="pull-right">
+        <a class="btn btn-mini" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='report_abuse', id=item.id)}">Flag as offensive</a>
+        <py:if test="h.is_sysadmin()">
+          <a class="btn btn-danger btn-mini"  href="javascript:0" onclick="return feedback_delete('${item.id}',false);">
+            Delete
+          </a>
+        </py:if>
+      </div>
+      <p>
+        <strong>Submitted by:</strong> ${h.linked_username(item.user_id)} on ${h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}
         <br/>
+        <strong>Responding as:</strong> 
+        <py:if test="item.responding_as=='individual'">A Private Individual</py:if>
+        <py:if test="item.responding_as=='organisation'">
+          An Organisation
+          <py:if test="item.organisation_name">
+            <span style="color: #666">("${item.organisation_name}")</span>
+          </py:if>
+          <py:if test="not item.organisation_name">
+            <em style="color: #666">(Unnamed)</em>
+          </py:if>
+        </py:if>
+      </p>
 
-        <div class="feedback_item">
-            <h3  style="border-bottom: solid 1px #999; margin-bottom: 20px;">Summary</h3>
+      <py:if test="item.economic">
+        <i class="feedback-view-icon icon-2x icon-gbp"></i> ${feedback_comment(item.economic_comment,'Economic Growth')}
+      </py:if>
 
-            <p py:if="item.economic">Economic Growth
-                <py:if test="item.economic_comment">: ${h.truncate(item.economic_comment, length=60, whole_word=False)}</py:if>
-            </p>
-            <p py:if="item.social">Social Growth
-                <py:if test="item.social_comment">: ${h.truncate(item.social_comment, length=60, whole_word=False)}</py:if>
-            </p>
-            <p py:if="item.effective">Effective Public Services
-                <py:if test="item.effective_comment">: ${h.truncate(item.effective_comment, length=60, whole_word=False)}</py:if>
-            </p>
-            <p py:if="item.other">Other Benefits
-                <py:if test="item.other_comment">: ${h.truncate(item.other_comment, length=60, whole_word=False)}</py:if>
-            </p>
-            <p py:if="item.linked">Potential links to other datasets
-                <py:if test="item.linked_comment">: ${h.truncate(item.linked_comment, length=60, whole_word=False)}</py:if>
-            </p>
-        </div>
-        <div class="feedback_full" style="display:none;">
-            <h3 style="border-bottom: solid 1px #999; margin-bottom: 20px;">Full response</h3>
+      <py:if test="item.social">
+        <i class="feedback-view-icon icon-2x icon-group"></i> ${feedback_comment(item.social_comment,'Social Growth')}
+      </py:if>
 
-            <h5 py:if="item.economic">Economic Growth</h5>
-            <div py:if="item.economic and item.economic_comment">
-              ${item.economic_comment}
-              <hr/>
-            </div>
+      <py:if test="item.effective">
+        <i class="feedback-view-icon icon-2x icon-road"></i> ${feedback_comment(item.effective_comment,'Effective Public Services')}
+      </py:if>
 
-            <h5 py:if="item.social">Social Growth</h5>
-            <div py:if="item.social and item.social_comment">
-              ${item.social_comment}
-              <hr/>
-            </div>
+      <py:if test="item.linked">
+        <i class="feedback-view-icon icon-2x icon-code-fork"></i> ${feedback_comment(item.linked_comment,'Potential links to other datasets')}
+      </py:if>
 
-            <h5 py:if="item.effective">Effective Public Services</h5>
-            <div py:if="item.effective and item.effective_comment">
-              ${item.effective_comment}
-              <hr/>
-            </div>
-
-            <h5 py:if="item.other">Other Benefits</h5>
-            <div py:if="item.other and item.other_comment">
-              ${item.other_comment}
-              <hr/>
-            </div>
-
-            <h4 py:if="item.linked">Potential links to other datasets</h4>
-            <div py:if="item.linked and item.linked_comment">
-              ${item.linked_comment}
-              <hr/>
-            </div>
-
-        </div>
-        <a class="pull-right btn btn-primary" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='report_abuse', id=item.id)}">Flag as offensive</a>
-        <a  href="javascript:0" onclick="toggle_full_response(this); return false">View full response</a>
-       <div class="clearfix"></div>
-
-       ${feedback_moderation_button(item, show_publish=False)}
-
-     </div>
+      <py:if test="item.other">
+        <i class="feedback-view-icon icon-2x icon-quote-left"></i> ${feedback_comment(item.other_comment,'Other Benefits')}
+      </py:if>
   </div>
 
 <!--! Moderation elements. Prettiness optional. -->

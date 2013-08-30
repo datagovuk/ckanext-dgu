@@ -50,19 +50,6 @@
     </div>
   </div>
 
-  <script type="text/javascript">
-    function toggle_full_response(obj){
-      $(obj).siblings("div.feedback_item").toggle(function(){
-        $(this).siblings("div.feedback_full").toggle('slide')
-        if ($(obj).text() == "View full response")
-          $(obj).text("View summary")
-        else
-          $(obj).text("View full response")
-      })
-
-    }
-  </script>
-
   <xi:include href="../layout_base.html" />
 </html>
 
