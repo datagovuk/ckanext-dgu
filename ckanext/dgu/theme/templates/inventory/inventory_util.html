@@ -81,20 +81,15 @@
   -->
   <hr/>
 
-  <h3>Feedback</h3>
-
-
-  <div class="notes">
-    <div class="row-fluid ">
-      <h5 class='pull-left'  py:with="ccount = h.feedback_comment_count(package); ucount = h.feedback_user_count(package)">
-        <span id='unpublished_comments_total'>${ccount}</span> comment${h.pluralise_text(ccount)} from <span id='unpublished_comments_usertotal'>${ucount}</span> user${h.pluralise_text(ucount)}
-      </h5>
-      <span class="pull-right">
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}" class="btn">View feedback</a>
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" py:if="c.user" class="btn btn-primary">Add feedback</a>
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" py:if="not c.user" class="btn">Login and add feedback</a>
-      </span>
-    </div>
+  <h3>Feedback
+    <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" class="btn btn-primary btn-mini add-feedback-button">
+      <py:if test="c.user">Add Feedback</py:if>
+      <py:if test="not c.user">Login to Add Feedback</py:if>
+    </a>
+  </h3>
+  <div class="dataset-feedback-container">
+    <a class="view-feedback-link" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}">View all feedback &raquo;</a>
+    ${feedback_summary(package,render_title=False,large=True)}
   </div>
 
 </py:def>
