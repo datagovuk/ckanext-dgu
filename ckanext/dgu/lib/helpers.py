@@ -1264,7 +1264,7 @@ def has_bounding_box(extras):
         pkg_extras.get('bbox-west-long') and pkg_extras.get('bbox-east-long')
 
 def facet_keys(facet_tuples):
-    keys = [ x[0] for x in facet_tuples if x[0] != 'unpublished']
+    keys = [ x[0] for x in facet_tuples ]
     keys = sorted( set(keys) )
     return keys
 
@@ -1376,8 +1376,8 @@ def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
 
 def render_facet_key(key,value=None):
-    if key == 'publish_restricted':
-        return "Unavailable"
+    if key=='unpublished':
+        return 'Show only'
     if key=='license_id-is-ogl':
         return 'Licence'
     if key=='UKLP':
@@ -1388,10 +1388,10 @@ def render_facet_key(key,value=None):
     return ckan.lib.helpers.facet_title(key)
 
 def render_facet_value(key,value):
-    if key == 'publish_restricted':
-        if value == 'true':
-            return ""
-        return "Excluded"
+    if key=='unpublished':
+        if value=='true':
+            return 'Unpublished datasets'
+        return 'Published datasets'
     if key=='license_id-is-ogl':
         if value=='true':
             return 'Open Government Licence'

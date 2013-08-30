@@ -16,7 +16,7 @@
       <div py:if="len(keys) > 1" style='margin-top: 12px;'>
         <h4 >ONS Release: ${k or "No name"} <span class="badge resources-badge">${len(h.get_resources_for_ons_release(k))}</span>
         </h4>
-    </div>
+      </div>
       <py:for each="res in h.get_resources_for_ons_release(k, res_count)">
       <div class="resource-row">
         <div class="text-overlay">
@@ -117,34 +117,6 @@
           </py:if>
 
           <div id="dataset-search-ext"></div>
-
-          <div class="pull-right">
-            <br/><br/><br/>
-
-            <form action="">
-              Show
-              <label class="radio">
-                <input type="radio" name="unpublished" value="" class="inline" py:attrs="{'checked': 'checked' if not 'unpublished' in request.params or request.params.get('unpublished',None) == '' else None}"/>
-                All
-              </label>
-
-              <label class="radio">
-                <input type="radio" name="unpublished" value="false" class="inline" py:attrs="{'checked': 'checked' if h.search_has_term('unpublished', 'false') and c.remove_field('unpublished', 'false') else None}"/>
-                Published
-              </label>
-
-              <label class="radio">
-                <input type="radio" name="unpublished" value="true" class="inline" py:attrs="{'checked': 'checked' if h.search_has_term('unpublished', 'true') and c.remove_field('unpublished','true') else None}"/>
-                Unpublished
-              </label>
-
-              <span style="display:none" py:if="request.params.get('unpublished', None)">
-                <!--! This is hacky, not sure how else to remove the field -->
-                ${c.remove_field('unpublished', request.params['unpublished'])}
-              </span>
-            </form>
-          </div>
-
         </form>
         <table class="facet-table">
           <py:def function="facet(label,kill_link)">
@@ -290,7 +262,7 @@
           <div class="facet-box-unboxed">
               <h4>${title}</h4>
               <div class="facet-options">
-                <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key and not k=='unpublished']">
+                <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
                   ${facet_unline(facet_key,preselected)}
                 </py:for>
                 <py:if test="more_button">
@@ -324,7 +296,7 @@
                     </div>
                     <div class="facet-option" py:if="not facet_items and not h.link_subpub()">${if_empty}</div>
                 </py:if>
-                <py:if test="facet_key not in ['publisher', 'unpublished', 'publish_restricted']">
+                <py:if test="facet_key not in ['publisher']">
                     <div class="facet-option" py:if="not facet_items">${if_empty}</div>
                 </py:if>
               </div>
@@ -333,7 +305,7 @@
   </py:def>
 
   <div py:def="facet_filters()" class="datasets">
-    <div class="boxed" py:if="request.params.get('unpublished', 'false') == 'true'">
+    <div class="boxed" py:if="False">
       ${facet_box(
           'publisher',
           'Publisher',
@@ -342,7 +314,12 @@
       )}
     </div>
 
-    <div class="boxed" py:if="request.params.get('unpublished', 'false') != 'true'">
+    <div class="boxed">
+      ${facet_box(
+          'unpublished',
+          'Show only...',
+          ''
+      )}
       ${facet_box(
           'license_id-is-ogl',
           'Licence',
