@@ -71,7 +71,7 @@
               <tbody>
                 <py:for each="pkg,grp,pub_date,release,action in h.inventory_status(c.task.packages)">
                   <tr>
-                    <td>${pkg.title}</td>
+                    <td><a href="/dataset/${pkg.name}">${pkg.title}</a></td>
                     <td title="${pkg.notes}">${h.truncate(pkg.notes, length=40, whole_word=True)}</td>
                     <td>${grp.title}</td>
                     <td>${h.render_datestamp(pub_date)}</td>

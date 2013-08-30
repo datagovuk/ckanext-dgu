@@ -9,6 +9,8 @@ import json
 import os
 import requests
 import urlparse
+import traceback
+
 import messytables
 
 from ckan.lib.celery_app import celery
@@ -175,7 +177,7 @@ def inventory_upload(context, data):
             'entity_type': u'inventory',
             'task_type': 'inventory.upload',
             'key': u'celery_task_id',
-            'value': unicode(update.request.id),
+            'value': unicode(inventory_upload.request.id),
             'error': '%s: %s' % (e.__class__.__name__,  unicode(e)),
             'stack': traceback.format_exc(),
             'last_updated': datetime.datetime.now().isoformat()

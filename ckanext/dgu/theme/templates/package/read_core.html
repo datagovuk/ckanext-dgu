@@ -103,10 +103,10 @@
         </div>
       </div>
 
-      <div py:if="h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('release-notes')">
+      <div py:if="h.is_unpublished_item(c.pkg_dict)">
         <h3 id="release-notes">Release notes</h3>
         <div class="notes clearfix" style="">
-          ${c.pkg.extras.get('release-notes')}
+          ${c.pkg.extras.get('release-notes', '').strip() or '(None supplied)'}
         </div>
       </div>
 
