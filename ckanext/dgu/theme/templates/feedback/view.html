@@ -11,6 +11,7 @@
   <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
     ${h.dataset_link(c.pkg)}
+    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
     <span class="subheading"><img src="/images/arrow-down-right.png"/> View Feedback</span>
   </py:def>
 

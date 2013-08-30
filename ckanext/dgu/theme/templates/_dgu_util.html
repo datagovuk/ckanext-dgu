@@ -198,7 +198,7 @@
         </a>
 
          <h3><span class="underlined">
-         <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span>
+             <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span> <span class="unpublished-text">(unpublished)</span>
          </h3>
 
        </div>
@@ -457,9 +457,6 @@
         </a>
         <a py:if="h.is_unpublished_item(c.pkg_dict)" class="btn btn-info" href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=pkg.name)}">
           Edit
-        </a>
-        <a py:if="h.is_unpublished_item(c.pkg_dict)" class="btn btn-success" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=pkg.name)}">
-          Convert to published dataset
         </a>
       </py:if>
       <py:if test="h.check_access('package_edit_permissions',{'id':pkg.id})">

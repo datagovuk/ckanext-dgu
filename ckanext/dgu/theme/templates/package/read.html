@@ -18,6 +18,7 @@
   <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
     ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
   </py:def>
 
   <div py:match="content" class="package">
