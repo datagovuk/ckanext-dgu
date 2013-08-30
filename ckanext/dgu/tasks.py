@@ -71,7 +71,12 @@ def _process_upload(context, data):
             if pkg:
                 results.append({'package': pkg['id'], 'action': msg})
         except Exception, exc:
-            errors.append(str(exc))
+            row_identity = str(pos)
+            try:
+                row_identity += ' (%s)' % row[0].value
+            except:
+                pass
+            errors.append('Row %s: %s' % (row_identity, str(exc)))
 
     if pos < 2 and len(errors) == 0:
         errors.append("There was not enough data in the upload file")
@@ -206,8 +211,14 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     The text of any exception raised will be shown to the user and the
     processing aborted.
     """
-    title = row[0].value.encode('utf-8')
-    description = row[1].value.encode('utf-8')
+    try:
+        title = row[0].value.encode('utf-8')
+    except Exception, e:
+        raise Exception('Error with encoding of Title: %s' % e)
+    try:
+        description = row[1].value.encode('utf-8')
+    except Exception, e:
+        raise Exception('Error with encoding of Description: %s' % e)
     publisher_name = row[2].value
     publish_date = row[3].value
     release_notes = row[4].value
@@ -221,27 +232,27 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
             result = client.action('group_search', query=publisher_name, exact=True)
             if result['count'] == 0:
                 group = None
+                raise Exception('Publisher does not exist in data.gov.uk: "%s"' % publisher_name)
             else:
                 group = result['results'][0]
         except Exception, e:
-            log.error(e)
-
+            log.exception('System error on group_search: %s', e)
+            raise Exception('System error checking publisher: %s' % e)
 
     # First validation check, make sure we have enough to either update or create an
-    # inventory item
-    errors = []
+    # unpublished item
+    missing_fields = []
     if not title.strip():
-        errors.append("Dataset title")
+        missing_fields.append("Dataset title")
 
     if not description.strip():
-        errors.append("Description of dataset")
+        missing_fields.append("Description of dataset")
 
     if not group:
-        errors.append("Owner")
+        missing_fields.append("Owner")
 
-    if errors:
-        raise Exception("The following fields were missing in row {0}: {1}".format(row_number, ", ".join(errors)))
-
+    if missing_fields:
+        raise Exception("The following fields were missing: {1}".format(", ".join(missing_fields)))
 
     # Check if we can find the dataset by title (for inventory items)
     # If this happens it's kinda hard to work out which we want.  The group might be different
@@ -262,8 +273,12 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
         if not possible_pkg:
             continue
 
-        if not possible_pkg['title'].lower().encode('utf-8') == title.lower():
-            log.info("{0} does not match title {1}".format(possible_pkg['title'], title) )
+        try:
+            encoded_title = possible_pkg['title'].lower().encode('utf-8')
+        except Exception, e:
+            raise Exception('Error with encoding of Title for package name %s: %s' % (pname, e))
+        if not encoded_title == title.lower():
+            log.info("{0} does not match title {1}".format(encoded_title, title) )
             continue
 
         if not possible_pkg['extras'].get('inventory', False):
@@ -274,7 +289,6 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
         if not group['name'] in possible_pkg['groups']:
             log.info("Group name {0} does not appear in {1}".format(group['name'], possible_pkg['groups']))
             continue
-
 
         log.info("Adding {0} as possible package".format(possible_pkg['name']))
         possibles.append(possible_pkg)
@@ -297,7 +311,6 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
         client.package_entity_put(existing_pkg)
 
         return (existing_pkg, "Updated",)
-
 
     log.info("Creating new dataset: {0}".format(title))
     # Looks like a new inventory item, so we'll create a new one.
