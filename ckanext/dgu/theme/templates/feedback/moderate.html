@@ -41,7 +41,7 @@
         </div>
 
         <py:for each="pos, item in enumerate(c.items)">
-          ${feedback_summary_moderation(item, h.get_package_from_id(item.package_id))}
+          ${feedback_item_moderation(item, h.get_package_from_id(item.package_id))}
         </py:for>
 
     </div>

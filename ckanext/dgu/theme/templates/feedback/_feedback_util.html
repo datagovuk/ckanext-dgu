@@ -6,7 +6,7 @@
   py:strip=""
   >
 
-  <div py:def="feedback_summary(item, package)" class="wrapper dataset dataset-summary boxed" id="${item.id}">
+  <div py:def="feedback_item(item, package)" class="wrapper dataset dataset-summary boxed" id="${item.id}">
      <div py:with="title=package.get('title') or package.get('name')">
       <div class="dataset-header">
         <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
@@ -40,7 +40,7 @@
 
         <br/>
 
-        <div class="feedback_summary">
+        <div class="feedback_item">
             <h3  style="border-bottom: solid 1px #999; margin-bottom: 20px;">Summary</h3>
 
             <p py:if="item.economic">Economic Growth
@@ -103,7 +103,7 @@
   </div>
 
 <!--! Moderation elements. Prettiness optional. -->
-<div py:def="feedback_summary_moderation
+<div py:def="feedback_item_moderation
 (item, package)" class="wrapper dataset dataset-summary boxed" id="${item.id}">
      <div py:with="title=package.title or package.name">
             <div class="alert alert-error" py:if="item.visible">
