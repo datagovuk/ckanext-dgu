@@ -28,14 +28,7 @@ class DguApiController(ApiController):
         """
         return self._finish_ok([])
 
-    def latest_unpublished(self):
-        """
-        Designed for use with the DGU homepage, it simply returns information
-        about the latest unpublished items that have been added
-        """
-        return self.latest_datasets(unpublished_only=True)
-
-    def latest_datasets(self, unpublished_only=False):
+    def latest_datasets(self, published_only=True):
         '''Designed for the dgu home page, shows lists the latest datasets
         that got changed (exluding extra, group and tag changes) with lots
         of details about each dataset.
@@ -49,8 +42,8 @@ class DguApiController(ApiController):
 
         from ckan.lib.search import SearchError
         fq = 'capacity:"public"'
-        if unpublished_only:
-             fq = fq + ' unpublished:true'
+        if published_only:
+             fq = fq + ' unpublished:false'
 
         try:
             # package search
@@ -87,9 +80,6 @@ class DguApiController(ApiController):
                 ('publisher_link', pub_link),
                 ('metadata_modified', pkg.metadata_modified.isoformat()),
                 ))
-            if unpublished_only:
-                pkg_dict['publish_date'] = pkg.extras.get('publish-date', '')
-                pkg_dict['release_notes'] = pkg.extras.get('release-notes', '')
             pkg_dicts.append(pkg_dict)
         return self._finish_ok(pkg_dicts)
 
@@ -228,7 +218,7 @@ class DguApiController(ApiController):
             # package search
             context = {'model': model, 'session': model.Session,
                        'user': 'visitor'}
-            fq = 'capacity:"public"'
+            fq = 'capacity:"public" unpublished:false'
             data_dict = {
                 'q':'',
                 'fq':fq,

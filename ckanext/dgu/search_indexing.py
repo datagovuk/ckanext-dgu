@@ -55,6 +55,8 @@ class SearchIndexing(object):
             is_ogl = cls._is_ogl(pkg_dict)
             pkg_dict['license_id-is-ogl'] = is_ogl
             pkg_dict['extras_license_id-is-ogl'] = is_ogl
+        if pkg_dict.get('unpublished', False):
+            pkg_dict['license_id-is-ogl'] = 'unpublished'
 
     @classmethod
     def _is_ogl(cls, pkg_dict):

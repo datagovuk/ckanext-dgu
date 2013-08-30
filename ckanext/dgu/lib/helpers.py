@@ -1395,6 +1395,8 @@ def render_facet_value(key,value):
     if key=='license_id-is-ogl':
         if value=='true':
             return 'Open Government Licence'
+        elif value=='unpublished':
+            return 'Unpublished dataset'
         return 'Non-Open Government Licence'
     if key=='openness_score':
         try:
