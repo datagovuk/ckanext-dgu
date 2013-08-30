@@ -153,8 +153,6 @@ ${h.top_level_init()}
       <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') and request.params.get('unpublished','false')=='true' else ''}" href="/data/search?unpublished=true">Unpublished data</a></li>
       <py:if test="config.get('dgu.openspending_reports_enabled')">
         <span class="divider">&nbsp;|&nbsp;</span>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>

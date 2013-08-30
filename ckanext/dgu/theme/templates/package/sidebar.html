@@ -13,29 +13,16 @@
 
 <div class="boxed">
   <!--! Traffic light -->
-  <div class="widget-container" py:if="h.is_unpublished_item(c.pkg_dict)" py:with="will_be_published,when = h.will_be_published(c.pkg_dict)" >
-    <h4>Publication Status</h4>
-    <ul class="publication-status">
-      <li class="${if_(will_be_published and when,'active')}">
-      <i style="color: #46b847;" class="icon-ok-sign"></i>&nbsp; Dataset will be published <py:if test="when">${when}</py:if><py:if test="not when">on <em>(date)</em></py:if>.
-      </li>
-      <li class="${if_(will_be_published and not when,'active')}">
-      <i style="color: #d0b823;" class="icon-question-sign"></i>&nbsp; Dataset will be published.
-      </li>
-      <li class="${if_(not will_be_published,'active')}">
-      <i style="color: #b94a48;" class="icon-remove-sign"></i>&nbsp; Dataset will not be published.
-      </li>
-    </ul>
-    <py:if test="h.check_access('package_update',{'id':c.pkg.id})">
+  <py:if test="h.check_access('package_update',{'id':c.pkg.id})">
+    <div class="widget-container" py:if="h.is_unpublished_item(c.pkg_dict)" py:with="will_be_published,when = h.will_be_published(c.pkg_dict)" >
       <div style="margin-top: 10px;">
         <strong>Admin:</strong>
         <a py:if="h.is_unpublished_item(c.pkg_dict)" class="btn btn-info btn-mini" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=c.pkg.name)}">
           Convert to published dataset
         </a>
       </div>
-    </py:if>
-
-  </div>
+    </div>
+  </py:if>
   <div class="widget-container">
 
     <h4>Publisher</h4>
