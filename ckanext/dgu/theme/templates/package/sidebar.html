@@ -17,7 +17,7 @@
     <h4>Publication Status</h4>
     <ul class="publication-status">
       <li class="${if_(will_be_published and when,'active')}">
-      <i style="color: #46b847;" class="icon-ok-sign"></i>&nbsp; Dataset will be published <py:if test="when">${when}</py:if><py:if test="not when"><em>(date)</em></py:if>
+      <i style="color: #46b847;" class="icon-ok-sign"></i>&nbsp; Dataset will be published <py:if test="when">${when}</py:if><py:if test="not when">on <em>(date)</em></py:if>.
       </li>
       <li class="${if_(will_be_published and not when,'active')}">
       <i style="color: #d0b823;" class="icon-question-sign"></i>&nbsp; Dataset will be published.
