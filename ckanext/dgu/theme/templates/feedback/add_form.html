@@ -28,11 +28,6 @@
   </li>
 </py:def>
 
-<style>
-/* Tom loves these hacks so I put them everywhere!!*/
-legend { margin-bottom: 0px;}
-</style>
-
 
 <div class="notes">
 <p py:if="c.pkg.extras.get('unpublished', False)">Please complete this form to submit your views on this dataset and its potential impact if published. Your input will be reviewed as part of the process of prioritising datasets to be part of the <a href="/blog/the-national-information-infrastructure-where-are-we">National Information Infrastructure</a></p>
@@ -44,12 +39,14 @@ legend { margin-bottom: 0px;}
 There are errors in the form, please correct them before re-submitting.
 </div>
 
-<legend>1. State the benefits of releasing this dataset as open data</legend>
+<hr/>
+<h3>1. State the benefits of releasing this dataset as open data</h3>
 <div class="control-group" id="economic-group">
     <label class="checkbox">
       <input type="checkbox" value="yes" name="economic" onclick="$('#economicdiv').toggle('slideDown');"/>
       <strong>Economic growth</strong>
     </label>
+    <p class="add-feedback-icon"><i class="icon-gbp"></i></p>
     <p>i.e. releasing this dataset as open data means you or your organisation are able to provide a commercial product or service or has other positive economic impacts such as better functioning of markets.</p>
 
     <div id="economicdiv" class="comment_block">
@@ -63,6 +60,7 @@ There are errors in the form, please correct them before re-submitting.
       <input type="checkbox" name="social" value="yes" onclick="$('#socialdiv').toggle('slideDown');"/>
       <strong>Social Growth</strong>
     </label>
+    <p class="add-feedback-icon"><i class="icon-group"></i></p>
     <p>i.e. releasing this dataset as open data means you or your organisation are able to more easily undertake social action, deliver the services of a community group or charity or has a positive environmental impact.</p>
 
     <div id="socialdiv"  class="comment_block">
@@ -76,6 +74,7 @@ There are errors in the form, please correct them before re-submitting.
       <input type="checkbox" name="effective" value="yes" onclick="$('#effectivediv').toggle('slideDown');"/>
       <strong>Effective Public Services</strong>
     </label>
+    <p class="add-feedback-icon"><i class="icon-road"></i></p>
     <p>i.e. releasing this dataset as open data means that a public service is able to run more effectively by giving greater transparency of its operation to citizens, allowing greater choice or supporting new models of provision of services.</p>
 
     <div id="effectivediv"  class="comment_block">
@@ -89,7 +88,8 @@ There are errors in the form, please correct them before re-submitting.
       <input type="checkbox" name="other" value="yes" onclick="$('#otherdiv').toggle('slideDown');"/>
       <strong>Other Benefits</strong>
     </label>
-    <p></p>
+    <p class="add-feedback-icon"><i class="icon-quote-left"></i></p>
+    <p>Add your own comments...</p>
 
     <div id="otherdiv"  class="comment_block" >
         <span class="help-block">Please give details for selection below</span>
@@ -98,8 +98,10 @@ There are errors in the form, please correct them before re-submitting.
 </div>
 
 
-<legend>2. Potential links to other datasets</legend>
+<hr/>
+<h3>2. Potential links to other datasets</h3>
 <div class="control-group"  id="linked-group">
+    <p class="add-feedback-icon"><i class="icon-code-fork"></i></p>
     <p>Does this dataset contain data which could be used to link it to other datasets?</p>
 
     <label class="radio">
@@ -121,7 +123,8 @@ There are errors in the form, please correct them before re-submitting.
     </div>
 </div>
 
-<legend>3. Information about you</legend>
+<hr/>
+<h3>3. Information about you</h3>
 <div class="control-group">
     <p>Are you responding:</p>
     <label class="radio">
@@ -172,7 +175,8 @@ There are errors in the form, please correct them before re-submitting.
 </div>
 
 
-<legend>4. Future contact</legend>
+<hr/>
+<h3>4. Future contact</h3>
 <div class="control-group">
     <p>We will use the email contact in your data.gov.uk profile.</p>
     <label class="radio">

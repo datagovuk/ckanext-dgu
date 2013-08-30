@@ -5,8 +5,6 @@
 
   <py:def function="page_title">${c.pkg.title or c.pkg.name} - Add feedback - Datasets</py:def>
 
-  <py:def function="body_class">no-sidebar</py:def>
-
   <py:def function="optional_head">
     <script type="text/javascript">
       var form_errors = ${c.errors_json};
@@ -14,36 +12,33 @@
   </py:def>
 
   <py:def function="page_heading">
-    <span py:with="group = sorted(c.pkg.get_groups(), key=lambda g: g.display_name)[0]">
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a> / ${h.dataset_link(c.pkg)}
-    </span>
+    ${dataset_admin_buttons(c.pkg)}
+    ${h.dataset_link(c.pkg)}
     <span class="subheading"><img src="/images/arrow-down-right.png"/> Add Feedback</span>
   </py:def>
+
+  <xi:include href="../package/sidebar.html"/>
 
   <div py:match="content" class="dataset-edit-form">
     <div class="boxed">
 
       <div py:if="str(c.pkg_notes_formatted).strip()">
-        <table width="100%">
-        <tr>
-            <td  valign="top">
-                <h3>Dataset description</h3>
-                <!-- blank style tag avoids a bug in jquery.dotdotdot -->
-                <div class="notes" style="">
-                  ${h.truncate(c.pkg.notes, length=120, whole_word=True)}
-                </div>
-            </td>
-            <td py:if="h.unpublished_release_notes(c.pkg_dict)" valign="top">
-                <h3 >Release notes</h3>
-                <div class="notes" style="" py:if="c.release_notes_formatted">
-                  ${h.truncate(h.unpublished_release_notes(c.pkg_dict), length=120, whole_word=True)}
-                </div>
-            </td>
-        </tr>
-        </table>
-
+        <h3>Description</h3>
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="">
+          ${h.truncate(c.pkg.notes, length=120, whole_word=True)}
+        </div>
       </div>
-
+      <div py:if="h.unpublished_release_notes(c.pkg_dict)">
+        <h3>Release notes</h3>
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="" py:if="c.release_notes_formatted">
+          ${h.truncate(h.unpublished_release_notes(c.pkg_dict), length=120, whole_word=True)}
+        </div>
+      </div>
+    </div>
+    <div class="boxed">
+      <h2>Add Feedback</h2>
       ${c.form}
     </div>
   </div>
