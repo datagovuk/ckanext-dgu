@@ -12,7 +12,19 @@
   ${basket()}
 
 <div class="boxed">
+  <!--! Traffic light -->
+  <py:if test="h.check_access('package_update',{'id':c.pkg.id})">
+    <div class="widget-container" py:if="h.is_unpublished_item(c.pkg_dict)" py:with="will_be_published,when = h.will_be_published(c.pkg_dict)" >
+      <div style="margin-top: 10px;">
+        <strong>Admin:</strong>
+        <a py:if="h.is_unpublished_item(c.pkg_dict)" class="btn btn-info btn-mini" href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=c.pkg.name)}">
+          Convert to published dataset
+        </a>
+      </div>
+    </div>
+  </py:if>
   <div class="widget-container">
+
     <h4>Publisher</h4>
     <p py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
       <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
@@ -23,17 +35,20 @@
     <p py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('responsible-party')">
       Responsible Party: ${dict(c.pkg_extras).get('responsible-party')}
     </p>
-    Enquiries:
-    <ul>
-        ${h.get_contact_name(c.pkg, dict(c.pkg_extras))}
-        ${contact_details(*h.get_contact_details(c.pkg, dict(c.pkg_extras)))}
-    </ul>
-    <py:if test="h.have_foi_contact_details(c.pkg, dict(c.pkg_extras))">
-      FOI Contact:
+
+    <py:if test="not h.is_unpublished_item(c.pkg_dict)">
+      Enquiries:
       <ul>
-          ${h.get_foi_contact_name(c.pkg, dict(c.pkg_extras))}
-          ${contact_details(*h.get_foi_contact_details(c.pkg, dict(c.pkg_extras)))}
+          ${h.get_contact_name(c.pkg, dict(c.pkg_extras))}
+          ${contact_details(*h.get_contact_details(c.pkg, dict(c.pkg_extras)))}
       </ul>
+      <py:if test="h.have_foi_contact_details(c.pkg, dict(c.pkg_extras))">
+        FOI Contact:
+        <ul>
+            ${h.get_foi_contact_name(c.pkg, dict(c.pkg_extras))}
+            ${contact_details(*h.get_foi_contact_details(c.pkg, dict(c.pkg_extras)))}
+        </ul>
+      </py:if>
     </py:if>
   </div>
 
@@ -70,7 +85,7 @@
       <li><strong>Modified on data.gov.uk: </strong>${metadata['date-updated-computed']}</li>
       <li py:if="c.is_an_official"><strong>State: </strong>${c.pkg_dict['state']}</li>
       <li><a href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">History of changes</a></li>
-      <li><a href="/dataset/${c.pkg_dict.get('name')}#developer-tools">JSON, API and URI for developers</a></li>
+      <li py:if="not h.is_unpublished_item(c.pkg_dict)"><a href="/dataset/${c.pkg_dict.get('name')}#developer-tools">JSON, API and URI for developers</a></li>
     </ul>
   </div>
 
@@ -78,7 +93,6 @@
     <h4>Do more with this data</h4>
     <ul>
       <li><a href="/node/add/apps?dataset=${c.pkg_dict.get('name')}">Share your app</a><br/></li>
-      <li><a href="/node/add/ideas?dataset=${c.pkg_dict.get('name')}">Share an idea</a><br/></li>
       <li><a href="/node/add/data-request?dataset=${c.pkg_dict.get('name')}">Request new data</a></li>
     </ul>
   </div>

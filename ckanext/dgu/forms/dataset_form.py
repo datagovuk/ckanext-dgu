@@ -236,8 +236,8 @@ class DatasetForm(SingletonPlugin):
             'geographic_coverage': [ignore_missing, convert_geographic_to_db, convert_to_extras],
             'temporal_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
             'temporal_granularity-other': [ignore_missing],
-            'temporal_coverage-from': [date_to_db, convert_to_extras],
-            'temporal_coverage-to': [date_to_db, convert_to_extras],
+            'temporal_coverage-from': [ignore_missing, date_to_db, convert_to_extras],
+            'temporal_coverage-to': [ignore_missing, date_to_db, convert_to_extras],
             'url': [ignore_missing, unicode],
             'taxonomy_url': [ignore_missing, unicode, convert_to_extras],
 
@@ -268,10 +268,14 @@ class DatasetForm(SingletonPlugin):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'inventory': [ignore_missing, bool, convert_to_extras],
+            'unpublished': [ignore_missing, bool, convert_to_extras],
+            'core-dataset': [ignore_missing, bool, convert_to_extras],
+            'release-notes': [ignore_missing, unicode, convert_to_extras],
+            'publish-date': [ignore_missing, unicode, convert_to_extras],
+            'publish-restricted': [ignore_missing, bool, convert_to_extras],
 
-            'theme-primary': [ignore_missing, unicode, val.tag_string_convert, convert_to_extras],
-            'theme-secondary': [ignore_missing, val.tag_string_convert, convert_to_extras],
+            'theme-primary': [ignore_missing, unicode, convert_to_extras],
+            'theme-secondary': [ignore_missing, unicode, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
             '__extras': [ignore],
@@ -318,13 +322,11 @@ class DatasetForm(SingletonPlugin):
             'foi-phone': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
             'foi-web': [convert_from_extras, populate_from_publisher_if_missing, ignore_missing],
 
-            'inventory': [convert_from_extras, ignore_missing],
-            'economic-growth-score': [convert_from_extras, ignore_missing],
-            'social-growth-score': [convert_from_extras, ignore_missing],
-            'effective-public-services-score': [convert_from_extras, ignore_missing],
-            'connective-reference-data-score': [convert_from_extras, ignore_missing],
-            'other-public-services-score': [convert_from_extras, ignore_missing],
-
+            'unpublished': [convert_from_extras, ignore_missing],
+            'core-dataset': [convert_from_extras, ignore_missing],
+            'release-notes': [convert_from_extras, ignore_missing],
+            'publish-date': [convert_from_extras, ignore_missing],
+            'publish-restricted': [convert_from_extras, ignore_missing],
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, ignore_missing],

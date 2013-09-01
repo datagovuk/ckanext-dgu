@@ -7,21 +7,38 @@ from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
 from ckanext.dgu.lib import publisher as publib
 
 
-def dgu_package_show(context, data_dict):
-    """
-    Pre-auth check for showing a package to make sure it isn't an
-    inventory item before we show it.  If it is inventory then we
-    will abort with a 404.
-    """
-    from ckan.logic.auth.publisher.get import package_show
-    from pylons.controllers.util import abort
+def dgu_feedback_create(context, data_dict):
+    model = context['model']
+    user = context.get('user','')
 
-    if context.get('for_view', False):
-        pkg = get_package_object(context, data_dict)
-        if pkg and pkg.extras.get('inventory', False):
-            abort(404)
+    if not user:
+        return {'success': False, 'msg': _('Only logged in users can post feedback')}
 
-    return package_show(context, data_dict)
+    return { 'success': True }
+
+def dgu_feedback_update(context, data_dict):
+    """
+    Checks whether the user has permission to update the feedback.
+    """
+    model = context['model']
+    user = context.get('user','')
+
+    if not user:
+        return {'success': False, 'msg': _('Only logged in admins can update feedback')}
+
+    # Sys admins should be allowed to update groups
+    if Authorizer().is_sysadmin(unicode(user)):
+        return { 'success': True }
+
+    return { 'success': False, 'msg': _('Only sysadmins can update feedback') }
+
+
+def dgu_feedback_delete(context, data_dict):
+    """
+    Determines whether the current user has the ability to flip the active flag
+    on the feedback item.  For now, this is the same as update.
+    """
+    return dgu_feedback_update(context, data_dict)
 
 
 def dgu_group_update(context, data_dict):

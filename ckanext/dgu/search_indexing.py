@@ -21,17 +21,33 @@ class SearchIndexing(object):
         from pylons import config
 
         score = 0
+
+        if pkg_dict.get('unpublished', False):
+            from ckanext.dgu.lib.helpers import feedback_comment_count
+            score += feedback_comment_count(pkg_dict)
+            log.debug('Updated score for unpublished item {0} to {1}'.format(pkg_dict['name'], score))
+
         if 'ga-report' in config.get('ckan.plugins'):
             from ckanext.ga_report.ga_model import get_score_for_dataset
-            score = get_score_for_dataset(pkg_dict['name'])
+            score += get_score_for_dataset(pkg_dict['name'])
 
         pkg_dict['popularity'] = score
+        log.info("Popularity for {0} is {1}".format(pkg_dict['name'], pkg_dict['popularity']))
 
     @classmethod
     def add_inventory(cls, pkg_dict):
-        ''' Sets inventory to false if not present '''
-        pkg_dict['inventory'] = pkg_dict.get('inventory', False)
-        log.debug('Inventory? %s: %s', pkg_dict['inventory'], pkg_dict['name'])
+        ''' Sets unpublished to false if not present and also states whether the item is marked
+            as never being published. '''
+        pkg_dict['unpublished'] = pkg_dict.get('unpublished', False)
+        log.debug('Unpublished? %s: %s', pkg_dict['unpublished'], pkg_dict['name'])
+
+        pkg_dict['core_dataset'] = pkg_dict.get('core-dataset', False)
+        log.debug('Core-dataset? %s: %s', pkg_dict['core_dataset'], pkg_dict['name'])
+
+        # We also need to mark whether it is restricted (as in it will never be
+        # released).
+        pkg_dict['publish_restricted'] = pkg_dict.get('publish-restricted', False)
+        log.debug('Will not be published? %s: %s', pkg_dict['publish_restricted'], pkg_dict['name'])
 
 
     @classmethod
@@ -41,6 +57,8 @@ class SearchIndexing(object):
             is_ogl = cls._is_ogl(pkg_dict)
             pkg_dict['license_id-is-ogl'] = is_ogl
             pkg_dict['extras_license_id-is-ogl'] = is_ogl
+        if pkg_dict.get('unpublished', False):
+            pkg_dict['license_id-is-ogl'] = 'unpublished'
 
     @classmethod
     def _is_ogl(cls, pkg_dict):

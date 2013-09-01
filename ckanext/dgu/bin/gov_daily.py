@@ -183,7 +183,7 @@ def command(config_file):
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
         for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
                                   ('json', dumper.SimpleDumper().dump_json),
-                                  ('inventory.csv', inventory_dumper),
+                                  ('unpublished.csv', inventory_dumper),
                                  ):
             dump_filename = '%s.%s' % (dump_file_base, file_type)
             dump_filepath = os.path.join(dump_dir, dump_filename + '.zip')

@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 import os
 import sys
 import csv
@@ -15,9 +13,9 @@ from ckanext.dgu.bin.running_stats import StatsCount
 
 log = logging.getLogger("ckanext")
 
-ACCEPTED_FORMATS = ['application/vnd.ms-excel', 
-    'text/csv', 
-    'application/rdf+xml', 
+ACCEPTED_FORMATS = ['application/vnd.ms-excel',
+    'text/csv',
+    'application/rdf+xml',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
 
 
@@ -25,9 +23,9 @@ class GovUkResourceChecker(CkanCommand):
     """
     Iterates through gov.uk resources to find duplicates and attached data.
 
-    A lot of the gov.uk resources point to a HTML file, which itself contains the 
+    A lot of the gov.uk resources point to a HTML file, which itself contains the
     link to the data.  In a similar manner to ons_scraper we want to make those HTML
-    resources 'documentation' resources and if possible point directly to the data 
+    resources 'documentation' resources and if possible point directly to the data
     file itself.
     """
     summary = __doc__.strip().split('\n')[0]
@@ -39,11 +37,11 @@ class GovUkResourceChecker(CkanCommand):
         super(GovUkResourceChecker, self).__init__(name)
         self.parser.add_option("-p", "--pretend",
                   dest="pretend", action="store_true",
-                  help="Pretends to update the database, but doesn't really.")        
+                  help="Pretends to update the database, but doesn't really.")
         self.parser.add_option("-s", "--single",
-                  dest="single", 
+                  dest="single",
                   default="",
-                  help="Specifies a single dataset to work with")        
+                  help="Specifies a single dataset to work with")
 
         self.local_resource_map = collections.defaultdict(list)
         self.remap_stats = StatsCount()
@@ -74,8 +72,8 @@ class GovUkResourceChecker(CkanCommand):
 
     def process(self, dataset, resources):
         # We want distinct URLs in the resources, and don't really want
-        # duplicates.  We should ignore (and eventually delete) dupes 
-        # UNLESS they have a hub-id in which case we should definitely 
+        # duplicates.  We should ignore (and eventually delete) dupes
+        # UNLESS they have a hub-id in which case we should definitely
         # NOT delete them.
         import ckan.model as model
 
@@ -97,7 +95,7 @@ class GovUkResourceChecker(CkanCommand):
         for resource in resources:
             if resource.resource_type == "documentation":
                 log.info(" - Ignoring documentation resource")
-                self.remap_stats.increment('Ignored documentation resource')    
+                self.remap_stats.increment('Ignored documentation resource')
                 continue
 
             log.debug("- Fetching attachments for {0}".format(resource.id))
@@ -110,7 +108,7 @@ class GovUkResourceChecker(CkanCommand):
             for att in data.get('attachments',[]):
                 content_type = att.get('content_type')
                 if content_type in ACCEPTED_FORMATS:
-                    self.remap_stats.increment('Attachments found')    
+                    self.remap_stats.increment('Attachments found')
                     log.info(" - Found {0}".format(att.get("url")))
                     attachments.append(att)
                     break
@@ -125,21 +123,21 @@ class GovUkResourceChecker(CkanCommand):
                 u = attachment.get('url', '').lower()
                 if u.endswith('.xls') or u.endswith('xlsx'):
                     fmt = "XLS"
-                    self.remap_stats.increment('XLS')    
+                    self.remap_stats.increment('XLS')
                 elif attachment.get('url', '').lower().endswith('.rdf'):
                     fmt = "RDF"
-                    self.remap_stats.increment('RDF')    
+                    self.remap_stats.increment('RDF')
                 else:
-                    self.remap_stats.increment('CSV')                        
+                    self.remap_stats.increment('CSV')
 
                 # Add the new resource, and then mark the old resource as documentation
                 log.info(" - Adding a new resource to {0}".format(dataset.name))
-                self.remap_stats.increment('Attachments added')                    
+                self.remap_stats.increment('Attachments added')
                 self.record_transaction(dataset, resource, "Created new from resource info")
                 if not self.options.pretend:
                     # This should be the same type as the original to make sure we correctly
                     # handle time-series resources.
-                    dataset.add_resource(url="http://www.gov.uk" + attachment.get('url'), 
+                    dataset.add_resource(url="http://www.gov.uk" + attachment.get('url'),
                              format=fmt,
                              resource_type=resource.resource_type,
                              description=attachment.get('title',''))
@@ -149,9 +147,9 @@ class GovUkResourceChecker(CkanCommand):
                 resource.resource_type = "documentation"
                 resource.format = "HTML"
                 log.info(" - Changing old resource to documentation")
-                self.remap_stats.increment('Resources moved to documentation')                                    
-                self.record_transaction(dataset, resource, "Moved to documentation")                
-                if not self.options.pretend:            
+                self.remap_stats.increment('Resources moved to documentation')
+                self.record_transaction(dataset, resource, "Moved to documentation")
+                if not self.options.pretend:
                     model.Session.add(resource)
                     model.Session.commit()
 
@@ -162,14 +160,14 @@ class GovUkResourceChecker(CkanCommand):
             if 'hub-id' in resource.extras:
                 # Don't delete ONS imported dataset
                 log.info("Resource {} is an ONS resource, not deleting".format(resource.id))
-                self.remap_stats.increment('ONS resources *not* deleted')                              
+                self.remap_stats.increment('ONS resources *not* deleted')
                 continue
 
-            log.info(" - Deleting duplicate {0} -> {1}".format(resource.url, resource.id))       
+            log.info(" - Deleting duplicate {0} -> {1}".format(resource.url, resource.id))
             resource.state = 'deleted'
-            self.remap_stats.increment('Deleted resource')                                
-            self.record_transaction(dataset, resource, "Deleted dupe")            
-            if not self.options.pretend:   
+            self.remap_stats.increment('Deleted resource')
+            self.record_transaction(dataset, resource, "Deleted dupe")
+            if not self.options.pretend:
                 model.Session.add(resource)
                 model.Session.commit()
                 log.info(" -- deleted {}".format(resource.id))
@@ -179,7 +177,7 @@ class GovUkResourceChecker(CkanCommand):
         json_url = "".join([resource.url, ".json"])
         r = requests.head(json_url)
         if not r.status_code == 200:
-            log.info("No JSON file at {0}".format(json_url))            
+            log.info("No JSON file at {0}".format(json_url))
             return None
 
         r = requests.get(json_url)

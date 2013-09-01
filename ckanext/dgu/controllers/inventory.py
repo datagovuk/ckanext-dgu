@@ -1,31 +1,110 @@
 import os
 import csv
 import json
+from urllib import urlencode
 
 from pylons import response, config
 from ckan import model
 from ckan.model.types import make_uuid
 from ckan.lib.helpers import Page, flash_notice
-from ckan.lib.base import h, BaseController, abort
+from ckanext.dgu.lib.helpers import get_from_flat_dict
+from ckan.lib.base import h, BaseController, abort, g
+from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
 from ckanext.dgu.lib.publisher import go_down_tree
+from ckan.lib.search import SearchIndexError
+from ckan.logic import tuplize_dict, clean_dict, parse_params, flatten_to_string_key
 from ckanext.dgu.plugins_toolkit import (render, c, request, _,
     ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access)
 
 import ckanext.dgu.lib.inventory as inventory_lib
 
 
+def _encode_params(params):
+    return [(k, v.encode('utf-8') if isinstance(v, basestring) else str(v)) \
+                                  for k, v in params]
+
+def url_with_params(url, params):
+    params = _encode_params(params)
+    return url + u'?' + urlencode(params)
+
+def search_url(params):
+    url = h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='search')
+    return url_with_params(url, params)
+
+
 class InventoryController(BaseController):
 
-    def read(self, id):
-        """ """
-        return "The inventory homepage for {0}".format(id)
 
-    def index(self):
+    def _save_edit(self, name_or_id, context):
+        from ckan.lib.search import SearchIndexError
+        try:
+            data_dict = clean_dict(unflatten(
+                tuplize_dict(parse_params(request.POST))))
+            context['message'] = data_dict.get('log_message', '')
+            data_dict['id'] = name_or_id
+
+            pkg = get_action('package_update')(context, data_dict)
+            c.pkg = context['package']
+            c.pkg_dict = pkg
+            h.redirect_to(controller='package', action='read', id=pkg['name'])
+        except NotAuthorized:
+            abort(401, 'Not authorized to save package')
+        except ObjectNotFound, e:
+            abort(404, _('Dataset not found'))
+        except DataError:
+            abort(400, _(u'Integrity Error'))
+        except SearchIndexError, e:
+            try:
+                exc_str = unicode(repr(e.args))
+            except:
+                exc_str = unicode(str(e))
+            abort(500, _(u'Unable to update search index.') + exc_str)
+        except ValidationError, e:
+            errors = e.error_dict
+            error_summary = e.error_summary
+            return self.edit_item(name_or_id, data_dict, errors, error_summary)
+
+    def edit_item(self, id, data=None, errors=None, error_summary=None):
         """
-        This is the inventory homepage for when users want to drill-down through *just*
-        the inventory on a per-publisher basis.
+        Allows for the editing of a single item
         """
-        return "index"
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'extras_as_string': True,
+                   'save': 'save' in request.params}
+
+        if context['save'] and not data:
+            return self._save_edit(id, context)
+
+        try:
+            c.pkg_dict = get_action('package_show')(context, {'id': id})
+            context['for_edit'] = True
+
+            old_data = get_action('package_show')(context, {'id': id})
+            # old data is from the database and data is passed from the
+            # user if there is a validation error. Use users data if there.
+            data = data or old_data
+        except NotAuthorized:
+            abort(401, _('Unauthorized to read package %s') % '')
+        except ObjectNotFound:
+            abort(404, _('Dataset not found'))
+
+        c.pkg = context.get("package")
+
+        try:
+            check_access('package_update',context)
+        except NotAuthorized, e:
+            abort(401, _('User %r not authorized to edit %s') % (c.user, id))
+
+        errors = errors or {}
+        vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
+        c.errors_json = json.dumps(errors)
+
+        #self._setup_template_variables(context, {'id': package_id}, package_type=package_type)
+
+        c.form = render('inventory/edit_form.html', extra_vars=vars)
+
+        return render('inventory/edit_item.html')
+
 
     def edit(self, id):
         """
@@ -40,7 +119,6 @@ class InventoryController(BaseController):
             c.group_dict = get_action('group_show')(context, {"id": id})
             c.group = context['group']
         except ObjectNotFound:
-            self._redirect_if_previous_name(id)
             abort(404, 'Group not found')
         except NotAuthorized:
             abort(401, 'Unauthorized to read group %s' % id)
@@ -49,7 +127,7 @@ class InventoryController(BaseController):
             context['group'] = c.group
             check_access('group_update', context)
         except NotAuthorized, e:
-            abort(401, 'User %r not authorized to view internal inventory' % (c.user))
+            abort(401, 'User %r not authorized to view internal unpublished' % (c.user))
 
         self._get_group_info()
         return render('inventory/edit.html')
@@ -114,7 +192,7 @@ class InventoryController(BaseController):
             context['group'] = c.group
             check_access('group_update', context)
         except NotAuthorized, e:
-            abort(401, 'User %r not authorized to upload inventory' % (c.user))
+            abort(401, 'User %r not authorized to upload unpublished' % (c.user))
 
         self._get_group_info()
 
@@ -125,7 +203,7 @@ class InventoryController(BaseController):
 
     def upload(self, id):
         """
-        Upload of an inventory file, accepts a POST request with a file and
+        Upload of an unpublished file, accepts a POST request with a file and
         then renders the result of the import to the user.
         """
         context = {'model': model, 'session': model.Session,
@@ -221,7 +299,7 @@ class InventoryController(BaseController):
             context['group'] = c.group
             check_access('group_update', context)
         except NotAuthorized, e:
-            abort(401, 'User %r not authorized to download inventory'% (c.user))
+            abort(401, 'User %r not authorized to download unpublished '% (c.user))
 
         groups = [c.group]
         if request.params.get('include_sub') == 'true':
