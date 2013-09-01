@@ -531,7 +531,8 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
-        search_params['fq'] += ' unpublished:false'
+        if not bbox:
+            search_params['fq'] += ' unpublished:false'
 
         return search_params
 
