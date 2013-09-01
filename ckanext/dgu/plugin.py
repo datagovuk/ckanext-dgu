@@ -507,6 +507,8 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
+        search_params['fq'] += ' unpublished:false'
+
         return search_params
 
     def after_search(self, search_results, search_params):
