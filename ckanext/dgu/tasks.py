@@ -10,6 +10,7 @@ import os
 import requests
 import urlparse
 import traceback
+import dateutil.parser
 
 import messytables
 
@@ -225,7 +226,15 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     publish_date = row[3].value
     release_notes = row[4].value
 
+    if isinstance(publish_date, basestring) and publish_date.strip():
+        # e.g. CSV containing "1/2/14"
+        try:
+            publish_date = dateutil.parser.parse(publish_date, dayfirst=True)
+        except ValueError:
+            # Not fatal - lots of people have been putting text in this field.
+            log.warn('Did not parse date: %r', publish_date)
     if isinstance(publish_date, datetime.datetime):
+        # e.g. Excel date
         publish_date = publish_date.isoformat()
 
     group = None
