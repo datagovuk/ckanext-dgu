@@ -269,8 +269,6 @@ class InventoryController(BaseController):
             c.group_extras.append((k, v))
         c.group_extras = dict(c.group_extras)
 
-        c.group.encoded_title = quote(c.group.title)
-
         c.jobs = [(k, v,) for k,v in json.loads(c.group.extras.get('inventory.jobs', '{}')).iteritems()]
         c.jobs = sorted(c.jobs, key=lambda x: x[1], reverse=True)
 
