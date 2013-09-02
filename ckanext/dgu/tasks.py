@@ -231,8 +231,11 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
         try:
             publish_date = dateutil.parser.parse(publish_date, dayfirst=True)
         except ValueError:
-            # Not fatal - lots of people have been putting text in this field.
-            log.warn('Did not parse date: %r', publish_date)
+            # Lots of text went into this field but have decided to not allow from now
+            # and it never gets displayed.
+            msg = 'Could not parse date: "%s" Must be: DD/MM/YY' % publish_date
+            log.error(msg)
+            raise Exception(msg)
     if isinstance(publish_date, datetime.datetime):
         # e.g. Excel date
         publish_date = publish_date.isoformat()
