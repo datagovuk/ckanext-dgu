@@ -1492,6 +1492,9 @@ def unpublished_release_date(package):
 
 
 def is_unpublished_item(package):
+    if not package:
+        # e.g. when displaying package/new form
+        return False
     from paste.deploy.converters import asbool
     return asbool(get_from_flat_dict(package['extras'], 'unpublished'))
 
