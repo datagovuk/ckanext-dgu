@@ -36,7 +36,7 @@ class DataController(BaseController):
             # package search
             context = {'model': model, 'session': model.Session,
                        'user': c.user or c.author}
-            fq = 'capacity:"public" unpublished:false'
+            fq = 'capacity:"public"'
             data_dict = {
                 'q':'',
                 'fq':fq,
