@@ -111,6 +111,10 @@
         <div class="notes clearfix" style="">
           ${c.pkg.extras.get('release-notes', '').strip() or '(None supplied)'}
         </div>
+        <div py:if="h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('publish-date') and not c.pkg.extras.get('publish-restricted', False)">
+            <h3>Publication date:</h3>
+          <div class="notes clearfix">${h.render_datestamp(c.pkg.extras.get('publish-date')) or c.pkg.extras.get('publish-date')}</div>
+        </div>
       </div>
 
     <py:if test="not h.is_unpublished_item(c.pkg_dict)">

@@ -237,11 +237,12 @@ class InventoryController(BaseController):
 
 
         job_id, timestamp = inventory_lib.enqueue_document(c.userobj, filename, c.group)
-        jobdict = c.group.extras.get('inventory.jobs', {})
+        jobdict = json.loads(c.group.extras.get('inventory.jobs', '{}'))
         jobdict[job_id] = timestamp
 
         # Update the jobs list for this group
-        c.group.extras['inventory.jobs'] = jobdict
+        # inventory.jobs will become a str when dictized, so serialize now.
+        c.group.extras['inventory.jobs'] = json.dumps(jobdict)
         model.repo.new_revision()
         model.Session.add(c.group)
         model.Session.commit()
@@ -268,7 +269,9 @@ class InventoryController(BaseController):
             c.group_extras.append((k, v))
         c.group_extras = dict(c.group_extras)
 
-        c.jobs = [(k, v,) for k,v in c.group.extras.get('inventory.jobs', {}).iteritems()]
+        c.group.encoded_title = quote(c.group.title)
+
+        c.jobs = [(k, v,) for k,v in json.loads(c.group.extras.get('inventory.jobs', '{}')).iteritems()]
         c.jobs = sorted(c.jobs, key=lambda x: x[1], reverse=True)
 
 
