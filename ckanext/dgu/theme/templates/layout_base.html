@@ -142,7 +142,7 @@ ${h.top_level_init()}
     <ul id="subnav">
       <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
         <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') and request.params.get('unpublished', 'false') != 'true' else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
