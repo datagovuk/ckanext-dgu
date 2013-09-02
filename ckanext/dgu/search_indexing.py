@@ -2,6 +2,8 @@ from logging import getLogger
 import re
 import string
 
+from paste.deploy.converters import asbool
+
 from ckan.model.group import Group
 from ckan import model
 from ckanext.dgu.lib.formats import Formats
@@ -20,7 +22,7 @@ class SearchIndexing(object):
 
         score = 0
 
-        if pkg_dict.get('unpublished', False):
+        if asbool(pkg_dict.get('unpublished', False)):
             from ckanext.dgu.lib.helpers import feedback_comment_count
             score += feedback_comment_count(pkg_dict)
             log.debug('Updated score for unpublished item {0} to {1}'.format(pkg_dict['name'], score))
@@ -55,7 +57,7 @@ class SearchIndexing(object):
             is_ogl = cls._is_ogl(pkg_dict)
             pkg_dict['license_id-is-ogl'] = is_ogl
             pkg_dict['extras_license_id-is-ogl'] = is_ogl
-        if pkg_dict.get('unpublished', False):
+        if asbool(pkg_dict.get('unpublished', False)):
             pkg_dict['license_id-is-ogl'] = 'unpublished'
 
     @classmethod
