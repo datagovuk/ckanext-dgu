@@ -1572,3 +1572,18 @@ def span_read_more(text, word_limit, classes=""):
             <a href="#" class="expanded link-read-less" style="display:none;">&laquo; Hide</a>\
             </span>' % (classes,text,classes,trimmed))
 
+def render_db_date(db_date_str):
+    '''Takes a string as we generally store it in the database and returns it
+    rendered nicely to show to the user.
+    e.g. '2014/02/01' -> '1/2/2014'
+         '2014/02' -> '2/2014'
+         '2014' -> '2014'
+    Non-parsing strings get '' returned.
+    '''
+    from ckan.lib.field_types import DateType, DateConvertError
+    try:
+        return DateType.db_to_form(db_date_str)
+    except DateConvertError:
+        return ''
+
+

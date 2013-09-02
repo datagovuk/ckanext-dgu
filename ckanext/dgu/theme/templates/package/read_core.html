@@ -113,7 +113,7 @@
         </div>
         <div py:if="h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('publish-date') and not c.pkg.extras.get('publish-restricted', False)">
             <h3>Publish date</h3>
-          <div class="notes clearfix">${h.render_datestamp(c.pkg.extras.get('publish-date'))}</div>
+          <div class="notes clearfix">${h.render_db_date(c.pkg.extras.get('publish-date'))}</div>
         </div>
       </div>
 
