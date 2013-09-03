@@ -74,17 +74,18 @@ module.exports = function(grunt) {
     },
     copy: {
       images: {
-        /* Imagemin will only handle PNG and JPEG. Other images need to be straight copied. */
-        files: [
-          {
-            expand: true,
-            cwd: 'ckanext/dgu/theme/src/images/',
-            src: '**/*.{gif,ico}',
-            dest: 'ckanext/dgu/theme/public/images/',
-            filter: 'isFile'
-          }
-        ]
-      }
+        expand: true,
+        cwd: 'ckanext/dgu/theme/src/images/',
+        src: '**/*.{gif,ico}',
+        dest: 'ckanext/dgu/theme/public/images/',
+        filter: 'isFile'
+      },
+      scripts: {
+        expand: true,
+        cwd: 'ckanext/dgu/theme/src/scripts/',
+        src: '**/*',
+        dest: 'ckanext/dgu/theme/public/scripts/'
+      },
     },
     timestamp: {
       build: {
