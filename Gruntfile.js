@@ -12,6 +12,23 @@ module.exports = function(grunt) {
           'ckanext/dgu/theme/src/scripts/dgu-autocomplete.js'
           ],
         dest: 'ckanext/dgu/theme/public/scripts/dgu-ckan-application.min.js'
+      },
+      openspending: {
+        src: [
+          'ckanext/dgu/theme/src/scripts/openspending_pack/base64.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/accounting-0.3.2.min.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/underscore-1.2.0.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/handlebars-1.0.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.boot.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.utils.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/jquery.datatables-1.9.0.min.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/datatables.bootstrap.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.data_table.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.faceter.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.browser.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/dgu_openspending_integration.js',
+        ],
+        dest: 'ckanext/dgu/theme/public/scripts/dgu-openspending-pack.min.js'
       }
     },
     less: {
