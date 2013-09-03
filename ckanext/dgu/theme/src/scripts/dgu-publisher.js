@@ -12,6 +12,7 @@ $(function() {
 
   jstree.jstree(
      {
+     "theme_name": false,
       "themes" : {
           "icons" : false
       },

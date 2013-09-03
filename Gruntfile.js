@@ -14,6 +14,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: pkg,
     uglify: {
+      options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
       app: {
         files:  {
           'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
@@ -29,7 +30,7 @@ module.exports = function(grunt) {
         files: {
           'public/scripts/vendor/jquery.tablesorter.js'   : 'src/scripts/vendor/jquery.tablesorter.js',
           'public/scripts/vendor/jquery.tagcloud.js'      : 'src/scripts/vendor/jquery.tagcloud.js',
-          'public/scripts/vendor/jquery.jstree.js'        : 'src/scripts/vendor/jquery.jstree.js',
+          'public/scripts/vendor/jquery.jstree.min.js'    : 'src/scripts/vendor/jquery.jstree.js',
         },
       },
       openspending: {
