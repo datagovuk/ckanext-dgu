@@ -26,10 +26,19 @@ module.exports = function(grunt) {
           'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.data_table.js',
           'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.faceter.js',
           'ckanext/dgu/theme/src/scripts/openspending_pack/openspending.browser.js',
-          'ckanext/dgu/theme/src/scripts/openspending_pack/dgu_openspending_integration.js',
+          'ckanext/dgu/theme/src/scripts/openspending_pack/dgu-openspending-integration.js',
         ],
         dest: 'ckanext/dgu/theme/public/scripts/dgu-openspending-pack.min.js'
-      }
+      },
+      recline: {
+        src: [
+          'ckanext/dgu/theme/src/scripts/recline_pack/jquery.mustache.js',
+          'ckanext/dgu/theme/src/scripts/recline_pack/jquery.flot-0.7.js',
+          'ckanext/dgu/theme/src/scripts/recline_pack/recline.js',
+          'ckanext/dgu/theme/src/scripts/recline_pack/dgu-recline-integration.js',
+        ],
+        dest: 'ckanext/dgu/theme/public/scripts/dgu-recline-pack.min.js',
+      },
     },
     less: {
       build: {
