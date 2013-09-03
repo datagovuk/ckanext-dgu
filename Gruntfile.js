@@ -74,6 +74,14 @@ module.exports = function(grunt) {
       },
     },
     copy: {
+      fontawesome_hack: {
+        files: [
+         {
+            src: 'ckanext/dgu/theme/src/css/font-awesome-ie7.min.css',
+            dest: 'ckanext/dgu/theme/public/css/font-awesome-ie7.min.css',
+          }
+        ],
+      },
       font: {
         files: [
          {
