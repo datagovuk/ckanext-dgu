@@ -320,7 +320,7 @@
           'Licence',
           'There are no further licence filters to apply.'
       )}
-      <div class="search-theme-mode-container">
+<!--!      <div class="search-theme-mode-container">
         <label class="checkbox">
           <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
           Only primary theme
@@ -341,7 +341,13 @@
           'There are no further theme filters to apply.', 
           more_button='more-themes-button'
       )}
-      </div>
+  </div> -->
+      ${facet_box(
+          'tags', 
+          'Tags', 
+          'There are no further tag filters to apply.', 
+          more_button='more-tags-button'
+      )}
       ${facet_box(
           'res_format',
           'Resource Format',
@@ -354,12 +360,12 @@
           'There are no further publisher filters to apply.',
           more_button='more-publishers-button'
       )}
-      ${facet_box(
+  <!--!    ${facet_box(
           'tags', 
           'Tags', 
           'There are no further tag filters to apply.', 
           more_button='more-tags-button'
-      )}
+      )} -->
       ${facet_box(
           'openness_score', 
           'Openness Score (beta)', 
