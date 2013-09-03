@@ -37,7 +37,7 @@
   </py:otherwise>
   </py:choose>
 
-  <link rel="stylesheet" href="/assets/css/dgu-joint.compiled.css" />
+  <link rel="stylesheet" href="/assets/css/dgu-joint.compiled.css?${h.get_shared_assets_timestamp()}" />
   <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}?${h.ckan_asset_timestamp()}" />
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -63,7 +63,7 @@
   </py:if>
   <py:if test="config.get('dgu.use_raw_js')!='true'">
     <!-- Vendor scripts -->
-    <script type="text/javascript" src="/assets/js/vendor.compiled.js"></script>
+    <script type="text/javascript" src="/assets/js/vendor.compiled.js?${h.get_shared_assets_timestamp()}"></script>
     <!-- CKAN DGU scripts -->
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-compiled.js')}?${h.ckan_asset_timestamp()}"></script>
   </py:if>
@@ -77,6 +77,9 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
   <!-- TODO fix IE conditional commenting. For now, always include these files. -->
+  <!--[if IE 7]>
+  <link rel="stylesheet" media="all" href="/css/font-awesome-ie7.min.css" />
+  <![endif]-->
 
   ${h.literal(getattr(g, 'template_head_end', ''))}
 </head>

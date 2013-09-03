@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from logging import getLogger
 from urllib import quote
@@ -15,6 +15,7 @@ from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
 from ckan.plugins import ISession
+from ckan.plugins import IActions
 from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
@@ -32,11 +33,9 @@ from ckanext.dgu.lib.search import solr_escape
 import ckanext.dgu
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
+from ckan.exceptions import CkanUrlException
 
 log = getLogger(__name__)
-
-def task_imports():
-    return ['ckanext.dgu.tasks']
 
 
 def configure_template_directory(config, relative_path):
@@ -163,51 +162,69 @@ class ThemePlugin(SingletonPlugin):
     def after_map(self, map):
         return map
 
+def ensure_package_major_time_remains(package):
+    '''A write to the package may remove the last_major_modification extra,
+    so make sure it remains.'''
+    import ckan.model as model
+    extra = model.Session.query(model.PackageExtra).filter_by(package_id=package.id).filter_by(key='last_major_modification').first()
+    if extra.state == 'deleted':
+        extra.state = 'active'
+        model.Session.flush()
+
 def update_package_major_time(package):
     import datetime
     import ckan.model as model
 
-    package.extras['last_major_modification'] = datetime.datetime.now().isoformat()
-    log.debug("Updating last_major_modification in the package: %s" % package.name)
-    model.Session.add(package)
+    package.extras['last_major_modification'] = model.Session.revision.timestamp.isoformat()
+
+    log.debug("Updating last_major_modification in the package: %s %s" % \
+              (package.name, package.extras['last_major_modification']))
+
+    model.Session.flush()
+    # now that it is flushed, the change will get committed in the commit we
+    # are in (this code is called in a before_commit())
+
+class LastMajorModificationPlugin1(SingletonPlugin):
+    implements(IDomainObjectModification, inherit=True)
+
+    def notify(self, entity, operation):
+        from ckan import model
+        if isinstance(entity, model.Package):
+            if operation != model.DomainObjectOperation.new:
+                return
+            log.debug("Package created: %s" % entity.name)
+            update_package_major_time(entity)
+
+        elif isinstance(entity, model.Resource):
+            if not entity.resource_group:
+                log.warning("Resource has no resource_group")
+                return
+
+            model.Session.flush()
+            pkg = entity.resource_group.package
+
+            if operation == model.DomainObjectOperation.new:
+                log.debug("A new resource was created")
+                update_package_major_time(pkg)
+            elif operation == model.DomainObjectOperation.changed:
+                # If we get a change, then we should just check if the
+                # state is deleted, if so then we should update the
+                # modification date on the package. If the state isn't
+                # deleted then we will instead catch the URL change with
+                #  IResourceUrlChange
+                if entity.state == 'deleted':
+                    log.debug("A resource was deleted")
+                    update_package_major_time(pkg)
+                else:
+                    ensure_package_major_time_remains(pkg)
 
 
-class ResourceURLModificationPlugin(SingletonPlugin):
+class LastMajorModificationPlugin2(SingletonPlugin):
     implements(IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
         log.debug("URL for resource %s has changed" % resource.id)
         update_package_major_time(resource.resource_group.package)
-
-
-class ResourceModificationPlugin(SingletonPlugin):
-    implements(IDomainObjectModification, inherit=True)
-
-    def notify(self, entity, operation):
-        from ckan import model
-
-        if not isinstance(entity, model.Resource):
-            return
-
-        if not entity.resource_group:
-            log.debug("Resource has no resource_group")
-            return
-
-        model.Session.flush()
-        pkg = entity.resource_group.package
-
-        if operation == model.DomainObjectOperation.new:
-            log.debug("A new resource was created")
-            update_package_major_time(pkg)
-        elif operation == model.DomainObjectOperation.changed:
-            # If we get a change, then we should just check if the
-            # state is deleted, if so then we should update the
-            # modification date on the package. If the state isn't
-            # deleted then we will instead catch the URL change with
-            #  IResourceUrlChange
-            if entity.state == 'deleted':
-                log.debug("A resource was deleted")
-                update_package_major_time(pkg)
 
 
 class DrupalAuthPlugin(SingletonPlugin):
@@ -283,14 +300,21 @@ class PublisherPlugin(SingletonPlugin):
         pubctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
         for obj in set( session._object_cache['new'] ):
             if isinstance(obj, (User)):
-                url = url_for(controller=pubctlr, action='apply')
+                try:
+                    url = url_for(controller=pubctlr, action='apply')
+                except CkanUrlException:
+                    # This occurs when Routes has not yet been initialized
+                    # yet, which would be before a WSGI request has been
+                    # made. In this case, there will be no flash message
+                    # required anyway.
+                    return
                 msg = "You can now <a href='%s'>apply for publisher access</a>" % url
                 try:
                     flash_notice(_(msg), allow_html=True)
                 except TypeError:
                     # Raised when there is no session registered, and this is
                     # the case when using the paster commands.
-                    log.warning('Failed to add a flash message due to a missing session: %s' % msg)
+                    log.debug('Did not add a flash message due to a missing session: %s' % msg)
 
 
     def before_map(self, map):
@@ -526,10 +550,18 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__group_titles(pkg_dict)
         SearchIndexing.add_field__publisher(pkg_dict)
         SearchIndexing.add_field__harvest_document(pkg_dict)
-        SearchIndexing.add_field__openness(pkg_dict)
+        pkg = SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_field__last_major_modification(pkg_dict, pkg)
+        # Extract multiple theme values (concatted with ' ') into one multi-value schema field
+        all_themes = set()
+        for value in ( pkg_dict.get('theme-primary',''), pkg_dict.get('theme-secondary','') ):
+            for theme in value.split(' '):
+                if theme:
+                    all_themes.add(theme)
+        pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 
 class ApiPlugin(SingletonPlugin):

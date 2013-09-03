@@ -6,8 +6,10 @@ from paste.deploy.converters import asbool
 
 from ckan.model.group import Group
 from ckan import model
+from ckanext.dgu.lib.helpers import upsert_extra
 from ckanext.dgu.lib.formats import Formats
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
+from ckan.lib.helpers import json
 
 log = getLogger(__name__)
 
@@ -221,3 +223,26 @@ class SearchIndexing(object):
             pkg_score = -1
         pkg_dict['openness_score'] = pkg_score
         log.debug('Openness score %s: %s', pkg_score, pkg_dict['name'])
+        return pkg # for use in other methods
+
+    @classmethod
+    def add_field__last_major_modification(cls, pkg_dict, pkg):
+        '''Add the last_major_modification to the search index'''
+        # use the actual package object, since the pkg_dict passed in might
+        # not have the latest value, which is written in before_commit.
+        last_mod = pkg.extras.get('last_major_modification')
+        if not last_mod:
+            log.warning('last_major_modification value not found - the plugins are probably not enabled')
+            return
+
+        # SOLR is quite picky with dates, and only accepts ISO dates
+        # with UTC time (i.e trailing Z)
+        # See http://lucene.apache.org/solr/api/org/apache/solr/schema/DateField.html
+        # Add top level field (so SOLR can sort by this date)
+        pkg_dict['last_major_modification'] = last_mod + 'Z'
+
+        # Correct the data_dict with the latest value - since the value was
+        # generated in 'before_commit', the pkg_dict will not have it.
+        dictized_pkg = json.loads(pkg_dict['data_dict'])
+        upsert_extra(dictized_pkg['extras'], 'last_major_modification', last_mod)
+        pkg_dict['data_dict'] = json.dumps(dictized_pkg)

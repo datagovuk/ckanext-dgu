@@ -575,19 +575,19 @@ def name_for_uklp_type(package):
         item_type = 'Dataset'
 
 def updated_string(package):
-    if package.get('last_major_modification') == package.get('metadata_created'):
+    if package.get('metadata_modified') == package.get('metadata_created') or \
+           updated_date(package) == package.get('metadata_created'):
         updated_string = 'Created'
     else:
         updated_string = 'Updated'
     return updated_string
 
 def updated_date(package):
-    from ckan import model
-    p = model.Package.get(package['name'])
-    if not p:
-        return package.get('metadata_created')
-
-    return p.extras.get('last_major_modification', package.get('metadata_created'))
+    for extra in package['extras']:
+        if extra['key'] == 'last_major_modification':
+            return extra['value']
+    log.warning('Could not get value for "last_major_modification": %s', package['name'])
+    return package['metadata_modified']
 
 def package_publisher_dict(package):
     groups = package.get('groups', [])
@@ -651,7 +651,7 @@ def get_resource_fields(resource, pkg_extras):
         'content_type': {'label': 'Content Type', 'value': ''},
         'scraper_url': {'label': 'Scraper',
             'label_title':'URL of the scraper used to obtain the data',
-            'value': t.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
+            'value': t.literal(scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': h.render_datetime(res_dict.get('scraped'), "%d/%m/%Y")},
@@ -1453,6 +1453,21 @@ def ckan_asset_timestamp():
     from ckanext.dgu.theme.timestamp import asset_build_timestamp
     return asset_build_timestamp
 
+shared_assets_timestamp = None
+def get_shared_assets_timestamp():
+    global shared_assets_timestamp
+    if shared_assets_timestamp is None:
+        import os
+        this_file = os.path.dirname(os.path.realpath(__file__))
+        assets_file = os.path.join(this_file,'..','theme','public','assets','timestamp')
+        try:
+            with open(assets_file) as f:
+                shared_assets_timestamp = f.read()
+        except Exception as e:
+            log.error('failed to load shared assets timestamp: %s' % e)
+            shared_assets_timestamp = '-1'
+    return shared_assets_timestamp
+
 def get_package_from_id(id):
     from ckan.model import Package
     return Package.get(id)
@@ -1560,6 +1575,17 @@ def inventory_status(package_items):
         grp = pkg.get_groups('publisher')[0]
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
+
+def upsert_extra(extras_dict_list, key, value):
+    '''Given a list of extras dicts, update or insert the given
+    key-value pair. Changes the extras_dict_list in-place.'''
+    for extra in extras_dict_list:
+        if extra['key'] == key:
+            extra['value'] = value
+            break
+    else:
+        extras_dict_list.append({'key': key,
+                                 'value': value})
 
 def span_read_more(text, word_limit, classes=""):
     trimmed = truncate(text,length=word_limit,whole_word=True)
