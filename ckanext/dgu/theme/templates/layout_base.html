@@ -38,23 +38,13 @@
   </py:choose>
 
   <link rel="stylesheet" href="/assets/css/datagovuk.min.css?${h.get_shared_assets_timestamp()}" />
-  <link rel="stylesheet" href="${h.url_for_static('/css/dgu.css')}?${h.ckan_asset_timestamp()}" />
+  <link rel="stylesheet" href="${h.url_for_static('/css/dgu-ckan.min.css')}?${h.ckan_asset_timestamp()}" />
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-  <py:if test="config.get('dgu.use_raw_js')=='true'">
-    <!-- Vendor scripts -->
-    <script type="text/javascript" src="/assets/js/vendor.js"></script>
-    <!-- CKAN DGU scripts -->
-    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-basket.js')}"></script>
-  </py:if>
-  <py:if test="config.get('dgu.use_raw_js')!='true'">
-    <!-- Vendor scripts -->
-    <script type="text/javascript" src="/assets/js/vendor.min.js?${h.get_shared_assets_timestamp()}"></script>
-    <!-- CKAN DGU scripts -->
-    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-compiled.js')}?${h.ckan_asset_timestamp()}"></script>
-  </py:if>
+  <!-- Vendor scripts -->
+  <script type="text/javascript" src="/assets/js/vendor.min.js?${h.get_shared_assets_timestamp()}"></script>
+  <!-- CKAN DGU scripts -->
+  <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-ckan-application.min.js')}?${h.ckan_asset_timestamp()}"></script>
 
   <py:if test="defined('optional_head')">
     ${optional_head()}

@@ -4,43 +4,20 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
-    concat: {
-      options: {
-        banner: '/*! DGU+CKAN Application JS concatenated by Grunt */\n'
-      },
-      scripts: {
-        src: [ /* Order of resources is important */
-          'ckanext/dgu/theme/public/scripts/dgu.js',
-          'ckanext/dgu/theme/public/scripts/dgu-basket.js',
-          'ckanext/dgu/theme/public/scripts/dgu-autocomplete.js'
-        ],
-        dest: 'ckanext/dgu/theme/public/scripts/dgu-compiled.unmin.js'
-      },
-      styles: {
-        src: [  /* Order of resources is important. */
-          'ckanext/dgu/theme/src/css/elements.less',
-          'ckanext/dgu/theme/src/css/dgu-main.less',
-        ],
-        dest: 'ckanext/dgu/theme/public/css/dgu.less'
-      }
-    },
     uglify: {
-      options: {
-        banner: '/*! DGU+CKAN Application JS minified by Grunt */\n'
-      },
-      build: {
-        src: 'ckanext/dgu/theme/public/scripts/dgu-compiled.unmin.js',
-        dest: 'ckanext/dgu/theme/public/scripts/dgu-compiled.js'
+      app: {
+        src: [
+          'ckanext/dgu/theme/src/scripts/dgu.js',
+          'ckanext/dgu/theme/src/scripts/dgu-basket.js',
+          'ckanext/dgu/theme/src/scripts/dgu-autocomplete.js'
+          ],
+        dest: 'ckanext/dgu/theme/public/scripts/dgu-ckan-application.min.js'
       }
     },
     less: {
-      options: {
-        banner: '/* DGU+CKAN stylesheet compiled by Grunt */\n',
-        yuicompress: true
-      },
       build: {
-        src: 'ckanext/dgu/theme/public/css/dgu.less',
-        dest: 'ckanext/dgu/theme/public/css/dgu.css'
+        src: 'ckanext/dgu/theme/src/css/dgu-ckan.less',
+        dest: 'ckanext/dgu/theme/public/css/dgu-ckan.min.css'
       }
     },
     watch: {
@@ -52,10 +29,6 @@ module.exports = function(grunt) {
         files: 'ckanext/dgu/theme/public/scripts/**/*',
         tasks: 'scripts'
       },
-      scripts: {
-        files: 'ckanext/dgu/theme/src/images/**/*',
-        tasks: 'images'
-      }
     },
     imagemin: {
       build: {
@@ -76,7 +49,7 @@ module.exports = function(grunt) {
       images: {
         expand: true,
         cwd: 'ckanext/dgu/theme/src/images/',
-        src: '**/*.{gif,ico}',
+        src: '**/*.{gif}',
         dest: 'ckanext/dgu/theme/public/images/',
         filter: 'isFile'
       },
@@ -98,7 +71,6 @@ module.exports = function(grunt) {
     grunt.file.write(this.files[0].dest, 'asset_build_timestamp='+Date.now());
   });
 
-  grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-contrib-imagemin');
@@ -106,8 +78,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Default task(s).
-  grunt.registerTask('styles', ['concat:styles','less:build','timestamp']);
-  grunt.registerTask('scripts', ['copy:scripts','concat:scripts','uglify:build','timestamp']);
+  grunt.registerTask('styles', ['less:build','timestamp']);
+  grunt.registerTask('scripts', ['copy:scripts','uglify:app','timestamp']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
   grunt.registerTask('default', ['copy','styles','scripts','images','timestamp']);
 };
