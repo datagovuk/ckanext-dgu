@@ -107,7 +107,7 @@ module.exports = function(grunt) {
 
   // Default task(s).
   grunt.registerTask('styles', ['concat:styles','less:build','timestamp']);
-  grunt.registerTask('scripts', ['concat:scripts','uglify:build','timestamp']);
+  grunt.registerTask('scripts', ['copy:scripts','concat:scripts','uglify:build','timestamp']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
-  grunt.registerTask('default', ['styles','scripts','images','timestamp']);
+  grunt.registerTask('default', ['copy','styles','scripts','images','timestamp']);
 };
