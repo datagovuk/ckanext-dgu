@@ -239,6 +239,11 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     if isinstance(publish_date, datetime.datetime):
         # e.g. Excel -> "14/02/01"
         publish_date = DateType.date_to_db(publish_date)
+    if not isinstance(publish_date, basestring):
+        # e.g. Excel int
+        msg = 'Could not parse date: "%s" Must be: DD/MM/YY' % publish_date
+        log.error(msg)
+        raise Exception(msg)
 
     group = None
     if publisher_name:
