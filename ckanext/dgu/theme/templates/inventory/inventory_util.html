@@ -6,6 +6,56 @@
   py:strip=""
   >
 
+  <div py:def="unpublished_facet_filters()" class="datasets">
+    <div class="boxed">
+      <div class="facet-box-unboxed">
+      ${facet_box(
+          'publisher',
+          'Publisher',
+          'There are no further publisher filters to apply.',
+          more_button='more-publishers-button',
+          alternative_url='/unpublished'
+      )}
+      </div>
+    </div>
+  </div>
+
+<py:def function="unpublished_publisher_tree(groups)">
+  ${ Markup( h.render_tree(groups, root_url='unpublished'))  }
+ </py:def>
+
+<py:def function="unpublished_block(title, pkg_list)">
+    <div class="boxed">
+      <div class="title frontpage-search-panel">
+        <h2><span class="big">${title}</span> unpublished datasets</h2>
+        <hr/>
+        <p py:if="not pkg_list">There are no items to show</p>
+        <p py:if="pkg_list">
+           <div class='view-content'>
+              <py:for each="pkg in pkg_list">
+                <div>
+                    <h4 class="views-field-title">
+                      <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='read',id=pkg.name)}">${pkg.title}</a>
+                    </h4>
+                    <div>
+                      <strong>Description</strong>: ${h.truncate(pkg.notes, 200)}..
+                    </div>
+                    <div py:if='h.unpublished_release_date(pkg)'>
+                      <strong>Publish date</strong>: ${h.render_datestamp(h.unpublished_release_date(pkg)) or "Not specified"}
+                    </div>
+                    <div py:if='h.unpublished_release_notes(pkg)'>
+                      <strong>Release notes</strong>: ${h.truncate(h.unpublished_release_notes(pkg), 200)}
+                    </div>
+                    <br/>
+                </div>
+
+              </py:for>
+            </div>
+        </p>
+      </div>
+    </div>
+</py:def>
+
 
 <py:def function="inventory_jobs()">
     <div class="boxed">
@@ -21,6 +71,27 @@
         </p>
       </div>
     </div>
+</py:def>
+
+
+<py:def function="unpublished_publisher_feedback(package)">
+  <!--!
+  For an inventory item, this block will show the criteria and current comments/scores
+  against each.
+  -->
+  <hr/>
+
+  <h3>Feedback
+    <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" class="btn btn-primary btn-mini add-feedback-button">
+      <py:if test="c.user">Add Feedback</py:if>
+      <py:if test="not c.user">Login to Add Feedback</py:if>
+    </a>
+  </h3>
+  <div class="dataset-feedback-container">
+    <a class="view-feedback-link" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}">View all feedback &raquo;</a>
+    ${feedback_summary(package,render_title=False,large=True)}
+  </div>
+
 </py:def>
 
 </html>

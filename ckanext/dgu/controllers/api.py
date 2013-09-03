@@ -17,8 +17,18 @@ log = logging.getLogger(__name__)
 
 default_limit = 10
 
+
 class DguApiController(ApiController):
-    def latest_datasets(self):
+
+
+    def popular_unpublished(self):
+        """
+        Returns the most popular unpublished items after it has calculated a score
+        for each criteria. We need to be able to calculate the score for this.
+        """
+        return self._finish_ok([])
+
+    def latest_datasets(self, published_only=True):
         '''Designed for the dgu home page, shows lists the latest datasets
         that got changed (exluding extra, group and tag changes) with lots
         of details about each dataset.
@@ -31,15 +41,18 @@ class DguApiController(ApiController):
         limit = min(100, limit) # max value
 
         from ckan.lib.search import SearchError
+        fq = 'capacity:"public"'
+        if published_only:
+             fq = fq + ' unpublished:false'
+
         try:
             # package search
             context = {'model': model, 'session': model.Session,
                        'user': 'visitor'}
             data_dict = {
                 'q':'',
-                'fq': 'capacity:"public"',
+                'fq': fq,
                 'facet':'false',
-                'rows':0,
                 'start':0,
                 'rows': limit,
                 'sort': 'last_major_modification desc'
@@ -70,6 +83,7 @@ class DguApiController(ApiController):
                 ))
             pkg_dicts.append(pkg_dict)
         return self._finish_ok(pkg_dicts)
+
     def revisions(self):
         '''
         Similar to the revision search API, lists all revisions for which
@@ -205,7 +219,7 @@ class DguApiController(ApiController):
             # package search
             context = {'model': model, 'session': model.Session,
                        'user': 'visitor'}
-            fq = 'capacity:"public"'
+            fq = 'capacity:"public" unpublished:false'
             data_dict = {
                 'q':'',
                 'fq':fq,

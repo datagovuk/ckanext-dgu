@@ -1,0 +1,122 @@
+<form id="package-edit" method="post"
+  py:attrs="{'class':'has-errors package_create_form ckan form-horizontal'} if errors else {'class':'package_create_form ckan form-horizontal'}"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+>
+
+<!--! recursive function turns errors into hierarchical lists
+This should be in a _util somewhere
+-->
+
+<py:def function="dump(o)">
+  <ul py:if="type(o) is dict and bool(o)">
+    <li py:for="k,v in h.iterate_error_dict(o)">
+      <py:if test="type(v) in [str, unicode]">
+        <b>${k}:</b> ${v}
+      </py:if>
+      <py:if test="not (type(v) in [str, unicode])">
+        <b>${k}: </b> ${dump(v)}
+      </py:if>
+    </li>
+  </ul>
+  <ul py:if="type(o) is list and bool(o)">
+    <py:for each="v in o">
+      ${dump(v)}
+    </py:for>
+  </ul>
+  <li py:if="(type(o) is str or type(o) is unicode) and bool(o)">
+    ${o}
+  </li>
+</py:def>
+
+<div class="error-explanation" py:if="bool(errors)">
+<h2>Errors in form</h2>
+<p>The form contains invalid entries:</p>
+  ${dump(errors)}
+</div>
+
+
+<fieldset  id="section-name-fields">
+${c.schema_fields}
+  <h3>Name</h3>
+  <div class="control-group">
+    <p>Please name your data record.</p>
+    <label class="control-label" for="title">Name:</label>
+    <div class="controls">
+      <span class="js-tooltip" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
+        <input class="field_req js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+        <img src="/images/information-grey.png"/>
+      </span>
+      <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
+    </div>
+  </div>
+<input id="name" name="name" type="hidden" value="${data.get('name', '')}"/>
+<input id="access_constraints" name="access_constraints" type="hidden" value="${data.get('access_contraints', 'Not specified')}"/>
+
+    <input id="foi-email" name="foi-email" type="hidden" value="${data.get('foi_email', ' ')}"/>
+    <input id="foi-web" name="foi-web" type="hidden" value="${data.get('foi_web', ' ')}"/>
+    <input id="foi-name" name="foi-name" type="hidden" value="${data.get('foi_name', ' ')}"/>
+    <input id="foi-phone" name="foi-phone" type="hidden" value="${data.get('foi_phone', ' ')}"/>
+
+    <input id="contact-email" name="contact-email" type="hidden" value="${data.get('contact_email', ' ')}"/>
+    <input id="contact-name" name="contact-name" type="hidden" value="${data.get('contact_name', ' ')}"/>
+    <input id="contact-phone" name="contact-phone" type="hidden" value="${data.get('contact_phone', ' ')}"/>
+    <input id="license_id" name="license_id" type="hidden" value="${data.get('licence', '')}"/>
+    <input id="unpublished" name="unpublished" type="hidden" value="True"/>
+
+    <input id="groups__0__name" name="groups__0__name" type="hidden" value="${h.edit_publisher_group_name(data)}"/>
+
+</fieldset>
+
+<fieldset  id="section-description-field">
+  <h3>Description</h3>
+  <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
+  <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
+  <textarea class="field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
+  <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
+</fieldset>
+<hr/>
+
+<fieldset id="section-extras-field">
+  <h3>Publish date</h3>
+      <p>
+      <span class="js-tooltip" title="Please enter the release date for this dataset as dd/mm/yyyy">
+          <input class="field_req js-title input-xlarge" id="publish-date" name="publish-date" type="text" value="${data.get('publish-date', '')}"/>
+          <small>Please enter the date as dd/mm/yyyy</small>
+      </span>
+      </p>
+      <p>
+        <span class="js-tooltip" title="Please enter the release date for this dataset as dd/mm/yyyy">
+          <input class="js-title input-xlarge" id="publish-restricted" name="publish-restricted" type="checkbox" py:attrs="{'checked': 'checked' if data.get('publish-restricted', False) == 'true' else None}"/>
+          Please check this box if the dataset will <strong>not</strong> be released and complete the Release notes section below.
+        </span>
+      </p>
+      <p class="field_error" py:if="errors.get('publish-date', '')">${errors.get('publish-date', '')}</p><br/>
+    <br/>
+
+  <h3>Release notes</h3>
+  <p class="instructions basic">Please add information about the release of this data</p>
+  <p class="instructions further instruction-needed"></p>
+  <textarea class="field_req" cols="260" id="release-notes" name="release-notes" rows="10">${data.get('release-notes')}</textarea>
+  <p class="field_error" py:if="errors.get('release_notes', '')">${errors.get('release-notes', '')}</p>
+</fieldset>
+
+<div class="form-actions">
+  <div id="nav-controls" class="submit">
+    <div class="nav-backnext">
+      <py:if test="not h.is_package_edit_form(data)">
+        <input disabled="disabled" class="btn btn-primary" type="button" id="back-button" value="&laquo; Back" />
+        <input                     class="btn btn-primary" type="button" id="next-button" value="Next &raquo;" />
+      </py:if>
+    </div>
+  </div>
+  <div id="disclaimer">
+    <input id="save-button" class="btn btn-primary" name="save" type="submit" value="Save and Finish" />
+    <p class="hints">
+      <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${config.get('dgu.drupal_host', 'data.gov.uk')}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
+    </p>
+  </div>
+</div>
+
+</form>

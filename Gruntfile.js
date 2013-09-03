@@ -18,6 +18,7 @@ module.exports = function(grunt) {
       },
       styles: {
         src: [  /* Order of resources is important. */
+          'ckanext/dgu/theme/src/css/font-awesome.css',
           'ckanext/dgu/theme/src/css/elements.less',
           'ckanext/dgu/theme/src/css/dgu-main.less',
         ],
@@ -73,6 +74,16 @@ module.exports = function(grunt) {
       },
     },
     copy: {
+      font: {
+        files: [
+         {
+            expand: true,
+            cwd: 'ckanext/dgu/theme/src/font/',
+            src: '*',
+            dest: 'ckanext/dgu/theme/public/font/',
+          }
+        ],
+      },
       images: {
         /* Imagemin will only handle PNG and JPEG. Other images need to be straight copied. */
         files: [
@@ -108,5 +119,5 @@ module.exports = function(grunt) {
   grunt.registerTask('styles', ['concat:styles','less:build','timestamp']);
   grunt.registerTask('scripts', ['concat:scripts','uglify:build','timestamp']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
-  grunt.registerTask('default', ['styles','scripts','images','timestamp']);
+  grunt.registerTask('default', ['copy:font','styles','scripts','images','timestamp']);
 };

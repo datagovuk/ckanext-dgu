@@ -9,7 +9,7 @@
   <py:def function="page_title">${c.group.display_name}</py:def>
   <py:def function="page_heading">
     <py:if test="h.check_access('group_update', {'id':c.group.id})">
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage inventory</a>
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage Unpublished Datasets</a>
       <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
     </py:if>
       <a class="feed-icon" href="${h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}">${c.group.display_name}</a>
@@ -71,10 +71,10 @@
               <tbody>
                 <py:for each="pkg,grp,pub_date,release,action in h.inventory_status(c.task.packages)">
                   <tr>
-                    <td>${pkg.title}</td>
+                    <td><a href="/dataset/${pkg.name}">${pkg.title}</a></td>
                     <td title="${pkg.notes}">${h.truncate(pkg.notes, length=40, whole_word=True)}</td>
                     <td>${grp.title}</td>
-                    <td>${h.render_datestamp(pub_date)}</td>
+                    <td>${h.render_db_date(pub_date)}</td>
                     <td title="${release}">${h.truncate(release, length=40, whole_word=True)}</td>
                     <td>${action}</td>
                   </tr>

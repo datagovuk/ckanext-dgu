@@ -16,8 +16,9 @@
 
   <xi:include href="sidebar.html"/>
   <py:def function="page_heading">
-    ${dataset_admin_buttons(c.pkg)}    
+    ${dataset_admin_buttons(c.pkg)}
     ${c.pkg_dict.get('title', c.pkg_dict['name'])}
+    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
   </py:def>
 
   <div py:match="content" class="package">
@@ -53,7 +54,7 @@
     <script type="text/javascript">
       window.DATASET_ID = '${c.pkg_dict.get('id')}';
     </script>
-    <py:if test="h.get_extent()">
+    <py:if test="h.get_extent() and not h.is_unpublished_item(c.pkg_dict)">
       <script src="http://osinspiremappingprod.ordnancesurvey.co.uk/libraries/openlayers-openlayers-56e25fc/OpenLayers.js" type="text/javascript"></script>
       <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-dataset-map.js?1')}"></script>
       <script type="text/javascript">
