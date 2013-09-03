@@ -1,0 +1,59 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+
+<xi:include href="_feedback_util.html" />
+
+  <py:def function="page_title">Dataset Feedback report</py:def>
+
+  <py:def function="optional_head">
+  </py:def>
+
+  <py:def function="page_heading">
+    Dataset Feedback
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> Report</span>
+  </py:def>
+
+
+
+<div py:match="primarysidebar" class="dataset">
+  <div class="boxed">
+
+    <div class="widget-container">
+      <h4>At a glance</h4>
+
+      <p>Current statistics as of ${h.render_datetime(c.stats['now'])}</p>
+
+      <ul style='list-style:none;'>
+            <li>Total Private Individuals: ${c.stats['total private individuals']}</li>
+            <li>Total Organisations: ${c.stats['total organisations']}</li>
+            <li>Total users: ${c.stats['total users']}</li>
+            <li>&nbsp;</li>
+            <li>Total comments: ${c.stats['total comments']}</li>
+            <li>Total feedback items: ${c.stats['total feedback']}</li>
+            <li>&nbsp;</li>
+            <li>Economic benefit: ${c.stats['economic']}</li>
+            <li>Social benefit: ${c.stats['social']}</li>
+            <li>Effective services: ${c.stats['effective']}</li>
+            <li>Other benefit: ${c.stats['other']}</li>
+            <li>Potentially linked: ${c.stats['linked']}</li>
+            <li>&nbsp;</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+  <div py:match="content" class="dataset">
+    <div class="boxed notes">
+
+    </div>
+
+    <div>
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

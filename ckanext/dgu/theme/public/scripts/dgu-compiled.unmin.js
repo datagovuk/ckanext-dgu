@@ -7,12 +7,44 @@ function assert( code, errorMessage ) {
   }
 }
 
+function feedback_publish(itemid) {
+  $.ajax( {
+      url: "/data/feedback/moderate/" + itemid,
+      data: {action: 'publish'},
+      dataType: "json",
+      method: "POST",
+      success: function () {
+          $('#' + itemid).slideUp('slow')
+          return false
+      }
+  })
+  return false
+}
+
+function feedback_delete(itemid, andban) {
+  var data = {action: 'delete'}
+  if (andban) {
+    data['action'] = 'delete_and_ban'
+  }
+  $.ajax( {
+      url: "/data/feedback/moderate/" + itemid,
+      data: data,
+      dataType: "json",
+      method: "POST",
+      success: function () {
+          $('#' + itemid).slideUp('slow')
+          return false
+      }
+  })
+  return false
+}
+
 /* Utility: Global console.log() function for all browsers */
 (function (con) {
   var method;
   var dummy = function() {};
   var methods = ('assert,count,debug,dir,dirxml,error,exception,group,' +
-     'groupCollapsed,groupEnd,info,log,markTimeline,profile,profileEnd,' + 
+     'groupCollapsed,groupEnd,info,log,markTimeline,profile,profileEnd,' +
      'time,timeEnd,trace,warn').split(',');
   while (method = methods.pop()) {
     con[method] = con[method] || dummy;
@@ -54,6 +86,21 @@ jQuery(function () {
       var id = target.attr('id');
       target.toggleClass('expanded');
       $('#'+id+'-items').toggle('fast');
+    });
+
+    $('.read-more-parent .link-read-more, .read-more-parent .link-read-less').click(function(e) {
+      e.preventDefault();
+      var target = $(e.delegateTarget);
+      var expand = target.hasClass('link-read-more');
+      var parentElement = target.parents('.read-more-parent');
+      if (expand) {
+        parentElement.find('.expanded').show('fast');
+        parentElement.find('.collapsed').hide();
+      }
+      else {
+        parentElement.find('.collapsed').show('fast');
+        parentElement.find('.expanded').hide();
+      }
     });
 
     $('select[name="dataset-results-sort"]').change(function(e){
@@ -345,9 +392,9 @@ CKAN.Dgu = function($, my) {
 
         var hidden2 = tr2.find('.hidden-resource-fields')
         console.log(hidden1)
-        var id2 = hidden2.find('input[type="hidden"]').get(0) 
+        var id2 = hidden2.find('input[type="hidden"]').get(0)
         console.log(id2)
-        id2 = $(id2).attr('name').match(/__\d+__/gi)[0]        
+        id2 = $(id2).attr('name').match(/__\d+__/gi)[0]
                 console.log(id2)
 
         // Swap the HTML over from one TD to the other.
@@ -362,15 +409,15 @@ CKAN.Dgu = function($, my) {
             // Replace the old ID we copied across with the new ID for this container
             var new_id = $(this).attr('name').replace(firstReplacer, id1)
             $(this).attr('id', new_id)
-            $(this).attr('name', new_id)            
+            $(this).attr('name', new_id)
         })
 
         hidden2.find('input[type="hidden"]').each(function(){
-            // Replace the old ID we copied across with the new ID for this container          
+            // Replace the old ID we copied across with the new ID for this container
             var new_id = $(this).attr('name').replace(secondReplacer, id2)
             $(this).attr('id', new_id)
-            $(this).attr('name', new_id)            
-        })        
+            $(this).attr('name', new_id)
+        })
       }
 
       if (up) {

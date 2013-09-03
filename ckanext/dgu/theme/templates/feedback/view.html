@@ -1,0 +1,56 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+
+<xi:include href="_feedback_util.html" />
+
+  <py:def function="page_title">${c.pkg.title or c.pkg.name} - View feedback - Datasets</py:def>
+
+  <py:def function="page_heading">
+    ${dataset_admin_buttons(c.pkg)}
+    ${h.dataset_link(c.pkg)}
+    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> View Feedback</span>
+  </py:def>
+
+  <xi:include href="../package/sidebar.html"/>
+
+  <div py:match="content" class="dataset">
+    <div class="boxed">
+      <div py:if="str(c.pkg_notes_formatted).strip()">
+        <h3>Description</h3>
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="">
+          ${h.truncate(c.pkg.notes, length=120, whole_word=True)}
+        </div>
+      </div>
+      <div py:if="h.unpublished_release_notes(c.pkg_dict)">
+        <h3>Release notes</h3>
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="" py:if="c.release_notes_formatted">
+          ${h.truncate(h.unpublished_release_notes(c.pkg_dict), length=120, whole_word=True)}
+        </div>
+      </div>
+    </div>
+
+    <div class="boxed view-feedback">
+      <h3>
+        Feedback
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" class="btn btn-primary btn-mini add-feedback-button">
+          <py:if test="c.user">Add feedback</py:if>
+          <py:if test="not c.user">Login to Add feedback</py:if>
+        </a>
+      </h3>
+
+      <p style="font-style: italic; color: #666;" py:if="c.items.count() == 0">(No feedback yet)</p>
+      <py:for each="item in c.items">
+        ${feedback_item(item, c.pkg_dict)}
+      </py:for>
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

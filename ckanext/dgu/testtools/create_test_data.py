@@ -1,4 +1,4 @@
-import copy
+﻿import copy
 import logging
 import datetime
 
@@ -476,7 +476,7 @@ Alternative title: GDP and Labour Market coherence""",
                 del group['parent']
             groups.append(group)
         cls.create_groups(groups, auth_profile='publisher')
-
+        
         # Add in the hierarchy (similar to bin/import_publishers.py)
         model.repo.new_revision()
         for publisher in publishers:
