@@ -19,6 +19,20 @@
   </py:def>
 
 
+<py:match path="primarysidebar">
+  <div class="boxed">
+
+      <div class="widget-container">
+        <h4>Reports</h4>
+        <ul>
+          <li>
+              <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Unpublished dataset feedback</a>
+          </li>
+        </ul>
+    </div>
+  </div>
+  </py:match>
+
   <div py:match="content" class="dataset">
     <div class="boxed notes">
       <p>This is the moderation queue.  Items here have been reported as abusive/spam by
@@ -27,7 +41,7 @@
 
 
         <ul>
-          <li><strong>Publish</strong> will mark the item as moderated and make it visibiel, if it is not</li>
+          <li><strong>Publish</strong> will mark the item as moderated and make it visible, if it is not</li>
           <li><strong>Delete</strong> will remove the comments from the systems</li>
           <li><strong>Delete and Ban</strong> will remove the comments and stop the user who posted it from
           posting again</li>

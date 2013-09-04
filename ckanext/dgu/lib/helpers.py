@@ -1612,4 +1612,36 @@ def render_db_date(db_date_str):
     except DateConvertError:
         return ''
 
+def feedback_report_checkbox_sub():
+    from pylons import request
+    val = request.path
+    checked = (c.include_subpublisher == True)
+    if checked:
+        # If currently checked we want to turn off the option
+        val = val +  ('?show-zero-feedback=1' if c.show_zero_feedback else '')
+    else:
+        # If not checked we want the val to turn on the option
+        val = val + '?show-subpub=1%s' % ('&show-zero-feedback=1' if c.show_zero_feedback else '')
+    return val,checked
+
+def feedback_report_checkbox_zero():
+    from pylons import request
+    val = request.path
+    checked = (c.show_zero_feedback == True)
+    if checked:
+        # If currently checked we want to turn off the option
+        val = val +  ('?show-subpub=1' if c.include_subpublisher else '')
+    else:
+        # If not checked we want the val to turn on the option
+        val = val + '?show-zero-feedback=1%s' % ('&show-subpub=1' if c.include_subpublisher else '')
+    return val,checked
+
+def feedback_report_params():
+    from urllib import urlencode
+    params = {}
+    if c.show_zero_feedback:
+        params['show-zero-feedback'] = 1
+    if c.include_subpublisher:
+        params['show-subpub'] = 1
+    return urlencode(params, True)
 

@@ -375,14 +375,18 @@ class PublisherPlugin(SingletonPlugin):
         should generate all reports.
         """
         from ckanext.dgu.lib.publisher import cached_openness_scores
-        return { 'Cached Openness Scores': cached_openness_scores }
+        from ckanext.dgu.lib.reports import cached_reports
+
+        return { 'Cached Openness Scores': cached_openness_scores,
+                 'Cached reports': cached_reports }
 
     def list_report_keys(self):
         """
         Returns a list of the reports that the plugin can generate by
         returning each key name as an item in a list.
         """
-        return ['openness-scores', 'openness-scores-withsub']
+        return ['openness-scores', 'openness-scores-withsub',
+                'feedback-report']
 
 
 class InventoryPlugin(SingletonPlugin):
@@ -399,8 +403,6 @@ class InventoryPlugin(SingletonPlugin):
             'feedback_delete': dgu_feedback_delete,
         }
 
-
-
     def before_commit(self, session):
         pass
 
@@ -408,8 +410,6 @@ class InventoryPlugin(SingletonPlugin):
         fb_ctlr = 'ckanext.dgu.controllers.feedback:FeedbackController'
 
         # Feedback specific URLs
-        map.connect('/data/feedback/report',
-                    controller=fb_ctlr, action='report')
         map.connect('/data/feedback/moderate/:id',
                     controller=fb_ctlr, action='moderate')
         map.connect('/data/feedback/abuse/:id',
@@ -445,6 +445,19 @@ class InventoryPlugin(SingletonPlugin):
                     controller=inv_ctlr, action='upload_complete' )
         map.connect('/unpublished/:id/edit/upload/:upload_id',
                     controller=inv_ctlr, action='upload_status' )
+
+        report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
+        map.connect('/data/feedback/report/:id.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/feedback/report/:id',
+                    controller=report_ctlr, action='feedback')
+
+        map.connect('/data/feedback/report.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/feedback/report',
+                    controller=report_ctlr, action='feedback')
+
+
         return map
 
     def after_map(self, map):
