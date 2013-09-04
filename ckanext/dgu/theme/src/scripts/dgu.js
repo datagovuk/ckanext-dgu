@@ -1,4 +1,7 @@
-﻿/* Utility: Global assertion function */
+﻿/* Force an event handler to run in the context of its parent object */
+var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+/* Utility: Global assertion function */
 function assert( code, errorMessage ) {
   if (!code) {
     console.error(errorMessage, arguments);
@@ -303,13 +306,6 @@ CKAN.Dgu = function($, my) {
     });
   };
 
-  my.bindInputChanges = function(input, callback) {
-    input.keyup(callback);
-    input.keydown(callback);
-    input.keypress(callback);
-    input.change(callback);
-  };
-
   my.setupTagAutocomplete = function(elements) {
     elements
       // don't navigate away from the field on tab when selecting an item
@@ -542,12 +538,16 @@ CKAN.Dgu = function($, my) {
 }(jQuery, CKAN.Dgu || {});
 
 
-CKAN.Dgu.UrlEditor = Backbone.View.extend({
-  initialize: function() {
-    _.bindAll(this,'titleToSlug','titleChanged','urlChanged','checkSlugIsValid','apiCallback');
-
+CKAN.Dgu.UrlEditor = (function() {
+  function UrlEditor(_options) {
+    // Function bindings
+    this.titleToSlug      = __bind(this.titleToSlug, this);
+    this.titleChanged     = __bind(this.titleChanged, this);
+    this.urlChanged       = __bind(this.urlChanged, this);
+    this.checkSlugIsValid = __bind(this.checkSlugIsValid, this);
+    this.apiCallback      = __bind(this.apiCallback, this);
+    this.disable          = __bind(this.disable, this);
     // Initial state
-    var self = this;
     this.updateTimer = null;
     this.titleInput = $('.js-title');
     this.urlInput = $('.js-url-input');
@@ -555,105 +555,111 @@ CKAN.Dgu.UrlEditor = Backbone.View.extend({
     this.lengthMsg = $('.url-is-long');
     this.lastTitle = "";
     this.disableTitleChanged = false;
-
     // Settings
     this.regexToHyphen = [ new RegExp('[ .:/_]', 'g'),
                       new RegExp('[^a-zA-Z0-9-_]', 'g'),
                       new RegExp('-+', 'g')];
     this.regexToDelete = [ new RegExp('^-*', 'g'),
                       new RegExp('-*$', 'g')];
-
     // Default options
-    if (!this.options.apiUrl) {
-      this.options.apiUrl = CKAN.SITE_URL + '/api/2/util/is_slug_valid';
-    }
-    if (!this.options.MAX_SLUG_LENGTH) {
-      this.options.MAX_SLUG_LENGTH = 90;
-    }
+    this.options = {
+      apiUrl:          CKAN.SITE_URL + '/api/2/util/is_slug_valid',
+      MAX_SLUG_LENGTH: 90,
+    };
+    $.extend( this.options, _options );
+    // Grab page state
     this.originalUrl = this.urlInput.val();
-
-    // Hook title changes to the input box
-    CKAN.Dgu.bindInputChanges(this.titleInput, this.titleChanged);
-    CKAN.Dgu.bindInputChanges(this.urlInput, this.urlChanged);
-
-    // If you've bothered typing a URL, I won't overwrite you
-    function disable() {
-      self.disableTitleChanged = true;
-    }
-    this.urlInput.keyup   (disable);
-    this.urlInput.keydown (disable);
-    this.urlInput.keypress(disable);
-
+    // Hook up event handlers
+    this.titleInput.keyup(this.titleChanged);
+    this.titleInput.keydown(this.titleChanged);
+    this.titleInput.keypress(this.titleChanged);
+    this.titleInput.change(this.titleChanged);
+    this.urlInput.keyup(this.urlChanged);
+    this.urlInput.keydown(this.urlChanged);
+    this.urlInput.keypress(this.urlChanged);
+    this.urlInput.change(this.urlChanged);
+    this.urlInput.keyup   (this.disable);
+    this.urlInput.keydown (this.disable);
+    this.urlInput.keypress(this.disable);
     // Set up the form
     this.urlChanged();
-  },
+  };
 
-  titleToSlug: function(title) {
-    var slug = title;
-    $.each(this.regexToHyphen, function(idx,regex) { slug = slug.replace(regex, '-'); });
-    $.each(this.regexToDelete, function(idx,regex) { slug = slug.replace(regex, ''); });
-    slug = slug.toLowerCase();
+  // If you've bothered typing a URL, I won't overwrite you
+  UrlEditor.prototype.disable = function() {
+    this.disableTitleChanged = true;
+  };
 
-    if (slug.length<this.options.MAX_SLUG_LENGTH) {
-        slug=slug.substring(0,this.options.MAX_SLUG_LENGTH);
-    }
-    return slug;
-  },
+  // Guess a nice slug given the title
+  UrlEditor.prototype.titleToSlug = function(title) {
+      var slug = title;
+      $.each(this.regexToHyphen, function(idx,regex) { slug = slug.replace(regex, '-'); });
+      $.each(this.regexToDelete, function(idx,regex) { slug = slug.replace(regex, ''); });
+      slug = slug.toLowerCase();
 
-  /* Called when the title changes */
-  titleChanged:  function() {
-    if (this.disableTitleChanged) { return; }
-    var title = this.titleInput.val();
-    if (title == this.lastTitle) { return; }
-    this.lastTitle = title;
+      if (slug.length<this.options.MAX_SLUG_LENGTH) {
+          slug=slug.substring(0,this.options.MAX_SLUG_LENGTH);
+      }
+      return slug;
+  };
 
-    slug = this.titleToSlug(title);
-    this.urlInput.val(slug);
-    this.urlInput.change();
-  },
+  // Called when the title changes 
+  UrlEditor.prototype.titleChanged =  function() {
+      if (this.disableTitleChanged) { return; }
+      var title = this.titleInput.val();
+      if (title == this.lastTitle) { return; }
+      this.lastTitle = title;
+      slug = this.titleToSlug(title);
+      this.urlInput.val(slug);
+      this.urlInput.change();
+  };
 
-  /* Called when the url is changed */
-  urlChanged: function() {
-    var slug = this.urlInput.val();
-    if (this.updateTimer) { clearTimeout(this.updateTimer); }
-    if (slug.length<2) {
-      this.validMsg.html('<span style="font-weight: bold; color: #444;">URL is too short.</span>');
-    }
-    else if (slug==this.originalUrl) {
-      this.validMsg.html('<span style="font-weight: bold; color: #000;">This is the current URL.</span>');
-    }
-    else {
-      this.validMsg.html('<span style="color: #777;">Checking...</span>');
-      var self = this;
-      this.updateTimer = setTimeout(function () {
-        self.checkSlugIsValid(slug);
-      }, 200);
-    }
-    if (slug.length>20) {
-      this.lengthMsg.show();
-    }
-    else {
-      this.lengthMsg.hide();
-    }
-  },
+  // Called when the url is changed 
+  UrlEditor.prototype.urlChanged = function() {
+      var slug = this.urlInput.val();
+      if (this.updateTimer) { clearTimeout(this.updateTimer); }
+      if (slug.length<2) {
+        this.validMsg.html('<span style="font-weight: bold; color: #444;">URL is too short.</span>');
+      }
+      else if (slug==this.originalUrl) {
+        this.validMsg.html('<span style="font-weight: bold; color: #000;">This is the current URL.</span>');
+      }
+      else {
+        this.validMsg.html('<span style="color: #777;">Checking...</span>');
+        var self = this;
+        this.updateTimer = setTimeout(function () {
+          self.checkSlugIsValid(slug);
+        }, 200);
+      }
+      if (slug.length>20) {
+        this.lengthMsg.show();
+      }
+      else {
+        this.lengthMsg.hide();
+      }
+  };
 
-  checkSlugIsValid: function(slug) {
-    $.ajax({
-      url: this.options.apiUrl,
-      data: 'type='+this.options.slugType+'&slug=' + slug,
-      dataType: 'jsonp',
-      type: 'get',
-      jsonpCallback: 'callback',
-      success: this.apiCallback
-    });
-  },
+  // Ask the server whether we can create this dataset URL
+  UrlEditor.prototype.checkSlugIsValid = function(slug) {
+      $.ajax({
+        url: this.options.apiUrl,
+        data: 'type='+this.options.slugType+'&slug=' + slug,
+        dataType: 'jsonp',
+        type: 'get',
+        jsonpCallback: 'callback',
+        success: this.apiCallback
+      });
+  };
 
   /* Called when the slug-validator gets back to us */
-  apiCallback: function(data) {
-    if (data.valid) {
-      this.validMsg.html('<span style="font-weight: bold; color: #0c0">This URL is available!</span>');
-    } else {
-      this.validMsg.html('<span style="font-weight: bold; color: #c00">This URL is not available.</span>');
-    }
-  }
-});
+  UrlEditor.prototype.apiCallback = function(data) {
+      if (data.valid) {
+        this.validMsg.html('<span style="font-weight: bold; color: #0c0">This URL is available!</span>');
+      } else {
+        this.validMsg.html('<span style="font-weight: bold; color: #c00">This URL is not available.</span>');
+      }
+  };
+
+  return UrlEditor;
+})();
+
