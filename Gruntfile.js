@@ -18,13 +18,13 @@ module.exports = function(grunt) {
       app: {
         files:  {
           'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
-          'public/scripts/dgu-dataset-map.js'          : 'src/scripts/dgu-dataset-map.js',
-          'public/scripts/dgu-history.js'              : 'src/scripts/dgu-history.js',
-          'public/scripts/dgu-package-form.js'         : 'src/scripts/dgu-package-form.js',
-          'public/scripts/dgu-package.js'              : 'src/scripts/dgu-package.js',
-          'public/scripts/dgu-publisher-forms.js'      : 'src/scripts/dgu-publisher-forms.js',
+          'public/scripts/dgu-dataset-map.min.js'          : 'src/scripts/dgu-dataset-map.js',
+          'public/scripts/dgu-history.min.js'              : 'src/scripts/dgu-history.js',
+          'public/scripts/dgu-package-form.min.js'         : 'src/scripts/dgu-package-form.js',
+          'public/scripts/dgu-package.min.js'              : 'src/scripts/dgu-package.js',
+          'public/scripts/dgu-publisher-forms.min.js'      : 'src/scripts/dgu-publisher-forms.js',
           'public/scripts/dgu-publisher-index.min.js'  : 'src/scripts/dgu-publisher-index.js',
-          'public/scripts/dgu-publisher.min.js'            : 'src/scripts/dgu-publisher.js',
+          'public/scripts/dgu-publisher.min.js'        : 'src/scripts/dgu-publisher.js',
         },
       },
       vendor: {
