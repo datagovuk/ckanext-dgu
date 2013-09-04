@@ -54,6 +54,7 @@ module.exports = function(grunt) {
         src: [
           'src/scripts/recline_pack/jquery.mustache.js',
           'src/scripts/recline_pack/jquery.flot-0.7.js',
+          'src/scripts/recline_pack/underscore-1.1.6.js',
           'src/scripts/recline_pack/recline.js',
           'src/scripts/recline_pack/dgu-recline-integration.js',
         ],
