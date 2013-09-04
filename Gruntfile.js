@@ -23,6 +23,7 @@ module.exports = function(grunt) {
           'public/scripts/dgu-package-form.js'         : 'src/scripts/dgu-package-form.js',
           'public/scripts/dgu-package.js'              : 'src/scripts/dgu-package.js',
           'public/scripts/dgu-publisher-forms.js'      : 'src/scripts/dgu-publisher-forms.js',
+          'public/scripts/dgu-publisher-index.min.js'      : 'src/scripts/dgu-publisher-index.js',
           'public/scripts/dgu-publisher.js'            : 'src/scripts/dgu-publisher.js',
         },
       },

@@ -1,4 +1,7 @@
 $(function() {
+  // Hack JSTree to prevent it adding stylesheets (we manage these ourselves)
+  $.vakata.css.add_sheet = function(){};
+
   var jstree = $("#publisher-tree");
 
   jstree.delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
