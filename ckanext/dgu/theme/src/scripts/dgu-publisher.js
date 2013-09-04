@@ -3,6 +3,7 @@ $(function() {
   $.vakata.css.add_sheet = function(){};
 
   var jstree = $("#publisher-tree");
+  assert(jstree.length,'Bad DOM');
 
   jstree.delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
 
@@ -22,7 +23,7 @@ $(function() {
       "plugins" : ["themes","html_data","ui"],
       "core": {
           "load_open" : true,
-          "initially_open" : [PUBLISHER_PARENT, PUBLISHER_GROUP]
+          "initially_open" : [window.dgu_publisher_hierarchy_parent, window.dgu_publisher_hierarchy_this ],
       }
      }
     );

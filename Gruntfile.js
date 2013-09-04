@@ -14,7 +14,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: pkg,
     uglify: {
-      options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
+      //options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
       app: {
         files:  {
           'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
@@ -23,15 +23,14 @@ module.exports = function(grunt) {
           'public/scripts/dgu-package-form.js'         : 'src/scripts/dgu-package-form.js',
           'public/scripts/dgu-package.js'              : 'src/scripts/dgu-package.js',
           'public/scripts/dgu-publisher-forms.js'      : 'src/scripts/dgu-publisher-forms.js',
-          'public/scripts/dgu-publisher-index.min.js'      : 'src/scripts/dgu-publisher-index.js',
-          'public/scripts/dgu-publisher.js'            : 'src/scripts/dgu-publisher.js',
+          'public/scripts/dgu-publisher-index.min.js'  : 'src/scripts/dgu-publisher-index.js',
+          'public/scripts/dgu-publisher.min.js'            : 'src/scripts/dgu-publisher.js',
         },
       },
       vendor: {
         files: {
-          'public/scripts/vendor/jquery.tablesorter.js'   : 'src/scripts/vendor/jquery.tablesorter.js',
-          'public/scripts/vendor/jquery.tagcloud.js'      : 'src/scripts/vendor/jquery.tagcloud.js',
-          'public/scripts/vendor/jquery.jstree.min.js'    : 'src/scripts/vendor/jquery.jstree.js',
+          'public/scripts/vendor/jquery.tablesorter.min.js'   : 'src/scripts/vendor/jquery.tablesorter.js',
+          'public/scripts/vendor/jquery.jstree.min.js'        : 'src/scripts/vendor/jquery.jstree.js',
         },
       },
       openspending: {

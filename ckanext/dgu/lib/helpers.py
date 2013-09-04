@@ -71,7 +71,7 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def construct_publisher_tree(groups,  type='publisher', root_url='publisher', title_for_group=lambda x:x.title):
+def construct_publisher_tree(root_url='publisher', title_for_group=lambda x:x.title):
     """
         Uses the provided groups to generate a tree structure (in a dict) by
         matching up the tree relationship using the Member objects.
@@ -80,6 +80,11 @@ def construct_publisher_tree(groups,  type='publisher', root_url='publisher', ti
         postgres but for now this is adequate for our needs.
     """
     from ckan import model
+
+    groups = model.Session.query(model.Group).\
+                   filter(model.Group.type == 'publisher').\
+                   filter(model.Group.state == 'active').\
+                   order_by('title')
 
     root = PublisherNode( "root", "root", root_url=root_url)
     tree = { root.slug : root }
@@ -133,10 +138,10 @@ def construct_publisher_tree(groups,  type='publisher', root_url='publisher', ti
                 tree[parent_slug].children.append(tree[slug])
     return root
 
-def render_tree(groups,  typ='publisher', root_url='publisher'):
-    return construct_publisher_tree(groups, type=typ, root_url=root_url).render()
+def render_tree():
+    return construct_publisher_tree(root_url='publisher').render()
 
-def render_mini_tree(all_groups, this_group, type="publisher"):
+def render_mini_tree(this_group, root_url='publisher'):
     '''Render a tree, but a special case, where there is one 'parent' (optional),
     the current group and any number of subgroups under it.'''
     from ckan import model
@@ -155,7 +160,7 @@ def render_mini_tree(all_groups, this_group, type="publisher"):
             return '<strong>%s</strong>' % group.title
         return group.title
 
-    root = construct_publisher_tree(all_groups,type=type, root_url=type, title_for_group=title_for_group)
+    root = construct_publisher_tree(root_url=root_url, title_for_group=title_for_group)
     root.children = filter( lambda x: x.slug==root_group.name , root.children )
 
     return root.render()

@@ -545,4 +545,14 @@
        </div>
      </div>
   </div>
+
+  <py:def function="publisher_sub_hierarchy(parent_publisher,this_publisher)">
+    <script>
+      // Pollute the global namespace
+      window.dgu_publisher_hierarchy_parent = "node_${parent_publisher}";
+      window.dgu_publisher_hierarchy_this = "node_${this_publisher}";
+    </script>
+    <script src="/scripts/vendor/jquery.jstree.min.js"></script>
+    <script src="/scripts/dgu-publisher.min.js"></script>
+  </py:def>
 </html>

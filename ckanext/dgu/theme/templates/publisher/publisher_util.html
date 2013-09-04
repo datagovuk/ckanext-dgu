@@ -14,109 +14,7 @@
    </py:for>
  </table>
 
-<py:def function="publisher_sidebar(with_hierarchy=False)">
-  <div class="boxed">
-    <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
-      <h4>Publisher Administration</h4>
-      <ul>
-        <li py:if="h.check_access('group_update', {'id':c.group.id})">
-          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}">Edit publisher properties</a>
-        </li>
-        <li py:if="h.check_access('group_update', {'id':c.group.id})">
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage inventory</a>
-        </li>
-        <li py:if="h.check_access('package_create', {'groups':c.group.name})">
-          <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
-        </li>
-      </ul>
-    </div>
-    <div py:if="c.userobj" class="widget-container">
-      <h4>Administrators</h4>
-      <py:choose>
-          <py:when test='(not c.is_an_official) and c.administrators.count()'>
-              <ul>
-                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.administrators.count()} administrator${h.pluralise_text(c.administrators.count())}</a></li>
-              </ul>
-          </py:when>
-          <py:otherwise>
-              <ul>
-                <li py:for="admin in c.administrators">${h.linked_user(admin, maxlength=40)}</li>
-              </ul>
-          </py:otherwise>
-      </py:choose>
-      <p py:if="not c.administrators.count()">No-one assigned</p>
-    </div>
-    <div py:if="c.userobj" class="widget-container">
-      <h4>Editors</h4>
-      <ul>
-        <py:choose>
-            <py:when test='(not c.is_an_official) and c.editors.count()'>
-                <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.editors.count()} editor${h.pluralise_text(c.editors.count())}</a></li>
-            </py:when>
-            <py:otherwise>
-                <li py:for="editor in c.editors">${h.linked_user(editor, maxlength=35)}</li>
-            </py:otherwise>
-        </py:choose>
-        <li py:if="not c.editors.count()">No-one assigned</li>
-        <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
-          <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">Request to become an <py:if test="not c.administrators.count()">Admin or</py:if> Editor</a>
-        </li>
-        <py:if test="h.check_access('group_update', {'id':c.group.id})">
-          <li><a class="btn btn-mini btn-info" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}">Edit user permissions</a></li>
-        </py:if>
-      </ul>
-    </div>
-
-    ${basket()}
-
-    <div class="widget-container">
-      <h4>Contacts</h4>
-      Enquiries:
-      <ul style="margin-bottom: 5px;">
-        ${c.group_extras.get('contact-name')}
-        ${contact_details(c.group_extras.get('contact-name'),
-                          c.group_extras.get('contact-email'),
-                          c.group_extras.get('contact-phone'),
-                          c.group_extras.get('website-url'),
-                          c.group_extras.get('website-name'))}
-      </ul>
-      <span class="js-tooltip" title="Use the Freedom of Information Act to request more information from the body holding the data">FOI requests</span>:
-      <ul>
-        ${c.group_extras.get('foi-name')}
-        ${contact_details(c.group_extras.get('foi-name'),
-                          c.group_extras.get('foi-email'),
-                          c.group_extras.get('foi-phone'),
-                          c.group_extras.get('foi-web'), '')}
-      </ul>
-    </div>
-
-    <div py:if="h.ga_report_installed()" class="widget-container">
-        <h4>Popular datasets</h4>
-        ${h.most_popular_datasets(c.group, 5, preview_image="/images/graph_preview_thumbnail.png")}
-    </div>
-
-    <div class="widget-container" py:if="with_hierarchy">
-      <h4>Publisher Hierarchy</h4>
-      <div id="publisher-tree-wrapper">
-      <div id="publisher-tree" class="publisher-mini-tree">
-       ${Markup(h.render_mini_tree(c.all_groups, c.group))}
-      </div>
-      </div>
-
-          <br />
-    </div>
-
-    <div py:if="h.group_category(c.group_extras) or h.spending_published_by(c.group_extras)" class="widget-container">
-      <h4>Details</h4>
-        <table class="table table-striped">
-        <tr py:if="h.group_category(c.group_extras)"><th>Category</th><td>${h.group_category(c.group_extras)}</td></tr>
-        <tr py:if="h.spending_published_by(c.group_extras)"><th>Spending data published by</th><td><a href="/publisher/${h.spending_published_by(c.group_extras).name}">${h.spending_published_by(c.group_extras).title}</a></td></tr>
-      </table>
-    </div>
-  </div>
-</py:def>
-
-<py:def function="publisher_sidebar(with_hierarchy=False)">
+<py:def function="publisher_sidebar()">
   <div class="boxed">
     <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
@@ -197,22 +95,13 @@
         ${h.most_popular_datasets(c.group, 5, preview_image="/images/graph_preview_thumbnail.png")}
     </div>
 
-    <div class="widget-container" py:if="with_hierarchy">
+    <div class="widget-container">
       <h4>Publisher Hierarchy</h4>
       <div id="publisher-tree-wrapper">
       <div id="publisher-tree" class="publisher-mini-tree">
-
-        <py:if test="c.unpublished">
-          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='unpublished'))}
-       </py:if>
-        <py:if test="not c.unpublished">
-          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='publisher'))}
-       </py:if>
-
+        ${Markup(h.render_mini_tree(c.group, root_url='publisher'))}
       </div>
       </div>
-
-          <br />
     </div>
 
     <div py:if="h.group_category(c.group_extras) or h.spending_published_by(c.group_extras)" class="widget-container">
@@ -225,8 +114,8 @@
   </div>
 </py:def>
 
- <py:def function="publisher_tree(groups)">
-	${ Markup( h.render_tree( groups ))  }
+ <py:def function="publisher_tree()">
+	${ Markup( h.render_tree())  }
  </py:def>
 
   <div py:def="publisher_traffic_lights(publisher)" class="widget-container sidebar-publisher-report">
