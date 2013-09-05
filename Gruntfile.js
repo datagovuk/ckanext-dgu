@@ -74,8 +74,8 @@ module.exports = function(grunt) {
         tasks: 'styles'
       },
       scripts: {
-        files: 'public/scripts/**/*',
-        tasks: 'scripts'
+        files: 'src/scripts/dgu*',
+        tasks: 'uglify:app'
       },
     },
     imagemin: {

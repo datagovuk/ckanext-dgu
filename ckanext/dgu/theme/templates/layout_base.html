@@ -28,6 +28,9 @@
 
   <link rel="shortcut icon" href="/assets/img/favicon.ico" />
 
+  <!-- css3-mediaqueries.js for IE less than 9 -->
+  <script src="/assets/js/respond.min.js"></script>
+
   <py:choose>
   <py:when test="defined('optional_feed')">
     ${optional_feed()}
@@ -188,31 +191,21 @@ ${h.top_level_init()}
   </py:with>
 
   <div class="container content-start">
-    <div class="row">
-      <div class="span8 main-outer">
-        <div id="main">
-          <!-- Content -->
-          <div id="content">
-            <py:if test="defined('page_heading')">
-              <h1>${page_heading()}</h1>
-            </py:if>
-            <div py:if="defined('content')">
-              ${content()}
-            </div>
-            <content>
-              <p>Master content template placeholder &hellip; please replace me.</p>
-            </content>
-          </div>
-        </div><!-- /main -->
-      </div><!-- /span8 -->
-      <div class="span4 sidebar-outer">
-        <div id="sidebar">
-          <primarysidebar>
-            <!-- Primary Side Bar Goes Here -->
-          </primarysidebar>
-        </div><!-- /#sidebar -->
-      </div><!-- /span4 -->
-    </div><!-- /row -->
+    <py:if test="defined('page_heading')">
+      <h1>${page_heading()}</h1>
+    </py:if>
+    <div class="row-fluid">
+      <div class="${if_(defined('no_sidebar'),'span12','span9')}">
+        <content>
+        <!-- Content goes here -->
+        </content>
+      </div>
+      <div py:if="not defined('no_sidebar')" class="span3">
+        <primarysidebar>
+          <!-- Primary Side Bar Goes Here -->
+        </primarysidebar>
+      </div>
+    </div>
   </div><!-- /container -->
 
 
