@@ -26,7 +26,6 @@ class FeedbackController(BaseController):
         dict representation of it as well as adding formatted notes
         and the publisher to the template context (c).
         """
-        import ckan.misc
         import genshi
 
         context = {'model': model, 'session': model.Session,
