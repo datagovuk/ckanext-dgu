@@ -1,0 +1,49 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">${c.pkg.title or c.pkg.name} - Add feedback - Datasets</py:def>
+
+  <py:def function="optional_head">
+    <script type="text/javascript">
+      var form_errors = ${c.errors_json};
+    </script>
+  </py:def>
+
+  <py:def function="page_heading">
+    ${dataset_admin_buttons(c.pkg)}
+    ${h.dataset_link(c.pkg)}
+    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> Add Feedback</span>
+  </py:def>
+
+  <xi:include href="../package/sidebar.html"/>
+
+  <div py:match="content" class="dataset-edit-form">
+    <div class="boxed">
+
+      <div py:if="str(c.pkg_notes_formatted).strip()">
+        <h3>Description</h3>
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="">
+          ${h.truncate(c.pkg.notes, length=120, whole_word=True)}
+        </div>
+      </div>
+      <div py:if="h.unpublished_release_notes(c.pkg_dict)">
+        <h3>Release notes</h3>
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="" py:if="c.release_notes_formatted">
+          ${h.truncate(h.unpublished_release_notes(c.pkg_dict), length=120, whole_word=True)}
+        </div>
+      </div>
+    </div>
+    <div class="boxed">
+      <h2>Add Feedback</h2>
+      ${c.form}
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

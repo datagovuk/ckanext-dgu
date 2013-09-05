@@ -2,6 +2,10 @@ from ckan import model
 from ckan.lib.helpers import OrderedDict
 from ckanext.dgu.lib.publisher import go_down_tree
 
+import logging
+
+log = logging.getLogger(__name__)
+
 def sql_to_filter_by_organisation(organisation,
                                   include_sub_organisations=False):
     '''
@@ -77,7 +81,7 @@ def organisation_resources(organisation_name,
     if not org:
         abort(404, 'Publisher not found')
     organisation_title = org.title
-    
+
     sql_org_filter, sql_params = sql_to_filter_by_organisation(
         org,
         include_sub_organisations=include_sub_organisations)
@@ -215,3 +219,122 @@ def organisation_dataset_scores(organisation_name,
     return {'publisher_name': organisation_name,
             'publisher_title': organisation_title,
             'data': data.values()}
+
+
+def feedback_report(publisher, include_sub_publishers=False, use_cache=False):
+    """
+    For the publisher provided (and optionally for sub-publishers) this
+    function will generate a report on the feedback for that publisher.
+    """
+    import collections
+    import datetime
+    import ckan.lib.helpers as helpers
+    from ckanext.dgu.lib.publisher import go_down_tree
+    from ckanext.dgu.model.feedback import Feedback
+    from operator import itemgetter
+    from sqlalchemy.util import OrderedDict
+
+    publisher_name = '__all__'
+    if publisher:
+        publisher_name = publisher.name
+
+    if use_cache:
+        key = 'feedback-report'
+        if include_sub_publishers:
+            key = "".join([key, '-withsub'])
+        cache = model.DataCache.get_fresh(publisher_name, key)
+        if cache:
+            log.info("Found feedback report in cache")
+            return cache
+
+    if publisher:
+        group_ids = [publisher.id]
+        if include_sub_publishers:
+            groups = sorted([x for x in go_down_tree(publisher)], key=lambda x: x.title)
+            group_ids = [x.id for x in groups]
+
+        memberships = model.Session.query(model.Member)\
+            .filter(model.Member.state == 'active')\
+            .filter(model.Member.group_id.in_(group_ids))\
+            .filter(model.Member.table_name == 'package')
+    else:
+        memberships = model.Session.query(model.Member)\
+            .filter(model.Member.state == 'active')\
+            .filter(model.Member.table_name == 'package')
+
+    results = []
+    for member in memberships.all():
+        pkg = model.Package.get(member.table_id)
+
+        # For now we will skip over unpublished items
+        if not pkg.extras.get('unpublished', False):
+            continue
+
+        key = pkg.name
+
+        data = collections.defaultdict(int)
+        data['publisher-name'] = member.group.name
+        data['generated-at'] = helpers.render_datetime(datetime.datetime.now(), "%d/%m/%Y %H:%M")
+        data['publisher-title'] = member.group.title
+        data['package-name'] = pkg.name
+        data['package-title'] = pkg.title
+        data['publish-date'] = pkg.extras.get('publish-date', '')
+
+        for item in model.Session.query(Feedback).filter(Feedback.visible == True)\
+                .filter(Feedback.package_id == member.table_id )\
+                .filter(Feedback.active == True ):
+            if item.economic: data['economic'] += 1
+            if item.social: data['social'] += 1
+            if item.linked: data['linked'] += 1
+            if item.other: data['other'] += 1
+            if item.effective: data['effective'] += 1
+
+        data['total-comments'] = sum([data['economic'], data['social'],
+                                     data['linked'], data['other'],
+                                     data['effective']])
+        results.append(data)
+
+    return sorted(results, key=itemgetter('package-title'))
+
+
+
+def cached_reports(reports_to_run=None):
+    """
+    This function is called by the ICachedReport plugin which will
+    iterate over all if the reports that need to be run
+    """
+    import json
+    from ckan.lib.json import DateTimeJsonEncoder
+
+    local_reports = set(['feedback-report'])
+    if reports_to_run:
+      local_reports = set(reports_to_run) & local_reports
+
+    if not local_reports:
+      return
+
+    log.info("Generating feedback report")
+
+    if 'feedback-report' in local_reports:
+      log.info("Generating feedback report for all publishers")
+      val = feedback_report(None, use_cache=False)
+      model.DataCache.set('__all__', "feedback-report", json.dumps(val))
+
+
+    publishers = model.Session.query(model.Group).\
+        filter(model.Group.type=='publisher').\
+        filter(model.Group.state=='active').order_by('title')
+
+    for publisher in publishers:
+        # Run the feedback report with and without include_sub_organisations set
+        if 'feedback-report' in local_reports:
+          log.info("Generating feedback report for %s" % publisher.name)
+          val = feedback_report(publisher, use_cache=False)
+          model.DataCache.set(publisher.name, "feedback-report", json.dumps(val))
+
+          log.info("Generating feedback report for %s and children" % publisher.name)
+          val = feedback_report(publisher, include_sub_publishers=True, use_cache=False)
+          model.DataCache.set(publisher.name, "feedback-report-withsubpub", json.dumps(val))
+
+          model.Session.commit()
+

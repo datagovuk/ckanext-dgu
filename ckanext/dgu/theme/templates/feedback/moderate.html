@@ -1,0 +1,66 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+
+<xi:include href="_feedback_util.html" />
+
+  <py:def function="page_title">Moderate feedback</py:def>
+
+  <py:def function="body_class"></py:def>
+
+  <py:def function="optional_head">
+  </py:def>
+
+  <py:def function="page_heading">
+    Dataset Feedback
+    <span class="subheading"><img src="/images/arrow-down-right.png"/> Moderation</span>
+  </py:def>
+
+
+<py:match path="primarysidebar">
+  <div class="boxed">
+
+      <div class="widget-container">
+        <h4>Reports</h4>
+        <ul>
+          <li>
+              <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Unpublished dataset feedback</a>
+          </li>
+        </ul>
+    </div>
+  </div>
+  </py:match>
+
+  <div py:match="content" class="dataset">
+    <div class="boxed notes">
+      <p>This is the moderation queue.  Items here have been reported as abusive/spam by
+      users and require attention.</p>
+      <p>Please use the buttons underneath each element to moderate each comment</p>
+
+
+        <ul>
+          <li><strong>Publish</strong> will mark the item as moderated and make it visible, if it is not</li>
+          <li><strong>Delete</strong> will remove the comments from the systems</li>
+          <li><strong>Delete and Ban</strong> will remove the comments and stop the user who posted it from
+          posting again</li>
+        </ul>
+
+    </div>
+
+    <div>
+        <div class="boxed" py:if="c.items.count() == 0">
+            <h3>Nothing to moderate yet.</h3>
+        </div>
+
+        <py:for each="pos, item in enumerate(c.items)">
+          ${feedback_item_moderation(item, h.get_package_from_id(item.package_id))}
+        </py:for>
+
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

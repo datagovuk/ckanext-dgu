@@ -21,6 +21,7 @@
 # ckanext-spatial
 -e git+https://github.com/datagovuk/ckanext-spatial.git@dgu#egg=ckanext-spatial
 
+
 # ckanext-qa
 -e git+https://github.com/datagovuk/ckanext-qa.git@temp_working#egg=ckanext-qa
 
@@ -41,3 +42,7 @@ Shapely>=1.2.13
 owslib
 lxml<=2.2.99
 argparse
+# Selenium driver for Python
+selenium==2.28.0
+fabric==1.5.3
+pymollom

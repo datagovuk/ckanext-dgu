@@ -1,0 +1,93 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+<py:def function="body_class">no-sidebar</py:def>
+
+<xi:include href="../feedback/_feedback_util.html" />
+
+  <py:def function="page_title">Unpublished Dataset Feedback Report</py:def>
+
+  <py:def function="optional_head">
+  </py:def>
+
+  <py:def function="page_heading">
+  <a class="btn btn-primary pull-right" href="${request.path}.csv?${h.feedback_report_params()}">Download as CSV</a>
+
+    <py:if test="c.publisher">
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.publisher.name)}">${c.publisher.display_name}</a>
+      <span class="abbreviation" py:if="c.publisher.extras.get('abbreviation')">&nbsp;(${c.publisher.extras.get('abbreviation')})</span>
+    </py:if>
+
+    <py:if test="not c.publisher">
+    All publishers
+    </py:if>
+
+    <span class="subheading"><img src="/images/arrow-down-right.png"/>Unpublished Dataset Feedback <py:if test="c.generated_at">(${c.generated_at})</py:if></span>
+  </py:def>
+
+
+  <div py:match="content" class="dataset">
+    <div class="boxed">
+
+          <div>
+            <form action="" class="form-inline">
+              <label py:if="c.has_publisher" class="checkbox" py:with="val,checked = h.feedback_report_checkbox_sub()">
+                <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+                Include datasets from sub-publishers
+              </label>
+
+              &nbsp;&nbsp;
+              <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_zero()">
+                <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+                Include datasets with no feedback
+              </label>
+
+            <h3 class="pull-right">
+              ${c.dataset_count} total datasets / ${c.dataset_count_with_feedback} with feedback
+            </h3>
+
+            </form>
+
+
+          </div>
+
+        <table class="table table-striped" width="100%">
+            <tr>
+              <th>Dataset</th>
+              <th>Publish Date</th>
+              <th>Publisher</th>
+              <th>Economic growth</th>
+              <th>Social growth</th>
+              <th>Effective services</th>
+              <th>Linked data</th>
+              <th>Other</th>
+              <th>Total</th>
+            </tr>
+            <py:for each="stats in c.page.items">
+              <tr>
+                  <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
+                  <td>${h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}</td>
+                  <td><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController',
+                                     action='feedback', id=stats['publisher-name'])}">${stats.get('publisher-title','')}</a></td>
+                  <td>${stats.get('economic',0)}</td>
+                  <td>${stats.get('social',0)}</td>
+                  <td>${stats.get('effective',0)}</td>
+                  <td>${stats.get('linked',0)}</td>
+                  <td>${stats.get('other',0)}</td>
+                  <td>${stats.get('total-comments',0)}</td>
+              </tr>
+            </py:for>
+        </table>
+
+          <a class='pull-right' py:if="c.publisher" href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">View all publishers</a>
+
+        ${c.page.pager()}
+        <div class="clearfix"></div>
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

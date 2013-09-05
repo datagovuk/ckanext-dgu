@@ -4,12 +4,13 @@
   py:strip="">
   
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets - History</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
   <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
     ${h.dataset_link(c.pkg)}
+    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
     <span class="subheading"><img src="/images/arrow-down-right.png"/> History</span>
   </py:def>
+  <xi:include href="sidebar.html"/>
 
   <div py:match="content" class="dataset">
     <div class="boxed">

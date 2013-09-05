@@ -71,7 +71,7 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x:x.title):
+def construct_publisher_tree(groups,  type='publisher', root_url='publisher', title_for_group=lambda x:x.title):
     """
         Uses the provided groups to generate a tree structure (in a dict) by
         matching up the tree relationship using the Member objects.
@@ -81,7 +81,7 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
     """
     from ckan import model
 
-    root = PublisherNode( "root", "root")
+    root = PublisherNode( "root", "root", root_url=root_url)
     tree = { root.slug : root }
 
     # Get all the member objects between groups.
@@ -114,7 +114,7 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
     for group in groups:
         slug, title = group.name, title_for_group(group)
         if not slug in tree:
-            tree[slug] = PublisherNode(slug, title)
+            tree[slug] = PublisherNode(slug, title, root_url=root_url)
         else:
             # May be updating a parent placeholder where the child was
             # encountered first.
@@ -129,14 +129,14 @@ def construct_publisher_tree(groups,  type='publisher', title_for_group=lambda x
                 parent_slug, parent_title = parent.name, parent.title
                 if not parent_slug in tree:
                     # Parent doesn't yet exist, add a placeholder
-                    tree[parent_slug] = PublisherNode('', '')
+                    tree[parent_slug] = PublisherNode('', '', root_url)
                 tree[parent_slug].children.append(tree[slug])
     return root
 
-def render_tree(groups,  type='publisher'):
-    return construct_publisher_tree(groups,type).render()
+def render_tree(groups,  typ='publisher', root_url='publisher'):
+    return construct_publisher_tree(groups, type=typ, root_url=root_url).render()
 
-def render_mini_tree(all_groups,this_group):
+def render_mini_tree(all_groups, this_group, type="publisher"):
     '''Render a tree, but a special case, where there is one 'parent' (optional),
     the current group and any number of subgroups under it.'''
     from ckan import model
@@ -155,7 +155,7 @@ def render_mini_tree(all_groups,this_group):
             return '<strong>%s</strong>' % group.title
         return group.title
 
-    root = construct_publisher_tree(all_groups,'publisher',title_for_group)
+    root = construct_publisher_tree(all_groups,type=type, root_url=type, title_for_group=title_for_group)
     root.children = filter( lambda x: x.slug==root_group.name , root.children )
 
     return root.render()
@@ -261,7 +261,21 @@ def resource_display_name(resource_dict):
         noname_string = 'File'
         return '[%s] %s' % (noname_string, resource_dict['id'])
 
-def _search_with_filter(k_search,k_replace):
+
+def search_has_term(key, val):
+    current_val =  t.request.params.get(key, None)
+    return current_val == val
+
+def get_search_params(remove=None):
+    from urllib import urlencode
+    from ckan.controllers.package import _encode_params
+    if not remove:
+        remove = ['page']
+    else:
+        remove + ['page']
+    return "?" + urlencode(_encode_params([(k, v) for k,v in t.request.params.items() if k not in remove]))
+
+def _search_with_filter(k_search,k_replace, alternative_url=None):
     from ckan.controllers.package import search_url
     # most search operations should reset the page counter:
     params_nopage = [(k, v) for k,v in t.request.params.items() if k != 'page']
@@ -270,13 +284,35 @@ def _search_with_filter(k_search,k_replace):
     for (k,v) in params:
         if k==k_search: k=k_replace
         params_filtered.add((k,v))
+    if alternative_url:
+        return url_with_params(alternative_url, params_filtered)
     return search_url(params_filtered)
 
-def search_with_subpub():
-    return _search_with_filter('publisher','parent_publishers')
 
-def search_without_subpub():
-    return _search_with_filter('parent_publishers','publisher')
+def _search_update_filter(filtername, newval=None, alternative_url=None):
+    from ckan.controllers.package import search_url
+    # most search operations should reset the page counter:
+    params_nopage = [(k, v) for k,v in t.request.params.items() if k != 'page']
+    params = set(params_nopage)
+    params_filtered = set()
+    for (k,v) in params:
+        if k==filtername:
+            if newval:
+                params_filtered.add((k,newval))
+            continue
+
+        params_filtered.add((k,v))
+    if not filtername in params and newval:
+        params_filtered.add((filtername, newval))
+    if alternative_url:
+        return url_with_params(alternative_url, params_filtered)
+    return search_url(params_filtered)
+
+def search_with_subpub(alternative_url=None):
+    return _search_with_filter('publisher','parent_publishers',alternative_url)
+
+def search_without_subpub(alternative_url=None):
+    return _search_with_filter('parent_publishers','publisher',alternative_url)
 
 def predict_if_resource_will_preview(resource_dict):
     format = resource_dict.get('format')
@@ -584,6 +620,19 @@ def formats_for_package(package):
 def link_subpub():
     return t.request.params.get('publisher','') and not t.request.params.get('parent_publishers','')
 
+def has_hidden_unpublished():
+    return t.request.params.get('unpublished','true') == 'false'
+
+def has_visible_unpublished():
+    return t.request.params.get('unpublished','true') == 'true'
+
+def search_params_contains(arg):
+    return arg in t.request.params
+
+def search_params_val(arg, default=None):
+    return t.request.params.get(arg, default)
+
+
 def facet_params_to_keep():
     return [(k, v) for k,v in t.request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
 
@@ -617,7 +666,7 @@ def get_resource_fields(resource, pkg_extras):
         'content_type': {'label': 'Content Type', 'value': ''},
         'scraper_url': {'label': 'Scraper',
             'label_title':'URL of the scraper used to obtain the data',
-            'value': t.literal(h.scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
+            'value': t.literal(scraper_icon(c.resource)) + h.link_to(res_dict.get('scraper_url'), 'https://scraperwiki.com/scrapers/%s' %res_dict.get('scraper_url')) if res_dict.get('scraper_url') else None},
         'scraped': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': h.render_datetime(res_dict.get('scraped'), "%d/%m/%Y")},
@@ -804,7 +853,7 @@ def user_display_name(user):
     return user_str
 
 def pluralise_text(num):
-    return 's' if num > 1 else ''
+    return 's' if num > 1 or num == 0 else ''
 
 def group_category(group_extras):
     category = group_extras.get('category')
@@ -1355,6 +1404,8 @@ def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
 
 def render_facet_key(key,value=None):
+    if key=='unpublished':
+        return 'Show only'
     if key=='license_id-is-ogl':
         return 'Licence'
     if key=='UKLP':
@@ -1369,9 +1420,15 @@ def render_facet_key(key,value=None):
     return ckan.lib.helpers.get_facet_title(key)
 
 def render_facet_value(key,value):
+    if key=='unpublished':
+        if value=='true':
+            return 'Unpublished datasets'
+        return 'Published datasets'
     if key=='license_id-is-ogl':
         if value=='true':
             return 'Open Government Licence'
+        elif value=='unpublished':
+            return 'Unpublished dataset'
         return 'Non-Open Government Licence'
     if key=='openness_score':
         try:
@@ -1467,8 +1524,68 @@ def search_theme_mode_attrs():
         out['checked'] = 'checked'
     return out
 
-def is_inventory_item(package):
-    return get_from_flat_dict(package['extras'], 'inventory')
+def get_package_from_id(id):
+    from ckan.model import Package
+    return Package.get(id)
+
+def linked_username(userid):
+    import ckan.model as model
+    user = model.User.get(userid)
+    if not user:
+        return ""
+
+    return t.literal("<a href='/users/{0}'>{1}</a>".format(userid, user.fullname or userid))
+
+def will_be_published(package):
+    from paste.deploy.converters import asbool
+    has_restriction = asbool(get_from_flat_dict(package['extras'], 'publish-restricted', False))
+    if not has_restriction:
+        return True, unpublished_release_date(package)
+    return False, None
+
+def unpublished_release_date(package):
+    return get_from_flat_dict(package['extras'], 'publish-date')
+
+
+def is_unpublished_item(package):
+    if not package:
+        # e.g. when displaying package/new form
+        return False
+    from paste.deploy.converters import asbool
+    return asbool(get_from_flat_dict(package['extras'], 'unpublished'))
+
+def is_unpublished_unavailable(package):
+    return get_from_flat_dict(package['extras'], 'publish-restricted', False)
+
+def feedback_user_count(pkg):
+    from ckanext.dgu.model.feedback import Feedback
+    return Feedback.users_count(pkg)
+
+def feedback_comment_count(pkg):
+    from ckanext.dgu.model.feedback import Feedback
+    return Feedback.comments_count(pkg)
+
+
+def unpublished_release_notes(package):
+    return get_from_flat_dict(package['extras'], 'release-notes')
+
+def unpublished_comments_lookup(package):
+    import ckan.model as model
+    from ckanext.dgu.model.feedback import Feedback
+
+    counts = {'economic': 0, 'social': 0, 'effective': 0, 'other':0, 'linked': 0}
+
+    for fb in model.Session.query(Feedback).filter(Feedback.visible==True).\
+            filter(Feedback.package_id==package['id']).\
+            filter(Feedback.active==True).all():
+        if fb.economic: counts['economic'] += 1
+        if fb.social: counts['social'] += 1
+        if fb.effective: counts['effective'] += 1
+        if fb.other: counts['other'] += 1
+        if fb.linked: counts['linked'] += 1
+
+    return counts
+
 
 def tidy_url(url):
     '''
@@ -1543,3 +1660,60 @@ def themes_displayname():
     from ckanext.dgu.schema import THEMES
     return THEMES
 
+def span_read_more(text, word_limit, classes=""):
+    trimmed = truncate(text,length=word_limit,whole_word=True)
+    if trimmed==text:
+        return t.literal('<span class="%s">%s</span>' % (classes,text))
+    return t.literal('<span class="read-more-parent">\
+            <span style="display:none;" class="expanded %s">%s</span>\
+            <span class="collapsed %s">%s</span>\
+            <a href="#" class="collapsed link-read-more">Read more &raquo;</a>\
+            <a href="#" class="expanded link-read-less" style="display:none;">&laquo; Hide</a>\
+            </span>' % (classes,text,classes,trimmed))
+
+def render_db_date(db_date_str):
+    '''Takes a string as we generally store it in the database and returns it
+    rendered nicely to show to the user.
+    e.g. '2014/02/01' -> '1/2/2014'
+         '2014/02' -> '2/2014'
+         '2014' -> '2014'
+    Non-parsing strings get '' returned.
+    '''
+    from ckan.lib.field_types import DateType, DateConvertError
+    try:
+        return DateType.db_to_form(db_date_str)
+    except DateConvertError:
+        return ''
+
+def feedback_report_checkbox_sub():
+    from pylons import request
+    val = request.path
+    checked = (c.include_subpublisher == True)
+    if checked:
+        # If currently checked we want to turn off the option
+        val = val +  ('?show-zero-feedback=1' if c.show_zero_feedback else '')
+    else:
+        # If not checked we want the val to turn on the option
+        val = val + '?show-subpub=1%s' % ('&show-zero-feedback=1' if c.show_zero_feedback else '')
+    return val,checked
+
+def feedback_report_checkbox_zero():
+    from pylons import request
+    val = request.path
+    checked = (c.show_zero_feedback == True)
+    if checked:
+        # If currently checked we want to turn off the option
+        val = val +  ('?show-subpub=1' if c.include_subpublisher else '')
+    else:
+        # If not checked we want the val to turn on the option
+        val = val + '?show-zero-feedback=1%s' % ('&show-subpub=1' if c.include_subpublisher else '')
+    return val,checked
+
+def feedback_report_params():
+    from urllib import urlencode
+    params = {}
+    if c.show_zero_feedback:
+        params['show-zero-feedback'] = 1
+    if c.include_subpublisher:
+        params['show-subpub'] = 1
+    return urlencode(params, True)

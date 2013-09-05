@@ -1,4 +1,4 @@
-import os
+﻿import os
 
 from logging import getLogger
 from urllib import quote
@@ -15,17 +15,19 @@ from ckan.plugins import IMiddleware
 from ckan.plugins import IAuthFunctions
 from ckan.plugins import IPackageController
 from ckan.plugins import ISession
+from ckan.plugins import IActions
 from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
 from ckan.plugins import ICachedReport
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
-## from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
-##                              dgu_package_create, dgu_package_update, dgu_package_show,
-##                              dgu_package_create_rest, dgu_package_update_rest,
-##                              dgu_extra_fields_editable,
-##                              dgu_dataset_delete, dgu_user_list, dgu_user_show)
-
+#from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
+#                             dgu_package_create, dgu_package_update,
+#                             dgu_package_create_rest, dgu_package_update_rest,
+#                             dgu_extra_fields_editable,
+#                             dgu_dataset_delete, dgu_user_list, dgu_user_show,
+#                             dgu_feedback_update, dgu_feedback_create, dgu_feedback_delete)
+from ckanext.dgu.authorize import (dgu_feedback_update, dgu_feedback_create, dgu_feedback_delete)
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
@@ -139,7 +141,7 @@ class ThemePlugin(SingletonPlugin):
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')
-        map.connect('/data/themes/{name}', controller=theme_controller, action='named_theme')        
+        map.connect('/data/themes/{name}', controller=theme_controller, action='named_theme')
 
         # For test usage when Drupal is not running
         map.connect('/comment/get/{id}',
@@ -253,22 +255,23 @@ class DrupalAuthPlugin(SingletonPlugin):
 class AuthApiPlugin(SingletonPlugin):
     '''Adds functions that work out if the user is allowed to do
     certain edits.'''
+
     ##implements(IAuthFunctions, inherit=True)
 
     ## def get_auth_functions(self):
-    ##     return {
-    ##         'group_update' : dgu_group_update,
-    ##         'group_create' : dgu_group_create,
-    ##         'package_create' : dgu_package_create,
-    ##         'package_update' : dgu_package_update,
-    ##         'package_create_rest' : dgu_package_create_rest,
-    ##         'package_update_rest' : dgu_package_update_rest,
-    ##         'package_extra_fields_editable' : dgu_extra_fields_editable,
-    ##         'package_delete': dgu_dataset_delete,
-    ##         'user_list': dgu_user_list,
-    ##         'user_show': dgu_user_show,
-    ##         'package_show': dgu_package_show,
-    ##     }
+    ## return {
+    ## 'group_update' : dgu_group_update,
+    ## 'group_create' : dgu_group_create,
+    ## 'package_create' : dgu_package_create,
+    ## 'package_update' : dgu_package_update,
+    ## 'package_create_rest' : dgu_package_create_rest,
+    ## 'package_update_rest' : dgu_package_update_rest,
+    ## 'package_extra_fields_editable' : dgu_extra_fields_editable,
+    ## 'package_delete': dgu_dataset_delete,
+    ## 'user_list': dgu_user_list,
+    ## 'user_show': dgu_user_show,
+    ## 'package_show': dgu_package_show,
+    ## }
 
 
 class DguForm(SingletonPlugin):
@@ -392,14 +395,18 @@ class PublisherPlugin(SingletonPlugin):
         should generate all reports.
         """
         from ckanext.dgu.lib.publisher import cached_openness_scores
-        return { 'Cached Openness Scores': cached_openness_scores }
+        from ckanext.dgu.lib.reports import cached_reports
+
+        return { 'Cached Openness Scores': cached_openness_scores,
+                 'Cached reports': cached_reports }
 
     def list_report_keys(self):
         """
         Returns a list of the reports that the plugin can generate by
         returning each key name as an item in a list.
         """
-        return ['openness-scores', 'openness-scores-withsub']
+        return ['openness-scores', 'openness-scores-withsub',
+                'feedback-report']
 
 
 class InventoryPlugin(SingletonPlugin):
@@ -407,25 +414,69 @@ class InventoryPlugin(SingletonPlugin):
     implements(IRoutes, inherit=True)
     implements(IConfigurer)
     implements(ISession, inherit=True)
+    implements(IAuthFunctions, inherit=True)
 
+    def get_auth_functions(self):
+        return {
+            'feedback_update' : dgu_feedback_update,
+            'feedback_create' : dgu_feedback_create,
+            'feedback_delete': dgu_feedback_delete,
+        }
 
     def before_commit(self, session):
         pass
 
     def before_map(self, map):
+        fb_ctlr = 'ckanext.dgu.controllers.feedback:FeedbackController'
+
+        # Feedback specific URLs
+        map.connect('/data/feedback/moderate/:id',
+                    controller=fb_ctlr, action='moderate')
+        map.connect('/data/feedback/abuse/:id',
+                    controller=fb_ctlr, action='report_abuse')
+        map.connect('/data/feedback/moderation',
+                    controller=fb_ctlr, action='moderation')
+
+        # Adding and viewing feedback per dataset
+        map.connect('/dataset/:id/feedback/view',
+                    controller=fb_ctlr, action='view')
+        map.connect('/dataset/:id/feedback/add',
+                    controller=fb_ctlr, action='add')
+
+
+        # As users have been sent out a direct link to /inventory/publisher-name/edit
+        # we will (at least for a short while) allow /inventory to redirect to
+        # /unpublished
+        map.redirect('/unpublished', '/data/search?unpublished=true')
+        map.redirect('/inventory/{url:.*}', '/unpublished/{url}')
+
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
-        map.connect('/inventory/:id/edit',
+        map.connect('/unpublished/edit-item/:id',
+                    controller=inv_ctlr, action='edit_item')
+        map.connect('/unpublished/:id/edit',
                     controller=inv_ctlr, action='edit' )
-        map.connect('/inventory/:id/edit/download',
+        map.connect('/unpublished/:id/edit/download',
                     controller=inv_ctlr, action='download' )
-        map.connect('/inventory/:id/edit/template',
+        map.connect('/unpublished/:id/edit/template',
                     controller=inv_ctlr, action='template' )
-        map.connect('/inventory/:id/edit/upload',
+        map.connect('/unpublished/:id/edit/upload',
                     controller=inv_ctlr, action='upload' )
-        map.connect('/inventory/:id/edit/upload_complete',
+        map.connect('/unpublished/:id/edit/upload_complete',
                     controller=inv_ctlr, action='upload_complete' )
-        map.connect('/inventory/:id/edit/upload/:upload_id',
+        map.connect('/unpublished/:id/edit/upload/:upload_id',
                     controller=inv_ctlr, action='upload_status' )
+
+        report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
+        map.connect('/data/feedback/report/:id.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/feedback/report/:id',
+                    controller=report_ctlr, action='feedback')
+
+        map.connect('/data/feedback/report.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/feedback/report',
+                    controller=report_ctlr, action='feedback')
+
 
         return map
 
@@ -434,7 +485,6 @@ class InventoryPlugin(SingletonPlugin):
 
     def update_config(self, config):
         pass
-
 
 
 class SearchPlugin(SingletonPlugin):
@@ -479,6 +529,8 @@ class SearchPlugin(SingletonPlugin):
         """
         Modify the search query.
         """
+        from paste.deploy.converters import asbool
+
         # Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
         # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
         # within.
@@ -512,17 +564,6 @@ class SearchPlugin(SingletonPlugin):
             # scores have been loaded.
             search_params['sort'] = 'score desc, popularity desc, name asc'
 
-        # For the first stage of the inventory work, we do not want inventory items to
-        # appear in the search results, and so temporarily we will only show items whose
-        # inventory extra is set to false.  This won't work when we are doing a spatial
-        # query and so we need to make sure that we don't add search params in that case.
-        # None of the inventory items will have location and so won't show up when doing
-        # a location base search.
-        if not sort_by_location_enabled:
-            if search_params.get('fq'):
-                search_params['fq'] = '{0} inventory:"false"'.format(search_params.get('fq',''))
-            else:
-                search_params['fq'] = 'inventory:"false"'
         return search_params
 
     def after_search(self, search_results, search_params):
@@ -567,6 +608,8 @@ class ApiPlugin(SingletonPlugin):
         map.connect('/api/util/latest-datasets', controller=api_controller, action='latest_datasets')
         map.connect('/api/util/dataset-count', controller=api_controller, action='dataset_count')
         map.connect('/api/util/revisions', controller=api_controller, action='revisions')
+        map.connect('/api/util/latest-unpublished', controller=api_controller, action='latest_unpublished')
+        map.connect('/api/util/popular-unpublished', controller=api_controller, action='popular_unpublished')
 
         reports_api_controller = 'ckanext.dgu.controllers.api:DguReportsController'
         map.connect('reports_api',

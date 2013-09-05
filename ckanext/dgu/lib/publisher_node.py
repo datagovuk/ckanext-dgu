@@ -5,10 +5,11 @@ class PublisherNode:
     A tree node for rendering publishers in our hierarchy view
     """
 
-    def __init__(self,sl, s):
+    def __init__(self,sl, s, root_url):
         self.title = s
         self.slug = sl
         self.children = []
+        self.root_url = root_url or 'publisher'
 
     def indent(self,x, txt):
         return ('   ' * x) + txt
@@ -16,7 +17,7 @@ class PublisherNode:
     def linkify(self):
         # Should use
         # h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=self.slug)
-        return "<a href='/publisher/%s'>%s</a>" % (self.slug,self.title)
+        return "<a href='/%s/%s'>%s</a>" % (self.root_url, self.slug,self.title)
 
     def render(self):
         """

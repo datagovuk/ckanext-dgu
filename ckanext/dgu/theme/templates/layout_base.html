@@ -58,7 +58,7 @@
     <script type="text/javascript" src="/assets/js/bootstrap-hashchange.js"></script>
     <!-- CKAN DGU scripts -->
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script> 
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-autocomplete.js')}"></script>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-basket.js')}"></script>
   </py:if>
   <py:if test="config.get('dgu.use_raw_js')!='true'">
@@ -77,6 +77,9 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
   <!-- TODO fix IE conditional commenting. For now, always include these files. -->
+  <!--[if IE 7]>
+  <link rel="stylesheet" media="all" href="/css/font-awesome-ie7.min.css" />
+  <![endif]-->
 
   ${h.literal(getattr(g, 'template_head_end', ''))}
 </head>
@@ -146,8 +149,8 @@ ${h.top_level_init()}
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/themes') else ''}" href="/data/themes">Themes</a></li>      
-      <span class="divider">&nbsp;|&nbsp;</span>
+      <!--!   <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/themes') else ''}" href="/data/themes">Themes</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span> -->
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
@@ -181,8 +184,10 @@ ${h.top_level_init()}
         <span class="divider">&nbsp;|&nbsp;</span>
         <span class="divider-section">&nbsp; Sys Admin:</span>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
-          <span class="divider">&nbsp;|&nbsp;</span>
+        <span class="divider">&nbsp;|&nbsp;</span>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
+        <span class="divider">&nbsp;|&nbsp;</span>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/feedback/moderation') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
       </py:if>
     </ul>
   </div>

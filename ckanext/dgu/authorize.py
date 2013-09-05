@@ -115,7 +115,6 @@
 ##         # we should wrap it in a list to make sure the intersection check works
 ##         package_group_names = [data_dict['groups']] if data_dict['groups'] else []
 
-
 ##     # If the user has a group (is a publisher), but there is no package
 ##     # group name, then we need to continue to allow validation to cause the
 ##     # failure.
@@ -263,3 +262,37 @@
 ##         return { 'success': False, 'msg': _('Only publishers may view this page') }
 
 ##     return {'success': True}
+
+def dgu_feedback_create(context, data_dict):
+    model = context['model']
+    user = context.get('user','')
+
+    if not user:
+        return {'success': False, 'msg': _('Only logged in users can post feedback')}
+
+    return { 'success': True }
+
+def dgu_feedback_update(context, data_dict):
+    """
+    Checks whether the user has permission to update the feedback.
+    """
+    model = context['model']
+    user = context.get('user','')
+
+    if not user:
+        return {'success': False, 'msg': _('Only logged in admins can update feedback')}
+
+    # Sys admins should be allowed to update groups
+    if Authorizer().is_sysadmin(unicode(user)):
+        return { 'success': True }
+
+    return { 'success': False, 'msg': _('Only sysadmins can update feedback') }
+
+
+def dgu_feedback_delete(context, data_dict):
+    """
+    Determines whether the current user has the ability to flip the active flag
+    on the feedback item.  For now, this is the same as update.
+    """
+    return dgu_feedback_update(context, data_dict)
+
