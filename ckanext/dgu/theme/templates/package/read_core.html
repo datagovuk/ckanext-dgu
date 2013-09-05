@@ -84,7 +84,7 @@
       </div>
 
       <!-- Description -->
-      <div py:if="str(c.pkg_notes_formatted).strip()">
+      <div py:if="c.pkg_notes_formatted.strip()">
         <!--! Optional logo -->
         <div py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'">
           <a href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html">

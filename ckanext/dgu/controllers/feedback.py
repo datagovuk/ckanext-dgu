@@ -10,7 +10,7 @@ from paste.deploy.converters import asbool
 from ckan.lib.helpers import flash_notice
 from ckan.lib.base import h, BaseController, abort
 from ckanext.dgu.lib.helpers import (unpublished_release_notes,
-                                     is_sysadmin)
+                                     is_sysadmin, render_markdown)
 from ckanext.dgu.plugins_toolkit import (render, c, request, _,
                                          ObjectNotFound, NotAuthorized,
                                          get_action, check_access)
@@ -51,14 +51,14 @@ class FeedbackController(BaseController):
         # unpublished items *won't* be markdown if they've come directly from the
         # CSV - unless they've been edited.
         try:
-            notes_formatted = ckan.misc.MarkdownFormat().to_html(c.pkg.notes)
+            notes_formatted = render_markdown(c.pkg.notes)
             c.pkg_notes_formatted = genshi.HTML(notes_formatted)
             c.release_notes_formatted = None
 
             notes = unpublished_release_notes(c.pkg_dict)
             if notes and notes.strip():
                 c.release_notes_formatted = genshi.HTML(
-                    ckan.misc.MarkdownFormat().to_html(notes))
+                    render_markdown(notes))
         except Exception:
             c.pkg_notes_formatted = c.pkg.notes
 

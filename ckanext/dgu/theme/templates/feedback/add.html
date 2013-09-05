@@ -23,7 +23,7 @@
   <div py:match="content" class="dataset-edit-form">
     <div class="boxed">
 
-      <div py:if="str(c.pkg_notes_formatted).strip()">
+      <div py:if="c.pkg_notes_formatted.strip()">
         <h3>Description</h3>
         <!-- blank style tag avoids a bug in jquery.dotdotdot -->
         <div class="notes" style="">
