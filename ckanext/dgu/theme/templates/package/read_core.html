@@ -97,8 +97,6 @@
           </a>
         </div>
 
-        <h3 py:if="h.is_unpublished_item(c.pkg_dict)">Description</h3>
-
         <!-- blank style tag avoids a bug in jquery.dotdotdot -->
         <div class="notes clearfix" style="">
           ${c.pkg_notes_formatted}
@@ -183,17 +181,10 @@
         </py:if>
       </div>
       </py:if>
-
-    <py:if test="h.is_unpublished_item(c.pkg_dict)">
-      ${unpublished_publisher_feedback(c.pkg_dict)}
-    </py:if>
-
-
     </div>
 
     <!-- Dataset Information Section -->
     <py:if test="not h.is_unpublished_item(c.pkg_dict)">
-
       <h3>Additional Information</h3>
       <div id="dataset-information">
       <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size metadata-table">
@@ -213,6 +204,10 @@
 
       </div>
 
+</py:if>
+
+      <!--! We may want to move this back into the bit that stops it being shown for unpublished datasets
+      -->
       <div id="developer-tools">
           <h3>Developer Tools</h3>
           <div>
@@ -233,14 +228,15 @@
                   This dataset has a permanent URI:
                   <code class="one-line-link">
                     <a href="${h.url_for(controller='package', action='read', id=c.pkg.name)}">
-                        ${g.site_url}${h.url_for(controller='package', action='read', id=c.pkg.name)}
+                        ${h.url_for(controller='package', action='read', id=c.pkg.name, qualified=True)}
                     </a>
                   </code>
               </p>
           </div>
       </div>
-    </py:if>
+
   </div> <!-- /dataset -->
 
+    ${dataset_feedback(c.pkg_dict)}
 
 </html>

@@ -13,18 +13,39 @@ class TestLinkedUser(PylonsTestCase):
         PylonsTestCase.setup_class()
         DguCreateTestData.create_dgu_test_data()
 
-    def test_view_drupal_user(self):
+    def test_view_official(self):
         # most common case
-        user = 'nhseditor'
+        user = 'nhseditor' # i.e. an official, needing anonymity to the public
         user_obj = model.User.by_name(unicode(user))
 
         c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)), '<a href="/publisher/national-health-service">National Heal...</a>')
-        assert_equal(str(dgu_linked_user(user_obj)), '<a href="/publisher/national-health-service">National Heal...</a>')
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/publisher/national-health-service">National Heal...</a>')
+        assert_equal(str(dgu_linked_user(user_obj)),
+                '<a href="/publisher/national-health-service">National Heal...</a>')
 
         c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)), '<a href="/data/user/nhseditor">NHS Editor</a>')
-        assert_equal(str(dgu_linked_user(user_obj)), '<a href="/data/user/nhseditor">NHS Editor</a>')
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/data/user/nhseditor">NHS Editor</a>')
+        assert_equal(str(dgu_linked_user(user_obj)),
+                '<a href="/data/user/nhseditor">NHS Editor</a>')
+
+    def test_view_member_of_public(self):
+        # most common case
+        user = 'user_d102' # a member of the public, not anonymous - public comments
+        user_obj = model.User.by_name(unicode(user))
+
+        c.is_an_official = False
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+        assert_equal(str(dgu_linked_user(user_obj)),
+                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+
+        c.is_an_official = True
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+        assert_equal(str(dgu_linked_user(user_obj)),
+                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
 
     def test_view_sysadmin(self):
         # very common case
@@ -36,8 +57,10 @@ class TestLinkedUser(PylonsTestCase):
         assert_equal(str(dgu_linked_user(user_obj)), 'System Administrator')
 
         c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)), '<a href="/data/user/sysadmin">Test Sysadmin</a>')
-        assert_equal(str(dgu_linked_user(user_obj)), '<a href="/data/user/sysadmin">Test Sysadmin</a>')
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/data/user/sysadmin">Test Sysadmin</a>')
+        assert_equal(str(dgu_linked_user(user_obj)),
+                '<a href="/data/user/sysadmin">Test Sysadmin</a>')
 
     def test_view_non_object_user(self):
         # created by a script, but no User object exists
@@ -55,8 +78,10 @@ class TestLinkedUser(PylonsTestCase):
         user = 'National Health Service (uid 101 )'
 
         c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)), '<a href="/publisher/national-health-service">National Heal...</a>')
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/publisher/national-health-service">National Heal...</a>')
 
         c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)), '<a href="/data/user/user_d101">NHS Editor im...</a>')
+        assert_equal(str(dgu_linked_user(user)),
+                '<a href="/data/user/user_d101">NHS Editor im...</a>')
 

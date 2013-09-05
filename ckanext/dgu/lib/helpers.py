@@ -325,10 +325,20 @@ def predict_if_resource_will_preview(resource_dict):
     # list of formats is copied from recline js
 
 def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
+    '''Given a user.name, user object or Drupal user name , return the HTML for a user,
+    making sure officials are kept anonymous to the public.
+    user parameter can be any of:
+    * CKAN user.name e.g. 'user_d845'
+    * user object
+    * Drupal user name e.g. 'davidread'
+    * Old Drupal user ID as stored in revisions e.g. 'NHS North Staffordshire (uid 6107 )'
+    '''
     from ckan import model
     from ckan.lib.base import h
 
+    # Work out who the user is that we want to view
     if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
+        # These values occur in tests only?
         return user
     if not isinstance(user, model.User):
         user_name = unicode(user)
@@ -337,25 +347,38 @@ def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
     this_is_me = user and (c.user in (user.name, user.fullname))
 
     if not user:
-        # may be in the format "NHS North Staffordshire (uid 6107 )"
+        # Up til Jun 2012, CKAN saved Drupal users in this format:
+        # "NHS North Staffordshire (uid 6107 )"
         match = re.match('.*\(uid (\d+)\s?\)', user_name)
         if match:
             drupal_user_id = match.groups()[0]
             user = model.User.get('user_d%s' % drupal_user_id)
+    user_is_official = not user or (user.get_groups('publisher') or is_sysadmin(user))
+    if user and user.name.startswith('user_d'):
+        user_drupal_name = user.fullname
+    else:
+        user_drupal_name = None
 
-    if (c.is_an_official or this_is_me):
-        # only officials and oneself can see the actual user name
+    # Now decide how to display the user
+    if (c.is_an_official or this_is_me or not user_is_official):
+        # To see the actual user name:
+        # * viewing ones own user
+        # * viewer is an official
+        # * viewing a member of public
         if user:
-            publisher = ', '.join([group.title for group in user.get_groups('publisher')])
-
-            display_name = '%s (%s)' % (user.fullname, publisher)
             link_text = truncate(user.fullname or user.name, length=maxlength)
+            if user_is_official or not user_drupal_name:
+                # officials use the CKAN user page for the time being (useful for debug)
+                link_url = h.url_for(controller='user', action='read', id=user.name)
+            else:
+                # public use the Drupal user page
+                link_url = '/users/%s' % user_drupal_name
             return h.link_to(link_text,
-                             h.url_for(controller='user', action='read', id=user.name))
+                             urllib.quote(link_url))
         else:
             return truncate(user_name, length=maxlength)
     else:
-        # joe public just gets a link to the user's publisher(s)
+        # joe public just gets a link to an official's publisher(s)
         import ckan.authz
         if user:
             groups = user.get_groups('publisher')
@@ -1512,14 +1535,6 @@ def search_theme_mode_attrs():
 def get_package_from_id(id):
     from ckan.model import Package
     return Package.get(id)
-
-def linked_username(userid):
-    import ckan.model as model
-    user = model.User.get(userid)
-    if not user:
-        return ""
-
-    return t.literal("<a href='/users/{0}'>{1}</a>".format(userid, user.fullname or userid))
 
 def will_be_published(package):
     from paste.deploy.converters import asbool
