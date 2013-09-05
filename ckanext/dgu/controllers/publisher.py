@@ -325,14 +325,7 @@ class PublisherController(GroupController):
         # Search within group
         fq += ' parent_publishers: "%s"' % c.group_dict.get('name')
 
-        description = c.group_dict.get('description','').replace('&amp;', '&')
-        try:
-            description_formatted = ckan.misc.MarkdownFormat().to_html(description)
-            c.description_formatted = genshi.HTML(description_formatted)
-        except Exception, e:
-            error_msg = "<span class='inline-warning'>%s</span>" % _("Cannot render description")
-            c.description_formatted = genshi.HTML(error_msg)
-
+        c.description = c.group_dict.get('description','').replace('&amp;', '&')
         context['return_query'] = True
 
         limit = 10

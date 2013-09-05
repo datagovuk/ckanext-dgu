@@ -29,8 +29,8 @@
 
     <div class="group-dataset-list">
       <div class="boxed">
-        <div class="notes" py:if="str(c.description_formatted).strip()">
-          ${c.description_formatted}
+        <div class="notes" py:if="str(c.description).strip()">
+          ${h.render_markdown(c.description)}
         </div>
         <h4>Search Publisher</h4>
 
