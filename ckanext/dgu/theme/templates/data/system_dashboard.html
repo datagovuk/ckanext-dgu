@@ -44,6 +44,14 @@
       </ul>
     </div>
     <div class="boxed">
+      <h3>Unpublished dataset feedback</h3>
+      <ul>
+        <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Report for all publishers</a></li>
+        <li><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
+      </ul>
+    </div>
+
+    <div class="boxed">
       <h3>Harvesting</h3>
       <ul>
         <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest sources</a></li>

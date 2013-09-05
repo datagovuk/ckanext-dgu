@@ -145,7 +145,7 @@ class FeedbackController(BaseController):
             model.Session.add(fb)
             model.Session.commit()
 
-        h.redirect_to(request.referer)
+        h.redirect_to(request.referer or '/data')
 
     def add(self, id):
         """

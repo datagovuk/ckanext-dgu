@@ -1519,7 +1519,7 @@ def linked_username(userid):
     if not user:
         return ""
 
-    return t.literal("<a href='/user/{0}'>{1}</a>".format(userid, user.fullname or userid))
+    return t.literal("<a href='/users/{0}'>{1}</a>".format(userid, user.fullname or userid))
 
 def will_be_published(package):
     from paste.deploy.converters import asbool
