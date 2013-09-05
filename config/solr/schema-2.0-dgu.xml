@@ -95,6 +95,12 @@
     <field name="tags" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="group_titles" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
+
+    <field name="all_themes" type="string" indexed="true" stored="true" multiValued="true"/>
+
 
     <field name="capacity" type="string" indexed="true" stored="true" multiValued="false"/>
 
