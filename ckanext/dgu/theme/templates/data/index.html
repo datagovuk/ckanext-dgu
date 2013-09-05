@@ -24,7 +24,6 @@
   </py:def>
 
   <div py:match="content">
-    <!--! Though deeply unfashionable... I'm using a table to create equal-height boxes -->
     <table class="front-page-table">
       <tr>
         <td class="boxed">
@@ -33,6 +32,7 @@
         </td>
         <td class="gutter"></td>
         <td class="boxed">
+<!--!
           <div class="pull-right">
             <a href="/data/themes" class="btn btn-primary viewall">View all themes</a>
           </div>
@@ -42,6 +42,25 @@
             <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
+-->
+          <div class="pull-right">
+            <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
+          </div>
+          <h2>Tags</h2>
+          <div id="tagcloud">
+            <py:for each="tag_dict in h.random_tags()">
+              <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
+            </py:for>
+          </div>
+          <script type="text/javascript" charset="utf-8">
+    /* Tag cloud */
+    $.fn.tagcloud.defaults = {
+        /* size: {start: 12, end: 28, unit: "pt"},*/
+      size: {start: 8, end: 24, unit: "pt"},
+      color: {start: '#bbb', end: '#66aa44'}
+    };
+    $('#tagcloud a').tagcloud();
+        </script>
         </td>
       </tr>
       <tr class="gutter">

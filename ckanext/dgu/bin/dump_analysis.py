@@ -16,14 +16,17 @@ from ckanext.importlib import command
 
 log = logging.getLogger('dump_analysis')
 
+total_label = 'Total datasets'
 manual_creation = 'Manual creation using web form'
 import_source_prefixes = {
-    'ONS': 'ONS feed',
+    'ONS': 'National Statistics Publication Hub feed',
     'COSPREAD': 'Spreadsheet upload',
     'Manual': manual_creation, # originally inputted manually, but reloaded using a spreadsheet
 
     'DATA4NR': 'Data for Neighbourhoods and Regeneration import',
     }
+unpublished = 'Spreadsheet upload for unpublished datasets'
+
 date_converters = (
     (re.compile('(\d{4})(\d{2})(\d{2})'), '%Y%m%d'),
     (re.compile('(\d{4})-(\d{2})-(\d{2})'), '%Y-%m-%d'),
@@ -119,6 +122,7 @@ class TabularAnalysisFile(AnalysisFile):
 
     def save(self):
         '''Save self.data_by_date to analysis file'''
+        # Work out what to have in the header row
         if self.data_by_date:
             header = ['date']
             for date in self.data_by_date:
@@ -127,6 +131,12 @@ class TabularAnalysisFile(AnalysisFile):
                         header.append(column)
         else:
             header = []
+        # Put the total last
+        if total_label in header:
+            header.pop(header.index(total_label))
+            header.append(total_label)
+
+        # Write the rows
         data_rows = []
         for date, analysis in self.get_data_by_date_sorted():
             data_row = [format_date(date)]
@@ -205,19 +215,18 @@ class DumpAnalysis(object):
         self.save_date()
         self.analysis_dict = OrderedDict()
         packages = self.get_packages()
-        self.analysis_dict['Total active and deleted packages'] = len(packages)
         packages = self.filter_out_deleted_packages(packages)
-        self.analysis_dict['Total active packages'] = len(packages)
+        self.analysis_dict[total_label] = len(packages)
 
         if self.options.analyse_by_source:
             pkg_bins = self.analyse_by_source(packages)
             for bin, pkgs in pkg_bins.items():
-                self.analysis_dict['Packages by source: %s' % bin] = len(pkgs)
+                self.analysis_dict['Datasets by source: %s' % bin] = len(pkgs)
         if self.options.analyse_ons_by_published_by:
             ons_packages = self.filter_by_ons_packages(packages)
             pkg_bins = self.analyse_by_published_by(ons_packages)
             for bin, pkgs in pkg_bins.items():
-                self.analysis_dict['ONS packages by published_by: %s' % bin] = len(pkgs)
+                self.analysis_dict['National Statistics Pub Hub by published_by: %s' % bin] = len(pkgs)
                 
         self.print_analysis(pkg_bins)
 
@@ -256,8 +265,8 @@ class DumpAnalysis(object):
                 is_active = pkg['state_id'] == 1
             if is_active:
                 filtered_pkgs.append(pkg)
-        log.info('Deleted packages discarded: %i', (len(packages) - len(filtered_pkgs)))
-        log.info('Number of active packages: %i', (len(filtered_pkgs)))
+        log.info('Deleted datasets discarded: %i', (len(packages) - len(filtered_pkgs)))
+        log.info('Number of active datsets: %i', (len(filtered_pkgs)))
         return filtered_pkgs
 
     def filter_by_ons_packages(self, packages):
@@ -267,7 +276,7 @@ class DumpAnalysis(object):
             import_source = pkg['extras'].get('import_source')
             if import_source and import_source.startswith(ons_prefix):
                 filtered_pkgs.append(pkg)
-        log.info('Number of ONS packages: %i', (len(filtered_pkgs)))
+        log.info('Number of Pub Hub packages: %i', (len(filtered_pkgs)))
         return filtered_pkgs
 
     def analyse_by_source(self, packages):
@@ -291,7 +300,11 @@ class DumpAnalysis(object):
             if pkg['extras'].get('co_id'):
                 import_source = import_source_prefixes['COSPREAD']
                 pkg_bins[import_source].append(pkg['name'])
-                continue                
+                continue
+            if pkg['extras'].get('unpublished') == True:
+                import_source = unpublished
+                pkg_bins[import_source].append(pkg['name'])
+                continue
             pkg_bins[manual_creation].append(pkg['name'])
         return pkg_bins
 
