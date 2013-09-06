@@ -182,6 +182,10 @@
        <py:if test="show_preview_buttons">
          ${map_preview_buttons(package.id, package)}
        </py:if>
+
+        <div class="property">
+         ${feedback_summary(package)}
+       </div>
      </div>
   </div>
 
@@ -328,24 +332,24 @@
       </div>
       <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
-          'theme-primary', 
-          'Theme', 
-          'There are no further theme filters to apply.', 
+          'theme-primary',
+          'Theme',
+          'There are no further theme filters to apply.',
           more_button='more-prithemes-button'
       )}
       </div>
       <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
-          'all_themes', 
-          'Themes', 
-          'There are no further theme filters to apply.', 
+          'all_themes',
+          'Themes',
+          'There are no further theme filters to apply.',
           more_button='more-themes-button'
       )}
   </div> -->
       ${facet_box(
-          'tags', 
-          'Tags', 
-          'There are no further tag filters to apply.', 
+          'tags',
+          'Tags',
+          'There are no further tag filters to apply.',
           more_button='more-tags-button'
       )}
       ${facet_box(
@@ -361,15 +365,15 @@
           more_button='more-publishers-button'
       )}
   <!--!    ${facet_box(
-          'tags', 
-          'Tags', 
-          'There are no further tag filters to apply.', 
+          'tags',
+          'Tags',
+          'There are no further tag filters to apply.',
           more_button='more-tags-button'
       )} -->
       ${facet_box(
-          'openness_score', 
-          'Openness Score (beta)', 
-          'There are no further openness filters to apply.', 
+          'openness_score',
+          'Openness Score (beta)',
+          'There are no further openness filters to apply.',
           sort_by='name'
       )}
 

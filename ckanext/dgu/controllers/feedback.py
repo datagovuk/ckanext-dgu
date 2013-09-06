@@ -7,10 +7,10 @@ import logging
 import json
 from ckan import model
 from paste.deploy.converters import asbool
-from ckan.lib.helpers import flash_notice
+from ckan.lib.helpers import flash_notice, render_markdown
 from ckan.lib.base import h, BaseController, abort
 from ckanext.dgu.lib.helpers import (unpublished_release_notes,
-                                     is_sysadmin, render_markdown)
+                                     is_sysadmin)
 from ckanext.dgu.plugins_toolkit import (render, c, request, _,
                                          ObjectNotFound, NotAuthorized,
                                          get_action, check_access)
@@ -51,13 +51,13 @@ class FeedbackController(BaseController):
         # CSV - unless they've been edited.
         try:
             notes_formatted = render_markdown(c.pkg.notes)
-            c.pkg_notes_formatted = genshi.HTML(notes_formatted)
+            c.pkg_notes_formatted = unicode(genshi.HTML(notes_formatted))
             c.release_notes_formatted = None
 
             notes = unpublished_release_notes(c.pkg_dict)
             if notes and notes.strip():
-                c.release_notes_formatted = genshi.HTML(
-                    render_markdown(notes))
+                c.release_notes_formatted = unicode(genshi.HTML(
+                                    render_markdown(notes)))
         except Exception:
             c.pkg_notes_formatted = c.pkg.notes
 
