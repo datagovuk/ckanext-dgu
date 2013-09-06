@@ -36,20 +36,18 @@
       <div class="span6">
         <div class="boxed auto-height">
 <!--!
-          <div class="pull-right">
+          <h2 class="front-page-header">Themes
             <a href="/data/themes" class="btn btn-primary front-page-button">View all themes &raquo;</a>
-          </div>
-          <h2 class="front-page-header">Themes</h2>
+          </h2>
           <div id="tagcloud" py:with="theme_count=h.themes_count()">
             <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(),key=lambda x:x[1])">
             <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
 -->
-          <div class="pull-right">
-            <a href="/data/tag" class="btn btn-primary front-page-button">View all tags &raquo;</a>
-          </div>
-          <h2 class="front-page-header">Tags</h2>
+          <h2 class="front-page-header">Tags
+              <a href="/data/tag" class="btn btn-primary front-page-button">View all tags &raquo;</a>
+          </h2>
           <div id="tagcloud">
             <py:for each="tag_dict in h.random_tags()">
               <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
@@ -64,10 +62,9 @@
     <div class="row-fluid dgu-equal-height" data-selector=".auto-height">
       <div class="span6">
         <div class="boxed auto-height">
-          <div class="pull-right">
+          <h2 class="front-page-header">Publishers
             <a href="/publisher" class="btn btn-primary front-page-button">View all publishers &raquo;</a>
-          </div>
-          <h2 class="front-page-header">Publishers</h2>
+          </h2>
           <ul class="facet-options">
             <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
               <a href="/publisher/${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
@@ -78,10 +75,9 @@
       </div>
       <div class="span6">
         <div class="boxed auto-height">
-          <div class="pull-right">
+          <h2 class="front-page-header">UK Location
             <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary front-page-button">Map-based search &raquo;</a>
-          </div>
-          <h2 class="front-page-header">UK Location</h2>
+          </h2>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
              1000 location data records into data.gov.uk and tools to support their
@@ -99,10 +95,9 @@
     <div class="row-fluid dgu-equal-height" data-selector=".auto-height">
       <div class="span6">
         <div class="boxed auto-height">
-          <div class="pull-right">
+          <h2 class="front-page-header">Featured dataset
             <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary front-page-button">Popular datasets &raquo;</a>
-          </div>
-          <h2 class="front-page-header">Featured dataset</h2>
+          </h2>
           <py:with vars="featured=h.single_popular_dataset(20)">
             <py:if test="featured">
               ${package_summary(featured, show_preview_buttons=False)}
@@ -124,7 +119,7 @@
         <div class="boxed auto-height">
           <h2 class="front-page-header">Developers</h2>
           <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
-          <a href="/data/api" class="btn btn-primary pull-right front-page-button">CKAN API &raquo;</a>
+          <a href="/data/api" class="btn btn-primary">CKAN API &raquo;</a>
         </div>
       </div>
     </div>

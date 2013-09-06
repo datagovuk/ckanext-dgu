@@ -20,10 +20,6 @@
       padding-right: 0;
     }
 }
-.flash-messages {
-    margin-top: 12px;
-    margin-bottom: 12px;
-}
 .btn-preview {
     padding: 5px 42px 5px 26px;
     border-top-right-radius: 10px;
@@ -642,26 +638,31 @@ ul.ui-autocomplete {
     }
 }
 
-@media(min-width:800px){
-  body{
-    background:#f0f;
-  }
-}
-
 /* PAGE: Front Page */
 /* ---------------- */
 body.controller-data.action-index {
-    h2.front-page-header {
-        margin-top: 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid #aaa;
-        padding-left: 17px;
-        padding-right: 17px;
-        margin-left: -17px;
-        margin-right: -17px;
+    /*
+      h2.front-page-header {
+          margin-top: 0;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #aaa;
+          padding-left: 17px;
+          padding-right: 17px;
+          margin-left: -17px;
+          margin-right: -17px;
+      }
+    */
+    .front-page-header {
+      position: relative;
+      .front-page-button {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        margin-top: -15px;
+      }
     }
-    .btn.front-page-button {
-      margin-top: -2px;
+    .dataset-summary {
+      border: 1px solid #ccc !important;
     }
     .space-between-rows {
       @media(min-width: 768px)  { height: 10px; }

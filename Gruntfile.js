@@ -14,7 +14,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: pkg,
     uglify: {
-      options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
+      //options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
       app: {
         files:  {
           'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
@@ -63,6 +63,9 @@ module.exports = function(grunt) {
 
     },
     less: {
+      options: {
+        yuicompress: true
+      },
       build: {
         src: 'src/css/dgu-ckan.less',
         dest: 'public/css/dgu-ckan.min.css'

@@ -55,73 +55,81 @@ function feedback_delete(itemid, andban) {
 
 
 /* Core JS */
-jQuery(function () {
+$(function() {
+  // Init jquery.placeholder plugin
+  $('input[placeholder], textarea[placeholder]').placeholder();
+  // Init jquery.chosen plugin
+  $(".chzn-select").chosen();
 
-  $(document).ready(function () {
-    /* Create javascript tooltips */
-    $('.js-tooltip').tooltip();
-    $('.js-tooltip-instruction-needed').attr('title', 'Tooltip text required?');
-    $('.js-tooltip-instruction-needed').tooltip({'extraClass':'instruction-needed'});
+  /* Create javascript tooltips */
+  $('.js-tooltip').tooltip();
+  $('.js-tooltip-instruction-needed').attr('title', 'Tooltip text required?');
+  $('.js-tooltip-instruction-needed').tooltip({'extraClass':'instruction-needed'});
 
-    $('.instruction-needed').tooltip({'extraClass':'instruction-needed'});
+  $('.instruction-needed').tooltip({'extraClass':'instruction-needed'});
 
-    $('.to-be-completed').addClass('js-tooltip-to-be-completed');
-    $('.js-tooltip-to-be-completed').tooltip({'extraClass':'to-be-completed'});
+  $('.to-be-completed').addClass('js-tooltip-to-be-completed');
+  $('.js-tooltip-to-be-completed').tooltip({'extraClass':'to-be-completed'});
 
-    /* Star ratings have gorgeous HTML tooltips */
-    $('.star-rating').each(function(i,el) {
-      el = $(el);
-      el.tooltip({
-        title: el.find('.tooltip').html(),
-        placement: 'right',
-        template: '<div class="tooltip star-rating-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
-        delay: 0,
-        animation: false
+  /* Star ratings have gorgeous HTML tooltips */
+  $('.star-rating').each(function(i,el) {
+    el = $(el);
+    el.tooltip({
+      title: el.find('.tooltip').html(),
+      placement: 'right',
+      template: '<div class="tooltip star-rating-tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+      delay: 0,
+      animation: false
 
-      });
-    });
-
-    /* Reveal in search results facets */
-    $('.facet-expand-collapse').click(function(e){
-      e.preventDefault();
-      var target = $(e.delegateTarget); // Using e.target might accidently catch the <img>
-      var id = target.attr('id');
-      target.toggleClass('expanded');
-      $('#'+id+'-items').toggle('fast');
-    });
-
-    $('.read-more-parent .link-read-more, .read-more-parent .link-read-less').click(function(e) {
-      e.preventDefault();
-      var target = $(e.delegateTarget);
-      var expand = target.hasClass('link-read-more');
-      var parentElement = target.parents('.read-more-parent');
-      if (expand) {
-        parentElement.find('.expanded').show('fast');
-        parentElement.find('.collapsed').hide();
-      }
-      else {
-        parentElement.find('.collapsed').show('fast');
-        parentElement.find('.expanded').hide();
-      }
-    });
-
-    $('select[name="dataset-results-sort"]').change(function(e){
-      e.preventDefault();
-      window.location = $(this).val() + '#search-sort-by';
-    });
-    $('input[name="publisher-results-include-subpub"]').change(function(e){
-      e.preventDefault();
-      window.location = $(this).val()
-    });
-
-    // Buttons with href-action should navigate when clicked
-    $('input.href-action').click(function(e) {
-      e.preventDefault();
-      window.location = ($(e.target).attr('action'));
     });
   });
 
+  /* Reveal in search results facets */
+  $('.facet-expand-collapse').click(function(e){
+    e.preventDefault();
+    var target = $(e.delegateTarget); // Using e.target might accidently catch the <img>
+    var id = target.attr('id');
+    target.toggleClass('expanded');
+    $('#'+id+'-items').toggle('fast');
+  });
+
+  $('.read-more-parent .link-read-more, .read-more-parent .link-read-less').click(function(e) {
+    e.preventDefault();
+    var target = $(e.delegateTarget);
+    var expand = target.hasClass('link-read-more');
+    var parentElement = target.parents('.read-more-parent');
+    if (expand) {
+      parentElement.find('.expanded').show('fast');
+      parentElement.find('.collapsed').hide();
+    }
+    else {
+      parentElement.find('.collapsed').show('fast');
+      parentElement.find('.expanded').hide();
+    }
+  });
+
+  $('select[name="dataset-results-sort"]').change(function(e){
+    e.preventDefault();
+    window.location = $(this).val() + '#search-sort-by';
+  });
+  $('input[name="publisher-results-include-subpub"]').change(function(e){
+    e.preventDefault();
+    window.location = $(this).val()
+  });
+
+  // Buttons with href-action should navigate when clicked
+  $('input.href-action').click(function(e) {
+    e.preventDefault();
+    window.location = ($(e.target).attr('action'));
+  });
+
   $('input#search-theme-mode').change( CKAN.Dgu.toggleSearchThemeMode );
+
+  // Set up user login state
+  if (CKAN.USER) {
+      $(".ckan-logged-out").hide();
+      $(".ckan-logged-in").show();
+  }
 });
 
 var CKAN = CKAN || {};
