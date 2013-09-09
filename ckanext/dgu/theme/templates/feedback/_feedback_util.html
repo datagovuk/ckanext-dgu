@@ -18,7 +18,7 @@
       </p-->
       <hr/>
       <div class="pull-right">
-        <a class="btn btn-mini" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='report_abuse', id=item.id)}"><i class="icon-exclamation-sign"></i> &nbsp;Flag as offensive</a>
+        <a py:if="c.user" class="btn btn-mini" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='report_abuse', id=item.id)}" rel="nofollow"><i class="icon-exclamation-sign"></i> &nbsp;Flag as offensive</a>
         <py:if test="h.is_sysadmin()">
           <a class="btn btn-danger btn-mini"  href="javascript:0" onclick="return feedback_delete('${item.id}',false);">
             <i class="icon-trash"></i> &nbsp;Delete
@@ -26,9 +26,9 @@
         </py:if>
       </div>
       <p>
-        <strong>Submitted by:</strong> ${h.linked_username(item.user_id)} on ${h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}
+        <strong>Submitted by:</strong> ${h.dgu_linked_user(item.user_id)} on ${h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}
         <br/>
-        <strong>Responding as:</strong> 
+        <strong>Responding as:</strong>
         <py:if test="item.responding_as=='individual'">A Private Individual</py:if>
         <py:if test="item.responding_as=='organisation'">
           An Organisation
