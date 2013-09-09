@@ -25,33 +25,41 @@ class ReportsController(BaseController):
 
     def feedback(self, id=None, format=None):
         """
-        Generates a report of all of the feedback for consideration
-        as to important datasets.
+        Generates a report of all of the feedback related to datasets
         """
         import ckan.model as model
         from ckanext.dgu.lib.reports import feedback_report
         from ckanext.dgu.model.feedback import Feedback
-        from sqlalchemy.util import OrderedDict
 
         LIMIT = 50
+
         c.has_publisher = id
         c.include_subpublisher = t.asbool(request.params.get('show-subpub', 0))
         c.show_zero_feedback = t.asbool(request.params.get('show-zero-feedback', 0))
+        c.include_published = t.asbool(request.params.get('show-published', 0))
 
         try:
             page = int(request.params.get('page', 1))
         except ValueError:
             abort(404, _('Not found'))
 
+        # Fetch the (hopefully) cached data
         if id:
             c.publisher = model.Group.get(id)
-            c.data = feedback_report(c.publisher, include_sub_publishers=c.include_subpublisher,
+            c.data = feedback_report(c.publisher,
+                                     include_sub_publishers=c.include_subpublisher,
+                                     include_published=c.include_published,
                                      use_cache=True)
         else:
-            c.data = feedback_report(None, use_cache=True)
+            c.data = feedback_report(None,
+                                     include_published=c.include_published,
+                                     use_cache=True)
 
+        # Get the total number of entries
         c.dataset_count = len(c.data)
 
+        # Calculate the number of datasets that have comments, and refine the
+        # data based on whether we want to show those with 0 feedback or not.
         if not c.show_zero_feedback:
             c.data = [d for d in c.data if d.get('total-comments',0) > 0]
             c.dataset_count_with_feedback = len(c.data)
@@ -80,8 +88,9 @@ class ReportsController(BaseController):
             url=pager_url,
         )
 
-
         if format == 'csv':
+            # Write out the report in CSV format, we don't need paging for this so
+            # we do it early.
             import csv
             from pylons import response
 
