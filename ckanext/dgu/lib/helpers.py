@@ -1713,35 +1713,50 @@ def render_db_date(db_date_str):
     except DateConvertError:
         return ''
 
-def feedback_report_checkbox_sub():
-    from pylons import request
-    val = request.path
-    checked = (c.include_subpublisher == True)
-    if checked:
-        # If currently checked we want to turn off the option
-        val = val +  ('?show-zero-feedback=1' if c.show_zero_feedback else '')
-    else:
-        # If not checked we want the val to turn on the option
-        val = val + '?show-subpub=1%s' % ('&show-zero-feedback=1' if c.show_zero_feedback else '')
-    return val,checked
 
-def feedback_report_checkbox_zero():
+def feedback_report_checkbox_value(flag, name):
     from pylons import request
-    val = request.path
-    checked = (c.show_zero_feedback == True)
-    if checked:
-        # If currently checked we want to turn off the option
-        val = val +  ('?show-subpub=1' if c.include_subpublisher else '')
-    else:
-        # If not checked we want the val to turn on the option
-        val = val + '?show-zero-feedback=1%s' % ('&show-subpub=1' if c.include_subpublisher else '')
-    return val,checked
+    checked = (flag == True)
+    val = ''.join([request.path, feedback_report_params_for_value(name, checked)])
+    return val, checked
+
 
 def feedback_report_params():
+    """ When we need a URL to call for generating a CSV we need to work out
+        which parameters are currently set and request those fields in the
+        http request to the CSV endpoint """
     from urllib import urlencode
     params = {}
     if c.show_zero_feedback:
         params['show-zero-feedback'] = 1
     if c.include_subpublisher:
         params['show-subpub'] = 1
+    if c.include_published:
+        params['show-published'] = 1
     return urlencode(params, True)
+
+def feedback_report_params_for_value(name, field_checked):
+    """ Generates the correct value for the checkbox field. By default this
+        function simply returns an urlencoded string that contains the correct
+        parameters to display the report.
+
+        However, because we allow a GET on clicking a checkbox in the report,
+        we need to be able to specify the value field, which should be the URL
+        to call when clicking on the checkbox. To do this we need to invert the
+        boolean that specifies whether to apply the checked field when applying
+        the filter."""
+    from urllib import urlencode
+
+    params = {
+        'show-zero-feedback':  1 if c.show_zero_feedback else 0,
+        'show-subpub': 1 if c.include_subpublisher else 0,
+        'show-published': 1 if c.include_published else 0,
+    }
+
+    # We need to invert the named field, so that we can set it in the value attr
+    # of the checkbox.  This is what we want when we click the checkbox, so it
+    # should show the opposite of what you expect.
+    params[name] = 0 if field_checked else 1
+
+    return "?" + urlencode(params, True)
+

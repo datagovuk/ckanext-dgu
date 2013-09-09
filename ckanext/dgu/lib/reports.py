@@ -221,7 +221,7 @@ def organisation_dataset_scores(organisation_name,
             'data': data.values()}
 
 
-def feedback_report(publisher, include_sub_publishers=False, use_cache=False):
+def feedback_report(publisher, include_sub_publishers=False, include_published=False, use_cache=False):
     """
     For the publisher provided (and optionally for sub-publishers) this
     function will generate a report on the feedback for that publisher.
@@ -240,10 +240,15 @@ def feedback_report(publisher, include_sub_publishers=False, use_cache=False):
 
     if use_cache:
         key = 'feedback-report'
+        if include_published:
+          key = 'feedback-all-report'
+
         if include_sub_publishers:
-            key = "".join([key, '-withsub'])
+            key = "".join([key, '-withsubpub'])
         cache = model.DataCache.get_fresh(publisher_name, key)
-        if cache:
+        if cache is None:
+            log.info("Did not find cached report - %s/%s" % (publisher_name,key,))
+        else:
             log.info("Found feedback report in cache")
             return cache
 
@@ -254,20 +259,25 @@ def feedback_report(publisher, include_sub_publishers=False, use_cache=False):
             group_ids = [x.id for x in groups]
 
         memberships = model.Session.query(model.Member)\
+            .join(model.Package, model.Package.id==model.Member.table_id)\
             .filter(model.Member.state == 'active')\
             .filter(model.Member.group_id.in_(group_ids))\
-            .filter(model.Member.table_name == 'package')
+            .filter(model.Member.table_name == 'package')\
+            .filter(model.Package.state == 'active')
+
     else:
         memberships = model.Session.query(model.Member)\
+            .join(model.Package, model.Package.id==model.Member.table_id)\
             .filter(model.Member.state == 'active')\
-            .filter(model.Member.table_name == 'package')
+            .filter(model.Member.table_name == 'package')\
+            .filter(model.Package.state == 'active')
 
     results = []
     for member in memberships.all():
         pkg = model.Package.get(member.table_id)
 
         # For now we will skip over unpublished items
-        if not pkg.extras.get('unpublished', False):
+        if not include_published and not pkg.extras.get('unpublished', False):
             continue
 
         key = pkg.name
@@ -320,6 +330,10 @@ def cached_reports(reports_to_run=None):
       val = feedback_report(None, use_cache=False)
       model.DataCache.set('__all__', "feedback-report", json.dumps(val))
 
+      log.info("Generating feedback report for all publishers")
+      val = feedback_report(None, use_cache=False, include_published=True)
+      model.DataCache.set('__all__', "feedback-all-report", json.dumps(val))
+
 
     publishers = model.Session.query(model.Group).\
         filter(model.Group.type=='publisher').\
@@ -328,13 +342,21 @@ def cached_reports(reports_to_run=None):
     for publisher in publishers:
         # Run the feedback report with and without include_sub_organisations set
         if 'feedback-report' in local_reports:
-          log.info("Generating feedback report for %s" % publisher.name)
+          log.info("Generating unpublished feedback report for %s" % publisher.name)
           val = feedback_report(publisher, use_cache=False)
           model.DataCache.set(publisher.name, "feedback-report", json.dumps(val))
 
-          log.info("Generating feedback report for %s and children" % publisher.name)
+          log.info("Generating unpublished feedback report for %s and children" % publisher.name)
           val = feedback_report(publisher, include_sub_publishers=True, use_cache=False)
           model.DataCache.set(publisher.name, "feedback-report-withsubpub", json.dumps(val))
+
+          log.info("Generating feedback report for %s" % publisher.name)
+          val = feedback_report(publisher, include_published=True, use_cache=False)
+          model.DataCache.set(publisher.name, "feedback-all-report", json.dumps(val))
+
+          log.info("Generating feedback report for %s and children" % publisher.name)
+          val = feedback_report(publisher, include_sub_publishers=True, include_published=True, use_cache=False)
+          model.DataCache.set(publisher.name, "feedback-all-report-withsubpub", json.dumps(val))
 
           model.Session.commit()
 
