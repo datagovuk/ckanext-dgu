@@ -305,16 +305,13 @@
   </py:def>
 
   <div py:def="facet_filters()" class="datasets">
-    <div class="boxed" py:if="False">
-      ${facet_box(
-          'publisher',
-          'Publisher',
-          'There are no further publisher filters to apply.',
-          more_button='more-publishers-button'
-      )}
-    </div>
-
     <div class="boxed">
+    <div class="facet-filters">
+      <div class="visible-phone">
+        <a href="#" class="hide-facets">
+          <i class="icon-remove-circle icon-4x"></i>
+        </a>
+      </div>
       ${facet_box(
           'unpublished',
           'Show only...',
@@ -428,7 +425,7 @@
       </div>
     </div>
     </div><!-- /boxed -->
-
+    </div><!-- /facet-filters -->
   </div>
 
   <!--! List of tags: pass in a list of tag name and this renders the standard

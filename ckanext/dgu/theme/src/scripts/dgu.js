@@ -130,6 +130,18 @@ $(function() {
       $(".ckan-logged-out").hide();
       $(".ckan-logged-in").show();
   }
+
+  // Show/hide facets
+  $('a.show-facets, a.hide-facets').click(function(e) {
+    e.preventDefault();
+    if ($(e.delegateTarget).hasClass('show-facets')) {
+      $('.facet-filters').addClass('in');
+    }
+    else {
+      $('.facet-filters').removeClass('in');
+    }
+    return false;
+  });
 });
 
 var CKAN = CKAN || {};

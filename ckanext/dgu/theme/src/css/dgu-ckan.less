@@ -1,6 +1,5 @@
 @import "elements.less";
 
-
 /* -- Misc -- */
 /* ---------- */
 .format-box {
@@ -214,6 +213,7 @@ table.tablesorter {
     }
     .right {
         padding: 15px 8px;
+        min-width: 200px;
     }
     .result-count {
         font-size: 40px;
@@ -340,21 +340,39 @@ table.tablesorter {
 
 /* Facet Menu */
 /* ---------- */
+.facet-filters {
+    @media(max-width: 767px) {
+        z-index: 200;
+        position: absolute;
+        width: 80%;
+        left: -82%;
+        top: 300px;
+        background: #333;
+        padding-top: 50px;
+        padding-bottom: 50px;
+        .box-shadow(2px 2px 8px rgba(0,0,0,0.4));
+        .border-radius(25px,25px,0,0);
+        -webkit-transition: left 0.25s ease;
+        -moz-transition: left 0.25s ease;
+        -o-transition: left 0.25s ease;
+        -ms-transition: left 0.25s ease;  
+        &.in {
+          left: 0;
+        }
+    }
+    .hide-facets {
+      display: block;
+      text-align: right;
+      padding-right: 20px;
+      margin-bottom: 20px;
+      color: #aaa; 
+      &:hover { color: #fff; text-decoration: none; } 
+    }
+}
 .facet-box-unboxed {
-  /*
-    margin-bottom: 12px;
-    padding: 8px 10px 8px 15px;
-    */
-    margin: 12px -17px 25px -17px;
-    h4 {
-        color: #656565;
-        padding: 5px 17px;
-        margin: 0 7px;
-        border-bottom: 1px solid #aaa;
-    }
-    .facet-options {
-      padding: 4px 12px 4px 25px ;
-    }
+    margin: 0 0 0 0;
+    padding: 2px 10px 6px 24px;
+    padding-left: 20px;
     .facet-expand-collapse {
         text-align: right;
         display: block;
@@ -362,7 +380,7 @@ table.tablesorter {
         margin: 0 -17px;
         color: #999;
         font-weight: bold;
-        /* Class 'expanded' changes children */
+        // Class 'expanded' changes children 
         .expander { display: block; }
         .collapser { display: none; }
         &.expanded .expander { display: none; }
@@ -370,25 +388,58 @@ table.tablesorter {
     }
     .facet-option-selected {
       padding: 2px 8px 2px 13px;
-      margin: 2px 0 2px -13px;
+      margin: 2px 0 2px -10px;
       .rounded(3px);
       display: block;
-      background: #b9e671;
-      color: #333;
+      background: #555;
+      color: #fff;
       .x {
         float: right;
-        padding: 0 4px;
+        padding: 0 8px;
         margin-left: 4px;
         font-size: 12px;
-        color: #690;
+        color: #bbb;
         .rounded(4px);
         &:hover {
           text-decoration: none;
-          background: lighten(#470,10%);
+          background: #c55; 
           color: #fff;
         }
       }
     }
+    @media(max-width: 767px) {
+      color: #aaa;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #444;
+      a { 
+        color: #aaa; 
+        &:hover { color: #fff; }
+      }
+      h4 { color: #fff; }
+    }
+    @media(min-width: 768px) {
+      margin: 8px -17px 8px -17px;
+      h4 {
+          color: #656565;
+          padding: 0px 17px 5px 10px;
+          margin: 0 0 5px -10px;
+          border-bottom: 1px solid #aaa;
+      }
+      .facet-option-selected {
+        background: #b9e671;
+        color: #333;
+        .x {
+          color: #690;
+          &:hover { background: lighten(#470,10%); }
+        }
+      }
+      /*
+      .facet-options {
+        padding: 4px 12px 4px 25px ;
+      }
+      */
+    }
+
 }
 .search-theme-mode-container {
   float: right;
@@ -410,13 +461,16 @@ table.tablesorter {
 /* --------------------------------------- */
 .sort-by-controls {
     text-align: right;
-    margin-top: 20px;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-right: 5px;
+    @media(min-width: 768px) {
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
     form {
       margin: 0 0 0 0;
     }
     .feed-icon {
-        float: right;
         margin: 3px 15px 0 14px;
     }
 }
@@ -548,6 +602,7 @@ ul.common-dataset-list {
         height: 33px;
         margin-top: 4px;
         text-align: right;
+        white-space: nowrap;
     }
     .btn-preview {
         margin-left: 5px;
@@ -557,6 +612,16 @@ ul.common-dataset-list {
         width: 160px;
         padding-left: 0;
         padding-right: 10px;
+    }
+    @media(max-width: 767px) {
+      margin: 5px 8px;
+      padding: 4px 10px;
+      margin-left:  10px;
+      margin-right: 10px;
+      border: 1px solid #ccc !important;
+      .format-box {
+        display: none;
+      }
     }
 }
 

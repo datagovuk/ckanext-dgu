@@ -23,7 +23,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-  <title>${page_title()} - ${g.site_title}</title>
+  <title>${page_title()} | data.gov.uk</title>
   <meta name="description" content="" />
   <meta name="author" content="" />
 
@@ -210,15 +210,13 @@ ${h.top_level_init()}
       <h1>${page_heading()}</h1>
     </py:if>
     <div class="row-fluid">
-      <div class="${if_(defined('no_sidebar'),'span12','span9')}">
+      <div class="${if_(defined('sidebar'),'span9','span12')}">
         <content>
         <!-- Content goes here -->
         </content>
       </div>
-      <div py:if="not defined('no_sidebar')" class="span3">
-        <primarysidebar>
-          <!-- Primary Side Bar Goes Here -->
-        </primarysidebar>
+      <div py:if="defined('sidebar')" class="span3">
+        ${sidebar()}
       </div>
     </div>
   </div><!-- /container -->
