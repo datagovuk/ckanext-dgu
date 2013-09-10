@@ -58,8 +58,8 @@
     </style>
     <!-- /data preview -->
     <script py:if="not h.is_wms(c.resource)" type="text/javascript">
-      var preload_resource = ${h.literal(c.resource_json)};
-      var embedPath = "${g.site_url+h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.package.id, resource_id=c.resource.id)}";
+      var preload_resource = ${h.literal(h.resource_as_json(c.resource))};
+      var embedPath = "${h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.package.id, resource_id=c.resource.id, qualified=True)}";
     </script>
   </py:def>
 

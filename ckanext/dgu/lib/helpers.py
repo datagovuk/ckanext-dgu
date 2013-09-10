@@ -29,6 +29,10 @@ from ckanext.dgu.lib import formats
 
 log = logging.getLogger(__name__)
 
+def resource_as_json(resource):
+    import json
+    return json.dumps(resource)
+
 def _is_additional_resource(resource):
     """
     Returns true iff the given resource identifies as an additional resource.
@@ -528,8 +532,10 @@ def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
     added_params: Dict of params to add, for this facet option
     '''
     from ckan.controllers.package import search_url, url_with_params
+
     params = set(params_to_keep)
     params |= set(added_params.items())
+
     if alternative_url:
         return url_with_params(alternative_url, params)
     return search_url(params)
@@ -1460,6 +1466,11 @@ def render_facet_value(key,value):
     if key=='UKLP':
         return 'UK Location Dataset'
     if key=='resource-type':
+        # The values retrieved for resource-type are quoted
+        # and shouldn't be.  If they are found to start with a "
+        # then we will strip them.
+        if value.startswith('"'):
+            value = value[1:-1]
         mapping = {
                 'dataset' : 'Dataset',
                 'service' : 'Service',
