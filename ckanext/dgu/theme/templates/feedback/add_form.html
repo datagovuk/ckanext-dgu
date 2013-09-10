@@ -30,7 +30,12 @@
 
 
 <div class="notes">
+
 <p py:if="c.pkg.extras.get('unpublished', False)">Please complete this form to submit your views on this dataset and its potential impact if published. Your input will be reviewed as part of the process of prioritising datasets to be part of the <a href="/blog/the-national-information-infrastructure-where-are-we">National Information Infrastructure</a></p>
+
+<p py:if="c.pkg.extras.get('unpublished', False) == False">
+Please complete this form to submit your views on this dataset and its impact . Your input will be reviewed as part of the process of prioritising datasets to be part of the <a href="/blog/the-national-information-infrastructure-where-are-we">National Information Infrastructure</a>
+</p>
 
 <p>Please select the boxes that apply and provide further comments.</p>
 </div>

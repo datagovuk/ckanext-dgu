@@ -1403,6 +1403,23 @@ def publisher_performance_data(publisher, include_sub_publishers):
 def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
 
+def get_facet_title(name):
+    '''
+    This is deprecated in CKAN 2.0, but for now we will maintain
+    our own version of this function
+    '''
+    # if this is set in the config use this
+    config_title = config.get('search.facets.%s.title' % name)
+    if config_title:
+        return config_title
+
+    facet_titles = {'groups': 'Groups',
+                  'tags': 'Tags',
+                  'res_format': 'Formats',
+                  'license': 'Licence', }
+    return facet_titles.get(name, name.capitalize())
+
+
 def render_facet_key(key,value=None):
     if key=='unpublished':
         return 'Show only'
@@ -1417,7 +1434,7 @@ def render_facet_key(key,value=None):
     if key=='theme-primary':
         return 'Primary Theme'
     # Delegate to core CKAN
-    return ckan.lib.helpers.get_facet_title(key)
+    return get_facet_title(key)
 
 def render_facet_value(key,value):
     if key=='unpublished':
