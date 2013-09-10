@@ -60,7 +60,6 @@ class PublisherController(GroupController):
         return render('publisher/index.html')
 
 
-
     def _send_application( self, group, reason  ):
         from ckan.logic.action import error_summary
         from ckan.lib.mailer import mail_recipient

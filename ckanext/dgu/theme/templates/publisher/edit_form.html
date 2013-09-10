@@ -43,7 +43,7 @@ ${h.prep_group_edit_data(data)}
     <label class="control-label" for="url">Url</label>
     <div class="controls name-field">
       <div class="input-prepend">
-        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {}"/> 
+        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {}"/>
         <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
       </div>
       <p class="js-url-is-valid">&nbsp;</p>
@@ -92,11 +92,14 @@ ${h.prep_group_edit_data(data)}
   <div class="control-group">
     <label class="control-label" for="state">State</label>
     <div class="controls state-field">
-      <py:if test="h.check_access('group_change_state', {'id': c.group_dict.id})">
+      <py:if test="c.group_dict and h.check_access('group_change_state', {'id': c.group_dict.id})">
         <select id="state" name="state" style="width:100px;">
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
         </select>
+      </py:if>
+      <py:if test="not c.group_dict or not h.check_access('group_change_state', {'id': c.group_dict.id})">
+          ${data.get('state', 'active')}
       </py:if>
     </div>
   </div>

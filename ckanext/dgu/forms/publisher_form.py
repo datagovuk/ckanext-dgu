@@ -74,6 +74,8 @@ class PublisherForm(SingletonPlugin):
     def history_template(self):
         return 'group/history.html'
 
+    def edit_template(self):
+        return 'publisher/edit.html'
 
     def group_form(self):
         """
