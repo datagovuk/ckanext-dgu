@@ -7,18 +7,18 @@
 
   <py:def function="page_title">Publishers</py:def>
 
-  <py:match path="primarysidebar">
-  <div class="boxed">
-    <div class="widget-container widget_text">
-      <h4>Publishers</h4>
-      <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
+  <py:def function="sidebar">
+    <div class="boxed">
+      <div class="widget-container widget_text">
+        <h4>Publishers</h4>
+        <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
+      </div>
+      <div py:if="c.userobj" class="widget-container">
+        <h4>Adding New Publishers</h4>
+        <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
+      </div>
     </div>
-    <div py:if="c.userobj" class="widget-container">
-      <h4>Adding New Publishers</h4>
-      <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
-    </div>
-  </div>
-  </py:match>
+  </py:def>
 
   <py:def function="page_heading">Publishers</py:def>
 

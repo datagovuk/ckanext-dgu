@@ -19,19 +19,19 @@
   </py:def>
 
 
-<py:match path="primarysidebar">
-  <div class="boxed">
+  <py:def function="sidebar">
+    <div class="boxed">
 
-      <div class="widget-container">
-        <h4>Reports</h4>
-        <ul>
-          <li>
-              <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Unpublished dataset feedback</a>
-          </li>
-        </ul>
+        <div class="widget-container">
+          <h4>Reports</h4>
+          <ul>
+            <li>
+                <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Unpublished dataset feedback</a>
+            </li>
+          </ul>
+      </div>
     </div>
-  </div>
-  </py:match>
+  </py:def>
 
   <div py:match="content" class="dataset">
     <div class="boxed notes">

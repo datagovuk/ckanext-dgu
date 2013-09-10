@@ -2,8 +2,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <py:def function="page_title">Users: ${c.group.display_name}</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="page_title">Users in ${c.group.display_name}</py:def>
   <py:def function="page_heading">
     <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.group.display_name}</a>
     <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit User Permissions</span>
