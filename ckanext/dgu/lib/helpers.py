@@ -328,7 +328,7 @@ def predict_if_resource_will_preview(resource_dict):
                                   'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
-def dgu_linked_user(user, maxlength=16):  # Overwrite h.linked_user
+def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
     from ckan import model
     from ckan.lib.base import h
 
