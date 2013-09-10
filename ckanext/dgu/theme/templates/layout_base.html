@@ -210,12 +210,12 @@ ${h.top_level_init()}
       <h1>${page_heading()}</h1>
     </py:if>
     <div class="row-fluid">
-      <div class="${if_(defined('sidebar'),'span9','span12')}">
+      <div class="${if_(defined('sidebar'),'span8','span12')}">
         <content>
         <!-- Content goes here -->
         </content>
       </div>
-      <div py:if="defined('sidebar')" class="span3">
+      <div py:if="defined('sidebar')" class="span4 sidebar">
         ${sidebar()}
       </div>
     </div>

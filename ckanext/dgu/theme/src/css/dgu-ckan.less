@@ -152,6 +152,14 @@ ul.button-row {
     display: inline;
     border: 1px;
 }
+.widget-container {
+    ul.tags,
+    ul.groups {
+        list-style-image: none;
+        list-style: none;
+        margin-left: 0;
+    }
+}
 
 
 
@@ -514,6 +522,8 @@ ul.common-dataset-list {
   color: #666;
 }
 .feedback-summary {
+  float: left;
+  white-space: nowrap;
   .feedback-summary-title {
     padding-right: 10px;
   }
@@ -521,8 +531,8 @@ ul.common-dataset-list {
     height: 18px;
     width: 38px;
     display: block;
-    text-align: center;
     float: left;
+    text-align: center;
     -webkit-transition: font 0.15s ease;
     -moz-transition: font 0.15s ease;
     -o-transition: font 0.15s ease;
@@ -536,10 +546,12 @@ ul.common-dataset-list {
     }
   }
   &.large {
+    margin-top: 5px;
     a {
       width: 70px;
       height: 26px;
       font-size: 24px;
+      padding-bottom: 5px;
       &:hover { font-size: 31px; }
     }
   }
@@ -632,7 +644,8 @@ ul.common-dataset-list {
     td.dataset-label {
         font-weight: bold;
         text-align: right;
-        width: 180px;
+        width: 30%;
+        white-space: normal;
     }
 }
 
@@ -888,39 +901,22 @@ body.controller-package.action-read {
             }
         }
     }
-    .resource-row {
-      white-space: nowrap;
-      padding: 1px 0;
-      vertical-align: middle;
-      height: 28px;
-      width: 584px;
-      .resource-row-format {
-        padding-left: 5px;
-        padding-right: 2px;
-        padding-top: 3px;
-        float: left;
-        /* IE7 */
-        .format-box { float: none; }
+    .resource-table {
+      .resource-format {
+        width: 100px;
+        text-align: center;
+        padding: 6px 0 0 0;
+        .format-box { display: inline-block; float: none; }
       }
-      .resource-row-text {
-        line-height: 29px;
-        overflow: hidden;
-        .inline-icon {
-          /* Applies to 'scraped' cog icon */
-          vertical-align: middle;
-          padding-bottom: 2px;
-        }
+      .resource-buttons {
+        padding: 3px 8px 0 8px;
+        width: 1px; // stretch to fit
+        text-align: center;
       }
-      .text-overlay {
-        float: right;
-        > .btn {
-          float: left;
-          margin-right: 3px;
-          min-width: 46px;
-        }
-        > .btn-group {
-          float: left;
-        }
+      .dropdown-menu {
+        text-align: left;
+        left: auto;
+        right: 0;
       }
     }
     .dataset-feedback-container {

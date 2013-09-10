@@ -39,20 +39,6 @@ $(function() {
     left: 'auto' // Left position relative to parent in px
   };
 
-  // Attach tooltips to .hover-text containing lots of text
-  var MAX_LENGTH = 60;
-  var hoverText = $('.hover-text');
-  $.each(hoverText, function(i, element) {
-    element = $(element);
-    var too_long = element.text().length > MAX_LENGTH;
-    if (too_long) {
-      element.tooltip( { 
-        title: element.text(),
-        placement: 'top'
-      });
-    }
-  });
-
   // Create a spinner in the comments loader
   var spinDiv = $('.comments-spinner')[0];
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
