@@ -97,6 +97,16 @@ class DatasetForm(SingletonPlugin):
 
     implements(IDatasetForm, inherit=True)
 
+    def create_package_schema(self):
+        return self.form_to_db_schema()
+
+    def update_package_schema(self):
+        return self.form_to_db_schema()
+
+    def show_package_schema(self):
+        return self.db_to_form_schema()
+
+
     def new_template(self):
         return 'package/new.html'
 
