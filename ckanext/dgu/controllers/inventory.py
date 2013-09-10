@@ -254,7 +254,7 @@ class InventoryController(BaseController):
         """ Helper to get group information to be shown on each page """
         from urllib import quote
 
-        c.group_admins = self.authorizer.get_admins(c.group)
+        c.group_admins = c.group.members_of_type(model.User, 'admin')
         c.body_class = "group view"
 
         c.administrators = c.group.members_of_type(model.User, 'admin')
@@ -267,7 +267,7 @@ class InventoryController(BaseController):
             if extra.get('state') == 'deleted':
                 continue
             k, v = extra['key'], extra['value']
-            v = json.loads(v)
+            #v = json.loads(v)
             c.group_extras.append((k, v))
         c.group_extras = dict(c.group_extras)
 
