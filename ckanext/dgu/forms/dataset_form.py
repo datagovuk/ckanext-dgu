@@ -110,6 +110,9 @@ class DatasetForm(SingletonPlugin):
     def new_template(self):
         return 'package/new.html'
 
+    def edit_template(self):
+        return 'package/edit.html'
+
     def comments_template(self):
         return 'package/comments.html'
 
