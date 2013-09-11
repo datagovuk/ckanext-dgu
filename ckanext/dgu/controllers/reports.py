@@ -78,6 +78,8 @@ class ReportsController(BaseController):
                 params['show-subpub'] = 1
             if c.show_zero_feedback:
                 params['show-zero-feedback'] = 1
+            if c.include_published:
+                params['show-published'] = 1
             return h.url_for(**params)
 
         c.page = h.Page(
