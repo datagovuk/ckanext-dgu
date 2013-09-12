@@ -35,14 +35,14 @@ class ImportPublisherTree(object):
         from ckanext.dgu.drupalclient import DrupalClient, log as drupal_client_log
 
         drupal_client_log.disabled = True
-        
+
         logging.config.fileConfig(config_ini_filepath)
         log = logging.getLogger(os.path.basename(__file__))
         global global_log
         global_log = log
 
         cls.status = status.Status()
-        model.init_model(engine)    
+        model.init_model(engine)
         model.repo.new_revision()
 
         cls.drupal_client = DrupalClient({'xmlrpc_domain': 'data.gov.uk',
@@ -68,7 +68,7 @@ class ImportPublisherTree(object):
             cls.do_publisher(publisher_nid)
 
         all_groups = model.Session.query(model.Group).\
-                           filter(model.Group.type == 'publisher').order_by('title').all()
+                           filter(model.Group.type == 'organization').order_by('title').all()
         log.info('Total number of groups: %i', len(all_groups))
         log.info('Warnings: %r', warnings)
 
@@ -85,13 +85,13 @@ class ImportPublisherTree(object):
         from ckan import model
         from ckan.lib.munge import munge_title_to_name
         log = global_log
-        
+
         pub = cls.get_cached_publisher_details(publisher_nid)
 
         title = pub['title'].strip()
 
         slug = munge_title_to_name(title)
-        g = model.Group.get(slug) 
+        g = model.Group.get(slug)
         if g:
             log.info('Found publisher in db: %s', g.name)
         else:
@@ -129,9 +129,9 @@ class ImportPublisherTree(object):
                              [p.name for p in existing_parents], parent.name, g.name)
                     return
 
-            m = model.Member(group=parent, table_id=g.id, table_name='group')        
+            m = model.Member(group=parent, table_id=g.id, table_name='group')
             model.Session.add(m)
-            model.Session.commit()        
+            model.Session.commit()
             cls.status.record('Parent added', slug, do_print=False)
             log.info('%s is made parent of %s', parent.name, g.name)
         else:
@@ -146,7 +146,7 @@ def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
     global_log.warn(msg, *params)
-    
+
 
 def usage():
     print """
@@ -155,7 +155,7 @@ Usage:
 
     python import_publishers.py <CKAN config ini filepath>
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         usage()

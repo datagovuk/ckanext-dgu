@@ -24,10 +24,9 @@
     </div>
   </py:if>
   <div class="widget-container">
-
     <h4>Publisher</h4>
-    <p py:for="group in sorted(c.pkg.get_groups(), key=lambda g: g.display_name)">
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=group.name)}">${group.display_name}</a>
+    <p >
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict['organization']['name'])}">${c.pkg_dict['organization']['title']}</a>
     </p>
     <p py:if="dict(c.pkg_extras).get('provider')">
       Provider: ${dict(c.pkg_extras).get('provider')}

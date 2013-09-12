@@ -94,7 +94,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
 
         # Check saved object
         publisher = model.Group.by_name(publisher_name)
-        
+
         assert_equal(publisher.description, 'New description')
         assert_equal(publisher.extras['contact-name'], 'Head of Comms')
         assert_equal(publisher.extras['contact-email'], 'comms@nhs.gov.uk')
@@ -105,7 +105,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-web'], 'http://whatdotheyknow.com')
         assert_equal(publisher.extras['category'], 'alb')
         assert_equal(publisher.extras['abbreviation'], 'nhs')
-        
+
         # restore name for other tests
         #model.repo.new_revision()
         #publisher.name = 'national-health-service'
@@ -266,7 +266,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             assert_equal(set([grp.name for grp in group.active_packages()]),
                          set([u'directgov-cota']))
             # parents
-            child_groups = [grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('publisher')]
+            child_groups = [grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('organization')]
             assert publisher_name in child_groups, child_groups
 
         check_related_publisher_properties()
@@ -278,7 +278,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset = url_for('/publisher/users/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
         assert 'Users: %s' % group.title in res, res
-        form = res.forms[0] 
+        form = res.forms[0]
         assert_equal(form['users__0__name'].value, 'nhsadmin')
         assert_equal(form['users__0__capacity'].value, 'admin')
         assert_equal(form['users__1__name'].value, 'nhseditor')

@@ -471,12 +471,12 @@ Alternative title: GDP and Labour Market coherence""",
         groups = []
         for publisher in publishers:
             group = copy.deepcopy(publisher)
-            group['type'] = 'publisher'
+            group['type'] = 'organization'
             if 'parent' in group:
                 del group['parent']
             groups.append(group)
         cls.create_groups(groups, auth_profile='publisher')
-        
+
         # Add in the hierarchy (similar to bin/import_publishers.py)
         model.repo.new_revision()
         for publisher in publishers:

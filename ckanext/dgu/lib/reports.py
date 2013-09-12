@@ -336,7 +336,7 @@ def cached_reports(reports_to_run=None):
 
 
     publishers = model.Session.query(model.Group).\
-        filter(model.Group.type=='publisher').\
+        filter(model.Group.type=='organization').\
         filter(model.Group.state=='active').order_by('title')
 
     for publisher in publishers:

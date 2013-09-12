@@ -65,7 +65,7 @@ class PublisherMatch(CkanCommand):
         self.missing = {}
 
         pubs = model.Session.query(model.Group)\
-            .filter(model.Group.type == 'publisher')\
+            .filter(model.Group.type == 'organization')\
             .filter(model.Group.state == 'active')
         for publisher in pubs:
             self.publishers[publisher.name.replace('-', '_')] = publisher

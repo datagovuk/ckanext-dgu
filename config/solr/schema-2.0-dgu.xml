@@ -93,8 +93,8 @@
     <field name="ratings_count" type="int" indexed="true" stored="false" />
     <field name="ratings_average" type="float" indexed="true" stored="false" />
     <field name="tags" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="group_titles" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="organization" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="organization_titles" type="text" indexed="true" stored="true" multiValued="true"/>
     <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
@@ -169,8 +169,8 @@
 <copyField source="license" dest="text"/>
 <copyField source="notes" dest="text"/>
 <copyField source="tags" dest="text"/>
-<copyField source="groups" dest="text"/>
-<copyField source="group_titles" dest="text"/>
+<copyField source="organization" dest="text"/>
+<copyField source="organization_titles" dest="text"/>
 <copyField source="res_description" dest="text"/>
 <copyField source="res_format" dest="text"/>
 <copyField source="maintainer" dest="text"/>

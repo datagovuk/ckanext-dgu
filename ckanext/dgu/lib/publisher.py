@@ -22,12 +22,12 @@ def go_down_tree(publisher):
 
 def get_parents(publisher):
     '''Finds parent publishers for the given publisher (object). (Not recursive)'''
-    return publisher.get_groups('publisher')
+    return publisher.get_groups('organization')
 
 def get_children(publisher):
     '''Finds child publishers for the given publisher (object). (Not recursive)'''
     return model.Session.query(model.Group).\
-           from_statement(HIERARCHY_CTE).params(id=publisher.id, type='publisher').\
+           from_statement(HIERARCHY_CTE).params(id=publisher.id, type='organization').\
            all()
 
 def get_top_level():
@@ -37,7 +37,7 @@ def get_top_level():
                      model.Member.table_name == 'group' and \
                      model.Member.state == 'active').\
            filter(model.Member.id==None).\
-           filter(model.Group.type=='publisher').\
+           filter(model.Group.type=='organization').\
            order_by(model.Group.name).all()
 
 

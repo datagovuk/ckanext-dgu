@@ -81,7 +81,7 @@ class VoidConstructor(CkanCommand):
         from pylons import config
         from ckan.lib.helpers import url_for
 
-        pub = dataset.get_groups('publisher')[0]
+        pub = dataset.get_groups('organization')[0]
         url = config.get('ckan.site_url', '') + url_for(controller='package', action='read', id=dataset.id,
             format='rdf')
 

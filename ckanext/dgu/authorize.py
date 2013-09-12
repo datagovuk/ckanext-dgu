@@ -54,11 +54,11 @@
 ##     parent_groups = list(publib.go_up_tree(group))
 
 ##     # Check if user is an admin of a parent group, and if so allow them to edit.
-##     if _groups_intersect( user_obj.get_groups('publisher', 'admin'), parent_groups ):
+##     if _groups_intersect( user_obj.get_groups('organization', 'admin'), parent_groups ):
 ##         return {'success': True}
 
 ##     # Check admin of just this group
-##     if _groups_intersect( user_obj.get_groups('publisher', 'admin'), [group] ):
+##     if _groups_intersect( user_obj.get_groups('organization', 'admin'), [group] ):
 ##         return {'success': True}
 
 ##     return { 'success': False, 'msg': _('User %s not authorized to edit this group') % str(user) }
@@ -85,7 +85,7 @@
 ##     if new_authz.is_sysadmin(user_obj):
 ##         return {'success': True}
 
-##     user_publishers = user_obj.get_groups('publisher')
+##     user_publishers = user_obj.get_groups('organization')
 
 ##     if not data_dict:
 ##         # i.e. not asking in relation to a particular package. We only let
@@ -98,7 +98,7 @@
 
 ##     # For users who are admins of groups, we should also include all of their child groups
 ##     # in the list of user_publishers
-##     as_admin = user_obj.get_groups('publisher', 'admin')
+##     as_admin = user_obj.get_groups('organization', 'admin')
 ##     for g in as_admin:
 ##         user_publishers.extend(list(publib.go_down_tree(g)))
 
@@ -165,15 +165,15 @@
 ##     if not user_obj:
 ##         return fail
 
-##     package_group = package.get_groups('publisher')
+##     package_group = package.get_groups('organization')
 ##     parent_groups = list(publib.go_up_tree(package_group[0])) if package_group else []
 
 ##     # Check admin of this or parent groups.
-##     if _groups_intersect( user_obj.get_groups('publisher', 'admin'), parent_groups ):
+##     if _groups_intersect( user_obj.get_groups('organization', 'admin'), parent_groups ):
 ##         return {'success': True}
 
 ##     # Check admin or editor of just this group
-##     if _groups_intersect( user_obj.get_groups('publisher'), package_group ):
+##     if _groups_intersect( user_obj.get_groups('organization'), package_group ):
 ##         return {'success': True}
 
 ##     return fail
@@ -212,15 +212,15 @@
 ##     if not user_obj:
 ##         return {'success': False}
 
-##     package_group = package.get_groups('publisher')
+##     package_group = package.get_groups('organization')
 ##     parent_groups = list(publib.go_up_tree(package_group[0])) if package_group else []
 
 ##     # Check admin of this or parent groups.
-##     if _groups_intersect( user_obj.get_groups('publisher', 'admin'), parent_groups ):
+##     if _groups_intersect( user_obj.get_groups('organization', 'admin'), parent_groups ):
 ##         return {'success': True}
 
 ##     # Check admin or editor of just this group
-##     if _groups_intersect( user_obj.get_groups('publisher'), package_group ):
+##     if _groups_intersect( user_obj.get_groups('organization'), package_group ):
 ##         return {'success': True}
 
 ##     return {'success': False}

@@ -47,7 +47,7 @@ class PublisherMatch(CkanCommand):
         import ckan.model as model
         from ckanext.dgu.bin.running_stats import StatsList
         from ckanext.dgu.lib.publisher_matcher import PublisherMatcher
-        
+
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
         model.repo.new_revision()
@@ -71,13 +71,13 @@ class PublisherMatch(CkanCommand):
 
         # Match up DGU publishers
         publishers = model.Session.query(model.Group) \
-            .filter(model.Group.type == 'publisher') \
+            .filter(model.Group.type == 'organization') \
             .filter(model.Group.state == 'active').all()
         log.info("Found %d publishers to process in DB" %
             len(publishers))
         match_stats = StatsList()
         for publisher in publishers:
-            
+
             match = matcher.match_to_external_publisher(publisher.title)
 
             if not match:
@@ -90,7 +90,7 @@ class PublisherMatch(CkanCommand):
                 match = direct_matches[publisher.name]
                 log.info(match_stats.add('Direct match', publisher.name))
                 continue
-                
+
             # We don't want to write any details automatically if we have
             # any existing phone, email or web details for FOI.
             have_previous_details = any([publisher.extras.get('foi-phone'),

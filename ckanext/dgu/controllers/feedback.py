@@ -40,7 +40,7 @@ class FeedbackController(BaseController):
         except NotAuthorized:
             abort(401, _('Unauthorized to read package %s') % id)
 
-        groups = c.pkg.get_groups('publisher')
+        groups = c.pkg.get_groups('organization')
         if groups:
             c.publisher = groups[0]
         else:

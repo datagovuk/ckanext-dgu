@@ -34,7 +34,7 @@ class PublisherCategories(object):
         number_of_publishers = 0
         expected_publishers = set(model.Session.query(model.Group).\
                                   filter_by(state='active').\
-                                  filter_by(type='publisher').all())
+                                  filter_by(type='organization').all())
         written_publishers = set()
 
         for top_level_pub in publisher.get_top_level():

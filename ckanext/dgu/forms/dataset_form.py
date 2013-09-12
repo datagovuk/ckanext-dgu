@@ -252,6 +252,7 @@ class DatasetForm(SingletonPlugin):
             'timeseries_resources': timeseries_resource_schema(),
             'individual_resources': individual_resource_schema(),
 
+            'owner_org': [val.owner_org_validator, unicode],
             'groups': {
                 'name': [not_empty, val.group_id_or_name_exists, unicode],
                 'id': [ignore_missing, unicode],
@@ -316,6 +317,9 @@ class DatasetForm(SingletonPlugin):
                 '__extras': [keep_extras]
             },
 
+            'organization' : [],
+            'owner_org' : [],
+
             'groups': {
                 'name': [not_empty, unicode]
             },
@@ -353,7 +357,7 @@ class DatasetForm(SingletonPlugin):
         from ckan.model.group import Group
 
         if new_authz.is_sysadmin(c.user):
-            groups = Group.all(group_type='publisher')
+            groups = Group.all(group_type='organization')
         elif c.userobj:
             # need to get c.userobj again as it may be detached from the
             # session since the last time we called get_groups (it caches)
@@ -362,11 +366,11 @@ class DatasetForm(SingletonPlugin):
             # For each group where the user is an admin, we should also include
             # all of the child publishers.
             admin_groups = set()
-            for g in c.userobj.get_groups('publisher', 'admin'):
+            for g in c.userobj.get_groups('organization', 'admin'):
                 for pub in publib.go_down_tree(g):
                     admin_groups.add(pub)
 
-            editor_groups = c.userobj.get_groups('publisher', 'editor')
+            editor_groups = c.userobj.get_groups('organization', 'editor')
             groups = list(admin_groups) + editor_groups
         else: # anonymous user shouldn't have access to this page anyway.
             groups = []

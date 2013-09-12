@@ -114,19 +114,22 @@ class SearchIndexing(object):
         groups = [Group.get(g) for g in pkg_dict['groups']]
 
         # Group titles
-        if not pkg_dict.has_key('group_titles'):
-            pkg_dict['group_titles'] = [g.title for g in groups]
+        if not pkg_dict.has_key('organization_titles'):
+            pkg_dict['organization_titles'] = [g.title for g in groups]
         else:
-            log.warning('Unable to add "group_titles" to index, as the datadict '
+            log.warning('Unable to add "organization_titles" to index, as the datadict '
                         'already contains a key of that name')
 
     @classmethod
     def add_field__group_abbreviation(cls, pkg_dict):
         '''Adds any group abbreviation '''
         abbr = None
-        for g in [Group.get(g) for g in pkg_dict['groups']]:
+
+        g = model.Group.get(pkg_dict['owner_org'])
+        try:
             abbr = g.extras.get('abbreviation')
-            break
+        except:
+            raise
 
         if abbr:
             pkg_dict['group_abbreviation'] = abbr
@@ -142,9 +145,9 @@ class SearchIndexing(object):
         # to non-current
         #groups = set([Group.get(g) for g in pkg_dict['groups']])
         #publishers = [g for g in groups if g.type == 'publisher']
-        publishers = model.Package.get(pkg_dict['id']).get_groups('publisher')
+        publishers = model.Package.get(pkg_dict['id']).get_groups('organization')
 
-        # Each dataset should have exactly one group of type "publisher".
+        # Each dataset should have exactly one group of type "organization".
         # However, this is not enforced in the data model.
         if len(publishers) > 1:
             log.warning('Dataset %s seems to have more than one publisher!  '
@@ -169,7 +172,7 @@ class SearchIndexing(object):
         publisher = publishers[0]
         while(publisher is not None):
             ancestors.append(publisher)
-            parent_publishers = publisher.get_groups('publisher')
+            parent_publishers = publisher.get_groups('organization')
             if len(parent_publishers) == 0:
                 publisher = None
             else:

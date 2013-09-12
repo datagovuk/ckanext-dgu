@@ -75,7 +75,7 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def construct_publisher_tree(groups,  type='publisher', root_url='publisher', title_for_group=lambda x:x.title):
+def construct_publisher_tree(groups,  type='organization', root_url='publisher', title_for_group=lambda x:x.title):
     """
         Uses the provided groups to generate a tree structure (in a dict) by
         matching up the tree relationship using the Member objects.
@@ -94,7 +94,7 @@ def construct_publisher_tree(groups,  type='publisher', root_url='publisher', ti
     #    .table_id is the parent group
     members = model.Session.query(model.Member).\
                 join(model.Group, model.Member.group_id == model.Group.id).\
-                filter(model.Group.type == 'publisher').\
+                filter(model.Group.type == 'organization').\
                 filter(model.Member.table_name == 'group').\
                 filter(model.Member.state == 'active').all()
 
@@ -137,10 +137,10 @@ def construct_publisher_tree(groups,  type='publisher', root_url='publisher', ti
                 tree[parent_slug].children.append(tree[slug])
     return root
 
-def render_tree(groups,  typ='publisher', root_url='publisher'):
+def render_tree(groups,  typ='organization', root_url='publisher'):
     return construct_publisher_tree(groups, type=typ, root_url=root_url).render()
 
-def render_mini_tree(all_groups, this_group, type="publisher"):
+def render_mini_tree(all_groups, this_group, type="organization"):
     '''Render a tree, but a special case, where there is one 'parent' (optional),
     the current group and any number of subgroups under it.'''
     from ckan import model
@@ -350,7 +350,7 @@ def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
     if (c.is_an_official or this_is_me):
         # only officials and oneself can see the actual user name
         if user:
-            publisher = ', '.join([group.title for group in user.get_groups('publisher')])
+            publisher = ', '.join([group.title for group in user.get_groups('organization')])
 
             display_name = '%s (%s)' % (user.fullname, publisher)
             link_text = truncate(user.fullname or user.name, length=maxlength)
@@ -361,7 +361,7 @@ def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
     else:
         # joe public just gets a link to the user's publisher(s)
         if user:
-            groups = user.get_groups('publisher')
+            groups = user.get_groups('organization')
             if is_sysadmin(user):
                 return 'System Administrator'
             elif groups:
@@ -611,9 +611,14 @@ def updated_date(package):
     return package['metadata_modified']
 
 def package_publisher_dict(package):
-    groups = package.get('groups', [])
-    publishers = [ g for g in groups if g.get('type') == 'publisher' ]
-    return publishers[0] if publishers else {'name':'', 'title': ''}
+    if not package:
+        return {'name':'', 'title': ''}
+
+    dct = package.get('organization')
+    if dct:
+        return dct
+    return {'name':'', 'title': ''}
+
 
 def formats_for_package(package):
     formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
@@ -929,7 +934,7 @@ def get_dataset_openness(pkg):
     return None
 
 def get_contact_details(pkg, pkg_extras):
-    publisher_groups = c.pkg.get_groups('publisher') # assume only one
+    publisher_groups = c.pkg.get_groups('organization') # assume only one
     name = pkg_extras.get('contact-name')
     email = pkg_extras.get('contact-email')
     phone = pkg_extras.get('contact-phone')
@@ -950,7 +955,7 @@ def have_foi_contact_details(pkg, pkg_extras):
 def get_contact_name(pkg, extras):
     name = extras.get('contact-name')
     if not name:
-        publisher_groups = pkg.get_groups('publisher')
+        publisher_groups = pkg.get_groups('organization')
         if publisher_groups:
             name = publisher_groups[0].extras.get('contact-name')
     return name
@@ -958,13 +963,13 @@ def get_contact_name(pkg, extras):
 def get_foi_contact_name(pkg, extras):
     name = extras.get('foi-name')
     if not name:
-        publisher_groups = pkg.get_groups('publisher')
+        publisher_groups = pkg.get_groups('organization')
         if publisher_groups:
             name = publisher_groups[0].extras.get('foi-name')
     return name
 
 def get_foi_contact_details(pkg, pkg_extras):
-    publisher_groups = c.pkg.get_groups('publisher') # assume only one
+    publisher_groups = c.pkg.get_groups('organization') # assume only one
     foi_name = pkg_extras.get('foi-name')
     foi_email = pkg_extras.get('foi-email')
     foi_phone = pkg_extras.get('foi-phone')
@@ -1011,8 +1016,8 @@ def user_get_groups(uid):
     from ckan import model
     groups = []
     u = model.User.get(uid)
-    if c.userobj and len( c.userobj.get_groups('publisher') ) > 0 or is_sysadmin():
-        groups = u.get_groups('publisher' )
+    if c.userobj and len( c.userobj.get_groups('organization') ) > 0 or is_sysadmin():
+        groups = u.get_groups('organization' )
     return groups
 
 
@@ -1047,7 +1052,7 @@ def top_level_init():
     c.is_an_official = bool(c.groups or is_sysadmin())
 
 def groups_for_current_user():
-    return c.userobj.get_groups(group_type='publisher') if c.userobj else []
+    return c.userobj.get_groups(group_type='organization') if c.userobj else []
 
 
 def additional_extra_fields(res):
@@ -1092,6 +1097,7 @@ def _translate_ckan_string(o):
     adjust the language of errors using mappings."""
     field_name_map = {
         'groups': 'Publisher',
+        'organization': 'Publisher',
         'individual_resources': 'Data Files',
         'timeseries_resources': 'Data Files',
         'title': 'Name',
@@ -1103,6 +1109,7 @@ def _translate_ckan_string(o):
     }
     field_error_key_map = {
         'group': 'publisher',
+        'organization': 'publisher',
         'description': 'title',
     }
     field_error_value_map = {
@@ -1131,12 +1138,12 @@ def license_choices(data):
     return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
 
 def edit_publisher_group_name(data):
-    if not data.get('groups'):
+    if not data.get('organization'):
         group_name = None
         group_id = None
     else:
-        group_id = data.get('groups')[0].get('id', '')
-        group_name = data.get('groups')[0].get('name', '')
+        group_id = data.get('organization').get('id', '')
+        group_name = data.get('organization').get('name', '')
 
     if group_id:
       groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
@@ -1146,12 +1153,12 @@ def edit_publisher_group_name(data):
     #return c.publishers.get(group_name, {}) if group_id else data
 
 def edit_publisher_group(data):
-    if not data.get('groups'):
+    if not data.get('organization'):
         group_name = None
         group_id = None
     else:
-        group_id = data.get('groups')[0].get('id', '')
-        group_name = data.get('groups')[0].get('name', '')
+        group_id = data.get('organization').get('id', '')
+        group_name = data.get('organization').get('name', '')
 
     if group_id:
       groups = [p['name'] for p in c.publishers.values() if p['id'] == group_id ]
@@ -1656,7 +1663,7 @@ def inventory_status(package_items):
         pid = p['package']
         action = p['action']
         pkg = model.Package.get(pid)
-        grp = pkg.get_groups('publisher')[0]
+        grp = pkg.get_groups('organization')[0]
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 

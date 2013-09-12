@@ -18,7 +18,7 @@ def inventory_dumper(tmpfile, query):
         if not pkg.extras.get('unpublished', False):
             continue
 
-        grps = pkg.get_groups('publisher')
+        grps = pkg.get_groups('organization')
         if not grps:
             # This should not happen, but does appear in test data during development
             grp = 'Unknown'

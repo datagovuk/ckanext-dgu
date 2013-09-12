@@ -65,7 +65,7 @@ class DguApiController(ApiController):
         pkg_dicts = []
         for pkg_dict in query['results']:
             pkg = model.Package.get(pkg_dict['id'])
-            publishers = pkg.get_groups('publisher')
+            publishers = pkg.get_groups('organization')
             if publishers:
                 pub_title = publishers[0].title
                 pub_link = '/publisher/%s' % publishers[0].name

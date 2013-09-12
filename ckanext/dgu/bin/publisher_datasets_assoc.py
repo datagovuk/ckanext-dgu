@@ -13,7 +13,7 @@ It logs to publisher_datasets_assoc.log.
 
 To create nodepublishermap.csv:
 mysql -uroot dgu -e "
-select nid, title from node where type='publisher'
+select nid, title from node where type='organization'
 ORDER BY 'nid'
 LIMIT 100000
 INTO OUTFILE '/tmp/nodepublishermap.csv'
@@ -80,8 +80,8 @@ def command(config_ini, nodepublisher_csv):
     from ckan.lib.cli import MockTranslator
     registry=Registry()
     registry.prepare()
-    translator_obj=MockTranslator() 
-    registry.register(translator, translator_obj) 
+    translator_obj=MockTranslator()
+    registry.register(translator, translator_obj)
 
     model.repo.new_revision()
 
@@ -136,7 +136,7 @@ def update_datasets():
     from ckan import model
     publisher_name_and_id_regex = re.compile("^(.*)\s\[(\d+)\].*$")
     publisher_id_regex = re.compile("^(\d+)$")
-    
+
     package_ids = model.Session.query("id")\
                     .from_statement("SELECT id FROM package").all()
     package_ids = [p[0] for p in package_ids]
@@ -189,10 +189,10 @@ def update_datasets():
             else:
                 warn('Could not extract id from the publisher name: %r. Skipping package %s', value, pkg_str)
                 continue
-        
+
         # Lookup publisher object
         if publisher_name:
-            publisher_q = model.Group.all('publisher').filter_by(title=publisher_name)
+            publisher_q = model.Group.all('organization').filter_by(title=publisher_name)
         else:
             publisher_q = None
         if not publisher_q or publisher_q.count() == 0:
@@ -202,7 +202,7 @@ def update_datasets():
                 warn('Could not find publisher for node ID %r. Skipping package=%s published_by=%r published_via=%r',
                      publisher_node_id, pkg_str, by_value, via_value)
                 continue
-            publisher_q = model.Group.all('publisher').filter_by(name=pub_name)
+            publisher_q = model.Group.all('organization').filter_by(name=pub_name)
         if publisher_q.count() == 1:
             publisher = publisher_q.one()
         elif publisher_q.count() == 0:
@@ -230,7 +230,7 @@ def update_datasets():
         if membership_q.count():
             log.warn('Membership already added')
             continue
-        
+
         member_q     = MEMBER_QUERY.strip() % \
                        (member_id, pid, publisher_id, revision_id)
         member_rev_q = MEMBER_REVISION_QUERY.strip() % \

@@ -33,7 +33,7 @@ class Publishers(object):
         number_of_publishers = 0
         expected_publishers = set(model.Session.query(model.Group).\
                                   filter_by(state='active').\
-                                  filter_by(type='publisher').all())
+                                  filter_by(type='organization').all())
         written_publishers = set()
 
         for top_level_pub in publisher.get_top_level():
@@ -158,7 +158,7 @@ class Publishers(object):
         model.Session.add(g)
 
         g.id = id
-        g.type='publisher'
+        g.type='organization'
         ## g.extras['contact-name'] = '%s contact' % field_pub_web_title if field_pub_web_title else ''
         ## g.extras['contact-email'] = pub['field_pub_email_display'][0]['email'] if pub['field_pub_email_display'] else ''
         ## g.extras['contact-phone'] = ''

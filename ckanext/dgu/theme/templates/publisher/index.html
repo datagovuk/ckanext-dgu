@@ -83,12 +83,11 @@
   <script type="text/javascript">
     function publisher_search() {
       var term = $("#q").val();
-      var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=publisher&amp;q=' + escape(term);
+      var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=organization&amp;q=' + escape(term);
 
       $("#search_results").html('<h4>Results:</h4>');
       $("#search_results").css("display", "block");
       $.getJSON(url, function(data) {
-
         $(".result-count").html(data.length);
         $(".result-count, .result-count-footer").css('color','#000');
         $.each(data, function(idx, groupobj) {

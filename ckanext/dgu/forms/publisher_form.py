@@ -95,7 +95,7 @@ class PublisherForm(SingletonPlugin):
         attempts to register more than one plugin instance to a given group
         type will raise an exception at startup.
         """
-        return ["publisher"]
+        return ["organization"]
 
     def is_fallback(self):
         """
@@ -171,11 +171,11 @@ class PublisherForm(SingletonPlugin):
 
             c.possible_parents = model.Session.query(model.Group).\
                    filter(model.Group.state == 'active').\
-                   filter(model.Group.type == 'publisher').\
+                   filter(model.Group.type == 'organization').\
                    filter(model.Group.name != group.id ).order_by(model.Group.title).all()
 
             c.parent = None
-            grps = group.get_groups('publisher')
+            grps = group.get_groups('organization')
             if grps:
                 c.parent = grps[0]
 

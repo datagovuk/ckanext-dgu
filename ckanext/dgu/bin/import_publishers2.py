@@ -52,7 +52,7 @@ class ImportPublishers(object):
         global global_log
         global_log = log
 
-        model.init_model(engine)    
+        model.init_model(engine)
         model.repo.new_revision()
 
         cls.drupal_client = DrupalClient({'xmlrpc_domain': 'data.gov.uk',
@@ -70,7 +70,7 @@ class ImportPublishers(object):
             cls.add_publisher(publisher_dict['nid'])
 
         all_groups = model.Session.query(model.Group).\
-                           filter(model.Group.type == 'publisher').order_by('title').all()
+                           filter(model.Group.type == 'organization').order_by('title').all()
         log.info('Total number of groups: %i', len(all_groups))
         log.info('Warnings: %r', warnings)
 
@@ -95,7 +95,7 @@ class ImportPublishers(object):
         title = pub['title'].strip()
 
         slug = munge_title_to_name(title)
-        g = model.Group.get(slug) 
+        g = model.Group.get(slug)
         if g:
             global_log.info('Publisher already exists in db: %s', slug)
         else:
@@ -129,12 +129,12 @@ class ImportPublishers(object):
             if model.Session.query(model.Member).\
                 filter(model.Member.group==parent).\
                 filter(model.Member.table_id==g.id).count() == 0:
-                m = model.Member(group=parent, table_id=g.id, table_name='group')                 
+                m = model.Member(group=parent, table_id=g.id, table_name='group')
                 model.Session.add(m)
                 global_log.info('%s is parent of %s', parent.name, g.name)
             else:
                 global_log.info('%s is already a parent of %s', parent.name, g.name)
-            model.Session.commit()        
+            model.Session.commit()
 
         return g
 
@@ -145,7 +145,7 @@ def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
     global_log.warn(msg, *params)
-    
+
 
 def usage():
     print """
@@ -154,7 +154,7 @@ Usage:
 
     python import_publishers.py <CKAN config ini filepath>
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         usage()

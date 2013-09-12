@@ -46,7 +46,7 @@ class PublisherController(GroupController):
         # TODO: Fix this up, we only really need to do this when we are
         # showing the hierarchy (and then we should load on demand really).
         c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'publisher').\
+                       filter(model.Group.type == 'organization').\
                        filter(model.Group.state == 'active').\
                        order_by('title')
         c.page = AlphaPage(
@@ -162,7 +162,7 @@ class PublisherController(GroupController):
     def _add_publisher_list(self):
         c.possible_parents = model.Session.query(model.Group).\
                filter(model.Group.state == 'active').\
-               filter(model.Group.type == 'publisher').\
+               filter(model.Group.type == 'organization').\
                order_by(model.Group.title).all()
 
     def _add_users(self, group, parameters):
@@ -308,7 +308,7 @@ class PublisherController(GroupController):
         # should be enough.  Rather than fix this, we should load the group
         # hierarchy dynamically
         c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'publisher').\
+                       filter(model.Group.type == 'organization').\
                        filter(model.Group.state == 'active').\
                        order_by('title')
 
@@ -437,7 +437,7 @@ class PublisherController(GroupController):
         c.editors = c.group.members_of_type(model.User, 'editor')
 
         c.restricted_to_publisher = 'publisher' in request.params
-        parent_groups = c.group.get_groups('publisher')
+        parent_groups = c.group.get_groups('organization')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
 
         c.group_extras = []
@@ -493,7 +493,7 @@ class PublisherController(GroupController):
         except NotAuthorized:
             abort(401, _('Not authorized to see this page'))
 
-        q = model.Group.all('publisher')
+        q = model.Group.all('organization')
 
         c.count = q.count()
 

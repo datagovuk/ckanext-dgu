@@ -85,7 +85,7 @@ def run_report(config_ini_filepath, with_desc=False):
     packagelist = []
     packages = model.Session.query(model.Package).filter(model.Package.state=='active').all()
     for package in packages:
-        grps = package.get_groups('publisher')
+        grps = package.get_groups('organization')
         c = len(grps)
         if not c == 1:
             display_package(package.name, c, package.notes,

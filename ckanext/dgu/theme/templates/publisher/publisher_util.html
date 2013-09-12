@@ -16,7 +16,7 @@
 
 <py:def function="publisher_sidebar(with_hierarchy=False)">
   <div class="boxed">
-    <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
+    <div py:if="h.check_access('package_create', {'organization':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
       <ul>
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
@@ -25,7 +25,7 @@
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
     <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage inventory</a>
         </li>
-        <li py:if="h.check_access('package_create', {'groups':c.group.name})">
+        <li py:if="h.check_access('package_create', {'organization':c.group.name})">
           <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
         </li>
       </ul>
@@ -130,7 +130,7 @@
     </div>
 
 
-    <div py:if="h.check_access('package_create', {'groups':c.group.name})" class="widget-container">
+    <div py:if="h.check_access('package_create', {'organization':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
       <ul>
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
@@ -139,7 +139,7 @@
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
     <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage unpublished datasets</a>
         </li>
-        <li py:if="h.check_access('package_create', {'groups':c.group.name})">
+        <li py:if="h.check_access('package_create', {'organization':c.group.name})">
           <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
         </li>
       </ul>
@@ -214,12 +214,7 @@
       <div id="publisher-tree-wrapper">
       <div id="publisher-tree" class="publisher-mini-tree">
 
-        <py:if test="c.unpublished">
-          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='unpublished'))}
-       </py:if>
-        <py:if test="not c.unpublished">
-          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='publisher'))}
-       </py:if>
+          ${Markup(h.render_mini_tree(c.all_groups, c.group, type='organization'))}
 
       </div>
       </div>

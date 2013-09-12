@@ -32,7 +32,7 @@ def command(config_ini, contacts_csv):
     global_log = log
 
     from ckan import model
-    model.init_model(engine)    
+    model.init_model(engine)
 
     import_contacts()
     report()
@@ -46,7 +46,7 @@ def import_contacts():
     log.info('Collating publisher abbreviations')
     publisher_abbreviations = {} # {abbrev:name}
     publishers_with_no_abbreviation = []
-    for group in model.Group.all(group_type='publisher'):
+    for group in model.Group.all(group_type='organization'):
         abbrev = group.extras.get('abbreviation') or ''
         abbrev = abbrev.strip().lower()
         if abbrev:
@@ -69,11 +69,11 @@ def import_contacts():
             if not publisher:
                 warn('Ignoring row without publisher: %r', row)
                 continue
-            
+
             if publisher.lower() in publisher_abbreviations:
                 g = model.Group.get(publisher_abbreviations[publisher.lower()])
             else:
-                q = model.Group.all('publisher').filter(or_((model.Group.name==publisher),
+                q = model.Group.all('organization').filter(or_((model.Group.name==publisher),
                                                             (model.Group.title==publisher)))
                 if q.count() == 0:
                     warn('Cannot find publisher: %r', publisher)
@@ -112,8 +112,8 @@ def report():
     log = global_log
     log.info('Summary of top level publishers:')
     publishers = without_contact = without_foi = 0
-    for publisher in model.Group.all('publisher'):
-        parent_groups = publisher.get_groups('publisher')
+    for publisher in model.Group.all('organization'):
+        parent_groups = publisher.get_groups('organization')
         if parent_groups:
             continue
         group_extras = publisher.extras
@@ -122,21 +122,21 @@ def report():
         print '%s: Contact: %s Foi: %s' % (publisher.title,
                                            truncate(contact_details, 15) or 'NONE',
                                            truncate(foi_details, 15) or 'NONE')
-        publishers += 1 
+        publishers += 1
         without_contact += 1 if not contact_details else 0
         without_foi += 1 if not foi_details else 0
     print 'Total top level publishers: %i' % publishers
     print 'Total without contact details: %i' % without_contact
     print 'Total without FOI details: %i' % without_foi
-                 
-    
+
+
 warnings = []
 global_log = None
 def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
     global_log.warn(msg, *params)
-    
+
 
 def usage():
     print """
@@ -145,7 +145,7 @@ Usage:
 
     python import_publishers.py <CKAN config ini filepath> <Contacts CSV filepath>
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         usage()

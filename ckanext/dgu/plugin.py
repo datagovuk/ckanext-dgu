@@ -339,6 +339,9 @@ class PublisherPlugin(SingletonPlugin):
 
     def before_map(self, map):
         pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
+
+        map.redirect('/organization/{url:.*}', '/publisher/{url}')
+
         map.connect('publisher_index',
                     '/publisher',
                     controller=pub_ctlr, action='index')
@@ -589,6 +592,7 @@ class SearchPlugin(SingletonPlugin):
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
         SearchIndexing.add_field__last_major_modification(pkg_dict, pkg)
+
         # Extract multiple theme values (concatted with ' ') into one multi-value schema field
         all_themes = set()
         for value in ( pkg_dict.get('theme-primary',''), pkg_dict.get('theme-secondary','') ):
