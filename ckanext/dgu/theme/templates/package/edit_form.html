@@ -801,7 +801,7 @@
     </div>
   </div>
 
-  <div py:if="h.is_package_edit_form(data) and h.check_access('package_extra_fields_editable', {'id':c.pkg.id})">
+  <div py:if="h.is_package_edit_form(data) and h.is_sysadmin()">
     <fieldset>
     <h4>Extra Fields not in the Schema (sysadmin only)</h4>
       <py:for each="num, extra in enumerate(h.hidden_extra_fields(data))">

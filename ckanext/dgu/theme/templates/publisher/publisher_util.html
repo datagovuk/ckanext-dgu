@@ -133,7 +133,7 @@
     <div py:if="h.check_access('package_create', {'organization':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
       <ul>
-        <li py:if="h.check_access('group_update', {'id':c.group.id})">
+        <li py:if="h.check_access('organization_update', {'id':c.group.id})">
           <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}">Edit publisher properties</a>
         </li>
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
