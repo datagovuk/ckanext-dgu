@@ -472,6 +472,7 @@ Alternative title: GDP and Labour Market coherence""",
         for publisher in publishers:
             group = copy.deepcopy(publisher)
             group['type'] = 'organization'
+            group['is_organization'] = True
             if 'parent' in group:
                 del group['parent']
             groups.append(group)

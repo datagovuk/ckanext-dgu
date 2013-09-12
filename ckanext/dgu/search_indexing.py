@@ -125,7 +125,7 @@ class SearchIndexing(object):
         '''Adds any group abbreviation '''
         abbr = None
 
-        g = model.Group.get(pkg_dict['owner_org'])
+        g = model.Group.get(pkg_dict['organization'])
         try:
             abbr = g.extras.get('abbreviation')
         except:
