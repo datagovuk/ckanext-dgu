@@ -127,7 +127,7 @@ class SearchIndexing(object):
 
         g = model.Group.get(pkg_dict['organization'])
         if not g:
-            log.error("Package %d does not belong to an organization" % pkg_dict['name'])
+            log.error("Package %s does not belong to an organization" % pkg_dict['name'])
             return
 
         try:
