@@ -140,21 +140,8 @@ class SearchIndexing(object):
         '''Adds the 'publisher' based on group.'''
         import ckan.model as model
 
-        # pkg_dict['groups'] here is returning groups found by a relationship
-        # or membership that has been deleted, but not had the revision set
-        # to non-current
-        #groups = set([Group.get(g) for g in pkg_dict['groups']])
-        #publishers = [g for g in groups if g.type == 'publisher']
-        publishers = model.Package.get(pkg_dict['id']).get_groups('organization')
-
-        # Each dataset should have exactly one group of type "organization".
-        # However, this is not enforced in the data model.
-        if len(publishers) > 1:
-            log.warning('Dataset %s seems to have more than one publisher!  '
-                        'Only indexing the first one: %s', \
-                        pkg_dict['name'], repr(publishers))
-            publishers = publishers[:1]
-        elif len(publishers) == 0:
+        publisher = model.Group.get(pkg_dict.get('organization'))
+        if not publisher:
             log.warning('Dataset %s doesn\'t seem to have a publisher!  '
                         'Unable to add publisher to index.',
                         pkg_dict['name'])
@@ -162,14 +149,14 @@ class SearchIndexing(object):
 
         # Publisher names
         if not pkg_dict.has_key('publisher'):
-            pkg_dict['publisher'] = [p.name for p in publishers]
+            pkg_dict['publisher'] = publisher.name
+            log.info(u"{0} is the publisher for {1}".format(publisher.name, pkg_dict['name']))
         else:
             log.warning('Unable to add "publisher" to index, as the datadict '
                         'already contains a key of that name')
 
         # Ancestry of publishers
         ancestors = []
-        publisher = publishers[0]
         while(publisher is not None):
             ancestors.append(publisher)
             parent_publishers = publisher.get_groups('organization')
