@@ -126,6 +126,10 @@ class SearchIndexing(object):
         abbr = None
 
         g = model.Group.get(pkg_dict['organization'])
+        if not g:
+            log.error("Package %d does not belong to an organization" % pkg_dict['name'])
+            return
+
         try:
             abbr = g.extras.get('abbreviation')
         except:
