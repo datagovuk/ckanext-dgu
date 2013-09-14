@@ -132,7 +132,7 @@
           </py:for>
           <py:if test="request.params.get('ext_bbox','')">
             <tr>
-              <td class="facet-table-left">${h.get_facet_title('Location')}</td>
+              <td class="facet-table-left">${h.get_facet_title_('Location')}</td>
               <td class="facet-table-right">${facet(request.params.get('ext_bbox',''),c.remove_field('ext_bbox', request.params.get('ext_bbox','')))}</td>
             </tr>
           </py:if>
