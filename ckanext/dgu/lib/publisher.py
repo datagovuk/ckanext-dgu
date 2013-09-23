@@ -25,7 +25,8 @@ def get_parents(publisher):
 
 def get_children(publisher):
     '''Finds child publishers for the given publisher (object). (Not recursive)'''
-    return publisher.get_children_group_hierarchy('organization')
+    pubs = publisher.get_children_group_hierarchy('organization')
+    return [x[0] for x in pubs]
 
 def get_top_level():
     '''Returns the top level publishers.'''
