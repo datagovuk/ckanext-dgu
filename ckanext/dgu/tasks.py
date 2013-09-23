@@ -356,7 +356,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     package['contact-name'] = ""
     package['theme-primary'] = ""
 
-    package['groups'] = [group['name']]
+    package['owner_org'] = group['name']
 
     # Setup unublished specific items
     extras = {
