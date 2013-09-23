@@ -1,6 +1,5 @@
 from ckan import model
 import logging
-from ckan.model.group import HIERARCHY_CTE
 
 log = logging.getLogger(__name__)
 
@@ -26,9 +25,7 @@ def get_parents(publisher):
 
 def get_children(publisher):
     '''Finds child publishers for the given publisher (object). (Not recursive)'''
-    return model.Session.query(model.Group).\
-           from_statement(HIERARCHY_CTE).params(id=publisher.id, type='organization').\
-           all()
+    return publisher.get_children_group_hierarchy('organization')
 
 def get_top_level():
     '''Returns the top level publishers.'''
