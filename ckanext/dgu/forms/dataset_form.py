@@ -286,6 +286,10 @@ class DatasetForm(SingletonPlugin):
             'theme-secondary': [ignore_missing, unicode, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
+            # This is needed by the core CKAN update_resource, but isn't found by it because
+            # we do the work in __after.
+            'resources': resources_schema(),
+
             '__extras': [ignore],
             '__junk': [empty],
             '__after': [validate_license, remove_blank_resources, validate_resources, merge_resources]
