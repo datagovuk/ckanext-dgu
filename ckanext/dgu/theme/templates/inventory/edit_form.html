@@ -62,10 +62,10 @@ ${c.schema_fields}
     <input id="contact-email" name="contact-email" type="hidden" value="${data.get('contact_email', ' ')}"/>
     <input id="contact-name" name="contact-name" type="hidden" value="${data.get('contact_name', ' ')}"/>
     <input id="contact-phone" name="contact-phone" type="hidden" value="${data.get('contact_phone', ' ')}"/>
-    <input id="license_id" name="license_id" type="hidden" value="${data.get('licence', '')}"/>
+    <input id="license_id" name="license_id" type="hidden" value="unpublished"/>
     <input id="unpublished" name="unpublished" type="hidden" value="True"/>
 
-    <input id="groups__0__name" name="groups__0__name" type="hidden" value="${h.edit_publisher_group_name(data)}"/>
+    <input id="owner_org" name="owner_org" type="hidden" value="${data.get('owner_org')}"/>
 
 </fieldset>
 

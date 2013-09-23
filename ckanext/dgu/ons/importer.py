@@ -48,10 +48,7 @@ class OnsImporter(PackageImporter):
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
         publisher_name = self._source_to_publisher(item['hub:source-agency'])
-        if publisher_name:
-            publishers = [publisher_name]
-        else:
-            publishers = []
+        if not publisher_name:
             log.warn('Did not find publisher for source-agency: %s', item['hub:source-agency'])
 
         # Resources
@@ -60,7 +57,7 @@ class OnsImporter(PackageImporter):
             if not guid.startswith(guid_prefix):
                 raise RowParseError('GUID did not start with prefix %r: %r' % (guid_prefix, guid))
             guid = guid[len(guid_prefix):]
-            if 'http' in guid: 
+            if 'http' in guid:
                 raise RowParseError('GUID de-prefixed should not have \'http\' in it still: %r' % (guid))
         existing_resource = None
         download_url = item.get('link', None)
@@ -96,7 +93,7 @@ class OnsImporter(PackageImporter):
         if item['pubDate']:
             date_released = date.parse(item["pubDate"])
             if date_released.qualifier:
-                log.warn('Could not read format of publication (release) date: %r' % 
+                log.warn('Could not read format of publication (release) date: %r' %
                          item["pubDate"])
         extras['date_released'] = date_released.isoformat()
         extras['categories'] = item['hub:theme']
@@ -112,7 +109,7 @@ class OnsImporter(PackageImporter):
             elif update_frequency_suggestion.endswith('ly'):
                 if update_frequency_suggestion.rstrip('ly') in item_info:
                     extras['update_frequency'] = update_frequency_suggestion
-        extras['import_source'] = 'ONS-%s' % self._current_filename 
+        extras['import_source'] = 'ONS-%s' % self._current_filename
 
         resources = [{
             'url': download_url,
@@ -132,7 +129,7 @@ class OnsImporter(PackageImporter):
             'notes': notes,
             'license_id': self._crown_license_id,
             'tags': [], # post-filled
-            'groups': publishers,
+            'owner_org': publisher_name,
             'resources': resources,
             'extras': extras,
             }
@@ -198,7 +195,7 @@ class OnsImporter(PackageImporter):
         if not result['count']:
             # Now broaden it out
             result = ckanclient.action('group_search', query=publisher_name, exact=False)
-            
+
         if not result['count']:
             log.warn('Could not find source in DGU publishers: "%s" (mapped from "%s")', publisher_name, source)
             return None
@@ -229,14 +226,14 @@ class OnsDataRecords(object):
         xml.sax.parse(self._xml_filepath, ons_xml)
         for record in ons_xml.items:
             yield record
-    
+
 
 class OnsXml(xml.sax.handler.ContentHandler):
     def startDocument(self):
         self._level = 0
         self._item_dict = {}
         self.items = []
-        
+
     def startElement(self, name, attrs):
         self._level += 1
         if self._level == 1:
