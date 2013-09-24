@@ -302,16 +302,6 @@ class PublisherController(GroupController):
         q = c.q = request.params.get('q', '') # unicode format (decoded from utf8)
         fq = ''
 
-        # TODO: Deduplicate this code copied from index()
-        # We shouldn't need ALL of the groups to build a sub-tree, either
-        # parent.get_children() (if there's a parent), or c.group.get_childen()
-        # should be enough.  Rather than fix this, we should load the group
-        # hierarchy dynamically
-        c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'organization').\
-                       filter(model.Group.state == 'active').\
-                       order_by('title')
-
         try:
             c.group_dict = get_action('group_show')(context, data_dict)
             c.group = context['group']

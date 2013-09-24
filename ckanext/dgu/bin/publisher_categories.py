@@ -37,7 +37,7 @@ class PublisherCategories(object):
                                   filter_by(type='organization').all())
         written_publishers = set()
 
-        for top_level_pub in publisher.get_top_level():
+        for top_level_pub in model.Group.get_top_level_groups(type='organization'):
             for pub in publisher.go_down_tree(top_level_pub):
                 number_of_publishers += 1
                 if pub in written_publishers:

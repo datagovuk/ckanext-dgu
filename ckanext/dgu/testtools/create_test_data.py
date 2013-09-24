@@ -12,7 +12,8 @@ class DguCreateTestData(CreateTestData):
     _users = [
         {'name': 'sysadmin',
          'fullname': 'Test Sysadmin',
-         'password': 'pass'},
+         'password': 'pass',
+         'sysadmin': True},
         {'name': 'nhsadmin',
          'fullname': 'NHS Admin',
          'password': 'pass',
@@ -47,34 +48,48 @@ class DguCreateTestData(CreateTestData):
         {'name': 'dept-health',
          'title': 'Department of Health',
          'contact-email': 'contact@doh.gov.uk',
-         'category': 'department'},
+         'category': 'department',
+         'type': 'organization',
+         'is_organization': True},
         {'name': 'national-health-service',
          'title': 'National Health Service',
          'contact-email': 'contact@nhs.gov.uk',
          'parent': 'dept-health',
          'category': 'grouping',
-         'abbreviation': 'NHS'},
+         'abbreviation': 'NHS',
+         'type': 'organization',
+         'is_organization': True},
         {'name': 'barnsley-primary-care-trust',
          'title': 'Barnsley Primary Care Trust',
          'contact-email': 'contact@barnsley.nhs.gov.uk',
          'parent': 'national-health-service',
-         'category': 'alb'},
+         'category': 'alb',
+         'type': 'organization',
+         'is_organization': True},
         {'name': 'newham-primary-care-trust',
          'title': 'Newham Primary Care Trust',
          'contact-email': 'contact@newham.nhs.gov.uk',
          'parent': 'national-health-service',
-         'category': 'alb'},
+         'category': 'alb',
+         'type': 'organization',
+         'is_organization': True},
         {'name': 'ons',
          'title': 'Office for National Statistics',
          'contact-email': 'contact@ons.gov.uk',
-         'category': 'alb'},
+         'category': 'alb',
+         'type': 'organization',
+         'is_organization': True},
         {'name': 'cabinet-office',
          'title': 'Cabinet Office',
          'contact-email': 'contact@cabinet-office.gov.uk',
-         'category': 'department'},
+         'category': 'department',
+         'type': 'organization',
+         'is_organization': True},
         {'name': 'northern-ireland-spatial-data-infrastructure',
          'title': 'Northern Ireland Spatial Data Infrastructure',
-         'category': 'alb'}
+         'category': 'alb',
+         'type': 'organization',
+         'is_organization': True},
         ]
     _roles = [('sysadmin', 'admin', 'system'),
               ]
@@ -460,41 +475,6 @@ Alternative title: GDP and Labour Market coherence""",
          }
         ]
 
-
-    @classmethod
-    def create_publishers(cls, publishers):
-        '''Creates publisher objects (special groups).
-        The publisher['parent'] property should be set to the name of the
-        parent publisher, if there is one.
-        '''
-        # Create all the groups
-        groups = []
-        for publisher in publishers:
-            group = copy.deepcopy(publisher)
-            group['type'] = 'organization'
-            group['is_organization'] = True
-            if 'parent' in group:
-                del group['parent']
-            groups.append(group)
-        cls.create_groups(groups, auth_profile='publisher')
-
-        # Add in the hierarchy (similar to bin/import_publishers.py)
-        model.repo.new_revision()
-        for publisher in publishers:
-            g = model.Group.get(publisher['name'])
-            parent_name = publisher.get('parent')
-            if parent_name:
-                parent = model.Group.get(parent_name)
-                if model.Session.query(model.Member).\
-                       filter(model.Member.group==parent and \
-                              model.Member.table_id==g.id).count() == 0:
-                    log.debug('Made "%s" parent of "%s"', parent_name, publisher['name'])
-                    m = model.Member(group=parent, table_id=g.id, table_name='group')
-                    model.Session.add(m)
-                else:
-                    log.debug('No need to make "%s" parent of "%s"', parent_name, publisher['name'])
-        model.Session.commit()
-
     @classmethod
     def create_user_publisher_memberships(cls, memberships):
         from ckan import model
@@ -534,7 +514,7 @@ Alternative title: GDP and Labour Market coherence""",
     @classmethod
     def create_dgu_test_data(cls):
         cls.create_users(cls._users)
-        cls.create_publishers(cls._publishers)
+        cls.create_groups(cls._publishers)
         cls.create_roles(cls._roles)
         cls.create_user_publisher_memberships(cls._user_publisher_memberships)
         cls.create_arbitrary(cls._packages)

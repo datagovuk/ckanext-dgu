@@ -36,13 +36,13 @@ class Publishers(object):
                                   filter_by(type='organization').all())
         written_publishers = set()
 
-        for top_level_pub in publisher.get_top_level():
+        for top_level_pub in model.Group.get_top_level_groups(type='organization'):
             for pub in publisher.go_down_tree(top_level_pub):
                 number_of_publishers += 1
                 if pub in written_publishers:
                     warn('publisher written twice: %s %s', pub.name, pub.id)
                 written_publishers.add(pub)
-                parent_publishers = publisher.get_parents(pub)
+                parent_publishers = pub.get_parent_groups(type='organization')
                 if len(parent_publishers) > 1:
                     warn('Publisher has multiple parents. Just using first: %s %s', pub.name, parent_publishers)
                 parent_pub_name = parent_publishers[0].name if parent_publishers else ''
