@@ -255,7 +255,7 @@ ${h.prep_group_edit_data(data)}
   </dl>
   <dl py:if="c.group">
 	<dd>
-		<a href="${h.url_for(controller='package', action='new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+		<a href="${h.url_for(controller='package', action='new')}?owner_org=${c.group.id}">Add a new dataset</a>
 	</dd>
   </dl>
 </fieldset>

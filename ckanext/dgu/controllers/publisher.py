@@ -10,7 +10,7 @@ from ckan.lib.alphabet_paginate import AlphaPage
 from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
 from ckan.logic import tuplize_dict, clean_dict, parse_params
 from ckan.lib.dictization.model_dictize import package_dictize
-from ckan.controllers.group import GroupController
+from ckan.controllers.organization import OrganizationController
 import ckan.model as model
 from ckan.lib.helpers import json
 from ckan.lib.navl.validators import (ignore_missing,
@@ -24,12 +24,14 @@ from ckanext.dgu.authentication.drupal_auth import DrupalUserMapping
 from ckanext.dgu.drupalclient import DrupalClient
 from ckan.plugins import PluginImplementations, IMiddleware
 from ckanext.dgu.plugin import DrupalAuthPlugin
+from ckanext.dgu.forms.validators import categories
 
 log = logging.getLogger(__name__)
 
 report_limit = 20
 
-class PublisherController(GroupController):
+class PublisherController(OrganizationController):
+
 
     ## end hooks
     def index(self):
@@ -540,6 +542,70 @@ class PublisherController(GroupController):
 
         return super(PublisherController, self).new(data, errors, error_summary)
 
+
+
+    def _group_form(self, group_type=None):
+        return 'publisher/edit_form.html'
+
+    def _new_template(self, group_type):
+        return 'publisher/new.html'
+
+    def _about_template(self, group_type):
+        return 'publisher/about.html'
+
+    def _index_template(self, group_type):
+        return 'publisher/index.html'
+
+    def _admins_template(self, group_type):
+        return 'publisher/admins.html'
+
+    def _read_template(self, group_type):
+        return 'publisher/read.html'
+
+    def _edit_template(self, group_type):
+        return 'publisher/edit.html'
+
+    def _guess_group_type(self, expecting_name=False):
+        return 'organization'
+
+
+    def _setup_template_variables(self, context, data_dict, group_type):
+        """
+        Add variables to c just prior to the template being rendered. We should
+        use the available groups for the current user, but should be optional
+        in case this is a top level group
+        """
+        c.body_class = "group edit"
+        c.schema_fields = [
+            'contact-name', 'contact-email', 'contact-phone',
+            'foi-name', 'foi-email', 'foi-phone', 'foi-web',
+                'category',
+        ]
+
+        if 'organization' in context:
+            group = context['organization']
+
+            try:
+                check_access('organization_update', context)
+                c.is_superuser_or_groupadmin = True
+            except NotAuthorized:
+                c.is_superuser_or_groupadmin = False
+
+            c.possible_parents = model.Session.query(model.Group).\
+                   filter(model.Group.state == 'active').\
+                   filter(model.Group.type == 'organization').\
+                   filter(model.Group.name != group.id ).order_by(model.Group.title).all()
+
+            c.parent = None
+            grps = group.get_groups('organization')
+            if grps:
+                c.parent = grps[0]
+
+            c.users = group.members_of_type(model.User)
+        else:
+            c.body_class = 'group new'
+
+        c.categories = categories
 def is_drupal_auth_activated():
     '''Returns whether the DrupalAuthPlugin is activated'''
     return any(isinstance(plugin, DrupalAuthPlugin) for plugin in PluginImplementations(IMiddleware))
