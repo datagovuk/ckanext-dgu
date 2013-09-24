@@ -346,7 +346,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     package["notes"] = description or " "
     package["access_constraints"] = "Not yet chosen"
     package["api_version"] = "3"
-    package['license_id']  = ""
+    package['license_id']  = "unpublished"
     package['foi-name'] = ""
     package['foi-email'] = ""
     package['foi-web'] = ""
@@ -356,7 +356,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     package['contact-name'] = ""
     package['theme-primary'] = ""
 
-    package['groups'] = [group['name']]
+    package['owner_org'] = group['name']
 
     # Setup unublished specific items
     extras = {
