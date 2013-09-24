@@ -43,8 +43,8 @@ class PublisherController(GroupController):
         except NotAuthorized:
             abort(401, _('Not authorized to see this page'))
 
-        # TODO: Fix this up, we only really need to do this when we are
-        # showing the hierarchy (and then we should load on demand really).
+        # This used to be just used by the hierarchy but now is not, but it is
+        # now used for search autocomplete and count.
         c.all_groups = model.Session.query(model.Group).\
                        filter(model.Group.type == 'organization').\
                        filter(model.Group.state == 'active').\
