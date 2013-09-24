@@ -174,7 +174,7 @@ There are errors in the form, please correct them before re-submitting.
         <label for="organisation_name">
           Organisation name
         </label>
-        <py:with vars="publishers = c.userobj.get_groups()">
+        <py:with vars="publishers = sorted(c.userobj.get_groups(), key=lambda x:x.title)">
           <py:if test="len(publishers) > 0">
               <select name="organisation_name">
                   <py:for each="group in publishers">
