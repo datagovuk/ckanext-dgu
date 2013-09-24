@@ -3,7 +3,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
   
-  <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets - History</py:def>
+  <py:def function="page_title">History - ${c.pkg_dict.get('title', c.pkg_dict['name'])}</py:def>
   <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
     ${h.dataset_link(c.pkg)}
@@ -60,5 +60,5 @@
   </py:def>
 
   <xi:include href="../layout_base.html" />
-  <script src="/scripts/dgu-history.js"></script>
+  <script src="/scripts/dgu-history.min.js"></script>
 </html>

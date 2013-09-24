@@ -7,18 +7,18 @@
 
   <py:def function="page_title">Publishers</py:def>
 
-  <py:match path="primarysidebar">
-  <div class="boxed">
-    <div class="widget-container widget_text">
-      <h4>Publishers</h4>
-      <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
+  <py:def function="sidebar">
+    <div class="boxed">
+      <div class="widget-container widget_text">
+        <h4>Publishers</h4>
+        <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
+      </div>
+      <div py:if="c.userobj" class="widget-container">
+        <h4>Adding New Publishers</h4>
+        <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
+      </div>
     </div>
-    <div py:if="c.userobj" class="widget-container">
-      <h4>Adding New Publishers</h4>
-      <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
-    </div>
-  </div>
-  </py:match>
+  </py:def>
 
   <py:def function="page_heading">Publishers</py:def>
 
@@ -69,65 +69,17 @@
   </div>
 
   <py:def function="optional_footer">
-    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
-    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
-
-  <!--[if IE 7]>
-    <style>
-      .ui-icon { text-indent: 0; }
-      .node { padding: 2px; }
-    </style>
-  <![endif]-->
-
-
-  <script type="text/javascript">
-    function publisher_search() {
-      var term = $("#q").val();
-      var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=organization&amp;q=' + escape(term);
-
-      $("#search_results").html('<h4>Results:</h4>');
-      $("#search_results").css("display", "block");
-      $.getJSON(url, function(data) {
-        $(".result-count").html(data.length);
-        $(".result-count, .result-count-footer").css('color','#000');
-        $.each(data, function(idx, groupobj) {
-          var tpl = '<tr><td>' +
-                    '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
-                    '</a></td></tr>';
-          $("#search_results").append( tpl );
-        });
-      });
-      $('#q').autocomplete('close');
-      return false;
-    }
-
-    $(document).ready(function() {
-        $('#publisher-search').bind('submit',function(e) {
-          if (e.preventDefault) e.preventDefault();
-          publisher_search();
-        });
-
-      $('a[data-toggle="tab"]').on('shown', function (e) {
-        if (e.target.hash == '#publishersearch') {
-          $("#q").focus();
-        };
-      });
-
-      $("#publisher-tree").jstree( {
-       "themes" : {
-         "icons" : false
-        },
-       "plugins" : ["themes","html_data","ui"]}
-      ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
-    });
-    var autocomplete_source = ${h.groups_as_json(c.all_groups)};
-    $('#q').autocomplete({
-      source: autocomplete_source,
-      minLength: 1,
-      select: function() { $('#publisher-search').submit();  }
-    });
-
-  </script>
+    <script src="/scripts/vendor/jquery.jstree.min.js"></script>
+    <script src="/scripts/dgu-publisher-index.min.js"></script>
+    <script type="text/javascript">
+      window.dgu_publisher_autocomplete = ${h.groups_as_json(c.all_groups)};
+    </script>
+    <!--[if IE 7]>
+      <style>
+        .ui-icon { text-indent: 0; }
+        .node { padding: 2px; }
+      </style>
+    <![endif]-->
   </py:def>
 
   <xi:include href="../layout.html" />

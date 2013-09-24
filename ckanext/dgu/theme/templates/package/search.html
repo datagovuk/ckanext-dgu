@@ -7,46 +7,40 @@
 
   <xi:include href="../facets.html" />
 
-  <py:def function="page_title">Data Search | data.gov.uk</py:def>
+  <py:def function="page_title">Data Search</py:def>
   <py:def function="page_heading">Data Search</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
-    <div class="row">
-      <div class="span12">
-        <div class="boxed">
-          ${search_form()}
-
-          <div class="clearfix"></div>
-
-        </div>
-
-        <div class="sort-by-controls" py:if="c.page.item_count">
-          <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-            <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
-          </a>
-
-
-          <form class="form-inline" id="search-sort-by">
-            <py:def function="sort_option(text, value, selected, disabled=False)">
-              <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
-            </py:def>
-            <label>Sort by:</label>
-            <select name="dataset-results-sort">
-              <!-- Can optimise this bit of the template, particularly results_sort_by -->
-              ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
-              ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
-              ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
-              ${sort_option('Last Updated', c.sort_by([('last_major_modification','desc')]), 'last_major_modification' in h.results_sort_by())}
-              ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
-            </select>
-          </form>
-        </div>
-
-
-      </div>
+    <div class="boxed">
+      ${search_form()}
+      <div class="clearfix"></div>
     </div>
-    <div class="row">
+
+    <div class="visible-phone pull-left" style="margin-left: 10px; margin-top: 10px;">
+      <a href="#" class="btn btn-inverse show-facets">Search Facets &raquo;</a>
+    </div>
+    <div class="sort-by-controls pull-right" py:if="c.page.item_count">
+      <form class="form-inline" id="search-sort-by">
+        <py:def function="sort_option(text, value, selected, disabled=False)">
+          <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
+        </py:def>
+        <label>Sort by:</label>
+        <select name="dataset-results-sort">
+          <!-- Can optimise this bit of the template, particularly results_sort_by -->
+          ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
+          ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
+          ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
+          ${sort_option('Last Updated', c.sort_by([('last_major_modification','desc')]), 'last_major_modification' in h.results_sort_by())}
+          ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
+        </select>
+        <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+          <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
+        </a>
+      </form>
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="row-fluid">
       <div class="span4">
         ${basket()}
 

@@ -87,7 +87,7 @@
   <table py:def="search_form()" class="search-area">
     <tr>
       <td class="left" py:if="not c.query_error">
-        <h2 class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</h2>
+        <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
         <div class="result-count-footer">Results</div>
       </td>
       <td class="left" py:if="c.query_error">
@@ -165,7 +165,7 @@
          <py:for each="format in h.formats_for_package(package)">
            ${format_box(format.lower())}
          </py:for>
-         <h3><span class="underlined">${title}</span></h3>
+         <div class="underlined">${title}</div>
        </a>
        <span class="property pull-right">
          ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
@@ -196,10 +196,10 @@
          <img class="dataset-icon" src="/images/inventory-icon.png" title="${h.name_for_uklp_type(package)}"/>
         </a>
 
-         <h3><span class="underlined">
-             <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span> <span class="unpublished-text">(unpublished)</span>
-         </h3>
-
+         <div>
+           <span class="underlined"><a href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span>
+           <span class="unpublished-text">(unpublished)</span>
+         </div>
        </div>
 
        <span class="property pull-right">
@@ -236,6 +236,7 @@
       <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Other key data" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-quote-left"></i>  ${comment_dict['other']}</a>
       <div class="clearfix"></div>
     </div>
+    <div class="clearfix"></div>
   </py:def>
 
   <py:def function="facet_line(facet_item, facet_key, alternative_url=None)">
@@ -304,16 +305,13 @@
   </py:def>
 
   <div py:def="facet_filters()" class="datasets">
-    <div class="boxed" py:if="False">
-      ${facet_box(
-          'publisher',
-          'Publisher',
-          'There are no further publisher filters to apply.',
-          more_button='more-publishers-button'
-      )}
-    </div>
-
     <div class="boxed">
+    <div class="facet-filters">
+      <div class="visible-phone">
+        <a href="#" class="hide-facets">
+          <i class="icon-remove-circle icon-4x"></i>
+        </a>
+      </div>
       ${facet_box(
           'unpublished',
           'Show only...',
@@ -427,7 +425,7 @@
       </div>
     </div>
     </div><!-- /boxed -->
-
+    </div><!-- /facet-filters -->
   </div>
 
   <!--! List of tags: pass in a list of tag name and this renders the standard
@@ -535,7 +533,7 @@
      <div py:with="title=package.get('title') or package.get('name')">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/theme-%s-icon.png' % theme if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
-         <h3><span class="underlined">${title}</span></h3>
+         <div class="underlined">${title}</div>
        </a>
        <span class="property pull-right">
          ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
@@ -550,4 +548,14 @@
        </div>
      </div>
   </div>
+
+  <py:def function="publisher_sub_hierarchy(parent_publisher,this_publisher)">
+    <script>
+      // Pollute the global namespace
+      window.dgu_publisher_hierarchy_parent = "node_${parent_publisher}";
+      window.dgu_publisher_hierarchy_this = "node_${this_publisher}";
+    </script>
+    <script src="/scripts/vendor/jquery.jstree.min.js"></script>
+    <script src="/scripts/dgu-publisher.min.js"></script>
+  </py:def>
 </html>

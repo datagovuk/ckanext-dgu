@@ -6,76 +6,77 @@
   py:strip="">
 
   <xi:include href="../facets.html" />
-  <py:def function="page_title">Data | data.gov.uk</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
+  <py:def function="page_title">Data</py:def>
+
 
   <py:def function="optional_head">
-    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.tagcloud.js')}"></script>
+    <script type="text/javascript" charset="utf-8">
+      $(function() {
+        /* Tag cloud */
+        $.fn.tagcloud.defaults = {
+          size: {start: 8, end: 24, unit: "pt"},
+          //size: {start: 12, end: 28, unit: "pt"},
+          color: {start: '#bbb', end: '#66aa44'}
+        };
+        $('#tagcloud a').tagcloud();
+      });
+  </script>
   </py:def>
 
   <div py:match="content">
     <!--! Though deeply unfashionable... I'm using a table to create equal-height boxes -->
-    <table class="front-page-table">
-      <tr>
-        <td class="boxed">
-          <h2>Search Datasets</h2>
+    <div class="row-fluid dgu-equal-height" data-selector=".auto-height">
+      <div class="span6">
+        <div class="boxed auto-height">
+          <h2 class="front-page-header">Search Datasets</h2>
           ${search_form()}
-        </td>
-        <td class="gutter"></td>
-        <td class="boxed">
+        </div>
+      </div>
+      <div class="span6">
+        <div class="boxed auto-height">
 <!--!
-          <div class="pull-right">
-            <a href="/data/themes" class="btn btn-primary viewall">View all themes</a>
-          </div>
-          <h2>Themes</h2>
+          <h2 class="front-page-header">Themes
+            <a href="/data/themes" class="btn btn-primary front-page-button">View all themes &raquo;</a>
+          </h2>
           <div id="tagcloud" py:with="theme_count=h.themes_count()">
             <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(),key=lambda x:x[1])">
             <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
 -->
-          <div class="pull-right">
-            <a href="/data/tag" class="btn btn-primary viewall">View all tags</a>
-          </div>
-          <h2>Tags</h2>
+          <h2 class="front-page-header">Tags
+              <a href="/data/tag" class="btn btn-primary front-page-button">View all tags &raquo;</a>
+          </h2>
           <div id="tagcloud">
             <py:for each="tag_dict in h.random_tags()">
               <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
             </py:for>
           </div>
           <script type="text/javascript" charset="utf-8">
-    /* Tag cloud */
-    $.fn.tagcloud.defaults = {
-        /* size: {start: 12, end: 28, unit: "pt"},*/
-      size: {start: 8, end: 24, unit: "pt"},
-      color: {start: '#bbb', end: '#66aa44'}
-    };
-    $('#tagcloud a').tagcloud();
         </script>
-        </td>
-      </tr>
-      <tr class="gutter">
-        <td colspan="3"></td>
-      </tr>
-      <tr>
-        <td class="boxed">
-          <div class="pull-right">
-            <a href="/publisher" class="btn btn-primary">View all publishers</a>
-          </div>
-          <h2>Publishers</h2>
+        </div>
+      </div>
+    </div>
+    <div class="space-between-rows"></div>
+    <div class="row-fluid dgu-equal-height" data-selector=".auto-height">
+      <div class="span6">
+        <div class="boxed auto-height">
+          <h2 class="front-page-header">Publishers
+            <a href="/publisher" class="btn btn-primary front-page-button">View all publishers &raquo;</a>
+          </h2>
           <ul class="facet-options">
             <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
               <a href="/publisher/${publisher_dict['name']}">${h.group_name_to_title(publisher_dict['name'])}</a> &nbsp;(${publisher_dict['count']})
             </li>
           </ul>
           <p py:if="not len(h.unselected_facet_items('publisher', limit=1))">No publishers found</p>
-        </td>
-        <td class="gutter"></td>
-        <td class="boxed">
-          <div class="pull-right">
-            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary">Conduct map based search</a>
-          </div>
-          <h2>UK Location</h2>
+        </div>
+      </div>
+      <div class="span6">
+        <div class="boxed auto-height">
+          <h2 class="front-page-header">UK Location
+            <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary front-page-button">Map-based search &raquo;</a>
+          </h2>
           <a href="/location"><img src="/images/uk_location.gif" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
              1000 location data records into data.gov.uk and tools to support their
@@ -86,17 +87,16 @@
              <a href="/location/map-based-search">about Map Based Search</a>
              and <a href="/location/preview-on-map">about Preview on Map</a>.
           </p>
-        </td>
-      </tr>
-      <tr class="gutter">
-        <td colspan="3"></td>
-      </tr>
-      <tr>
-        <td class="boxed" rowspan="3">
-          <div class="pull-right">
-            <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary">Other popular datasets</a>
-          </div>
-          <h2>Featured dataset</h2>
+        </div>
+      </div>
+    </div>
+    <div class="space-between-rows"></div>
+    <div class="row-fluid dgu-equal-height" data-selector=".auto-height">
+      <div class="span6">
+        <div class="boxed auto-height">
+          <h2 class="front-page-header">Featured dataset
+            <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary front-page-button">Popular datasets &raquo;</a>
+          </h2>
           <py:with vars="featured=h.single_popular_dataset(20)">
             <py:if test="featured">
               ${package_summary(featured, show_preview_buttons=False)}
@@ -105,38 +105,23 @@
               <em>The catalogue contains no datasets.</em>
             </py:if>
           </py:with>
-        </td>
-        <td class="gutter"></td>
-        <td class="boxed">
-          <div class="pull-right">
-            <a href="/odug" class="btn btn-primary">Request new data</a>
-          </div>
-          <h2 class="no-underline">Data Requests</h2>
-          <div>
-            <p>Find out more about making data requests and their progress.</p>
-          </div>
-        </td>
-      </tr>
-
-      <tr class="gutter">
-        <td colspan="2"></td>
-      </tr>
-      <tr>
-        <td class="gutter" colspan="1"></td>
-        <td class="boxed">
-          <h2>Developers</h2>
-          <div>
-            <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
-          </div>
-        </td>
-      </tr>
-      <tr class="gutter">
-        <td colspan="3"></td>
-      </tr>
-
-      <tr>
-      </tr>
-    </table>
+        </div>
+      </div>
+      <div class="span3">
+        <div class="boxed auto-height">
+          <h2 class="front-page-header">Data Requests</h2>
+          <p>Find out more about making data requests and their progress.</p>
+          <a href="/odug" class="btn btn-primary front-page-button pull-right">Request new data &raquo;</a>
+        </div>
+      </div>
+      <div class="span3">
+        <div class="boxed auto-height">
+          <h2 class="front-page-header">Developers</h2>
+          <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps">CSV or JSON dump</a>.</p>
+          <a href="/data/api" class="btn btn-primary">CKAN API &raquo;</a>
+        </div>
+      </div>
+    </div>
   </div>
   <xi:include href="../layout.html" />
 

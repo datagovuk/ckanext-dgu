@@ -206,27 +206,20 @@
 
   <py:def py:if="not h.is_wms(c.resource)" function="optional_footer">
     <!-- data preview -->
-    <script type="text/javascript" src="/scripts/application.js"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.mustache.js')}"></script>
-    <script type="text/javascript" src="${h.url_for_static('/scripts/vendor/jquery.flot-0.7.js')}"></script>
-    <script src="${h.url_for_static('/scripts/vendor/recline.js')}"></script>
-    <script>
-      // Monkey-patch broken functionality in Recline.
-      // We aren't using maps, havent loaded Leaflet, so do not try to use it.
-      recline.View.Map.prototype._setupMap = function() {};
-    </script>
+    <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-recline-pack.min.js')}"></script>
     <!--[if lt IE 8]>
     <script>
-      CKAN.DataPreview.loadPreviewDialog = function(x){};
+      CKAN.Dgu.resourcePreviewer.loadPreviewDialog = function(x){};
       $(function() {
         // Kill the data preview
         $('<div/>').text('Preview requires Internet Explorer 8 or higher.').addClass('alert').addClass('alert-info').appendTo($('#ckanext-datapreview'));
       });
     </script>
     <![endif]-->
-
     <script type="text/javascript">
-      CKAN.DataPreview.loadPreviewDialog(preload_resource);
+      $(function() {
+        CKAN.Dgu.resourcePreviewer.loadPreviewDialog(preload_resource);
+      });
     </script>
 
   </py:def>

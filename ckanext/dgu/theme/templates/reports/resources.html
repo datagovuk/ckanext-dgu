@@ -5,8 +5,6 @@
 
   <py:def function="page_title">Reports</py:def>
 
-  <py:def function="body_class">no-sidebar</py:def>
-
   <div py:match="content">
     <div class="report">
       <h1>Report</h1>
@@ -60,7 +58,7 @@
   </div>
 
   <py:def function="optional_footer">
-    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script> 
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script> 
     <script type="text/javascript">
       //<![CDATA[ 
       $(document).ready(function() 

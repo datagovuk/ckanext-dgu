@@ -1,62 +1,85 @@
 module.exports = function(grunt) {
-  path = require('path');
+  var pkg = grunt.file.readJSON('package.json');
+
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-less');
+  grunt.loadNpmTasks('grunt-contrib-imagemin');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+
+  // Change relative directory
+  grunt.file.setBase('ckanext/dgu/theme/');
 
   // Project configuration.
   grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
-    concat: {
-      options: {
-        banner: '/*! DGU+CKAN Application JS concatenated by Grunt */\n'
-      },
-      scripts: {
-        src: [ /* Order of resources is important */
-          'ckanext/dgu/theme/public/scripts/dgu.js',
-          'ckanext/dgu/theme/public/scripts/dgu-basket.js',
-          'ckanext/dgu/theme/public/scripts/dgu-autocomplete.js'
-        ],
-        dest: 'ckanext/dgu/theme/public/scripts/dgu-compiled.unmin.js'
-      },
-      styles: {
-        src: [  /* Order of resources is important. */
-          'ckanext/dgu/theme/src/css/font-awesome.css',
-          'ckanext/dgu/theme/src/css/elements.less',
-          'ckanext/dgu/theme/src/css/dgu-main.less',
-        ],
-        dest: 'ckanext/dgu/theme/public/css/dgu.less'
-      }
-    },
+    pkg: pkg,
     uglify: {
-      options: {
-        banner: '/*! DGU+CKAN Application JS minified by Grunt */\n'
+      //options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
+      app: {
+        files:  {
+          'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
+          'public/scripts/dgu-dataset-map.min.js'          : 'src/scripts/dgu-dataset-map.js',
+          'public/scripts/dgu-history.min.js'              : 'src/scripts/dgu-history.js',
+          'public/scripts/dgu-package-form.min.js'         : 'src/scripts/dgu-package-form.js',
+          'public/scripts/dgu-package.min.js'              : 'src/scripts/dgu-package.js',
+          'public/scripts/dgu-publisher-forms.min.js'      : 'src/scripts/dgu-publisher-forms.js',
+          'public/scripts/dgu-publisher-index.min.js'  : 'src/scripts/dgu-publisher-index.js',
+          'public/scripts/dgu-publisher.min.js'        : 'src/scripts/dgu-publisher.js',
+        },
       },
-      build: {
-        src: 'ckanext/dgu/theme/public/scripts/dgu-compiled.unmin.js',
-        dest: 'ckanext/dgu/theme/public/scripts/dgu-compiled.js'
-      }
+      vendor: {
+        files: {
+          'public/scripts/vendor/jquery.tablesorter.min.js'   : 'src/scripts/vendor/jquery.tablesorter.js',
+          'public/scripts/vendor/jquery.jstree.min.js'        : 'src/scripts/vendor/jquery.jstree.js',
+        },
+      },
+      openspending: {
+        src: [
+          'src/scripts/openspending_pack/base64.js',
+          'src/scripts/openspending_pack/accounting-0.3.2.min.js',
+          'src/scripts/openspending_pack/underscore-1.2.0.js',
+          'src/scripts/openspending_pack/handlebars-1.0.js',
+          'src/scripts/openspending_pack/openspending.boot.js',
+          'src/scripts/openspending_pack/openspending.utils.js',
+          'src/scripts/openspending_pack/jquery.datatables-1.9.0.min.js',
+          'src/scripts/openspending_pack/datatables.bootstrap.js',
+          'src/scripts/openspending_pack/openspending.data_table.js',
+          'src/scripts/openspending_pack/openspending.faceter.js',
+          'src/scripts/openspending_pack/openspending.browser.js',
+          'src/scripts/openspending_pack/dgu-openspending-integration.js',
+        ],
+        dest: 'public/scripts/dgu-openspending-pack.min.js'
+      },
+      recline: {
+        src: [
+          'src/scripts/recline_pack/jquery.mustache.js',
+          'src/scripts/recline_pack/jquery.flot-0.7.js',
+          'src/scripts/recline_pack/underscore-1.1.6.js',
+          'src/scripts/recline_pack/recline.js',
+          'src/scripts/recline_pack/dgu-recline-integration.js',
+        ],
+        dest: 'public/scripts/dgu-recline-pack.min.js',
+      },
+
     },
     less: {
       options: {
-        banner: '/* DGU+CKAN stylesheet compiled by Grunt */\n',
         yuicompress: true
       },
       build: {
-        src: 'ckanext/dgu/theme/public/css/dgu.less',
-        dest: 'ckanext/dgu/theme/public/css/dgu.css'
+        src: 'src/css/dgu-ckan.less',
+        dest: 'public/css/dgu-ckan.min.css'
       }
     },
     watch: {
       styles: {
-        files: 'ckanext/dgu/theme/src/css/**/*',
+        files: 'src/css/**/*',
         tasks: 'styles'
       },
       scripts: {
-        files: 'ckanext/dgu/theme/public/scripts/**/*',
-        tasks: 'scripts'
+        files: 'src/scripts/dgu*',
+        tasks: 'uglify:app'
       },
-      scripts: {
-        files: 'ckanext/dgu/theme/src/images/**/*',
-        tasks: 'images'
-      }
     },
     imagemin: {
       build: {
@@ -67,47 +90,23 @@ module.exports = function(grunt) {
           {
             expand: true,
             src: '**/*.{jpg,png}',
-            cwd: 'ckanext/dgu/theme/src/images/',
-            dest: 'ckanext/dgu/theme/public/images/'
+            cwd: 'src/images/',
+            dest: 'public/images/'
           }
         ]
       },
     },
     copy: {
-      fontawesome_hack: {
-        files: [
-         {
-            src: 'ckanext/dgu/theme/src/css/font-awesome-ie7.min.css',
-            dest: 'ckanext/dgu/theme/public/css/font-awesome-ie7.min.css',
-          }
-        ],
-      },
-      font: {
-        files: [
-         {
-            expand: true,
-            cwd: 'ckanext/dgu/theme/src/font/',
-            src: '*',
-            dest: 'ckanext/dgu/theme/public/font/',
-          }
-        ],
-      },
       images: {
-        /* Imagemin will only handle PNG and JPEG. Other images need to be straight copied. */
-        files: [
-          {
-            expand: true,
-            cwd: 'ckanext/dgu/theme/src/images/',
-            src: '**/*.{gif,ico}',
-            dest: 'ckanext/dgu/theme/public/images/',
-            filter: 'isFile'
-          }
-        ]
-      }
+        expand: true,
+        cwd: 'src/images/',
+        src: '**/*.gif',
+        dest: 'public/images/',
+      },
     },
     timestamp: {
       build: {
-        dest: 'ckanext/dgu/theme/timestamp.py'
+        dest: 'timestamp.py'
       }
     }
   });
@@ -115,17 +114,9 @@ module.exports = function(grunt) {
   grunt.registerMultiTask('timestamp', 'Write timestamp to a file', function(myName, myTargets) {
     grunt.file.write(this.files[0].dest, 'asset_build_timestamp='+Date.now());
   });
-
-  grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-less');
-  grunt.loadNpmTasks('grunt-contrib-imagemin');
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-
   // Default task(s).
-  grunt.registerTask('styles', ['concat:styles','less:build','timestamp']);
-  grunt.registerTask('scripts', ['concat:scripts','uglify:build','timestamp']);
+  grunt.registerTask('styles', ['less:build','timestamp']);
+  grunt.registerTask('scripts', ['uglify:app','timestamp']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
-  grunt.registerTask('default', ['copy:font','styles','scripts','images','timestamp']);
+  grunt.registerTask('default', ['uglify','less','imagemin','copy','timestamp']);
 };
