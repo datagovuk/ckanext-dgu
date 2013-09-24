@@ -565,6 +565,9 @@ ul.common-dataset-list {
     }
     .dataset-header {
         display: block;
+        font-size: 19px;
+        line-height: 23px;
+        margin-bottom: 8px; 
         min-height: 52px;
         margin-bottom: 12px;
         border-bottom: 1px solid #aaa;
@@ -575,6 +578,10 @@ ul.common-dataset-list {
         color: #690;
         word-wrap: break-word;
         white-space: normal;
+        padding-bottom: 5px;
+        @media(max-width:767px) {
+          margin-top: 5px;
+        }
     }
     .dataset-header:hover {
         text-decoration: none;
@@ -719,17 +726,6 @@ ul.ui-autocomplete {
 /* PAGE: Front Page */
 /* ---------------- */
 body.controller-data.action-index {
-    /*
-      h2.front-page-header {
-          margin-top: 0;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #aaa;
-          padding-left: 17px;
-          padding-right: 17px;
-          margin-left: -17px;
-          margin-right: -17px;
-      }
-    */
     .front-page-header {
       position: relative;
       .front-page-button {
