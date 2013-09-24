@@ -137,32 +137,27 @@ def construct_publisher_tree(groups,  type='organization', root_url='publisher',
                 tree[parent_slug].children.append(tree[slug])
     return root
 
-def render_tree(groups,  typ='organization', root_url='publisher'):
-    return construct_publisher_tree(groups, type=typ, root_url=root_url).render()
-
-def render_mini_tree(all_groups, this_group, type="organization"):
-    '''Render a tree, but a special case, where there is one 'parent' (optional),
-    the current group and any number of subgroups under it.'''
+def render_tree():
+    '''Returns HTML for a hierarchy of all publishers'''
+    from ckan.logic import get_action
     from ckan import model
-    import ckanext.dgu.lib.publisher as publisher
+    context = {'model': model, 'session': model.Session}
+    top_nodes = get_action('group_tree')(context=context,
+            data_dict={'type': 'organization'})
+    return
+    return t.render_snippet('organization/snippets/organization_tree.html',
+            data={'top_nodes': top_nodes})
 
-    def get_root_group(group, critical_path):
-        critical_path.insert(0, group)
-        parent = publisher.get_parents(group)
-        if parent:
-            return get_root_group(parent[0],critical_path)
-        return group, critical_path
-
-    root_group, critical_path = get_root_group(this_group, [])
-    def title_for_group(group):
-        if group==this_group:
-            return '<strong>%s</strong>' % group.title
-        return group.title
-
-    root = construct_publisher_tree(all_groups,type=type, root_url=type, title_for_group=title_for_group)
-    root.children = filter( lambda x: x.slug==root_group.name , root.children )
-
-    return root.render()
+def render_mini_tree(group_name_or_id):
+    '''Returns HTML for a hierarchy of SOME publishers - the ones which
+    are under the same top-level publisher as the given one.'''
+    from ckan.logic import get_action
+    from ckan import model
+    context = {'model': model, 'session': model.Session}
+    top_node = get_action('group_tree_section')(context=context,
+            data_dict={'id': group_name_or_id, 'type': 'organization'})
+    return t.render_snippet('organization/snippets/organization_tree.html',
+            data={'top_nodes': [top_node]})
 
 def is_wms(resource):
     from ckanext.dgu.lib.helpers import get_resource_wms

@@ -1,6 +1,5 @@
 from ckan import model
 import logging
-from ckan.model.group import HIERARCHY_CTE
 
 log = logging.getLogger(__name__)
 
