@@ -429,7 +429,7 @@ class PublisherController(OrganizationController):
         c.editors = c.group.members_of_type(model.User, 'editor')
 
         c.restricted_to_publisher = 'publisher' in request.params
-        parent_groups = c.group.get_groups('organization')
+        parent_groups = c.group.get_parent_groups(type='organization')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
 
         c.group_extras = []

@@ -156,9 +156,10 @@ def _render_tree(top_nodes):
     return html + '</ul>'
 
 def _render_tree_node(node):
-    html = '<a href="/publisher/%s">%s</a>' % (node['name'], node['title'])
+    html = node['title']
     if node['highlighted']:
         html = '<strong>%s</strong>' % html
+    html = '<a href="/publisher/%s">%s</a>' % (node['name'], html)
     if node['children']:
         html += '<ul>'
         for child in node['children']:
