@@ -4,40 +4,29 @@ import logging
 log = logging.getLogger(__name__)
 
 def go_up_tree(publisher):
-    '''Provided with a publisher object, it walks up the hierarchy and yields each publisher,
-    including the one you supply.'''
+    '''Provided with a publisher object, it walks up the hierarchy and yields
+    each publisher, including the one you supply.
+
+    Essentially this is a slower version of Group.get_parent_group_hierarchy
+    because it returns Group objects, rather than dicts. And it includes the
+    publisher you supply.
+    '''
     yield publisher
-    for parent in get_parents(publisher):
+    for parent in publisher.get_parent_groups(type='organization'):
         for grandparent in go_up_tree(parent):
             yield grandparent
 
 def go_down_tree(publisher):
-    '''Provided with a publisher object, it walks down the hierarchy and yields each publisher,
-    including the one you supply.'''
+    '''Provided with a publisher object, it walks down the hierarchy and yields
+    each publisher, including the one you supply.
+   
+    Essentially this is a slower version of Group.get_children_group_hierarchy
+    because it returns Group objects, rather than dicts.
+    '''
     yield publisher
-    for child in get_children(publisher):
+    for child in publisher.get_children_groups(type='organization'):
         for grandchild in go_down_tree(child):
             yield grandchild
-
-def get_parents(publisher):
-    '''Finds parent publishers for the given publisher (object). (Not recursive)'''
-    return publisher.get_groups('organization')
-
-def get_children(publisher):
-    '''Finds child publishers for the given publisher (object). (Not recursive)'''
-    pubs = publisher.get_children_group_hierarchy('organization')
-    return [x[0] for x in pubs]
-
-def get_top_level():
-    '''Returns the top level publishers.'''
-    return model.Session.query(model.Group).\
-           outerjoin(model.Member, model.Member.table_id == model.Group.id and \
-                     model.Member.table_name == 'group' and \
-                     model.Member.state == 'active').\
-           filter(model.Member.id==None).\
-           filter(model.Group.type=='organization').\
-           order_by(model.Group.name).all()
-
 
 def cached_openness_scores(reports_to_run=None):
     """

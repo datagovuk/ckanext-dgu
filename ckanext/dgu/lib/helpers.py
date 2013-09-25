@@ -1052,10 +1052,6 @@ def prep_group_edit_data(data):
         if key not in data:
             data[key] = value
 
-def get_children_for_group(group):
-    from ckanext.dgu.lib import publisher
-    return publisher.get_children(group)
-
 def top_level_init():
     # Top level initialisation previously done in layout_base to make sure it
     # is available to all sub-templates. This is a bit nasty, and I think we

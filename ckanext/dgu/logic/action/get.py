@@ -6,7 +6,6 @@ from ckan import plugins
 import ckan.lib.plugins as lib_plugins
 from ckan.lib.navl.dictization_functions import validate
 from ckan.logic.action.get import group_show
-from ckanext.dgu.lib import publisher as publisher_lib
 
 #from ckan.plugins.toolkit as t
 
@@ -25,7 +24,7 @@ def publisher_show(context, data_dict):
     id = get_or_bust(data_dict, 'id')
     group = model.Group.get(id)
 
-    parent_groups = publisher_lib.get_parents(group)
+    parent_groups = group.get_parent_groups(type='organization')
     group_dict['parent_group'] = {'id': parent_groups[0].id, 'name': parent_groups[0].name} \
                                  if parent_groups else None
 
