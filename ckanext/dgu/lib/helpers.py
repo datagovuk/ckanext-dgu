@@ -342,7 +342,15 @@ def predict_if_resource_will_preview(resource_dict):
                                   'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
-def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
+def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwrite h.linked_user
+    '''Given a user.name, user object or Drupal user name , return the HTML for a user,
+    making sure officials are kept anonymous to the public.
+    user parameter can be any of:
+    * CKAN user.name e.g. 'user_d845'
+    * user object
+    * Drupal user name e.g. 'davidread'
+    * Old Drupal user ID as stored in revisions e.g. 'NHS North Staffordshire (uid 6107 )'
+    '''
     from ckan import model
     from ckan.lib.base import h
 
@@ -379,9 +387,22 @@ def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
             if is_sysadmin(user):
                 return 'System Administrator'
             elif groups:
-                return t.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
-                                                     '/publisher/%s' % group.name) \
-                                         for group in groups]))
+                # We don't want to show all of the groups that the user belongs to.
+                # We will try and match the organisation name if provided and use that
+                # instead.  If none is provided, or we can't match one then we will use
+                # the highest level org.
+                matched_group = None
+                for group in groups:
+                    if group.title == organisation:
+                        matched_group = group
+                        break
+
+                if not matched_group:
+                    matched_group = groups[0]
+
+                val = h.link_to(truncate(matched_group.title, length=maxlength),
+                                                 '/publisher/%s' % matched_group.name)
+                return t.literal(val)
             else:
                 return 'Staff'
         else:

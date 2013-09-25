@@ -385,9 +385,9 @@
       <label class="control-label" for="owner_org">Published by: </label>
       <div class="controls">
         <select id="owner_org" name="owner_org">
-          <option value=" " py:attrs="{'selected': 'selected' if not h.edit_publisher_group_name(data) else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in authorize.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
+          <option value=" " py:attrs="{'selected': 'selected' if not data.get('owner_org') else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in authorize.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if h.edit_publisher_group_name(data) == publisher_name else None}" >
+            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('owner_org') == publisher.id else None}" >
               ${publisher['title']}
             </option>
           </py:for>

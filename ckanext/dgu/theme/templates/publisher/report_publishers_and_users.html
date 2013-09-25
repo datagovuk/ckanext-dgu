@@ -25,7 +25,7 @@
         <py:for each="g in c.page.items">
           <tr>
             <td><a href="/publisher/${g.name}">${g.title}</a></td>
-            <td>${g.active_packages().count()}</td>
+            <td>${len(g.packages())}</td>
             <td>${g.approval_status}</td>
             <td py:for="capacity in ('admin', 'editor')">
               <py:for each="user in h.group_get_users(g, capacity=capacity)">
