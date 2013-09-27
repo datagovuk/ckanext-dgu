@@ -21,9 +21,8 @@ from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
 from ckan.plugins import ICachedReport
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
-from ckanext.dgu.authorize import (dgu_group_create,
-                             dgu_package_create, dgu_package_update,
-                             dgu_package_create_rest, dgu_package_update_rest,
+from ckanext.dgu.authorize import (
+                             dgu_package_update,
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show,
                              dgu_feedback_update, dgu_feedback_create,
@@ -260,11 +259,7 @@ class AuthApiPlugin(SingletonPlugin):
 
     def get_auth_functions(self):
         return {
-                'group_create': dgu_group_create,
-                'package_create': dgu_package_create,
                 'package_update': dgu_package_update,
-                'package_create_rest': dgu_package_create_rest,
-                'package_update_rest': dgu_package_update_rest,
                 'package_extra_fields_editable': dgu_extra_fields_editable,
                 'package_delete': dgu_dataset_delete,
                 'user_list': dgu_user_list,
