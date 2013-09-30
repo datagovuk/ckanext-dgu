@@ -15,7 +15,6 @@
  </table>
 
 <py:def function="publisher_sidebar()">
-
   <div class="boxed">
 
       <div class="widget-container">
@@ -38,7 +37,7 @@
         <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage unpublished datasets</a>
         </li>
         <li py:if="h.check_access('package_create', {'organization':c.group.name})">
-        <a href="${h.url_for('dataset_new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+          <a href="${h.url_for('dataset_new')}?owner_org=${c.group.id}">Add a new dataset</a>
         </li>
       </ul>
     </div>

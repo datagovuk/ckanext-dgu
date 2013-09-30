@@ -174,8 +174,18 @@ There are errors in the form, please correct them before re-submitting.
         <label for="organisation_name">
           Organisation name
         </label>
-        <input name="organisation_name" type="text" placeholder="Organisation name" class='input-large'/>
-
+        <py:with vars="publishers = sorted(c.userobj.get_groups(), key=lambda x:x.title)">
+          <py:if test="len(publishers) > 0">
+              <select name="organisation_name">
+                  <py:for each="group in publishers">
+                    <option>${group.title}</option>
+                  </py:for>
+              </select>
+          </py:if>
+          <py:if test="len(publishers) == 0">
+            <input name="organisation_name" type="text" placeholder="Organisation name" class='input-large'/>
+          </py:if>
+        </py:with>
     </div>
 </div>
 

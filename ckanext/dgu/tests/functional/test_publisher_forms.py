@@ -266,7 +266,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             assert_equal(set([grp.name for grp in group.active_packages()]),
                          set([u'directgov-cota']))
             # parents
-            child_groups = [grp['name'] for grp in model.Group.by_name('dept-health').get_children_groups('organization')]
+            child_groups = [grp.name for grp in model.Group.by_name('dept-health').get_children_groups('organization')]
             assert publisher_name in child_groups, child_groups
 
         check_related_publisher_properties()

@@ -149,9 +149,29 @@ def render_tree():
     context = {'model': model, 'session': model.Session}
     top_nodes = get_action('group_tree')(context=context,
             data_dict={'type': 'organization'})
-    return
-    return t.render_snippet('organization/snippets/organization_tree.html',
-            data={'top_nodes': top_nodes})
+    return _render_tree(top_nodes)
+
+def _render_tree(top_nodes):
+    '''Renders a tree of nodes. 10x faster than Jinja/organization_tree.html
+    Note: avoids the slow url_for routine.
+    '''
+    html = '<ul>'
+    for node in top_nodes:
+        html += _render_tree_node(node)
+    return html + '</ul>'
+
+def _render_tree_node(node):
+    html = node['title']
+    if node['highlighted']:
+        html = '<strong>%s</strong>' % html
+    html = '<a href="/publisher/%s">%s</a>' % (node['name'], html)
+    if node['children']:
+        html += '<ul>'
+        for child in node['children']:
+            html += _render_tree_node(child)
+        html += '</ul>'
+    html = '<li id="node_%s">%s</li>' % (node['name'], html)
+    return html
 
 def render_mini_tree(group_name_or_id):
     '''Returns HTML for a hierarchy of SOME publishers - the ones which
@@ -161,8 +181,7 @@ def render_mini_tree(group_name_or_id):
     context = {'model': model, 'session': model.Session}
     top_node = get_action('group_tree_section')(context=context,
             data_dict={'id': group_name_or_id, 'type': 'organization'})
-    return t.render_snippet('organization/snippets/organization_tree.html',
-            data={'top_nodes': [top_node]})
+    return _render_tree([top_node])
 
 def is_wms(resource):
     from ckanext.dgu.lib.helpers import get_resource_wms
@@ -328,7 +347,7 @@ def predict_if_resource_will_preview(resource_dict):
                                   'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
-def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
+def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwrite h.linked_user
     '''Given a user.name, user object or Drupal user name , return the HTML for a user,
     making sure officials are kept anonymous to the public.
     user parameter can be any of:
@@ -391,9 +410,22 @@ def dgu_linked_user(user, maxlength=16, avatar=30):  # Overwrite h.linked_user
             if is_sysadmin(user):
                 return 'System Administrator'
             elif groups:
-                return t.literal(' '.join([h.link_to(truncate(group.title, length=maxlength),
-                                                     '/publisher/%s' % group.name) \
-                                         for group in groups]))
+                # We don't want to show all of the groups that the user belongs to.
+                # We will try and match the organisation name if provided and use that
+                # instead.  If none is provided, or we can't match one then we will use
+                # the highest level org.
+                matched_group = None
+                for group in groups:
+                    if group.title == organisation:
+                        matched_group = group
+                        break
+
+                if not matched_group:
+                    matched_group = groups[0]
+
+                val = h.link_to(truncate(matched_group.title, length=maxlength),
+                                                 '/publisher/%s' % matched_group.name)
+                return t.literal(val)
             else:
                 return 'Staff'
         else:
@@ -1064,10 +1096,6 @@ def prep_group_edit_data(data):
     for key, value in original_extra_fields.items():
         if key not in data:
             data[key] = value
-
-def get_children_for_group(group):
-    from ckanext.dgu.lib import publisher
-    return publisher.get_children(group)
 
 def top_level_init():
     # Top level initialisation previously done in layout_base to make sure it

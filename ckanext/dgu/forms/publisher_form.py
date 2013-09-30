@@ -63,16 +63,16 @@ class PublisherForm(SingletonPlugin):
         rootdir = os.path.dirname(os.path.dirname(here))
 
     def new_template(self):
-        return 'group/new.html'
+        return 'publisher/new.html'
 
     def index_template(self):
-        return 'group/index.html'
+        return 'publisher/index.html'
 
     def read_template(self):
-        return 'group/read.html'
+        return 'publisher/read.html'
 
     def history_template(self):
-        return 'group/history.html'
+        return 'publisher/history.html'
 
     def edit_template(self):
         return 'publisher/edit.html'
@@ -148,38 +148,4 @@ class PublisherForm(SingletonPlugin):
         """
 
     def setup_template_variables(self, context, data_dict):
-        """
-        Add variables to c just prior to the template being rendered. We should
-        use the available groups for the current user, but should be optional
-        in case this is a top level group
-        """
-        c.body_class = "group edit"
-        c.schema_fields = [
-    		'contact-name', 'contact-email', 'contact-phone',
-    		'foi-name', 'foi-email', 'foi-phone', 'foi-web',
-                'category',
-	    ]
-
-        if 'group' in context:
-            group = context['group']
-
-            try:
-                check_access('group_update', context)
-                c.is_superuser_or_groupadmin = True
-            except NotAuthorized:
-                c.is_superuser_or_groupadmin = False
-
-            c.possible_parents = model.Session.query(model.Group).\
-                   filter(model.Group.state == 'active').\
-                   filter(model.Group.type == 'organization').\
-                   filter(model.Group.name != group.id ).order_by(model.Group.title).all()
-
-            c.parent = None
-            grps = group.get_groups('organization')
-            if grps:
-                c.parent = grps[0]
-
-            c.users = group.members_of_type(model.User)
-        else:
-            c.body_class = 'group new'
-        c.categories = categories
+        pass # Moved to Publisher/OrganizationControll

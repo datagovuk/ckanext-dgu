@@ -11,25 +11,6 @@ def to_names(domain_obj_list):
         objs.append(obj.name if obj else None)
     return objs
 
-class TestGetParents:
-    @classmethod
-    def setup_class(cls):
-        DguCreateTestData.create_dgu_test_data()
-
-    @classmethod
-    def teardown_class(cls):
-        model.repo.rebuild_db()
-
-    def test_doh(self):
-        assert_equal(to_names(get_parents(model.Group.get(u'dept-health'))),
-                     [])
-    def test_nhs(self):
-        assert_equal(to_names(get_parents(model.Group.get(u'national-health-service'))),
-                     ['dept-health'])
-    def test_barnsley(self):
-        assert_equal(to_names(get_parents(model.Group.get(u'barnsley-primary-care-trust'))),
-                     ['national-health-service'])
-
 class TestParentAuth:
     @classmethod
     def setup_class(cls):

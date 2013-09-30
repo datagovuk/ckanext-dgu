@@ -227,7 +227,7 @@ ${h.prep_group_edit_data(data)}
 
 <fieldset id="child-publishers" style="display: none;" py:if="c.group">
   <ul>
-    <li py:for="num, publisher in enumerate(h.get_children_for_group(c.group))">
+    <li py:for="num, publisher in enumerate(c.group.get_children_groups(type='organization'))">
       <label class="checkbox" for="groups__${num}__name">
         <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher.name}"/>
         ${publisher.title}
@@ -255,7 +255,7 @@ ${h.prep_group_edit_data(data)}
   </dl>
   <dl py:if="c.group">
 	<dd>
-		<a href="${h.url_for(controller='package', action='new')}?groups__0__id=${c.group.id}">Add a new dataset</a>
+		<a href="${h.url_for(controller='package', action='new')}?owner_org=${c.group.id}">Add a new dataset</a>
 	</dd>
   </dl>
 </fieldset>
