@@ -21,13 +21,13 @@
         <h4>Reports</h4>
         <ul>
           <li>
-              <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback', id=c.group.name)}">Unpublished dataset feedback</a>
+              <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback', id=c.group.name)}">Feedback</a>
           </li>
         </ul>
     </div>
 
 
-    <div py:if="h.check_access('package_create', {'organization':c.group.name})" class="widget-container">
+    <div py:if="h.check_access('package_create', {'owner_org':c.group.name})" class="widget-container">
       <h4>Publisher Administration</h4>
       <ul>
         <li py:if="h.check_access('organization_update', {'id':c.group.id})">
@@ -36,8 +36,8 @@
         <li py:if="h.check_access('group_update', {'id':c.group.id})">
         <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}">Manage unpublished datasets</a>
         </li>
-        <li py:if="h.check_access('package_create', {'organization':c.group.name})">
-          <a href="${h.url_for('dataset_new')}?owner_org=${c.group.id}">Add a new dataset</a>
+        <li>
+          <a href="${h.url_for('dataset_new')}?owner_org=${c.group.name}">Add a new dataset</a>
         </li>
       </ul>
     </div>

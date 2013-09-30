@@ -21,13 +21,12 @@ from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
 from ckan.plugins import ICachedReport
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
-#from ckanext.dgu.authorize import (dgu_group_update, dgu_group_create,
-#                             dgu_package_create, dgu_package_update,
-#                             dgu_package_create_rest, dgu_package_update_rest,
-#                             dgu_extra_fields_editable,
-#                             dgu_dataset_delete, dgu_user_list, dgu_user_show,
-#                             dgu_feedback_update, dgu_feedback_create, dgu_feedback_delete)
-from ckanext.dgu.authorize import (dgu_feedback_update, dgu_feedback_create, dgu_feedback_delete)
+from ckanext.dgu.authorize import (
+                             dgu_package_update,
+                             dgu_extra_fields_editable,
+                             dgu_dataset_delete, dgu_user_list, dgu_user_show,
+                             dgu_feedback_update, dgu_feedback_create,
+                             dgu_feedback_delete)
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
@@ -256,22 +255,16 @@ class AuthApiPlugin(SingletonPlugin):
     '''Adds functions that work out if the user is allowed to do
     certain edits.'''
 
-    ##implements(IAuthFunctions, inherit=True)
+    implements(IAuthFunctions, inherit=True)
 
-    ## def get_auth_functions(self):
-    ## return {
-    ## 'group_update' : dgu_group_update,
-    ## 'group_create' : dgu_group_create,
-    ## 'package_create' : dgu_package_create,
-    ## 'package_update' : dgu_package_update,
-    ## 'package_create_rest' : dgu_package_create_rest,
-    ## 'package_update_rest' : dgu_package_update_rest,
-    ## 'package_extra_fields_editable' : dgu_extra_fields_editable,
-    ## 'package_delete': dgu_dataset_delete,
-    ## 'user_list': dgu_user_list,
-    ## 'user_show': dgu_user_show,
-    ## 'package_show': dgu_package_show,
-    ## }
+    def get_auth_functions(self):
+        return {
+                'package_update': dgu_package_update,
+                'package_extra_fields_editable': dgu_extra_fields_editable,
+                'package_delete': dgu_dataset_delete,
+                'user_list': dgu_user_list,
+                'user_show': dgu_user_show,
+               }
 
 
 class DguForm(SingletonPlugin):
