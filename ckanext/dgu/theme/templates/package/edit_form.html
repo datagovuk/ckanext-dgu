@@ -387,7 +387,7 @@
         <select id="owner_org" name="owner_org">
           <option value=" " py:attrs="{'selected': 'selected' if not data.get('owner_org') else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in authorize.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('owner_org') == publisher.id else None}" >
+            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if data.get('owner_org') == publisher.name else None}" >
               ${publisher['title']}
             </option>
           </py:for>
