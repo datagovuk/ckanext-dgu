@@ -108,7 +108,7 @@ ${h.top_level_init()}
         </span>
         <span class="ckan-logged-out">
           <div id="login-or-signup">
-            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}">Log in</a>
+            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}?destination=${request.url}">Log in</a>
             or
             <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}">sign up</a>
           </div>
@@ -133,12 +133,13 @@ ${h.top_level_init()}
           <ul id="dgu-nav" class="nav">
             <li class="nav-home"><a href="/home"><i class="icon-home"/> &nbsp;Home</a></li>
             <li class="nav-data active"><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController',action='index')}">Data</a></li>
-            <li class="nav-participate"><a href="/participate">Participate</a></li>
             <li class="nav-data-requests"><a href="/odug">Data requests</a></li>
             <li class="nav-apps"><a href="/apps">Apps</a></li>
+            <li class="nav-blogs"><a href="/blog">Blogs</a></li>
+            <li class="nav-forum"><a href="/forum">Forum</a></li>
+            <li class="nav-library"><a href="/library">Library</a></li>
             <li class="nav-location"><a href="/location">Location</a></li>
             <li class="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
-            <li class="nav-library"><a href="/library">Library</a></li>
             <li class="nav-about"><a href="/about">About</a></li>
           </ul>
         </div>
