@@ -28,19 +28,16 @@ ${h.prep_group_edit_data(data)}
 <fieldset id="basic-information">
   <div class="control-group">
     <label class="control-label" for="name">Publisher name</label>
-    <div class="controls">
-      <input py:if="not c.group or h.is_sysadmin()" id="title" name="title" type="text" value="${data.get('title', '')}" py:attrs="{} if c.editing else {'class':'js-title'}"/>
-      <span py:if="c.group and not h.is_sysadmin()" class="js-title">
-        ${data.get('title', '')}
-      </span>
-        <span py:if="c.group and not h.is_sysadmin()" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
+    <div class="controls" py:with="editable = not c.group or h.is_sysadmin()">
+      <input id="title" name="title" type="text" value="${data.get('title', '')}" py:attrs="{} if editable else {'class':'js-title', 'disabled':'disabled'}"/>
+      <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
 
       <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
     </div>
   </div>
 
   <div class="control-group">
-    <label class="control-label" for="url">Url</label>
+    <label class="control-label" for="url">URL</label>
     <div class="controls name-field">
       <div class="input-prepend">
         <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {}"/>
@@ -68,39 +65,31 @@ ${h.prep_group_edit_data(data)}
   </div>
 
   <div class="control-group">
-    <label py:if="c.is_superuser_or_groupadmin" class="control-label" for="parent">Parent publisher</label>
-    <div class="controls">
-      <py:if test="c.group and not h.is_sysadmin()">
-        <span py:if="c.parent is not None" class="js-title">
-          ${c.parent.title}
-        </span>
-        <span py:if="c.parent is None" class="js-title">
-          No parent publisher
-        </span>
-      </py:if>
-      <py:if test="h.is_sysadmin()" class="parent-field">
-        <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
-          <option value="">No parent</option>
-          <py:for each="pg in c.possible_parents">
-            <option py:attrs="{'selected': 'selected' if c.parent and pg.id == c.parent.id else None}" value="${pg.id}">${pg.title}</option>
+    <label class="control-label" for="parent">Parent publisher</label>
+    <div class="controls parent-field" py:with="selected_parent = (data.get('groups') or [{'name':''}])[0]['name']; editable = not c.editing or h.is_sysadmin()">
+      <select py:if="editable" id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
+        <py:if test="editable">
+          <option py:attrs="{'selected': 'selected'} if not selected_parent else {}" value="">No parent (top level)</option>
+          <py:for each="pg in c.allowable_parent_groups">
+            <option py:attrs="{'selected': 'selected'} if selected_parent == pg.name else {}" value="${pg.name}">${pg.title}</option>
           </py:for>
-        </select>
+        </py:if>
+      </select>
+      <py:if test="not editable">
+        <input id="dummy" type="text" disabled="disabled" value="${h.group_name_to_title(selected_parent) or 'No parent (top level)'}"/>
+        <input id="groups__0__name" name="groups__0__name" type="hidden" value="${selected_parent}" />
+        <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
       </py:if>
     </div>
   </div>
 
   <div class="control-group">
     <label class="control-label" for="state">State</label>
-    <div class="controls state-field">
-      <py:if test="c.group_dict and h.check_access('group_change_state', {'id': c.group_dict.id})">
-        <select id="state" name="state" style="width:100px;">
+    <div class="controls state-field" py:with="editable = c.group_dict and h.check_access('group_change_state', {'id': c.group_dict.id})">
+        <select id="state" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
         </select>
-      </py:if>
-      <py:if test="not c.group_dict or not h.check_access('group_change_state', {'id': c.group_dict.id})">
-          ${data.get('state', 'active')}
-      </py:if>
     </div>
   </div>
 
@@ -174,7 +163,7 @@ ${h.prep_group_edit_data(data)}
   </div>
 </fieldset>
 
-
+<!--! Users need to be submitted or they are removed from the publisher -->
 <fieldset id="users" style="display: none;">
   <h3>Users <span py:if="data.get('users', [])">(${len(data.get('users', []))})</span></h3>
   <dl py:if="data.get('users', [])">
@@ -189,76 +178,20 @@ ${h.prep_group_edit_data(data)}
   <p py:if="not data.get('users', [])">There are no users currently in this publisher.</p>
 </fieldset>
 
+<!--! Extras need to be submitted or they are deleted -->
 <fieldset id="extras" style="display: none;">
-<!--!  <h3>Extras</h3> -->
   <py:with vars="extras = data.get('extras', [])">
   <py:for each="num, extra in enumerate(data.get('extras', []))">
-<!--!  <div class="control-group"> -->
-    <!--! <label class="control-label" for="extras__${num}__value">${extra.get('key')}</label> -->
-<!--!    <div class="controls"> -->
     <py:if test="extra.get('key')"> <!--! Somehow some extras have no key! - delete -->
       <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
       <input id="extras__${num}__value" name="extras__${num}__value" type="hidden" value="${extra.get('value')}" />
-<!--!      <label class="checkbox" style="display: inline-block;"> -->
-        <!--!<input type="checkbox" name="extras__${num}__deleted" checked="${extra.get('deleted')}" />Delete-->
-<!--!      </label> -->
-<!--!    </div> -->
-<!--!  </div> -->
      </py:if>
   </py:for>
   <hr py:if="len(extras)" class="extras-divider" />
-<!--!  <py:for each="num in range(len(extras), len(extras) + 4)">
-    <div class="control-group">
-      <label class="control-label" for="extras__${num}__key"><b>Add...</b></label>
-      <div class="controls">
-        <label>
-          <span class="extras-label">Key =</span>
-          <input class="medium-width" id="extras__${num}__key" name="extras__${num}__key" type="text" />
-        </label>
-        <label>
-          <span class="extras-label">Value =</span>
-          <input class="medium-width" id="extras__${num}__value" name="extras__${num}__value" type="text" />
-        </label>
-      </div>
-    </div>
-  </py:for> -->
   </py:with>
 </fieldset>
 
-<fieldset id="child-publishers" style="display: none;" py:if="c.group">
-  <ul>
-    <li py:for="num, publisher in enumerate(c.group.get_children_groups(type='organization'))">
-      <label class="checkbox" for="groups__${num}__name">
-        <input checked="checked" id="groups__${num}__name" name="groups__${num}__name" type="checkbox" value="${publisher.name}"/>
-        ${publisher.title}
-      </label>
-    </li>
-  </ul>
-</fieldset>
-
-<fieldset id="datasets" style="display: none;">
-  <h3>Datasets <span py:if="data.get('packages')">(${len(data.get('packages'))})</span></h3>
-  <dl py:if="data.get('packages')">
-    <py:for each="num, package in enumerate(data.get('packages'))">
-      <label class="checkbox" for="packages__${num}__name">
-        <input checked="checked" id="packages__${num}__name" name="packages__${num}__name" type="checkbox" value="${package['name']}"/>
-        ${package['name']}
-      </label>
-    </py:for>
-  </dl>
-  <p py:if="not data.get('packages')">There are no datasets currently in this publisher.</p>
-
-  <h3>Add datasets</h3>
-  <dl>
-    <dt><label class="field_opt" for="packages__${len(data.get('packages', []))}__name">Dataset</label></dt>
-    <dd><input class="autocomplete-dataset" id="datasets__${len(data.get('packages', []))}__name" name="packages__${len(data.get('packages', []))}__name" type="text" /></dd>
-  </dl>
-  <dl py:if="c.group">
-	<dd>
-		<a href="${h.url_for(controller='package', action='new')}?owner_org=${c.group.name}">Add a new dataset</a>
-	</dd>
-  </dl>
-</fieldset>
+<!--! Datasets don't need to be submitted because we set prevent_packages_update -->
 
 <div class="form-actions">
   <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save Changes')}" />

@@ -75,68 +75,6 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def construct_publisher_tree(groups,  type='organization', root_url='publisher', title_for_group=lambda x:x.title):
-    """
-        Uses the provided groups to generate a tree structure (in a dict) by
-        matching up the tree relationship using the Member objects.
-
-        We might look at using postgres CTE to build the entire tree inside
-        postgres but for now this is adequate for our needs.
-    """
-    from ckan import model
-
-    root = PublisherNode( "root", "root", root_url=root_url)
-    tree = { root.slug : root }
-
-    # Get all the member objects between groups.
-    # For each member:
-    #    .group_id is the group
-    #    .table_id is the parent group
-    members = model.Session.query(model.Member).\
-                join(model.Group, model.Member.group_id == model.Group.id).\
-                filter(model.Group.type == 'organization').\
-                filter(model.Member.table_name == 'group').\
-                filter(model.Member.state == 'active').all()
-
-    group_lookup  = dict( (g.id,g, ) for g in groups )
-    group_members = dict( (g.id,[],) for g in groups )
-
-    # Process the membership rules
-    for member in members:
-        if member.table_id in group_lookup and member.group_id:
-            group_members[member.table_id].append( member.group_id )
-
-    def get_groups(group):
-        # Protect against missing values (which may have been removed)
-        # by checking the group has members. If it doesn't appears in
-        # group_members then we should just return an empty list for now
-        # which will mean it gets added to the root.
-        if group.id in group_members:
-            return [group_lookup[i] for i in group_members[group.id]]
-        return []
-
-    for group in groups:
-        slug, title = group.name, title_for_group(group)
-        if not slug in tree:
-            tree[slug] = PublisherNode(slug, title, root_url=root_url)
-        else:
-            # May be updating a parent placeholder where the child was
-            # encountered first.
-            tree[slug].slug = slug
-            tree[slug].title = title
-
-        parent_nodes = get_groups(group)
-        if len(parent_nodes) == 0:
-            root.children.append( tree[slug] )
-        else:
-            for parent in parent_nodes:
-                parent_slug, parent_title = parent.name, parent.title
-                if not parent_slug in tree:
-                    # Parent doesn't yet exist, add a placeholder
-                    tree[parent_slug] = PublisherNode('', '', root_url)
-                tree[parent_slug].children.append(tree[slug])
-    return root
-
 def render_tree():
     '''Returns HTML for a hierarchy of all publishers'''
     from ckan.logic import get_action
