@@ -47,8 +47,8 @@ class OnsImporter(PackageImporter):
         # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
-        publisher_name = self._source_to_publisher(item['hub:source-agency'])
-        if not publisher_name:
+        publisher_id = self._source_to_publisher(item['hub:source-agency'])
+        if not publisher_id:
             log.warn('Did not find publisher for source-agency: %s', item['hub:source-agency'])
 
         # Resources
@@ -129,7 +129,7 @@ class OnsImporter(PackageImporter):
             'notes': notes,
             'license_id': self._crown_license_id,
             'tags': [], # post-filled
-            'owner_org': publisher_name,
+            'owner_org': publisher_id,
             'resources': resources,
             'extras': extras,
             }
@@ -183,7 +183,7 @@ class OnsImporter(PackageImporter):
     @classmethod
     def _source_to_publisher_(cls, source, ckanclient):
         '''
-        For a given ONS Source, returns the equivalent DGU publisher name.
+        For a given ONS Source, returns the equivalent DGU publisher ID.
         If it cannot find it, returns None.
         '''
         # map the name
@@ -205,7 +205,7 @@ class OnsImporter(PackageImporter):
         else:
             log.info('..Publisher found: %s', result['results'][0]['name'])
 
-        return result['results'][0]['name']
+        return result['results'][0]['id']
 
     @classmethod
     def _split_title(cls, xml_title):
