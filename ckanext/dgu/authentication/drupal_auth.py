@@ -49,7 +49,7 @@ class DrupalAuthMiddleware(object):
         for cookie in cookies:
             if cookie.startswith('SESS'):
                 # Drupal 6 uses md5, Drupal 7 uses sha256
-                server_hash = hashlib.sha256(server_name).hexdigest()
+                server_hash = hashlib.sha256(server_name).hexdigest()[:32]
                 if cookie == 'SESS%s' % server_hash:
                     log.debug('Drupal cookie found for server request %s', server_name)
                     return cookies[cookie].value
