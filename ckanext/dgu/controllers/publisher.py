@@ -149,7 +149,6 @@ class PublisherController(OrganizationController):
             if 'save' in request.params and not errors:
                 return self._send_application(c.group, request.params.get('reason', None))
 
-        self._add_publisher_list()
         data = data or {}
         errors = errors or {}
         error_summary = error_summary or {}
@@ -160,12 +159,6 @@ class PublisherController(OrganizationController):
         c.form = render('publisher/apply_form.html', extra_vars=vars)
         return render('publisher/apply.html')
 
-
-    def _add_publisher_list(self):
-        c.possible_parents = model.Session.query(model.Group).\
-               filter(model.Group.state == 'active').\
-               filter(model.Group.type == 'organization').\
-               order_by(model.Group.title).all()
 
     def _add_users(self, group, parameters):
         from ckan.logic.schema import default_group_schema
@@ -520,15 +513,6 @@ class PublisherController(OrganizationController):
 
     def new(self, data=None, errors=None, error_summary=None):
         c.body_class = "group new"
-        self._add_publisher_list()
-
-        context = {'model': model, 'session': model.Session,
-                   'user': c.user or c.author}
-        try:
-            check_access('group_create', context)
-            c.is_superuser_or_groupadmin = True
-        except NotAuthorized:
-            c.is_superuser_or_groupadmin = False
 
         return super(PublisherController, self).new(data, errors, error_summary)
 
@@ -572,30 +556,32 @@ class PublisherController(OrganizationController):
                 'category',
         ]
 
-        if 'organization' in context:
-            group = context['organization']
-
-            try:
-                check_access('organization_update', context)
-                c.is_superuser_or_groupadmin = True
-            except NotAuthorized:
-                c.is_superuser_or_groupadmin = False
-
-            c.possible_parents = model.Session.query(model.Group).\
-                   filter(model.Group.state == 'active').\
-                   filter(model.Group.type == 'organization').\
-                   filter(model.Group.name != group.id ).order_by(model.Group.title).all()
+        if group_type=='organization':
+            # editing an organization
+            group = context['group']
 
             c.parent = None
-            grps = group.get_groups('organization')
-            if grps:
-                c.parent = grps[0]
+            parents = group.get_parent_groups('organization')
+            if parents:
+                c.parent = parents[0]
+
+            model = context['model']
+            group_id = data_dict.get('id')
+            if group_id:
+                group = model.Group.get(group_id)
+                c.allowable_parent_groups = \
+                    group.groups_allowed_to_be_its_parent(type='organization')
+            else:
+                c.allowable_parent_groups = model.Group.all(
+                    group_type='organization')
 
             c.users = group.members_of_type(model.User)
         else:
+            # creating an organization
             c.body_class = 'group new'
 
         c.categories = categories
+
 def is_drupal_auth_activated():
     '''Returns whether the DrupalAuthPlugin is activated'''
     return any(isinstance(plugin, DrupalAuthPlugin) for plugin in PluginImplementations(IMiddleware))

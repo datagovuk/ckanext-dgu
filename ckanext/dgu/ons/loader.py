@@ -6,7 +6,7 @@ from ckanext.importlib.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
     def __init__(self, ckanclient):
-        field_keys_to_find_pkg_by = ['title', 'groups', 'external_reference']
+        field_keys_to_find_pkg_by = ['title', 'owner_org', 'external_reference']
         field_keys_to_expect_invariant = [
             'geographic_coverage', 'temporal_granularity',
             'precision', 'url', 'taxonomy_url',

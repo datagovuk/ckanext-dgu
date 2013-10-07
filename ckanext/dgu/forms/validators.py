@@ -104,7 +104,7 @@ def validate_license(key, data, errors, context):
         return
 
     license_id = bool(data[('license_id',)])
-    license_id_other = bool(data.get(('access_constraints',False)))
+    license_id_other = bool(data.get(('access_constraints',)))
 
     if not (license_id ^ license_id_other):
         if license_id:

@@ -163,7 +163,7 @@ class SearchIndexing(object):
         ancestors = []
         while(publisher is not None):
             ancestors.append(publisher)
-            parent_publishers = publisher.get_groups('organization')
+            parent_publishers = publisher.get_parent_groups('organization')
             if len(parent_publishers) == 0:
                 publisher = None
             else:

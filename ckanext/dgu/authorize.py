@@ -3,8 +3,6 @@ import ckan.new_authz as new_authz
 from ckan.logic.auth import get_package_object
 import ckan.logic.auth
 from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
-from ckanext.dgu.lib import publisher as publib
-
 
 
 def dgu_package_update(context, data_dict):

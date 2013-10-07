@@ -10,6 +10,7 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       empty,
                                       ignore,
                                       missing,
+                                      not_missing,
                                       keep_extras,
                                      )
 
@@ -129,7 +130,7 @@ class DatasetForm(SingletonPlugin):
         return True
 
     def package_types(self):
-        return ["dgu"]
+        return ["dataset"]
 
     def package_form(self, package_type=None):
         return 'package/edit_form.html'
@@ -258,20 +259,21 @@ class DatasetForm(SingletonPlugin):
                 'id': [ignore_missing, unicode],
             },
 
-            'contact-name': [unicode, drop_if_same_as_publisher, convert_to_extras],
-            'contact-email': [unicode, drop_if_same_as_publisher, convert_to_extras],
-            'contact-phone': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'contact-name': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
+            'contact-email': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
+            'contact-phone': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
 
-            'foi-name': [unicode, drop_if_same_as_publisher, convert_to_extras],
-            'foi-email': [unicode, drop_if_same_as_publisher, convert_to_extras],
-            'foi-phone': [unicode, drop_if_same_as_publisher, convert_to_extras],
-            'foi-web': [unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-name': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-email': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-phone': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
+            'foi-web': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, unicode, convert_to_extras],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
+            'tags': tags_schema(),
             'tag_string': [ignore_missing, val.tag_string_convert],
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
@@ -466,3 +468,16 @@ def validate_group_id_or_name_exists_if_not_blank(value, context):
     if not value.strip():
         return True
     return val.group_id_or_name_exists(value, context)
+
+def tags_schema():
+    schema = {
+        'name': [not_missing,
+                 not_empty,
+                 unicode,
+                 val.tag_length_validator,
+                 val.tag_name_validator,
+                ],
+        'revision_timestamp': [ignore],
+        'state': [ignore],
+    }
+    return schema
