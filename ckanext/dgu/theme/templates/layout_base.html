@@ -105,15 +105,15 @@ ${h.top_level_init()}
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
             You are logged-in as
-            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
-            <a href="${'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}">Log out</a>.
+            <a href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
+            <a href="${'/user/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}?destination=${request.url}">Log out</a>.
           </div>
         </span>
         <span class="ckan-logged-out">
           <div id="login-or-signup">
-            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}">Log in</a>
+            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}?destination=${request.url}">Log in</a>
             or
-            <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}">sign up</a>
+            <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}?destination=${request.url}">sign up</a>
           </div>
         </span>
       </div>
