@@ -104,7 +104,7 @@
 
           <span py:if="c.fields">
           <py:for each="(k, v) in c.fields">
-            <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished'" />
+            <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished' or k != 'core-dataset'"/>
           </py:for>
           </span>
           <py:if test="request.params.get('ext_bbox','')">
@@ -314,6 +314,12 @@
     </div>
 
     <div class="boxed">
+      ${facet_box(
+          'core-dataset',
+          'Core datasets',
+          ''
+          )}
+
       ${facet_box(
           'unpublished',
           'Show only...',
