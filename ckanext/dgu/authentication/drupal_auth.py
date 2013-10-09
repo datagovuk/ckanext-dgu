@@ -274,14 +274,15 @@ class DrupalAuthMiddleware(object):
         is_sysadmin = new_authz.is_sysadmin(user)
         if should_be_sysadmin and not is_sysadmin:
             # Make user a sysadmin
-            model.add_user_to_role(user, model.Role.ADMIN, model.System())
+            user.syadmin = True
             log.info('User made a sysadmin: %s', user_name)
             needs_commit = True
         elif not should_be_sysadmin and is_sysadmin:
-            # Stop user being a sysadmin
-            model.remove_user_from_role(user, model.Role.ADMIN, model.System())
-            log.info('User now not a sysadmin: %s', user_name)
-            needs_commit = True
+            # Stop user being a sysadmin - disabled for time being
+            #user.sysadmin = False
+            #log.info('User now not a sysadmin: %s', user_name)
+            #needs_commit = True
+            pass
         if needs_commit:
             model.repo.commit_and_remove()
 
