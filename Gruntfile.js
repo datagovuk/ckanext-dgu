@@ -14,7 +14,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: pkg,
     uglify: {
-      //options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
+      options: { beautify: true, mangle: false, compress: false, }, // <-- DEBUG MODE
       app: {
         files:  {
           'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
@@ -52,9 +52,10 @@ module.exports = function(grunt) {
       },
       recline: {
         src: [
+          'src/scripts/recline_pack/underscore-1.1.6.js',
+          'src/scripts/recline_pack/backbone-0.5.1.js',
           'src/scripts/recline_pack/jquery.mustache.js',
           'src/scripts/recline_pack/jquery.flot-0.7.js',
-          'src/scripts/recline_pack/underscore-1.1.6.js',
           'src/scripts/recline_pack/recline.js',
           'src/scripts/recline_pack/dgu-recline-integration.js',
         ],
@@ -69,6 +70,14 @@ module.exports = function(grunt) {
       build: {
         src: 'src/css/dgu-ckan.less',
         dest: 'public/css/dgu-ckan.min.css'
+      },
+      recline: {
+        src: [ 
+          'src/css/recline_pack/recline-data-explorer.min.css',
+          'src/css/recline_pack/recline-grid.css',
+          'src/css/recline_pack/dgu-recline-integration.css',
+        ],
+        dest: 'public/css/dgu-recline-pack.min.css'
       }
     },
     watch: {

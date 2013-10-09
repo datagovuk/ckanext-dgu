@@ -18,47 +18,7 @@
   <xi:include href="field_helpers.html" />
 
   <py:def function="optional_head">
-    <!-- data preview -->
-    <!-- leaflet removed for now -->
-    <link rel="stylesheet" href="${h.url_for_static('/css/recline-data-explorer.min.css')}" />
-    <!--! Recline bits not used
-    <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/recline/css/graph.css')}" />
-    <link rel="stylesheet" href="${h.url_for_static('/scripts/vendor/recline/css/map.css')}" />
-    -->
-    <link rel="stylesheet" href="${h.url_for_static('/css/recline-grid.min.css')}" />
-    <style type="text/css">
-      .recline-query-editor form, .recline-query-editor .text-query {
-        height: 28px;
-      }
-      .recline-query-editor .pagination ul {
-        margin: 0;
-        padding: 0;
-      }
-      /* needed for Chrome but not FF */
-      .header .recline-query-editor .add-on {
-        margin-left: -27px;
-      }
-
-      /* needed for FF but not chrome */
-      .header .recline-query-editor .input-prepend {
-        vertical-align: top;
-      }
-
-      /** Re-style the data viewer to remove controls,
-        * column menus, row menus, and the leading
-        * (control) column.
-        */
-      .recline-data-explorer .header,
-      .recline-data-explorer .column-header-menu,
-      .recline-data-explorer .root-header-menu,
-      .recline-data-explorer .row-header-menu,
-      .recline-data-explorer td:first-child,
-      .recline-data-explorer th:first-child {
-        display: none;
-      }
-
-    </style>
-    <!-- /data preview -->
+    <link rel="stylesheet" href="/css/dgu-recline-pack.min.css" />
     <script py:if="not h.is_wms(c.resource)" type="text/javascript">
       var preload_resource = ${h.literal(h.resource_as_json(c.resource))};
       var embedPath = "${h.url_for(controller='package', action='resource_embedded_dataviewer', id=c.package.id, resource_id=c.resource.id, qualified=True)}";
