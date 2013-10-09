@@ -525,12 +525,14 @@ class SearchPlugin(SingletonPlugin):
         """
         Modify the search query.
         """
-        from paste.deploy.converters import asbool
-
         # Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
         # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
         # within.
         search_params['qf'] = 'title^4 name^3 notes^2 text tags^0.3 group_titles^0.3 extras_harvest_document_content^0.2'
+
+        # ignore dataset_type:dataset which CKAN2 adds in - we dont use
+        # dataset_type and it mucks up spatial search
+        search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
 
         # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
         # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"

@@ -105,15 +105,15 @@ ${h.top_level_init()}
         <span class="ckan-logged-in" style="display: none;">
           <div id="login-or-signup">
             You are logged-in as
-            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
-            <a href="${'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}">Log out</a>.
+            <a href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
+            <a href="${'/user/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}?destination=${request.url}">Log out</a>.
           </div>
         </span>
         <span class="ckan-logged-out">
           <div id="login-or-signup">
-            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}">Log in</a>
+            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}?destination=${request.url}">Log in</a>
             or
-            <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}">sign up</a>
+            <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}?destination=${request.url}">sign up</a>
           </div>
         </span>
       </div>
@@ -232,19 +232,16 @@ ${h.top_level_init()}
 
 
   <div class="footer">
-    <footer class="container">
-    <div id="footer-menu" class="container">
-      <ul class="links">
-        <li><a href="/faq">FAQ</a></li>
-        <li><a href="/moderation-policy">Moderation</a></li>
-        <li><a href="/code-conduct">Code of conduct</a></li>
-        <li><a href="/accessibility-statement">Accessibility</a></li>
-        <li><a href="/cookies-policy">Cookies</a></li>
-        <li><a href="/privacy">Privacy</a></li>
-        <li><a href="/search/apachesolr_search/transparency%20board%20minutes">Transparency Board Minutes</a></li>
-        <li><a href="/contact">Contact us</a></li>
-        <li><a href="/terms-and-conditions">Terms &amp; Conditions</a></li>
-      </ul>
+    <footer role="contentinfo" class="container">
+      <ul class="links"><li class="menu-531 first"><a href="/faq">FAQ</a></li>
+        <li class="menu-527"><a href="/code-conduct">Code of conduct</a></li>
+        <li class="menu-524"><a href="/accessibility-statement">Accessibility</a></li>
+        <li class="menu-528"><a href="/cookies-policy">Cookies policy</a></li>
+        <li class="menu-537"><a href="/privacy">Privacy</a></li>
+        <li class="menu-536"><a href="/moderation-policy">Moderation policy</a></li>
+        <li class="menu-520"><a href="/contact" title="">Contact</a></li>
+        <li class="menu-538 last"><a href="/terms-and-conditions">Terms and conditions</a></li>
+      </ul>      
       <div class="credits">
         <div class="credit">
           <strong>Powered by:</strong><br/>
@@ -261,7 +258,6 @@ ${h.top_level_init()}
           </a>
         </div>
       </div>
-    </div>
     </footer>
   </div> <!-- /footer -->
 
