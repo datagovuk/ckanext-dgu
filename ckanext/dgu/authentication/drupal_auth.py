@@ -209,8 +209,7 @@ class DrupalAuthMiddleware(object):
                     name=ckan_user_name,
                     fullname=unicode(user_properties['name']),  # NB may change in Drupal db
                     about=u'User account imported from Drupal system.',
-                    email='TEMP', # while Drupal is fixed
-                    #email=user_properties['mail'], # NB may change in Drupal db
+                    email=user_properties['mail'], # NB may change in Drupal db
                     created=date_created,
                 )
                 Session.add(user)
