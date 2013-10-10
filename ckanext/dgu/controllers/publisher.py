@@ -557,13 +557,14 @@ class PublisherController(OrganizationController):
         ]
 
         if group_type=='organization':
-            # editing an organization
-            group = context['group']
+            # editing an organization?
+            group = context.get('group')
 
             c.parent = None
-            parents = group.get_parent_groups('organization')
-            if parents:
-                c.parent = parents[0]
+            if group:
+                parents = group.get_parent_groups('organization')
+                if parents:
+                    c.parent = parents[0]
 
             model = context['model']
             group_id = data_dict.get('id')
@@ -575,10 +576,14 @@ class PublisherController(OrganizationController):
                 c.allowable_parent_groups = model.Group.all(
                     group_type='organization')
 
-            c.users = group.members_of_type(model.User)
+            if group:
+                c.users = group.members_of_type(model.User)
+
         else:
             # creating an organization
             c.body_class = 'group new'
+            c.allowable_parent_groups = model.Group.all(
+                group_type='organization')
 
         c.categories = categories
 
