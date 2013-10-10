@@ -90,6 +90,7 @@ ${h.top_level_init()}
              ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}"
       id="${(defined('body_id') and body_id()) or ''}"
   >
+  <!--
   <div id="blackbar" py:choose="defined('blackbar_content')">
     <py:when test="True">
       ${blackbar_content()}
@@ -116,21 +117,31 @@ ${h.top_level_init()}
       </div>
     </py:otherwise>
   </div>
-  <div id="greenbar">
-    <a class="btn btn-inverse visible-phone" data-toggle="collapse" data-target=".main-nav-collapse">
-        Nav &nbsp;<i class="icon-chevron-down icon-white"></i>
-    </a>
+  -->
+  <div id="blackbar">
     <div class="container">
-        <a class="brand" href="/" rel="home">
-            <div id="dgu-header" class="retina-img">
-                <img src="/assets/img/dgu-header-cropped.png" alt="DATA.GOV.UK - Opening up Government" />
-            </div>
-        </a>
+      <a class="brand" href="/" rel="home">
+          <div id="dgu-header" class="retina-img">
+              <img src="/assets/img/dgu-header-cropped.png" alt="DATA.GOV.UK - Opening up Government" />
+          </div>
+      </a>
+      <nav id="dgu-nav">
+        <a href="/" class="nav-home">Home</a>
+        <a href="#" class="nav-blog">Blog</a>
+        <a href="#" class="nav-apps">Apps</a>
+        <a href="#" class="nav-talk">Talk</a>
+        <div class="nav-search" style="width: 200px;">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" />
+            <span class="input-group-btn">
+              <button class="btn btn-success" type="button"><i class="icon-search"></i></button>
+            </span>
+          </div>
+        </div>
+        <a class="nav-user btn btn-success" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
+      </nav>
     </div>
-    <div class="container">
-      <div class="navbar navbar-inverse"> 
-        <div class="main-nav-collapse">
-          <ul id="dgu-nav" class="nav">
+    <!--
             <li class="nav-home"><a href="/home"><i class="icon-home"/> &nbsp;Home</a></li>
             <li class="nav-data active"><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController',action='index')}">Data</a></li>
             <li class="nav-data-requests"><a href="/odug">Data requests</a></li>
@@ -142,59 +153,43 @@ ${h.top_level_init()}
             <li class="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
             <li class="nav-about"><a href="/about">About</a></li>
           </ul>
-        </div>
-      </div>
-    </div>
+    -->
   </div>
-  <div class="container">
-    <ul id="subnav">
-      <!--! <li><a href="${h.url_for(controller=data_controller, action='index')}">data</a></li>
-        <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <!--!   <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/themes') else ''}" href="/data/themes">Themes</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span> -->
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
-      <span class="divider">&nbsp;|&nbsp;</span>
-      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
-      <py:if test="config.get('dgu.openspending_reports_enabled')">
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
-      </py:if>
-      <py:if test="h.ga_report_installed()">
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
-      </py:if>
-    </ul>
-    <ul id="subnav" py:if="h.is_sysadmin() or h.check_access('package_create')">
-      <py:if test="h.check_access('package_create')">
-        <span class="divider-section">Publisher tools:</span>
-        <py:for each="group in h.groups_for_current_user()">
-          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
-          <span class="divider">&nbsp;|&nbsp;</span>
-        </py:for>
-        <li><a class="btn btn-mini btn-info" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
-        <py:if test="h.groups_for_current_user()">
-          <span class="divider">&nbsp;|&nbsp;</span>
-          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+  <div id="greenbar">
+    <div class="container">
+      <ul id="subnav">
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
+        <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
+        <py:if test="config.get('dgu.openspending_reports_enabled')">
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
         </py:if>
-      </py:if>
-      <py:if test="h.is_sysadmin()">
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <span class="divider-section">&nbsp; Sys Admin:</span>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
-        <span class="divider">&nbsp;|&nbsp;</span>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/feedback/moderation') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
-      </py:if>
-    </ul>
+        <py:if test="h.ga_report_installed()">
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
+        </py:if>
+      </ul>
+      <ul id="subnav" py:if="h.is_sysadmin() or h.check_access('package_create')">
+        <py:if test="h.check_access('package_create')">
+          <span class="divider-section">Publisher tools:</span>
+          <py:for each="group in h.groups_for_current_user()">
+            <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
+          </py:for>
+          <li><a class="btn btn-mini btn-info" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+          <py:if test="h.groups_for_current_user()">
+            <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+          </py:if>
+        </py:if>
+        <py:if test="h.is_sysadmin()">
+          <span class="divider-section">&nbsp; Sys Admin:</span>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/system_dashboard') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/feedback/moderation') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
+        </py:if>
+      </ul>
+    </div>
   </div>
 
   <!-- Flash Messages -->
