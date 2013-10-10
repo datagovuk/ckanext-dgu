@@ -64,8 +64,10 @@
 
       <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
       <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
-      <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
-      <input id="extras__101__value" name="extras__101__value" type="hidden" value="${c.pkg.extras.get('core-dataset',False)}" />
+      <py:if test="c.pkg">
+        <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
+        <input id="extras__101__value" name="extras__101__value" type="hidden" value="${c.pkg.extras.get('core-dataset',False)}" />
+      </py:if>
 
     </div>
   </div>
