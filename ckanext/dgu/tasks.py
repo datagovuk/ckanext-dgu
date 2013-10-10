@@ -344,7 +344,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     package["title"] = title
     package["name"] = get_clean_name(title)
     package["notes"] = description or " "
-    package["access_constraints"] = "Not yet chosen"
+    package["access_constraints"] = ""
     package["api_version"] = "3"
     package['license_id']  = "unpublished"
     package['foi-name'] = ""
