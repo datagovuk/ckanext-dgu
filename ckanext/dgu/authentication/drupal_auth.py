@@ -209,7 +209,8 @@ class DrupalAuthMiddleware(object):
                     name=ckan_user_name,
                     fullname=unicode(user_properties['name']),  # NB may change in Drupal db
                     about=u'User account imported from Drupal system.',
-                    email=user_properties['mail'], # NB may change in Drupal db
+                    email='TEMP', # while Drupal is fixed
+                    #email=user_properties['mail'], # NB may change in Drupal db
                     created=date_created,
                 )
                 Session.add(user)
@@ -270,7 +271,7 @@ class DrupalAuthMiddleware(object):
 
         # Sysadmin or not
         log.debug('User roles in Drupal: %r', drupal_roles)
-        should_be_sysadmin = bool(set(('administrator', 'package admin', 'publisher admin')) & set(drupal_roles))
+        should_be_isysadmin = bool(set(('administrator', 'package admin', 'publisher admin', 'ckan administrator')) & set(drupal_roles))
         is_sysadmin = new_authz.is_sysadmin(user)
         if should_be_sysadmin and not is_sysadmin:
             # Make user a sysadmin
@@ -278,7 +279,8 @@ class DrupalAuthMiddleware(object):
             log.info('User made a sysadmin: %s', user_name)
             needs_commit = True
         elif not should_be_sysadmin and is_sysadmin:
-            # Stop user being a sysadmin - disabled for time being
+            # Stop user being a sysadmin - disabled for time being which 'ckan
+            # administrator' is populated
             #user.sysadmin = False
             #log.info('User now not a sysadmin: %s', user_name)
             #needs_commit = True
