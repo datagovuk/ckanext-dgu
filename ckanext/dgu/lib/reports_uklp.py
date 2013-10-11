@@ -9,6 +9,7 @@ import grp
 import os
 import sys
 import re
+import getpass
 import logging
 import zipfile
 
@@ -107,7 +108,9 @@ class UKLPReports(CkanCommand):
             finally:
                 zf.close()
 
-            os.chown(output_file, -1, self.www_data_gid)
+            # No need to chownership if running as www-data already
+            if getpass.getuser() != 'www-data':
+                os.chown(output_file, -1, self.www_data_gid)
 
             # Cleanup
             for f in report_files:
