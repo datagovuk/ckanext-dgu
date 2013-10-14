@@ -53,6 +53,7 @@
   <!-- Vendor scripts -->
   <script type="text/javascript" src="/assets/js/vendor.min.js?${h.get_shared_assets_timestamp()}"></script>
   <!-- CKAN DGU scripts -->
+  <script type="text/javascript" src="/assets/js/dgu-shared.min.js?${h.ckan_asset_timestamp()}"></script>
   <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-ckan-application.min.js')}?${h.ckan_asset_timestamp()}"></script>
 
   <py:if test="defined('optional_head')">
@@ -125,20 +126,21 @@ ${h.top_level_init()}
               <img src="/assets/img/dgu-header-cropped.png" alt="DATA.GOV.UK - Opening up Government" />
           </div>
       </a>
+      <div class="chevron position1"></div>
       <nav id="dgu-nav">
-        <a href="/" class="nav-home">Home</a>
-        <a href="#" class="nav-blog">Blog</a>
-        <a href="#" class="nav-apps">Apps</a>
-        <a href="#" class="nav-talk">Talk</a>
+        <a href="#" class="trigger-subnav nav-home">Home</a>
+        <a href="#" class="trigger-subnav nav-data">Data</a>
+        <a href="#" class="trigger-subnav nav-apps">Apps</a>
+        <a href="#" class="trigger-subnav nav-interact">Interact</a>
         <div class="nav-search" style="width: 200px;">
           <div class="input-group input-group-sm">
             <input type="text" class="form-control" />
             <span class="input-group-btn">
-              <button class="btn btn-success" type="button"><i class="icon-search"></i></button>
+              <button class="btn btn-primary" type="button"><i class="icon-search"></i></button>
             </span>
           </div>
         </div>
-        <a class="nav-user btn btn-success" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
+        <a class="nav-user btn btn-primary" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
       </nav>
     </div>
     <!--
@@ -157,21 +159,20 @@ ${h.top_level_init()}
   </div>
   <div id="greenbar">
     <div class="container">
-      <ul id="subnav">
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Search</a></li>
+      <ul class="subnav subnav-data">
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Datasets</a></li>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
+        <li><a class="" href="/odug">Data Requests</a></li>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
-        <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">Spend Browser</a></li>
+        <!--<li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>-->
+        <li><a href="/organogram/cabinet-office">Organogram: Public Roles &amp; Salaries</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">OpenSpending Browser</a></li>
         <py:if test="config.get('dgu.openspending_reports_enabled')">
-          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">OpenSpending Reports</a></li>
         </py:if>
         <py:if test="h.ga_report_installed()">
-          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Usage</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Analytics</a></li>
         </py:if>
-      </ul>
-      <ul id="subnav" py:if="h.is_sysadmin() or h.check_access('package_create')">
         <py:if test="h.check_access('package_create')">
           <span class="divider-section">Publisher tools:</span>
           <py:for each="group in h.groups_for_current_user()">
@@ -189,8 +190,24 @@ ${h.top_level_init()}
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/feedback/moderation') else ''}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </py:if>
       </ul>
+      <ul class="subnav subnav-apps">
+        <li><a href="/apps">Browse Apps</a></li>
+        <li><a href="http://co-prod3.dh.bytemark.co.uk/search/everything/?f[0]=bundle%3Aapps">Search Apps</a></li>
+        <li><a href="/node/add/apps">Add Your App</a></li>
+      </ul>
+
+      <ul class="subnav subnav-interact">
+        <li><a class="" href="/location">Location</a></li>
+        <li><a class="" href="http://co-prod3.dh.bytemark.co.uk/linked-data">Linked Data</a></li>
+        <li><a href="/blog">All Blogs</a></li>
+        <li><a href="/forum">All Forums</a></li>
+      </ul>
     </div>
   </div>
+
+
+
+
 
   <!-- Flash Messages -->
   <py:with vars="messages = list(h.flash.pop_messages())">
