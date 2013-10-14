@@ -26,7 +26,7 @@
   <div class="widget-container">
     <h4>Publisher</h4>
     <p >
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict['organization'].get('name',''))}">${c.pkg_dict['organization'].get('title','')}</a>
+      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict.get('organization',{}).get('name',''))}">${c.pkg_dict.get('organization',{}).get('title','')}</a>
     </p>
     <p py:if="dict(c.pkg_extras).get('provider')">
       Provider: ${dict(c.pkg_extras).get('provider')}
