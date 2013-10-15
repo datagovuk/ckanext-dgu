@@ -384,10 +384,11 @@
     <div class="control-group">
       <label class="control-label" for="owner_org">Published by: </label>
       <div class="controls">
-        <select id="owner_org" name="owner_org" py:with="owner_org=(data.get('organization') or {'id':None})['id']">
+        <!--! data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. -->
+        <select id="owner_org" name="owner_org" py:with="owner_org=data.get('owner_org')">
           <option value=" " py:attrs="{'selected': 'selected' if not owner_org else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
           <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-            <option value="${publisher_name}" py:attrs="{'selected': 'selected' if owner_org == publisher.id else None}" >
+            <option value="${publisher.id}" py:attrs="{'selected': 'selected' if owner_org == publisher.id else None}" >
               ${publisher['title']}
             </option>
           </py:for>
