@@ -25,8 +25,11 @@
   </py:if>
   <div class="widget-container">
     <h4>Publisher</h4>
-    <p >
+    <p py:if="c.pkg_dict and 'organization' in c.pkg_dict">
       <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict.get('organization',{}).get('name',''))}">${c.pkg_dict.get('organization',{}).get('title','')}</a>
+    </p>
+    <p py:if="not c.pkg_dict or not 'organization' in c.pkg_dict">
+      No publisher specified
     </p>
     <p py:if="dict(c.pkg_extras).get('provider')">
       Provider: ${dict(c.pkg_extras).get('provider')}
