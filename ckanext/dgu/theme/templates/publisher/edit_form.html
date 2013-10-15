@@ -30,7 +30,7 @@ ${h.prep_group_edit_data(data)}
   <div class="control-group">
     <label class="control-label" for="name">Publisher name</label>
     <div class="controls" py:with="editable = not c.group or h.is_sysadmin()">
-      <input id="title" name="title" type="text" value="${data.get('title', '')}" py:attrs="{'class':'js-title'} if editable else {'disabled':'disabled'}"/>
+      <input id="title" name="title" type="text" value="${data.get('title', '')}" py:attrs="{} if c.editing else {'class':'js-title'} "/>
       <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
 
       <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
