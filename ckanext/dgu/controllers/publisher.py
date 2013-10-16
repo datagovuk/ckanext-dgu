@@ -142,12 +142,15 @@ class PublisherController(OrganizationController):
             id = request.params['parent']
 
         if id:
-            c.group = model.Group.by_name(id)
+            c.group = model.Group.get(id)
             if not c.group:
                 log.warning('Could not find publisher for name %s', id)
                 abort(404, _('Publisher not found'))
             if 'save' in request.params and not errors:
                 return self._send_application(c.group, request.params.get('reason', None))
+        else:
+            c.possible_parents = model.Session.query(model.Group)\
+                .filter(model.Group.state=='active').order_by(model.Group.title).all()
 
         data = data or {}
         errors = errors or {}
@@ -584,6 +587,7 @@ class PublisherController(OrganizationController):
             c.body_class = 'group new'
             c.allowable_parent_groups = model.Group.all(
                 group_type='organization')
+
 
         c.categories = categories
 
