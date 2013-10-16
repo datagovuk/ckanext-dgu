@@ -40,15 +40,15 @@
     </div>
     <div class="clearfix"></div>
 
-    <div class="row-fluid">
-      <div class="span4">
+    <div class="row">
+      <div class="col-md-4">
         ${basket()}
 
         <py:if test="c.page.item_count">
           ${facet_filters()}
         </py:if>
       </div>
-      <div class="span8">
+      <div class="col-md-8">
         <py:if test="c.query_error">
           <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
               Please try again.</p>

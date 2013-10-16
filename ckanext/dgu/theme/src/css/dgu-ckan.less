@@ -671,21 +671,20 @@ ul.ui-autocomplete {
 /* PAGE: Front Page */
 /* ---------------- */
 body.controller-data.action-index {
+  .row {
+    padding-top: 10px;
+  }
     .front-page-header {
       position: relative;
       .front-page-button {
         position: absolute;
-        right: 10px;
+        right: 0px;
         top: 50%;
         margin-top: -15px;
       }
     }
     .dataset-summary {
       border: 1px solid #ccc !important;
-    }
-    .space-between-rows {
-      @media(min-width: 768px)  { height: 10px; }
-      @media(min-width: 1200px) { height: 20px; }
     }
     div#tagcloud {
         clear: both;
@@ -962,9 +961,6 @@ body.controller-package.action-edit {
     }
     .resource-url .error input {
         background: transparent url(../images/icons/error.png) 98% center no-repeat;
-    }
-    .resource .input-medium {
-        width: 130px;
     }
 }
 

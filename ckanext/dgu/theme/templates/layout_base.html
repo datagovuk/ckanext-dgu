@@ -65,19 +65,13 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
-  <!-- IE hacks -->
-  <!--[if lt IE 9]>
-    <link rel="stylesheet" media="all" href="/assets/css/less-than-ie9.min.css" />
-  <![endif]-->
-
   <!-- font-awesome ie7 shim -->
   <!--[if IE 7]>
     <link rel="stylesheet" media="all" href="/assets/css/font-awesome-ie7.min.css" />
   <![endif]-->
 
-  <!-- respond.min.js for IE less than 9 -->
   <!--[if lt IE 9]>
-    <script src="/assets/js/respond.min.js"></script>
+      <link href="/assets/css/dgu-ie7.css" rel="stylesheet" />
   <![endif]-->
 
   ${h.literal(getattr(g, 'template_head_end', ''))}
@@ -122,9 +116,11 @@ ${h.top_level_init()}
   <div id="blackbar">
     <div class="container">
       <a class="brand" href="/" rel="home">
+        <!--
           <div id="dgu-header" class="retina-img">
               <img src="/assets/img/dgu-header-cropped.png" alt="DATA.GOV.UK - Opening up Government" />
           </div>
+          -->
       </a>
       <div class="chevron position1"></div>
       <nav id="dgu-nav">
@@ -222,13 +218,13 @@ ${h.top_level_init()}
     <py:if test="defined('page_heading')">
       <h1>${page_heading()}</h1>
     </py:if>
-    <div class="row-fluid">
-      <div class="${if_(defined('sidebar'),'span8','span12')}">
+    <div class="row">
+      <div class="${if_(defined('sidebar'),'col-md-8','col-md-12')}">
         <content>
         <!-- Content goes here -->
         </content>
       </div>
-      <div py:if="defined('sidebar')" class="span4 sidebar">
+      <div py:if="defined('sidebar')" class="col-md-4 sidebar">
         ${sidebar()}
       </div>
     </div>

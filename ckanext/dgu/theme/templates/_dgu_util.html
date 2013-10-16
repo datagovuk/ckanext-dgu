@@ -84,34 +84,27 @@
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
-  <table py:def="search_form()" class="search-area">
-    <tr>
-      <td class="left" py:if="not c.query_error">
-        <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
-        <div class="result-count-footer">Results</div>
-      </td>
-      <td class="left" py:if="c.query_error">
-        <div class="result-count-footer">Search Error</div>
-      </td>
-      <td class="right">
-        <form id="dataset-search" class="form-search dataset-search" action="${h.url_for(controller='package', action='search')}" method="GET">
-
-          <div class="textbox">
-            <input id="q" type="text" class="input-medium" name="q" value="${c.q}" results="0" placeholder="${_('Search...')}" />
+  <div py:def="search_form()" class="search-area">
+    <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+      <div class="left">
+        <div class="left-inner auto-height">
+        <form class="form-search" action="${h.url_for(controller='package', action='search')}" method="GET">
+          <div class="input-group">
+            <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for datasets..." />
+            <span class="input-group-btn">
+              <button type="button" class="btn btn-default">
+                <i class="icon-search"></i>
+              </button>
+            </span>
           </div>
-          <div class="search-spinner">&nbsp;</div>
-          <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
-
           <span py:if="c.fields">
-          <py:for each="(k, v) in c.fields">
-            <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished'" />
-          </py:for>
+            <py:for each="(k, v) in c.fields">
+              <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished'" />
+            </py:for>
           </span>
           <py:if test="request.params.get('ext_bbox','')">
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="${request.params.get('ext_bbox','')}" />
           </py:if>
-
-          <div id="dataset-search-ext"></div>
         </form>
         <table class="facet-table">
           <py:def function="facet(label,kill_link)">
@@ -143,9 +136,22 @@
             </tr>
           </py:if>
         </table>
-      </td>
-    </tr>
-  </table>
+        </div>
+      </div>
+      <div class="right">
+        <div class="right-inner auto-height">
+        <div class="chevron"></div>
+        <py:if test="not c.query_error">
+          <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
+          <div class="result-count-footer">Results</div>
+        </py:if>
+        <py:if test="c.query_error">
+          <div class="result-count-footer">Search Error</div>
+        </py:if>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <ul py:def="package_list_from_dict(packages)" class="common-dataset-list">
    <li py:for="package in packages">
