@@ -30,7 +30,10 @@ ${h.prep_group_edit_data(data)}
   <div class="control-group">
     <label class="control-label" for="name">Publisher name</label>
     <div class="controls" py:with="editable = not c.group or h.is_sysadmin()">
-      <input id="title" name="title" type="text" value="${data.get('title', '')}" py:attrs="{} if c.editing else {'class':'js-title'} "/>
+      <!--! CKAN.Dgu.UrlEditor javascript takes the value in .js-title
+      and puts munged version into the URL field.
+      -->
+      <input id="title" name="title" type="text" value="${data.get('title', '')}" class="js-title" py:attrs="{} if editable else {'disabled':'disabled'}"/>
       <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
 
       <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
@@ -41,7 +44,10 @@ ${h.prep_group_edit_data(data)}
     <label class="control-label" for="url">URL</label>
     <div class="controls name-field">
       <div class="input-prepend">
-        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" class="js-url-input" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {}"/>
+    <!--! NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
+  paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
+    -->
+        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {'class':'js-url-input'}"/>
         <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
       </div>
       <p class="js-url-is-valid">&nbsp;</p>

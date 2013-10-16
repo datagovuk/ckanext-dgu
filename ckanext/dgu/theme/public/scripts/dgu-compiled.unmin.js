@@ -616,6 +616,8 @@ CKAN.Dgu.UrlEditor = Backbone.View.extend({
   /* Called when the url is changed */
   urlChanged: function() {
     var slug = this.urlInput.val();
+    if (slug == this.lastSlug) { return; }
+    this.lastSlug = slug;
     if (this.updateTimer) { clearTimeout(this.updateTimer); }
     if (slug.length<2) {
       this.validMsg.html('<span style="font-weight: bold; color: #444;">URL is too short.</span>');
