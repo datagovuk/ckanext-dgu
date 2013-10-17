@@ -26,38 +26,37 @@
   <div py:match="content">
     <div class="row">
       <div class="col-md-12">
+        <ul id="breadcrumbs">
+          <li><a href="/"><i class="icon-home"></i></a></li>
+          <li class="spacer">&nbsp;/&nbsp;</li>
+          <li><a href="/data">Data</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
         ${search_form()}
       </div>
     </div>
+    <div class="space-between-rows"></div>
     <div class="row dgu-equal-height" data-selector=".auto-height">
       <div class="col-md-6">
-<!--!
-          <h2 class="front-page-header">Themes
-            <a href="/data/themes" class="btn btn-primary front-page-button">View all themes &raquo;</a>
-          </h2>
+        <h2><i class="icon-tag icon-large"></i>&nbsp; Themes</h2>
+        <div class="boxed auto-height">
           <div id="tagcloud" py:with="theme_count=h.themes_count()">
             <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(),key=lambda x:x[1])">
             <a rel="${theme_count[dbname]}" title="${displayname}" href="${h.url_for(controller='package', action='search')}?theme-primary=${dbname}">${displayname}</a>
             </py:for>
           </div>
--->
-        <h2 class="front-page-header">Tags
-          <a href="/data/tag" class="btn btn-primary btn-sm front-page-button"><i class="icon-tags"></i>&nbsp; View all tags &raquo;</a>
-        </h2>
-        <div class="boxed auto-height">
-          <div id="tagcloud">
-            <py:for each="tag_dict in h.random_tags()">
-              <a rel="${tag_dict['count']}" title="${tag_dict['count']}" href="/data/search?tags=${tag_dict['name']}">${tag_dict['name']}</a>
-            </py:for>
-          </div>
           <script type="text/javascript" charset="utf-8">
         </script>
         </div>
+        <div class="boxed-append">
+          <a href="/data/tag" class="">View all tags &raquo;</a>
+        </div>
       </div>
       <div class="col-md-6">
-        <h2 class="front-page-header">Featured dataset
-          <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="btn btn-primary btn-sm front-page-button"><i class="icon-sitemap"></i>&nbsp; Popular datasets &raquo;</a>
-        </h2>
+        <h2><i class="icon-sitemap icon-large"></i>&nbsp; Featured dataset</h2>
         <div class="boxed auto-height">
           <py:with vars="featured=h.single_popular_dataset(20)">
             <py:if test="featured">
@@ -68,31 +67,36 @@
             </py:if>
           </py:with>
         </div>
+        <div class="boxed-append">
+          <a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}" class="">Popular datasets &raquo;</a>
+        </div>
       </div>
     </div>
+    <div class="space-between-rows"></div>
     <div class="row dgu-equal-height" data-selector=".auto-height">
       <div class="col-md-6">
-        <h2 class="front-page-header">Data Requests
-          <a href="/odug" class="btn btn-primary btn-sm front-page-button pull-right"><i class="icon-lightbulb"></i>&nbsp; Request new data &raquo;</a>
-        </h2>
+        <h2><i class="icon-lightbulb icon-large"></i>&nbsp; Data Requests</h2>
         <div class="boxed auto-height">
           <p>Find out more about making data requests and their progress.</p>
         </div>
+        <div class="boxed-append">
+          <a href="/odug" class="">Request new data &raquo;</a>
+        </div>
       </div>
       <div class="col-md-6">
-        <h2 class="front-page-header">Developers
-          <a href="/data/api" class="btn btn-primary btn-sm front-page-button"><i class="icon-gears"></i>&nbsp; CKAN API &raquo;</a>
-        </h2>
+        <h2><i class="icon-gears icon-large"></i>&nbsp; Developers</h2>
         <div class="boxed auto-height">
           <p>You can also access this catalogue via the <a title="API" href="${h.url_for('/data/api')}">API</a> or download it as a&nbsp;<a title="CSV/JSON Dump" href="/data/dumps/">CSV or JSON dump</a>.</p>
         </div>
+        <div class="boxed-append">
+          <a href="/data/api" class="">CKAN API &raquo;</a>
+        </div>
       </div>
     </div>
+    <div class="space-between-rows"></div>
     <div class="row dgu-equal-height" data-selector=".auto-height">
       <div class="col-md-6">
-        <h2 class="front-page-header">Publishers
-          <a href="/publisher" class="btn btn-primary btn-sm front-page-button"><i class="icon-group"></i>&nbsp; View all publishers &raquo;</a>
-        </h2>
+        <h2><i class="icon-group icon-large"></i>&nbsp; Publishers</h2>
         <div class="boxed auto-height">
           <ul class="facet-options">
             <li py:for="publisher_dict in h.unselected_facet_items('publisher', limit=10)">
@@ -101,11 +105,12 @@
           </ul>
           <p py:if="not len(h.unselected_facet_items('publisher', limit=1))">No publishers found</p>
         </div>
+        <div class="boxed-append">
+          <a href="/publisher" class="">View all publishers &raquo;</a>
+        </div>
       </div>
       <div class="col-md-6">
-        <h2 class="front-page-header">UK Location
-          <a href="${h.url_for('/data/map-based-search')}" class="btn btn-primary btn-sm front-page-button"><i class="icon-map-marker"></i>&nbsp; Map-based search &raquo;</a>
-        </h2>
+        <h2 class="front-page-header"><i class="icon-map-marker icon-large"></i>&nbsp; UK Location</h2>
         <div class="boxed auto-height">
           <a href="/location"><img src="/images/uk_location.gif" width="100" height="60" class="pull-right"/></a>
           <p>The <a href="/location">UK Location Programme</a> has introduced over
@@ -117,6 +122,9 @@
              <a href="/location/map-based-search">about Map Based Search</a>
              and <a href="/location/preview-on-map">about Preview on Map</a>.
           </p>
+        </div>
+        <div class="boxed-append">
+          <a href="${h.url_for('/data/map-based-search')}" class="">Map-based search &raquo;</a>
         </div>
       </div>
     </div>
