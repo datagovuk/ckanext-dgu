@@ -1,0 +1,36 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+<py:def function="body_class">no-sidebar</py:def>
+
+<xi:include href="../feedback/_feedback_util.html" />
+
+  <py:def function="page_title">Reports</py:def>
+
+  <py:def function="optional_head">
+  </py:def>
+
+  <py:def function="page_heading">
+    <h1>Reports</h1>
+  </py:def>
+
+
+  <div py:match="content" class="dataset">
+    <div class="boxed widget-container">
+        <h3><a href="${h.url_for('qa')}">QA</a></h3>
+    </div>
+
+    <div class="boxed widget-container">
+        <h3><a href="${h.url_for('feedback_reports')}">National Inventory Feedback</a></h3>
+    </div>
+
+    <div class="boxed widget-container">
+        <h3><a href="${h.url_for('commitments')}">Publisher commitments</a></h3>
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

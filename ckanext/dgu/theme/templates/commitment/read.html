@@ -1,0 +1,61 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+<py:def function="body_class">no-sidebar</py:def>
+
+  <py:def function="page_title">${c.publisher.display_name}</py:def>
+
+  <py:def function="page_heading">
+    <h1><a href="${h.url_for('reports')}">Reports</a>
+    <span class="subheading"><img src="/images/arrow-down-right.png"/><a href="${h.url_for('commitments')}">Publisher Commitments</a>
+        <span class="subheading"><img src="/images/arrow-down-right.png"/>${c.publisher.display_name}</span>
+    </span>
+
+    </h1>
+  </py:def>
+
+
+  <py:match path="content">
+
+    <div class="boxed">
+        <h2>Commitments ....</h2>
+        <p>
+            In the <a href="https://www.gov.uk/government/publications/government-response-to-shakespeare-review">Government response</a> to the <a href="https://www.gov.uk/government/publications/government-response-to-shakespeare-review">Shakespeare Review</a> there was a commitment to set out the commitments for each public sector body in an easy to use way that shows how each body meets those commitments.
+        </p>
+    </div>
+
+    <div class="boxed" py:if="c.commitments.count()  == 0">
+    No data provided
+    </div>
+
+    <div class="boxed" py:if="c.commitments.count() > 0">
+        <table class="table table-striped" width="100%">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Commitment</th>
+              <th>Notes</th>
+              <th>Dataset</th>
+            </tr>
+          </thead>
+          <tbody>
+            <py:for each="commitment in c.commitments">
+              <tr>
+                  <td>${commitment.source}</td>
+                  <td>${commitment.commitment_text}</td>
+                  <td>${commitment.notes}</td>
+                  <td><a href="${h.url_for()}">${commitment.dataset.title()}</a></td>
+              </tr>
+            </py:for>
+          </tbody>
+        </table>
+    </div>
+  </py:match>
+
+
+  <xi:include href="../layout.html" />
+</html>
+
+

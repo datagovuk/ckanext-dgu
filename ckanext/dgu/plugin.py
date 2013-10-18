@@ -67,6 +67,54 @@ def not_found(self, url):
 def _guess_package_type(self, expecting_name=False):
     return 'dataset'
 
+class ReportsPlugin(SingletonPlugin):
+    implements(IRoutes, inherit=True)
+
+    def before_map(self, map):
+        """
+        Make "/data" the homepage.
+        """
+        report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
+        map.connect('reports', '/data/reports', controller=report_ctlr, action='index')
+        # Resource reports
+        map.connect('/data/reports/resources', controller=report_ctlr, action='resources')
+
+        # Feedback reports
+        map.connect('/data/reports/feedback',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/reports/feedback/:id.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/reports/feedback/:id',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/reports/feedback.{format}',
+                    controller=report_ctlr, action='feedback')
+
+
+        # Commitment reports
+        c_ctlr = 'ckanext.dgu.controllers.commitment:CommitmentController'
+        map.connect('commitments','/data/reports/commitments',
+                    controller=c_ctlr, action='index')
+        map.connect('commitments_publisher','/data/reports/commitments/:id',
+                    controller=c_ctlr, action='commitments')
+        map.connect('/data/reports/commitments/:id/edit',
+                    controller=c_ctlr, action='edit')
+
+
+        # Leaving these in so as to not break existing links
+        map.connect('/data/feedback/report/:id.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/feedback/report/:id',
+                    controller=report_ctlr, action='feedback')
+        map.connect('/data/feedback/report.{format}',
+                    controller=report_ctlr, action='feedback')
+        map.connect('feedback_reports', '/data/feedback/report',
+                    controller=report_ctlr, action='feedback')
+        return map
+
+    def after_map(self, map):
+        return map
+
+
 class ThemePlugin(SingletonPlugin):
     '''
     DGU Visual Theme for a CKAN install embedded in dgu/Drupal.
@@ -121,7 +169,6 @@ class ThemePlugin(SingletonPlugin):
         """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
         tag_controller = 'ckanext.dgu.controllers.tag:TagController'
-        reports_controller = 'ckanext.dgu.controllers.reports:ReportsController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
         map.redirect('/', '/data')
         map.connect('/data', controller=data_controller, action='index')
@@ -135,7 +182,6 @@ class ThemePlugin(SingletonPlugin):
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/carparks', controller=data_controller, action='carparks')
-        map.connect('reports', '/data/reports', controller=reports_controller, action='resources')
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
@@ -461,17 +507,6 @@ class InventoryPlugin(SingletonPlugin):
                     controller=inv_ctlr, action='upload_complete' )
         map.connect('/unpublished/:id/edit/upload/:upload_id',
                     controller=inv_ctlr, action='upload_status' )
-
-        report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
-        map.connect('/data/feedback/report/:id.{format}',
-                    controller=report_ctlr, action='feedback')
-        map.connect('/data/feedback/report/:id',
-                    controller=report_ctlr, action='feedback')
-
-        map.connect('/data/feedback/report.{format}',
-                    controller=report_ctlr, action='feedback')
-        map.connect('/data/feedback/report',
-                    controller=report_ctlr, action='feedback')
 
 
         return map

@@ -31,6 +31,7 @@ setup(
         pylons = pylons.test:PylonsPlugin
 
         [ckan.plugins]
+        dgu_reports = ckanext.dgu.plugin:ReportsPlugin
         dgu_form = ckanext.dgu.plugin:DguForm
         dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
         dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin
@@ -91,6 +92,7 @@ setup(
         derive_govuk_resources = ckanext.dgu.commands.derive_govuk_resources:GovUkResourceChecker
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
         inventory_init = ckanext.dgu.commands.inventory_init:InitDB
+        commitment_init = ckanext.dgu.commands.commitment_init:InitDB
     """,
     test_suite = 'nose.collector',
 )

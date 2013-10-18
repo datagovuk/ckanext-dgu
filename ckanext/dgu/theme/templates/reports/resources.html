@@ -9,12 +9,13 @@
 
   <div py:match="content">
     <div class="report">
-      <h1>Report</h1>
-      <h2>Resources - 
+      <h1>Resources Report -
           <a href="/publisher/${c.data['publisher_name']}">
             ${c.data['publisher_title']}
           </a>
-      </h2>
+      </h1>
+
+      <div class="boxed">
       <py:if test="(not c.data) or (not c.data['rows'])">
         <p>No results found for this publisher.</p>
       </py:if>
@@ -56,20 +57,22 @@
           </tbody>
         </table>
       </py:if>
+
+      </div>
     </div>
   </div>
 
   <py:def function="optional_footer">
-    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script> 
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script>
     <script type="text/javascript">
-      //<![CDATA[ 
-      $(document).ready(function() 
-        { 
+      //<![CDATA[
+      $(document).ready(function()
+        {
           $("#report-table").tablesorter({
               dateFormat: "uk",
-          }); 
-        } 
-      ); 
+          });
+        }
+      );
     // ]]>
     </script>
   </py:def>

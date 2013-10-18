@@ -13,27 +13,31 @@
   </py:def>
 
   <py:def function="page_heading">
-  <a class="btn btn-primary pull-right" href="${request.path}.csv?${h.feedback_report_params()}">Download as CSV</a>
 
-    <py:if test="c.publisher">
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.publisher.name)}">${c.publisher.display_name}</a>
-      <span class="abbreviation" py:if="c.publisher.extras.get('abbreviation')">&nbsp;(${c.publisher.extras.get('abbreviation')})</span>
-    </py:if>
+    <a class="btn btn-primary pull-right" href="${request.path}.csv?${h.feedback_report_params()}">Download as CSV</a>
+
+    <h1><a href="${h.url_for('reports')}">Reports</a>
 
     <py:if test="not c.publisher">
-    All publishers
+      <span class="subheading"><img src="/images/arrow-down-right.png"/>Feedback Reports</span>
     </py:if>
 
-    <span class="subheading"><img src="/images/arrow-down-right.png"/>Feedback Report <py:if test="c.generated_at">(${c.generated_at})</py:if>
-    </span>
-
+    <py:if test="c.publisher">
+      <span class="subheading"><img src="/images/arrow-down-right.png"/><a href="${h.url_for('feedback_reports')}">Feedback Reports</a>
+        <span class="subheading"><img src="/images/arrow-down-right.png"/>${c.publisher.title}</span>
+      </span>
+    </py:if>
+    </h1>
   </py:def>
 
 
   <div py:match="content" class="dataset">
     <div class="boxed widget-container">
-            <h3>${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback</h3 >
-            <hr/>
+          <h3>${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
+
+          <span py:if="c.generated_at" class="pull-right">Generated at: ${c.generated_at}</span>
+          </h3 >
+          <hr/>
 
           <div>
             <form action="" class="form-inline">

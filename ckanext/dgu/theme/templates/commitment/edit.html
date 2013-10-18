@@ -1,0 +1,76 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+<xi:include href="util.html" />
+
+<py:def function="body_class">no-sidebar</py:def>
+
+  <py:def function="page_title">${c.publisher.display_name}</py:def>
+
+  <py:def function="page_heading">
+    Editing PM Commitments
+  </py:def>
+
+
+<py:def function="optional_head">
+  <script type="text/javascript">
+  function selected_pub(obj) {
+    alert(obj);
+  }
+  </script>
+</py:def>
+
+
+  <py:match path="content">
+
+<form action="" method="POST">
+
+    <div class="boxed">
+        <label for="publisher">
+        Publisher
+        </label>
+
+        <select id="publisher" onselect="selected_pub(this);">
+            <py:for each="publisher in c.publishers">
+                <option value="${publisher.name}" py:attrs="{'selected':'selected'} if c.publisher.id==publisher.id else {}">${publisher.title}</option>
+            </py:for>
+        </select>
+
+        <table class="table table-striped" width="100%">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Commitment</th>
+              <th>Notes</th>
+              <th>Dataset</th>
+            </tr>
+          </thead>
+          <tbody>
+            <py:for each="commitment in c.commitments">
+              ${editable_commitment_row(commitment)}
+            </py:for>
+
+            <!-- Add trailing editable fields -->
+            ${editable_commitment_row(None)}
+            ${editable_commitment_row(None)}
+          </tbody>
+        </table>
+
+    <input type="submit" class="pull-right btn btn-primary" value="Save"/>
+    <div class="clearfix"></div>
+
+    </div>
+
+  </form>
+
+
+
+  </py:match>
+
+
+  <xi:include href="../layout.html" />
+</html>
+
+

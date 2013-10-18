@@ -1,0 +1,28 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
+
+
+
+<tr py:def="editable_commitment_row(commitment=None, idx=0)">
+    <td>
+        <input type="hidden" name="${idx}_id" value="${commitment.id if commitment else ''}"/>
+        <input type="text"  class="input-small" value="${commitment.source if commitment else ''}"/>
+    </td>
+    <td>
+        <textarea rows='3'>${commitment.commitment_text if commitment else ''}</textarea>
+    </td>
+    <td>
+        <textarea rows='3'>${commitment.notes if commitment else ''}</textarea>
+    </td>
+    <td>
+        <input type="text"/>
+    </td>
+</tr>
+
+
+</html>

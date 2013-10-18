@@ -1,6 +1,6 @@
 (function ($) {
-  $(document).ready(function () { 
-    CKAN.Dgu.setupPublisherUserAutocomplete($('input.autocomplete-publisher-user'));    
+  $(document).ready(function () {
+    CKAN.Dgu.setupPublisherUserAutocomplete($('input.autocomplete-publisher-user'));
     CKAN.Dgu.setupPackageAutocomplete($('input.autocomplete-dataset'));
   });
 }(jQuery));
@@ -9,7 +9,7 @@ var CKAN = CKAN || {};
 
 CKAN.Dgu = function($, my) {
   my.stub = function() {}
-  
+
 
  my.setupPublisherUserAutocomplete = function(elements) {
     elements.autocomplete({
@@ -40,11 +40,11 @@ CKAN.Dgu = function($, my) {
         var new_name = split[1] + '__' + (parseInt(split[2]) + 1) + '__' + split[3]
         input_box.attr('name', new_name)
         input_box.attr('id', new_name)
-        
+
         var capacity = $("input:radio[name=add-user-capacity]:checked").val();
         added_users.after(
           '<input type="hidden" name="' + old_name + '" value="' + ui.item.value + '">' +
-          '<input type="hidden" name="' + old_name.replace('__name','__capacity') + '" value="' + capacity + '">' +          
+          '<input type="hidden" name="' + old_name.replace('__name','__capacity') + '" value="' + capacity + '">' +
           '<dd>' + ui.item.label + '</dd>'
         );
 
@@ -57,7 +57,7 @@ CKAN.Dgu = function($, my) {
     elements.autocomplete({
       minLength: 0,
       source: function(request, callback) {
-        var url = '/dataset/autocomplete?q=' + request.term;
+        var url = '/api/util/dataset/autocomplete?q=' + request.term;
         $.ajax({
           url: url,
           success: function(data) {

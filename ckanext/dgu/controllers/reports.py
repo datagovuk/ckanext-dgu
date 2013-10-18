@@ -9,8 +9,8 @@ from ckan.lib.base import BaseController, abort, request
 c = t.c
 
 class ReportsController(BaseController):
-    ##def index(self):
-    ##    return t.render('reports/index.html')
+    def index(self):
+        return t.render('reports/index.html')
 
     def resources(self, id=None):
         try:
