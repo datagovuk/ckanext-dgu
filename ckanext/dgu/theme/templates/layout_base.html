@@ -215,9 +215,19 @@ ${h.top_level_init()}
   </py:with>
 
   <div class="container" id="main-content">
-    <py:if test="defined('page_heading')">
-      <h1>${page_heading()}</h1>
-    </py:if>
+    <div class="row">
+      <div class="col-md-12">
+        <ul id="breadcrumbs">
+          <li><a href="/"><i class="icon-home"></i></a></li>
+          <py:for each="(text,url) in h.breadcrumbs()">
+            <li class="spacer">&nbsp;/&nbsp;</li>
+            <li><a href="${url}">${text}</a></li>
+          </py:for>
+        </ul>
+      </div>
+    </div>
+    <?python from pprint import pformat ?>
+    <!-- ${pformat(request.urlvars)} -->
     <div class="row">
       <div class="${if_(defined('sidebar'),'col-md-8','col-md-12')}">
         <content>

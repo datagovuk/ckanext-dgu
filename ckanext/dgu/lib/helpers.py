@@ -1746,3 +1746,17 @@ def feedback_report_params_for_value(name, field_checked):
 
     return "?" + urlencode(params, True)
 
+def breadcrumbs():
+    from ckan.lib.base import h
+    out = []
+    out.append(('Data','/data'))
+    controller = request.urlvars['controller']
+    action = request.urlvars['action']
+    if controller=='package' or controller=='ckanext.dgu.controllers.package:PackageController':
+        out.append(('Datasets','/data/search'))
+        if action=='read':
+            id = request.urlvars['id']
+            out.append((id,h.url_for(controller=controller,action='read',id=id)))
+    return out
+
+

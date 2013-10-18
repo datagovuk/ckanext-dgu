@@ -677,7 +677,9 @@ body.controller-data.action-index {
     div#tagcloud {
         clear: both;
         margin: 10px auto;
-        margin-top: 50px;
+        @media(min-width:992px) { 
+          margin-top: 50px;
+        }
         text-align: center;
         * {
             display: inline-block;
@@ -756,11 +758,6 @@ body.controller-inventory {
 /* PAGE: Package/search */
 /* -------------------- */
 body.controller-package.action-search {
-
-  .search-area .left {
-    /* Need to get this to line up with the columns */
-    width: 265px;
-  }
 }
 
 
