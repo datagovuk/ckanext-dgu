@@ -532,7 +532,8 @@ class SearchPlugin(SingletonPlugin):
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
-        search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
+        if search_params.get('fq'):
+            search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
 
         # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
         # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
