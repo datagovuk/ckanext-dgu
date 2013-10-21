@@ -90,7 +90,7 @@ def dgu_user_list(context, data_dict):
     if not user or not user_obj:
         return {'success': False, 'msg': _('You must be logged in to view the user list')}
 
-    if not len(user_obj.get_groups( 'publisher')):
+    if not len(user_obj.get_groups('organization')):
         return { 'success': False, 'msg': _('Only publishers may view this page') }
 
     return {'success': True}
