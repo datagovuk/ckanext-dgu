@@ -21,7 +21,16 @@
         <h4>Reports</h4>
         <ul>
           <li>
-              <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback', id=c.group.name)}">Feedback</a>
+              <a href="${h.url_for('feedback_report_org', id=c.group.name)}">Feedback</a>
+          </li>
+          <li>
+              <a href="${h.url_for('commitments_publisher', id=c.group.name)}">PM Commitments</a>
+          </li>
+          <li>
+              <a href="${h.url_for('qa_organisation_action_id', action='broken_resource_links', id=c.group.name)}">Broken resources</a>
+          </li>
+          <li>
+              <a href="${h.url_for('qa_organisation_action_id', action='scores', id=c.group.name)}">Openness scores</a>
           </li>
         </ul>
     </div>
