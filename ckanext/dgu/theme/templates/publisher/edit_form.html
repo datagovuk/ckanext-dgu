@@ -92,11 +92,12 @@ ${h.prep_group_edit_data(data)}
 
   <div class="control-group">
     <label class="control-label" for="state">State</label>
-    <div class="controls state-field" py:with="editable = c.group_dict and h.check_access('group_change_state', {'id': c.group_dict.id})">
+    <div class="controls state-field" py:with="editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id})">
         <select id="state" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
           <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
         </select>
+        <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher" py:if="not editable"><img src="/images/information-grey.png"/></span>
     </div>
   </div>
 

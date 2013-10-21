@@ -1,9 +1,8 @@
 from pylons.i18n import _
 import ckan.new_authz as new_authz
-from ckan.logic.auth import get_package_object
+from ckan.logic.auth import get_package_object, get_group_object
 import ckan.logic.auth
 from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
-
 
 def dgu_package_update(context, data_dict):
     model = context['model']
@@ -108,16 +107,12 @@ def dgu_feedback_update(context, data_dict):
     """
     Checks whether the user has permission to update the feedback.
     """
-    model = context['model']
     user = context.get('user','')
 
     if not user:
         return {'success': False, 'msg': _('Only logged in admins can update feedback')}
 
-    # Sys admins should be allowed to update groups
-    if Authorizer().is_sysadmin(unicode(user)):
-        return { 'success': True }
-
+    # Sysadmins only
     return { 'success': False, 'msg': _('Only sysadmins can update feedback') }
 
 
@@ -127,4 +122,11 @@ def dgu_feedback_delete(context, data_dict):
     on the feedback item.  For now, this is the same as update.
     """
     return dgu_feedback_update(context, data_dict)
+
+def dgu_organization_delete(context, data_dict):
+    # Sysadmins only
+    return { 'success': False, 'msg': _('Only sysadmins can delete publishers') }
+
+def dgu_group_change_state(context, data_dict):
+    return dgu_organization_delete(context, data_dict)
 
