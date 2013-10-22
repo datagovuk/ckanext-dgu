@@ -8,6 +8,15 @@
   <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
+    ${breadcrumbs(
+        [('Data', '/data'),
+        ('Reports', h.url_for('reports')),
+        ('Resources', h.url_for('resources_report')),
+        (c.data['publisher_title'], h.url_for('resources_report_org', id=c.data['publisher_name']))
+        ]
+    )}
+
+
     <div class="report">
       <h1>Resources Report -
           <a href="/publisher/${c.data['publisher_name']}">
@@ -22,7 +31,7 @@
 
       <py:if test="c.data and c.data['rows']">
         <div class="pull-right">
-            <a class="btn" href="${h.url_for('reports_api', action=c.query.__name__, id=c.data['publisher_name'], format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}">Download report in CSV format</a>
+            <a class="btn btn-primary" href="${h.url_for('reports_api', action=c.query.__name__, id=c.data['publisher_name'], format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}">Download as CSV</a>
         </div>
         <div>
           <form action="">

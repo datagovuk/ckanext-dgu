@@ -5,7 +5,7 @@
 
 <py:def function="body_class">no-sidebar</py:def>
 
-<xi:include href="../feedback/_feedback_util.html" />
+<xi:include href="../_dgu_util.html" />
 
   <py:def function="page_title">Reports</py:def>
 
@@ -13,13 +13,24 @@
   </py:def>
 
   <py:def function="page_heading">
-    <h1>Reports</h1>
   </py:def>
 
 
   <div py:match="content" class="dataset">
+    ${breadcrumbs(
+        [('Data', '/data'),
+        ('Reports', h.url_for('reports')) ]
+    )}
+    <h1>Reports</h1>
+
     <div class="boxed widget-container">
-        <h3><a href="${h.url_for('qa')}">QA</a></h3>
+        <h3><a href="/data/reports/qa">QA</a></h3>
+              <ul>
+        <li>${h.link_to("Publisher openness scores", h.url_for('qa_organisation_action_reports', action='scores'))}</li>
+        <li>${h.link_to("Datasets with broken resource links", h.url_for('qa_dataset_action_reports', action='broken_resource_links'))}</li>
+          ${h.link_to("Organisations whose datasets contain broken resource links", h.url_for('qa_organisation_action_reports', action='broken_resource_links'))}
+      </ul>
+
     </div>
 
     <div class="boxed widget-container">

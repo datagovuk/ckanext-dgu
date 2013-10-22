@@ -77,7 +77,29 @@ class ReportsPlugin(SingletonPlugin):
         report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
         map.connect('reports', '/data/reports', controller=report_ctlr, action='index')
         # Resource reports
-        map.connect('/data/reports/resources', controller=report_ctlr, action='resources')
+        map.connect('resources_report','/data/reports/resources', controller=report_ctlr, action='resources')
+        map.connect('resources_report_org','/data/reports/resources/:id', controller=report_ctlr, action='resources')
+
+        # QA
+        qa_home = 'ckanext.qa.controllers.qa_home:QAHomeController'
+        qa_pkg = 'ckanext.qa.controllers.qa_package:QAPackageController'
+        qa_org = 'ckanext.qa.controllers.qa_organisation:QAOrganisationController'
+
+        map.connect('qa_reports', '/data/reports/qa', controller=qa_home, action='index')
+        map.connect('qa_dataset_reports', '/data/reports/qa/dataset/',
+                    controller=qa_pkg, action='index')
+        map.connect('qa_dataset_action_reports', '/data/reports/qa/dataset/{action}',
+                    controller=qa_pkg)
+
+        map.connect('qa_organisation_reports',
+                    '/data/reports/qa/organisation/',
+                    controller=qa_org, action='index')
+        map.connect('qa_organisation_action_reports', '/data/reports/qa/organisation/{action}',
+                    controller=qa_org)
+        map.connect('qa_organisation_action_id_reports',
+                    '/data/reports/qa/organisation/{action}/:id',
+                    controller=qa_org)
+
 
         # Feedback reports
         map.connect('/data/reports/feedback',

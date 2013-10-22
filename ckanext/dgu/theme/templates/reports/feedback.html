@@ -13,25 +13,28 @@
   </py:def>
 
   <py:def function="page_heading">
-
     <a class="btn btn-primary pull-right" href="${request.path}.csv?${h.feedback_report_params()}">Download as CSV</a>
-
-    <h1><a href="${h.url_for('reports')}">Reports</a>
-
-    <py:if test="not c.publisher">
-      <span class="subheading"><img src="/images/arrow-down-right.png"/>Feedback Reports</span>
-    </py:if>
-
-    <py:if test="c.publisher">
-      <span class="subheading"><img src="/images/arrow-down-right.png"/><a href="${h.url_for('feedback_reports')}">Feedback Reports</a>
-        <span class="subheading"><img src="/images/arrow-down-right.png"/>${c.publisher.title}</span>
-      </span>
-    </py:if>
-    </h1>
   </py:def>
 
 
   <div py:match="content" class="dataset">
+    <py:if test="c.publisher">
+    ${breadcrumbs([
+        ('Data', '/data'),
+        ('Reports', h.url_for('reports')),
+        ('Feedback Reports', h.url_for('feedback_reports')),
+        (c.publisher.title, h.url_for('feedback_report_org', id=c.publisher.name))
+        ])}
+      </py:if>
+    <py:if test="not c.publisher">
+      ${breadcrumbs([
+        ('Data', '/data'),
+        ('Reports', h.url_for('reports')),
+        ('Feedback Reports', h.url_for('feedback_reports'))
+        ])}
+    </py:if>
+
+
     <div class="boxed widget-container">
           <h3>${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
 

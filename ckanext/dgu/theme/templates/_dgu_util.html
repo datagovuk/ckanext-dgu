@@ -11,6 +11,18 @@
 
   <xi:include href="package/basket.html" />
 
+<py:def function="breadcrumbs(kvlist)">
+  <div class="col-md-12">
+    <ul id="breadcrumbs">
+      <li><a href="/"><i class="icon-home"></i></a></li>
+      <py:for each="k,v in kvlist">
+        <li class="spacer">&nbsp;/&nbsp;</li>
+        <li><a href="${v}">${k}</a></li>
+      </py:for>
+    </ul>
+  </div>
+</py:def>
+
  <py:def function="ons_grouped_table(keys, res_count=None)">
     <py:for each="k in keys">
       <div py:if="len(keys) > 1" style='margin-top: 12px;'>
