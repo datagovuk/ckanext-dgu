@@ -8,13 +8,6 @@
   <py:def function="page_title">Organisation scores - QA</py:def>
   <py:def function="body_class">no-sidebar</py:def>
   <py:def function="page_heading">
-    <py:if test="c.report_base">
-      <a href="${h.url_for('reports')}" class="btn pull-right">&lt;&lt; Back to reports</a>
-    </py:if>
-
-      <a href="${h.url_for('qa_reports')}">Quality Assurance</a>
-      <span class="subheading"><img src="/images/arrow-down-right.png"/> Publisher Openness Scores</span>
-
   </py:def>
 
   <py:def function="optional_head">
@@ -27,6 +20,7 @@
         ('Reports', h.url_for('reports')),
         ('Publisher openness scores', h.url_for('qa_organisation_action_reports', action='scores')),
       ])}
+      <h1>Publisher openness scores</h1>
 
     <div class="qa-content boxed">
       <py:if test="(not c.organisations)">

@@ -24,6 +24,8 @@
         (c.data['publisher_title'], h.url_for('qa_organisation_action_id_reports', action='scores',id=c.data['publisher_name'])),
       ])}
 
+    <h1>Openness scores for ${c.data['publisher_title']}</h1>
+
     <div class="qa-content boxed">
       <py:if test="(not c.data) or (not c.data['data'])">
         <p>No results found for this publisher.</p>

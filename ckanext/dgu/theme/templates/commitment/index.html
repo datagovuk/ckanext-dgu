@@ -22,6 +22,13 @@
 
 
   <div py:match="content" class="dataset">
+      ${breadcrumbs([
+        ('Data', '/data'),
+        ('Reports', h.url_for('reports')),
+        ('PM Commitments', h.url_for('commitments'))
+      ])}
+
+
     <div class="boxed widget-container">
         As a response to the <a href="">Shakespeare review</a> ...
     </div>

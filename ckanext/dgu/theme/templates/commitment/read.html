@@ -8,16 +8,17 @@
   <py:def function="page_title">${c.publisher.display_name}</py:def>
 
   <py:def function="page_heading">
-    <h1><a href="${h.url_for('reports')}">Reports</a>
-    <span class="subheading"><img src="/images/arrow-down-right.png"/><a href="${h.url_for('commitments')}">Publisher Commitments</a>
-        <span class="subheading"><img src="/images/arrow-down-right.png"/>${c.publisher.display_name}</span>
-    </span>
-
-    </h1>
   </py:def>
 
 
   <py:match path="content">
+      ${breadcrumbs([
+        ('Data', '/data'),
+        ('Reports', h.url_for('reports')),
+        ('PM Commitments', h.url_for('commitments')),
+        (c.publisher.title, h.url_for('commitments_publisher', id=c.publisher.name)),
+      ])}
+    <h1>PM Commitments for ${c.publisher.title}</h1>
 
     <div class="boxed">
         <h2>Commitments ....</h2>
