@@ -93,6 +93,7 @@ setup(
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
         inventory_init = ckanext.dgu.commands.inventory_init:InitDB
         commitment_init = ckanext.dgu.commands.commitment_init:InitDB
+        ingest = ckanext.dgu.commands.ingester:Ingester
     """,
     test_suite = 'nose.collector',
 )
