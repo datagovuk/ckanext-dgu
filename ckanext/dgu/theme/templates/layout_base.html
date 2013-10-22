@@ -82,8 +82,11 @@ ${h.top_level_init()}
 <body class="action-${request.environ.get('pylons.routes_dict', {}).get('action')}
              controller-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[0].split('.')[-1]}
              ${request.environ.get('pylons.routes_dict', {}).get('action')}
-             ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}"
+             ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
+             ${if_(defined('sidebar'),'with-sidebar','no-sidebar')}
+             "
       id="${(defined('body_id') and body_id()) or ''}"
+      py:with="breakout = defined('break_out_page') and break_out_page"
   >
   <!--
   <div id="blackbar" py:choose="defined('blackbar_content')">
@@ -214,32 +217,35 @@ ${h.top_level_init()}
     </div>
   </py:with>
 
-  <div class="container" id="main-content">
-    <div class="row">
-      <div class="col-md-12">
-        <ul id="breadcrumbs">
-          <li><a href="/"><i class="icon-home"></i></a></li>
-          <py:for each="(text,url) in h.breadcrumbs()">
-            <li class="spacer">&nbsp;/&nbsp;</li>
-            <li><a href="${url}">${text}</a></li>
-          </py:for>
-        </ul>
+  <div id="pre-content">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <ul id="breadcrumbs">
+            <li><a href="/"><i class="icon-home"></i></a></li>
+            <py:for each="(text,url) in h.breadcrumbs()">
+              <li class="spacer">&nbsp;/&nbsp;</li>
+              <li><a href="${url}">${text}</a></li>
+            </py:for>
+          </ul>
+        </div>
       </div>
     </div>
-    <?python from pprint import pformat ?>
-    <!-- ${pformat(request.urlvars)} -->
-    <div class="row">
-      <div class="${if_(defined('sidebar'),'col-md-8','col-md-12')}">
-        <content>
-        <!-- Content goes here -->
-        </content>
+  </div>
+  <div id="main-content">
+    <div class="container">
+      <div class="row">
+        <div py:if="defined('sidebar')" class="col-md-4 sidebar">
+          ${sidebar()}
+        </div>
+        <div class="content ${if_(defined('sidebar'),'col-md-8','col-md-12')}">
+          <content>
+          <!-- Content goes here -->
+          </content>
+        </div>
       </div>
-      <div py:if="defined('sidebar')" class="col-md-4 sidebar">
-        ${sidebar()}
-      </div>
-    </div>
-  </div><!-- /container -->
-
+    </div><!-- /container -->
+  </div><!-- /main-content -->
 
   <div class="footer">
     <footer role="contentinfo" class="container">

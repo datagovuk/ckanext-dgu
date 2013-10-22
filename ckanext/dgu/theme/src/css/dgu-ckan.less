@@ -2,33 +2,13 @@
 
 /* -- Misc -- */
 /* ---------- */
-.format-box {
-    float: left;
-    padding: 3px 10px 2px 9px;
-    border: 1px solid rgba(0,0,0,0.1);
-    .rounded(10px);
-    color: #606060;
-    background: #f7f7f7;
-    white-space: nowrap;
-    overflow: hidden;
-    margin-right: 7px;
-    font-size: 11px;
-    vertical-align: top;
-    line-height: 17px;
-    > .inline-icon {
-      padding-right: 0;
-    }
+.grey-white-split {
+  border: 1px solid #f0f;
+
 }
+
 .btn-preview {
-    padding: 5px 42px 5px 26px;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-.preview-stamp {
-    margin-left: -26px;
-    margin-top: -6px;
-    /* Mozilla hack works in webkit too. Lets you click the button beneath the icon */
-    pointer-events: none;
+  font-size: 11px;
 }
 .inline-icon {
     padding-right: 5px;
@@ -208,48 +188,6 @@ table.tablesorter {
     }
 }
 
-
-/* Search box (used everywhere) */
-/* ---------------------------- */
-.search-area {
-    .facet-table {
-      .facet-table-left {
-        text-align: right;
-        width: 120px;
-        vertical-align: top;
-        padding-top: 3px;
-      }
-      .facet-table-right {
-        padding-bottom: 5px;
-      }
-    }
-    .facet {
-        color: #333;
-        white-space: nowrap;
-        font-size: 11px;
-        background: lighten(#A4DF45,10%);
-        margin: 0 5px 2px 5px;
-        padding: 2px 5px 2px 8px;
-        float: left;
-        .rounded(3px);
-        .x {
-          display: inline-block;
-          zoom: 1;
-          *display: inline;
-          padding: 0 4px;
-          margin-left: 4px;
-          font-size: 12px;
-          color: #690;
-          .rounded(4px);
-          &:hover {
-            text-decoration: none;
-            background: lighten(#470,10%);
-            color: #fff;
-          }
-        }
-    }
-}
-
 /* Shopping Basket */
 /* --------------- */
 #shopping-basket-container {
@@ -322,43 +260,56 @@ table.tablesorter {
       &:hover { color: #fff; text-decoration: none; } 
     }
 }
+
 .facet-box-unboxed {
-    margin: 0 0 0 0;
-    padding: 2px 10px 6px 24px;
-    padding-left: 20px;
+    padding-left: 40px;
     .facet-expand-collapse {
-        text-align: right;
+      text-align: center;
+      font-size: 12px;
+      display: block;
+      color: #999;
+      &:hover { 
+        color: #000;
+        text-decoration: none;
+      }
+      // Class 'expanded' changes children 
+      .expander { display: block; }
+      .collapser { display: none; }
+      &.expanded .expander { display: none; }
+      &.expanded .collapser { display: block; }
+    }
+    .facet-option {
+      padding: 6px 0;
+      margin-right: -15px;
+      font-size: 13px;
+      border-top: 1px dotted #ccc;
+      a { 
+        color: #333; 
         display: block;
-        padding: 5px 22px;
-        margin: 0 -17px;
-        color: #999;
-        font-weight: bold;
-        // Class 'expanded' changes children 
-        .expander { display: block; }
-        .collapser { display: none; }
-        &.expanded .expander { display: none; }
-        &.expanded .collapser { display: block; }
+      }
+      &:first-child { 
+        border-top: none; 
+      }
+      &.facet-option-selected {
+        background-color: #DFE8D4;
+        border-left: 15px solid #8BC658;
+        margin-left: -40px;
+        padding-left: 25px;
+        border-bottom: none;
+        .facet-kill {
+          margin-right: 20px;
+          i { color: #8BC658; }
+        }
+        &:hover {
+          i { color: #000; }
+        }
+      }
     }
     .facet-option-selected {
-      padding: 2px 8px 2px 13px;
-      margin: 2px 0 2px -10px;
       .rounded(3px);
       display: block;
       background: #555;
       color: #fff;
-      .x {
-        float: right;
-        padding: 0 8px;
-        margin-left: 4px;
-        font-size: 12px;
-        color: #bbb;
-        .rounded(4px);
-        &:hover {
-          text-decoration: none;
-          background: #c55; 
-          color: #fff;
-        }
-      }
     }
     @media(max-width: 767px) {
       color: #aaa;
@@ -371,28 +322,11 @@ table.tablesorter {
       h4 { color: #fff; }
     }
     @media(min-width: 768px) {
-      margin: 8px -17px 8px -17px;
-      h4 {
-          color: #656565;
-          padding: 0px 17px 5px 10px;
-          margin: 0 0 5px -10px;
-          border-bottom: 1px solid #aaa;
-      }
       .facet-option-selected {
         background: #b9e671;
         color: #333;
-        .x {
-          color: #690;
-          &:hover { background: lighten(#470,10%); }
-        }
       }
-      /*
-      .facet-options {
-        padding: 4px 12px 4px 25px ;
-      }
-      */
     }
-
 }
 .search-theme-mode-container {
   float: right;
@@ -412,29 +346,10 @@ table.tablesorter {
 
 /* common-dataset-list and dataset-summary */
 /* --------------------------------------- */
-.sort-by-controls {
-    text-align: right;
-    margin-top: 10px;
-    margin-right: 5px;
-    @media(min-width: 768px) {
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    form {
-      margin: 0 0 0 0;
-    }
-    .feed-icon {
-        margin: 3px 15px 0 14px;
-    }
-}
-.feed-icon {
-    img {
-      .drop-shadow(0px, 2px, 6px, 0.25);
-    }
-}
 ul.common-dataset-list {
     list-style-type: none;
     margin-left: 0;
+    padding-left: 0;
     .dataset-summary {
         margin-bottom: 30px;
     }
@@ -502,31 +417,11 @@ ul.common-dataset-list {
   }
 }
 .dataset-summary {
-  img.dataset-icon {
-        float: left;
-        width: 45px;
-        height: 45px;
-        margin-right: 10px;
-    }
+  border: 1px solid #f0f;
     .dataset-header {
+        border: 1px solid #0ff;
         display: block;
-        font-size: 19px;
-        line-height: 23px;
-        margin-bottom: 8px; 
-        min-height: 52px;
-        margin-bottom: 12px;
-        border-bottom: 1px solid #aaa;
-        padding-left: 17px;
-        padding-right: 17px;
-        margin-left: -17px;
-        margin-right: -17px;
         color: #690;
-        word-wrap: break-word;
-        white-space: normal;
-        padding-bottom: 5px;
-        @media(max-width:767px) {
-          margin-top: 5px;
-        }
     }
     .dataset-header:hover {
         text-decoration: none;
@@ -558,24 +453,11 @@ ul.common-dataset-list {
           color: #aaa;
         }
     }
-    .format-box {
-      float: right;
-      margin-top: -2px;
-    }
     .map-buttons {
         height: 33px;
         margin-top: 4px;
         text-align: right;
         white-space: nowrap;
-    }
-    .btn-preview {
-        margin-left: 5px;
-    }
-    .preview-add .btn-preview,
-    .preview-remove .btn-preview {
-        width: 160px;
-        padding-left: 0;
-        padding-right: 10px;
     }
     @media(max-width: 767px) {
       margin: 5px 8px;
@@ -583,9 +465,6 @@ ul.common-dataset-list {
       margin-left:  10px;
       margin-right: 10px;
       border: 1px solid #ccc !important;
-      .format-box {
-        display: none;
-      }
     }
 }
 
@@ -711,11 +590,6 @@ body.controller-publisher.action-read {
       float: right;
       margin-left: 10px;
     }
-    .feed-icon {
-      img {
-        margin: -4px 0 0 4px;
-      }
-    }
     .state-box {
         background-color: #fdd;
     }
@@ -743,11 +617,6 @@ body.controller-inventory {
       float: right;
       margin-left: 10px;
     }
-    .feed-icon {
-      img {
-        margin: -4px 0 0 4px;
-      }
-    }
     .state-box {
         background-color: #fdd;
     }
@@ -758,6 +627,42 @@ body.controller-inventory {
 /* PAGE: Package/search */
 /* -------------------- */
 body.controller-package.action-search {
+  .sidebar-search {
+    margin-left: 40px;
+    margin-bottom: 30px;
+    .map-search-link {
+      margin-left: 17%;
+      margin-top: 7px;
+      font-size: 12px;
+      color: #666;
+      a { color: #666; text-decoration: underline; }
+    }
+  }
+  .facet-divider {
+    height: 0px;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #f0f0f0;
+    margin: 17px 0;
+    margin-right: -16px;
+    margin-left: 30px;
+  }
+  #search-sort-by {
+    select {
+      width: 150px;
+      margin: 0 12px 0 5px;
+    }
+    .feed-icon {
+      color: #E75E00;
+      i { 
+        font-size: 32px; 
+        vertical-align: middle; 
+      }
+      &:hover {
+        color: lighten(#E75E00,4%);
+        text-decoration: none;
+      }
+    }
+  }
 }
 
 

@@ -9,57 +9,73 @@
 
   <py:def function="page_title">Data Search</py:def>
   <py:def function="page_heading">Data Search</py:def>
+  <py:def function="sidebar">
+    <div class="sidebar-search">
+      ${search_form(mini=True)}
+      <div class="map-search-link">
+        <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
+        <!--
+        <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {}, alternative_url='/data/map-based-search')}">
+          <py:if test="'ext_bbox' not in request.params">
+            Conduct Map Based Search
+          </py:if>
+          <py:if test="'ext_bbox' in request.params">
+            New Map Based Search
+          </py:if>
+        </a>
+        -->
+      </div>
+    </div>
+    ${basket()}
+
+    <py:if test="c.page.item_count">
+      ${facet_filters()}
+    </py:if>
+  </py:def>
 
   <div py:match="content">
-    ${search_form()}
-
-    <div class="visible-phone pull-left" style="margin-left: 10px; margin-top: 10px;">
-      <a href="#" class="btn btn-inverse show-facets">Search Facets &raquo;</a>
+    <div class="visible-xs" style="margin-left: 10px; margin-top: 10px;">
+      <a href="#" class="btn btn-default btn-sm show-facets">Search Facets &raquo;</a>
     </div>
-    <div class="sort-by-controls pull-right" py:if="c.page.item_count">
-      <form class="form-inline" id="search-sort-by">
-        <py:def function="sort_option(text, value, selected, disabled=False)">
-          <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
-        </py:def>
-        <label>Sort by:</label>
-        <select name="dataset-results-sort">
-          <!-- Can optimise this bit of the template, particularly results_sort_by -->
-          ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
-          ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
-          ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
-          ${sort_option('Last Updated', c.sort_by([('last_major_modification','desc')]), 'last_major_modification' in h.results_sort_by())}
-          ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
-        </select>
-        <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-          <img src="/images/rss.png" alt="Syndicate content" title="Search results" width="16" height="16"/>
-        </a>
-      </form>
-    </div>
-    <div class="clearfix"></div>
 
-    <div class="row">
-      <div class="col-md-4">
-        ${basket()}
-
-        <py:if test="c.page.item_count">
-          ${facet_filters()}
-        </py:if>
+    <py:if test="c.query_error">
+      <div class="panel panel-danger">
+        <div class="panel-heading"><strong>There was an error while searching.</strong></div>
+        <div class="panel-body">Please try again.</div>
       </div>
-      <div class="col-md-8">
-        <py:if test="c.query_error">
-          <p i18n:msg="item_count"><strong>There was an error while searching.</strong>
-              Please try again.</p>
-        </py:if>
+    </py:if>
 
-        ${package_list_from_dict(c.page.items)}
-        <py:with vars="pager = c.page.pager(q=c.q)">
-          <div py:if="pager" class="pager-container">
-            ${pager}
-          </div>
-        </py:with>
+    <form class="form-inline pull-right" id="search-sort-by">
+      <py:def function="sort_option(text, value, selected, disabled=False)">
+        <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
+      </py:def>
+      <label>Sort by:</label>
+      <select name="dataset-results-sort" class="form-control">
+        <!-- Can optimise this bit of the template, particularly results_sort_by -->
+        ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
+        ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
+        ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
+        ${sort_option('Last Updated', c.sort_by([('last_major_modification','desc')]), 'last_major_modification' in h.results_sort_by())}
+        ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
+      </select>
+      <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+        <i class="icon-rss-sign"></i>
+      </a>
+    </form>
+
+    <py:if test="not c.query_error">
+      <h1>${c.page.item_count if c.page not in (None, '') else c.package_count or 0} Results</h1>
+    </py:if>
+    <py:if test="c.query_error">
+      <h1>Search Error</h1>
+    </py:if>
+
+    ${package_list_from_dict(c.page.items)}
+    <py:with vars="pager = c.page.pager(q=c.q)">
+      <div py:if="pager" class="pager-container">
+        ${pager}
       </div>
-    </div>
-
+    </py:with>
   </div>
 
   <py:def function="optional_feed">

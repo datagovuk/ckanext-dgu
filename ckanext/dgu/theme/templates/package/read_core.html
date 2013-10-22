@@ -62,13 +62,13 @@
               </py:if>
             </li>
           </ul>
-          <span class="visible-phone btn-group">
+          <span class="visible-xs btn-group">
             <button class="btn dropdown-toggle" data-toggle="dropdown">
               <span class="caret"></span>
             </button>
             ${resource_dropdown_menu()}
           </span><!--/btn-group-->
-          <span class="btn-group hidden-phone">
+          <span class="btn-group hidden-xs">
             <a class="btn" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
               <i class="icon-search"></i>&nbsp; ${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}
             </a>

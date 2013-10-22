@@ -28,13 +28,13 @@
   </py:def>
 
   <py:def function="map_preview_button_view(pkg_dict)">
-    <a href="/data/map-preview?${h.get_wms_info_urls(pkg_dict)}${'&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % h.get_wms_info_extent(pkg_dict) if h.get_wms_info_extent(pkg_dict) else ''}" class="btn btn-primary btn-small btn-preview preview-now">Preview on Map</a><img class="preview-stamp" src="/images/compass.png"/>
+    <a href="/data/map-preview?${h.get_wms_info_urls(pkg_dict)}${'&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % h.get_wms_info_extent(pkg_dict) if h.get_wms_info_extent(pkg_dict) else ''}" class="btn btn-default btn-xs btn-info btn-preview preview-now"><i class="icon-map-marker"></i>&nbsp; Preview on Map</a>
   </py:def>
 
   <py:def function="map_preview_button_add_remove(package_id)">
     <span class="preview-add js-dataset-${package_id}-add"
          style="${'display: none' if package_id in session.get('preview_list',[]) else ''}">
-      <button data-id="${package_id}" class="btn btn-primary btn-small btn-preview btn-basket"><span>Add to Preview List</span></button><img class="preview-stamp" src="/images/compass-plus.png"/>
+         <button data-id="${package_id}" class="btn btn-default btn-xs btn-info btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Add to Preview List</button>
     </span>
     <span class="preview-remove js-dataset-${package_id}-remove"
          style="${'' if package_id in session.get('preview_list',[]) else 'display: none;'}">

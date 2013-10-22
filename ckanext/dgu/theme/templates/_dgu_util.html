@@ -84,9 +84,9 @@
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
-  <div py:def="search_form()" class="search-area">
+  <div py:def="search_form(mini=False)" class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
-      <div class="left">
+      <div class="${if_(mini,'mini','left')}">
         <div class="left-inner auto-height">
         <form class="form-search" action="${h.url_for(controller='package', action='search')}" method="GET">
           <div class="input-group">
@@ -106,39 +106,9 @@
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="${request.params.get('ext_bbox','')}" />
           </py:if>
         </form>
-        <table class="facet-table">
-          <py:def function="facet(label,kill_link)">
-            <div class="facet">
-              ${label}
-              <a class="x" href="${kill_link}">x</a>
-            </div>
-          </py:def>
-          <py:for each="field in h.facet_keys(c.fields)">
-            <tr>
-              <td class="facet-table-left">${h.render_facet_key(field)}:</td>
-              <td class="facet-table-right">
-                <py:for each="value in h.facet_values(c.fields,field)">
-                  ${facet(h.render_facet_value(field,value),c.remove_field(field, value))}
-                </py:for>
-              </td>
-            </tr>
-          </py:for>
-          <py:if test="request.params.get('ext_bbox','')">
-            <tr>
-              <td class="facet-table-left">${h.get_facet_title_('Location')}</td>
-              <td class="facet-table-right">${facet(request.params.get('ext_bbox',''),c.remove_field('ext_bbox', request.params.get('ext_bbox','')))}</td>
-            </tr>
-          </py:if>
-          <py:if test="request.params.get('parent_publishers','')">
-            <tr>
-              <td class="facet-table-left">Publishers:</td>
-              <td class="facet-table-right">${facet('Including sub-publishers',h.search_without_subpub())}</td>
-            </tr>
-          </py:if>
-        </table>
         </div>
       </div>
-      <div class="right">
+      <div class="right" py:if="not mini">
         <div class="right-inner auto-height">
         <div class="chevron"></div>
         <py:if test="not c.query_error">
@@ -164,7 +134,7 @@
    </li>
   </ul>
 
-  <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary boxed">
+  <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary">
      <div py:if="package" py:with="title=package.get('title') or package.get('name')">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
@@ -195,7 +165,7 @@
      </div>
   </div>
 
-  <div py:def="unpublished_summary(package)" class="wrapper dataset dataset-summary boxed">
+  <div py:def="unpublished_summary(package)" class="wrapper dataset dataset-summary">
      <div py:with="title=package.get('title') or package.get('name')">
       <div class="dataset-header">
         <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
@@ -249,24 +219,26 @@
       <div class="facet-option">
         <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {facet_key: facet_item['name']}, alternative_url=alternative_url)}">
           ${h.render_facet_value(facet_key,facet_item['name'])}
+          (${facet_item['count']})
         </a>
-        (${facet_item['count']})
       </div>
   </py:def>
 
   <py:def function="facet_unline(facet_key,facet_value)">
       <div class="facet-option facet-option-selected">
-        <a class="x" href="${c.remove_field(facet_key, facet_value)}">
-          x
+        <a href="${c.remove_field(facet_key, facet_value)}">
+          <div class="facet-kill pull-right">
+            <i class="icon-large icon-remove-sign"></i>
+          </div>
+          ${h.render_facet_value(facet_key,facet_value)}
         </a>
-        ${h.render_facet_value(facet_key,facet_value)}
       </div>
   </py:def>
 
   <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count', alternative_url=None)">
       <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
           <div class="facet-box-unboxed">
-              <h4>${title}</h4>
+              <h4 class="facet-title">${title}</h4>
               <div class="facet-options">
                 <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
                   ${facet_unline(facet_key,preselected)}
@@ -283,10 +255,10 @@
                       </div>
                       <a id="${more_button}" class="facet-expand-collapse" href="#">
                         <div class="expander">
-                          [ more ]
+                          <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
                         </div>
                         <div class="collapser">
-                          [ less ]
+                          <i class="icon-double-angle-up"></i>&nbsp; less &nbsp;<i class="icon-double-angle-up"></i>
                         </div>
                       </a>
                     </py:if>
@@ -311,9 +283,8 @@
   </py:def>
 
   <div py:def="facet_filters()" class="datasets">
-    <div class="boxed">
     <div class="facet-filters">
-      <div class="visible-phone">
+      <div class="visible-xs">
         <a href="#" class="hide-facets">
           <i class="icon-remove-circle icon-4x"></i>
         </a>
@@ -323,11 +294,13 @@
           'Show only...',
           ''
           )}
+      <div class="facet-divider"></div>
       ${facet_box(
           'license_id-is-ogl',
           'Licence',
           'There are no further licence filters to apply.'
       )}
+      <div class="facet-divider"></div>
 <!--!      <div class="search-theme-mode-container">
         <label class="checkbox">
           <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
@@ -356,18 +329,21 @@
           'There are no further tag filters to apply.',
           more_button='more-tags-button'
       )}
+      <div class="facet-divider"></div>
       ${facet_box(
           'res_format',
           'Resource Format',
           'There are no further resource format filters to apply.',
           more_button='more-formats-button'
       )}
+      <div class="facet-divider"></div>
       ${facet_box(
           'publisher',
           'Publisher',
           'There are no further publisher filters to apply.',
           more_button='more-publishers-button'
       )}
+      <div class="facet-divider"></div>
   <!--!    ${facet_box(
           'tags',
           'Tags',
@@ -380,22 +356,7 @@
           'There are no further openness filters to apply.',
           sort_by='name'
       )}
-
-    <div class="facet-box-unboxed" id="map-based-search">
-      <h4>UK Location Map Search</h4>
-      <div class="facet-options">
-          <div class="facet-option">
-            <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {}, alternative_url='/data/map-based-search')}">
-              <py:if test="'ext_bbox' not in request.params">
-                Conduct Map Based Search
-              </py:if>
-              <py:if test="'ext_bbox' in request.params">
-                New Map Based Search
-              </py:if>
-            </a>
-          </div>
-      </div>
-    </div>
+      <div class="facet-divider"></div>
 
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box-unboxed">
@@ -430,7 +391,6 @@
         </py:if>
       </div>
     </div>
-    </div><!-- /boxed -->
     </div><!-- /facet-filters -->
   </div>
 
@@ -535,7 +495,7 @@
    </li>
   </ul>
 
-  <div py:def="themed_package_summary(package, theme)" class="dataset dataset-summary boxed">
+  <div py:def="themed_package_summary(package, theme)" class="dataset dataset-summary">
      <div py:with="title=package.get('title') or package.get('name')">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <img class="dataset-icon" src="${'/images/theme-%s-icon.png' % theme if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
