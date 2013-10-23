@@ -141,8 +141,12 @@ class DatasetForm(SingletonPlugin):
         c.update_frequency = filter(lambda f: f[0] != 'discontinued', update_frequency)
         c.temporal_granularity = temporal_granularity
 
-        c.publishers = self.get_publishers()
-        c.publishers_json = json.dumps(c.publishers)
+        # We only actually need these in edit/new and not in read. A fair
+        # slow down for read but can't see how we can find out where we are
+        # being called from
+        if 'save' in context:
+            c.publishers = self.get_publishers()
+            c.publishers_json = json.dumps(c.publishers)
 
         c.resource_columns = ('description', 'url', 'format')
 
