@@ -84,15 +84,15 @@
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
-  <div py:def="search_form(mini=False)" class="search-area">
+  <div py:def="search_form(mini=False, placeholder='Search for datasets...')" class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
       <div class="${if_(mini,'mini','left')}">
         <div class="left-inner auto-height">
         <form class="form-search" action="${h.url_for(controller='package', action='search')}" method="GET">
           <div class="input-group">
-            <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for datasets..." />
+            <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="${placeholder}" />
             <span class="input-group-btn">
-              <button type="button" class="btn btn-default">
+              <button type="submit" class="btn btn-default">
                 <i class="icon-search"></i>
               </button>
             </span>
@@ -111,9 +111,9 @@
       <div class="right" py:if="not mini">
         <div class="right-inner auto-height">
         <div class="chevron"></div>
-        <py:if test="not c.query_error">
-          <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
-          <div class="result-count-footer">Results</div>
+        <py:if test="not c.query_error" py:with="count = c.page.item_count if c.page not in (None, '') else c.package_count or 0">
+          <div class="result-count">${count}</div>
+          <div class="result-count-footer">Dataset${if_(count!=1,'s')}</div>
         </py:if>
         <py:if test="c.query_error">
           <div class="result-count-footer">Search Error</div>

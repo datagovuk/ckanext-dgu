@@ -132,12 +132,12 @@ ${h.top_level_init()}
         <a href="#" class="trigger-subnav nav-apps">Apps</a>
         <a href="#" class="trigger-subnav nav-interact">Interact</a>
         <div class="nav-search" style="width: 200px;">
-          <div class="input-group input-group-sm">
-            <input type="text" class="form-control" />
+          <form action="/data/search" class="input-group input-group-sm">
+            <input type="text" name="q" class="form-control" />
             <span class="input-group-btn">
-              <button class="btn btn-primary" type="button"><i class="icon-search"></i></button>
+              <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
             </span>
-          </div>
+          </form>
         </div>
         <a class="nav-user btn btn-primary" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
       </nav>
@@ -223,10 +223,8 @@ ${h.top_level_init()}
         <div class="col-md-12">
           <ul id="breadcrumbs">
             <li><a href="/"><i class="icon-home"></i></a></li>
-            <py:for each="(text,url) in h.breadcrumbs()">
-              <li class="spacer">&nbsp;/&nbsp;</li>
-              <li><a href="${url}">${text}</a></li>
-            </py:for>
+            <breadcrumbs>
+            </breadcrumbs>
           </ul>
         </div>
       </div>
