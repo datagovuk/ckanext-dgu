@@ -174,7 +174,7 @@
 
     <h2 style="margin-top: 30px;">Popular Datasets</h2>
     <div py:if="c.page.items">
-      ${package_list_from_dict(c.page.items)}
+      ${package_list_from_dict(c.page.items,mini=True)}
       ${c.page.pager()}
     </div>
   </py:match>
