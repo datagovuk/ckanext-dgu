@@ -142,36 +142,41 @@
    </li>
   </ul>
 
-  <div py:def="package_summary(package, show_preview_buttons)" class="dataset dataset-summary">
-     <div py:if="package" py:with="title=package.get('title') or package.get('name')">
+  <py:def function="package_summary(package, show_preview_buttons)">
+    <py:with vars="title=package.get('title') or package.get('name'); primary_theme=h.get_primary_theme(package)">
+      <div class="dataset dataset-summary theme-${primary_theme or 'none'}">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <img class="dataset-icon" src="${'/images/dataset-icon.png' if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
-         <py:for each="format in h.formats_for_package(package)">
-           ${format_box(format.lower())}
-         </py:for>
+         <div class="theme-name">${primary_theme}</div>
          <div class="underlined">${title}</div>
        </a>
-       <span class="property pull-right">
-         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
-       </span>
-       <div class="property">
-          Publisher:&nbsp;
-            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
-              ${h.package_publisher_dict(package).get('title', '')}
-            </a>
-       </div>
-       <div class="dataset-description">
-         ${h.markdown_extract(package.notes)}
-       </div>
-       <py:if test="show_preview_buttons">
-         ${map_preview_buttons(package.id, package)}
-       </py:if>
-
-        <div class="property">
-         ${feedback_summary(package)}
+       <div class="dataset-body">
+         <div class="left">
+           <a class="dataset-publisher" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
+             ${h.package_publisher_dict(package).get('title', '')}
+           </a>
+           <div class="dataset-description">
+             ${h.markdown_extract(package.notes)}
+           </div>
+         </div>
+         <div class="right">
+           <py:for each="format in h.formats_for_package(package)">
+             ${format_box(format.lower())}
+           </py:for>
+           <py:if test="show_preview_buttons">
+             ${map_preview_buttons(package.id, package)}
+           </py:if>
+         </div>
+         <div class="clearfix"></div>
+         <!--div class="property">
+           ${feedback_summary(package)}
+         </div-->
+         <!--span class="property pull-right">
+           ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
+         </span-->
        </div>
      </div>
-  </div>
+   </py:with>
+  </py:def>
 
   <div py:def="unpublished_summary(package)" class="wrapper dataset dataset-summary">
      <div py:with="title=package.get('title') or package.get('name')">
@@ -440,10 +445,8 @@
         <p py:if="not (email or phone or web_url)"><em>No details supplied</em></p>
   </py:def>
 
-  <py:def function="format_box(format_name,icon_html=None)">
+  <py:def function="format_box(format_name)">
     <div class="format-box">
-      <py:if test="icon_html">${icon_html}</py:if>
-      <py:if test="not icon_html">${h.dgu_format_icon(format_name)}</py:if>
       <span py:if="format_name" property="dc:format">${h.dgu_format_name(format_name)}</span>
     </div>
   </py:def>

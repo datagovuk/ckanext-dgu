@@ -150,6 +150,16 @@ ul.button-row {
         margin-left: 0;
     }
 }
+.format-box {
+  display: inline-block;
+  zoom: 1;
+  *display: inline;
+  background: #ccc;
+  color: #fff;
+  font-size: 10px;
+  line-height: 12px;
+  padding: 3px 9px;
+}
 
 
 
@@ -170,6 +180,7 @@ table.tablesorter {
         font-weight: bold;
         background-repeat: no-repeat;
         background-position: center right;
+        padding: 3px 9px;
         padding-right: 20px;
         border-right: 1px solid #dad9c7;
         margin-left: -1px;
@@ -426,58 +437,71 @@ ul.common-dataset-list {
     }
   }
 }
+
+@color_health: #F8524E;
+@color_environment: #8CC65C;
+@color_geography: #549DF9;
+@color_business: #8954FC;
+@color_transport: #FAA657;
+@color_finance: #F95AB6;
+@color_society: #88bb00;
+@color_economy: #441188;
+
 .dataset-summary {
-  border: 1px solid #f0f;
-  background: #fff;
-    .dataset-header {
-        border: 1px solid #0ff;
-        display: block;
-        color: #690;
+  border-left: 6px solid #e0e0e0;
+  padding-left: 10px;
+  .dataset-header {
+    display: block;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-right: 6px solid #ccc;
+    min-height: 40px;
+    padding-right: 10px;
+    .underlined {
+      font-size: 22px;
+      line-height: 25px;
+      color: #393939;
     }
-    .dataset-header:hover {
-        text-decoration: none;
-        color: #470;
+    .theme-name {
+      float: right;
+      font-weight: bold;
+      padding-left: 20px;
     }
-    .dataset-header:hover .underlined {
-        text-decoration: underline;
+    &:hover {
+      .underlined { color: #000; }
     }
-    div.property {
-        margin: 4px 0;
+
+  }
+  .dataset-body {
+    border-right: 6px solid #e0e0e0;
+    padding-right: 10px;
+    .left {
+      float: left;
+      width: 75%;
+      padding-bottom: 8px;
     }
-    .property {
-        color: #666;
-        font-size: 12px;
-        line-height: 18px;
+    .right {
+      float: right;
+      width: 22%;
+      text-align: right;
     }
-    .themes {
-        color: #666;
-        margin: 0 -17px;
-        margin-top: 14px;
-        margin-bottom: -10px;
-        padding: 2px 15px;
-        padding-top: 4px;
-        border-top: 1px solid #aaa;
-        text-align: right;
-        font-weight: bold;
-        .secondary {
-          font-weight: normal;
-          color: #aaa;
-        }
+    .dataset-publisher {
+      font-size: 12px;
+      color: #999;
+      margin-top: -13px;
     }
-    .map-buttons {
-        height: 33px;
-        margin-top: 4px;
-        text-align: right;
-        white-space: nowrap;
-    }
-    @media(max-width: 767px) {
-      margin: 5px 8px;
-      padding: 4px 10px;
-      margin-left:  10px;
-      margin-right: 10px;
-      border: 1px solid #ccc !important;
-    }
+  }
+  &.theme-Geography   { .theme-name { color: @color_geography; } .dataset-header   { border-right-color: @color_geography; } }
+  &.theme-Health      { .theme-name { color: @color_health; } .dataset-header      { border-right-color: @color_health; } }
+  &.theme-Environment { .theme-name { color: @color_environment; } .dataset-header { border-right-color: @color_environment; } }
+  &.theme-Business    { .theme-name { color: @color_business; } .dataset-header    { border-right-color: @color_business; } }
+  &.theme-Transport   { .theme-name { color: @color_transport; } .dataset-header   { border-right-color: @color_transport; } }
+  &.theme-Finance     { .theme-name { color: @color_finance; } .dataset-header     { border-right-color: @color_finance; } }
+  &.theme-Society     { .theme-name { color: @color_society; } .dataset-header     { border-right-color: @color_society; } }
+  &.theme-Economy     { .theme-name { color: @color_economy; } .dataset-header     { border-right-color: @color_economy; } }
 }
+
+
 /* Publisher hierarchy */
 .alphabet-search {
   margin-top: 7px;
