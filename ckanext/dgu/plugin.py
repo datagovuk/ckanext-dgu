@@ -102,7 +102,7 @@ class ReportsPlugin(SingletonPlugin):
 
 
         # Feedback reports
-        map.connect('/data/reports/feedback',
+        map.connect('feedback_reports', '/data/reports/feedback',
                     controller=report_ctlr, action='feedback')
         map.connect('/data/reports/feedback/:id.{format}',
                     controller=report_ctlr, action='feedback')
@@ -122,15 +122,12 @@ class ReportsPlugin(SingletonPlugin):
                     controller=c_ctlr, action='edit')
 
 
-        # Leaving these in so as to not break existing links
-        map.connect('/data/feedback/report/:id.{format}',
-                    controller=report_ctlr, action='feedback')
-        map.connect('/data/feedback/report/:id',
-                    controller=report_ctlr, action='feedback')
-        map.connect('/data/feedback/report.{format}',
-                    controller=report_ctlr, action='feedback')
-        map.connect('feedback_reports', '/data/feedback/report',
-                    controller=report_ctlr, action='feedback')
+        # Redirecting these so as to not break existing links
+        map.redirect('/data/feedback/report/{id}.{format}', '/data/reports/feedback/{id}.format')
+        map.redirect('/data/feedback/report/{id}', '/data/reports/feedback/{id}')
+        map.redirect('/data/feedback/report.{format}', '/data/reports/feedback.{format}')
+        map.redirect('/data/feedback/report', '/data/reports/feedback')
+
         return map
 
     def after_map(self, map):

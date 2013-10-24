@@ -1403,7 +1403,7 @@ def get_facet_title_(name):
 
 
 def render_facet_key(key,value=None):
-    if key in ['unpublished', 'core-dataset']:
+    if key in ['unpublished', 'core_dataset']:
         return 'Show only'
     if key=='license_id-is-ogl':
         return 'Licence'
@@ -1419,10 +1419,10 @@ def render_facet_key(key,value=None):
     return get_facet_title_(key)
 
 def render_facet_value(key,value):
-    if key=='core-dataset':
+    if key=='core_dataset':
         if value=='true':
-            return 'Core dataset'
-        return ''
+            return 'Core datasets'
+        return 'Non-core datasets'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'
