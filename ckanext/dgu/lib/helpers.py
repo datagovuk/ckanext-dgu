@@ -75,6 +75,26 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
+def publisher_hierarchy():
+    from ckan.logic import get_action
+    from ckan import model
+    import json
+    context = {'model': model, 'session': model.Session}
+    top_nodes = get_action('group_tree')(context=context,
+            data_dict={'type': 'organization'})
+    out = [ _publisher_hierarchy_recur(node) for node in top_nodes ]
+    return out
+
+def _publisher_hierarchy_recur(node):
+    title = node['title']
+    name  = node['name']
+    children = [ _publisher_hierarchy_recur(child) for child in (node['children'] or []) ]
+    return {
+            'title':title,
+            'name':name,
+            'children':children
+            }
+
 def render_tree():
     '''Returns HTML for a hierarchy of all publishers'''
     from ckan.logic import get_action

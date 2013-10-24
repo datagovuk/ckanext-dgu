@@ -230,13 +230,13 @@ ${h.top_level_init()}
       </div>
     </div>
   </div>
-  <div id="main-content">
+  <div id="main-content" class="dgu-equal-height" data-selector=".main-height-columns">
     <div class="container">
       <div class="row">
-        <div py:if="defined('sidebar')" class="col-md-4 sidebar">
+        <div py:if="defined('sidebar')" class="main-height-columns col-md-4 sidebar">
           ${sidebar()}
         </div>
-        <div class="content ${if_(defined('sidebar'),'col-md-8','col-md-12')}">
+        <div class="main-height-columns content ${if_(defined('sidebar'),'col-md-8','col-md-12')}">
           <content>
           <!-- Content goes here -->
           </content>

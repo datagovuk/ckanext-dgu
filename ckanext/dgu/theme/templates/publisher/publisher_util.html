@@ -6,14 +6,6 @@
   py:strip=""
   >
 
- <table py:def="publisher_list(groups)" class="groups">
-   <py:for each="group,title in groups">
-   <tr>
-     <td><a href="/publisher/${group.name}">${title}</a></td>
-   </tr>
-   </py:for>
- </table>
-
 <py:def function="publisher_sidebar()">
   <div class="boxed">
 

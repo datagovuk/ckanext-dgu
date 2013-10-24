@@ -7,79 +7,56 @@
 
   <py:def function="page_title">Publishers</py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
+  </py:match>
+
   <py:def function="sidebar">
-    <div class="boxed">
-      <div class="widget-container widget_text">
-        <h4>Publishers</h4>
-        <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
-      </div>
-      <div py:if="c.userobj" class="widget-container">
-        <h4>Adding New Publishers</h4>
-        <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
-      </div>
-    </div>
-  </py:def>
-
-  <py:def function="page_heading">Publishers</py:def>
-
-  <div py:match="content">
-    <div class="boxed">
-      <div class="tabbable">
-        <ul class="nav nav-tabs">
-          <li class="active"><a href="#publisherlist" data-toggle="hashtab">Publisher list</a></li>
-          <li><a href="#publisherhierarchy" data-toggle="hashtab">Publisher hierarchy</a></li>
-          <li><a href="#publishersearch" data-toggle="hashtab">Publisher search</a></li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane active" id="publisherlist">
-            ${c.page.pager()}
-            ${publisher_list(c.page.items)}
-          </div>
-          <div class="tab-pane" id="publisherhierarchy">
-            <div id="publisher-tree">
-              ${ Markup(h.render_tree()) }
+    <div class="search-area">
+      <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+        <div class="mini">
+          <div class="left-inner auto-height form-search">
+            <div class="input-group">
+              <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for publishers..." />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-default">
+                  <i class="icon-search"></i>
+                </button>
+              </span>
             </div>
-          </div>
-          <div class="tab-pane" id="publishersearch">
-            <table class="search-area">
-              <tr>
-                <td class="left">
-                  <div class="result-count" style="color: #ccc;">${c.all_groups.count()}</div>
-                  <div class="result-count-footer" style="color: #ccc;">Publishers</div>
-                </td>
-                <td class="right">
-                  <form id="publisher-search" class="form-search" action="">
-                    <div class="textbox">
-                      <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
-                    </div>
-                    <input type="submit" class="btn btn-primary button" value="Search..."/>
-                  </form>
-                </td>
-              </tr>
-            </table>
-            <table id="search_results" class="groups" style="display:none;">
-            </table>
-
           </div>
         </div>
       </div>
+    </div><!-- /search-area -->
+    <p class="well" style="margin-top: 20px; font-size: 12px; line-height: 17px;">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
+    <div py:if="c.userobj" class="panel panel-info">
+      <div class="panel-heading"><strong>Adding New Publishers</strong></div>
+      <div class="panel-body">If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</div>
     </div>
+  </py:def>
 
-
-  </div>
+  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
+    <h1><span id="publisher-result-count">All </span> Publishers</h1>
+    <div class="publisher-hierarchy">
+      <py:def function="render_publisher(pub)">
+        <div class="publisher">
+          <a class="publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
+          <py:for each="child in pub['children']">
+            ${render_publisher(child)}
+          </py:for>
+        </div>
+      </py:def>
+      <py:for each="pub in hierarchy">
+        ${render_publisher(pub)}
+      </py:for>
+    </div>
+  </py:match>
 
   <py:def function="optional_footer">
-    <script src="/scripts/vendor/jquery.jstree.min.js"></script>
-    <script src="/scripts/dgu-publisher-index.min.js"></script>
     <script type="text/javascript">
-      window.dgu_publisher_autocomplete = ${h.groups_as_json(c.all_groups)};
+      window.dgu_all_publishers = ${h.groups_as_json(c.all_groups)};
     </script>
-    <!--[if IE 7]>
-      <style>
-        .ui-icon { text-indent: 0; }
-        .node { padding: 2px; }
-      </style>
-    <![endif]-->
+    <script src="/scripts/dgu-publisher-index.min.js"></script>
   </py:def>
 
   <xi:include href="../layout.html" />

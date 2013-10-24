@@ -47,17 +47,17 @@ class PublisherController(OrganizationController):
 
         # This used to be just used by the hierarchy but now is not, but it is
         # now used for search autocomplete and count.
-        c.all_groups = model.Session.query(model.Group).\
-                       filter(model.Group.type == 'organization').\
-                       filter(model.Group.state == 'active').\
-                       order_by('title')
-        c.page = AlphaPage(
-            controller_name="ckanext.dgu.controllers.publisher:PublisherController",
-            collection=c.all_groups,
-            page=request.params.get('page', 'A'),
-            alpha_attribute='title',
-            other_text=_('Other'),
-        )
+        # c.all_groups = model.Session.query(model.Group).\
+        #                filter(model.Group.type == 'organization').\
+        #                filter(model.Group.state == 'active').\
+        #                order_by('title')
+        # c.page = AlphaPage(
+        #     controller_name="ckanext.dgu.controllers.publisher:PublisherController",
+        #     collection=c.all_groups,
+        #     page=request.params.get('page', 'A'),
+        #     alpha_attribute='title',
+        #     other_text=_('Other'),
+        # )
 
         return render('publisher/index.html')
 
