@@ -114,7 +114,16 @@ $(function() {
   });
   $('input[name="publisher-results-include-subpub"]').change(function(e){
     e.preventDefault();
-    window.location = $(this).val()
+    var checkbox = $(e.delegateTarget);
+    var container = checkbox.parents('.search-area');
+    if (checkbox.is(':checked')) {
+      var hiddenInput = container.find('input[type="hidden"][name="publisher"]');
+      hiddenInput.attr('name','parent_publishers');
+    }
+    else {
+      var hiddenInput = container.find('input[type="hidden"][name="parent_publishers"]');
+      hiddenInput.attr('name','publisher');
+    }
   });
 
   // Buttons with href-action should navigate when clicked

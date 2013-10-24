@@ -15,8 +15,9 @@
   <py:match path="content">
     <div class="dropdown-buttons">
       <span class="dropdown">
-        <a data-toggle="dropdown" href="#">
-          <i class="icon-envelope icon-2x"></i><div class="dropdown-chevron"></div>
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Contact&nbsp;Details">
+          <i class="icon-envelope icon-2x"></i>
+          <div class="dropdown-chevron"></div>
         </a>
         <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
           <div class="panel-heading">Contacts</div>
@@ -42,18 +43,24 @@
         </div>
       </span>
       <span class="dropdown">
-        <a data-toggle="dropdown" href="#"><i class="icon-sitemap icon-2x"></i><div class="dropdown-chevron"></div></a>
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Publisher&nbsp;Hierarchy">
+          <i class="icon-sitemap icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
         <div class="dropdown-menu panel panel-default" role="menu" aria-labelledby="dLabel">
           <div class="panel-heading">Publisher Hierarchy</div>
           <div class="panel-body">
             <div id="publisher-tree" class="publisher-mini-tree">
-              ${Markup(h.render_mini_tree(c.group.name))}
+              <!--${Markup(h.render_mini_tree(c.group.name))}-->
             </div>
           </div>
         </div>
       </span>
       <span class="dropdown">
-        <a data-toggle="dropdown" href="#"><i class="icon-bar-chart icon-2x"></i><div class="dropdown-chevron"></div></a>
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Reports&nbsp;&amp;&nbsp;Analytics">
+          <i class="icon-bar-chart icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
         <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
           <div class="panel-heading">Reports</div>
           <div class="panel-body">
@@ -66,7 +73,10 @@
         </div>
       </span>
       <span class="dropdown" py:if="c.userobj">
-        <a data-toggle="dropdown" href="#"><i class="icon-group icon-2x"></i><div class="dropdown-chevron"></div></a>
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Administrators">
+          <i class="icon-group icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
         <div class="dropdown-menu" role="menu" aria-labelledby="dLabel">
           <b>Administrators:</b>
           <ul py:with="count = c.administrators.count()">
@@ -95,9 +105,9 @@
           </ul>
         </div>
       </span>
-      <span class="dropdown">
-        <a class="rss-link rss-link-grey" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'"><i class="icon-rss icon-2x"></i></a>
-      </span>
+      <a class="js-tooltip dropdown-button rss-link" data-placement="top" title="" data-delay="300" data-original-title="RSS&nbsp;Feed" href="${h.url(controller='feed', action='group', id=c.group['name'])}">
+        <i class="icon-rss icon-2x"></i>
+      </a>
     </div>
     <h1>${c.group.display_name}
       <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">(${c.group_extras.get('abbreviation')})</span>
@@ -149,27 +159,20 @@
       </div>
     </div>
 
-    ${search_form(placeholder='Search publisher')}
-    <!--
-     TODO restore this code to make searches work proper. And be autocompleted.
-    <py:for each="(k, v) in c.fields">
-      <input type="hidden" name="${k}" value="${v}" />
-    </py:for>
-    <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
-    <form action="">
-      <label class="checkbox">
-        <input type="checkbox" name="publisher-results-include-subpub" value="${c.drill_down_url(publisher=c.group.name) if not c.restricted_to_publisher else c.remove_field('publisher', c.group.name)}" class="inline" py:attrs="{'checked': 'checked'} if not c.restricted_to_publisher else {}"/>
+    <py:def function="publisher_extra_options">
+      <label class="checkbox" id="publisher-extra-options">
+        <input type="checkbox" name="publisher-results-include-subpub" class="inline" checked="checked" />
         Include datasets from sub-publishers
       </label>
-    </form>
-    -->
+    </py:def>
 
-    <h2>Popular Datasets</h2>
-    <!--div py:if="h.ga_report_installed()" class="widget-container">
-      <h4>Popular datasets</h4>
-      ${h.most_popular_datasets(c.group, 5, preview_image="/images/graph_preview_thumbnail.png")}
-    </div -->
-    <!-- TODO are these in order of popularity? -->
+    ${search_form(
+      placeholder='Search publisher',
+      set_fields={'parent_publishers':c.group.name},
+      extra_options=publisher_extra_options,
+    )}
+
+    <h2 style="margin-top: 30px;">Popular Datasets</h2>
     <div py:if="c.page.items">
       ${package_list_from_dict(c.page.items)}
       ${c.page.pager()}

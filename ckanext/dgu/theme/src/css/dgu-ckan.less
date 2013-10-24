@@ -428,6 +428,7 @@ ul.common-dataset-list {
 }
 .dataset-summary {
   border: 1px solid #f0f;
+  background: #fff;
     .dataset-header {
         border: 1px solid #0ff;
         display: block;
@@ -585,32 +586,32 @@ ul.ui-autocomplete {
     float: none;
     margin-bottom: 10px;
   }
+  .dropdown-button {
+    display: inline-block;
+    zoom: 1;
+    *display: inline;
+    margin-left: 12px;
+    color: #999;
+    &:hover {
+      text-decoration: none;
+      color: #333;
+    }
+    .dropdown-chevron {
+      border: 6px solid transparent;
+      width: 0;
+      height: 0;
+      margin-left: 8px;
+      margin-top: 2px;
+    }
+    &:hover {
+      .dropdown-chevron          { border-top-color: #000; }
+      .dropdown-chevron.disabled { border-top-color: transparent; }
+    }
+  }
   .dropdown {
     /* IE7 will render menus beneath content unless relative item has z-index */
     z-index: 10;
-    > a {
-      display: inline-block;
-      zoom: 1;
-      *display: inline;
-      margin-left: 12px;
-      color: #999;
-      &:hover {
-        text-decoration: none;
-        color: #333;
-      }
-      .dropdown-chevron {
-        border: 6px solid transparent;
-        width: 0;
-        height: 0;
-        margin-left: 8px;
-        margin-top: 2px;
-      }
-      &:hover {
-        .dropdown-chevron          { border-top-color: #000; }
-        .dropdown-chevron.disabled { border-top-color: transparent; }
-      }
-    }
-    &.open > a { 
+    &.open a.dropdown-button { 
       text-decoration: none;
       color: #000;
     }
@@ -634,14 +635,14 @@ ul.ui-autocomplete {
     &:nth-child(3) {   .dropdown-menu { margin-left: -80px; }   }
     &:nth-child(4) {   .dropdown-menu { margin-left: -120px; }   }
     &:nth-child(5) {   .dropdown-menu { margin-left: -160px; }   }
-    .rss-link {
-      padding: 3px 5px 2px 5px;
-      vertical-align: top;
-      border-radius: 3px;
-      &:hover {
-        color: #fff;
-        background: #E75E00;
-      }
+  }
+  .rss-link {
+    padding: 3px 5px 2px 5px;
+    vertical-align: top;
+    border-radius: 3px;
+    &:hover {
+      color: #fff;
+      background: #E75E00;
     }
   }
 }
@@ -694,6 +695,13 @@ body.controller-publisher.action-read {
     line-height: 23px;
     a { color: #999; }
     a:hover { color: #000; text-decoration: none; }
+  }
+  #publisher-extra-options {
+    margin: 0 0 0 14px;
+    font-weight: normal;
+    font-size: 11px;
+    color: #999;
+    line-height: 18px;
   }
 }
 

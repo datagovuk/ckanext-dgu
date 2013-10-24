@@ -84,7 +84,7 @@
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
-  <div py:def="search_form(mini=False, placeholder='Search for datasets...')" class="search-area">
+  <div py:def="search_form(mini=False, placeholder='Search for datasets...', set_fields=None, extra_options=None)" class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
       <div class="${if_(mini,'mini','left')}">
         <div class="left-inner auto-height">
@@ -97,15 +97,23 @@
               </button>
             </span>
           </div>
-          <span py:if="c.fields">
+          <py:if test="c.fields">
             <py:for each="(k, v) in c.fields">
               <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished'" />
             </py:for>
-          </span>
+          </py:if>
+          <py:if test="set_fields">
+            <py:for each="(k, v) in set_fields.items()">
+              <input type="hidden" name="${k}" value="${v}" />
+            </py:for>
+          </py:if>
           <py:if test="request.params.get('ext_bbox','')">
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="${request.params.get('ext_bbox','')}" />
           </py:if>
         </form>
+        <py:if test="extra_options">
+          ${extra_options()}
+        </py:if>
         </div>
       </div>
       <div class="right" py:if="not mini">
