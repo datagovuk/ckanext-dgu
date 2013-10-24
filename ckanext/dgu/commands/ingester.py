@@ -136,18 +136,20 @@ class Ingester(CkanCommand):
 
         def header_validate(row):
             """ Validate that we have enough columns with the correct titles """
-            if len(row) != 1:
-                return False, "Wrong number of columns, expected 1, got {0}".format(len(row))
+            if len(row) != 6:
+                return False, "Wrong number of columns, expected 6, got {0}".format(len(row))
 
             return True, ""
 
         def row_validate(row):
             """ Validate that we have enough columns and that every column (with
                 the exception of 'Further notes' has content """
-            if len(row) != 1:
-                return False, "Wrong number of columns, expected 1"
+            if len(row) != 6:
+                return False, "Wrong number of columns, expected 6"
 
-            row[0] = _url_to_dataset_name(row[0].strip())
+            # TODO: Re-enable
+            #if row[0].strip() == '' or row[2].strip() == '':
+            #    return False, "At a minimum group title and dataset url are required"
 
             return True, ""
 
@@ -158,11 +160,33 @@ class Ingester(CkanCommand):
             """
             import ckan.model as model
 
-            pkg = model.Package.get(row[0])
+            # Validation will catch this later, but for now we will just log the problem.
+            if row[0].strip() == '' or row[2].strip() == '':
+                log.warn(u'Group title and Dataset name are both required - skipping for now')
+                return
+
+            group_title = row[0].strip()
+            org = model.Session.query(model.Group)\
+                .filter(model.Group.title==group_title)\
+                .filter(model.Group.state=='active').first()
+
+            dataset_title = row[1].strip()
+            dataset_name = self._url_to_dataset_name(row[2].strip())
+            pkg = model.Package.get(dataset_name)
             if not pkg:
                 # Complain, but carry on.
-                raise IngestException("Failed to find package {0}".format(row[0]), True)
+                raise ingest.IngestException("Failed to find package {0}".format(row[0]), True)
 
+            facet1 = row[4].strip()
+            facet2 = row[5].strip()
+
+            if pkg.extras.get('core-dataset', False) == 'true':
+                log.info("Skipping {0} as it is already marked as core".format(pkg.name))
+                return
+
+            pkg.extras['core-dataset'] = True
+            model.Session.add(pkg)
+            model.Session.commit()
 
         try:
             ingester = ingest.Ingester(filename)
@@ -175,6 +199,6 @@ class Ingester(CkanCommand):
 
     def _url_to_dataset_name(self, url):
         """ Converts a url to a dataset into the dataset name """
-        obj = urlparse.urlparse(u)
+        obj = urlparse.urlparse(url)
         path = obj.path.split('/')
         return path[-1]

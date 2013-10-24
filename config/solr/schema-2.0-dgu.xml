@@ -70,6 +70,7 @@
 
 
 <fields>
+    <field name="validated_data_dict" type="string" indexed="false" stored="true" />
     <field name="index_id" type="string" indexed="true" stored="true" required="true" />
     <field name="id" type="string" indexed="true" stored="true" required="true" />
     <field name="site_id" type="string" indexed="true" stored="true" required="true" />

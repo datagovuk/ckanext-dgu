@@ -154,6 +154,8 @@ ${h.top_level_init()}
       <span class="divider">&nbsp;|&nbsp;</span> -->
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
+      <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/reports') else ''}" href="${h.url_for('reports')}">Reports</a></li>
+      <span class="divider">&nbsp;|&nbsp;</span>
       <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>
       <span class="divider">&nbsp;|&nbsp;</span>
       <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
@@ -241,7 +243,7 @@ ${h.top_level_init()}
         <li class="menu-536"><a href="/moderation-policy">Moderation policy</a></li>
         <li class="menu-520"><a href="/contact" title="">Contact</a></li>
         <li class="menu-538 last"><a href="/terms-and-conditions">Terms and conditions</a></li>
-      </ul>      
+      </ul>
       <div class="credits">
         <div class="credit">
           <strong>Powered by:</strong><br/>
