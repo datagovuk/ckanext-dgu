@@ -119,7 +119,7 @@
         <div class="control-group">
           <label for="update_frequency">Update frequency</label>
           <span class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
-              <select class="span2" id="update_frequency" name="update_frequency">
+              <select class="col-md-2" id="update_frequency" name="update_frequency">
                   <py:for each="freq_name, freq_desc in c.update_frequency">
                     <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
                       ${freq_desc}
@@ -320,7 +320,7 @@
     <div class="control-group">
     <label class="control-label" for="license_id">Licence:</label>
     <div class="controls">
-    <select id="license_id" class="span4" name="license_id">
+    <select id="license_id" class="col-md-4" name="license_id">
 
       <!--! An explanation of what's going on here...
            There are a few cases to handle here:

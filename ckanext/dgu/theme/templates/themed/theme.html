@@ -6,7 +6,6 @@
   <xi:include href="../_dgu_util.html" />
 
   <py:def function="page_title">${c.theme_name}</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
 
@@ -16,7 +15,7 @@
     </h1>
 
     <div class="row">
-      <div class="span12">
+      <div class="col-md-12">
         <div class="boxed">
           <table class="search-area">
               <tbody><tr>
@@ -41,17 +40,17 @@
 
 
     <div class="row">
-      <div class="span4 boxed">
+      <div class="col-md-4 boxed">
         <h3>Popular datasets</h3>
         ${themed_package_list_from_dict(c.popular, c.theme)}
       </div>
 
-      <div class="span4 boxed">
+      <div class="col-md-4 boxed">
         <h3>Latest datasets</h3>
         ${themed_package_list_from_dict(c.latest, c.theme)}
       </div>
 
-      <div class="span2">
+      <div class="col-md-2">
         <div class="boxed">
           <h3>Apps and ideas</h3>
           <p>There are currently no apps, or ideas for apps available for the ${c.theme_name} datasets.</p>

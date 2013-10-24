@@ -18,9 +18,9 @@
   </py:def>
 
 
-  <py:match path="primarysidebar">
+  <py:def function="sidebar">
     ${publisher_sidebar()}
-  </py:match>
+  </py:def>
 
 
   <py:match path="content">
@@ -43,7 +43,7 @@
 
       <div class="row">
         <div class="notes">
-          <p class="span5">
+          <p class="col-md-5">
           You may download your inventory file here and load it into Microsoft Office, or Open Office
           to view the list of current datasets that ${c.group.display_name} currently holds on data.gov.uk
           as well as inventory items that have previously been added.
@@ -67,7 +67,7 @@
       <h3>Upload inventory</h3>
 
       <div class="row">
-        <div class="notes span7">
+        <div class="notes col-md-7">
           <p>
           To upload a file that contains new inventory items, you should first use the download tool
           above and add the new records to that file.
@@ -99,14 +99,7 @@
   </py:def>
 
   <py:def function="optional_footer">
-    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
-    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
-    <script>
-      // Pollute the global namespace
-      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
-      PUBLISHER_GROUP  = "node_${c.group.name}";
-    </script>
-    <script src="/scripts/dgu-publisher.js"></script>
+    ${publisher_sub_hierarchy(c.parent_publisher.name if c.parent_publisher else '', c.group.name)}
   </py:def>
 
   <xi:include href="../layout.html" />

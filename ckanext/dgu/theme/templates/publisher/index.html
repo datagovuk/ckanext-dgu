@@ -7,127 +7,89 @@
 
   <py:def function="page_title">Publishers</py:def>
 
-  <py:match path="primarysidebar">
-  <div class="boxed">
-    <div class="widget-container widget_text">
-      <h4>Publishers</h4>
-      <span i18n:msg="">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</span>
-    </div>
-    <div py:if="c.userobj" class="widget-container">
-      <h4>Adding New Publishers</h4>
-      <span>If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</span>
-    </div>
-  </div>
+  <py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
   </py:match>
 
-  <py:def function="page_heading">Publishers</py:def>
-
-  <div py:match="content">
-    <div class="boxed">
-      <div class="tabbable">
-        <ul class="nav nav-tabs">
-          <li class="active"><a href="#publisherlist" data-toggle="hashtab">Publisher list</a></li>
-          <li><a href="#publisherhierarchy" data-toggle="hashtab">Publisher hierarchy</a></li>
-          <li><a href="#publishersearch" data-toggle="hashtab">Publisher search</a></li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane active" id="publisherlist">
-            ${c.page.pager()}
-            ${publisher_list(c.page.items)}
-          </div>
-          <div class="tab-pane" id="publisherhierarchy">
-            <div id="publisher-tree">
-              ${ Markup(h.render_tree()) }
+  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
+    <h1>Publishers</h1>
+    <p>Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
+    <div py:if="c.userobj" class="panel panel-info">
+      <div class="panel-heading"><strong>Adding New Publishers</strong></div>
+      <div class="panel-body">If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</div>
+    </div>
+    <div class="search-area" style="margin-top: 20px; margin-bottom: 30px;">
+      <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+        <div class="left">
+          <div class="left-inner auto-height form-search">
+            <div class="input-group">
+              <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for publishers..." />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-default">
+                  <i class="icon-search"></i>
+                </button>
+              </span>
+            </div>
+            <div class="alphabet-search">
+              <a href="#a" class="active">a</a>
+              <a href="#b">b</a>
+              <a href="#c">c</a>
+              <a href="#d">d</a>
+              <a href="#e">e</a>
+              <a href="#f">f</a>
+              <a href="#g">g</a>
+              <a href="#h">h</a>
+              <a href="#i">i</a>
+              <a href="#j">j</a>
+              <a href="#k">k</a>
+              <a href="#l">l</a>
+              <a href="#m">m</a>
+              <a href="#n">n</a>
+              <a href="#o">o</a>
+              <a href="#p">p</a>
+              <a href="#q">q</a>
+              <a href="#r">r</a>
+              <a href="#s">s</a>
+              <a href="#t">t</a>
+              <a href="#u">u</a>
+              <a href="#v">v</a>
+              <a href="#w">w</a>
+              <a href="#x">x</a>
+              <a href="#y">y</a>
+              <a href="#z">z</a>
+              <div class="clearfix"></div>
             </div>
           </div>
-          <div class="tab-pane" id="publishersearch">
-            <table class="search-area">
-              <tr>
-                <td class="left">
-                  <div class="result-count" style="color: #ccc;">${c.all_groups.count()}</div>
-                  <div class="result-count-footer" style="color: #ccc;">Publishers</div>
-                </td>
-                <td class="right">
-                  <form id="publisher-search" class="form-search" action="">
-                    <div class="textbox">
-                      <input type="text" class="input-medium" id="q" value="${c.q}" placeholder="Search..."/>
-                    </div>
-                    <input type="submit" class="btn btn-primary button" value="Search..."/>
-                  </form>
-                </td>
-              </tr>
-            </table>
-            <table id="search_results" class="groups" style="display:none;">
-            </table>
-
+        </div>
+        <div class="right">
+          <div class="right-inner auto-height">
+          <div class="chevron"></div>
+            <div class="result-count">All</div>
+            <div class="result-count-footer">Publishers</div>
           </div>
         </div>
       </div>
+    </div><!-- /search-area -->
+    <div class="publisher-hierarchy">
+      <py:def function="render_publisher(pub)">
+        <div class="publisher">
+          <a class="publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
+          <py:for each="child in pub['children']">
+            ${render_publisher(child)}
+          </py:for>
+        </div>
+      </py:def>
+      <py:for each="pub in hierarchy">
+        ${render_publisher(pub)}
+      </py:for>
     </div>
-
-
-  </div>
+  </py:match>
 
   <py:def function="optional_footer">
-    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
-    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
-
-  <!--[if IE 7]>
-    <style>
-      .ui-icon { text-indent: 0; }
-      .node { padding: 2px; }
-    </style>
-  <![endif]-->
-
-
-  <script type="text/javascript">
-    function publisher_search() {
-      var term = $("#q").val();
-      var url = CKAN.SITE_URL + '/api/2/util/group/autocomplete?type=organization&amp;q=' + escape(term);
-
-      $("#search_results").html('<h4>Results:</h4>');
-      $("#search_results").css("display", "block");
-      $.getJSON(url, function(data) {
-        $(".result-count").html(data.length);
-        $(".result-count, .result-count-footer").css('color','#000');
-        $.each(data, function(idx, groupobj) {
-          var tpl = '<tr><td>' +
-                    '<a href="/publisher/' + groupobj.name + '">' + groupobj.title +
-                    '</a></td></tr>';
-          $("#search_results").append( tpl );
-        });
-      });
-      $('#q').autocomplete('close');
-      return false;
-    }
-
-    $(document).ready(function() {
-        $('#publisher-search').bind('submit',function(e) {
-          if (e.preventDefault) e.preventDefault();
-          publisher_search();
-        });
-
-      $('a[data-toggle="tab"]').on('shown', function (e) {
-        if (e.target.hash == '#publishersearch') {
-          $("#q").focus();
-        };
-      });
-
-      $("#publisher-tree").jstree( {
-       "themes" : {
-         "icons" : false
-        },
-       "plugins" : ["themes","html_data","ui"]}
-      ).delegate('a', 'click', function(e){ window.location.href=$(this).attr('href'); });
-    });
-    var autocomplete_source = ${h.groups_as_json(c.all_groups)};
-    $('#q').autocomplete({
-      source: autocomplete_source,
-      minLength: 1,
-      select: function() { $('#publisher-search').submit();  }
-    });
-
-  </script>
+    <script type="text/javascript">
+      window.dgu_all_publishers = ${h.groups_as_json(c.all_groups)};
+    </script>
+    <script src="/scripts/dgu-publisher-index.min.js"></script>
   </py:def>
 
   <xi:include href="../layout.html" />

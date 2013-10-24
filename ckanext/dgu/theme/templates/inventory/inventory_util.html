@@ -20,10 +20,6 @@
     </div>
   </div>
 
-<py:def function="unpublished_publisher_tree(groups)">
-  ${ Markup( h.render_tree(groups, root_url='unpublished'))  }
- </py:def>
-
 <py:def function="unpublished_block(title, pkg_list)">
     <div class="boxed">
       <div class="title frontpage-search-panel">
@@ -79,7 +75,7 @@
   For an inventory item, this block will show the criteria and current comments/scores
   against each.
   -->
-  <hr/>
+  <hr class="hidden-xs" />
 
   <h3>Feedback
     <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" class="btn btn-primary btn-mini add-feedback-button">

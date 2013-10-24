@@ -1,0 +1,30 @@
+.recline-query-editor form, .recline-query-editor .text-query {
+  height: 28px;
+}
+.recline-query-editor .pagination ul {
+  margin: 0;
+  padding: 0;
+}
+/* needed for Chrome but not FF */
+.header .recline-query-editor .add-on {
+  margin-left: -27px;
+}
+
+/* needed for FF but not chrome */
+.header .recline-query-editor .input-prepend {
+  vertical-align: top;
+}
+
+/** Re-style the data viewer to remove controls,
+  * column menus, row menus, and the leading
+  * (control) column.
+  */
+.recline-data-explorer .header,
+.recline-data-explorer .column-header-menu,
+.recline-data-explorer .root-header-menu,
+.recline-data-explorer .row-header-menu,
+.recline-data-explorer td:first-child,
+.recline-data-explorer th:first-child {
+  display: none;
+}
+

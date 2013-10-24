@@ -3,9 +3,8 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
   
-  <py:def function="page_title">${c.pkg.title or c.pkg.name} - ${'Delete Dataset' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw Record'}</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
-  <py:def function="page_heading">${'Delete' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw'}: ${c.pkg.title or c.pkg.name}</py:def>
+  <py:def function="page_title">${'Delete Dataset' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw Record'} - ${c.pkg.title or c.pkg.name}</py:def>
+  <py:def function="page_heading">${'Delete' if c.pkg.extras.get('UKLP') != 'True' else 'Withdraw'} - ${c.pkg.title or c.pkg.name}</py:def>
 
   <div py:match="content" class="dataset-edit-form">
     <div class="boxed">

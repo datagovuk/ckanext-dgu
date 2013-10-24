@@ -6,88 +6,190 @@
   <xi:include href="publisher_util.html" />
 
   <py:def function="page_title">${c.group.display_name}</py:def>
-  <py:def function="page_heading">
-  <py:if test="h.check_access('group_update', {'id':c.group.id})">
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage Unpublished Datasets</a>
-    <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
-  </py:if>
-    ${c.group.display_name}
-    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
-    <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
-      <img src="/images/rss.png" width="16" height="16"/>
-    </a>
 
-  </py:def>
-
-  <py:match path="primarysidebar">
-     ${publisher_sidebar(with_hierarchy=True)}
+  <py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
+    <li><a href="/publisher/${c.group.name}">${c.group.display_name}</a></li>
   </py:match>
 
-
   <py:match path="content">
-    <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
-
-    <div class="group-dataset-list">
-      <div class="boxed">
-        <div class="notes" py:if="(c.description or '').strip()">
-          ${h.render_markdown(c.description)}
-        </div>
-        <h4>Search Publisher</h4>
-
-        <div class="search-area">
-          <form class="form-search" method="GET">
-            <div class="textbox">
-              <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search datasets...')}" />
-            </div>
-            <py:for each="(k, v) in c.fields">
-              <input type="hidden" name="${k}" value="${v}" />
-            </py:for>
-            <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
-          </form>
-        </div>
-
-          <div>
-            <form action="">
-              <label class="checkbox">
-                <input type="checkbox" name="publisher-results-include-subpub" value="${c.drill_down_url(publisher=c.group.name) if not c.restricted_to_publisher else c.remove_field('publisher', c.group.name)}" class="inline" py:attrs="{'checked': 'checked'} if not c.restricted_to_publisher else {}"/>
-                Include datasets from sub-publishers
-              </label>
-            </form>
+    <div class="dropdown-buttons">
+      <span class="dropdown">
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Contact&nbsp;Details">
+          <i class="icon-envelope icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
+        <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <div class="panel-heading">Contacts</div>
+          <div class="panel-body">
+            <b>Enquiries:</b>
+            <ul style="margin-bottom: 5px;">
+              ${c.group_extras.get('contact-name')}
+              ${contact_details(c.group_extras.get('contact-name'),
+              c.group_extras.get('contact-email'),
+              c.group_extras.get('contact-phone'),
+              c.group_extras.get('website-url'),
+              c.group_extras.get('website-name'))}
+            </ul>
+            <b class="js-tooltip" title="Use the Freedom of Information Act to request more information from the body holding the data">FOI requests</b>:
+            <ul style="margin-bottom: 0;">
+              ${c.group_extras.get('foi-name')}
+              ${contact_details(c.group_extras.get('foi-name'),
+              c.group_extras.get('foi-email'),
+              c.group_extras.get('foi-phone'),
+              c.group_extras.get('foi-web'), '')}
+            </ul>
           </div>
-
-          <a style="float:right;" href="${h.advanced_search_url()}">Advanced Search</a>
-
-          <p><span py:if="c.q">You searched for "${c.q}". </span>${c.page.item_count} datasets found.</p>
-      </div>
-
-
-
-      <div py:if="c.page.items">
-        <!--!<div class="clearfix">&nbsp;</div>-->
-        <div class="sort-by-controls">
-          <div class="clearfix"></div>
         </div>
-        ${package_list_from_dict(c.page.items)}
-        ${c.page.pager()}
-
+      </span>
+      <span class="dropdown">
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Publisher&nbsp;Hierarchy">
+          <i class="icon-sitemap icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
+        <div class="dropdown-menu panel panel-default" role="menu" aria-labelledby="dLabel">
+          <div class="panel-heading">Publisher Hierarchy</div>
+          <div class="panel-body">
+            <div id="publisher-tree" class="publisher-mini-tree">
+              <!--${Markup(h.render_mini_tree(c.group.name))}-->
+            </div>
+          </div>
+        </div>
+      </span>
+      <span class="dropdown">
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Reports&nbsp;&amp;&nbsp;Analytics">
+          <i class="icon-bar-chart icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
+        <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <div class="panel-heading">Reports</div>
+          <div class="panel-body">
+            <ul>
+              <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback', id=c.group.name)}">
+              Feedback Report
+              </a> <span style="color:#666;">(unpublished datasets)</span></li>
+            </ul>
+          </div>
+        </div>
+      </span>
+      <span class="dropdown" py:if="c.userobj">
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Administrators">
+          <i class="icon-group icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
+        <div class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <b>Administrators:</b>
+          <ul py:with="count = c.administrators.count()">
+            <py:if test="c.is_an_official">
+              <li py:for="admin in c.administrators">${h.linked_user(admin, maxlength=40)}</li>
+            </py:if>
+            <py:if test="not c.is_an_official">
+              <li py:if="count">${count} administrator${h.pluralise_text(count)}</li>
+              <li py:if="not count">No-one assigned</li>
+            </py:if>
+          </ul>
+          <b>Editors:</b>
+          <ul py:with="count = c.editors.count()">
+            <py:if test="c.is_an_official">
+              <li py:for="editor in c.editors">${h.linked_user(editor, maxlength=35)}</li>
+            </py:if>
+            <py:if test="not c.is_an_official">
+              <li py:if="count">${count} editor${h.pluralise_text(count)}</li>
+              <li py:if="not count">No-one assigned</li>
+            </py:if>
+            <li py:if="not c.userobj in c.administrators and not c.userobj in c.editors">
+              <b><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply', id=c.group.name)}">
+                  <u>Request to become an ${if_(not c.administrators.count(),'Admin/')}Editor</u> &nbsp;&raquo;
+              </a></b>
+            </li>
+          </ul>
+        </div>
+      </span>
+      <a class="js-tooltip dropdown-button rss-link" data-placement="top" title="" data-delay="300" data-original-title="RSS&nbsp;Feed" href="${h.url(controller='feed', action='group', id=c.group['name'])}">
+        <i class="icon-rss icon-2x"></i>
+      </a>
+    </div>
+    <h1>${c.group.display_name}
+      <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">(${c.group_extras.get('abbreviation')})</span>
+    </h1>
+    <py:if test="c.group['state'] != 'active'">
+      <div class="panel panel-danger">
+        <div class="panel-heading"><strong>State:</strong> ${c.group['state']}</div>
+      </div>
+    </py:if>
+    <div class="row" py:with="
+      packagecreate = h.check_access('package_create', {'owner_org':c.group.name});
+      organizationupdate = h.check_access('organization_update', {'id':c.group.id});
+      adminmode = (packagecreate or packagecreate)"
+      >
+      <div class="${if_(adminmode,'col-md-8','col-md-12')}">
+        <p py:if="h.group_category(c.group_extras)" class="pre-notes">
+          <b>Category: </b> ${h.group_category(c.group_extras)}
+        </p>
+        <p py:if="h.spending_published_by(c.group_extras)" class="pre-notes">
+          <b>Spending data published by: </b> <a href="/publisher/${h.spending_published_by(c.group_extras).name}">${h.spending_published_by(c.group_extras).title}</a>
+        </p>
+        <div class="notes" py:with="description = (c.description or '')">
+          <span py:if="not description.strip()" style="font-style: italic;">(No description supplied)</span>
+          ${h.render_markdown(description)}
+        </div>
+      </div>
+      <div class="col-md-4" py:if="adminmode">
+        <div class="admin-toolkit">
+          <div class="panel panel-info">
+            <div class="panel-heading" style="font-weight: bold;">Administrator Tools</div>
+            <div class="panel-body">
+              <ul class="administrator-tools">
+                <li py:if="organizationupdate">
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='edit', id=c.group.name)}"><span class="wrap-icon"><i class="icon-edit"></i> </span>Edit publisher properties &raquo;</a>
+                </li>
+                <li py:if="organizationupdate">
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}"><span class="wrap-icon"><i class="icon-archive"></i> </span>Manage unpublished datasets &raquo;</a>
+                </li>
+                <li py:if="packagecreate">
+                  <a href="${h.url_for('dataset_new')}?owner_org=${c.group.name}"><span class="wrap-icon"><i class="icon-plus-sign-alt"></i> </span>Add a new dataset &raquo;</a>
+                </li>
+                <li py:if="organizationupdate">
+                  <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}"><span class="wrap-icon"><i class="icon-unlock-alt"></i> </span>Edit user permissions &raquo;</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <py:def function="publisher_extra_options">
+      <label class="checkbox" id="publisher-extra-options">
+        <input type="checkbox" name="publisher-results-include-subpub" class="inline" checked="checked" />
+        Include datasets from sub-publishers
+      </label>
+    </py:def>
+
+    ${search_form(
+      placeholder='Search publisher',
+      set_fields={'parent_publishers':c.group.name},
+      extra_options=publisher_extra_options,
+    )}
+    <div class="clearfix" style="height: 30px;">&nbsp;</div>
+
+    <h2>Popular Datasets</h2>
+    <div py:if="c.page.items">
+      ${package_list_from_dict(c.page.items,mini=True)}
+    </div>
+    <div py:if="c.page.items">
+      ${paginator(c.page)}
+    </div>
+
   </py:match>
 
   <py:def function="optional_feed">
-  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
-    href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+    <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
+      href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
   </py:def>
 
   <py:def function="optional_footer">
-    <link rel="stylesheet" href="/scripts/vendor/jstree/themes/default/style.css" type="text/css" media="screen" />
-    <script src="/scripts/vendor/jstree/jquery.jstree.js"></script>
-    <script>
-      // Pollute the global namespace
-      PUBLISHER_PARENT = "node_${c.parent_publisher.name if c.parent_publisher else ''}";
-      PUBLISHER_GROUP  = "node_${c.group.name}";
-    </script>
-    <script src="/scripts/dgu-publisher.js"></script>
+    ${publisher_sub_hierarchy(c.parent_publisher.name if c.parent_publisher else '', c.group.name)}
   </py:def>
 
   <xi:include href="../layout.html" />

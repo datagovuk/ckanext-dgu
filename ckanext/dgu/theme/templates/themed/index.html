@@ -4,13 +4,12 @@
   py:strip="">
 
   <py:def function="page_title">Themes</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content">
     <h1>Themes</h1>
     <div class="container" py:with="theme_count=h.themes_count()">
       <div class="row">
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Society">
               <div class="img-scrollbox">
@@ -25,7 +24,7 @@
             </a>
           </div>
         </div>
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Spending">
               <div class="img-scrollbox">
@@ -40,7 +39,7 @@
             </a>
           </div>
         </div>
-        <div class="span6">
+        <div class="col-md-6">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Education">
               <div class="img-scrollbox">
@@ -57,7 +56,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Crime">
               <div class="img-scrollbox">
@@ -72,7 +71,7 @@
             </a>
           </div>
         </div>
-        <div class="span6">
+        <div class="col-md-6">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Geography">
               <div class="img-scrollbox">
@@ -87,7 +86,7 @@
             </a>
           </div>
         </div>
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Health">
               <div class="img-scrollbox">
@@ -104,7 +103,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Government">
             <div class="img-scrollbox">
@@ -119,7 +118,7 @@
             </a>
           </div>
         </div>
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Defence">
             <div class="img-scrollbox">
@@ -134,7 +133,7 @@
             </a>
           </div>
         </div>
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Economy">
             <div id="scroll-economy" class="img-scrollbox">
@@ -149,7 +148,7 @@
             </a>
           </div>
         </div>
-        <div class="span3">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Transport">
               <div id="scroll-transport" class="img-scrollbox">

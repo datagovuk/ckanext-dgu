@@ -10,12 +10,11 @@
       var resources_json = ${h.literal(c.resources_json)};
       window.DGU_RESOURCE_FORMATS = ${h.get_resource_formats()};
     </script>
-    <script type="text/javascript" src="/scripts/dgu-package-form.js"></script>
+    <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
   </py:def>
 
-  <py:def function="page_title">Add - Datasets</py:def>
+  <py:def function="page_title">Add a Dataset</py:def>
   <py:def function="page_heading">Add a Dataset</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
 
   <div py:match="content" class="dataset-create-form">
     <h3 py:if="c.error" class="form-errors">
