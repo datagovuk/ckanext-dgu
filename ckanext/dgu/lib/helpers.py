@@ -1766,17 +1766,19 @@ def feedback_report_params_for_value(name, field_checked):
 
     return "?" + urlencode(params, True)
 
-def breadcrumbs():
-    from ckan.lib.base import h
-    out = []
-    out.append(('Data','/data'))
-    controller = request.urlvars['controller']
-    action = request.urlvars['action']
-    if controller=='package' or controller=='ckanext.dgu.controllers.package:PackageController':
-        out.append(('Datasets','/data/search'))
-        if action=='read':
-            id = request.urlvars['id']
-            out.append((id,h.url_for(controller=controller,action='read',id=id)))
-    return out
-
+def pagination_links(page,numpages,url_for_page):
+    # Link to the first page, lastpage, and nearby pages
+    pages_nearby = range( max(page-3,1), min(page+3,numpages) )
+    pages_all = [1,numpages] + pages_nearby
+    # Walk through the ordered, deduplicated list of pages
+    out = sorted(list(set(pages_all)))
+    for i in range(len(out)):
+        if out[i]==page:
+            yield out[i], None
+        else:
+            yield out[i], url_for_page(out[i])
+        # Is there a jump? Emit a "..."
+        if i+1<len(out):
+            if out[i+1] > out[i]+1:
+                yield "...",None
 

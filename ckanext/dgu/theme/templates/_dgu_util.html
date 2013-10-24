@@ -10,6 +10,31 @@
         templating issues -->
 
   <xi:include href="package/basket.html" />
+  <py:def function="paginator(pageobj)">
+    <py:with vars="
+      page=pageobj.page;
+      numpages=pageobj.page_count;
+      url_for_page=lambda x:pageobj._url_generator(None,x)
+    ">
+    <div class="dgu-pagination">
+      <ul class="pagination">
+        <li>
+          <a py:if="page>1" href="${url_for_page(page-1)}">&laquo;</a>
+          <span py:if="page==1">&laquo;</span>
+        </li>
+        <li py:for="(text,url) in h.pagination_links(page,numpages,url_for_page)">
+          <a py:if="url" href="${url}">${text}</a>
+          <span py:if="not url">${text}</span>
+        </li>
+        <li>
+          <a py:if="numpages-page>0" href="${url_for_page(page+1)}">&raquo;</a>
+          <span py:if="page==numpages">&raquo;</span>
+        </li>
+      </ul>
+    </div>
+    </py:with>
+    <div class="clearfix clearfix-ie7"></div>
+  </py:def>
 
  <py:def function="ons_grouped_table(keys, res_count=None)">
     <py:for each="k in keys">
@@ -131,20 +156,25 @@
     </div>
   </div>
 
-  <ul py:def="package_list_from_dict(packages,mini=False)" class="common-dataset-list">
-   <li py:for="package in packages">
-      <py:if test="not h.is_unpublished_item(package)">
-        ${package_summary(package, show_preview_buttons=True,mini=mini)}
-      </py:if>
-      <py:if test="h.is_unpublished_item(package)">
-        ${unpublished_summary(package)}
-      </py:if>
-   </li>
-     <div class="clearfix"></div>
-  </ul>
+  <div py:def="package_list_from_dict(packages,mini=False)" class="common-dataset-list">
+    <div class="${if_(mini,'row')}">
+      <py:for each="i in range(len(packages))">
+        <div class="clearfix visible-lg" py:if="i%4==0"></div>
+        <div class="clearfix visible-md clearfix-ie7" py:if="i%3==0"></div>
+        <div class="clearfix visible-sm" py:if="i%2==0"></div>
+        <py:if test="not h.is_unpublished_item(packages[i])">
+          ${package_summary(packages[i], show_preview_buttons=True,mini=mini)}
+        </py:if>
+        <py:if test="h.is_unpublished_item(packages[i])">
+          ${unpublished_summary(packages[i])}
+        </py:if>
+      </py:for>
+    </div>
+  </div>
 
   <py:def function="package_summary(package, show_preview_buttons, mini=False)">
     <py:with vars="title=package.get('title') or package.get('name'); primary_theme=h.get_primary_theme(package)">
+      <div class="${if_(mini,'col-lg-3 col-md-4 col-sm-6')}">
       <div class="dataset dataset-summary theme-${primary_theme or 'none'} ${if_(mini,'mini')}">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
          <div class="theme-name">${primary_theme}</div>
@@ -168,12 +198,16 @@
            </py:if>
          </div>
          <div class="clearfix"></div>
+         <a class="view-data-link" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
+           View Data
+         </a>
          <!--div class="property">
            ${feedback_summary(package)}
          </div-->
          <!--span class="property pull-right">
            ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
          </span-->
+       </div>
        </div>
      </div>
    </py:with>

@@ -286,16 +286,12 @@ class PublisherController(OrganizationController):
 
     def read(self, id):
         from ckan.lib.search import SearchError
-        import ckan.logic
-        import genshi
 
         group_type = self._get_group_type(id.split('@')[0])
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author,
                    'schema': self._form_to_db_schema(group_type=type)}
         data_dict = {'id': id}
-        q = c.q = request.params.get('q', '') # unicode format (decoded from utf8)
-        fq = ''
 
         try:
             c.group_dict = get_action('group_show')(context, data_dict)
@@ -306,93 +302,28 @@ class PublisherController(OrganizationController):
         except NotAuthorized:
             abort(401, _('Unauthorized to read group %s') % id)
 
-        # Search within group
-        fq += ' parent_publishers: "%s"' % c.group_dict.get('name')
-
         c.description = c.group_dict.get('description','').replace('&amp;', '&')
         context['return_query'] = True
 
-        limit = 10
+        limit = 12
         try:
             page = int(request.params.get('page', 1))
         except ValueError, e:
             abort(400, ('"page" parameter must be an integer'))
 
-        # most search operations should reset the page counter:
-        params_nopage = [(k, v) for k,v in request.params.items() if k != 'page']
-
-        def search_url(params):
-            pubctrl = 'ckanext.dgu.controllers.publisher:PublisherController'
-            url = h.url_for(controller=pubctrl, action='read', id=c.group_dict.get('name'))
-            params = [(k, v.encode('utf-8') if isinstance(v, basestring) else str(v)) \
-                            for k, v in params]
+        def pager_url(q=None, page=None):
+            url = h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group_dict.get('name'))
+            params = [('page', str(page))]
             return url + u'?' + urlencode(params)
 
-        def drill_down_url(**by):
-            params = list(params_nopage)
-            params.extend(by.items())
-            return search_url(set(params))
-
-        c.drill_down_url = drill_down_url
-
-        def remove_field(key, value):
-            params = list(params_nopage)
-            params.remove((key, value))
-            return search_url(params)
-
-        c.remove_field = remove_field
-
-        sort_by = request.params.get('sort', None)
-        params_nosort = [(k, v) for k,v in params_nopage if k != 'sort']
-        def _sort_by(fields):
-            """
-            Sort by the given list of fields.
-
-            Each entry in the list is a 2-tuple: (fieldname, sort_order)
-
-            eg - [('metadata_modified', 'desc'), ('name', 'asc')]
-
-            If fields is empty, then the default ordering is used.
-            """
-            params = params_nosort[:]
-
-            if fields:
-                sort_string = ', '.join( '%s %s' % f for f in fields )
-                params.append(('sort', sort_string))
-            return search_url(params)
-        c.sort_by = _sort_by
-        if sort_by is None:
-            c.sort_by_fields = []
-        else:
-            c.sort_by_fields = [ field.split()[0] for field in sort_by.split(',') ]
-
-        def pager_url(q=None, page=None):
-            params = list(params_nopage)
-            params.append(('page', page))
-            return search_url(params)
-
         try:
-            c.fields = []
-            search_extras = {}
-            for (param, value) in request.params.items():
-                if not param in ['q', 'page', 'sort'] \
-                        and len(value) and not param.startswith('_'):
-                    if not param.startswith('ext_'):
-                        c.fields.append((param, value))
-                        fq += ' %s: "%s"' % (param, value)
-                    else:
-                        search_extras[param] = value
-
+            # Search within group
+            fq = ' publisher: "%s"' % c.group_dict.get('name')
             data_dict = {
-                'q':q,
                 'fq':fq,
-                'facet.field':g.facets,
                 'rows':limit,
                 'start':(page-1)*limit,
-                'sort': sort_by,
-                'extras':search_extras
             }
-
             query = get_action('package_search')(context,data_dict)
 
             c.page = h.Page(
@@ -402,7 +333,6 @@ class PublisherController(OrganizationController):
                 item_count=query['count'],
                 items_per_page=limit
             )
-            c.facets = query['facets']
             c.page.items = query['results']
         except SearchError, se:
             log.error('Group search error: %r', se.args)
@@ -410,18 +340,9 @@ class PublisherController(OrganizationController):
             c.facets = {}
             c.page = h.Page(collection=[])
 
-        # Add the group's activity stream (already rendered to HTML) to the
-        # template context for the group/read.html template to retrieve later.
-        #c.group_activity_stream = \
-        #        ckan.logic.action.get.group_activity_list_html(context,
-        #            {'id': c.group_dict['id']})
-
-        c.body_class = "group view"
-
         c.administrators = c.group.members_of_type(model.User, 'admin')
         c.editors = c.group.members_of_type(model.User, 'editor')
 
-        c.restricted_to_publisher = 'publisher' in request.params
         parent_groups = c.group.get_parent_groups(type='organization')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
 

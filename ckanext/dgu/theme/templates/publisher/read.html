@@ -171,12 +171,16 @@
       set_fields={'parent_publishers':c.group.name},
       extra_options=publisher_extra_options,
     )}
+    <div class="clearfix" style="height: 30px;">&nbsp;</div>
 
-    <h2 style="margin-top: 30px;">Popular Datasets</h2>
+    <h2>Popular Datasets</h2>
     <div py:if="c.page.items">
       ${package_list_from_dict(c.page.items,mini=True)}
-      ${c.page.pager()}
     </div>
+    <div py:if="c.page.items">
+      ${paginator(c.page)}
+    </div>
+
   </py:match>
 
   <py:def function="optional_feed">
