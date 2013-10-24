@@ -26,7 +26,9 @@ from ckanext.dgu.authorize import (
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show,
                              dgu_feedback_update, dgu_feedback_create,
-                             dgu_feedback_delete)
+                             dgu_feedback_delete, dgu_organization_delete,
+                             dgu_group_change_state,
+                             )
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
@@ -329,6 +331,8 @@ class AuthApiPlugin(SingletonPlugin):
                 'package_delete': dgu_dataset_delete,
                 'user_list': dgu_user_list,
                 'user_show': dgu_user_show,
+                'organization_delete': dgu_organization_delete,
+                'group_change_state': dgu_group_change_state,
                }
 
 
@@ -586,7 +590,8 @@ class SearchPlugin(SingletonPlugin):
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
-        search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
+        if search_params.get('fq'):
+            search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
 
         # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
         # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"

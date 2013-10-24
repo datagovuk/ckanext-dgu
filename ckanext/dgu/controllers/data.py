@@ -185,7 +185,7 @@ class DataController(BaseController):
                 compiled_body = re.compile(re.escape("</body>"), re.IGNORECASE)
                 content = compiled_body.sub( "{0}</body>".format(replacement), content, re.IGNORECASE)
             except Exception, e:
-                log.error("Failed to do the replacement in resource<{0}> and file: {1}".format(resource.id, filepath))
+                log.warn("Failed to do the replacement in resource<{0}> and file: {1}".format(resource.id, filepath))
                 return
 
         response.write(content)
