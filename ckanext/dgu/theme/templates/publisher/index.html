@@ -11,10 +11,16 @@
     <li><a href="/publisher">Publishers</a></li>
   </py:match>
 
-  <py:def function="sidebar">
-    <div class="search-area">
+  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
+    <h1>Publishers</h1>
+    <p>Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
+    <div py:if="c.userobj" class="panel panel-info">
+      <div class="panel-heading"><strong>Adding New Publishers</strong></div>
+      <div class="panel-body">If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</div>
+    </div>
+    <div class="search-area" style="margin-top: 20px; margin-bottom: 30px;">
       <div class="clearfix dgu-equal-height" data-selector=".auto-height">
-        <div class="mini">
+        <div class="left">
           <div class="left-inner auto-height form-search">
             <div class="input-group">
               <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for publishers..." />
@@ -24,19 +30,46 @@
                 </button>
               </span>
             </div>
+            <div class="alphabet-search">
+              <a href="#a" class="active">a</a>
+              <a href="#b">b</a>
+              <a href="#c">c</a>
+              <a href="#d">d</a>
+              <a href="#e">e</a>
+              <a href="#f">f</a>
+              <a href="#g">g</a>
+              <a href="#h">h</a>
+              <a href="#i">i</a>
+              <a href="#j">j</a>
+              <a href="#k">k</a>
+              <a href="#l">l</a>
+              <a href="#m">m</a>
+              <a href="#n">n</a>
+              <a href="#o">o</a>
+              <a href="#p">p</a>
+              <a href="#q">q</a>
+              <a href="#r">r</a>
+              <a href="#s">s</a>
+              <a href="#t">t</a>
+              <a href="#u">u</a>
+              <a href="#v">v</a>
+              <a href="#w">w</a>
+              <a href="#x">x</a>
+              <a href="#y">y</a>
+              <a href="#z">z</a>
+              <div class="clearfix"></div>
+            </div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="right-inner auto-height">
+          <div class="chevron"></div>
+            <div class="result-count">All</div>
+            <div class="result-count-footer">Publishers</div>
           </div>
         </div>
       </div>
     </div><!-- /search-area -->
-    <p class="well" style="margin-top: 20px; font-size: 12px; line-height: 17px;">Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
-    <div py:if="c.userobj" class="panel panel-info">
-      <div class="panel-heading"><strong>Adding New Publishers</strong></div>
-      <div class="panel-body">If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</div>
-    </div>
-  </py:def>
-
-  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
-    <h1><span id="publisher-result-count">All </span> Publishers</h1>
     <div class="publisher-hierarchy">
       <py:def function="render_publisher(pub)">
         <div class="publisher">
