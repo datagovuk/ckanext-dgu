@@ -5,7 +5,7 @@
 
 <py:def function="body_class">no-sidebar</py:def>
 
-  <py:def function="page_title">${c.publisher.display_name}</py:def>
+  <py:def function="page_title">Reports - Data publication commitments - ${c.publisher.display_name}</py:def>
 
   <py:def function="page_heading">
   </py:def>
@@ -14,12 +14,12 @@
   <py:match path="breadcrumbs">
     <li><a href="/data">Data</a></li>
     <li><a href="${h.url_for('reports')}">Reports</a></li>
-    <li><a href="${h.url_for('commitments')}">PM Commitments</a></li>
+    <li><a href="${h.url_for('commitments')}">Data publication commitments</a></li>
     <li><a href="${h.url_for('commitments_publisher', id=c.publisher.name)}">${c.publisher.title}</a></li>
   </py:match>
 
   <py:match path="content">
-    <h1>PM Commitments <small>${c.publisher.title}</small></h1>
+    <h1>Data publication commitments <small>${c.publisher.title}</small></h1>
 
     <div class="boxed">
         <h2>Commitments ....</h2>
@@ -28,7 +28,45 @@
         </p>
     </div>
 
+    <h1>Open data strategy</h1>
     <div class="" py:if="c.commitments.count()  == 0">
+    No data provided
+    </div>
+
+    <div class="" py:if="c.commitments.count() > 0">
+      <a  href="/data/reports/commitments/${c.publisher.name}.csv" class="btn btn-primary pull-right">
+        <div class="download">
+          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
+          Download as CSV
+        </div>
+      </a>
+
+        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Commitment</th>
+              <th>Notes</th>
+              <th>Dataset</th>
+            </tr>
+          </thead>
+          <tbody>
+            <py:for each="commitment in c.commitments">
+              <tr>
+                  <td>${commitment.source}</td>
+                  <td>${commitment.commitment_text}</td>
+                  <td>${commitment.notes}</td>
+                  <td><a href="${h.url_for()}">${commitment.dataset.title()}</a></td>
+              </tr>
+            </py:for>
+          </tbody>
+        </table>
+    </div>
+
+    <div>&nbsp;</div>
+
+    <h1>PM Commitments</h1>
+    <div py:if="c.commitments.count()  == 0">
     No data provided
     </div>
 
