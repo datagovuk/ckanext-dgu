@@ -31,11 +31,13 @@
     <table class="table table-condensed" width="100%">
         <tr>
           <th>Publisher</th>
-          <th>Commitments met</th>
+          <th>Open data strategy committments</th>
+          <th>PM Committments</th>
         </tr>
         <py:for each="publisher in c.publishers">
           <tr>
               <td><a href="${h.url_for('commitments_publisher', id=publisher.name)}">${publisher.title}</a></td>
+              <td>0</td>
               <td>0</td>
           </tr>
         </py:for>
