@@ -21,19 +21,26 @@
 
   <div py:match="content" class="dataset">
 
+    <h1>PM Commitments</h1>
 
     <div class="boxed widget-container">
-        As a response to the <a href="">Shakespeare review</a> ...
+        As a response to the <a href="">Shakespeare review</a> ... Antonio text here....
     </div>
 
-    <div class="boxed widget-container">
-        View commitments from:
-        <ul>
-            <py:for each="publisher in c.publishers">
-                <li><a href="${h.url_for('commitments_publisher', id=publisher.name)}">${publisher.title}</a></li>
-            </py:for>
-        </ul>
-    </div>
+
+    <table class="table table-condensed" width="100%">
+        <tr>
+          <th>Publisher</th>
+          <th>Commitments met</th>
+        </tr>
+        <py:for each="publisher in c.publishers">
+          <tr>
+              <td><a href="${h.url_for('commitments_publisher', id=publisher.name)}">${publisher.title}</a></td>
+              <td>0</td>
+          </tr>
+        </py:for>
+    </table>
+
 
   </div>
 

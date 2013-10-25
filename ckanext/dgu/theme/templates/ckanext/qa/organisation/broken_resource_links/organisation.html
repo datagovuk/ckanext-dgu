@@ -25,17 +25,22 @@
   </py:match>
 
   <div py:match="content">
-      <h1>Broken resource links for ${c.data['publisher_title']}</h1>
+      <h1>Broken resource links <small>${c.data['publisher_title']}</small></h1>
 
-    <div class="qa-content boxed">
+    <div class="qa-content ">
       <py:if test="(not c.data) or (not c.data['data'])">
         <p>No results found for this publisher.</p>
       </py:if>
 
       <py:if test="c.data and c.data['data']">
-        <div class="pull-right">
-            <a class="btn btn-primary" href="${h.url_for('qa_api_resource_formatted', action=c.query.__name__, id=c.org_name, format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}">Download as CSV</a>
+
+      <a  href="${h.url_for('qa_api_resource_formatted', action=c.query.__name__, id=c.org_name, format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right">
+        <div class="download">
+          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
+          Download as CSV
         </div>
+      </a>
+
         <div>
           <form action="">
             <label class="checkbox">
@@ -44,7 +49,7 @@
             </label>
           </form>
         </div>
-        <table class="table table-striped table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
          <thead>
             <tr class="js-tooltip">
               <th style="width: 100px">Dataset</th>

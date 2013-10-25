@@ -27,63 +27,79 @@
 
   <div py:match="content" class="dataset">
 
-    <div class="boxed widget-container">
-          <h3>${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
 
-          <span py:if="c.generated_at" class="pull-right">Generated at: ${c.generated_at}</span>
-          </h3 >
-          <hr/>
+    <div class="widget-container">
 
-          <div>
-            <form action="" class="form-inline">
-              <label py:if="c.has_publisher" class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_subpublisher, 'show-subpub')">
-                <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
-                Include sub-publishers
-              </label>
+        <h1>NII Feedback <small py:if="c.publisher"> ${c.publisher.title}</small></h1>
 
-              &nbsp;&nbsp;
-              <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.show_zero_feedback, 'show-zero-feedback')">
-                <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
-                Include datasets with no feedback
-              </label>
+        <div>
+          <form action="" class="form-inline">
+            <strong style="margin-left:16px;">${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
+            </strong><br/>
 
-              &nbsp;&nbsp;
-              <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_published, 'show-published')">
-                <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
-                Include published datasets
-              </label>
-            </form>
+            <label py:if="c.has_publisher" class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_subpublisher, 'show-subpub')">
+              <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+              Include sub-publishers
+            </label>
+
+            &nbsp;&nbsp;
+            <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.show_zero_feedback, 'show-zero-feedback')">
+              <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+              Include datasets with no feedback
+            </label>
+
+            &nbsp;&nbsp;
+            <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_published, 'show-published')">
+              <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+              Include published datasets
+            </label>
+
+              <!--! Download button -->
+            <a py:if="c.publisher" href="/data/reports/feedback/${c.publisher.name}.csv" class="btn btn-primary pull-right">
+            <div class="download">
+              <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
+              Download as CSV
+            </div>
+          </a>
+          <a py:if="not c.publisher" href="/data/reports/feedback.csv" class="btn btn-primary pull-right">
+            <div class="download">
+              <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
+              Download as CSV
+            </div>
+          </a>
+
+          </form>
 
 
-          </div>
+        </div>
 
-        <table class="table table-striped" width="100%">
+      <table class="table table-condensed" width="100%">
+          <tr>
+            <th>Dataset</th>
+            <th>Publish Date</th>
+            <th>Publisher</th>
+            <th>Economic growth</th>
+            <th>Social growth</th>
+            <th>Effective services</th>
+            <th>Linked data</th>
+            <th>Other</th>
+            <th>Total</th>
+          </tr>
+          <py:for each="stats in c.page.items">
             <tr>
-              <th>Dataset</th>
-              <th>Publish Date</th>
-              <th>Publisher</th>
-              <th>Economic growth</th>
-              <th>Social growth</th>
-              <th>Effective services</th>
-              <th>Linked data</th>
-              <th>Other</th>
-              <th>Total</th>
+                <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
+                <td>${h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}</td>
+                <td><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController',
+                                   action='feedback', id=stats['publisher-name'])}">${stats.get('publisher-title','')}</a></td>
+                <td>${stats.get('economic',0)}</td>
+                <td>${stats.get('social',0)}</td>
+                <td>${stats.get('effective',0)}</td>
+                <td>${stats.get('linked',0)}</td>
+                <td>${stats.get('other',0)}</td>
+                <td>${stats.get('total-comments',0)}</td>
             </tr>
-            <py:for each="stats in c.page.items">
-              <tr>
-                  <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
-                  <td>${h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}</td>
-                  <td><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController',
-                                     action='feedback', id=stats['publisher-name'])}">${stats.get('publisher-title','')}</a></td>
-                  <td>${stats.get('economic',0)}</td>
-                  <td>${stats.get('social',0)}</td>
-                  <td>${stats.get('effective',0)}</td>
-                  <td>${stats.get('linked',0)}</td>
-                  <td>${stats.get('other',0)}</td>
-                  <td>${stats.get('total-comments',0)}</td>
-              </tr>
-            </py:for>
-        </table>
+          </py:for>
+      </table>
 
           <a class='pull-right' py:if="c.publisher" href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">View all publishers</a>
 

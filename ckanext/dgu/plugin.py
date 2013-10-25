@@ -106,11 +106,11 @@ class ReportsPlugin(SingletonPlugin):
         # Feedback reports
         map.connect('feedback_reports', '/data/reports/feedback',
                     controller=report_ctlr, action='feedback')
-        map.connect('/data/reports/feedback/:id.{format}',
+        map.connect('feedback_reports_csv','/data/reports/feedback/:id.{format}',
                     controller=report_ctlr, action='feedback')
         map.connect('feedback_report_org','/data/reports/feedback/:id',
                     controller=report_ctlr, action='feedback')
-        map.connect('/data/reports/feedback.{format}',
+        map.connect('feedback_report_org_csv','/data/reports/feedback.{format}',
                     controller=report_ctlr, action='feedback')
 
 

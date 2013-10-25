@@ -19,7 +19,7 @@
   </py:match>
 
   <py:match path="content">
-    <h1>PM Commitments for ${c.publisher.title}</h1>
+    <h1>PM Commitments <small>${c.publisher.title}</small></h1>
 
     <div class="boxed">
         <h2>Commitments ....</h2>
@@ -28,12 +28,19 @@
         </p>
     </div>
 
-    <div class="boxed" py:if="c.commitments.count()  == 0">
+    <div class="" py:if="c.commitments.count()  == 0">
     No data provided
     </div>
 
-    <div class="boxed" py:if="c.commitments.count() > 0">
-        <table class="table table-striped" width="100%">
+    <div class="" py:if="c.commitments.count() > 0">
+      <a  href="/data/reports/commitments/${c.publisher.name}.csv" class="btn btn-primary pull-right">
+        <div class="download">
+          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
+          Download as CSV
+        </div>
+      </a>
+
+        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
           <thead>
             <tr>
               <th>Source</th>

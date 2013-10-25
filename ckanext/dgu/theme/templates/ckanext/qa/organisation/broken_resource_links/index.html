@@ -26,16 +26,20 @@
   <div py:match="content">
       <h1>Publishers with broken resource links</h1>
 
-    <div class="qa-content boxed">
+    <div class="qa-content">
 
     <py:if test="not c.organisations">
       <p>No organizations that have published datasets with broken resource links found.</p>
     </py:if>
 
     <py:if test="c.organisations">
-      <div class="pull-right">
-        <a class="btn btn-primary" href="${h.url_for('qa_api_resource_formatted', action=c.query.__name__, id='report', format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}">Download as CSV</a>
-      </div>
+
+      <a  href="${h.url_for('qa_api_resource_formatted', action=c.query.__name__, id='report', format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right">
+        <div class="download">
+          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
+          Download as CSV
+        </div>
+      </a>
 
       <div>
           <form action="">
@@ -46,7 +50,7 @@
           </form>
       </div>
 
-      <table class="table table-striped table-bordered table-condensed tablesorter" id="report-table">
+      <table class="table table-bordered table-condensed tablesorter" id="report-table">
        <thead>
         <tr>
           <th>Publisher</th>
