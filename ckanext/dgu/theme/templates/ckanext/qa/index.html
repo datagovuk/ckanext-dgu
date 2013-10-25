@@ -13,6 +13,12 @@ xmlns:xi="http://www.w3.org/2001/XInclude"
     <link type="text/css" rel="stylesheet" media="all" href="/css/ckanext-qa.css" />
   </py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data">Data</a></li>
+    <li><a href="${h.url_for('reports')}">Reports</a></li>
+    <li><a href="${h.url_for('qa')}">Quality Assurance</a></li>
+  </py:match>
+
   <div py:match="content">
     <div class="qa-content boxed">
       <ul>

@@ -15,24 +15,17 @@
     <a class="btn btn-primary pull-right" href="${request.path}.csv?${h.feedback_report_params()}">Download as CSV</a>
   </py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data">Data</a></li>
+    <li><a href="${h.url_for('reports')}">Reports</a></li>
+    <li><a href="${h.url_for('feedback_reports')}">Feedback reports</a></li>
+    <li py:if="c.publisher">
+      <a href="${h.url_for('feedback_report_org', id=c.publisher.name)}">${c.publisher.title}</a>
+    </li>
+  </py:match>
+
 
   <div py:match="content" class="dataset">
-    <py:if test="c.publisher">
-    ${breadcrumbs([
-        ('Data', '/data'),
-        ('Reports', h.url_for('reports')),
-        ('Feedback Reports', h.url_for('feedback_reports')),
-        (c.publisher.title, h.url_for('feedback_report_org', id=c.publisher.name))
-        ])}
-      </py:if>
-    <py:if test="not c.publisher">
-      ${breadcrumbs([
-        ('Data', '/data'),
-        ('Reports', h.url_for('reports')),
-        ('Feedback Reports', h.url_for('feedback_reports'))
-        ])}
-    </py:if>
-
 
     <div class="boxed widget-container">
           <h3>${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback

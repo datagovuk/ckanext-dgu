@@ -11,13 +11,14 @@
   </py:def>
 
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data">Data</a></li>
+    <li><a href="${h.url_for('reports')}">Reports</a></li>
+    <li><a href="${h.url_for('commitments')}">PM Commitments</a></li>
+    <li><a href="${h.url_for('commitments_publisher', id=c.publisher.name)}">${c.publisher.title}</a></li>
+  </py:match>
+
   <py:match path="content">
-      ${breadcrumbs([
-        ('Data', '/data'),
-        ('Reports', h.url_for('reports')),
-        ('PM Commitments', h.url_for('commitments')),
-        (c.publisher.title, h.url_for('commitments_publisher', id=c.publisher.name)),
-      ])}
     <h1>PM Commitments for ${c.publisher.title}</h1>
 
     <div class="boxed">

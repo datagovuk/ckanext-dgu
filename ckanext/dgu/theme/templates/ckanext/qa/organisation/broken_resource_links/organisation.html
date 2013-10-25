@@ -16,13 +16,15 @@
     <link type="text/css" rel="stylesheet" media="all" href="/css/ckanext-qa.css" />
   </py:def>
 
+ <py:match path="breadcrumbs">
+    <li><a href="/data">Data</a></li>
+    <li><a href="${h.url_for('reports')}">Reports</a></li>
+    <li><a href="${h.url_for('qa_organisation_action_reports', action='broken_resource_links')}">Broken links</a></li>
+    <li><a href="${h.url_for('qa_organisation_action_id_reports', action='broken_resource_links',id=c.data['publisher_name'])}">${c.data['publisher_title']}</a></li>
+
+  </py:match>
+
   <div py:match="content">
-    ${breadcrumbs([
-        ('Data', '/data'),
-        ('Reports', h.url_for('reports')),
-        ('Publishers with broken resources', h.url_for('qa_organisation_action_reports', action='broken_resource_links')),
-        (c.data['publisher_title'], h.url_for('qa_organisation_action_id_reports', action='broken_resource_links',id=c.data['publisher_name'])),
-      ])}
       <h1>Broken resource links for ${c.data['publisher_title']}</h1>
 
     <div class="qa-content boxed">
