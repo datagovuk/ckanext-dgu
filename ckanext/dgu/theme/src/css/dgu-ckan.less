@@ -9,6 +9,7 @@
 
 .btn-preview {
   font-size: 11px;
+  width: 135px;
 }
 .inline-icon {
     padding-right: 5px;
@@ -19,6 +20,10 @@ textarea {
 }
 img.arrow {
     vertical-align: baseline;
+}
+ul.sublist {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 h4 img.arrow {
     padding-right: 3px;
@@ -213,38 +218,31 @@ table.tablesorter {
 /* --------------- */
 #shopping-basket-container {
     display: none;
-    overflow: hidden;
-    white-space: nowrap;
-    #shopping-basket-container h4 {
-        margin-bottom: 0;
-    }
-    #shopping-basket {
-        min-height: 50px;
-        max-height: 150px;
-        overflow: scroll;
-        overflow-x: hidden;
-        white-space: nowrap;
-        border: 1px solid #ddd;
-        margin-top: 8px;
-        margin-left: 0;
-        padding: 5px 10px 5px 4px;
-        list-style-type: none;
-        .x-button {
-            padding: 0 6px;
-            margin-right: 5px;
-            vertical-align: top;
-        }
-    }
-    #shopping-basket-buttons {
-        margin: 10px 0 2px 0;
-    }
+    background: #fff;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    margin-bottom: 30px;
+    margin-right: -15px;
+    padding-right: 15px;
     #shopping-basket-reset {
-        padding-left: 6px;
-        padding-right: 9px;
+      color: #777;
+      margin-top: -3px;
+      &:hover {
+        color: #000;
+        text-decoration: none;
+      }
     }
     #shopping-basket-submit {
-        margin-left: 20px;
-        width: 180px;
+      margin-top: 10px;
+      margin-left: 20px;
+      width: 180px;
+    }
+    .facet-option {
+      background-color: #E4F0FE;
+      border-left-color: #529CFD;
+      .facet-kill  i {
+        color: #529CFD;
+      }
     }
 }
 
@@ -302,6 +300,7 @@ table.tablesorter {
     .facet-option {
       padding: 6px 0;
       margin-right: -15px;
+      padding-right: 15px;
       font-size: 13px;
       border-top: 1px dotted #ccc;
       a { 
@@ -316,6 +315,7 @@ table.tablesorter {
         border-left: 15px solid #8BC658;
         margin-left: -40px;
         padding-left: 25px;
+        padding-right: 0px;
         border-bottom: none;
         .facet-kill {
           margin-right: 20px;
@@ -349,9 +349,8 @@ table.tablesorter {
       }
     }
 }
-.search-theme-mode-container {
-  float: right;
-  margin-top: 5px;
+.search-theme-checkbox {
+  margin-top: -3px;
   white-space: nowrap;
 }
 .facets-theme-primary,
@@ -475,7 +474,6 @@ table.tablesorter {
     &:hover {
       .underlined { color: #000; }
     }
-
   }
   .dataset-body {
     border-right: 6px solid #e0e0e0;
@@ -499,20 +497,29 @@ table.tablesorter {
   .view-data-link {
     display: none;
   }
-  &.theme-Crime      { .theme-name { color: @color_crime; } .dataset-header   { border-color: @color_crime; } }
-  &.theme-Defence      { .theme-name { color: @color_defence; } .dataset-header   { border-color: @color_defence; } }
-  &.theme-Economy      { .theme-name { color: @color_economy; } .dataset-header   { border-color: @color_economy; } }
-  &.theme-Education      { .theme-name { color: @color_education; } .dataset-header   { border-color: @color_education; } }
-  &.theme-Geography      { .theme-name { color: @color_geography; } .dataset-header   { border-color: @color_geography; } }
-  &.theme-Government      { .theme-name { color: @color_government; } .dataset-header   { border-color: @color_government; } }
-  &.theme-Health      { .theme-name { color: @color_health; } .dataset-header   { border-color: @color_health; } }
-  &.theme-Society      { .theme-name { color: @color_society; } .dataset-header   { border-color: @color_society; } }
-  &.theme-Spending      { .theme-name { color: @color_spending; } .dataset-header   { border-color: @color_spending; } }
-  &.theme-Transport      { .theme-name { color: @color_transport; } .dataset-header   { border-color: @color_transport; } }
-  &.theme-Administration      { .theme-name { color: @color_administration; } .dataset-header   { border-color: @color_administration; } }
-  &.theme-Finance      { .theme-name { color: @color_finance; } .dataset-header   { border-color: @color_finance; } }
-  &.theme-Environment      { .theme-name { color: @color_environment; } .dataset-header   { border-color: @color_environment; } }
-  &.theme-Business      { .theme-name { color: @color_business; } .dataset-header   { border-color: @color_business; } }
+
+  &.unpublished {
+    border-left-style: dotted;
+    .text-unpublished {
+      color: #777;
+      font-style: italic;
+    }
+  }
+  &.theme-none           { .theme-name { display: none; color: #bbb; font-weight: normal; font-style: italic; }                                                        }
+  &.theme-Crime          { .theme-name { color: @color_crime;          } .dataset-header { border-color: @color_crime;          }  }
+  &.theme-Defence        { .theme-name { color: @color_defence;        } .dataset-header { border-color: @color_defence;        }  }
+  &.theme-Economy        { .theme-name { color: @color_economy;        } .dataset-header { border-color: @color_economy;        }  }
+  &.theme-Education      { .theme-name { color: @color_education;      } .dataset-header { border-color: @color_education;      }  }
+  &.theme-Geography      { .theme-name { color: @color_geography;      } .dataset-header { border-color: @color_geography;      }  }
+  &.theme-Government     { .theme-name { color: @color_government;     } .dataset-header { border-color: @color_government;     }  }
+  &.theme-Health         { .theme-name { color: @color_health;         } .dataset-header { border-color: @color_health;         }  }
+  &.theme-Society        { .theme-name { color: @color_society;        } .dataset-header { border-color: @color_society;        }  }
+  &.theme-Spending       { .theme-name { color: @color_spending;       } .dataset-header { border-color: @color_spending;       }  }
+  &.theme-Transport      { .theme-name { color: @color_transport;      } .dataset-header { border-color: @color_transport;      }  }
+  &.theme-Administration { .theme-name { color: @color_administration; } .dataset-header { border-color: @color_administration; }  }
+  &.theme-Finance        { .theme-name { color: @color_finance;        } .dataset-header { border-color: @color_finance;        }  }
+  &.theme-Environment    { .theme-name { color: @color_environment;    } .dataset-header { border-color: @color_environment;    }  }
+  &.theme-Business       { .theme-name { color: @color_business;       } .dataset-header { border-color: @color_business;       }  }
 }
 .dataset-summary.mini {
   border-left: none;
@@ -555,6 +562,7 @@ table.tablesorter {
     padding-bottom: 45px;
   }
   .theme-name {
+    display: block;
     position: absolute;
     top: 0px;
     left: 0px;

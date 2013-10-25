@@ -8,63 +8,7 @@
   <py:def function="page_title">${c.theme_name}</py:def>
 
   <div py:match="content">
-
-    <h1>
-      <a href="${h.url_for(controller='ckanext.dgu.controllers.theme:ThemeController',action='index')}">Themes</a>
-      <span class="subheading"><img src="/images/arrow-down-right.png"/> ${c.theme_name}</span>
-    </h1>
-
-    <div class="row">
-      <div class="col-md-12">
-        <div class="boxed">
-          <table class="search-area">
-              <tbody><tr>
-                <td class="left">
-                  <h2 class="result-count">${c.dataset_count}</h2>
-                    <div class="result-count-footer">in ${c.theme_name}</div>
-                </td>
-                <td class="right">
-                  <form id="dataset-search" class="dataset-search clearfix" action='/data/search' method="GET">
-                    <input type="hidden" name="theme-primary" value="${c.theme_name}"/>
-                    <input type="search" class="search" name="q" value="" autocomplete="off" results="0" placeholder="${_('Search...')}" />
-                    <input type="submit" value="${_('Search')}" class="btn btn-large button" />
-                      <div id="dataset-search-ext"></div>
-                  </form>
-
-                </td>
-              </tr>
-            </tbody></table>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="row">
-      <div class="col-md-4 boxed">
-        <h3>Popular datasets</h3>
-        ${themed_package_list_from_dict(c.popular, c.theme)}
-      </div>
-
-      <div class="col-md-4 boxed">
-        <h3>Latest datasets</h3>
-        ${themed_package_list_from_dict(c.latest, c.theme)}
-      </div>
-
-      <div class="col-md-2">
-        <div class="boxed">
-          <h3>Apps and ideas</h3>
-          <p>There are currently no apps, or ideas for apps available for the ${c.theme_name} datasets.</p>
-
-          <small style='font-size:smallest;color:#999;'>Apps and Ideas from Drupal API</small>
-        </div>
-        <div class="boxed">
-          <h3>Blogs</h3>
-          <p>There are currently no blog posts on this theme.</p>
-          <small style='font-size:smallest;color:#999;'>Blog posts fromDrupal API</small>
-        </div>
-      </div>      
-    </div>
-
+    (not implemented)
   </div>
 
   <xi:include href="../layout.html" />

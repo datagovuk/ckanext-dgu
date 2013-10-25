@@ -174,23 +174,18 @@
         <div class="clearfix visible-lg" py:if="i%4==0"></div>
         <div class="clearfix visible-md clearfix-ie7" py:if="i%3==0"></div>
         <div class="clearfix visible-sm" py:if="i%2==0"></div>
-        <py:if test="not h.is_unpublished_item(packages[i])">
-          ${package_summary(packages[i], show_preview_buttons=True,mini=mini)}
-        </py:if>
-        <py:if test="h.is_unpublished_item(packages[i])">
-          ${unpublished_summary(packages[i])}
-        </py:if>
+        ${package_summary(packages[i], show_preview_buttons=True, mini=mini, unpublished=h.is_unpublished_item(packages[i]))}
       </py:for>
     </div>
   </div>
 
-  <py:def function="package_summary(package, show_preview_buttons, mini=False)">
+  <py:def function="package_summary(package, show_preview_buttons, mini=False, unpublished=False)">
     <py:with vars="title=package.get('title') or package.get('name'); primary_theme=h.get_primary_theme(package)">
       <div class="${if_(mini,'col-lg-3 col-md-4 col-sm-6')}">
-      <div class="dataset dataset-summary theme-${primary_theme or 'none'} ${if_(mini,'mini')}">
+      <div class="dataset dataset-summary theme-${primary_theme or 'none'} ${if_(mini,'mini')} ${if_(unpublished,'unpublished')}">
        <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <div class="theme-name">${primary_theme}</div>
-         <div class="underlined">${title}</div>
+         <div class="theme-name">${primary_theme or '(Uncategorised)'}</div>
+         <div class="underlined">${title} <span class="text-unpublished" py:if="unpublished">(unpublished)</span></div>
        </a>
        <div class="dataset-body">
          <div class="left">
@@ -209,7 +204,7 @@
              ${map_preview_buttons(package.id, package)}
            </py:if>
          </div>
-         <div class="clearfix"></div>
+         <div class="clearfix clearfix-ie7"> &nbsp;</div>
          <a class="view-data-link" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
            View Data
          </a>
@@ -224,43 +219,6 @@
      </div>
    </py:with>
   </py:def>
-
-  <div py:def="unpublished_summary(package)" class="wrapper dataset dataset-summary">
-     <div py:with="title=package.get('title') or package.get('name')">
-      <div class="dataset-header">
-        <a  href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <img class="dataset-icon" src="/images/inventory-icon.png" title="${h.name_for_uklp_type(package)}"/>
-        </a>
-
-         <div>
-           <span class="underlined"><a href="${h.url_for(controller='package', action='read', id=package.get('name'))}">${title}</a></span>
-           <span class="unpublished-text">(unpublished)</span>
-         </div>
-       </div>
-
-       <span class="property pull-right">
-         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
-         <py:if test="h.unpublished_release_date(package)">
-           <br/>
-           Release date: ${h.render_datetime(h.unpublished_release_date(package), with_hours=False)}
-          </py:if>
-       </span>
-       <div class="property">
-          Publisher:&nbsp;
-            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
-              ${h.package_publisher_dict(package).get('title', '')}
-            </a>
-
-       </div>
-
-       <div class="dataset-description">
-         ${h.markdown_extract(package.notes)}
-       </div>
-       <div class="property">
-         ${feedback_summary(package)}
-       </div>
-     </div>
-  </div>
 
   <py:def function="feedback_summary(package,render_title=True,large=False)">
     <div class="feedback-summary ${if_(large,'large')}" py:with="comment_dict=h.unpublished_comments_lookup(package)">
@@ -349,11 +307,13 @@
           <i class="icon-remove-circle icon-4x"></i>
         </a>
       </div>
+      <!--
       ${facet_box(
           'core_dataset',
           'Core datasets',
           ''
           )}
+          -->
       ${facet_box(
           'unpublished',
           'Show only...',
@@ -366,13 +326,14 @@
           'There are no further licence filters to apply.'
       )}
       <div class="facet-divider"></div>
-<!--!      <div class="search-theme-mode-container">
-        <label class="checkbox">
-          <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
-          Only primary theme
-        </label>
-      </div>
+      <!--
+      <label class="checkbox pull-right search-theme-checkbox">
+        <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
+        Only primary theme
+      </label>
       <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
+        -->
+      <div class="facets-theme-primary">
       ${facet_box(
           'theme-primary',
           'Theme',
@@ -380,6 +341,7 @@
           more_button='more-prithemes-button'
       )}
       </div>
+      <!--
       <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
           'all_themes',
@@ -387,13 +349,16 @@
           'There are no further theme filters to apply.',
           more_button='more-themes-button'
       )}
-  </div> -->
+      </div> 
+      -->
+      <!--
       ${facet_box(
           'tags',
           'Tags',
           'There are no further tag filters to apply.',
           more_button='more-tags-button'
       )}
+      -->
       <div class="facet-divider"></div>
       ${facet_box(
           'res_format',
@@ -431,23 +396,14 @@
           <py:for each="facet_item in h.unselected_facet_items('UKLP')">
             ${facet_line(facet_item, 'UKLP')}
           </py:for>
-          <ul>
-            <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">
-              <li>
-                <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {'resource-type': facet_item['name']})}">
-                  ${h.render_facet_value('resource-type',facet_item['name'])}
-                </a>
-                ${ ' (%d)'% facet_item['count']}
-                <ul py:if="facet_item['name'] == 'service'">
-                  <py:for each="sub_item in h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count')">
-                    <li>
-                      ${facet_line(sub_item, 'spatial-data-service-type')}
-                    </li>
-                  </py:for>
-                </ul>
-              </li>
-            </py:for>
-          </ul>
+          <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">
+            ${facet_line(facet_item,'resource-type')}
+            <py:if test="facet_item['name']=='service'">
+              <py:for each="sub_item in h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count')">
+                ${facet_line(sub_item, 'spatial-data-service-type')}
+              </py:for>
+            </py:if>
+          </py:for>
         </py:if>
         <py:if test="not show_uklp">
             <div class="facet-option">
@@ -458,22 +414,6 @@
     </div>
     </div><!-- /facet-filters -->
   </div>
-
-  <!--! List of tags: pass in a list of tag name and this renders the standard
-        tag listing -->
-  <py:def function="tag_list_from_name(tags)" class="tags clearfix">
-    <py:for each="tag in tags">
-      <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
-    </py:for>
-  </py:def>
-
-  <!--! List of tags: pass in a collection of tags and this renders the standard
-        tag listing -->
-  <ul py:def="tag_list_from_dicts(tags)" class="tags clearfix">
-    <py:for each="tag in tags">
-      <a href="/data/search?tags=${tag['name']}" class="tag">${tag['display_name']}</a>
-    </py:for>
-  </ul>
 
   <!--! Contact details -->
   <py:def function="contact_details(name, email, phone, web_url, web_name)">
@@ -551,40 +491,4 @@
     </py:if>
   </py:def>
 
-
-  <ul py:def="themed_package_list_from_dict(packages, theme)" class="common-dataset-list">
-   <li py:for="package in packages">
-     ${themed_package_summary(package, theme)}
-   </li>
-  </ul>
-
-  <div py:def="themed_package_summary(package, theme)" class="dataset dataset-summary">
-     <div py:with="title=package.get('title') or package.get('name')">
-       <a class="dataset-header" href="${h.url_for(controller='package', action='read', id=package.get('name'))}">
-         <img class="dataset-icon" src="${'/images/theme-%s-icon.png' % theme if not h.is_service(package) else '/images/dataset-icon-service.png'}" title="${h.name_for_uklp_type(package)}"/>
-         <div class="underlined">${title}</div>
-       </a>
-       <span class="property pull-right">
-         ${h.updated_string(package)}: ${h.render_datetime(h.updated_date(package), with_hours=False)}
-       </span>
-       <div class="property">
-            <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}">
-              ${h.package_publisher_dict(package).get('title', '')}
-            </a>
-       </div>
-       <div class="dataset-description">
-         ${h.markdown_extract(package.notes)}
-       </div>
-     </div>
-  </div>
-
-  <py:def function="publisher_sub_hierarchy(parent_publisher,this_publisher)">
-    <script>
-      // Pollute the global namespace
-      window.dgu_publisher_hierarchy_parent = "node_${parent_publisher}";
-      window.dgu_publisher_hierarchy_this = "node_${this_publisher}";
-    </script>
-    <script src="/scripts/vendor/jquery.jstree.min.js"></script>
-    <script src="/scripts/dgu-publisher.min.js"></script>
-  </py:def>
 </html>

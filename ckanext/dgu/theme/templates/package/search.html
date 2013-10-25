@@ -18,16 +18,6 @@
       ${search_form(mini=True)}
       <div class="map-search-link">
         <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
-        <!--
-        <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {}, alternative_url='/data/map-based-search')}">
-          <py:if test="'ext_bbox' not in request.params">
-            Conduct Map Based Search
-          </py:if>
-          <py:if test="'ext_bbox' in request.params">
-            New Map Based Search
-          </py:if>
-        </a>
-        -->
       </div>
     </div>
     ${basket()}
@@ -75,11 +65,9 @@
     </py:if>
 
     ${package_list_from_dict(c.page.items)}
-    <py:with vars="pager = c.page.pager(q=c.q)">
-      <div py:if="pager" class="pager-container">
-        ${pager}
-      </div>
-    </py:with>
+    <div py:if="c.page.items">
+      ${paginator(c.page)}
+    </div>
   </div>
 
   <py:def function="optional_feed">

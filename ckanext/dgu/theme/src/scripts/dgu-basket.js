@@ -54,9 +54,19 @@ $(function() {
     $('.preview-remove').hide();
     $.each(basket, function(i,item) {
       // The API provides only simple IDs right now. Later it should give a detailed object.
-      var li = $('<li/>').html('<a href="/dataset/'+item.name+'">'+item.name+'</a>').attr('id',item.id);
-      var xButton = $('<button/>').addClass('btn').addClass('btn-small').addClass('x-button').html('x');
-      xButton.prependTo(li);
+      var xButton = $('<div/>')
+      .addClass('facet-kill')
+      .addClass('pull-right')
+      .append( $('<i class="icon-large icon-remove-sign"></i>') );
+      var li = $('<div/>')
+        .addClass('facet-option')
+        .addClass('facet-option-selected')
+        .append($('<a/>')
+          .attr('href','#')
+          .attr('id',item.id)
+          .text(item.name)
+          .prepend(xButton)
+        );
       li.appendTo(basketUi);
       // Update the add/remove buttons on the page
       $('.js-dataset-'+item.id+'-add').hide();
@@ -66,7 +76,7 @@ $(function() {
       basketUiContainer.hide('slow')
     }
     if (basket.length>0 && !basketUiContainer.is(':visible')) {
-      basketUiContainer.show('slow')
+      basketUiContainer.show(200)
     }
     basketCache = basket;
   };
@@ -117,7 +127,8 @@ $(function() {
   };
   
   var clickX = function(e) {
-    var packageId = $(e.target).parents('li').attr('id');
+    e.preventDefault();
+    var packageId = $(e.target).attr('id');
     // Inform the server
     var endPoint = '/api/2/util/preview_list/remove/'+packageId;
     $.ajax({
@@ -126,6 +137,7 @@ $(function() {
       error: catchError
     });
     disable();
+    return false;
   };
 
   var clickSubmit = function(e) {
@@ -164,7 +176,7 @@ $(function() {
   $('.preview-remove button').bind('click',clickRemove);
   basketSubmitButton.bind('click',clickSubmit);
   basketResetButton.bind('click',clickReset);
-  $('#shopping-basket .x-button').live('click', clickX);
+  $('#shopping-basket .facet-option').live('click', clickX);
   catchError(); // refreshes basket from session
 });
 

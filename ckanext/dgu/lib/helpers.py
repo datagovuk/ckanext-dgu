@@ -1478,7 +1478,17 @@ def render_facet_value(key,value):
             return value
         if stars == -1:
             return 'TBC'
-        return mini_stars_and_caption(stars)
+        mini_stars = stars * '&#9733'
+        mini_stars += '&#9734' * (5-stars)
+        captions = [
+            'Unavailable or not openly licensed',
+            'Unstructured data (e.g. PDF)',
+            'Structured data but proprietry format (e.g. Excel)',
+            'Structured data in open format (e.g. CSV)',
+            'Linkable data - served at URIs (e.g. RDF)',
+            'Linked data - data URIs and linked to other data (e.g. RDF)'
+            ]
+        return t.literal('<span class="js-tooltip" data-original-title="%s" data-placement="top">%s</span>' % (captions[stars], mini_stars))
     if key=='publisher':
         return ckan.lib.helpers.group_name_to_title(value)
     if key=='UKLP':
