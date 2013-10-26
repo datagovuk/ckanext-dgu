@@ -86,6 +86,10 @@ class Ingester(CkanCommand):
             if sorted(headers) != sorted(row):
                 return False, "Was expecting headers to be {0}".format(headers)
 
+            # TODO: Clean up current commitments before we import the new ones.
+            # This is problematic as we might have new ones, and so don't want to
+            # lose those.  We'll match them in process_row
+
             return True, ""
 
         def row_validate(row):
@@ -110,17 +114,45 @@ class Ingester(CkanCommand):
             """
             Reads each row and tries to create a new commitment database entry after
             trying to determine if a matching one already exists.
-            TODO: Determine what we can use for 'identity'
             """
-            org        = row[0]
+            from ckanext.dgu.model.commitment import Commitment
+
+            group_title = row[0].strip()
+            org = model.Session.query(model.Group)\
+                .filter(model.Group.title==group_title)\
+                .filter(model.Group.state=='active').first()
+            if not org:
+                raise ingest.IngestException("Failed to find group {0}".format(group_title), True)
+
+            dataset_name = _url_to_dataset_name(row[6].strip())
+            dataset = model.Session.query(model.Package)\
+                .filter(model.Package.name==dataset_name)\
+                .filter(model.Package.state=='active').first()
+            if not dataset:
+                raise ingest.IngestException("Failed to find group {0}".format(dataset_name), True)
+
             source     = row[1]
             name       = row[2]
             text       = row[3]
             notes      = row[4] or ''
             published  = row[5]
-            record_url = row[6]
 
+            # Delete a record that matches based on source and name
+            c = model.Session.query(Commitment)\
+                .filter(Commitment.source==source)\
+                .filter(Commitment.text==text)\
+                .filter(Commitment.publisher==org.id).first()
+            if not c:
+                c = Commitment()
 
+            c.source = source
+            c.commitment_text = text
+            c.notes = notes
+            c.publisher = org.id
+            c.author = ''
+            c.dataset = dataset.id
+            model.Session.add(c)
+            model.Session.commit()
 
         try:
             ingester = ingest.Ingester(filename)
