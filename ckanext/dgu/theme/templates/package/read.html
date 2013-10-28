@@ -486,8 +486,8 @@
         </a>
         <ul class="dropdown-menu" role="menu" py:with="gemini = res.get('gemini',False)">
           <li py:if="gemini">
-            <a href="${res.get('url', '')}" class="btn btn-primary" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
-              ${res['action']}
+            <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
+              <i class="icon-search"></i>&nbsp; ${res['action']}
             </a>
           </li>
           <li py:if="not gemini">
