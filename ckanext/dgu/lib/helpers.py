@@ -1455,8 +1455,8 @@ def render_facet_key(key,value=None):
 def render_facet_value(key,value):
     if key=='core_dataset':
         if value=='true':
-            return 'Core datasets'
-        return 'Non-core datasets'
+            return 'Show NII datasets'
+        return 'Hide NII datasets'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'
