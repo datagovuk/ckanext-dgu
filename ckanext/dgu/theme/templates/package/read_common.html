@@ -179,33 +179,33 @@
           <b>State:</b> ${c.pkg_dict['state']}
         </p>
         <!-- blank style tag avoids a bug in jquery.dotdotdot -->
-        <py:with vars="
-          description = c.pkg.extras.get('release-notes', '') if h.is_unpublished_item(c.pkg_dict) else c.pkg_dict.get('notes','');
-        ">
-          <div class="notes" style="">
-            <div class="dataset-theme theme-${h.get_primary_theme(c.pkg_dict) or 'none'}">
-              <span class="theme-name">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</span>
-            </div>
-            <a 
-              class="dataset-optional-logo" 
-              href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html"
-              py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'"
-            >
-              <img class="dataset-logo" src="/images/national_statistics.gif" />
-            </a>
-            <a 
-              class="dataset-optional-logo" 
-              href="/location"
-              py:if="h.dataset_type(c.pkg_extras) == 'uklp'"
-            >
-              <img src="/images/uk_location.gif" />
-            </a>
-            <div class="notes-inner">
-              ${h.render_markdown(description)}
-              <a href="#" class="notes-read-more"><i class="icon-double-angle-down"></i> Read More <i class="icon-double-angle-down"></i></a>
-            </div>
+        <div class="notes" style="">
+          <div class="dataset-theme theme-${h.get_primary_theme(c.pkg_dict) or 'none'}">
+            <span class="theme-name">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</span>
           </div>
-        </py:with>
+          <a 
+            class="dataset-optional-logo" 
+            href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html"
+            py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'"
+          >
+            <img class="dataset-logo" src="/images/national_statistics.gif" />
+          </a>
+          <a 
+            class="dataset-optional-logo" 
+            href="/location"
+            py:if="h.dataset_type(c.pkg_extras) == 'uklp'"
+          >
+            <img src="/images/uk_location.gif" />
+          </a>
+          <div class="notes-inner">
+            ${h.render_markdown(c.pkg_dict.get('notes',''))}
+            <py:if test="h.is_unpublished_item(c.pkg_dict)" py:with="notes=c.pkg.extras.get('release-notes','').strip()">
+              <strong py:if="notes">Release Notes:</strong>
+              ${h.render_markdown(notes)}
+            </py:if>
+            <a href="#" class="notes-read-more"><i class="icon-double-angle-down"></i> Read More <i class="icon-double-angle-down"></i></a>
+          </div>
+        </div>
       </div>
       <div class="col-md-4" py:if="admin_mode">
         <div class="panel panel-info" py:if="can_update">
