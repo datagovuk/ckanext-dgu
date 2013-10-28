@@ -2,7 +2,7 @@
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
-  
+
   <py:def function="page_title">History - ${c.pkg_dict.get('title', c.pkg_dict['name'])}</py:def>
   <py:def function="page_heading">
     ${dataset_admin_buttons(c.pkg)}
@@ -12,18 +12,33 @@
   </py:def>
   <xi:include href="sidebar.html"/>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li py:with="publisher=c.pkg_dict.get('organization')">
+      <py:if test="publisher">
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict.get('organization',{}).get('name',''))}">${c.pkg_dict.get('organization',{}).get('title','')}</a>
+      </py:if>
+      <py:if test="not publisher">
+        <span class="dead-link">(No publisher specified)</span>
+      </py:if>
+    </li>
+    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['id'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
+    <li><a href="${h.url_for(controller='package',action='history',id=c.pkg_dict['id'])}">History</a></li>
+  </py:match>
+
+
   <div py:match="content" class="dataset">
     <div class="boxed">
       <h3>Revisions</h3>
       <form id="dataset-revisions" action="diff" method="post"
         xmlns:py="http://genshi.edgewall.org/"
         xmlns:xi="http://www.w3.org/2001/XInclude"
-        > 
+        >
 
         <h3 py:if="c.error" class="form-errors">
           Error: ${c.error}
         </h3>
-        
+
         <input type="hidden" name="pkg_name" value="${c.pkg_dict['name']}"/>
 
         <!-- only display this additional compare button if there are lots of revisions -->
@@ -46,7 +61,7 @@
                 <a href="${h.url_for(controller='package',action='read',id='%s@%s' % (c.pkg_dict['name'], rev['timestamp']))}" title="${_('Read dataset as of %s') % rev['timestamp']}">${h.render_datetime(rev['timestamp'], with_hours=True)}</a></td>
               <td>${h.linked_user(rev['author'], maxlength=200)}</td>
               <td>${rev['message']}</td>
-            </tr> 
+            </tr>
           </py:for>
         </table>
         <input type="submit" name="diff" value="Compare" class="btn btn-primary" />

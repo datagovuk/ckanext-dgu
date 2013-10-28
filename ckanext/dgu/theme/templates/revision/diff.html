@@ -1,7 +1,7 @@
 <html xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
-  
+
   <py:def function="page_title">Differences - Revisions</py:def>
   <py:def function="page_heading">
     ${h.dataset_link(c.pkg)}
@@ -10,6 +10,12 @@
       <span class="subheading"><img src="/images/arrow-down-right.png"/> Revision Differences</span>
     </span>
   </py:def>
+
+<py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg.name)}">${c.pkg.title}</a></li>
+    <li><a href="${h.url_for(controller='package',action='history',id=c.pkg.name)}">History</a></li>
+  </py:match>
 
   <div py:match="content">
     <div class="boxed">
