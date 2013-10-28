@@ -190,8 +190,8 @@ class Ingester(CkanCommand):
             if len(row) != 6:
                 return False, "Wrong number of columns, expected 6"
 
-            if row[2].strip() == '':
-                return False, "No dataset URL provided"
+            #if row[2].strip() == '':
+            #    return False, "No dataset URL provided"
 
             return True, ""
 
