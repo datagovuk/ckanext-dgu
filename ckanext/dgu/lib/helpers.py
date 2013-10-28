@@ -1829,3 +1829,6 @@ def commitment_dataset(commitment):
 def has_commitment(publisher):
     from ckanext.dgu.model.commitment import ODS_ORGS
     return publisher.name in ODS_ORGS.values()
+
+def is_core_dataset(package):
+    return get_from_flat_dict(package['extras'], 'core-dataset')

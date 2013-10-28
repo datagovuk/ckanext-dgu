@@ -197,6 +197,12 @@
            </div>
          </div>
          <div class="right">
+            <!--! AA suggested he wanted something like this, but not enabling it so
+                  that Tom doesn't shout -->
+            <py:if test="h.is_core_dataset(package)">
+              <div class="format-box" style='background-color: #8BC658;'>NII</div>
+            </py:if>
+
            <py:for each="format in h.formats_for_package(package)">
              ${format_box(format.lower())}
            </py:for>
