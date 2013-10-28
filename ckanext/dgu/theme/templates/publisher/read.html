@@ -140,7 +140,6 @@
           <b>Spending data published by: </b> <a href="/publisher/${h.spending_published_by(c.group_extras).name}">${h.spending_published_by(c.group_extras).title}</a>
         </p>
         <div class="notes" py:with="description = (c.description or '')">
-          <span py:if="not description.strip()" style="font-style: italic;">(No description supplied)</span>
           ${h.render_markdown(description)}
         </div>
       </div>

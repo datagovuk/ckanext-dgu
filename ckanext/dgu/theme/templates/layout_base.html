@@ -204,16 +204,6 @@ ${h.top_level_init()}
     </div>
   </div>
 
-
-  <!-- Flash Messages -->
-  <py:with vars="messages = list(h.flash.pop_messages())">
-    <div class="flash-messages container">
-      <div class="alert ${m.category}" py:for="m in messages">
-        ${h.literal(m)}
-      </div>
-    </div>
-  </py:with>
-
   <div id="pre-content">
     <div class="container">
       <div class="row">
@@ -227,6 +217,16 @@ ${h.top_level_init()}
       </div>
     </div>
   </div>
+
+
+  <!-- Flash Messages -->
+  <py:with vars="messages = list(h.flash.pop_messages())">
+    <div class="flash-messages container">
+      <div class="panel ${m.category.replace('alert','panel').replace('error','danger')}" py:for="m in messages">
+        <div class="panel-heading">${h.literal(m)}</div>
+      </div>
+    </div>
+  </py:with>
   <div id="main-content" class="dgu-equal-height" data-selector=".main-height-columns">
     <div class="container">
       <div class="row">

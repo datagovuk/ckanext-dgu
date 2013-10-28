@@ -428,13 +428,9 @@ def mini_stars_and_caption(num_stars):
         ]
     return t.literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
-def render_dataset_stars(dataset_id):
+def calculate_dataset_stars(dataset_id):
     stars_dict = get_stars_aggregate(dataset_id)
-    if not stars_dict:
-        return 'To be determined'
-    return render_stars(stars_dict['value'],
-                        stars_dict['reason'],
-                        stars_dict['last_updated'])
+    return (stars_dict['value'],stars_dict['reason'],stars_dict['last_updated'])
 
 def render_resource_stars(resource_id):
     from ckanext.qa import reports
@@ -480,9 +476,9 @@ def render_qa_info_for_resource(resource_dict):
 
 def render_stars(stars, reason, last_updated):
     if stars==0:
-        stars_html = 5 * icon('star-grey')
+        stars_html = 5 * '<i class="icon-star"></i>'
     else:
-        stars_html = stars * icon('star')
+        stars_html = stars * '<i class="icon-star"></i>'
 
     tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
     for i in range(5,0,-1):
