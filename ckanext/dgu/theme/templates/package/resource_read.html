@@ -11,13 +11,7 @@
   about=""
   py:strip="">
 
-  <xi:include href="../_snippet/data-api-help.html" />
-  <xi:include href="../snippets/data-viewer-embed-dialog.html" />
-
-  <xi:include href="sidebar.html"/>
-  <xi:include href="field_helpers.html" />
-
-  <py:def function="optional_head">
+  <py:def function="package_optional_head">
     <link rel="stylesheet" href="/css/dgu-recline-pack.min.css" />
     <script py:if="not h.is_wms(c.resource)" type="text/javascript">
       var preload_resource = ${h.literal(h.resource_as_json(c.resource))};
@@ -25,146 +19,108 @@
     </script>
   </py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
+    <li><a href="${h.url_for(controller='package',action='resource_read',id=c.pkg_dict['name'],resource_id=c.resource.id)}">${h.resource_display_name(c.resource)}</a></li>
+  </py:match>
+
   <py:def function="page_title">
-    ${h.dataset_display_name(c.package)} /
-    ${h.resource_display_name(c.resource)} - Dataset - Resource
+    ${h.resource_display_name(c.resource)} - Resources
   </py:def>
 
-  <py:def function="page_heading">
-    ${dataset_admin_buttons(c.package)}
-    ${h.dataset_link(c.package)}
-    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
-    <span class="subheading"><img src="/images/arrow-down-right.png"/> ${h.resource_display_name(c.resource)}</span>
-  </py:def>
-
-  <div py:match="content">
-    <div class="boxed">
-      <div class="resource-actions">
-        <a py:if="c.resource.get('url')" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
-          <py:choose test="c.resource.get('resource_type')">
-            <py:when test="'listing'">View</py:when>
-            <py:when test="'service'">View</py:when>
-            <py:when test="'api'">API Endpoint</py:when>
-            <py:otherwise>
-              <div class="download">
-                <py:if test="not bool(h.get_resource_wms(c.resource))">
-                  <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
-                  Download
-                </py:if>
-                <py:if test="bool(h.get_resource_wms(c.resource))">
-                  Link
-                </py:if>
-              </div>
-            </py:otherwise>
-          </py:choose>
-        </a>
-        <a py:if="h.get_cache_url(c.resource) and not bool(h.get_resource_wms(c.resource))" class="btn btn-primary btn-datagov resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${h.get_cache_url(c.resource)}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
-          <div class="download js-tooltip" title="Cached by data.gov.uk on date: ${h.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
-            <py:if test="not bool(h.get_resource_wms(c.resource))">
-              <img style="margin-bottom: 2px;" src="${h.icon_url('arrow-down-16')}"/>
-              Cached
-            </py:if>
-          </div>
-        </a>
-        <py:if test="config.get('ckan.datastore.enabled', False)">
-          <py:if test="c.resource.get('webstore_url')">
-            <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>
-          </py:if>
-          <py:if test="not c.resource.get('webstore_url')">
-            <a class="btn btn-datagov disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
-
-          </py:if>
-        </py:if>
-      </div>
-
-      <py:if test="config.get('ckan.datastore.enabled', False)">
-        ${data_api_help(c.datastore_api)}
-      </py:if>
-
-      ${data_viewer_embed_dialog()}
-
-      <h3 style="margin-bottom: 0;">Description</h3>
-      <div class="notes" property="rdfs:label">
-        <py:if test="c.resource.get('description')">
-          <div>
-            ${c.resource.get('description')}
-          </div>
-        </py:if>
-        <py:if test="not c.resource.get('description')">
-          <py:if test="c.package.get('notes')">
-            <div>
-              <strong i18n:msg="">
-                From the <a href="${h.url_for(controller='package', action='read', id=c.package['name'])}">Dataset</a>:
-              </strong>
+  <div py:def="package_content">
+    <hr/>
+    <div class="pull-right">
+      <a py:if="c.resource.get('url')" class="btn btn-danger resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
+        <py:choose test="c.resource.get('resource_type')">
+          <py:when test="'listing'"><i class="icon-search"></i>&nbsp; View</py:when>
+          <py:when test="'service'"><i class="icon-search"></i>&nbsp; View</py:when>
+          <py:when test="'api'"><i class="icon-code"></i>&nbsp; API Endpoint</py:when>
+          <py:otherwise>
+            <div class="download">
+              <py:if test="not h.get_resource_wms(c.resource)">
+                <i class="icon-download"></i>&nbsp; Download
+              </py:if>
+              <py:if test="h.get_resource_wms(c.resource)">
+                <i class="icon-search"></i>&nbsp; Link
+              </py:if>
             </div>
-            <div>${h.markdown_extract(c.package.get('notes'), 300)}</div>
+          </py:otherwise>
+        </py:choose>
+      </a>
+      <a py:if="h.get_cache_url(c.resource) and not bool(h.get_resource_wms(c.resource))" class="btn btn-danger resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${h.get_cache_url(c.resource)}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
+        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: ${h.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
+          <py:if test="not bool(h.get_resource_wms(c.resource))">
+              <i class="icon-save"></i>&nbsp; Cached
           </py:if>
-          <py:if test="not c.package.get('notes')">
-            <div><em>(No description)</em></div>
-          </py:if>
+        </div>
+      </a>
+      <py:if test="config.get('ckan.datastore.enabled', False)">
+        <py:if test="c.resource.get('webstore_url')">
+          <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>
+        </py:if>
+        <py:if test="not c.resource.get('webstore_url')">
+          <a class="btn btn-datagov disabled" rel="tooltip" title="Data API is unavailable for this resource as DataStore is disabled">Data API</a>
+
+        </py:if>
+      </py:if>
+    </div>
+    <h2>Resource: <span class="h2-subheading">&ldquo;${h.resource_display_name(c.resource)}&rdquo;</span></h2>
+
+    <py:if test="config.get('ckan.datastore.enabled', False)">
+      ${data_api_help(c.datastore_api)}
+    </py:if>
+
+    ${data_viewer_embed_dialog()}
+
+    <py:if test="c.resource.get('description')">
+      <div class="resource-notes" property="rdfs:label">
+        ${c.resource.get('description')}
+      </div>
+    </py:if>
+
+    <div class="recline-read-only resource-preview">
+      <div class="preview-header">
+        <h2>Preview</h2>
+        <p py:if="not h.is_wms(c.resource)">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
+
+        <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
+        <a py:if="not c.pkg.is_private and not h.is_wms(c.resource)" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
+        <py:if test="h.is_wms(c.resource)"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
+          ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
         </py:if>
       </div>
+      <div id="ckanext-datapreview"></div>
+      <div id="ckanext-datapreview-extra"></div>
+    </div>
 
-      <div class="quick-info">
-        <div py:if="c.resource['last_modified']">
-          <h3 style="margin-bottom:0;">Last updated:</h3>
-          ${h.render_datestamp(c.resource['last_modified'])}
-        </div>
-        <div>
-          <h3 style="margin-bottom: 0;">Format:</h3>
-          <div class="notes">
-            ${format_box(c.resource.get('format','Unknown').lower())}
-            <div class="clearfix"></div>
-          </div>
-        </div>
-        <div py:if="c.resource.get('resource_type') in ('file', None)">
-          <!--! This is data, so show 5 stars of openness -->
-          <h3 style="margin-bottom:5px;">Openness Score:</h3>
-          ${h.render_resource_stars(c.resource['id'])}
-        </div>
-        <div>
-          <h3 style="margin-bottom:5px;">Quality Check:</h3>
-          ${h.render_qa_info_for_resource(c.resource)}
-        </div>
-        <div>
-          <h3>Licence</h3>
-          ${list_licenses(c.pkg)}
-        </div>
-      </div>
-
-      <div class="recline-read-only resource-preview">
-        <div class="preview-header">
-          <h3>Preview</h3>
-          <p py:if="not h.is_wms(c.resource)">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
-
-          <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
-          <a py:if="not c.pkg.is_private and not h.is_wms(c.resource)" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
-          <py:if test="h.is_wms(c.resource)"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
-            ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
-          </py:if>
-        </div>
-        <div id="ckanext-datapreview"></div>
-        <div id="ckanext-datapreview-extra"></div>
-      </div>
-
-      <br/>
-      <div class="resource-information">
-        <h3>Additional Information</h3>
-        <div id="dataset-information">
-          <table class="table table-bordered table-striped table-condensed table-dgu-fixed-size metadata-table">
-              <tbody>
-              <tr py:for="field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource,dict(c.pkg_extras))">
-                <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
-                <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
-              </tr>
-            </tbody>
-          </table>
-          </div>
-
-          <span class="insert-comment-thread"></span>
-        </div>
-    </div><!-- /.boxed -->
+    <table class="table table-bordered">
+      <tr py:if="c.resource['last_modified']">
+        <td class="key">Last updated:</td>
+        <td class="value">${h.render_datestamp(c.resource['last_modified'])}</td>
+      </tr>
+      <tr>
+        <td class="key">Format:</td>
+        <td class="value">${format_box(c.resource.get('format','Unknown').lower())}</td>
+      </tr>
+      <tr py:if="c.resource.get('resource_type') in ('file', None)">
+        <!--! This is data, so show 5 stars of openness -->
+        <td class="key">Resource Openness:</td>
+        <td class="value">${h.render_resource_stars(c.resource['id'])}</td>
+      </tr>
+      <tr>
+        <td class="key">Quality Check:</td>
+        <td class="value">${h.render_qa_info_for_resource(c.resource)}</td>
+      </tr>
+      <tr py:for="field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource,dict(c.pkg_extras))">
+        <td class="dataset-label" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
+        <td class="dataset-details" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
+      </tr>
+    </table>
+    <span class="insert-comment-thread"></span>
   </div>
+
 
   <py:def py:if="not h.is_wms(c.resource)" function="optional_footer">
     <!-- data preview -->
@@ -183,9 +139,167 @@
         CKAN.Dgu.resourcePreviewer.loadPreviewDialog(preload_resource);
       });
     </script>
-
   </py:def>
 
-  <xi:include href="../layout_base.html" />
+
+
+
+  <!-- imported from core CKAN (templates_legacy/_snippet/data_api_help) -->
+  <py:def function="data_api_help(datastore_api)">
+    <div class="modal-data-api-help modal fade in" style="display: none;">
+      <div class="modal-header">
+        <a class="close" data-dismiss="modal">×</a>
+        <h3>
+          CKAN Data API
+        </h3>
+      </div>
+      <div class="modal-body">
+        <p><strong>Access resource data via a web API with powerful query
+          support</strong>. Further information in the <a
+          href="http://docs.ckan.org/en/latest/using-data-api.html" target="_blank">main
+          CKAN Data API and DataStore documentation</a>.</p>
+
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" href=".collapse-endpoints">Endpoints &raquo;</a>
+          </div>
+          <div class="collapse-endpoints in accordion-body collapse">
+            <div class="accordion-inner">
+              <p>The Data API builds directly on ElasticSearch, with a resource API
+              endpoint being equivalent to a single index 'type' in ElasticSearch.
+              This means you can directly re-use <a
+                href="http://www.elasticsearch.org/guide/appendix/clients.html"
+                _target="blank">ElasticSearch
+                client libraries</a> when connecting to the API endpoint.</p>
+              <table class="table-condensed table-striped table-bordered">
+                <thead></thead>
+                <tbody>
+                  <tr>
+                    <th>Base</th>
+                    <td><code>${datastore_api}</code></td>
+                  </tr>
+                  <tr>
+                    <th>Query</th>
+                    <td>
+                      <code>${datastore_api}/_search</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Query example</th>
+                    <td>
+                      <code><a href="${datastore_api}/_search?size=5&amp;pretty=true" target="_blank">${datastore_api}/_search?size=5&amp;pretty=true</a></code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>Schema (Mapping)</th>
+                    <td>
+                      <code><a href="${datastore_api}/_mapping" target="_blank">${datastore_api}/_mapping?pretty=true</a></code>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" href=".collapse-querying" data-toggle="collapse">Querying
+              &raquo;</a>
+          </div>
+          <div class="collapse-endpoints in accordion-body">
+            <div class="accordion-inner">
+              <strong>Query example (first 5 results)</strong>
+              <p>
+              <code><a href="${datastore_api}/_search?size=5&amp;pretty=true" target="_blank">${datastore_api}/_search?size=5&amp;pretty=true</a></code>
+              </p>
+
+              <strong>Query example (results with 'jones' in <code>title</code> field)</strong>
+              <p>
+              <code><a href="${datastore_api}/_search?q=title:jones&amp;size=5&amp;pretty=true"
+                  target="_blank">${datastore_api}/_search?q=title:jones&amp;size=5&amp;pretty=true</a></code>
+              </p>
+
+              <strong>Schema (Mapping)</strong>
+              <p>
+              <code><a href="${datastore_api}/_mapping" target="_blank">${datastore_api}/_mapping?pretty=true</a></code>
+              </p>
+
+              <strong>Endpoint (for clients)</strong>
+              <p>
+              <code>${datastore_api}</code>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" href=".collapse-javascript" data-toggle="collapse">Example: Javascript</a>
+          </div>
+          <div class="accordion-body collapse-javascript in">
+            <div class="accordion-inner">
+              <p>A simple ajax (JSONP) request to the data API using jQuery.</p>
+              <pre>
+      var data = {
+        size: 5 // get 5 results
+        q: 'title:jones' // query on the title field for 'jones'
+      };
+      $.ajax({
+        url: '${datastore_api}/_search',
+        data: data,
+        dataType: 'jsonp',
+        success: function(data) {
+          alert('Total results found: ' + data.hits.total)
+        }
+      });</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" href=".collapse-javascript" data-toggle="collapse">Example: Python</a>
+          </div>
+          <div class="accordion-body collapse-javascript in">
+            <div class="accordion-inner">
+              <pre>
+      import urllib
+      url = '${datastore_api}/_search?size=5&amp;q=title:jones'
+      fileobj = urllib.urlopen(url)
+      print fileobj.read()
+      </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </py:def>
+
+  <py:def function="data_viewer_embed_dialog()">
+    <div class="modal-data-viewer-embed-dialog modal fade in" style="display: none;">
+      <div class="modal-header">
+        <a class="close" data-dismiss="modal">×</a>
+        <h3>
+          Embed Data Viewer
+        </h3>
+      </div>
+      <div class="modal-body">
+        <div>
+          <p><strong>Embed this view</strong> by copying this into your webpage:</p>
+          <textarea class="embedIframeText" style="width: 100%; height: 200px;"></textarea>
+          <p>Choose width and height in pixels:</p>
+          <label for="iframe-width">Width:</label>
+          <input class="iframe-width" name="iframe-width" value="800"/>
+          <label for="iframe-height">Height:</label>
+          <input class="iframe-height" name="iframe-height" value="500"/>
+        </div>
+        <a class="embedLink" href="">Preview</a>
+      </div>
+    </div>
+  </py:def>
+
+
+  <xi:include href="read_common.html" />
 </html>
 

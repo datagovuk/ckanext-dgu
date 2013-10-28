@@ -21,7 +21,6 @@ $(function() {
   });
 
 
-
   var spinConfig = {
     lines: 9, // The number of lines to draw
     length: 5, // The length of each line

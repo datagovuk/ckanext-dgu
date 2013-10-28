@@ -38,6 +38,14 @@ ul.sublist {
     height: 24px;
   }
 }
+.h2-subheading {
+  text-transform: none;
+}
+hr {
+  border-top-color: #ccc;
+  border-bottom-color: #fff;
+  margin-top: 12px;
+}
 .administrator-tools {
   margin: 0;
   padding: 0;
@@ -81,7 +89,6 @@ a.tag {
 }
 .notes {
     color: #555;
-    margin-bottom: 30px;
     .notes-read-more {
       margin-top: 7px;
       display: block;
@@ -1015,6 +1022,7 @@ body.controller-package {
       overflow: hidden;
       .inner {
         display: table;
+        height: 100%;
       }
       .inner2 {
         display: block;
@@ -1100,23 +1108,9 @@ body.controller-package {
 /* PAGE: Resource/read */
 /* ------------------- */
 body.controller-package.action-resource_read {
-    div.resource-actions {
-        position: relative;
-        float: right;
-        .btn{
-            bottom: 3px;
-            padding: 8px 10px;
-            margin: 0 0 0 7px;
-        }
-        .download  {
-            padding-top: 2px;
-            padding-right: 4px;
-            img {
-                margin-top: 1px;
-                margin-right: 0px;
-            }
-        }
-    }
+  .resource-notes {
+    margin-bottom: 20px;
+  }
     .quick-info {
         > div {
             margin-bottom: 9px;

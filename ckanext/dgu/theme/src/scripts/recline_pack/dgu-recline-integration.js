@@ -274,7 +274,7 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
 
   my.showError = function (error) {
     var _html = _.template(
-        '<div class="alert alert-error"><strong><%= title %></strong><br /><%= message %></div>',
+        '<div class="panel panel-danger"><div class="panel-heading"><strong><%= title %></strong></div><div class="panel-body"><%= message %></div></div>',
         error
     );
     my.$dialog().html(_html);
