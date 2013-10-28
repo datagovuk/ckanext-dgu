@@ -1792,3 +1792,36 @@ def pagination_links(page,numpages,url_for_page):
             if out[i+1] > out[i]+1:
                 yield "...",None
 
+############################################
+# Commitment report helpers
+############################################
+def commitments_count_and_met(publisher_name, commitments):
+    count, met = 0, 0
+    for c in commitments:
+        if c.publisher == publisher_name:
+            count = count + 1
+            if c.dataset:
+                met = met + 1
+    return count, met
+
+def commitments_count_and_met_totals(commitments):
+    count, met = 0, 0
+    for c in commitments:
+        count = count + 1
+        if c.dataset:
+            met = met + 1
+    return count, met
+
+def commitments_by_source(all_commitments, source):
+    commitments = []
+    for co in all_commitments:
+        if co.source == source:
+            commitments.append(co)
+    return commitments
+
+def commitment_dataset(commitment):
+    import ckan.model as model
+    if commitment.dataset:
+        dataset = model.Package.get(commitment.dataset)
+        return dataset
+    return None

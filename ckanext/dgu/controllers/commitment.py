@@ -20,11 +20,12 @@ from ckanext.dgu.plugins_toolkit import (render, c, request, _,
 class CommitmentController(BaseController):
 
     def index(self):
-
+        from ckanext.dgu.model.commitment import Commitment, ODS_ORGS
         c.publishers = model.Session.query(model.Group)\
             .filter(model.Group.state=='active')\
+            .filter(model.Group.name.in_(ODS_ORGS.values()))\
             .order_by(model.Group.title).all()
-
+        c.commitments = model.Session.query(Commitment).filter(Commitment.state=='active').all()
 
         return render('commitment/index.html')
 
@@ -46,11 +47,7 @@ class CommitmentController(BaseController):
             abort(404, _('Publisher not found'))
 
         c.publisher = context.get('group')
-        c.commitments = Commitment.get_for_publisher(c.publisher.name).order_by('commitment.commitment_text')
-
-        # FIXME: Should be a foreignkey
-        for cm in c.commiments:
-            cm.dataset = model.Package.get(cm.dataset)
+        c.commitments = Commitment.get_for_publisher(c.publisher.name).order_by('commitment.commitment_text').all()
 
         return render('commitment/read.html')
 

@@ -21,84 +21,113 @@
   <py:match path="content">
     <h1>Data publication commitments <small>${c.publisher.title}</small></h1>
 
-    <div class="boxed">
-        <h2>Commitments ....</h2>
+    <div>
         <p>
-            In the <a href="https://www.gov.uk/government/publications/government-response-to-shakespeare-review">Government response</a> to the <a href="https://www.gov.uk/government/publications/government-response-to-shakespeare-review">Shakespeare Review</a> there was a commitment to set out the commitments for each public sector body in an easy to use way that shows how each body meets those commitments.
+           This page lists the public commitments to the release of further datasets by the Department along with links to the data where is has been released or identified as an unpublished dataset. These commitments are only those which have been made to the release of data and Departments may have made public commitments in terms of further activity. This page does not list links to the corporate commitments which all central government Departments and ALBs have been committed to release from the Coalition Agreement and letters from the Prime Minister of May 2010 and July 2011.
         </p>
-    </div>
-
-    <h1>Open data strategy</h1>
-    <div class="" py:if="c.commitments.count()  == 0">
-    No data provided
-    </div>
-
-    <div class="" py:if="c.commitments.count() > 0">
-      <a  href="/data/reports/commitments/${c.publisher.name}.csv" class="btn btn-primary pull-right">
-        <div class="download">
-          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-          Download as CSV
-        </div>
-      </a>
-
-        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
-          <thead>
-            <tr>
-              <th>Source</th>
-              <th>Commitment</th>
-              <th>Notes</th>
-              <th>Dataset</th>
-            </tr>
-          </thead>
-          <tbody>
-            <py:for each="commitment in c.commitments">
-              <tr>
-                  <td>${commitment.source}</td>
-                  <td>${commitment.commitment_text}</td>
-                  <td>${commitment.notes}</td>
-                  <td><a href="${h.url_for()}">${commitment.dataset.title()}</a></td>
-              </tr>
-            </py:for>
-          </tbody>
-        </table>
+        <p>This page is a beta release – it does not yet list all of the commitment which the Department has made. Further additions will be made on an ongoing basis.</p>
     </div>
 
     <div>&nbsp;</div>
 
-    <h1>PM Commitments</h1>
-    <div py:if="c.commitments.count()  == 0">
-    No data provided
-    </div>
+    <h2>Open data strategy</h2>
+    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'ODS')">
+      <div class="" py:if="len(commitments)  == 0">
+      No data provided
+      </div>
 
-    <div class="" py:if="c.commitments.count() > 0">
-      <a  href="/data/reports/commitments/${c.publisher.name}.csv" class="btn btn-primary pull-right">
-        <div class="download">
-          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-          Download as CSV
-        </div>
-      </a>
-
-        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
-          <thead>
-            <tr>
-              <th>Source</th>
-              <th>Commitment</th>
-              <th>Notes</th>
-              <th>Dataset</th>
-            </tr>
-          </thead>
-          <tbody>
-            <py:for each="commitment in c.commitments">
+      <div class="" py:if="len(commitments) > 0">
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
               <tr>
-                  <td>${commitment.source}</td>
-                  <td>${commitment.commitment_text}</td>
-                  <td>${commitment.notes}</td>
-                  <td><a href="${h.url_for()}">${commitment.dataset.title()}</a></td>
+                <th>Commitment</th>
+                <th>Dataset</th>
               </tr>
-            </py:for>
-          </tbody>
-        </table>
-    </div>
+            </thead>
+            <tbody>
+              <py:for each="commitment in commitments">
+                <py:with vars="dataset = h.commitment_dataset(commitment)">
+                  <tr>
+                      <td py:if="commitment.commitment_text">${commitment.commitment_text}</td>
+                      <td py:if="not commitment.commitment_text">${commitment.dataset_name}</td>
+
+                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
+                      <td py:if="not dataset">Commitment not met</td>
+                  </tr>
+                </py:with>
+              </py:for>
+            </tbody>
+          </table>
+      </div>
+    </py:with>
+
+    <div>&nbsp;</div>
+    <h2><a href="http://www.number10.gov.uk/news/letter-to-government-departments-on-opening-up-data">Prime Minister's Letter May 2010</a></h2>
+    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM1')">
+      <div class="" py:if="len(commitments)  == 0">
+      No data provided
+      </div>
+
+      <div class="" py:if="len(commitments) > 0">
+
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>Dataset</th>
+              </tr>
+            </thead>
+            <tbody>
+              <py:for each="commitment in commitments">
+                <py:with vars="dataset = h.commitment_dataset(commitment)">
+                  <tr>
+                      <td py:if="commitment.commitment_text">${commitment.commitment_text}</td>
+                      <td py:if="not commitment.commitment_text">${commitment.dataset_name}</td>
+
+                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
+                      <td py:if="not dataset">Commitment not met</td>
+                  </tr>
+                </py:with>
+              </py:for>
+            </tbody>
+          </table>
+      </div>
+    </py:with>
+
+    <div>&nbsp;</div>
+
+    <h2><a href="http://www.number10.gov.uk/news/letter-to-cabinet-ministers-on-transparency-and-open-data">Prime Minister's Letter July 2011</a></h2>
+<py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM2')">
+      <div class="" py:if="len(commitments)  == 0">
+      No data provided
+      </div>
+
+      <div class="" py:if="len(commitments) > 0">
+
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>Dataset</th>
+              </tr>
+            </thead>
+            <tbody>
+              <py:for each="commitment in commitments">
+                <py:with vars="dataset = h.commitment_dataset(commitment)">
+                  <tr>
+                      <td py:if="commitment.commitment_text">${commitment.commitment_text}</td>
+                      <td py:if="not commitment.commitment_text">${commitment.dataset_name}</td>
+
+                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
+                      <td py:if="not dataset">Commitment not met</td>
+                  </tr>
+                </py:with>
+              </py:for>
+            </tbody>
+          </table>
+      </div>
+    </py:with>
+
   </py:match>
 
 

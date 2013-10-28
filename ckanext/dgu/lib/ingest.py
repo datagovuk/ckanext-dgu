@@ -102,6 +102,7 @@ class Ingester(object):
                     count = count + 1
                 except IngestException, ie:
                     if ie.should_continue:
+                        print ie
                         continue
                     raise ie
 

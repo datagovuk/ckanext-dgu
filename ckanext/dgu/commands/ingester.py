@@ -86,10 +86,6 @@ class Ingester(CkanCommand):
             if sorted(headers) != sorted(row):
                 return False, "Was expecting headers to be {0}".format(headers)
 
-            # TODO: Clean up current commitments before we import the new ones.
-            # This is problematic as we might have new ones, and so don't want to
-            # lose those.  We'll match them in process_row
-
             return True, ""
 
         def row_validate(row):
@@ -98,15 +94,10 @@ class Ingester(CkanCommand):
             if len(row) != 7:
                 return False, "Not enough columns, expected 7"
 
-            # A tiny bit of cleanup of the date format
-            if isinstance(row[5], datetime.datetime):
-                row[5] = row[5].strftime("%d/%m/%Y")
-            if isinstance(row[5], float):
-                row[5] = str(int(row[5]))
-
-            required = [row[x] for x in xrange(7) if x not in [4]]
-            if not all(required):
-                return False, "All fields except 'Further notes' are required".format(row)
+            #required = [row[x] for x in xrange(7) if x not in [2, 3, 4,5,6]]
+            #if not all(required):
+            #    print row
+            #    return False, "All fields except 'Further notes' and 'Link to DGU dataset' are required".format(row)
 
             return True, ""
 
@@ -115,21 +106,26 @@ class Ingester(CkanCommand):
             Reads each row and tries to create a new commitment database entry after
             trying to determine if a matching one already exists.
             """
+            import ckan.model as model
             from ckanext.dgu.model.commitment import Commitment
+            from ckanext.dgu.model.commitment import ODS_ORGS, ODS_LINKS
 
-            group_title = row[0].strip()
-            org = model.Session.query(model.Group)\
-                .filter(model.Group.title==group_title)\
-                .filter(model.Group.state=='active').first()
+            short_org = row[0].strip()
+            org_name = ODS_ORGS.get(short_org, None)
+            if not org_name:
+                raise ingest.IngestException("Failed to lookup group {0}".format(short_org), True)
+            org = model.Group.get(org_name)
             if not org:
-                raise ingest.IngestException("Failed to find group {0}".format(group_title), True)
+                raise ingest.IngestException("Failed to find group {0}".format(org_name), True)
 
-            dataset_name = _url_to_dataset_name(row[6].strip())
-            dataset = model.Session.query(model.Package)\
-                .filter(model.Package.name==dataset_name)\
-                .filter(model.Package.state=='active').first()
+            dataset = None
+            if row[6].strip():
+                dataset_name = self._url_to_dataset_name(row[6].strip())
+                dataset = model.Session.query(model.Package)\
+                    .filter(model.Package.name==dataset_name)\
+                    .filter(model.Package.state=='active').first()
             if not dataset:
-                raise ingest.IngestException("Failed to find group {0}".format(dataset_name), True)
+                dataset = ""
 
             source     = row[1]
             name       = row[2]
@@ -140,7 +136,7 @@ class Ingester(CkanCommand):
             # Delete a record that matches based on source and name
             c = model.Session.query(Commitment)\
                 .filter(Commitment.source==source)\
-                .filter(Commitment.text==text)\
+                .filter(Commitment.commitment_text==text)\
                 .filter(Commitment.publisher==org.id).first()
             if not c:
                 c = Commitment()
@@ -148,9 +144,11 @@ class Ingester(CkanCommand):
             c.source = source
             c.commitment_text = text
             c.notes = notes
-            c.publisher = org.id
+            c.publisher = org.name
             c.author = ''
-            c.dataset = dataset.id
+            c.dataset_name = name
+            c.dataset = dataset.name if dataset else ""
+            c.state = 'active'
             model.Session.add(c)
             model.Session.commit()
 
@@ -179,9 +177,8 @@ class Ingester(CkanCommand):
             if len(row) != 6:
                 return False, "Wrong number of columns, expected 6"
 
-            # TODO: Re-enable
-            #if row[0].strip() == '' or row[2].strip() == '':
-            #    return False, "At a minimum group title and dataset url are required"
+            if row[2].strip() == '':
+                return False, "No dataset URL provided"
 
             return True, ""
 

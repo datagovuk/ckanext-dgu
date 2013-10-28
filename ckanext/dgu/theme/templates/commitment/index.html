@@ -23,24 +23,26 @@
 
     <h1>Data publication commitments</h1>
 
-    <div class="boxed widget-container">
-        As a response to the <a href="">Shakespeare review</a> ... Antonio text here....
-    </div>
-
 
     <table class="table table-condensed" width="100%">
         <tr>
           <th>Publisher</th>
-          <th>Open data strategy committments</th>
-          <th>PM Committments</th>
+          <th>Commitments made</th>
+          <th>Commitments met</th>
         </tr>
         <py:for each="publisher in c.publishers">
-          <tr>
+          <tr py:with="(c,m,) = h.commitments_count_and_met(publisher.name, c.commitments)">
               <td><a href="${h.url_for('commitments_publisher', id=publisher.name)}">${publisher.title}</a></td>
-              <td>0</td>
-              <td>0</td>
+              <td>${c}</td>
+              <td>${m}</td>
           </tr>
         </py:for>
+        <tr py:with="(c,m,) = h.commitments_count_and_met_totals(c.commitments)">
+          <th>Total</th>
+          <th>${c}</th>
+          <th>${m}</th>
+        </tr>
+
     </table>
 
   </div>
