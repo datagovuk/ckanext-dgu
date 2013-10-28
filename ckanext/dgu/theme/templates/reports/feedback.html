@@ -103,7 +103,10 @@
 
           <a class='pull-right' py:if="c.publisher" href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">View all publishers</a>
 
-        ${c.page.pager()}
+        <div py:if="c.page.items">
+          ${paginator(c.page)}
+        </div>
+
         <div class="clearfix"></div>
     </div>
   </div>
