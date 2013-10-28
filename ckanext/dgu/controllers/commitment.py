@@ -47,7 +47,7 @@ class CommitmentController(BaseController):
             abort(404, _('Publisher not found'))
 
         c.publisher = context.get('group')
-        c.commitments = Commitment.get_for_publisher(c.publisher.name).order_by('commitment.commitment_text').all()
+        c.commitments = Commitment.get_for_publisher(c.publisher.name).order_by('commitment.dataset_name').all()
 
         return render('commitment/read.html')
 

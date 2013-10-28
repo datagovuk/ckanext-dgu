@@ -1825,3 +1825,7 @@ def commitment_dataset(commitment):
         dataset = model.Package.get(commitment.dataset)
         return dataset
     return None
+
+def has_commitment(publisher):
+    from ckanext.dgu.model.commitment import ODS_ORGS
+    return publisher.name in ODS_ORGS.values()

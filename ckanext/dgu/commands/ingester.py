@@ -119,13 +119,18 @@ class Ingester(CkanCommand):
                 raise ingest.IngestException("Failed to find group {0}".format(org_name), True)
 
             dataset = None
-            if row[6].strip():
-                dataset_name = self._url_to_dataset_name(row[6].strip())
+            # Handle multiple values in the URL field
+            parts = row[6].strip().split()
+            if parts:
+                dataset_name = self._url_to_dataset_name(parts[0])
                 dataset = model.Session.query(model.Package)\
                     .filter(model.Package.name==dataset_name)\
                     .filter(model.Package.state=='active').first()
             if not dataset:
-                dataset = ""
+                if parts and parts[0].startswith('http'):
+                    dataset = parts[0]
+                else:
+                    dataset = ""
 
             source     = row[1]
             name       = row[2]
@@ -136,18 +141,26 @@ class Ingester(CkanCommand):
             # Delete a record that matches based on source and name
             c = model.Session.query(Commitment)\
                 .filter(Commitment.source==source)\
+                .filter(Commitment.dataset_name==name)\
                 .filter(Commitment.commitment_text==text)\
-                .filter(Commitment.publisher==org.id).first()
+                .filter(Commitment.publisher==org.name).first()
             if not c:
                 c = Commitment()
+                log.info("Creating new commitment")
+            else:
+                log.info("Updating existing commitment")
 
             c.source = source
             c.commitment_text = text
+
             c.notes = notes
             c.publisher = org.name
             c.author = ''
             c.dataset_name = name
-            c.dataset = dataset.name if dataset else ""
+            if dataset and hasattr(dataset, 'name'):
+                c.dataset = dataset.name
+            else:
+                c.dataset = dataset
             c.state = 'active'
             model.Session.add(c)
             model.Session.commit()

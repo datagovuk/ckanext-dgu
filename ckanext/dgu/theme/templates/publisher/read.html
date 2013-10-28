@@ -75,8 +75,8 @@
               <li><a href="${h.url_for('qa_organisation_action_id_reports', action='scores',id=c.group.name)}">
               Openness report</a></li>
 
-              <li><a href="${h.url_for('commitments_publisher', id=c.group.name)}">
-              PM Commitments</a></li>
+              <li py:if="h.has_commitment(c.group)"><a href="${h.url_for('commitments_publisher', id=c.group.name)}">
+              Data publication commitments</a></li>
 
             </ul>
           </div>
