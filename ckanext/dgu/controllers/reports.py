@@ -69,7 +69,7 @@ class ReportsController(BaseController):
         if c.data:
             c.generated_at = c.data[0].get('generated-at')
 
-        def pager_url(page):
+        def pager_url(q=None, page=None):
             ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
             params = {'controller': ctlr, 'action': 'feedback', 'page': page}
             if id:
