@@ -1826,6 +1826,13 @@ def commitment_dataset(commitment):
         return dataset
     return None
 
+def open_data_strategy_link(publisher):
+    from ckanext.dgu.model.commitment import ODS_ORGS, ODS_LINKS
+    for k, v in ODS_ORGS.iteritems():
+        if v == publisher.name:
+            return ODS_LINKS[k]
+    return ""
+
 def has_commitment(publisher):
     from ckanext.dgu.model.commitment import ODS_ORGS
     return publisher.name in ODS_ORGS.values()

@@ -28,47 +28,7 @@
         <p>This page is a beta release – it does not yet list all of the commitment which the Department has made. Further additions will be made on an ongoing basis.</p>
     </div>
 
-    <div>&nbsp;</div>
 
-    <h2>Open data strategy</h2>
-    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'ODS')">
-      <div class="" py:if="len(commitments)  == 0">
-      No data provided
-      </div>
-
-      <div class="" py:if="len(commitments) > 0">
-          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
-            <thead>
-              <tr>
-                <th>Commitment</th>
-                <th>Dataset</th>
-              </tr>
-            </thead>
-            <tbody>
-              <py:for each="commitment in commitments">
-                <py:with vars="dataset = h.commitment_dataset(commitment)">
-                  <tr>
-                      <td>
-                        <py:if test="commitment.dataset_name">
-                            ${commitment.dataset_name}
-                            <br/>
-                        </py:if>
-                          <py:if test="commitment.commitment_text and not commitment.commitment_text == commitment.dataset_name">
-                            ${commitment.commitment_text}
-                          </py:if>
-                      </td>
-
-                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
-                      <td py:if="not dataset">
-                         <py:if test="commitment.dataset"><a href="${commitment.dataset}">${commitment.dataset}</a></py:if>
-                      </td>
-                  </tr>
-                </py:with>
-              </py:for>
-            </tbody>
-          </table>
-      </div>
-    </py:with>
 
     <div>&nbsp;</div>
     <h2><a href="http://www.number10.gov.uk/news/letter-to-government-departments-on-opening-up-data">Prime Minister's Letter May 2010</a></h2>
@@ -123,6 +83,51 @@
 
       <div class="" py:if="len(commitments) > 0">
 
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+            <thead>
+              <tr>
+                <th>Commitment</th>
+                <th>Dataset</th>
+              </tr>
+            </thead>
+            <tbody>
+              <py:for each="commitment in commitments">
+                <py:with vars="dataset = h.commitment_dataset(commitment)">
+                  <tr>
+                      <td>
+                        <py:if test="commitment.dataset_name">
+                            ${commitment.dataset_name}
+                            <br/>
+                        </py:if>
+                          <py:if test="commitment.commitment_text and not commitment.commitment_text == commitment.dataset_name">
+                            ${commitment.commitment_text}
+                          </py:if>
+                      </td>
+
+                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
+                      <td py:if="not dataset">
+                         <py:if test="commitment.dataset"><a href="${commitment.dataset}">${commitment.dataset}</a></py:if>
+                      </td>
+                  </tr>
+                </py:with>
+              </py:for>
+            </tbody>
+          </table>
+      </div>
+    </py:with>
+
+<div>&nbsp;</div>
+
+    <h2 py:with="url = h.open_data_strategy_link(c.publisher)">
+      <a py:if="url" href="${h.open_data_strategy_link(c.publisher)}">Open data strategy</a>
+      <py:if test="not url">Open data strategy</py:if>
+    </h2>
+    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'ODS')">
+      <div class="" py:if="len(commitments)  == 0">
+      No data provided
+      </div>
+
+      <div class="" py:if="len(commitments) > 0">
           <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
             <thead>
               <tr>
