@@ -199,7 +199,17 @@ ul.button-row {
   line-height: 12px;
   padding: 3px 9px;
 }
-
+.ckan-login-form {
+  label {
+    font-weight: normal;
+    width: 130px;
+    text-align: right;
+    padding-right: 10px;
+  }
+  .form-actions {
+    padding: 10px 0 10px 25px;
+  }
+}
 
 
 /* Table Sorter */
@@ -1132,11 +1142,14 @@ body.controller-package.action-new,
 body.controller-package.action-edit {
     #package-edit ul.nav,
     #package-edit ul.nav li {
+      /*
         width: 210px;
         margin-right: -1px;
         background: #fff;
+        */
     }
     .tab-content {
+      /*
         display: block;
         width: auto;
         > fieldset {
@@ -1144,6 +1157,7 @@ body.controller-package.action-edit {
             padding: 20px;
             min-height: 338px;
         }
+        */
     }
     #section-description-field p {
         margin-top: 10px;
@@ -1151,24 +1165,22 @@ body.controller-package.action-edit {
     .nav-backnext {
         float: right;
     }
-    #form-tabs {
-        #disclaimer p,
-        #disclaimer input {
-            display: inline-block;
-            *display: inline;
-            zoom: 1;
-            max-width: 400px;
-            vertical-align: top;
-            margin-left: 10px;
-        }
-        a.disabled {
-            color: #a6a6a6;
+    #disclaimer p,
+    #disclaimer input {
+        display: inline-block;
+        *display: inline;
+        zoom: 1;
+        max-width: 400px;
+        vertical-align: top;
+        margin-left: 10px;
+    }
+    a.disabled {
+        color: #a6a6a6;
+        cursor: default;
+        &:hover {
+            background-color: transparent;
             cursor: default;
-            &:hover {
-                background-color: transparent;
-                cursor: default;
-                border-color: transparent;
-            }
+            border-color: transparent;
         }
     }
     .fieldset_button_error {

@@ -6,22 +6,25 @@
   py:strip="">
 
   <py:def function="page_title">Not Authorized</py:def>
-  <py:def function="page_heading">Not Authorized</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><i>Not Authorized</i></li>
+  </py:match>
 
   <div py:match="content">
-    <div class="boxed">
-      This action is not authorized.
-
-      <div py:if="not c.user">
-        <p>You may <a href="${'/user' if 'dgu_drupal_auth' in config['ckan.plugins'] else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
-      </div>
-
-      <div py:if="c.user">
-        <p>You are logged in as: ${h.dgu_linked_user(c.user, maxlength=100)}</p>
+    <div class="panel panel-danger">
+      <div class="panel-heading">This action is not authorized</div>
+      <div class="panel-body">
+        <div py:if="not c.user">
+          <p>You may <a href="${'/user' if 'dgu_drupal_auth' in config['ckan.plugins'] else h.url_for(controller='user',action='me')}">log-in</a> and try again.</p>
+        </div>
+        <div py:if="c.user">
+          <p>You are logged in as: ${h.dgu_linked_user(c.user, maxlength=100)}</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <xi:include href="layout.html" />
+  <xi:include href="layout_base.html" />
 
 </html>

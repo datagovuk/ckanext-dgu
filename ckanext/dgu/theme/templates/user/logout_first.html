@@ -3,19 +3,19 @@
   py:strip="">
 
   <py:def function="page_title">CKAN logout first</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
-  <div py:match="content" py:strip="">
 
-    <h1>CKAN login</h1>
-    <div class="alert">
-      <h3>Error</h3>
-      <p>You must 
-         <a href="${'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}">log out</a>
-         before you can login.
-      </p>
+  <py:match path="breadcrumbs">
+    <li><i>You must log out</i></li>
+  </py:match>
+
+  <py:match path="content">
+    <div class="panel panel-danger">
+      <div class="panel-heading">Error</div>
+      <div class="panel-body">
+        You must <a href="${'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}">log out</a> before you can login.
+      </div>
     </div>
+  </py:match>
 
-  </div>
-
-  <xi:include href="../layout.html" />
+  <xi:include href="../layout_base.html" />
 </html>

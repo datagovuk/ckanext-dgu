@@ -28,29 +28,35 @@
 </py:def>
 
 
-<div class="error-explanation" py:if="bool(errors)">
-<h2>Errors in form</h2>
-<p>The form contains invalid entries:</p>
-  ${dump(errors)}
-</div>
+  <div class="panel panel-danger error-explanation" py:if="bool(errors)">
+    <div class="panel-heading"><strong>Errors in form</strong></div>
+    <div class="panel-body">
+      The form contains invalid entries:
+      ${dump(errors)}
+    </div>
+  </div>
 
 <div id="form-tabs" class="tabbable tabs-left">
-  <ul class="nav nav-tabs" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if h.use_wizard(data, errors) else {}">
-    <li class="active"><a data-toggle="hashtab" id="section-name" href="#section-name-fields">Name</a></li>
-    <li><a data-toggle="hashtab" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
-    <li><a data-toggle="hashtab" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
-    <li><a data-toggle="hashtab" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
-    <li><a data-toggle="hashtab" id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
-    <li><a data-toggle="hashtab" id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
-    <li><a data-toggle="hashtab" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
-    <li><a data-toggle="hashtab" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
-    <li><a data-toggle="hashtab" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
-    <li py:if="h.is_package_edit_form(data) and (h.is_sysadmin() or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
-    <li py:if="h.is_sysadmin()"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
-  </ul>
-  <div class="tab-content">
+  <div class="row">
+    <div class="col-lg-3 col-sm-4">
+      <ul class="nav nav-pills nav-stacked" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if h.use_wizard(data, errors) else {}">
+        <li class="active"><a data-toggle="hashtab" id="section-name" href="#section-name-fields">Name</a></li>
+        <li><a data-toggle="hashtab" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
+        <li><a data-toggle="hashtab" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
+        <li><a data-toggle="hashtab" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
+        <li><a data-toggle="hashtab" id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
+        <li><a data-toggle="hashtab" id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
+        <li><a data-toggle="hashtab" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
+        <li><a data-toggle="hashtab" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
+        <li><a data-toggle="hashtab" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
+        <li py:if="h.is_package_edit_form(data) and (h.is_sysadmin() or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+        <li py:if="h.is_sysadmin()"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
+      </ul>
+    </div>
+    <div class="col-lg-9 col-sm-8">
 
-<fieldset class="tab-pane active" id="section-name-fields">
+  <div class="tab-content">
+<fieldset class="tab-pane boxed whitebox fade active" id="section-name-fields">
   <h3>Name</h3>
   <div class="control-group">
     <p>Please name your data record.</p>
@@ -87,7 +93,7 @@
   </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-data-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-data-field">
   <h3>Data Files</h3>
   <p>In this tab you enter the links to the files containing the actual data at the heart of this record.</p>
 
@@ -307,7 +313,7 @@
 </fieldset>
 
 
-<fieldset class="tab-pane" id="section-description-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-description-field">
   <h3>Description</h3>
   <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
   <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
@@ -315,7 +321,7 @@
   <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-licence-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-licence-field">
   <h3>Licence</h3>
     <div class="control-group">
     <label class="control-label" for="license_id">Licence:</label>
@@ -379,7 +385,7 @@
     </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-publisher-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-publisher-field">
   <h3>Publisher</h3>
     <div class="control-group">
       <label class="control-label" for="owner_org">Published by: </label>
@@ -498,7 +504,7 @@
     </py:with>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-themes-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-themes-field">
     <div style="width: 45%; float: left; margin-right: 4%;">
     <h3 style="font-weight: bold;">Primary Theme</h3>
     <p>1. Please choose a primary theme which this data record falls under from the options below.<br/>See the <a href="/data/themes" target="_blank"><strong>themes page</strong></a> for more information.</p>
@@ -534,7 +540,7 @@
     </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-additional_resources-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-additional_resources-field">
   <h3>Additional resources</h3>
   <p>You can add links to additional resources here.  Use a link for each resource.  This could be PDFs of files explaining the data or links to a website with more information.</p>
   <table class="table table-bordered table-striped table-condensed flexitable" id="additional_resources-table">
@@ -636,7 +642,7 @@
 
 </fieldset>
 
-<fieldset class="tab-pane" id="section-temporal-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-temporal-field">
   <h3>Time &amp; date</h3>
   <div class="control-group">
     <label class="control-label" for="temporal_coverage">Temporal coverage</label>
@@ -651,7 +657,7 @@
   </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-geographic-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-geographic-field">
   <h3>Geographic coverage</h3>
 
     <div class="well">
@@ -691,7 +697,7 @@
     </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-extra-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-extra-field">
   <h3>Extras</h3>
 
   <div class="control-group" py:if="data.get('url', '')">
@@ -823,7 +829,7 @@
   </div>
 </fieldset>
 
-<fieldset class="tab-pane" id="section-state-field" py:if="h.is_sysadmin()">
+<fieldset class="tab-pane boxed whitebox fade" id="section-state-field" py:if="h.is_sysadmin()">
     <h4>State</h4>
     <div class="well">
       <p>NB: Dangerous operation! (Available to sysadmins only)</p>
@@ -857,7 +863,10 @@
   </div>
 </div><!-- /form-actions -->
 
+</div><!-- col-xx-xx -->
+</div><!-- row -->
 </div>
+
 
 <div class="modal hide" id="package_type_modal">
   <div class="modal-header">

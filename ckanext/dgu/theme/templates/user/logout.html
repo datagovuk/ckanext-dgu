@@ -3,16 +3,17 @@
   py:strip="">
 
   <py:def function="page_title">CKAN logout</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
-  <div py:match="content" py:strip="">
+  <py:match path="breadcrumbs">
+    <li><i>Logged Out</i></li>
+  </py:match>
 
-  <!--! Overriding the OKF template only because we do not have a
-        DGU base template in Jinja yet -->
-
-    <h1>CKAN log out</h1>
-    <p>You are now logged out.</p>
-
-  </div>
-
-  <xi:include href="../layout.html" />
+  <py:match path="content">
+    <div class="panel panel-info">
+      <div class="panel-heading"><strong>CKAN log out</strong></div>
+      <div class="panel-body">
+        You are now logged out.
+      </div>
+    </div>
+  </py:match>
+  <xi:include href="../layout_base.html" />
 </html>

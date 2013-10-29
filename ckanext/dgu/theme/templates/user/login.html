@@ -3,38 +3,44 @@
   py:strip="">
 
   <py:def function="page_title">CKAN login</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
+  <py:match path="breadcrumbs">
+    <li><a href="${request.url}">Log In</a></li>
+  </py:match>
   <div py:match="content" py:strip="">
-
-    <h1>CKAN login</h1>
-<!--! Am using a python block because I can't seem to get this to work:
-      py:if="'error_summary' in dir()" -->
-<?python
-err_msg = error_summary.values()[0] if 'error_summary' in dir() else None
-?>
-    <div py:if="err_msg" class="alert">
-      <h3>Login Error</h3>
-      <p>${err_msg}</p>
+    <!--! Am using a python block because I can't seem to get this to work:
+          py:if="'error_summary' in dir()" -->
+    <?python
+    err_msg = error_summary.values()[0] if 'error_summary' in dir() else None
+    ?>
+    <div py:if="err_msg" class="panel panel-danger">
+      <div class="panel-heading"><strong>Login Error</strong></div>
+      <div class="panel-body">${err_msg}</div>
     </div>
 
-    <form action="/data/user/login_generic" method="post" class="form-horizontal">
-      <div class="control-group">
-        <label for="login">Username:</label>
-        <input type="text" name="login" value="" />
-      </div>
-      <div class="control-group">
-        <label for="password">Password:</label>
-        <input type="password" name="password" value="" />
-      </div>
-      <!-- optional 2 year cookie expiry -->
-      <div class="control-group form-inline">
-        <label for="remember" class="form-inline">Remember me:</label>
-        <input type="checkbox" name="remember" value="63072000" checked="checked" />
-      </div>
+    <div class="panel panel-default">
+      <div class="panel-heading"><strong>CKAN login</strong></div>
+      <div class="panel-body">
 
-      <input name="s" id="s" type="submit" class="btn primary" value="Sign In"/>
-    </form>
-
+        <form action="/data/user/login_generic" method="post" class="form-horizontal ckan-login-form">
+          <div class="control-group">
+            <label for="login">Username:</label>
+            <input type="text" name="login" value="" />
+          </div>
+          <div class="control-group">
+            <label for="password">Password:</label>
+            <input type="password" name="password" value="" />
+          </div>
+          <!-- optional 2 year cookie expiry -->
+          <div class="control-group form-inline">
+            <label for="remember" class="form-inline">Remember me:</label>
+            <input type="checkbox" name="remember" value="63072000" checked="checked" />
+          </div>
+          <div class="form-actions">
+            <input name="s" id="s" type="submit" class="btn btn-primary" value="Sign In"/>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <xi:include href="../layout.html" />

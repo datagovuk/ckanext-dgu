@@ -5,6 +5,12 @@
 
   <py:def function="page_title">Edit - ${c.pkg.title or c.pkg.name}</py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
+    <li><a href="${h.url_for(controller='package',action='edit',id=c.pkg_dict['name'])}">Edit</a></li>
+  </py:match>
+
   <py:def function="optional_head">
     <script type="text/javascript">
       var form_errors = ${c.errors_json};
@@ -15,17 +21,9 @@
     <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
   </py:def>
 
-  <py:def function="page_heading">
-    ${dataset_admin_buttons(c.pkg)}
-    ${h.dataset_link(c.pkg)}
-    <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
-    <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit Dataset</span>
-  </py:def>
-
   <div py:match="content" class="dataset-edit-form">
-    <div class="boxed">
-      ${c.form}
-    </div>
+    <h1>Dataset Editor</h1>
+    ${c.form}
   </div>
 
   <xi:include href="../layout_base.html" />

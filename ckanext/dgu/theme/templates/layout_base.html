@@ -91,43 +91,9 @@ ${h.top_level_init()}
       id="${(defined('body_id') and body_id()) or ''}"
       py:with="breakout = defined('break_out_page') and break_out_page"
   >
-  <!--
-  <div id="blackbar" py:choose="defined('blackbar_content')">
-    <py:when test="True">
-      ${blackbar_content()}
-    </py:when>
-    <py:otherwise>
-      <div class="container">
-        <div id="hm-government-link" class="retina-img">
-          <img src="/images/crown-and-text.png" alt="HM Government" />
-        </div>
-        <span class="ckan-logged-in" style="display: none;">
-          <div id="login-or-signup">
-            You are logged-in as
-            <a href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}">${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}</a>.
-            <a href="${'/user/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}?destination=${request.url}">Log out</a>.
-          </div>
-        </span>
-        <span class="ckan-logged-out">
-          <div id="login-or-signup">
-            <a href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='login')}?destination=${request.url}">Log in</a>
-            or
-            <a href="${'/user/register' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='register')}?destination=${request.url}">sign up</a>
-          </div>
-        </span>
-      </div>
-    </py:otherwise>
-  </div>
-  -->
   <div id="blackbar">
     <div class="container">
-      <a class="brand" href="/" rel="home">
-        <!--
-          <div id="dgu-header" class="retina-img">
-              <img src="/assets/img/dgu-header-cropped.png" alt="DATA.GOV.UK - Opening up Government" />
-          </div>
-          -->
-      </a>
+      <a class="brand" href="/" rel="home"></a>
       <div class="chevron position1"></div>
       <nav id="dgu-nav">
         <a href="#" class="trigger-subnav nav-home">Home</a>
@@ -142,22 +108,25 @@ ${h.top_level_init()}
             </span>
           </form>
         </div>
-        <a class="nav-user btn btn-primary" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
+        <py:with vars="
+          drupal_mode=('dgu_drupal_auth' in config['ckan.plugins']);
+          logged_in=bool(c.user);
+        ">
+          <py:if test="logged_in">
+            <span class="dropdown">
+              <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-user"></i></a>
+              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+                <li><a href="${if_(drupal_mode,'/admin/workbench',h.url_for(controller='user',action='me'))}"><i class="icon-user"></i>&nbsp; ${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}'s profile</a></li>
+                <li><a href="${if_(drupal_mode,'/user/logout?destionation='+request.url,h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
+              </ul>
+            </span>
+          </py:if>
+          <py:if test="not logged_in">
+            <a class="nav-user btn btn-primary" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
+          </py:if>
+        </py:with>
       </nav>
     </div>
-    <!--
-            <li class="nav-home"><a href="/home"><i class="icon-home"/> &nbsp;Home</a></li>
-            <li class="nav-data active"><a href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController',action='index')}">Data</a></li>
-            <li class="nav-data-requests"><a href="/odug">Data requests</a></li>
-            <li class="nav-apps"><a href="/apps">Apps</a></li>
-            <li class="nav-blogs"><a href="/blog">Blogs</a></li>
-            <li class="nav-forum"><a href="/forum">Forum</a></li>
-            <li class="nav-library"><a href="/library">Library</a></li>
-            <li class="nav-location"><a href="/location">Location</a></li>
-            <li class="nav-linked-data"><a href="/linked-data">Linked Data</a></li>
-            <li class="nav-about"><a href="/about">About</a></li>
-          </ul>
-    -->
   </div>
   <div id="greenbar">
     <div class="container">

@@ -8,16 +8,17 @@
       $(function() {
         new CKAN.Dgu.UrlEditor({slugType:'group'});
       });
-
     </script>
 
-<div class="error-explanation" py:if="error_summary">
-<h2>Errors in form</h2>
-<p>The form contains invalid entries:</p>
-<ul>
-  <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
-</ul>
-</div>
+  <div class="panel panel-danger error-explanation" py:if="error_summary">
+    <div class="panel-heading"><strong>Errors in form</strong></div>
+    <div class="panel-body">
+      The form contains invalid entries:
+      <ul style="margin-bottom: 0;">
+        <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+      </ul>
+    </div>
+  </div>
 
 <input type="hidden" id="type" name="type" value="organization" />
 <input type="hidden" id="approval_status" name="approval_status" value="pending" />
