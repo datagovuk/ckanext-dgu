@@ -8,10 +8,15 @@
   <py:def function="page_title">Publisher report</py:def>
   <py:def function="page_heading">Publisher report</py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data/system_dashboard">System Dashboard</a></li>
+    <li><a href="/publisher/report_groups_without_admins">Publishers without admins</a></li>
+  </py:match>
+
+
   <div py:match="content">
-    <div class="boxed">
       <h3>Publishers without admins (${ c.non_admin_count})</h3>
-      <table id="admins" py:if="c.non_admin_count > 0" class="table table-bordered table-striped">
+      <table id="admins" py:if="c.non_admin_count > 0" class="table table-bordered">
         <tr>
           <th>Publisher</th>
         </tr>
@@ -21,7 +26,6 @@
           </tr>
         </py:for>
       </table>
-    </div>
   </div>
 
   <xi:include href="../layout.html" />

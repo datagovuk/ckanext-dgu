@@ -8,10 +8,16 @@
   <py:def function="page_title">Publisher report</py:def>
   <py:def function="page_heading">Publisher report</py:def>
 
+  <py:match path="breadcrumbs">
+    <li><a href="/data/system_dashboard">System Dashboard</a></li>
+    <li><a href="/publisher/report_users_not_assigned_to_groups">Users not assigned to groups</a></li>
+  </py:match>
+
+
   <div py:match="content">
-    <div class="boxed">
+
       <h3>Users not attached to a publisher (${ c.unassigned_users_count })</h3>
-      <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered table-striped">
+      <table id="users" py:if="c.unassigned_users_count > 0" width="100%" class="table table-bordered">
         <tr>
           <th>Full Name</th>
           <th>Username</th>
@@ -27,7 +33,7 @@
           </tr>
         </py:for>
       </table>
-    </div>
+
   </div>
 
   <xi:include href="../layout.html" />

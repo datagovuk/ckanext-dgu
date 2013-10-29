@@ -8,11 +8,17 @@
   <py:def function="page_title">Publisher report</py:def>
   <py:def function="page_heading">Publishers and Admins/Editors (${c.count})</py:def>
 
-  <div py:match="content">
-    <div class="boxed">
-      ${c.page.pager()}
+  <py:match path="breadcrumbs">
+    <li><a href="/data/system_dashboard">System Dashboard</a></li>
+    <li><a href="/publisher/report_publishers_and_users">Publishers and users</a></li>
+  </py:match>
 
-      <table py:if="c.count" width="100%" class="table table-bordered table-striped">
+
+  <div py:match="content">
+
+      ${paginator(c.page)}
+
+      <table py:if="c.count" width="100%" class="table table-bordered">
         <tr>
           <th>Title</th>
           <th>Number of datasets</th>
@@ -35,8 +41,9 @@
           </tr>
         </py:for>
       </table>
-      ${c.page.pager()}
-    </div>
+
+      ${paginator(c.page)}
+
   </div>
 
   <xi:include href="../layout.html" />
