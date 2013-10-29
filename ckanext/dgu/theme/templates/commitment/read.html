@@ -150,8 +150,12 @@
                       </td>
 
                       <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
-                      <td py:if="not dataset">
-                         <py:if test="commitment.dataset"><a href="${commitment.dataset}">${commitment.dataset}</a></py:if>
+                      <td py:if="not dataset" style="overflow: hidden;">
+                         <py:if test="commitment.dataset">
+                            <a href="${commitment.dataset}">
+                                ${h.truncate(commitment.dataset,60)}
+                            </a>
+                          </py:if>
                       </td>
                   </tr>
                 </py:with>
