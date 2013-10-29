@@ -7,11 +7,6 @@
 
   <py:def function="page_title">Quality Assurance</py:def>
 
-  <py:def function="body_class">no-sidebar</py:def>
-  <py:def function="page_heading">
-
-  </py:def>
-
   <py:def function="optional_head">
     <link type="text/css" rel="stylesheet" media="all" href="/css/ckanext-qa.css" />
   </py:def>
@@ -21,11 +16,16 @@
     <li><a href="${h.url_for('reports')}">Reports</a></li>
     <li><a href="${h.url_for('qa_organisation_action_reports', action='broken_resource_links')}">Broken links</a></li>
     <li><a href="${h.url_for('qa_organisation_action_id_reports', action='broken_resource_links',id=c.data['publisher_name'])}">${c.data['publisher_title']}</a></li>
-
   </py:match>
 
   <div py:match="content">
-      <h1>Broken resource links <small>${c.data['publisher_title']}</small></h1>
+      <a  href="${h.url_for('qa_api_resource_formatted', action=c.query.__name__, id=c.org_name, format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right">
+        <div class="download">
+          <i class="icon-download"></i>&nbsp;
+          Download as CSV
+        </div>
+      </a>
+      <h1>Broken resource links <small>Published by: ${c.data['publisher_title']}</small></h1>
 
     <div class="qa-content ">
       <py:if test="(not c.data) or (not c.data['data'])">
@@ -34,12 +34,6 @@
 
       <py:if test="c.data and c.data['data']">
 
-      <a  href="${h.url_for('qa_api_resource_formatted', action=c.query.__name__, id=c.org_name, format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right">
-        <div class="download">
-          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-          Download as CSV
-        </div>
-      </a>
 
         <div>
           <form action="">
@@ -84,7 +78,7 @@
   </div>
 
   <py:def function="optional_footer">
-    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.js"></script>
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
       //<![CDATA[
       $(document).ready(function()
@@ -98,6 +92,6 @@
     </script>
   </py:def>
 
-  <xi:include href="../../../../layout.html" />
+  <xi:include href="../../../../layout_base.html" />
 </html>
 
