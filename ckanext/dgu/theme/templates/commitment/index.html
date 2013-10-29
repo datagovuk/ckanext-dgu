@@ -28,7 +28,7 @@
         <tr>
           <th>Publisher</th>
           <th>Commitments made</th>
-          <th>Commitments met</th>
+          <th>Commitments reported</th>
         </tr>
         <py:for each="publisher in c.publishers">
           <tr py:with="(c,m,) = h.commitments_count_and_met(publisher.name, c.commitments)">
