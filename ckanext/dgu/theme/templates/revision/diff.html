@@ -18,7 +18,7 @@
   </py:match>
 
   <div py:match="content">
-    <div class="boxed">
+    <h1>Viewing Dataset Diff</h1>
       <h4>From</h4>
       <ul>
         <li><strong>ID: </strong>${c.revision_from.id} </li>
@@ -31,19 +31,18 @@
       </ul>
 
       <py:if test="c.diff">
-        <table class="table table-bordered table-striped revision-diff-table">
+        <table class="table table-bordered revision-diff-table">
           <tr>
             <th class="revision-left">Field</th><th class="revision-right">Difference</th>
           </tr>
          <py:for each="field, diff in c.diff">
-            <tr><td class="revision-left">${field}</td><td class="revision-right"><pre>${diff}</pre></td></tr>
+            <tr><td class="revision-left"><pre style="border: none; background: inherit;">${field}</pre></td><td class="revision-right"><pre style="border: none; background: inherit;">${diff}</pre></td></tr>
           </py:for>
         </table>
       </py:if>
       <py:if test="not c.diff">
         <h3>No differences</h3>
       </py:if>
-    </div>
   </div>
 
   <xi:include href="layout.html" />

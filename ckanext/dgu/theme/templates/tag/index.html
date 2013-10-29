@@ -4,48 +4,51 @@
   py:strip="">
   
   <py:def function="page_title">Tags</py:def>
-  <py:def function="page_heading">Tags</py:def>
+  <py:match path="breadcrumbs">
+    <li><a href="/tag">Tags</a></li>
+  </py:match>
 
   <div py:match="content">
-    <div class="boxed">
-      <table class="search-area">
-       <tr>
-        <td class="left" py:if="not c.query_error">
-          <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
-          <py:if test="'q' in request.params">      
-            <div class="result-count-footer">Results</div>
-          </py:if>
-          <py:if test="'q' not in request.params">      
-            <div class="result-count-footer">Tags</div>
-          </py:if>
-        </td>
-        <td class="left" py:if="c.query_error">
-          <div class="result-count-footer">Search Error</div>
-        </td>
-        <td class="right">
-          <form id="dataset-search" class="form-search dataset-search" action="" method="GET">
-            <div class="textbox">
-              <input type="text" class="input-medium" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search...')}" />
+    <div class="search-area" style="margin-top: 20px; margin-bottom: 30px;">
+      <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+        <div class="left">
+          <div class="left-inner auto-height form-search">
+            <form class="input-group" action="" method="GET">
+              <input type="text" class="form-control" name="q" value="${c.q}" autocomplete="off" results="0" placeholder="${_('Search Tags...')}" />
+              <span class="input-group-btn">
+                <button type="submit" class="btn btn-default">
+                  <i class="icon-search"></i>
+                </button>
+              </span>
+            </form>
+            <div class="alphabet-search">
+              ${c.page.pager(q=c.q)}
+              <div class="clearfix"></div>
             </div>
-            <input type="submit" value="${_('Search')}" class="btn btn-primary button" />
-            <div id="dataset-search-ext"></div>
-          </form>
-        </td>
-       </tr>
-      </table>
-
-    ${c.page.pager(q=c.q)}
-    <div class="clearfix"></div>
-      <div class="tags clearfix">
-        <py:for each="tag in c.page.items">
-          <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
-        </py:for>
+          </div>
+        </div>
+        <div class="right">
+          <div class="right-inner auto-height">
+          <div class="chevron"></div>
+            <py:if test="c.query_error">
+              <div class="result-count-footer">Search Error</div>
+            </py:if>
+            <py:if test="not c.query_error">
+              <div class="result-count">${c.page.item_count if c.page not in (None, '') else c.package_count or 0}</div>
+              <div class="result-count-footer">${if_('q' in request.params,'Results','Tags')}</div>
+            </py:if>
+          </div>
+        </div>
       </div>
-    <div class="clearfix"></div>
-    ${c.page.pager(q=c.q)}
+    </div><!-- /search-area -->
+
+    <div style="padding-bottom: 30px;">
+      <py:for each="tag in c.page.items">
+        <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
+      </py:for>
+      <div class="clearfix"></div>
     </div>
-        
   </div>
 
-  <xi:include href="layout.html" />
+  <xi:include href="../layout_base.html" />
 </html>
