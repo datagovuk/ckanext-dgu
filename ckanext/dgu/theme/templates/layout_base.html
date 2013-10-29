@@ -20,7 +20,7 @@
     <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
   </py:if>
   <!--! IE=edge tells IE8 not to be tempted to use IE7 compatibility/quirks modes.
-        chrome=IE7 tells IE7 to use the Chrome Frame if available - good for Flex machines. 
+        chrome=IE7 tells IE7 to use the Chrome Frame if available - good for Flex machines.
         Should be the first meta tag in the body. -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=IE7" />
   <meta charset="utf-8" />
@@ -136,10 +136,10 @@ ${h.top_level_init()}
         <li><a class="" href="/odug">Data Requests</a></li>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
         <!--<li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>-->
-        <li><a href="/organogram/cabinet-office">Organogram: Public Roles &amp; Salaries</a></li>
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">OpenSpending Browser</a></li>
+        <li><a href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-browse') else ''}" href="/data/openspending-browse">OpenSpending</a></li>
         <py:if test="config.get('dgu.openspending_reports_enabled')">
-          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">OpenSpending Reports</a></li>
+          <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/openspending-report') else ''}" href="/data/openspending-report/index">Spend Reports</a></li>
         </py:if>
         <py:if test="h.ga_report_installed()">
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Analytics</a></li>
