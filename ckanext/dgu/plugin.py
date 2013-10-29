@@ -192,7 +192,9 @@ class ThemePlugin(SingletonPlugin):
         tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
         map.redirect('/', '/data')
-        map.connect('/data', controller=data_controller, action='index')
+        map.redirect('/data', '/data/search')
+        #map.connect('/data', controller=data_controller, action='index')
+
         map.connect('/data/tag', controller=tag_controller, action='index')
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('/data/search', controller='package', action='search')
