@@ -8,6 +8,11 @@
   <py:def function="page_title">Data API</py:def>
   <py:def function="page_heading">Data Catalogue API</py:def>
 
+<py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/data/api">API</a></li>
+  </py:match>
+
   <div py:match="content">
     <div class="boxed">
       <p>Developers can access the data catalogue with an API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>

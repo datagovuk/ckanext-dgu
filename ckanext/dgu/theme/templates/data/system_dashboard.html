@@ -6,14 +6,18 @@
   <py:def function="page_title">System Dashboard</py:def>
   <py:def function="page_heading">System Dashboard</py:def>
   <py:def function="sidebar">
-    <div class="boxed">
     <h4>About</h4>
     <p>This page includes reports and administration tools for use by data.gov.uk System Administrators.</p>
-    </div>
-  </py:dev>
+  </py:def>
+
+<py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/data/system_dashboard">System Dashboard</a></li>
+  </py:match>
+
 
   <py:match path="content">
-    <div class="boxed">
+
       <h3>Publishers</h3>
       <ul>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='new')}">Create a new publisher</a></li>
@@ -22,8 +26,7 @@
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins')}">Publishers without administrators</a></li>
         <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaPublisherReport',action='index')}">Publishers leaderboard</a></li>
       </ul>
-    </div>
-    <div class="boxed">
+
       <h3>Users</h3>
       <ul>
         <li>Appoint a Publisher Admin or Publisher Editor by <a href="/publisher">navigating to the publisher</a> and clicking 'Edit User Permissions'</li>
@@ -31,8 +34,7 @@
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users_not_assigned_to_groups')}">Users not assigned to a publisher</a></li>
         <li><a href="${h.url_for('ckanadmin_index')}">Sysadmins</a></li>
       </ul>
-    </div>
-    <div class="boxed">
+
       <h3>Datasets</h3>
       <ul>
         <li><a href="/dataset/new">Create a dataset</a></li>
@@ -40,24 +42,23 @@
         <li>${h.link_to("Publisher openness scores (Five Stars of Openness)", h.url_for('qa_organisation_action', action='scores'))}</li>
         <!--<li>${h.link_to("Datasets with broken resource links", h.url_for('qa_dataset_action', action='broken_resource_links'))}</li>-->
         <li>${h.link_to("Publishers whose datasets contain broken resource links", h.url_for('qa_organisation_action', action='broken_resource_links'))}</li>
-        <li>${h.link_to("Resources by publisher", h.url_for('reports', action='resources'))}</li>
+        <!--! <li>${h.link_to("Resources by publisher", h.url_for('reports', action='resources'))}</li>
+        Temporarily removed
+        -->
       </ul>
-    </div>
-    <div class="boxed">
+
       <h3>Unpublished dataset feedback</h3>
       <ul>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Report for all publishers</a></li>
         <li><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
       </ul>
-    </div>
 
-    <div class="boxed">
       <h3>Harvesting</h3>
       <ul>
         <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest sources</a></li>
       </ul>
-    </div>
-    <div py:if="h.ga_report_installed()" class="boxed">
+
+    <py:if test="h.ga_report_installed()">
       <h3>Site Usage</h3>
       <ul>
         <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site-wide</a></li>
@@ -65,7 +66,7 @@
         <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}">Datasets</a></li>
         <li><a href="http://www.google.com/analytics/">Google Analytics</a></li>
       </ul>
-    </div>
+    </py:if>
   </py:match>
 
   <xi:include href="../layout.html" />
