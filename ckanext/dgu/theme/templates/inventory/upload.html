@@ -25,6 +25,11 @@
     ${publisher_sidebar()}
   </py:def>
 
+<py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
+    <li><a href="/publisher/${c.group['name']}">${c.group['title']}</a></li>
+    <li><a href="/unpublished/${c.group['name']}/edit">Manage inventory</a></li>
+</py:match>
 
   <py:match path="content">
     <h3 py:if="c.group['state'] != 'active'">State: ${c.group['state']}</h3>
@@ -56,9 +61,6 @@
     href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
   </py:def>
 
-  <py:def function="optional_footer">
-    ${publisher_sub_hierarchy(c.parent_publisher.name if c.parent_publisher else '', c.group.name)}
-  </py:def>
 
   <xi:include href="../layout.html" />
 </html>
