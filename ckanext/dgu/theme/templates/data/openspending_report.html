@@ -7,8 +7,13 @@
 
   <py:def function="page_title">Open Spending Report</py:def>
 
+ <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/data/openspending-report/index">Spend reports</a></li>
+  </py:match>
+
   <div py:match="content">
-    <div class="boxed">
+    <div class="">
       <xi:include href="${c.openspending_report_dir}/index.html" />
     </div>
 
@@ -20,13 +25,13 @@
   </div>
 
   <py:def function="optional_footer">
-    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script> 
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
-      //<![CDATA[ 
+      //<![CDATA[
       var myExtract = function(node) {
           if ('sort' in node.attributes) {
               return node.attributes['sort'].value;
-          } 
+          }
           // remove commas
           var text;
           if (node.childNodes[0] && node.childNodes[0].hasChildNodes()) {
@@ -36,20 +41,20 @@
           }
           return text.replace(/,/g, '');
       }
-      $(document).ready(function() 
-        { 
+      $(document).ready(function()
+        {
           $("#publishers-table").tablesorter({
               textExtraction: myExtract,
               dateFormat: "uk",
-              headers: { 
+              headers: {
                2: { sorter: 'digit' },
                3: { sorter: 'digit' },
                4: { sorter: 'date' },
                5: { sorter: 'digit' }
               }
-          }); 
-        } 
-      ); 
+          });
+        }
+      );
     // ]]>
     </script>
   </py:def>
