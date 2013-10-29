@@ -21,25 +21,16 @@
 
   <div py:match="content" class="dataset">
 
-    <div class="boxed widget-container">
-        <h3><a href="/data/reports/qa">QA</a></h3>
-              <ul>
+      <ul>
         <li>${h.link_to("Publisher openness scores", h.url_for('qa_organisation_action_reports', action='scores'))}</li>
         <li>${h.link_to("Datasets with broken resource links", h.url_for('qa_dataset_action_reports', action='broken_resource_links'))}</li>
-          ${h.link_to("Organisations whose datasets contain broken resource links", h.url_for('qa_organisation_action_reports', action='broken_resource_links'))}
+          <li>${h.link_to("Organisations whose datasets contain broken resource links", h.url_for('qa_organisation_action_reports', action='broken_resource_links'))}</li>
+          <li><a href="${h.url_for('feedback_reports')}">National Inventory Feedback</a></li>
+          <li><a href="${h.url_for('commitments')}">Data publication commitments</a></li>
       </ul>
 
-    </div>
-
-    <div class="boxed widget-container">
-        <h3><a href="${h.url_for('feedback_reports')}">National Inventory Feedback</a></h3>
-    </div>
-
-    <div class="boxed widget-container">
-        <h3><a href="${h.url_for('commitments')}">Data publication commitments</a></h3>
-    </div>
   </div>
-
   <xi:include href="../layout_base.html" />
+
 </html>
 

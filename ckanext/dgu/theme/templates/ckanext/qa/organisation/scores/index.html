@@ -22,6 +22,13 @@
 
 
   <div py:match="content">
+      <a  href="${h.url_for('qa_api_resources_formatted', action=c.query.__name__, format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right">
+        <div class="download">
+          <i class="icon-download"></i>&nbsp;
+          Download as CSV
+        </div>
+      </a>
+
       <h1>Publisher openness scores</h1>
 
     <div class="qa-content">
@@ -30,17 +37,10 @@
       </py:if>
 
       <py:if test="c.organisations">
-      <a  href="${h.url_for('qa_api_resources_formatted', action=c.query.__name__, format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right">
-        <div class="download">
-          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-          Download as CSV
-        </div>
-      </a>
-
         <div>
           <form action="">
             <label class="checkbox">
-              <input type="checkbox" name="publisher-results-include-subpub" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
+              <input type="checkbox" name="checkbox-submit-on-change" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
               Include results from sub-publishers
             </label>
           </form>
@@ -97,6 +97,6 @@
     </script>
   </py:def>
 
-  <xi:include href="../../../../layout.html" />
+  <xi:include href="../../../../layout_base.html" />
 </html>
 

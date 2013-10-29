@@ -6,10 +6,6 @@
 <xi:include href="../../../../_dgu_util.html" />
 
   <py:def function="page_title">Quality Assurance</py:def>
-  <py:def function="body_class">no-sidebar</py:def>
-  <py:def function="page_heading">
-
-  </py:def>
 
   <py:def function="optional_head">
     <link type="text/css" rel="stylesheet" media="all" href="/css/ckanext-qa.css" />
@@ -24,16 +20,16 @@
 
 
   <div py:match="content">
-      <h1>Datasets with broken resources</h1>
+    <a  href="${h.url_for('qa_api_resources_formatted', action='broken_resource_links_by_dataset', format='csv')}" class="btn btn-primary pull-right" style="margin-bottom:8px;">
+      <div class="download">
+        <i class="icon-download"></i>&nbsp;
+        Download as CSV
+      </div>
+    </a>
+
+    <h1>Datasets with broken resources</h1>
 
     <div class="qa-content">
-
-      <a  href="${h.url_for('qa_api_resources_formatted', action='broken_resource_links_by_dataset', format='csv')}" class="btn btn-primary pull-right" style="margin-bottom:8px;">
-        <div class="download">
-          <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-          Download as CSV
-        </div>
-      </a>
 
       <table class="table table-bordered table-condensed"  style="width: 100%; table-layout: fixed;">
         <tr>

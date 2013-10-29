@@ -38,7 +38,7 @@
         <div>
           <form action="">
             <label class="checkbox">
-              <input type="checkbox" name="publisher-results-include-subpub" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
+              <input type="checkbox" name="checkbox-submit-on-change" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
               Include results from sub-publishers
             </label>
           </form>

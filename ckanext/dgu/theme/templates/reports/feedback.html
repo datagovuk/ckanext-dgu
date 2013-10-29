@@ -8,12 +8,7 @@
 
   <py:def function="page_title">Dataset Feedback Report</py:def>
 
-  <py:def function="optional_head">
-  </py:def>
 
-  <py:def function="page_heading">
-    <a class="btn btn-primary pull-right" href="${request.path}.csv?${h.feedback_report_params()}">Download as CSV</a>
-  </py:def>
 
   <py:match path="breadcrumbs">
     <li><a href="/data/search">Datasets</a></li>
@@ -27,6 +22,19 @@
 
   <div py:match="content" class="dataset">
 
+    <a py:if="c.publisher" href="/data/reports/feedback/${c.publisher.name}.csv" class="btn btn-primary pull-right">
+      <div class="download">
+           <i class="icon-download"></i>&nbsp;
+          Download as CSV
+      </div>
+    </a>
+    <a py:if="not c.publisher" href="/data/reports/feedback.csv" class="btn btn-primary pull-right">
+      <div class="download">
+           <i class="icon-download"></i>&nbsp;
+          Download as CSV
+      </div>
+    </a>
+
 
     <div class="widget-container">
 
@@ -34,46 +42,31 @@
 
         <div>
           <form action="" class="form-inline">
-            <strong style="margin-left:16px;">${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
-            </strong><br/>
+            <h4 style="margin-left:16px;">${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
+            </h4>
 
             <label py:if="c.has_publisher" class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_subpublisher, 'show-subpub')">
-              <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+              <input type="checkbox" name="checkbox-submit-on-change" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
               Include sub-publishers
             </label>
 
             &nbsp;&nbsp;
             <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.show_zero_feedback, 'show-zero-feedback')">
-              <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+              <input type="checkbox" name="checkbox-submit-on-change" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
               Include datasets with no feedback
             </label>
 
             &nbsp;&nbsp;
             <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_published, 'show-published')">
-              <input type="checkbox" name="publisher-results-include-subpub" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
+              <input type="checkbox" name="checkbox-submit-on-change" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
               Include published datasets
             </label>
 
-              <!--! Download button -->
-            <a py:if="c.publisher" href="/data/reports/feedback/${c.publisher.name}.csv" class="btn btn-primary pull-right">
-            <div class="download">
-              <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-              Download as CSV
-            </div>
-          </a>
-          <a py:if="not c.publisher" href="/data/reports/feedback.csv" class="btn btn-primary pull-right">
-            <div class="download">
-              <img style="margin-bottom: 2px;" src="/images/icons/arrow-down-16.png"/>
-              Download as CSV
-            </div>
-          </a>
 
           </form>
-
-
         </div>
 
-      <table class="table table-condensed" width="100%">
+      <table py:if="c.page.items" class="table table-condensed" width="100%">
           <tr>
             <th>Dataset</th>
             <th>Publish Date</th>
