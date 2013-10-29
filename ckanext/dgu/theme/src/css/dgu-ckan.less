@@ -653,6 +653,7 @@ table.tablesorter {
 }
 .publisher-hierarchy {
   .publisher {
+    display: none;
     .publisher-row {
       color: #444;
       background: #F4F4F4;
@@ -662,6 +663,28 @@ table.tablesorter {
     }
     .publisher {
       margin-left: 5%;
+    }
+    &.childmatch {
+      display: block;
+    }
+    &.match {
+      display: block;
+      .publisher-row {
+        background: #fff;
+        .highlight {
+          background:#cfc;
+        }
+      }
+    }
+  }
+  &.empty-search {
+    .publisher {
+      display: block;
+      .publisher-row {
+        .highlight {
+          background: none;
+        }
+      }
     }
   }
 }

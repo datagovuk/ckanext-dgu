@@ -23,14 +23,14 @@
         <div class="left">
           <div class="left-inner auto-height form-search">
             <div class="input-group">
-              <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for publishers..." />
+              <input id="js-search" class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Search for publishers..." />
               <span class="input-group-btn">
                 <button type="submit" class="btn btn-default">
                   <i class="icon-search"></i>
                 </button>
               </span>
             </div>
-            <div class="alphabet-search">
+            <!--div class="alphabet-search">
               <a href="#a" class="active">a</a>
               <a href="#b">b</a>
               <a href="#c">c</a>
@@ -58,7 +58,7 @@
               <a href="#y">y</a>
               <a href="#z">z</a>
               <div class="clearfix"></div>
-            </div>
+            </div-->
           </div>
         </div>
         <div class="right">
@@ -70,7 +70,7 @@
         </div>
       </div>
     </div><!-- /search-area -->
-    <div class="publisher-hierarchy">
+    <div class="publisher-hierarchy empty-search">
       <py:def function="render_publisher(pub)">
         <div class="publisher">
           <a class="publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
@@ -86,9 +86,6 @@
   </py:match>
 
   <py:def function="optional_footer">
-    <script type="text/javascript">
-      window.dgu_all_publishers = ${h.groups_as_json(c.all_groups)};
-    </script>
     <script src="/scripts/dgu-publisher-index.min.js"></script>
   </py:def>
 
