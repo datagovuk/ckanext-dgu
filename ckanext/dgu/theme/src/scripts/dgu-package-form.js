@@ -43,7 +43,14 @@
     }
 
     /* Handle prev/next buttons */
-    $('.package_create_form a[data-toggle="hashtab"]').on('shown', function(e) {
+    $('.package_create_form a[data-toggle="tab"]').on('click', function(e) {
+      var target = $(e.delegateTarget);
+      if (target.hasClass('disabled')) {
+        e.preventDefault();
+        return false;
+      }
+    });
+    $('.package_create_form a[data-toggle="tab"]').on('shown', function(e) {
       var target_a = $(e.target);
       var target_li = target_a.parent();
       var hasPrevious = target_li.prev().length > 0;

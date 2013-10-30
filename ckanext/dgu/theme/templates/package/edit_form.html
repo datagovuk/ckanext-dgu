@@ -39,24 +39,27 @@
 <div id="form-tabs" class="tabbable tabs-left">
   <div class="row">
     <div class="col-lg-3 col-sm-4">
-      <ul class="nav nav-pills nav-stacked" py:with="boilerplate={'class':'disabled','disabled':'disabled'} if h.use_wizard(data, errors) else {}">
-        <li class="active"><a data-toggle="hashtab" id="section-name" href="#section-name-fields">Name</a></li>
-        <li><a data-toggle="hashtab" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
-        <li><a data-toggle="hashtab" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
-        <li><a data-toggle="hashtab" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
-        <li><a data-toggle="hashtab" id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
-        <li><a data-toggle="hashtab" id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
-        <li><a data-toggle="hashtab" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
-        <li><a data-toggle="hashtab" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
-        <li><a data-toggle="hashtab" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
-        <li py:if="h.is_package_edit_form(data) and (h.is_sysadmin() or h.are_legacy_extras(data))"><a data-toggle="hashtab" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
-        <li py:if="h.is_sysadmin()"><a data-toggle="hashtab" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
+      <ul class="nav nav-pills nav-stacked" py:with="
+          boilerplate={'disabled':'disabled'} if h.use_wizard(data, errors) else {}; 
+          classes = 'disabled' if h.use_wizard(data, errors) else '';
+        ">
+        <li class="active"><a data-toggle="tab" data-hash="tab-name" id="section-name" href="#section-name-fields">Name</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-data" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-description" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-licence" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-publisher" id="section-publisher" py:attrs="boilerplate" href="#section-publisher-field">Publisher</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-themes" id="section-themes" py:attrs="boilerplate" href="#section-themes-field">Theme &amp; tags</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-additional_resources" id="section-additional_resources" py:attrs="boilerplate" href="#section-additional_resources-field">Additional resources</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-temporal" id="section-temporal" py:attrs="boilerplate" href="#section-temporal-field">Temporal coverage</a></li>
+        <li><a data-toggle="tab" class="${classes}" data-hash="tab-geographic" id="section-geographic" py:attrs="boilerplate" href="#section-geographic-field">Geographic coverage</a></li>
+        <li py:if="h.is_package_edit_form(data) and (h.is_sysadmin() or h.are_legacy_extras(data))"><a data-toggle="tab" class="${classes}" data-hash="tab-extra" id="section-extra" py:attrs="boilerplate" href="#section-extra-field">Extras</a></li>
+        <li py:if="h.is_sysadmin()"><a data-toggle="tab" class="${classes}" data-hash="tab-state" id="section-state" py:attrs="boilerplate" href="#section-state-field">State</a></li>
       </ul>
     </div>
     <div class="col-lg-9 col-sm-8">
 
   <div class="tab-content">
-<fieldset class="tab-pane boxed whitebox fade active" id="section-name-fields">
+<fieldset class="tab-pane boxed whitebox fade active in" id="section-name-fields">
   <h3>Name</h3>
   <div class="control-group">
     <p>Please name your data record.</p>
