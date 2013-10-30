@@ -399,7 +399,9 @@ def mini_stars_and_caption(num_stars):
 
 def calculate_dataset_stars(dataset_id):
     stars_dict = get_stars_aggregate(dataset_id)
-    return (stars_dict['value'],stars_dict['reason'],stars_dict['last_updated'])
+    if not stars_dict:
+        return (0,'','')
+    return (stars_dict.get('value',0),stars_dict.get('reason',''),stars_dict.get('last_updated',''),)
 
 def render_resource_stars(resource_id):
     from ckanext.qa import reports
