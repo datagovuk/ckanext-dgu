@@ -125,6 +125,10 @@ ${h.top_level_init()}
             <span py:if="h.check_access('package_create')" class="dropdown">
               <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-edit"></i></a>
               <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+                <li role="presentation" class="dropdown-header">Tools</li>
+                <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+                <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+
                 <li role="presentation" class="dropdown-header">My publishers</li>
                 <py:for each="group in h.groups_for_current_user()">
                     <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
@@ -159,6 +163,19 @@ ${h.top_level_init()}
         <py:if test="h.check_access('package_create')">
         <br/>
           <span class="divider-section">Publisher tools:</span>
+
+          <li>
+            <span py:if="h.check_access('package_create')" class="dropdown">
+              <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#">My Publishers</a>
+              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel" style="position:absolute;z-index:2002;">
+                <li role="presentation" class="dropdown-header">My publishers</li>
+                <py:for each="group in h.groups_for_current_user()">
+                    <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
+                </py:for>
+              </ul>
+            </span>
+          </li>
+
           <li><a class="btn btn-mini btn-info" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
           <py:if test="h.groups_for_current_user()">
             <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
