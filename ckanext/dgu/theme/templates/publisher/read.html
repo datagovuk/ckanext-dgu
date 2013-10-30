@@ -48,8 +48,15 @@
         <div class="dropdown-menu panel panel-default" role="menu" aria-labelledby="dLabel">
           <div class="panel-heading">Publisher Hierarchy</div>
           <div class="panel-body">
-            <div id="publisher-tree" class="publisher-mini-tree">
-              <!--${Markup(h.render_mini_tree(c.group.name))}-->
+            <div class="publisher-hierarchy empty-search">
+              <div class="publisher" py:with="pub=h.publisher_hierarchy_mini(c.group.name)">
+                <a class="publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
+                <py:for each="child in pub['children']">
+                  <div class="publisher">
+                    <a class="publisher-row" href="/publisher/${child['name']}">${child['title']}</a>
+                  </div>
+                </py:for>
+              </div>
             </div>
           </div>
         </div>
