@@ -95,46 +95,15 @@ def _publisher_hierarchy_recur(node):
             'children':children
             }
 
-def render_tree():
-    '''Returns HTML for a hierarchy of all publishers'''
-    from ckan.logic import get_action
-    from ckan import model
-    context = {'model': model, 'session': model.Session}
-    top_nodes = get_action('group_tree')(context=context,
-            data_dict={'type': 'organization'})
-    return _render_tree(top_nodes)
-
-def _render_tree(top_nodes):
-    '''Renders a tree of nodes. 10x faster than Jinja/organization_tree.html
-    Note: avoids the slow url_for routine.
-    '''
-    html = '<ul>'
-    for node in top_nodes:
-        html += _render_tree_node(node)
-    return html + '</ul>'
-
-def _render_tree_node(node):
-    html = node['title']
-    if node['highlighted']:
-        html = '<strong>%s</strong>' % html
-    html = '<a href="/publisher/%s">%s</a>' % (node['name'], html)
-    if node['children']:
-        html += '<ul>'
-        for child in node['children']:
-            html += _render_tree_node(child)
-        html += '</ul>'
-    html = '<li id="node_%s">%s</li>' % (node['name'], html)
-    return html
-
-def render_mini_tree(group_name_or_id):
+def publisher_hierarchy_mini(group_name_or_id):
     '''Returns HTML for a hierarchy of SOME publishers - the ones which
     are under the same top-level publisher as the given one.'''
     from ckan.logic import get_action
     from ckan import model
     context = {'model': model, 'session': model.Session}
-    top_node = get_action('group_tree_section')(context=context,
+    my_root_node = get_action('group_tree_section')(context=context,
             data_dict={'id': group_name_or_id, 'type': 'organization'})
-    return _render_tree([top_node])
+    return _publisher_hierarchy_recur(my_root_node)
 
 def is_wms(resource):
     from ckanext.dgu.lib.helpers import get_resource_wms
