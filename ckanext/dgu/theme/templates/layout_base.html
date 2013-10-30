@@ -117,9 +117,21 @@ ${h.top_level_init()}
               <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-user"></i></a>
               <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
                 <li><a href="${if_(drupal_mode,'/admin/workbench',h.url_for(controller='user',action='me'))}"><i class="icon-user"></i>&nbsp; ${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}'s profile</a></li>
-                <li><a href="${if_(drupal_mode,'/user/logout?destionation='+request.url,h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
+                <li><a href="${if_(drupal_mode,'/user/logout?destination='+request.url,h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
               </ul>
             </span>
+
+            <!-- Publisher dropdown -->
+            <span py:if="h.check_access('package_create')" class="dropdown">
+              <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-edit"></i></a>
+              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+                <li role="presentation" class="dropdown-header">My publishers</li>
+                <py:for each="group in h.groups_for_current_user()">
+                    <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
+                </py:for>
+              </ul>
+            </span>
+
           </py:if>
           <py:if test="not logged_in">
             <a class="nav-user btn btn-primary" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
@@ -145,10 +157,8 @@ ${h.top_level_init()}
           <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/site-usage') else ''}" href="/data/site-usage">Site Analytics</a></li>
         </py:if>
         <py:if test="h.check_access('package_create')">
+        <br/>
           <span class="divider-section">Publisher tools:</span>
-          <py:for each="group in h.groups_for_current_user()">
-            <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
-          </py:for>
           <li><a class="btn btn-mini btn-info" href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
           <py:if test="h.groups_for_current_user()">
             <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/harvest') else ''}" href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
@@ -164,7 +174,6 @@ ${h.top_level_init()}
       <ul class="subnav subnav-apps">
         <li><a href="/apps">Browse Apps</a></li>
         <li><a href="http://co-prod3.dh.bytemark.co.uk/search/everything/?f[0]=bundle%3Aapps">Search Apps</a></li>
-        <li><a href="/node/add/apps">Add Your App</a></li>
       </ul>
 
       <ul class="subnav subnav-interact">
@@ -172,6 +181,7 @@ ${h.top_level_init()}
         <li><a class="" href="http://co-prod3.dh.bytemark.co.uk/linked-data">Linked Data</a></li>
         <li><a href="/blog">All Blogs</a></li>
         <li><a href="/forum">All Forums</a></li>
+        <li><a class="" href="/library">Library</a></li>
       </ul>
     </div>
   </div>
