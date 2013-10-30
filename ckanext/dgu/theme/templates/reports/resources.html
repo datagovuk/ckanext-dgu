@@ -5,9 +5,10 @@
 
   <py:def function="page_title">Reports</py:def>
   <py:match path="breadcrumbs">
-    <li><a href="/publisher">Publishers</a></li>
-    <li><a href="/publisher/${c.data['publisher_name']}">${c.data['publisher_title']}</a></li>
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/data/reports">Reports</a></li>
     <li><a href="${request.url}">Resources Report</a></li>
+    <li><a href="/publisher/${c.data['publisher_name']}">${c.data['publisher_title']}</a></li>
   </py:match>
 
   <div py:match="content">
@@ -17,10 +18,10 @@
         ${h.url_for('resources_report_org', id=c.data['publisher_name'])}
     </pre-->
     <div class="report">
-      <h1>Resources Report -
-          <a href="/publisher/${c.data['publisher_name']}">
+      <h1>Resources
+          <small>
             ${c.data['publisher_title']}
-          </a>
+          </small>
       </h1>
 
       <div class="boxed">
@@ -35,21 +36,21 @@
         <div>
           <form action="">
             <label class="checkbox">
-              <input type="checkbox" name="publisher-results-include-subpub" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
+              <input type="checkbox" name="checkbox-submit-on-change" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
               Include results from sub-publishers
             </label>
           </form>
         </div>
-        <table class="table table-striped table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
+        <table class="table table-bordered table-condensed" id="report-table" style="width: 100%; table-layout: fixed;">
          <thead>
             <tr class="js-tooltip">
-              <th py:if="c.include_sub_publishers" style="width: 50px">Publisher</th>
-              <th style="width: 140px">Dataset</th>
-              <th style="width: 20px" title="Index/position of the resource in the dataset">Index</th>
-              <th style="width: 190px">URL</th>
-              <th style="width: 150px">Description</th>
-              <th style="width: 30px">Format</th>
-              <th style="width: 100px">Created</th>
+              <th py:if="c.include_sub_publishers" >Publisher</th>
+              <th >Dataset</th>
+              <th title="Index/position of the resource in the dataset">Index</th>
+              <th >URL</th>
+              <th >Description</th>
+              <th >Format</th>
+              <th >Created</th>
             </tr>
          </thead>
          <tbody>
@@ -71,7 +72,7 @@
   </div>
 
   <py:def function="optional_footer">
-    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script> 
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
       //<![CDATA[
       $(document).ready(function()
