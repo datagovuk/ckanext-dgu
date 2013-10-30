@@ -5,41 +5,54 @@
     xmlns:xi="http://www.w3.org/2001/XInclude">
 
 <div class="error-explanation" py:if="error_summary">
-	<h2>Errors in form</h2>
-	<p>The form contains invalid entries:</p>
-	<ul>
-	  <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
-	</ul>
+  <div class="panel panel-danger">
+    <div class="panel-heading"><strong>Errors in form</strong></div>
+    <div class="panel-body">
+      The form contains invalid entries:
+      <ul>
+        <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <input type="hidden" id="type" name="type" value="organization" />
 
 <fieldset id="users">
-  <h3>Admins and Editors</h3>
+  <h2>Admins and Editors</h2>
   <py:if test="data.get('users')">
-    <py:for each="num, user in enumerate(data.get('users'))">
-      <div class="control-group">
-
-        <label class="control-label" for="users__${num}__name"><h5>${h.user_display_name(user)}</h5></label>
-        <div class="controls form-inline">
-          <input checked="checked" id="users__${num}__name" name="users__${num}__name" type="checkbox" value="${user['name']}" style="display:none;"/>
-          <label class="radio"><input type="radio" name="users__${num}__capacity" value="admin"  py:attrs="{'checked': 'checked' if user['capacity'] == 'admin' else None}"></input> Admin</label>&nbsp;&nbsp;&nbsp;&nbsp;
-          <label class="radio"><input type="radio" name="users__${num}__capacity" value="editor" py:attrs="{'checked': 'checked' if user['capacity'] in ['editor','member'] else None}"></input> Editor</label>&nbsp;&nbsp;&nbsp;&nbsp;
-          <button class="btn btn-danger btn-small" onclick="return delete_user(this);">Delete</button>
-        </div>
-      </div>
-    </py:for>
+    <table class="table">
+      <py:for each="num, user in enumerate(data.get('users'))">
+      <tr>
+        <td class="key">
+          <label class="control-label" for="users__${num}__name">${h.user_display_name(user)}</label>
+        </td>
+        <td class="value" width="80%">
+          <div class="form-inline">
+            <input checked="checked" id="users__${num}__name" name="users__${num}__name" type="checkbox" value="${user['name']}" style="display:none;"/>
+            <label class="radio"><input type="radio" name="users__${num}__capacity" value="admin"  py:attrs="{'checked': 'checked' if user['capacity'] == 'admin' else None}"></input> Admin</label>&nbsp;&nbsp;&nbsp;&nbsp;
+            <label class="radio"><input type="radio" name="users__${num}__capacity" value="editor" py:attrs="{'checked': 'checked' if user['capacity'] in ['editor','member'] else None}"></input> Editor</label>&nbsp;&nbsp;&nbsp;&nbsp;
+            <button class="btn btn-danger btn-xs" onclick="return delete_user(this);"><i class="icon-trash"></i> Delete</button>
+          </div>
+        </td>
+      </tr>
+      </py:for>
+    </table>
   </py:if>
   <p py:if="not data.get('users')">There are no users currently in this publisher.</p>
 
-  <h3>Add editors</h3>
-  <div class="added-users"></div>
-  <div class="control-group">
-    <label class="control-label" for="users__${len(data.get('users', []))}__name">User</label>
-      <div class="controls">
-        <input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" autocomplete="off"/>
+  <div class="panel panel-info">
+    <div class="panel-heading">Add editors</div>
+    <div class="panel-body">
+      <div class="added-users"></div>
+      <div class="control-group">
+        <label class="control-label" for="users__${len(data.get('users', []))}__name">User</label>
+        <div class="controls">
+          <input class="autocomplete-publisher-user" id="users__${len(data.get('users', []))}__name" name="users__${len(data.get('users', []))}__name" type="text" autocomplete="off"/>
+        </div>
+        <p>NB: A user might not appear on this list until that user has logged in and clicked on a page in the <a href="/data">Data</a> part of data.gov.uk.</p>
       </div>
-      <p>NB: A user might not appear on this list until that user has logged in and clicked on a page in the <a href="/data">Data</a> part of data.gov.uk.</p>
+    </div>
   </div>
 </fieldset>
 

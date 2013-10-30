@@ -5,8 +5,7 @@
 
   <py:def function="page_title">System Dashboard</py:def>
 
-<py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
+  <py:match path="breadcrumbs">
     <li><a href="/data/system_dashboard">System Dashboard</a></li>
   </py:match>
 
@@ -40,6 +39,19 @@
         <ul>
           <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Report for all publishers</a></li>
           <li><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel panel-info">
+      <div class="panel-heading">Site Reports</div>
+      <div class="panel-body">
+        <ul>
+          <li>${h.link_to("Publisher openness scores", h.url_for('qa_organisation_action_reports', action='scores'))}</li>
+          <li>${h.link_to("Broken Links by Dataset", h.url_for('qa_dataset_action_reports', action='broken_resource_links'))}</li>
+          <li>${h.link_to("Broken Links by Publisher", h.url_for('qa_organisation_action_reports', action='broken_resource_links'))}</li>
+          <li><a href="${h.url_for('feedback_reports')}">National Information Infrastructure</a></li>
+          <li><a href="${h.url_for('commitments')}">Data publication commitments</a></li>
         </ul>
       </div>
     </div>

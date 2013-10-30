@@ -4,17 +4,18 @@
   py:strip="">
 
   <py:def function="page_title">Reports</py:def>
+  <py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
+    <li><a href="/publisher/${c.data['publisher_name']}">${c.data['publisher_title']}</a></li>
+    <li><a href="${request.url}">Resources Report</a></li>
+  </py:match>
 
   <div py:match="content">
-    ${breadcrumbs(
-        [('Data', '/data'),
-        ('Reports', h.url_for('reports')),
-        ('Resources', h.url_for('resources_report')),
-        (c.data['publisher_title'], h.url_for('resources_report_org', id=c.data['publisher_name']))
-        ]
-    )}
-
-
+    <!--pre>
+        Breadcrumbs had these parent links:
+        ${h.url_for('resources_report')}
+        ${h.url_for('resources_report_org', id=c.data['publisher_name'])}
+    </pre-->
     <div class="report">
       <h1>Resources Report -
           <a href="/publisher/${c.data['publisher_name']}">

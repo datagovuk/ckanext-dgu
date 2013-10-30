@@ -5,16 +5,14 @@
 
   <py:def function="page_title">New - Publisher</py:def>
 
-  <py:def function="body_class">no-sidebar</py:def>
+  <py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
+    <li><a href="/publisher/new">New Publisher</a></li>
+  </py:match>
 
-  <py:def function="page_heading">
-  New publisher
-  </py:def>
-
-  <div py:match="content" class="dataset-edit-form">
-    <div class="boxed">
-      ${c.form}
-    </div>
+  <div py:match="content">
+    <h1>New Publisher</h1>
+    ${c.form}
   </div>
 
   <xi:include href="../layout_base.html" />

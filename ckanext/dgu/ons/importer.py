@@ -191,6 +191,7 @@ class OnsImporter(PackageImporter):
 
         # search for the name in live list of publishers
         # Start with a narrow search
+        log.info('Searching for %r', publisher_name)
         result = ckanclient.action('group_search', query=publisher_name, exact=True)
         if not result['count']:
             # Now broaden it out

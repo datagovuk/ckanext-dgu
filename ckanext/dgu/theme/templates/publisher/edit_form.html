@@ -1,5 +1,5 @@
 <form action="" method="post"
-    class="form-horizontal"
+    class="form-horizontal publisher-form"
     py:attrs="{'class':'has-errors form-horizontal'} if errors else {}"
     xmlns:i18n="http://genshi.edgewall.org/i18n"
     xmlns:py="http://genshi.edgewall.org/"
@@ -25,152 +25,175 @@
 
 ${h.prep_group_edit_data(data)}
 
-<p>Details about the organisation that publishes data on data.gov.uk</p>
-
+<div class="row dgu-equal-height" data-selector=".panel-default">
 <fieldset id="basic-information">
-  <div class="control-group">
-    <label class="control-label" for="name">Publisher name</label>
-    <div class="controls" py:with="editable = not c.group or h.is_sysadmin()">
-      <!--! CKAN.Dgu.UrlEditor javascript takes the value in .js-title
-      and puts munged version into the URL field.
-      -->
-      <input id="title" name="title" type="text" value="${data.get('title', '')}" class="js-title" py:attrs="{} if editable else {'disabled':'disabled'}"/>
-      <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
 
-      <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
-    </div>
-  </div>
+  <div class="col-md-6">
+<div class="panel panel-default">
+  <div class="panel-heading"><strong>Basic Information</strong></div>
+  <div class="panel-body">
+    <div class="control-group">
+      <label class="control-label" for="name">Publisher name</label>
+      <div class="controls" py:with="editable = not c.group or h.is_sysadmin()">
+        <!--! CKAN.Dgu.UrlEditor javascript takes the value in .js-title
+        and puts munged version into the URL field.
+        -->
+        <input id="title" name="title" type="text" value="${data.get('title', '')}" class="js-title" py:attrs="{} if editable else {'disabled':'disabled'}"/>
+        <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
 
-  <div class="control-group">
-    <label class="control-label" for="url">URL</label>
-    <div class="controls name-field">
-      <div class="input-prepend">
-    <!--! NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
-  paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
-    -->
-        <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {'class':'js-url-input'}"/>
-        <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
+        <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
       </div>
-      <p class="js-url-is-valid">&nbsp;</p>
-      <p>2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
-      <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="url">URL</label>
+      <div class="controls name-field">
+        <div class="input-prepend">
+      <!--! NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
+    paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
+      -->
+          <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {'class':'js-url-input'}"/>
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
+        </div>
+        <p style="font-size: 11px; margin-top: 1px; color: #888;">2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
+        <p class="js-url-is-valid">&nbsp;</p>
+        <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="name">Name Abbreviation (optional)</label>
+      <div class="controls">
+        <input id="abbreviation" name="abbreviation" type="text" value="${data.get('abbreviation', '')}"/>
+        <span class="field_error" py:if="errors.get('abbreviation', '')">${errors.get('name', '')}</span>
+      </div>
     </div>
   </div>
-
-  <div class="control-group">
-    <label class="control-label" for="name">Name Abbreviation (optional)</label>
-    <div class="controls">
-      <input id="abbreviation" name="abbreviation" type="text" value="${data.get('abbreviation', '')}"/>
-      <span class="field_error" py:if="errors.get('abbreviation', '')">${errors.get('name', '')}</span>
+</div>
+</div>
+<div class="col-md-6">
+<div class="panel panel-default">
+  <div class="panel-heading"><strong>Further Information</strong></div>
+  <div class="panel-body">
+    <div class="control-group">
+      <label class="control-label" for="description">Publisher Description</label>
+      <div class="controls description-field">
+        <textarea class="form-control" style="width: 80%;" rows="9" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
+      </div>
     </div>
-  </div>
 
-  <div class="control-group">
-    <label class="control-label" for="description">Publisher Description</label>
-    <div class="controls description-field">
-      <textarea style="width: 350px;" rows="3" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
-    </div>
-  </div>
-
-  <div class="control-group">
-    <label class="control-label" for="parent">Parent publisher</label>
-    <div class="controls parent-field" py:with="selected_parent = (data.get('groups') or [{'name':''}])[0]['name']; editable = not c.editing or h.is_sysadmin()">
-      <select py:if="editable" id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
-        <py:if test="editable">
-          <option py:attrs="{'selected': 'selected'} if not selected_parent else {}" value="">No parent (top level)</option>
-          <py:for each="pg in c.allowable_parent_groups">
-            <option py:attrs="{'selected': 'selected'} if selected_parent == pg.name else {}" value="${pg.name}">${pg.title}</option>
-          </py:for>
-        </py:if>
-      </select>
-      <py:if test="not editable">
-        <input id="dummy" type="text" disabled="disabled" value="${h.group_name_to_title(selected_parent) or 'No parent (top level)'}"/>
-        <input id="groups__0__name" name="groups__0__name" type="hidden" value="${selected_parent}" />
-        <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
-      </py:if>
-    </div>
-  </div>
-
-  <div class="control-group">
-    <label class="control-label" for="state">State</label>
-    <div class="controls state-field" py:with="editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id})">
-        <select id="state" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
-          <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
-          <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
+    <div class="control-group">
+      <label class="control-label" for="parent">Parent publisher</label>
+      <div class="controls parent-field" py:with="selected_parent = (data.get('groups') or [{'name':''}])[0]['name']; editable = not c.editing or h.is_sysadmin()">
+        <select py:if="editable" id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
+          <py:if test="editable">
+            <option py:attrs="{'selected': 'selected'} if not selected_parent else {}" value="">No parent (top level)</option>
+            <py:for each="pg in c.allowable_parent_groups">
+              <option py:attrs="{'selected': 'selected'} if selected_parent == pg.name else {}" value="${pg.name}">${pg.title}</option>
+            </py:for>
+          </py:if>
         </select>
-        <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher" py:if="not editable"><img src="/images/information-grey.png"/></span>
+        <py:if test="not editable">
+          <input id="dummy" type="text" disabled="disabled" value="${h.group_name_to_title(selected_parent) or 'No parent (top level)'}"/>
+          <input id="groups__0__name" name="groups__0__name" type="hidden" value="${selected_parent}" />
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
+        </py:if>
+      </div>
     </div>
-  </div>
 
-  <div class="control-group">
-    <label class="control-label" for="state">Category</label>
-    <div class="controls">
-      <select id="category" name="category" value="${data.get('contact-name', '')}">
-        <option value=""></option>
-        <py:for each="cat_name, cat_desc in c.categories">
-          <option value="${cat_name}" py:attrs="{'selected': 'selected' if data.get('category', '') == cat_name else None}" >
-            ${cat_desc}
-          </option>
-        </py:for>
-      </select>
-      <span class="field_error" py:if="errors.get('category', '')">${errors.get('category', '')}</span>
+    <div class="control-group">
+      <label class="control-label" for="state">State</label>
+      <div class="controls state-field" py:with="editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id})">
+          <select id="state" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
+            <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
+            <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
+          </select>
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher" py:if="not editable"><img src="/images/information-grey.png"/></span>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label class="control-label" for="state">Category</label>
+      <div class="controls">
+        <select style="width: 80%;" id="category" name="category" value="${data.get('contact-name', '')}">
+          <option value=""></option>
+          <py:for each="cat_name, cat_desc in c.categories">
+            <option value="${cat_name}" py:attrs="{'selected': 'selected' if data.get('category', '') == cat_name else None}" >
+              ${cat_desc}
+            </option>
+          </py:for>
+        </select>
+        <span class="field_error" py:if="errors.get('category', '')">${errors.get('category', '')}</span>
+      </div>
     </div>
   </div>
+</div>
+</div>
+</fieldset>
+</div>
+<div class="row dgu-equal-height" data-selector=".panel-default">
+<fieldset id="contact-details" class="col-md-6">
+<div class="panel panel-default">
+  <div class="panel-heading"><strong>Contact Details</strong></div>
+  <div class="panel-body">
+    These provide the default contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.
+    <div class="control-group">
+      <label class="control-label" for="contact-name">Name</label>
+      <div class="controls">
+        <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
+        <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="contact-email">Email</label>
+      <div class="controls">
+        <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="contact-name">Telephone</label>
+      <div class="controls">
+        <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
+      </div>
+    </div>
+    </div>
+</div>
 </fieldset>
 
-<fieldset id="contact-details">
-  <h3>Contact Details</h3>
-  <p>These provide the default contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.</p>
-
-  <div class="control-group">
-    <label class="control-label" for="contact-name">Name</label>
-    <div class="controls">
-      <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
-      <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
+<fieldset id="foi-details" class="col-md-6">
+<div class="panel panel-default">
+  <div class="panel-heading"><strong>FOI Request Details</strong></div>
+  <div class="panel-body">
+    These provide the default Freedom of Information request contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.
+    <div class="control-group">
+      <label class="control-label" for="foi-name">Name</label>
+      <div class="controls">
+        <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
+        <p class="help-block">e.g. DfT FOI Enquiry Service</p>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="foi-email">Email</label>
+      <div class="controls">
+        <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="foi-web">Web</label>
+      <div class="controls">
+        <input id="foi-web" maxlength="100" name="foi-web" type="text" class="" value="${data.get('foi-web', '')}" />
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="foi-name">Telephone</label>
+      <div class="controls">
+        <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
+      </div>
     </div>
   </div>
-  <div class="control-group">
-    <label class="control-label" for="contact-email">Email</label>
-    <div class="controls">
-      <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
-    </div>
-  </div>
-  <div class="control-group">
-    <label class="control-label" for="contact-name">Telephone</label>
-    <div class="controls">
-      <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
-    </div>
-  </div>
+</div>
 </fieldset>
-<fieldset id="foi-details">
-  <h3>FOI Request Details</h3>
-  <p>These provide the default Freedom of Information request contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.</p>
-  <div class="control-group">
-    <label class="control-label" for="foi-name">Name</label>
-    <div class="controls">
-      <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
-      <p class="help-block">e.g. DfT FOI Enquiry Service</p>
-    </div>
-  </div>
-  <div class="control-group">
-    <label class="control-label" for="foi-email">Email</label>
-    <div class="controls">
-      <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
-    </div>
-  </div>
-  <div class="control-group">
-    <label class="control-label" for="foi-web">Web</label>
-    <div class="controls">
-      <input id="foi-web" maxlength="100" name="foi-web" type="text" class="" value="${data.get('foi-web', '')}" />
-    </div>
-  </div>
-  <div class="control-group">
-    <label class="control-label" for="foi-name">Telephone</label>
-    <div class="controls">
-      <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
-    </div>
-  </div>
-</fieldset>
+</div>
 
 <!--! Users need to be submitted or they are removed from the publisher -->
 <fieldset id="users" style="display: none;">

@@ -9,18 +9,16 @@
   <py:def function="page_heading">Data Catalogue API</py:def>
 
 <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="/data/api">API</a></li>
+    <li><a href="/data/api">CKAN API</a></li>
   </py:match>
 
   <div py:match="content">
-    <div class="boxed">
-      <p>Developers can access the data catalogue with an API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>
+    <h1>CKAN API Notes</h1>
+    <p>Developers can access the data catalogue with an API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>
 
-      <p py:with="url=g.site_url+('/' if g.site_url[-1]!='/' else '')+'api'">The base URL for the API is: <a href="${url}">${url}</a></p>
+    <p py:with="url=g.site_url+('/' if g.site_url[-1]!='/' else '')+'api'">The base URL for the API is: <a href="${url}">${url}</a></p>
 
-      <p>The API is provided by the CKAN software and full instructions are provided here: <a href="http://docs.ckan.org/en/ckan-1.7.1/api.html">http://docs.ckan.org/en/ckan-1.7.1/api.html</a>.</p>
-    </div>
+    <p>The API is provided by the CKAN software and full instructions are provided here: <a href="http://docs.ckan.org/en/ckan-1.7.1/api.html">http://docs.ckan.org/en/ckan-1.7.1/api.html</a>.</p>
   </div>
   <xi:include href="../layout.html" />
 

@@ -31,7 +31,7 @@ class InitDB(CkanCommand):
         import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
-        model.repo.new_revision()
+        #model.repo.new_revision()
         log.info("Database access initialised")
 
         import ckanext.dgu.model.commitment as c_model
