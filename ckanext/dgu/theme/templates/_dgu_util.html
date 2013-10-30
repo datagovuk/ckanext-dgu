@@ -406,7 +406,9 @@
             ${facet_line(facet_item,'resource-type')}
             <py:if test="facet_item['name']=='service'">
               <py:for each="sub_item in h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count')">
+
                 ${facet_line(sub_item, 'spatial-data-service-type')}
+
               </py:for>
             </py:if>
           </py:for>
