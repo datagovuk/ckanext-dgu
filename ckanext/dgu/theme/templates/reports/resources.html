@@ -18,21 +18,28 @@
         ${h.url_for('resources_report_org', id=c.data['publisher_name'])}
     </pre-->
     <div class="report">
+
+    <py:if test="c.data and c.data['rows']">
+      <a  href="${h.url_for('reports_api', action=c.query.__name__, id=c.data['publisher_name'], format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}" class="btn btn-primary pull-right" style="margin-bottom:8px;">
+        <div class="download">
+          <i class="icon-download"></i>&nbsp;
+          Download as CSV
+        </div>
+      </a>
+    </py:if>
+
       <h1>Resources
           <small>
             ${c.data['publisher_title']}
           </small>
       </h1>
 
-      <div class="boxed">
-      <py:if test="(not c.data) or (not c.data['rows'])">
-        <p>No results found for this publisher.</p>
-      </py:if>
+
+        <py:if test="(not c.data) or (not c.data['rows'])">
+          <p>No results found for this publisher.</p>
+        </py:if>
 
       <py:if test="c.data and c.data['rows']">
-        <div class="pull-right">
-            <a class="btn btn-primary" href="${h.url_for('reports_api', action=c.query.__name__, id=c.data['publisher_name'], format='csv', include_sub_publishers='1' if c.include_sub_publishers else '0')}">Download as CSV</a>
-        </div>
         <div>
           <form action="">
             <label class="checkbox">
@@ -67,7 +74,6 @@
         </table>
       </py:if>
 
-      </div>
     </div>
   </div>
 
