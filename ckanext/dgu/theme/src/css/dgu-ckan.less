@@ -653,6 +653,7 @@ table.tablesorter {
 }
 .publisher-hierarchy {
   .publisher {
+    display: none;
     .publisher-row {
       color: #444;
       background: #F4F4F4;
@@ -662,6 +663,28 @@ table.tablesorter {
     }
     .publisher {
       margin-left: 5%;
+    }
+    &.childmatch {
+      display: block;
+    }
+    &.match {
+      display: block;
+      .publisher-row {
+        background: #fff;
+        .highlight {
+          background:#cfc;
+        }
+      }
+    }
+  }
+  &.empty-search {
+    .publisher {
+      display: block;
+      .publisher-row {
+        .highlight {
+          background: none;
+        }
+      }
     }
   }
 }
@@ -897,6 +920,12 @@ body.controller-publisher.action-read {
     font-size: 11px;
     color: #999;
     line-height: 18px;
+  }
+}
+body.controller-publisher {
+  .publisher-form {
+    .panel-default {
+    }
   }
 }
 
@@ -1369,6 +1398,10 @@ body.openspending_report {
     }
 }
 body.openspending_browse {
+  .sidebar table td {
+    background: inherit;
+    border-color: #ccc !important;
+  }
     table.table thead {
         .sorting,
         .sorting_asc,
@@ -1423,6 +1456,8 @@ body.controller-feedback.action-add {
     float: right;
     font-size: 25px;
   }
+}
+body.controller-feedback {
 }
 
 /* PAGE: Themes */

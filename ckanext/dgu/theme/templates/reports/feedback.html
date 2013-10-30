@@ -8,17 +8,17 @@
 
   <py:def function="page_title">Dataset Feedback Report</py:def>
 
-
-
   <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="${h.url_for('reports')}">Reports</a></li>
-    <li><a href="${h.url_for('feedback_reports')}">Feedback reports</a></li>
-    <li py:if="c.publisher">
-      <a href="${h.url_for('feedback_report_org', id=c.publisher.name)}">${c.publisher.title}</a>
-    </li>
+    <py:if test="not c.publisher">
+      <li><a href="/data/system_dashboard">System Dashboard</a></li>
+      <li><a href="${h.url_for('feedback_reports')}">NII Feedback</a></li>
+    </py:if>
+    <py:if test="c.publisher">
+      <li><a href="/publisher">Publishers</a></li>
+      <li><a href="/publisher/${c.publisher.name}">${c.publisher.title}</a></li>
+      <li><a href="${request.url}">NII Feedback Report</a></li>
+    </py:if>
   </py:match>
-
 
   <div py:match="content" class="dataset">
 

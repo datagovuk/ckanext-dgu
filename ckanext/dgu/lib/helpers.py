@@ -854,15 +854,6 @@ def get_wms_info_urls(pkg_dict):
 def get_wms_info_extent(pkg_dict):
     return get_wms_info(pkg_dict)[1]
 
-def groups_as_json(groups):
-    l = []
-    for group in groups:
-        l.append(group.title)
-        abbr = group.extras.get('abbreviation')
-        if abbr:
-            l.append(abbr)
-    return json.dumps(l)
-
 def user_display_name(user):
     user_str = ''
     if user.get('fullname'):

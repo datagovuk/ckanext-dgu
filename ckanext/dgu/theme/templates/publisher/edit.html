@@ -5,16 +5,15 @@
 
   <py:def function="page_title">${c.group.title or c.group.name} - Edit - Publisher</py:def>
 
-  <py:def function="body_class">no-sidebar</py:def>
-
-  <py:def function="page_heading">
-  Edit: ${c.group.title}
-  </py:def>
+  <py:match path="breadcrumbs">
+    <li><a href="/publisher">Publishers</a></li>
+    <li><a href="/publisher/${c.group.name}">${c.group.title or c.group.name}</a></li>
+    <li><a href="/publisher/edit/${c.group.name}">Edit</a></li>
+  </py:match>
 
   <div py:match="content" class="dataset-edit-form">
-    <div class="boxed">
-      ${c.form}
-    </div>
+    <h1>Edit Publisher <small>${c.group.title}</small></h1>
+    ${c.form}
   </div>
 
   <xi:include href="../layout_base.html" />
