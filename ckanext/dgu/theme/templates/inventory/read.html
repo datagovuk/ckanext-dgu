@@ -7,15 +7,7 @@
   <xi:include href="../publisher/publisher_util.html" />
 
   <py:def function="page_title">${c.group.display_name}</py:def>
-  <py:def function="page_heading">
 
-    <a py:if="h.check_access('group_update', {'id':c.group.id})" class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
-
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}">${c.group.display_name}</a>
-    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
-
-    <span class="subheading"><img src="/images/arrow-down-right.png"/> Inventory tools</span>
-  </py:def>
 
 
   <py:def function="sidebar">

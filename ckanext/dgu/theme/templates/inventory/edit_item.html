@@ -14,14 +14,16 @@
     <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
   </py:def>
 
-  <py:def function="page_heading">
-    ${dataset_admin_buttons(c.pkg)}
-    ${h.dataset_link(c.pkg)}
-    <span class="subheading"><img src="/images/arrow-down-right.png"/> Edit unpublished item</span>
-  </py:def>
+<py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
+    <li><a href="/unpublished/edit-item/${c.pkg_dict['name']}">Edit</a></li>
+  </py:match>
+
 
   <div py:match="content" class="dataset-edit-form">
-    <div class="boxed">
+    <h1>Unpublished dataset editor</h1>
+    <div>
       ${c.form}
     </div>
   </div>
