@@ -357,13 +357,19 @@ table.tablesorter {
     }
     @media(max-width: 767px) {
       color: #aaa;
-      border-top: 1px solid #000;
-      border-bottom: 1px solid #444;
-      a { 
-        color: #aaa; 
-        &:hover { color: #fff; }
+      .facet-option {
+        border-top: none;
+        margin-right: 10px;
+        a { 
+          color: #aaa; 
+          &:hover { color: #fff; }
+        }
+        &.facet-option-selected {
+          margin-left: -25px;
+          padding-left: 10px;
+        }
       }
-      h4 { color: #fff; }
+      h4 { color: #fff; border-top: none;}
     }
     @media(min-width: 768px) {
       .facet-option-selected {
@@ -964,6 +970,9 @@ body.controller-package.action-search {
     margin: 17px 0;
     margin-right: -16px;
     margin-left: 30px;
+    @media(max-width: 767px) {
+      margin-right: 10px;
+    }
   }
   #search-sort-by {
     select {
