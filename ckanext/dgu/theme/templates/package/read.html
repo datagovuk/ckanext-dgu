@@ -67,7 +67,7 @@
 
     <div id="dataset">
       <!--! id=dataset for ckanext-spatial -->
-    </div> 
+    </div>
 
     <div class="dataset-resources" py:if="not h.is_unpublished_item(c.pkg_dict)">
       <!-- Resources -->
@@ -165,6 +165,10 @@
           CKAN.DguDatasetMap.setup();
         })
       </script>
+      <style type="text/css">
+        /* Make sure we don't break the tiles in the map */
+        #dataset-map-container img { max-width: inherit; }
+      </style>
     </py:if>
   </py:def>
 
