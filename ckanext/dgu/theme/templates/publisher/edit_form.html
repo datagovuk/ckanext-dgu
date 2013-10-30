@@ -38,7 +38,7 @@ ${h.prep_group_edit_data(data)}
         <!--! CKAN.Dgu.UrlEditor javascript takes the value in .js-title
         and puts munged version into the URL field.
         -->
-        <input id="title" name="title" type="text" value="${data.get('title', '')}" class="js-title" py:attrs="{} if editable else {'disabled':'disabled'}"/>
+        <input id="title" name="title" type="text" value="${data.get('title', '')}" class="js-title form-control" py:attrs="{} if editable else {'disabled':'disabled'}"/>
         <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
 
         <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
@@ -52,7 +52,7 @@ ${h.prep_group_edit_data(data)}
       <!--! NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
     paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
       -->
-          <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {'class':'js-url-input'}"/>
+          <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {'class':'js-url-input '}"/>
           <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
         </div>
         <p style="font-size: 11px; margin-top: 1px; color: #888;">2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
@@ -64,7 +64,7 @@ ${h.prep_group_edit_data(data)}
     <div class="control-group">
       <label class="control-label" for="name">Name Abbreviation (optional)</label>
       <div class="controls">
-        <input id="abbreviation" name="abbreviation" type="text" value="${data.get('abbreviation', '')}"/>
+        <input id="abbreviation" name="abbreviation" type="text" class="form-control" value="${data.get('abbreviation', '')}"/>
         <span class="field_error" py:if="errors.get('abbreviation', '')">${errors.get('name', '')}</span>
       </div>
     </div>
@@ -78,7 +78,7 @@ ${h.prep_group_edit_data(data)}
     <div class="control-group">
       <label class="control-label" for="description">Publisher Description</label>
       <div class="controls description-field">
-        <textarea class="form-control" style="width: 80%;" rows="9" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
+        <textarea class="form-control" style="width: 100%;" rows="9" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
       </div>
     </div>
 
@@ -101,21 +101,22 @@ ${h.prep_group_edit_data(data)}
       </div>
     </div>
 
-    <div class="control-group">
-      <label class="control-label" for="state">State</label>
-      <div class="controls state-field" py:with="editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id})">
-          <select id="state" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
+    <div class="control-group" py:with="editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id})">
+      <label class="control-label" for="state">State
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher" py:if="not editable"><img src="/images/information-grey.png"/></span>
+      </label>
+      <div class="controls state-field" >
+          <select id="state" class="form-control" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
             <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
             <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
           </select>
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher" py:if="not editable"><img src="/images/information-grey.png"/></span>
       </div>
     </div>
 
     <div class="control-group">
       <label class="control-label" for="state">Category</label>
       <div class="controls">
-        <select style="width: 80%;" id="category" name="category" value="${data.get('contact-name', '')}">
+        <select style="width: 80%;" id="category" name="category" class="form-control" value="${data.get('contact-name', '')}">
           <option value=""></option>
           <py:for each="cat_name, cat_desc in c.categories">
             <option value="${cat_name}" py:attrs="{'selected': 'selected' if data.get('category', '') == cat_name else None}" >
@@ -138,22 +139,21 @@ ${h.prep_group_edit_data(data)}
   <div class="panel-body">
     These provide the default contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.
     <div class="control-group">
-      <label class="control-label" for="contact-name">Name</label>
+      <label class="control-label" for="contact-name">Name <small style="color:#aaa">e.g. Barnsley Council Data Enquiries Helpline</small></label>
       <div class="controls">
-        <input id="contact-name" maxlength="64" name="contact-name" type="text" class="" value="${data.get('contact-name', '')}" />
-        <p class="help-block">e.g. Barnsley Council Data Enquiries Helpline</p>
+        <input id="contact-name" maxlength="64" name="contact-name" type="text" class="form-control" value="${data.get('contact-name', '')}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="contact-email">Email</label>
       <div class="controls">
-        <input id="contact-email" maxlength="100" name="contact-email" type="text" class="" value="${data.get('contact-email', '')}" />
+        <input id="contact-email" maxlength="100" name="contact-email" type="text" class="form-control" value="${data.get('contact-email', '')}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="contact-name">Telephone</label>
       <div class="controls">
-        <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="" value="${data.get('contact-phone', '')}" />
+        <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="form-control" value="${data.get('contact-phone', '')}" />
       </div>
     </div>
     </div>
@@ -166,28 +166,27 @@ ${h.prep_group_edit_data(data)}
   <div class="panel-body">
     These provide the default Freedom of Information request contact details for datasets from this publisher. Each dataset may also include more specific contact details, which are then used instead of the details here.
     <div class="control-group">
-      <label class="control-label" for="foi-name">Name</label>
+      <label class="control-label" for="foi-name">Name <small style="color:#aaa">e.g. DfT FOI Enquiry Service</small></label>
       <div class="controls">
-        <input id="foi-name" maxlength="64" name="foi-name" type="text" class="" value="${data.get('foi-name', '')}" />
-        <p class="help-block">e.g. DfT FOI Enquiry Service</p>
+        <input id="foi-name" maxlength="64" name="foi-name" type="text" class="form-control" value="${data.get('foi-name', '')}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="foi-email">Email</label>
       <div class="controls">
-        <input id="foi-email" maxlength="100" name="foi-email" type="text" class="" value="${data.get('foi-email', '')}" />
+        <input id="foi-email" maxlength="100" name="foi-email" type="text" class="form-control" value="${data.get('foi-email', '')}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="foi-web">Web</label>
       <div class="controls">
-        <input id="foi-web" maxlength="100" name="foi-web" type="text" class="" value="${data.get('foi-web', '')}" />
+        <input id="foi-web" maxlength="100" name="foi-web" type="text" class="form-control" value="${data.get('foi-web', '')}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="foi-name">Telephone</label>
       <div class="controls">
-        <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="" value="${data.get('foi-phone', '')}" />
+        <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="form-control" value="${data.get('foi-phone', '')}" />
       </div>
     </div>
   </div>

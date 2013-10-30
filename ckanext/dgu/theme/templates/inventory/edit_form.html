@@ -135,7 +135,7 @@ Please check this box if the dataset will <strong>not</strong> be released and c
 <div class="col-md-12">
   <div id="disclaimer">
     <input id="save-button" class="btn btn-primary" name="save" type="submit" value="Save changes" />
-    <a href="/dataset/${data.get('name')}" class="btn btn-primary">Cancel</a>
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="/dataset/${data.get('name')}" />
     <p class="hints">
       <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${config.get('dgu.drupal_host', 'data.gov.uk')}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
     </p>
