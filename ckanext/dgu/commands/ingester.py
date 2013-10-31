@@ -179,16 +179,16 @@ class Ingester(CkanCommand):
 
         def header_validate(row):
             """ Validate that we have enough columns with the correct titles """
-            if len(row) != 4:
-                return False, "Wrong number of columns, expected 4, got {0}".format(len(row))
+            #if len(row) != 4:
+            #    return False, "Wrong number of columns, expected 4, got {0}".format(len(row))
 
             return True, ""
 
         def row_validate(row):
             """ Validate that we have enough columns and that every column (with
                 the exception of 'Further notes' has content """
-            if len(row) != 4:
-                return False, "Wrong number of columns, expected 6"
+            #if len(row) != 4:
+            #    return False, "Wrong number of columns, expected 4"
 
             #if row[2].strip() == '':
             #    return False, "No dataset URL provided"
@@ -211,7 +211,7 @@ class Ingester(CkanCommand):
             pkg = model.Package.get(dataset_name)
             if not pkg:
                 # Complain, but carry on.
-                raise ingest.IngestException("Failed to find package {0}".format(row[0]), True)
+                raise ingest.IngestException("Failed to find package {0}".format(dataset_name), True)
 
             if pkg.extras.get('core-dataset', False) == 'true':
                 log.info("Skipping {0} as it is already marked as core".format(pkg.name))
