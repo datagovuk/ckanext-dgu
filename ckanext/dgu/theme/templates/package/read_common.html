@@ -86,7 +86,7 @@
       publisher = c.pkg_dict.get('organization')
     ">
       <py:if test="publisher">
-        Published by 
+        Published by
         <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict.get('organization',{}).get('name',''))}">
           ${c.pkg_dict.get('organization',{}).get('title','')}.
         </a>
@@ -100,7 +100,7 @@
           No licence specified.
         </py:if>
         <py:if test="len(all_licences)!=0">
-          Licensed under 
+          Licensed under
         </py:if>
         <py:for each="i in range(len(all_licences))">
           <py:with vars="
@@ -132,7 +132,7 @@
       </span>
     </div>
     <div class="dataset-stars"
-      py:with="stars,reason,last_updated=h.calculate_dataset_stars(c.id)"
+      py:with="stars,reason,last_updated=h.calculate_dataset_stars(c.pkg.id)"
       >
       <span class="star-rating">
         <span class="tooltip">
@@ -183,15 +183,15 @@
           <div class="dataset-theme theme-${h.get_primary_theme(c.pkg_dict) or 'none'}">
             <span class="theme-name">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</span>
           </div>
-          <a 
-            class="dataset-optional-logo" 
+          <a
+            class="dataset-optional-logo"
             href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html"
             py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'"
           >
             <img class="dataset-logo" src="/images/national_statistics.gif" />
           </a>
-          <a 
-            class="dataset-optional-logo" 
+          <a
+            class="dataset-optional-logo"
             href="/location"
             py:if="h.dataset_type(c.pkg_extras) == 'uklp'"
           >
@@ -222,7 +222,7 @@
                   ${if_(is_uklp,'Withdraw this dataset','Delete this dataset')} &raquo;
                 </a>
               </li>
-              <li py:if="can_update and h.is_unpublished_item(c.pkg_dict)"> 
+              <li py:if="can_update and h.is_unpublished_item(c.pkg_dict)">
                 <py:with vars="will_be_published,when=h.will_be_published(c.pkg_dict)">
                   <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=c.pkg.name)}">
                     <span class="wrap-icon"><i class="icon-flag"></i></span>
