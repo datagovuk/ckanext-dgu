@@ -18,9 +18,9 @@
   </py:match>
 
   <div py:match="content">
-    <h1>Viewing Dataset Diff</h1>
-      <h4>From</h4>
-      <ul>
+      <h1>Viewing Dataset Diff</h1>
+      <h4 py:if="c.revision_from">From</h4>
+      <ul py:if="c.revision_from">
         <li><strong>ID: </strong>${c.revision_from.id} </li>
         <li><strong>Timestamp: </strong>${c.revision_from.timestamp} </li>
       </ul>
