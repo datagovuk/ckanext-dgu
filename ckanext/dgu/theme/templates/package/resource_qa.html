@@ -7,18 +7,18 @@
   <ul>
     <py:if test="qa['is_broken']">
       <li>
-          <span class="label label-error">Error</span> URL gives an error<br/>
+          <span class="label label-danger">Error</span> URL gives an error<br/>
           <py:for each="reason in qa['reason_list']">
             ${reason}<br/>
           </py:for>
-          <!--! Reason contains the format 
+          <!--! Reason contains the format
                 and (since it is a broken link) the date checked -->
       </li>
     </py:if>
     <py:if test="not qa['is_broken']">
       <py:if test="qa['value']==0 and is_data">
         <!--! link works but scores 0 stars - show warning -->
-        <li><span class="label label-error">Error</span> URL does not appear to be open data</li>
+        <li><span class="label label-danger">Error</span> URL does not appear to be open data</li>
         <li>${qa['reason']}</li>
         <!--! Reason contains the format -->
       </py:if>
@@ -29,7 +29,7 @@
               <li>Detected format: <div class="format-box">${qa['format']}</div></li>
       </py:if>
       <li py:if="resource_format_disagrees">
-        <span class="label label-error">Error</span> Detected format "${qa['format']}" does not match the format described by the publisher "${resource_format}"
+        <span class="label label-danger">Error</span> Detected format "${qa['format']}" does not match the format described by the publisher "${resource_format}"
       </li>
       <li>Last checked: ${qa['last_updated'].strftime("%d/%m/%Y")}</li>
     </py:if>
