@@ -269,6 +269,10 @@ def predict_if_resource_will_preview(resource_dict):
                                   'txt', 'atom', 'tsv', 'rss', 'ods'))
     # list of formats is copied from recline js
 
+def userobj_from_username(username):
+    from ckan import model
+    return model.User.get(username)
+
 def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwrite h.linked_user
     '''Given a user.name, user object or Drupal user name , return the HTML for a user,
     making sure officials are kept anonymous to the public.

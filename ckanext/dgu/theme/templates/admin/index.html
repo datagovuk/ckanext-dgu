@@ -1,0 +1,44 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Administration Dashboard</py:def>
+  <py:def function="page_heading">Administration Dashboard</py:def>
+
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/system_dashboard">System Dashboard</a></li>
+    <li><a href="/ckan-admin">Sysadmins</a></li>
+  </py:match>
+
+
+  <div py:match="content">
+
+    <h1>System administrators</h1>
+
+    <table class="table table-condensed table-bordered" style="table-layout:fixed">
+        <tr>
+            <!-- <td>Pic</td> -->
+            <th>User</th>
+            <th>Email</th>
+            <th>Registered since</th>
+        </tr>
+
+        <py:for each="user in c.sysadmins">
+            <tr py:with="u = h.userobj_from_username(user)">
+                <!--! <td><img src="" style="display:none"/></td> -->
+                <td>${h.linked_user(user)}</td>
+                <td><a py:if="u" href="mailto:${u.email}">${u.email}</a>
+                <py:if test="not u or not u.email">System account</py:if></td>
+                <td>${h.render_datetime(u.created)}</td>
+            </tr>
+        </py:for>
+
+    </table>
+
+    <span class="insert-comment-recent"></span>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
