@@ -245,7 +245,9 @@
     <div py:if="c.pkg_dict.get('state') == 'deleted'" class="panel panel-warning">
       <py:with vars="deleted=if_(h.dataset_type(c.pkg_extras)=='uklp','Withdrawn','Deleted')">
         <div class="panel-heading">${deleted} Dataset</div>
-        <div class="panel-body">This dataset is ${str(deleted).lower()}. Only administrators can view it in this state.</div>
+      </py:with>
+      <py:with vars="deleted=if_(h.dataset_type(c.pkg_extras)=='uklp','withdrawn','deleted')">
+        <div class="panel-body">This dataset is ${deleted}. Only administrators can view it in this state.</div>
       </py:with>
     </div>
 
