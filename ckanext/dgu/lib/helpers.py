@@ -1804,4 +1804,11 @@ def has_commitment(publisher):
     return publisher.name in ODS_ORGS.values()
 
 def is_core_dataset(package):
-    return get_from_flat_dict(package['extras'], 'core-dataset')
+    from paste.deploy.converters import asbool
+    v = get_from_flat_dict(package['extras'], 'core-dataset')
+    try:
+        return asbool(v)
+    except:
+        pass
+
+    return False
