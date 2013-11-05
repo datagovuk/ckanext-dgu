@@ -76,11 +76,12 @@ class SearchIndexing(object):
 
         A dataset has an OGL license if the license_id == "uk-ogl"
         or if it's a UKLP dataset with "Open Government License" in the
-        access_contraints extra field.
+        'licence_url_title' or 'licence' extra fields
         """
         regex = re.compile(r'open government licen[sc]e', re.IGNORECASE)
         return pkg_dict['license_id'] == 'uk-ogl' or \
-               bool(regex.search(pkg_dict.get('extras_access_constraints', '')))
+               bool(regex.search(pkg_dict.get('extras_licence_url_title', ''))) or \
+               bool(regex.search(pkg_dict.get('extras_licence', '')))
 
     @classmethod
     def clean_title_string(cls, pkg_dict):
