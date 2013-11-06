@@ -125,10 +125,11 @@ $(function() {
       error: catchError
     });
   };
-  
+
   var clickX = function(e) {
     e.preventDefault();
-    var packageId = $(e.target).attr('id');
+    // e.target here is the icon, we want the ID from the parent 'a'
+    var packageId = $(e.target).parents('a').attr('id');
     // Inform the server
     var endPoint = '/api/2/util/preview_list/remove/'+packageId;
     $.ajax({
