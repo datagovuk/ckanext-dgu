@@ -100,9 +100,9 @@
         <td class="key">Last updated:</td>
         <td class="value">${h.render_datestamp(c.resource['last_modified'])}</td>
       </tr>
-      <tr>
+      <tr py:with="fmt = (c.resource.get('format') or 'not specified').strip().lower()">
         <td class="key">Format:</td>
-        <td class="value">${format_box(c.resource.get('format','Unknown').lower())}</td>
+        <td class="value">${format_box(fmt)}</td>
       </tr>
       <tr py:if="c.resource.get('resource_type') in ('file', None)">
         <!--! This is data, so show 5 stars of openness -->
