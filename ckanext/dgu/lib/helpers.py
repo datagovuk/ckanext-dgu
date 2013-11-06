@@ -451,7 +451,7 @@ def render_qa_info_for_resource(resource_dict):
 
 def render_stars(stars, reason, last_updated):
     if stars==0:
-        stars_html = 5 * '<i class="icon-star"></i>'
+        stars_html = 5 * '<i class="icon-star-empty"></i>'
     else:
         stars_html = stars * '<i class="icon-star"></i>'
 
