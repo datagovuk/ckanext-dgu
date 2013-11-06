@@ -305,8 +305,8 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
             # unpublished item, we should alert the user to the existing of the dataset
             raise Exception("The non-inventory dataset '{0}' already exists".format(title))
 
-        if not group['name'] in possible_pkg['groups']:
-            log.info("Group name {0} does not appear in {1}".format(group['name'], possible_pkg['groups']))
+        if group['name'] != possible_pkg.get('organization', {}).get('name'):
+            log.info("Group name {0} does not match this possible packages organization in {1}".format(group['name'],possible_pkg['organization']))
             continue
 
         log.info("Adding {0} as possible package".format(possible_pkg['name']))
