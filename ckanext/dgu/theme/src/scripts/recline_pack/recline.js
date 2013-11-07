@@ -1441,7 +1441,7 @@ my.GridRow = Backbone.View.extend({
       })
       .fail(function() {
         my.notify('Error saving row', {
-          category: 'error',
+          category: 'danger',
           persist: true
         });
       });
@@ -1772,13 +1772,13 @@ my.Map = Backbone.View.extend({
           var msg = 'Wrong geometry value';
           if (except.message) msg += ' (' + except.message + ')';
           if (wrongSoFar <= 10) {
-            my.notify(msg,{category:'error'});
+            my.notify(msg,{category:'danger'});
           }
         }
       } else {
         wrongSoFar += 1
         if (wrongSoFar <= 10) {
-          my.notify('Wrong geometry value',{category:'error'});
+          my.notify('Wrong geometry value',{category:'danger'});
         }
       }
       return true;
@@ -2410,7 +2410,7 @@ my.DataExplorer = Backbone.View.extend({
         } else {
           msg = 'There was an error querying the backend';
         }
-        my.notify(msg, {category: 'error', persist: true});
+        my.notify(msg, {category: 'danger', persist: true});
       });
 
     // retrieve basic data like fields etc
@@ -2420,7 +2420,7 @@ my.DataExplorer = Backbone.View.extend({
         self.model.query(self.state.get('query'));
       })
       .fail(function(error) {
-        my.notify(error.message, {category: 'error', persist: true});
+        my.notify(error.message, {category: 'danger', persist: true});
       });
   },
 
