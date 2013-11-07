@@ -91,15 +91,17 @@ ${h.top_level_init()}
       id="${(defined('body_id') and body_id()) or ''}"
       py:with="breakout = defined('break_out_page') and break_out_page"
   >
-  <div id="blackbar">
+  <div id="blackbar" class="${if_(h.check_access('package_create'),'with-publisher','without-publisher')}">
     <div class="container">
       <a class="brand" href="/" rel="home"></a>
       <div class="chevron position2"></div>
       <nav id="dgu-nav">
-        <a href="/" class="nav-home">Home</a>
-        <a href="#" class="trigger-subnav nav-data">Data</a>
-        <a href="#" class="trigger-subnav nav-apps">Apps</a>
-        <a href="#" class="trigger-subnav nav-interact">Interact</a>
+        <div class="text-links">
+           <a href="/" class="nav-home">Home</a>
+           <a href="#" class="trigger-subnav nav-data">Data</a>
+           <a href="#" class="trigger-subnav nav-apps">Apps</a>
+           <a href="#" class="trigger-subnav nav-interact">Interact</a>
+         </div>
         <div class="nav-search" style="width: 200px;">
           <form action="/data/search" class="input-group input-group-sm">
             <input type="text" name="q" class="form-control" />
@@ -123,7 +125,7 @@ ${h.top_level_init()}
 
             <!-- Publisher dropdown -->
             <span py:if="h.check_access('package_create')" class="dropdown">
-              <a class="nav-user btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
+              <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
               <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
                 <li role="presentation" class="dropdown-header">Tools</li>
                 <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
