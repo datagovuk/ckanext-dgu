@@ -188,7 +188,9 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
       el.attr('src', resourceData.url);
       el.attr('width', '100%');
       el.attr('height', '100%');
-      my.$dialog().append(el);
+      // Change this to be a specific element for #977
+      $('#ckanext-html-preview').append(el);
+      //my.$dialog().append(el);
     }
     // images
     else if (resourceData.formatNormalized in {'png':'', 'jpg':'', 'gif':''}
