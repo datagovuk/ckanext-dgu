@@ -20,6 +20,7 @@ from ckan.plugins import IDomainObjectModification
 from ckan.plugins import IResourceUrlChange
 from ckan.plugins import IActions
 from ckan.plugins import ICachedReport
+import ckan.plugins.toolkit as toolkit
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (
                              dgu_package_update,
@@ -39,23 +40,6 @@ from ckan.exceptions import CkanUrlException
 
 log = getLogger(__name__)
 
-
-def configure_template_directory(config, relative_path):
-    configure_served_directory(config, relative_path, 'extra_template_paths')
-
-def configure_public_directory(config, relative_path):
-    configure_served_directory(config, relative_path, 'extra_public_paths')
-
-def configure_served_directory(config, relative_path, config_var):
-    'Configure serving of public/template directories.'
-    assert config_var in ('extra_template_paths', 'extra_public_paths')
-    this_dir = os.path.dirname(ckanext.dgu.__file__)
-    absolute_path = os.path.join(this_dir, relative_path)
-    if absolute_path not in config.get(config_var, ''):
-        if config.get(config_var):
-            config[config_var] = absolute_path + ',' + config[config_var]
-        else:
-            config[config_var] = absolute_path
 
 def after(instance, action, **params):
     from pylons import response
@@ -161,8 +145,16 @@ class ThemePlugin(SingletonPlugin):
     PackageController._guess_package_type = _guess_package_type
 
     def update_config(self, config):
-        configure_template_directory(config, 'theme/templates')
-        configure_public_directory(config, 'theme/public')
+        toolkit.add_template_directory(config, 'theme/templates')
+        toolkit.add_public_directory(config, 'theme/public')
+
+        # Shared assets may be configured to be elsewhere on disk,
+        # so in that case let the user configure apache/nginx to serve
+        # them manually. But for developers, the shared assets will
+        # simply next door to this repo, dgu.shared_assets_timestamp_path
+        # won't be set, so as a convenience we get paster to serve them.
+        if not config.get('dgu.shared_assets_timestamp_path'):
+            toolkit.add_public_directory(config, '../../../shared_dguk_assets')
 
     def get_helpers(self):
         """

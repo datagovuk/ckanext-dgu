@@ -220,10 +220,36 @@ There are a number of command-line scripts for processing data. To run one of th
     ons_loader --help
 
 
-Asset management
-================
+Assets
+======
 
-Assets (images, javascript, css) are managed by a tool called Grunt. Developers should run Grunt before committing changes to assets, so that it can compress/minify, concatenate and record a timestamp. Read more about it and its use here: https://github.com/datagovuk/dgu_theme/blob/master/README.md
+The DGU theme uses assets (images, javascript, css) from this repo and the shared assets repo::
+
+    https://github.com/datagovuk/shared_dguk_assets
+
+Both repos should be cloned next to each other on developer and server machines. If this is not possible then you need to set the dgu.shared_assets_timestamp_path config option to tell CKAN where the shared assets timestamp file is. e.g.::
+
+    dgu.shared_assets_timestamp_path = /vagrant/src/shared_dguk_assets/assets/timestamp
+
+Assets are stored in the repo in 'source' form - the form easiest for developers to edit them in. Before they can be served, Grunt must be run on both repos to create the 'public' versions of these files. This does concatenation, minification, compilation of the less, and recording a timestamp (see Gruntfile.js for details).
+
+Source:
+
+    images:     ckanext/dgu/theme/src/images
+    javascript: ckanext/dgu/theme/src/scripts
+    css (less): ckanext/dgu/theme/src/css
+
+And when you run grunt, you get:
+
+    images:     ckanext/dgu/theme/public/images
+    javascript: ckanext/dgu/theme/public/scripts
+    css:        ckanext/dgu/theme/public/css
+    timestamp:  ckanext/dgu/theme/timestamp.py
+
+Read more about Grunt installation and running it: https://github.com/datagovuk/shared_dguk_assets/blob/master/README.md
+
+The shared assets need to be served at /assets. On a deployment server, setup nginx or apache to do this. A developer running under paster will find that the shared assets are served autoimatically, as long as the repo is cloned alongside ckanext-dgu and that this config option is not set: dgu.shared_assets_timestamp_path.
+
 
 Tests
 =====

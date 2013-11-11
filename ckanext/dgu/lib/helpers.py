@@ -1510,11 +1510,16 @@ shared_assets_timestamp = None
 def get_shared_assets_timestamp():
     global shared_assets_timestamp
     if shared_assets_timestamp is None:
-        import os
-        this_file = os.path.dirname(os.path.realpath(__file__))
-        assets_file = os.path.join(this_file,'..','theme','public','assets','timestamp')
+        # Deployments should set this config
+        timestamp_filepath = config.get('dgu.shared_assets_timestamp_path')
+        if not timestamp_filepath:
+            # Default place to find shared_dguk_assets repo is next to this
+            # repo - perfect for developers
+            import os
+            this_file = os.path.dirname(os.path.realpath(__file__))
+            timestamp_filepath = os.path.join(this_file, '..', '..', '..', '..', 'shared_dguk_assets', 'assets', 'timestamp')
         try:
-            with open(assets_file) as f:
+            with open(timestamp_filepath) as f:
                 shared_assets_timestamp = f.read()
         except Exception as e:
             log.error('failed to load shared assets timestamp: %s' % e)
