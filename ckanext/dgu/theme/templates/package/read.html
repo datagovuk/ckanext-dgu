@@ -43,7 +43,9 @@
       </div>
       <div class="col-lg-push-2 col-lg-4 col-md-push-1 col-md-4 col-sm-5">
         <div class="dataset-map-info">
-          ${map_preview_buttons(c.pkg.id, c.pkg_dict, inline=False)} <!--! Supply both since there is no ID in pkg_dict! -->
+          <div style="margin-bottom:10px;">
+            ${map_preview_button_direct(c.pkg_dict, small=False)} 
+          </div>
           <py:if test="h.has_bounding_box(c.pkg_extras) and h.get_extent()">
           <h3>Dataset Extent</h3>
           <table class="table">

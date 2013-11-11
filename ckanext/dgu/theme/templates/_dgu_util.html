@@ -9,7 +9,6 @@
   <!--! Herein can be found generic helper methods for a whole bunch of common
         templating issues -->
 
-  <xi:include href="package/basket.html" />
   <py:def function="paginator(pageobj)">
     <py:with vars="
       page=pageobj.page;
@@ -168,6 +167,10 @@
     </div>
   </div>
 
+  <py:def function="map_preview_button_direct(pkg_dict,small=True)">
+    <a href="/data/map-preview?${h.get_wms_info_urls(pkg_dict)}${'&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % h.get_wms_info_extent(pkg_dict) if h.get_wms_info_extent(pkg_dict) else ''}" class="btn btn-default ${if_(small,'btn-xs','')} btn-info btn-preview preview-now"><i class="icon-map-marker"></i>&nbsp; Preview on Map</a>
+  </py:def>
+
   <div py:def="package_list_from_dict(packages,mini=False)" class="common-dataset-list">
     <div class="${if_(mini,'row')}">
       <py:for each="i in range(len(packages))">
@@ -204,8 +207,26 @@
                <py:for each="format in h.formats_for_package(package)">
                  ${format_box(format.lower())}
                </py:for>
-               <py:if test="not mini">
-                 ${map_preview_buttons(package.id, package)}
+               <py:if test="not mini and h.get_wms_info_urls(package)">
+                 <div class="map-buttons">
+                   <span style="display: none;" class="js-data-id">${package.id}</span>
+                   <span style="display: none;" class="js-data-title">${package.get('title')}</span>
+                   <span style="display: none;" class="js-data-querystring">${h.get_wms_info_urls(package)}</span>
+                   <span style="display: none;" class="js-data-extent">${','.join(h.get_wms_info_extent(package))}</span>
+                   ${map_preview_button_direct(package)}
+                   <py:with vars="in_basket=package.id in session.get('preview_list',[])">
+                     <span 
+                          class="preview-add js-dataset-${package.id}-add"
+                          style="${if_(in_basket,'display: none;')}">
+                            <button data-id="${package.id}" class="btn btn-default btn-xs btn-info btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Add to Preview List</button>
+                     </span>
+                     <span 
+                          class="preview-remove js-dataset-${package.id}-remove"
+                          style="${if_(not in_basket,'display: none;')}">
+                          <button data-id="${package.id}" class="btn btn-danger btn-xs btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Remove from List</button>
+                     </span>
+                   </py:with>
+                 </div>
                </py:if>
              </div>
              <div class="clearfix clearfix-ie7"> &nbsp;</div>

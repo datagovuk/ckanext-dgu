@@ -20,7 +20,14 @@
         <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
       </div>
     </div>
-    ${basket()}
+    <div id="shopping-basket-container" class="facet-box-unboxed">
+      <a id="shopping-basket-reset" href="#" class="facet-kill pull-right">
+        <i class="icon-large icon-remove-sign"></i>
+      </a>
+      <h4 class="facet-title">Map Preview List</h4>
+      <div class="facet-options" id="shopping-basket"></div>
+      <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-info btn-basket"><span><i class="icon-map-marker"></i>&nbsp; Preview</span></a>
+    </div>
 
     <py:if test="c.page.item_count">
       ${facet_filters()}
