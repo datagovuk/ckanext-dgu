@@ -89,7 +89,7 @@ $(function() {
     var target = $(e.delegateTarget); // Using e.target might accidently catch the <img>
     var id = target.attr('id');
     target.toggleClass('expanded');
-    $('#'+id+'-items').toggle('fast');
+    $('.more-'+id).toggle('fast');
   });
 
   $('.read-more-parent .link-read-more, .read-more-parent .link-read-less').click(function(e) {

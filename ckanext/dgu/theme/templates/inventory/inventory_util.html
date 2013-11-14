@@ -6,20 +6,6 @@
   py:strip=""
   >
 
-  <div py:def="unpublished_facet_filters()" class="datasets">
-    <div class="boxed">
-      <div class="facet-box-unboxed">
-      ${facet_box(
-          'publisher',
-          'Publisher',
-          'There are no further publisher filters to apply.',
-          more_button='more-publishers-button',
-          alternative_url='/unpublished'
-      )}
-      </div>
-    </div>
-  </div>
-
 <py:def function="unpublished_block(title, pkg_list)">
     <div class="boxed">
       <div class="title frontpage-search-panel">

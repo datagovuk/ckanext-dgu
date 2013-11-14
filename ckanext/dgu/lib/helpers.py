@@ -20,7 +20,7 @@ from webhelpers.text import truncate
 from pylons import config
 from pylons import request
 
-from ckan.lib.helpers import icon, icon_html, json
+from ckan.lib.helpers import icon, icon_html, json, unselected_facet_items
 import ckan.lib.helpers
 
 # not importing ckan.controllers here, since we need to monkey patch it in plugin.py
@@ -206,58 +206,6 @@ def resource_display_name(resource_dict):
         noname_string = 'File'
         return '[%s] %s' % (noname_string, resource_dict['id'])
 
-
-def search_has_term(key, val):
-    current_val =  t.request.params.get(key, None)
-    return current_val == val
-
-def get_search_params(remove=None):
-    from urllib import urlencode
-    from ckan.controllers.package import _encode_params
-    if not remove:
-        remove = ['page']
-    else:
-        remove + ['page']
-    return "?" + urlencode(_encode_params([(k, v) for k,v in t.request.params.items() if k not in remove]))
-
-def _search_with_filter(k_search,k_replace, alternative_url=None):
-    from ckan.controllers.package import search_url
-    # most search operations should reset the page counter:
-    params_nopage = [(k, v) for k,v in t.request.params.items() if k != 'page']
-    params = set(params_nopage)
-    params_filtered = set()
-    for (k,v) in params:
-        if k==k_search: k=k_replace
-        params_filtered.add((k,v))
-    if alternative_url:
-        return url_with_params(alternative_url, params_filtered)
-    return search_url(params_filtered)
-
-
-def _search_update_filter(filtername, newval=None, alternative_url=None):
-    from ckan.controllers.package import search_url
-    # most search operations should reset the page counter:
-    params_nopage = [(k, v) for k,v in t.request.params.items() if k != 'page']
-    params = set(params_nopage)
-    params_filtered = set()
-    for (k,v) in params:
-        if k==filtername:
-            if newval:
-                params_filtered.add((k,newval))
-            continue
-
-        params_filtered.add((k,v))
-    if not filtername in params and newval:
-        params_filtered.add((filtername, newval))
-    if alternative_url:
-        return url_with_params(alternative_url, params_filtered)
-    return search_url(params_filtered)
-
-def search_with_subpub(alternative_url=None):
-    return _search_with_filter('publisher','parent_publishers',alternative_url)
-
-def search_without_subpub(alternative_url=None):
-    return _search_with_filter('parent_publishers','publisher',alternative_url)
 
 def predict_if_resource_will_preview(resource_dict):
     format = resource_dict.get('format')
@@ -502,7 +450,7 @@ def render_datetime(datetime_, date_format=None, with_hours=False):
             date_format += ' %H:%M'
     return ckan.lib.helpers.render_datetime(datetime_, date_format)
 
-def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
+def dgu_drill_down_url(params_to_keep, added_params):
     '''Since you must not mix spatial search with other facets,
     we need to strip off "sort=spatial+desc" from the params if it
     is there.
@@ -513,13 +461,11 @@ def dgu_drill_down_url(params_to_keep, added_params, alternative_url=None):
                     List of (key, value) pairs.
     added_params: Dict of params to add, for this facet option
     '''
-    from ckan.controllers.package import search_url, url_with_params
+    from ckan.controllers.package import search_url
 
     params = set(params_to_keep)
     params |= set(added_params.items())
 
-    if alternative_url:
-        return url_with_params(alternative_url, params)
     return search_url(params)
 
 def render_json(json_str):
@@ -610,8 +556,6 @@ def formats_for_package(package):
     formats = sorted(list(formats))
     return formats
 
-def link_subpub():
-    return t.request.params.get('publisher','') and not t.request.params.get('parent_publishers','')
 
 def has_hidden_unpublished():
     return t.request.params.get('unpublished','true') == 'false'
@@ -624,7 +568,6 @@ def search_params_contains(arg):
 
 def search_params_val(arg, default=None):
     return t.request.params.get(arg, default)
-
 
 def facet_params_to_keep():
     return [(k, v) for k,v in t.request.params.items() if k != 'page' and not (k == 'sort' and v == 'spatial desc')]
@@ -1385,40 +1328,43 @@ def publisher_performance_data(publisher, include_sub_publishers):
 def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
 
-def get_facet_title_(name):
-    '''
-    This is deprecated in CKAN 2.0, but for now we will maintain
-    our own version of this function
-    '''
-    # if this is set in the config use this
-    config_title = config.get('search.facets.%s.title' % name)
-    if config_title:
-        return config_title
+def search_facets_unselected(facet_keys,sort_by='count'):
+    unselected_raw = []
+    for key in facet_keys:
+        for value in unselected_facet_items(key):
+            unselected_raw.append( (key,value) )
+    unselected_raw = sorted(unselected_raw,reverse=True,key=lambda x:x[1][sort_by])
+    unselected = []
+    for key,value in unselected_raw:
+        link = dgu_drill_down_url(facet_params_to_keep(), {key: value['name']})
+        text = "%s (%d)" % (search_facet_text(key,value['name']),value['count'])
+        tooltip = search_facet_tooltip(key,value['name'])
+        unselected.append( (link,text,tooltip) )
+    # Special case behaviour for publishers
+    if 'publisher' in facet_keys and request.params.get('publisher',''):
+        params_to_keep = dict(facet_params_to_keep())
+        del params_to_keep['publisher']
+        link = dgu_drill_down_url(params_to_keep.items(), {'parent_publishers':request.params.get('publisher','')})
+        unselected.append( (link,'Include sub-publishers',None) )
+    return unselected
 
-    facet_titles = {'groups': 'Groups',
-                  'tags': 'Tags',
-                  'res_format': 'Formats',
-                  'license': 'Licence', }
-    return facet_titles.get(name, name.capitalize())
+def search_facets_selected(facet_keys):
+    selected = []
+    for (key,value) in c.fields:
+        if key not in facet_keys: continue
+        link = c.remove_field(key,value)
+        text = search_facet_text(key,value)
+        tooltip = search_facet_tooltip(key,value)
+        selected.append( (link,text,tooltip) )
+    # Special case behaviour for publishers
+    if 'parent_publishers' in facet_keys and request.params.get('parent_publishers',''):
+        params_to_keep = dict(facet_params_to_keep())
+        del params_to_keep['parent_publishers']
+        link = dgu_drill_down_url(params_to_keep.items(), {'publisher':request.params.get('parent_publishers','')})
+        selected.append( (link,'Include sub-publishers',None) )
+    return selected
 
-
-def render_facet_key(key,value=None):
-    if key in ['unpublished', 'core_dataset']:
-        return 'Show only'
-    if key=='license_id-is-ogl':
-        return 'Licence'
-    if key=='UKLP':
-        return 'Type'
-    if key=='resource-type' or key=='spatial-data-service-type':
-        return 'UKLP Type'
-    if key=='all_themes':
-        return 'Theme'
-    if key=='theme-primary':
-        return 'Primary Theme'
-    # Delegate to core CKAN
-    return get_facet_title_(key)
-
-def render_facet_value(key,value):
+def search_facet_text(key,value):
     if key=='core_dataset':
         if value=='true':
             return 'Show NII datasets'
@@ -1440,18 +1386,8 @@ def render_facet_value(key,value):
             return value
         if stars == -1:
             return 'TBC'
-        mini_stars = stars * '&#9733'
-        mini_stars += '&#9734' * (5-stars)
-        captions = [
-            'Unavailable or not openly licensed',
-            'Unstructured data (e.g. PDF)',
-            'Structured data but proprietry format (e.g. Excel)',
-            'Structured data in open format (e.g. CSV)',
-            'Linkable data - served at URIs (e.g. RDF)',
-            'Linked data - data URIs and linked to other data (e.g. RDF)'
-            ]
-        return t.literal('<span class="js-tooltip" data-original-title="%s" data-placement="top">%s</span>' % (captions[stars], mini_stars))
-    if key=='publisher':
+        return t.literal( (stars * '&#9733') + ('&#9734' * (5-stars)) )
+    if key=='publisher' or key=='parent_publishers':
         return ckan.lib.helpers.group_name_to_title(value)
     if key=='UKLP':
         return 'UK Location Dataset'
@@ -1482,6 +1418,27 @@ def render_facet_value(key,value):
         from ckanext.dgu.schema import THEMES
         return THEMES.get(value,value)
     return value
+
+def search_facet_tooltip(key,value):
+    if key=='openness_score':
+        try:
+            stars = int(value)
+        except ValueError:
+            return 
+        if stars == -1:
+            return 
+        mini_stars = stars * '&#9733'
+        mini_stars += '&#9734' * (5-stars)
+        captions = [
+            'Unavailable or not openly licensed',
+            'Unstructured data (e.g. PDF)',
+            'Structured data but proprietry format (e.g. Excel)',
+            'Structured data in open format (e.g. CSV)',
+            'Linkable data - served at URIs (e.g. RDF)',
+            'Linked data - data URIs and linked to other data (e.g. RDF)'
+            ]
+        return captions[stars]
+    return 
 
 def social_url_twitter(url,title):
     import urllib
