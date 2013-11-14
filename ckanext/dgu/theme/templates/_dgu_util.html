@@ -15,7 +15,7 @@
       numpages=pageobj.page_count;
       url_for_page=lambda x:pageobj._url_generator(None,x)
     ">
-    <div class="dgu-pagination">
+    <div class="dgu-pagination" py:if="numpages>1">
       <ul class="pagination">
         <li>
           <a py:if="page>1" href="${url_for_page(page-1)}">&laquo;</a>
