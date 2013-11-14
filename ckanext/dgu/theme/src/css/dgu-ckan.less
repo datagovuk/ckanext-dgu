@@ -275,7 +275,7 @@ table.tablesorter {
 /* Facet Menu */
 /* ---------- */
 .facet-filters {
-    @media(max-width: 767px) {
+    @media(max-width: 991px) {
         z-index: 200;
         position: absolute;
         width: 80%;
@@ -323,8 +323,8 @@ table.tablesorter {
     }
     .facet-option {
       padding: 6px 0;
-      margin-right: -15px;
-      padding-right: 15px;
+      margin-right: -10px;
+      padding-right: 10px;
       font-size: 13px;
       border-top: 1px dotted #ccc;
       a { 
@@ -356,7 +356,7 @@ table.tablesorter {
       background: #555;
       color: #fff;
     }
-    @media(max-width: 767px) {
+    @media(max-width: 991px) {
       color: #aaa;
       .facet-option {
         border-top: none;
@@ -368,11 +368,12 @@ table.tablesorter {
         &.facet-option-selected {
           margin-left: -25px;
           padding-left: 10px;
+          a { color: #333; }
         }
       }
       h4 { color: #fff; border-top: none;}
     }
-    @media(min-width: 768px) {
+    @media(min-width: 992px) {
       .facet-option-selected {
         background: #b9e671;
         color: #333;
@@ -953,6 +954,11 @@ body.controller-inventory {
 /* PAGE: Package/search */
 /* -------------------- */
 body.controller-package.action-search {
+  .show-facets {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+  }
   .sidebar-search {
     margin-left: 40px;
     margin-bottom: 30px;
@@ -969,7 +975,7 @@ body.controller-package.action-search {
     border-top: 1px solid #ccc;
     border-bottom: 1px solid #f0f0f0;
     margin: 17px 0;
-    margin-right: -16px;
+    margin-right: -10px;
     margin-left: 30px;
     @media(max-width: 767px) {
       margin-right: 10px;

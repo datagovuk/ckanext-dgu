@@ -212,17 +212,15 @@ ${h.top_level_init()}
 
   <div id="main-content">
     <div class="container">
-      <div class="row">
-        <div py:if="defined('sidebar')" class="main-height-columns col-md-4 sidebar">
-          ${sidebar()}
-        </div>
-        <div class="main-height-columns content ${if_(defined('sidebar'),'col-md-8','col-md-12')}">
-          <content>
-          <!-- Content goes here -->
-          </content>
-        </div>
+      <div py:if="defined('sidebar')" class="sidebar">
+        ${sidebar()}
       </div>
-    </div><!-- /container -->
+      <div class="content">
+        <content>
+        <!-- Content goes here -->
+        </content>
+      </div>
+    </div>
   </div><!-- /main-content -->
 
   <div class="footer">
