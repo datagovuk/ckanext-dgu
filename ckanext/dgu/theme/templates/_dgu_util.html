@@ -418,26 +418,27 @@
     <!-- Create a nested list of UKLP filters -->
     <div class="facet-box-unboxed">
       <h4>UK Location Dataset Type</h4>
-      <div class="facet-options" py:with="show_uklp = bool(len(h.unselected_facet_items('resource-type')))">
-        <py:if test="show_uklp">
-          <py:for each="facet_item in h.unselected_facet_items('UKLP')">
-            ${facet_line(facet_item, 'UKLP')}
-          </py:for>
-          <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">
-            ${facet_line(facet_item,'resource-type')}
-            <py:if test="facet_item['name']=='service'">
-              <py:for each="sub_item in h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count')">
-
-                ${facet_line(sub_item, 'spatial-data-service-type')}
-
-              </py:for>
-            </py:if>
-          </py:for>
-        </py:if>
-        <py:if test="not show_uklp">
-            <div class="facet-option">
-                There are no further type filters to apply.
-            </div>
+      <div class="facet-options" py:with="unselected_uklp=
+            [ (x,'UKLP')                      for x in h.unselected_facet_items('UKLP')                      ]
+          + [ (x,'resource-type')             for x in h.unselected_facet_items('resource-type')             ]
+          + [ (x,'spatial-data-service-type') for x in h.unselected_facet_items('spatial-data-service-type') ]
+        ">
+        <py:for each="preselected in [ v for (k,v) in c.fields if k=='UKLP']">
+          ${facet_unline('UKLP',preselected)}
+        </py:for>
+        <py:for each="preselected in [ v for (k,v) in c.fields if k=='resource-type']">
+          ${facet_unline('resource-type',preselected)}
+        </py:for>
+        <py:for each="preselected in [ v for (k,v) in c.fields if k=='spatial-data-service-type']">
+          ${facet_unline('spatial-data-service-type',preselected)}
+        </py:for>
+        <py:for each="facet_item,facet_key in sorted(unselected_uklp, reverse=True, key=lambda x:x[0]['count'])">
+          ${facet_line(facet_item, facet_key)}
+        </py:for>
+        <py:if test="not len(unselected_uklp)">
+          <div class="facet-option">
+            There are no further type filters to apply.
+          </div>
         </py:if>
       </div>
     </div>
