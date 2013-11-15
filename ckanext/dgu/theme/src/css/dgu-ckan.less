@@ -668,6 +668,9 @@ table.tablesorter {
       display: block;
       margin-bottom: 4px;
       padding: 6px 20px;
+      &.active {
+        background: #d3d3d3;
+      }
     }
     .publisher {
       margin-left: 5%;
@@ -928,6 +931,10 @@ body.controller-publisher.action-read {
     font-size: 11px;
     color: #999;
     line-height: 18px;
+  }
+  .publisher-dropdown {
+    max-height: 500px;
+    overflow-y: scroll;
   }
 }
 body.controller-publisher {
