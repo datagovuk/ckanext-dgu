@@ -183,14 +183,14 @@
 
     <py:def function="publisher_extra_options">
       <label class="checkbox" id="publisher-extra-options">
-        <input type="checkbox" name="publisher-results-include-subpub" class="inline" checked="checked" />
+        <input type="checkbox" name="publisher-results-include-subpub" class="inline" />
         Include datasets from sub-publishers
       </label>
     </py:def>
 
     ${search_form(
       placeholder='Search publisher',
-      set_fields={'parent_publishers':c.group.name},
+      set_fields={'publisher':c.group.name},
       extra_options=publisher_extra_options,
     )}
     <div class="clearfix" style="height: 30px;">&nbsp;</div>
