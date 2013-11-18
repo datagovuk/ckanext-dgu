@@ -349,7 +349,7 @@ def slugify(name):
 
 publisher_info_query = '''
 select "group".id, "group".title, now() as timestamp
-from "group" where "group".type = 'publisher'
+from "group" where "group".type = 'organization'
 group by 1,2;'''
 
 package_extra_pivot_clean = '''
@@ -360,52 +360,52 @@ package_extra_pivot_clean = '''
 # change the way the table is laid out.
 package_extra_pivot_query = '''
 insert into tmp_package_extra_pivot select package_id,
-max(case when key = 'access_constraints' then value else '""' end)                    "access_constraints",
-max(case when key = 'agency' then value else '""' end)                                "agency",
-max(case when key = 'bbox-east-long' then value else '""' end)                        "bbox-east-long",
-max(case when key = 'bbox-north-lat' then value else '""' end)                        "bbox-north-lat",
-max(case when key = 'bbox-south-lat' then value else '""' end)                        "bbox-south-lat",
-max(case when key = 'bbox-west-long' then value else '""' end)                        "bbox-west-long",
-max(case when key = 'categories' then value else '""' end)                            "categories",
-max(case when key = 'contact-email' then value else '""' end)                         "contact-email",
-max(case when key = 'coupled-resource' then value else '""' end)                      "coupled-resource",
-max(case when key = 'dataset-reference-date' then value else '""' end)                "dataset-reference-date",
-max(case when key = 'date_released' then value else '""' end)                         "date_released",
-max(case when key = 'date_updated' then value else '""' end)                          "date_updated",
-max(case when key = 'date_update_future' then value else '""' end)                    "date_update_future",
-max(case when key = 'department' then value else '""' end)                            "department",
-max(case when key = 'external_reference' then value else '""' end)                    "external_reference",
-max(case when key = 'frequency-of-update' then value else '""' end)                   "frequency-of-update",
--- This just looks like a typo -- max(case when key = 'geographical_granularity' then value else '""' end)              "geographical_granularity",
-max(case when key = 'geographic_coverage' then value else '""' end)                   "geographic_coverage",
-max(case when key = 'geographic_granularity' then value else '""' end)                "geographic_granularity",
-max(case when key = 'guid' then value else '""' end)                                  "guid",
-max(case when key = 'import_source' then value else '""' end)                         "import_source",
-max(case when key = 'UKLP' then value else '""' end)                                  "UKLP",
-max(case when key = 'licence' then value else '""' end)                               "licence",
-max(case when key = 'licence_url' then value else '""' end)                           "licence_url",
-max(case when key = 'mandate' then value else '""' end)                               "mandate",
-max(case when key = 'metadata-date' then value else '""' end)                         "metadata-date",
-max(case when key = 'metadata-language' then value else '""' end)                     "metadata-language",
-max(case when key = 'national_statistic' then value else '""' end)                    "national_statistic",
-max(case when key = 'openness_score' then value else '""' end)                        "openness_score",
-max(case when key = 'openness_score_last_checked' then value else '""' end)           "openness_score_last_checked",
-max(case when key = 'precision' then value else '""' end)                             "precision",
-(select "group".title from "group" JOIN "member" on "group".id = "member".group_id where "member".table_name='package' and "member".state='active' and "member".table_id=package_id limit 1) as "published_by",
-max(case when key = 'published_via' then value else '""' end)                         "published_via",
-max(case when key = 'resource-type' then value else '""' end)                         "resource-type",
-max(case when key = 'responsible-party' then value else '""' end)                     "responsible-party",
-max(case when key = 'series' then value else '""' end)                                "series",
-max(case when key = 'spatial-data-service-type' then value else '""' end)             "spatial-data-service-type",
-max(case when key = 'spatial-reference-system' then value else '""' end)              "spatial-reference-system",
-max(case when key = 'taxonomy_url' then value else '""' end)                          "taxonomy_url",
-max(case when key = 'temporal_coverage_from' then value else '""' end)                "temporal_coverage_from",
-max(case when key = 'temporal_coverage-from' then value else '""' end)                "temporal_coverage-from",
-max(case when key = 'temporal_coverage_to' then value else '""' end)                  "temporal_coverage_to",
-max(case when key = 'temporal_coverage-to' then value else '""' end)                  "temporal_coverage-to",
-max(case when key = 'temporal_granularity' then value else '""' end)                  "temporal_granularity",
-max(case when key = 'update_frequency' then value else '""' end)                      "update_frequency",
-max(case when key = 'harvest_object_id' then value else '""' end)                     "harvest_object_id",
+max(case when key = 'access_constraints' then value else '' end)                    "access_constraints",
+max(case when key = 'agency' then value else '' end)                                "agency",
+max(case when key = 'bbox-east-long' then value else '' end)                        "bbox-east-long",
+max(case when key = 'bbox-north-lat' then value else '' end)                        "bbox-north-lat",
+max(case when key = 'bbox-south-lat' then value else '' end)                        "bbox-south-lat",
+max(case when key = 'bbox-west-long' then value else '' end)                        "bbox-west-long",
+max(case when key = 'categories' then value else '' end)                            "categories",
+max(case when key = 'contact-email' then value else '' end)                         "contact-email",
+max(case when key = 'coupled-resource' then value else '' end)                      "coupled-resource",
+max(case when key = 'dataset-reference-date' then value else '' end)                "dataset-reference-date",
+max(case when key = 'date_released' then value else '' end)                         "date_released",
+max(case when key = 'date_updated' then value else '' end)                          "date_updated",
+max(case when key = 'date_update_future' then value else '' end)                    "date_update_future",
+max(case when key = 'department' then value else '' end)                            "department",
+max(case when key = 'external_reference' then value else '' end)                    "external_reference",
+max(case when key = 'frequency-of-update' then value else '' end)                   "frequency-of-update",
+-- This just looks like a typo -- max(case when key = 'geographical_granularity' then value else '' end)              "geographical_granularity",
+max(case when key = 'geographic_coverage' then value else '' end)                   "geographic_coverage",
+max(case when key = 'geographic_granularity' then value else '' end)                "geographic_granularity",
+max(case when key = 'guid' then value else '' end)                                  "guid",
+max(case when key = 'import_source' then value else '' end)                         "import_source",
+max(case when key = 'UKLP' then value else '' end)                                  "UKLP",
+max(case when key = 'licence' then value else '' end)                               "licence",
+max(case when key = 'licence_url' then value else '' end)                           "licence_url",
+max(case when key = 'mandate' then value else '' end)                               "mandate",
+max(case when key = 'metadata-date' then value else '' end)                         "metadata-date",
+max(case when key = 'metadata-language' then value else '' end)                     "metadata-language",
+max(case when key = 'national_statistic' then value else '' end)                    "national_statistic",
+max(case when key = 'openness_score' then value else '' end)                        "openness_score",
+max(case when key = 'openness_score_last_checked' then value else '' end)           "openness_score_last_checked",
+max(case when key = 'precision' then value else '' end)                             "precision",
+(select title from "group" WHERE id=(select owner_org from package where id=package_id)) as "published_by",
+max(case when key = 'published_via' then value else '' end)                         "published_via",
+max(case when key = 'resource-type' then value else '' end)                         "resource-type",
+max(case when key = 'responsible-party' then value else '' end)                     "responsible-party",
+max(case when key = 'series' then value else '' end)                                "series",
+max(case when key = 'spatial-data-service-type' then value else '' end)             "spatial-data-service-type",
+max(case when key = 'spatial-reference-system' then value else '' end)              "spatial-reference-system",
+max(case when key = 'taxonomy_url' then value else '' end)                          "taxonomy_url",
+max(case when key = 'temporal_coverage_from' then value else '' end)                "temporal_coverage_from",
+max(case when key = 'temporal_coverage-from' then value else '' end)                "temporal_coverage-from",
+max(case when key = 'temporal_coverage_to' then value else '' end)                  "temporal_coverage_to",
+max(case when key = 'temporal_coverage-to' then value else '' end)                  "temporal_coverage-to",
+max(case when key = 'temporal_granularity' then value else '' end)                  "temporal_granularity",
+max(case when key = 'update_frequency' then value else '' end)                      "update_frequency",
+max(case when key = 'harvest_object_id' then value else '' end)                     "harvest_object_id",
 cast('%(territory)s' as text) "territory"
 from package_extra where package_id in (%(packages)s) and state='active'
 group by package_id
@@ -434,17 +434,17 @@ from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info on published_by = tmp_publisher_info.title
 
-where "resource-type" = '"dataset"' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
+where "resource-type" = 'dataset' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header
 '''
 
 reportd_query = '\n'.join(reporta_query.strip().split('\n')[:-2]) + '''
-where "resource-type" = '"series"' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
+where "resource-type" = 'series' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header
 '''
 
 reportf_query = '\n'.join(reporta_query.strip().split('\n')[:-2]) + '''
-where (not ("resource-type" = '""' or "resource-type" is NULL or "resource-type" = '"dataset"' or "resource-type" = '"series"' or "resource-type" = '"service"')) and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
+where (not ("resource-type" = '' or "resource-type" is NULL or "resource-type" = 'dataset' or "resource-type" = 'series' or "resource-type" = 'service')) and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header
 '''
 
@@ -472,7 +472,7 @@ notes "Abstract"
 from package
 join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info on published_by = tmp_publisher_info.title
-where "resource-type" = '"service"' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
+where "resource-type" = 'service' and package.state = 'active' and tmp_package_extra_pivot.territory='%(territory)s'
 ) to STDOUT with csv header;
 '''
 
@@ -485,19 +485,19 @@ reportc_insert = '''
 delete from report_uklp_report_c_history where report_date = '%(date)s';
 insert into report_uklp_report_c_history
 select '%(date)s'::timestamp as timestamp, pub.id, pub.title, pub.timestamp
-,sum(case when "resource-type" = '"dataset"' then 1 else 0 end)
-,sum(case when "resource-type" = '"series"' then 1 else 0 end)
-,sum(case when "resource-type" != '"series"' and "resource-type" != '"dataset"' and "resource-type" != '"service"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' then 1 else 0 end)
---,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" in ('"view"','"discovery"', '"OGC:WMS"', '"other"') then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"download"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"transformation"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
+,sum(case when "resource-type" = 'dataset' then 1 else 0 end)
+,sum(case when "resource-type" = 'series' then 1 else 0 end)
+,sum(case when "resource-type" != 'series' and "resource-type" != 'dataset' and "resource-type" != 'service' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' then 1 else 0 end)
+--,sum(case when "resource-type" = 'service' and "spatial-data-service-type" in ('view','discovery', 'OGC:WMS', 'other') then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'download' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'transformation' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'invoke' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'other' then 1 else 0 end)
 ,tmp_package_extra_pivot.territory
  from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
 left join tmp_publisher_info pub on published_by = pub.title
-where package.state = 'active' and "resource-type" <> '""'
+where package.state = 'active' and "resource-type" <> ''
 group by 1,2,3,4,tmp_package_extra_pivot.territory;
 '''
 
@@ -541,18 +541,18 @@ reporte_insert = '''
 delete from report_uklp_report_e_history_by_owner where report_date = '%(date)s';
 insert into report_uklp_report_e_history_by_owner
 select '%(date)s'::timestamp as timestamp, "responsible-party"
-,sum(case when "resource-type" = '"dataset"' then 1 else 0 end)
-,sum(case when "resource-type" = '"series"' then 1 else 0 end)
-,sum(case when "resource-type" != '"series"' and "resource-type" != '"dataset"' and "resource-type" != '"service"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"view"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"download"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"transformation"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"invoke"' then 1 else 0 end)
-,sum(case when "resource-type" = '"service"' and "spatial-data-service-type" = '"other"' then 1 else 0 end)
---,sum(case when ("resource-type" = '"service"' and not "spatial-data-service-type" = '"view"' and not "spatial-data-service-type" = '"download"' and not "spatial-data-service-type" =  '"transformation"' and not "spatial-data-service-type" =  '"invoke"') then 1 else 0 end)
+,sum(case when "resource-type" = 'dataset"' then 1 else 0 end)
+,sum(case when "resource-type" = 'series' then 1 else 0 end)
+,sum(case when "resource-type" != 'series' and "resource-type" != 'dataset' and "resource-type" != 'service' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'view' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'download' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'transformation' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'invoke' then 1 else 0 end)
+,sum(case when "resource-type" = 'service' and "spatial-data-service-type" = 'other' then 1 else 0 end)
+--,sum(case when ("resource-type" = 'service' and not "spatial-data-service-type" = 'view' and not "spatial-data-service-type" = 'download' and not "spatial-data-service-type" =  'transformation' and not "spatial-data-service-type" =  'invoke') then 1 else 0 end)
 ,tmp_package_extra_pivot.territory
 from package join tmp_package_extra_pivot on package.id = tmp_package_extra_pivot.package_id
-where package.state = 'active' and "resource-type" <> '""'
+where package.state = 'active' and "resource-type" <> ''
 group by 1,2,tmp_package_extra_pivot.territory;
 '''
 
