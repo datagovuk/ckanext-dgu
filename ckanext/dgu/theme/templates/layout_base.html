@@ -140,7 +140,7 @@ ${h.top_level_init()}
 
           </py:if>
           <py:if test="not logged_in">
-            <a class="nav-user btn btn-primary" href="${'/admin/workbench' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
+            <a class="nav-user btn btn-primary" href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
           </py:if>
         </py:with>
       </nav>
