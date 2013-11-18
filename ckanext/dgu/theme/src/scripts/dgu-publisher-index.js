@@ -95,3 +95,7 @@ $(function() {
   searchBox.change(onChange);
   updateSearch(searchBox.val());
 });
+
+$(function() {
+  $('input[name="q"]').focus();
+});

@@ -40,17 +40,17 @@
           </div>
         </div>
       </span>
-      <span class="dropdown">
+      <span class="dropdown js-trigger-publisher-scroll">
         <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Publisher&nbsp;Hierarchy">
           <i class="icon-sitemap icon-2x"></i>
           <div class="dropdown-chevron"></div>
         </a>
         <div class="dropdown-menu panel panel-default" role="menu" aria-labelledby="dLabel">
           <div class="panel-heading">Publisher Hierarchy</div>
-          <div class="panel-body">
+          <div class="panel-body publisher-dropdown">
             <py:def function="render_child(pub)">
                 <div class="publisher">
-                  <a style="${ 'background-color: #e3e3e3;' if pub['name'] == c.group.name else ''}" class="publisher-row" href="/publisher/${child['name']}">${child['title']}</a>
+                  <a class="${if_(pub['name']==c.group.name,'active')} publisher-row" href="/publisher/${child['name']}">${child['title']}</a>
                   <py:for each="child in pub['children']">
                     ${render_child(child)}
                   </py:for>
@@ -59,7 +59,7 @@
 
             <div class="publisher-hierarchy empty-search">
               <div class="publisher" py:with="pub=h.publisher_hierarchy_mini(c.group.name)">
-                <a style="${ 'background-color: #e3e3e3;' if pub['name'] == c.group.name else ''}" class="publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
+                <a class="${if_(pub['name']==c.group.name,'active')} publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
                 <py:for each="child in pub['children']">
                   ${render_child(child)}
                 </py:for>
@@ -183,14 +183,14 @@
 
     <py:def function="publisher_extra_options">
       <label class="checkbox" id="publisher-extra-options">
-        <input type="checkbox" name="publisher-results-include-subpub" class="inline" checked="checked" />
+        <input type="checkbox" name="publisher-results-include-subpub" class="inline" />
         Include datasets from sub-publishers
       </label>
     </py:def>
 
     ${search_form(
       placeholder='Search publisher',
-      set_fields={'parent_publishers':c.group.name},
+      set_fields={'publisher':c.group.name},
       extra_options=publisher_extra_options,
     )}
     <div class="clearfix" style="height: 30px;">&nbsp;</div>
@@ -208,6 +208,10 @@
   <py:def function="optional_feed">
     <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
       href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+  </py:def>
+
+  <py:def function="optional_footer">
+    <script src="/scripts/dgu-publisher-read.min.js"></script>
   </py:def>
 
   <xi:include href="../layout.html" />

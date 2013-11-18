@@ -65,6 +65,9 @@
 
         </py:if>
       </py:if>
+      <py:if test="h.is_wms(c.resource)"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
+        ${map_preview_button_direct(c.pkg_dict,small=False)} <!--! Supply both since there is no ID in pkg_dict! -->
+      </py:if>
     </div>
     <h2>Resource: <span class="h2-subheading">&ldquo;${h.resource_display_name(c.resource)}&rdquo;</span></h2>
 
@@ -81,15 +84,9 @@
     </py:if>
 
     <div class="recline-read-only resource-preview">
-      <div class="preview-header">
+      <div class="preview-header" py:if="not h.is_wms(c.resource)">
         <h2>Preview</h2>
-        <p py:if="not h.is_wms(c.resource)">Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
-
-        <!--! <a py:if="c.pkg.is_private" title="Cannot embed as resource is private." style="display: none;" class="btn disabled" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a>
-        <a py:if="not c.pkg.is_private and not h.is_wms(c.resource)" style="display: none;" class="btn btn-primary" data-toggle="modal" href=".modal-data-viewer-embed-dialog">Embed</a> !-->
-        <py:if test="h.is_wms(c.resource)"> <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
-          ${map_preview_buttons(c.pkg.id, c.pkg_dict)} <!--! Supply both since there is no ID in pkg_dict! -->
-        </py:if>
+        <p>Preview is currently available for files such as CSV, spreadsheets and plain text.</p>
       </div>
       <div id="ckanext-datapreview"></div>
       <div id="ckanext-datapreview-extra"></div>

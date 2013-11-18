@@ -9,14 +9,13 @@
   <!--! Herein can be found generic helper methods for a whole bunch of common
         templating issues -->
 
-  <xi:include href="package/basket.html" />
   <py:def function="paginator(pageobj)">
     <py:with vars="
       page=pageobj.page;
       numpages=pageobj.page_count;
       url_for_page=lambda x:pageobj._url_generator(None,x)
     ">
-    <div class="dgu-pagination">
+    <div class="dgu-pagination" py:if="numpages>1">
       <ul class="pagination">
         <li>
           <a py:if="page>1" href="${url_for_page(page-1)}">&laquo;</a>
@@ -168,6 +167,10 @@
     </div>
   </div>
 
+  <py:def function="map_preview_button_direct(pkg_dict,small=True)">
+    <a href="/data/map-preview?${h.get_wms_info_urls(pkg_dict)}${'&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % h.get_wms_info_extent(pkg_dict) if h.get_wms_info_extent(pkg_dict) else ''}" class="btn btn-default ${if_(small,'btn-xs','')} btn-info btn-preview preview-now"><i class="icon-map-marker"></i>&nbsp; Preview on Map</a>
+  </py:def>
+
   <div py:def="package_list_from_dict(packages,mini=False)" class="common-dataset-list">
     <div class="${if_(mini,'row')}">
       <py:for each="i in range(len(packages))">
@@ -204,8 +207,26 @@
                <py:for each="format in h.formats_for_package(package)">
                  ${format_box(format.lower())}
                </py:for>
-               <py:if test="not mini">
-                 ${map_preview_buttons(package.id, package)}
+               <py:if test="not mini and h.get_wms_info_urls(package)">
+                 <div class="map-buttons">
+                   <span style="display: none;" class="js-data-id">${package.id}</span>
+                   <span style="display: none;" class="js-data-title">${package.get('title')}</span>
+                   <span style="display: none;" class="js-data-querystring">${h.get_wms_info_urls(package)}</span>
+                   <span style="display: none;" class="js-data-extent">${','.join(h.get_wms_info_extent(package))}</span>
+                   ${map_preview_button_direct(package)}
+                   <py:with vars="in_basket=package.id in session.get('preview_list',[])">
+                     <span 
+                          class="preview-add js-dataset-${package.id}-add"
+                          style="${if_(in_basket,'display: none;')}">
+                            <button data-id="${package.id}" class="btn btn-default btn-xs btn-info btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Add to Preview List</button>
+                     </span>
+                     <span 
+                          class="preview-remove js-dataset-${package.id}-remove"
+                          style="${if_(not in_basket,'display: none;')}">
+                          <button data-id="${package.id}" class="btn btn-danger btn-xs btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Remove from List</button>
+                     </span>
+                   </py:with>
+                 </div>
                </py:if>
              </div>
              <div class="clearfix clearfix-ie7"> &nbsp;</div>
@@ -239,97 +260,74 @@
     <div class="clearfix"></div>
   </py:def>
 
-  <py:def function="facet_line(facet_item, facet_key, alternative_url=None)">
-      <div class="facet-option">
-        <a href="${h.dgu_drill_down_url(h.facet_params_to_keep(), {facet_key: facet_item['name']}, alternative_url=alternative_url)}">
-          ${h.render_facet_value(facet_key,facet_item['name'])}
-          (${facet_item['count']})
-        </a>
-      </div>
-  </py:def>
-
-  <py:def function="facet_unline(facet_key,facet_value)">
-      <div class="facet-option facet-option-selected">
-        <a href="${c.remove_field(facet_key, facet_value)}">
-          <div class="facet-kill pull-right">
-            <i class="icon-large icon-remove-sign"></i>
-          </div>
-          ${h.render_facet_value(facet_key,facet_value)}
-        </a>
-      </div>
-  </py:def>
-
-  <py:def function="facet_box(facet_key, title, if_empty, more_button=None, sort_by='count', alternative_url=None)">
-      <py:with vars="facet_items=h.unselected_facet_items(facet_key, limit=100, sort_by=sort_by)">
-          <div class="facet-box-unboxed">
-              <h4 class="facet-title">${title}</h4>
-              <div class="facet-options">
-                <py:for each="preselected in [ v for (k,v) in c.fields if k==facet_key ]">
-                  ${facet_unline(facet_key,preselected)}
-                </py:for>
-                <py:if test="more_button">
-                    <py:for each="facet_item in facet_items[:5]">
-                        ${facet_line(facet_item, facet_key, alternative_url=alternative_url)}
-                    </py:for>
-                    <py:if test="len(facet_items)>5">
-                      <div id="${more_button}-items" style="display: None">
-                        <py:for each="facet_item in facet_items[5:]">
-                          ${facet_line(facet_item, facet_key, alternative_url=alternative_url)}
-                        </py:for>
-                      </div>
-                      <a id="${more_button}" class="facet-expand-collapse" href="#">
-                        <div class="expander">
-                          <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
-                        </div>
-                        <div class="collapser">
-                          <i class="icon-double-angle-up"></i>&nbsp; less &nbsp;<i class="icon-double-angle-up"></i>
-                        </div>
-                      </a>
-                    </py:if>
-                </py:if>
-                <py:if test="not more_button">
-                    <py:for each="facet_item in facet_items">
-                        ${facet_line(facet_item, facet_key, alternative_url=alternative_url)}
-                    </py:for>
-                </py:if>
-                <py:if test="facet_key=='publisher'">
-                    <div class="facet-option" py:if="h.link_subpub()">
-                      <a href="${h.search_with_subpub(alternative_url)}">Include sub-publishers</a>
-                    </div>
-                    <div class="facet-option" py:if="not facet_items and not h.link_subpub()">${if_empty}</div>
-                </py:if>
-                <py:if test="facet_key not in ['publisher']">
-                    <div class="facet-option" py:if="not facet_items">${if_empty}</div>
-                </py:if>
+  <py:def function="facet_box(title, unselected, selected, if_empty, more_button=None)">
+    <div class="facet-box-unboxed">
+      <h4 class="facet-title">${title}</h4>
+      <div class="facet-options">
+        <py:for each="(link,text,tooltip) in selected">
+          <div class="facet-option facet-option-selected">
+            <a href="${link}">
+              <div class="facet-kill pull-right">
+                <i class="icon-large icon-remove-sign"></i>
               </div>
+              <span class="${if_(tooltip is not None,'js-tooltip')}" data-original-title="${tooltip}" data-placement="right">
+                ${h.literal(text)}
+              </span>
+            </a>
           </div>
-      </py:with>
+        </py:for>
+        <py:for each="i in range(len(unselected))">
+          <py:with vars=" (link,text,tooltip)=unselected[i]; overflow=i>5 and (more_button is not None) ">
+            <div class="facet-option ${if_(overflow,'more-%s'%more_button)}" style="${if_(overflow,'display:none;')}">
+              <a href="${link}">
+                <span class="${if_(tooltip is not None,'js-tooltip')}" data-original-title="${tooltip}" data-placement="right">
+                  ${h.literal(text)}
+                </span>
+              </a>
+            </div>
+          </py:with>
+        </py:for>
+        <py:if test="more_button is not None and len(unselected)>5">
+          <a id="${more_button}" class="facet-expand-collapse" href="#">
+            <div class="expander">
+              <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
+            </div>
+            <div class="collapser">
+              <i class="icon-double-angle-up"></i>&nbsp; less &nbsp;<i class="icon-double-angle-up"></i>
+            </div>
+          </a>
+        </py:if>
+        <div class="facet-option" py:if="not len(selected) and not len(unselected)"><em>${if_empty}</em></div>
+      </div>
+    </div>
   </py:def>
 
   <div py:def="facet_filters()" class="datasets">
     <div class="facet-filters">
-      <div class="visible-xs">
+      <div class="visible-xs visible-sm">
         <a href="#" class="hide-facets">
           <i class="icon-remove-circle icon-4x"></i>
         </a>
       </div>
       ${facet_box(
-          'unpublished',
           'Show only...',
-          ''
+          h.search_facets_unselected(['unpublished']),
+          h.search_facets_selected(['unpublished']),
+          'No further filters to apply.'
           )}
       <div class="facet-divider"></div>
       ${facet_box(
-          'core_dataset',
           'NII datasets',
-          ''
+          h.search_facets_unselected(['core_dataset']),
+          h.search_facets_selected(['core_dataset']),
+          'No further filters to apply.'
           )}
       <div class="facet-divider"></div>
-
       ${facet_box(
-          'license_id-is-ogl',
           'Licence',
-          'There are no further licence filters to apply.'
+          h.search_facets_unselected(['license_id-is-ogl']),
+          h.search_facets_selected(['license_id-is-ogl']),
+          'No further licence filters to apply.'
       )}
       <div class="facet-divider"></div>
       <!--
@@ -341,85 +339,65 @@
         -->
       <div class="facets-theme-primary">
       ${facet_box(
-          'theme-primary',
           'Theme',
-          'There are no further theme filters to apply.',
+          h.search_facets_unselected(['theme-primary']),
+          h.search_facets_selected(['theme-primary']),
+          'No further theme filters to apply.',
           more_button='more-prithemes-button'
       )}
       </div>
       <!--
       <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
-          'all_themes',
           'Themes',
-          'There are no further theme filters to apply.',
+          h.search_facets_unselected(['all_themes']),
+          h.search_facets_selected(['all_themes']),
+          'No further theme filters to apply.',
           more_button='more-themes-button'
       )}
       </div>
       -->
-      <!--
-      ${facet_box(
-          'tags',
-          'Tags',
-          'There are no further tag filters to apply.',
-          more_button='more-tags-button'
-      )}
-      -->
       <div class="facet-divider"></div>
       ${facet_box(
-          'res_format',
           'Resource Format',
-          'There are no further resource format filters to apply.',
+          h.search_facets_unselected(['res_format']),
+          h.search_facets_selected(['res_format']),
+          'No further format filters to apply.',
           more_button='more-formats-button'
       )}
       <div class="facet-divider"></div>
-      ${facet_box(
-          'publisher',
-          'Publisher',
-          'There are no further publisher filters to apply.',
-          more_button='more-publishers-button'
-      )}
+      <py:if test="request.params.get('parent_publishers','')">
+        ${facet_box(
+            'Publisher',
+            h.search_facets_unselected(['parent_publishers']),
+            h.search_facets_selected(['parent_publishers']),
+            'No further publisher filters to apply.',
+            more_button='more-publishers-button'
+        )}
+      </py:if>
+      <py:if test="not request.params.get('parent_publishers','')">
+        ${facet_box(
+            'Publisher',
+            h.search_facets_unselected(['publisher']),
+            h.search_facets_selected(['publisher']),
+            'No further publisher filters to apply.',
+            more_button='more-publishers-button'
+        )}
+      </py:if>
       <div class="facet-divider"></div>
-  <!--!    ${facet_box(
-          'tags',
-          'Tags',
-          'There are no further tag filters to apply.',
-          more_button='more-tags-button'
-      )} -->
       ${facet_box(
-          'openness_score',
           'Openness Score (beta)',
-          'There are no further openness filters to apply.',
-          sort_by='name'
+          h.search_facets_unselected(['openness_score'],'name'),
+          h.search_facets_selected(['openness_score']),
+          'No further openness filters to apply.',
       )}
       <div class="facet-divider"></div>
-
-    <!-- Create a nested list of UKLP filters -->
-    <div class="facet-box-unboxed">
-      <h4>UK Location Dataset Type</h4>
-      <div class="facet-options" py:with="show_uklp = bool(len(h.unselected_facet_items('resource-type')))">
-        <py:if test="show_uklp">
-          <py:for each="facet_item in h.unselected_facet_items('UKLP')">
-            ${facet_line(facet_item, 'UKLP')}
-          </py:for>
-          <py:for each="facet_item in h.unselected_facet_items('resource-type', limit=100, sort_by='count')">
-            ${facet_line(facet_item,'resource-type')}
-            <py:if test="facet_item['name']=='service'">
-              <py:for each="sub_item in h.unselected_facet_items('spatial-data-service-type', limit=100, sort_by='count')">
-
-                ${facet_line(sub_item, 'spatial-data-service-type')}
-
-              </py:for>
-            </py:if>
-          </py:for>
-        </py:if>
-        <py:if test="not show_uklp">
-            <div class="facet-option">
-                There are no further type filters to apply.
-            </div>
-        </py:if>
-      </div>
-    </div>
+      ${facet_box(
+          'UK Location Dataset Type',
+          h.search_facets_unselected(['UKLP','resource-type','spatial-data-service-type']),
+          h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),
+          'No further type filters to apply.'
+      )}
     </div><!-- /facet-filters -->
   </div>
 
