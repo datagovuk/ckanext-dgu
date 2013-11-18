@@ -91,6 +91,9 @@
 
               <li><a href="/data/site-usage/dataset/${c.group.name}">Dataset analytics</a></li>
 
+              <!--!  Not ready yet
+              <li py:if="h.check_access('package_create', {'owner_org':c.group.name})"><a href="${h.url_for('activity_reports', id=c.group.name)}">Activity report</a></li>
+              -->
             </ul>
           </div>
         </div>

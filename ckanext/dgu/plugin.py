@@ -97,6 +97,11 @@ class ReportsPlugin(SingletonPlugin):
         map.connect('feedback_report_org_csv','/data/reports/feedback.{format}',
                     controller=report_ctlr, action='feedback')
 
+        # Activity reports
+        map.connect('activity_reports_csv', '/data/reports/activity/{id}.{format}',
+                    controller=report_ctlr, action='activity')
+        map.connect('activity_reports', '/data/reports/activity/:id',
+                    controller=report_ctlr, action='activity')
 
         # Commitment reports
         c_ctlr = 'ckanext.dgu.controllers.commitment:CommitmentController'
@@ -465,7 +470,7 @@ class PublisherPlugin(SingletonPlugin):
         returning each key name as an item in a list.
         """
         return ['openness-scores', 'openness-scores-withsub',
-                'feedback-report']
+                'feedback-report', 'publisher-activity-report']
 
 
 class InventoryPlugin(SingletonPlugin):

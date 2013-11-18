@@ -9,8 +9,27 @@ from ckan.lib.base import BaseController, abort, request
 c = t.c
 
 class ReportsController(BaseController):
+
     def index(self):
         return t.render('reports/index.html')
+
+    def activity(self, id, fmt=None):
+        import ckan.model as model
+        from ckanext.dgu.lib.reports import publisher_activity_report
+
+        try:
+            context = {'model':model,'user': c.user, 'owner_org': id}
+            t.check_access('package_create',context)
+        except t.NotAuthorized, e:
+            h.redirect_to('/user?destination={0}'.format(request.path))
+
+        c.publisher = model.Group.get(id)
+        if not c.publisher:
+            abort(404, "Publisher not found")
+        data = publisher_activity_report(c.publisher, use_cache=True)
+        c.created = data['created']
+        c.modified = data['modified']
+        return t.render('reports/activity.html')
 
     def resources(self, id=None):
         try:

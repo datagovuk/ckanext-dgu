@@ -307,6 +307,57 @@ def feedback_report(publisher, include_sub_publishers=False, include_published=F
     return sorted(results, key=itemgetter('package-title'))
 
 
+def publisher_activity_report(publisher, include_sub_publishers=False, use_cache=False):
+    """
+    Contains information about the datasets a specific publisher has released within
+    the last 3 months.
+    """
+    import datetime
+    import ckan.model as model
+    from paste.deploy.converters import asbool
+
+    if use_cache:
+        key = 'publisher-activity-report'
+        if include_sub_publishers:
+            key = "".join([key, '-withsubpub'])
+        cache = model.DataCache.get_fresh(publisher.name, key)
+        if cache is None:
+            log.info("Did not find cached activity report - %s/%s" % (publisher.name,key,))
+        else:
+            log.info("Found activity report in cache for %s" % publisher.name)
+            return cache
+
+    created = []
+    modified = []
+
+    cutoff = datetime.datetime.now() - datetime.timedelta(3*365/12)
+    for p in model.Session.query(model.Package)\
+            .filter(model.Package.owner_org==publisher.id)\
+            .filter(model.Package.state=='active').all():
+
+        rc = model.Session.query(model.PackageRevision)\
+            .filter(model.PackageRevision.id==p.id) \
+            .order_by("revision_timestamp asc").first()
+        rm = model.Session.query(model.PackageRevision)\
+            .filter(model.PackageRevision.id==p.id) \
+            .order_by("revision_timestamp desc").first()
+
+        if rc.revision_timestamp > cutoff:
+            rc.published = not asbool(p.extras.get('unpublished'))
+            created.append((rc.name,rc.title,rc.revision_timestamp.isoformat(),rc.revision.author,rc.published))
+
+        if rm.revision_timestamp > cutoff:
+            exists = [rc[0] for rc in created]
+            if not rm.name in exists:
+                rm.published = not asbool(p.extras.get('unpublished'))
+                modified.append((rm.name,rm.title,rm.revision_timestamp.isoformat(),rm.revision.author,rm.published))
+
+    created.sort(key=lambda x: x[1])
+    modified.sort(key=lambda x: x[1])
+
+    return { 'created': created, 'modified': modified}
+
+
 
 def cached_reports(reports_to_run=None):
     """
@@ -316,7 +367,7 @@ def cached_reports(reports_to_run=None):
     import json
     from ckan.lib.json import DateTimeJsonEncoder
 
-    local_reports = set(['feedback-report'])
+    local_reports = set(['feedback-report', 'publisher-activity-report'])
     if reports_to_run:
       local_reports = set(reports_to_run) & local_reports
 
@@ -334,29 +385,39 @@ def cached_reports(reports_to_run=None):
       val = feedback_report(None, use_cache=False, include_published=True)
       model.DataCache.set('__all__', "feedback-all-report", json.dumps(val))
 
-
     publishers = model.Session.query(model.Group).\
         filter(model.Group.type=='organization').\
         filter(model.Group.state=='active').order_by('title')
 
     for publisher in publishers:
         # Run the feedback report with and without include_sub_organisations set
+        if 'publisher-activity-report' in local_reports:
+            log.info("Generating activity report for %s" % publisher.name)
+            val = publisher_activity_report(publisher, use_cache=False)
+            model.DataCache.set(publisher.name, "publisher-activity-report", json.dumps(val))
+
+            log.info("Generating activity report for %s and children" % publisher.name)
+            val = publisher_activity_report(publisher, include_sub_publishers=True, use_cache=False)
+            model.DataCache.set(publisher.name, "publisher-activity-report-withsubpub", json.dumps(val))
+
+            model.Session.commit()
+
         if 'feedback-report' in local_reports:
-          log.info("Generating unpublished feedback report for %s" % publisher.name)
-          val = feedback_report(publisher, use_cache=False)
-          model.DataCache.set(publisher.name, "feedback-report", json.dumps(val))
+            log.info("Generating unpublished feedback report for %s" % publisher.name)
+            val = feedback_report(publisher, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-report", json.dumps(val))
 
-          log.info("Generating unpublished feedback report for %s and children" % publisher.name)
-          val = feedback_report(publisher, include_sub_publishers=True, use_cache=False)
-          model.DataCache.set(publisher.name, "feedback-report-withsubpub", json.dumps(val))
+            log.info("Generating unpublished feedback report for %s and children" % publisher.name)
+            val = feedback_report(publisher, include_sub_publishers=True, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-report-withsubpub", json.dumps(val))
 
-          log.info("Generating feedback report for %s" % publisher.name)
-          val = feedback_report(publisher, include_published=True, use_cache=False)
-          model.DataCache.set(publisher.name, "feedback-all-report", json.dumps(val))
+            log.info("Generating feedback report for %s" % publisher.name)
+            val = feedback_report(publisher, include_published=True, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-all-report", json.dumps(val))
 
-          log.info("Generating feedback report for %s and children" % publisher.name)
-          val = feedback_report(publisher, include_sub_publishers=True, include_published=True, use_cache=False)
-          model.DataCache.set(publisher.name, "feedback-all-report-withsubpub", json.dumps(val))
+            log.info("Generating feedback report for %s and children" % publisher.name)
+            val = feedback_report(publisher, include_sub_publishers=True, include_published=True, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-all-report-withsubpub", json.dumps(val))
 
-          model.Session.commit()
+            model.Session.commit()
 
