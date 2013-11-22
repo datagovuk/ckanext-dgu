@@ -119,7 +119,7 @@ ${h.top_level_init()}
               <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-user"></i></a>
               <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
                 <li><a href="${if_(drupal_mode,'/user',h.url_for(controller='user',action='me'))}"><i class="icon-user"></i>&nbsp; ${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}'s profile</a></li>
-                <li><a href="${if_(drupal_mode,'/user/logout?destination='+request.url,h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
+                <li><a href="${if_(drupal_mode,'/user/logout',h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
               </ul>
             </span>
 
@@ -140,7 +140,7 @@ ${h.top_level_init()}
 
           </py:if>
           <py:if test="not logged_in">
-            <a class="nav-user btn btn-primary" href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.url}"><i class="icon-user"></i></a>
+            <a class="nav-user btn btn-primary" href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.path[1:]}"><i class="icon-user"></i></a>
           </py:if>
         </py:with>
       </nav>
