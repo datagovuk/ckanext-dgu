@@ -10,21 +10,26 @@ def dgu_package_update(context, data_dict):
     user_obj = model.User.get( user )
     package = get_package_object(context, data_dict)
 
+    # Allow sysadmins to edit anything
+    # This includes UKLP harvested datasets.
+    #   Note: the harvest user *is* a sysadmin
+    #   Note: if changing this, check the code and comments in
+    #         ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
+    # Sysadmins can edit ONS packages.
+    #   Note: the dgu user *is* a sysadmin
     if new_authz.is_sysadmin(user_obj):
         return {'success': True}
 
     fail = {'success': False,
             'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
 
-    # Only sysadmins can edit UKLP packages.
-    # Note: the harvest user *is* a sysadmin
-    # Note: if changing this, check the code and comments in
-    #       ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
+    # UKLP datasets cannot be edited by the average admin/editor because they
+    # are harvested
     if package.extras.get('UKLP', '') == 'True':
         return fail
 
-    # Only sysadmins can edit ONS packages.
-    # Note: the dgu user *is* a sysadmin
+    # ONSHUB datastes cannot be edited by the average admin/editor because they
+    # are automatically updated
     if package.extras.get('external_reference') == 'ONSHUB':
         return fail
 
@@ -44,12 +49,12 @@ def dgu_dataset_delete(context, data_dict):
     user_obj = model.User.get(user)
     package = get_package_object(context, data_dict)
 
+    # Sysadmin can delete any package, including UKLP
     if new_authz.is_sysadmin(user_obj):
         return {'success': True}
 
-    # Don't allow deletes, unless either of:
-    #   1. Sysadmin
-    #   2. It is UKLP
+    # Don't allow admin/editor to delete (apart from UKLP datasets which CAN be
+    # withdrawn by the appropriate admin/editor)
     if package.extras.get('UKLP', '') != 'True':
         return {'success': False}
 
