@@ -1209,6 +1209,23 @@ body.controller-package.action-resource_read {
  * ------------------ */
 body.controller-package.action-new,
 body.controller-package.action-edit {
+  #individual_resources-table,
+  #additional_resources-table,
+  #timeseries_resources-table {
+    td > input[type="text"], 
+    td > .input-group {
+      width: 100%;
+      max-width: 100%;
+      min-width: 200px;
+    }
+  }
+  .tooltip-inner {
+    text-align: left;
+    max-width: 450px;
+    padding: 10px;
+    font-weight: normal;
+
+  }
     #package-edit ul.nav,
     #package-edit ul.nav li {
       /*
@@ -1260,14 +1277,13 @@ body.controller-package.action-edit {
         border-color: #FF6666;
         background: transparent url(../images/icons/error.png) 98% center no-repeat;
     }
-    .resources-well {
-        padding: 15px 8px;
-    }
     .resource-move-cell {
         width: 39px;
+        min-width: 39px;
         padding: 6px 1px 0 1px !important;
         .btn {
-            padding: 5px 2px 2px 2px;
+          line-height: 0;
+          padding: 4px 1px;
         }
     }
     .resource-url .error input {

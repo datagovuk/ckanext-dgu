@@ -1,8 +1,9 @@
 ﻿<form id="package-edit" method="post"
-  py:attrs="{'class':'has-errors package_create_form ckan form-horizontal'} if errors else {'class':'package_create_form ckan form-horizontal'}"
+  py:attrs="{'class':'has-errors package_create_form ckan'} if errors else {'class':'package_create_form ckan'}"
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:py="http://genshi.edgewall.org/"
   xmlns:xi="http://www.w3.org/2001/XInclude"
+  role="form"
 >
 
 <!-- recursive function turns errors into hierarchical lists -->
@@ -60,40 +61,38 @@
 
   <div class="tab-content">
 <fieldset class="tab-pane boxed whitebox fade active in" id="section-name-fields">
-  <h3>Name</h3>
-  <div class="control-group">
-    <p>Please name your data record.</p>
-    <label class="control-label" for="title">Name:</label>
-    <div class="controls">
-      <span class="js-tooltip" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
-        <input class="field_req js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
-        <img src="/images/information-grey.png"/>
+  <p>Please name your data record.</p>
+  <div class="form-group">
+    <label for="title" class="js-tooltip tooltip-paragraph" data-placement="right" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
+      Name <i class="icon-info-sign"></i>
+    </label>
+    <input class="form-control field_req js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
+  </div>
+  <py:if test="errors.get('title', '')">
+    <div class="alert alert-danger">${errors.get('title', '')}</div>
+  </py:if>
+
+  <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
+  <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
+  <py:if test="c.pkg">
+    <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
+    <input id="extras__101__value" name="extras__101__value" type="hidden" value="${c.pkg.extras.get('core-dataset',False)}" />
+  </py:if>
+
+  <div class="form-group">
+    <label for="name">
+      <span class="js-tooltip" data-placement="right" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
+        Create a URL: <i class="icon-info-sign"></i>
       </span>
-      <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
-
-      <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
-      <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
-      <py:if test="c.pkg">
-        <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
-        <input id="extras__101__value" name="extras__101__value" type="hidden" value="${c.pkg.extras.get('core-dataset',False)}" />
-      </py:if>
-
+      &nbsp;&nbsp;<span style="font-style: italic;" py:if="not h.is_package_edit_form(data)" class="js-url-is-valid">&nbsp;</span>
+    </label>
+    <div class="input-group">
+      <span class="input-group-addon">/dataset/</span><input py:attrs="{'readonly':'readonly'} if h.is_package_edit_form(data) else {}" class="field_req js-url-input form-control" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
     </div>
   </div>
-
-  <div class="control-group">
-    <label class="control-label" for="name">Unique identifier for this data record:</label>
-    <div class="controls">
-      <span class="js-tooltip" title="A public unique identifier for the dataset.  It should be roughly readable, with dashes separating words.  Format: Two or more lowercase alphanumeric, dash (-) or underscore (_) characters. e.g. uk-road-traffic-statistics-2008 or local-authority-spend-over-500-harlow">
-        <div class="input-prepend" style="zoom:1; *display:inline;">
-          <span class="add-on">/dataset/</span><input py:attrs="{'readonly':'readonly'} if h.is_package_edit_form(data) else {}" class="field_req js-url-input" id="name" maxlength="100" name="name" type="text" value="${data.get('name', '')}"/>
-        </div>
-        <img src="/images/information-grey.png"/>
-      </span>
-      <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
-      <p py:if="not h.is_package_edit_form(data)" class="js-url-is-valid">&nbsp;</p>
-    </div>
-  </div>
+  <py:if test="errors.get('name', '')">
+    <div class="alert alert-danger">${errors.get('name', '')}</div>
+  </py:if>
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-data-field">
@@ -101,60 +100,53 @@
   <p>In this tab you enter the links to the files containing the actual data at the heart of this record.</p>
 
   <p>Your record may be creating a single file record (a record which points to just one file) or you may be creating a timeseries record (where multiple files are released over time, for example the &pound;25k spend data, where a new data file is added to the record monthly).</p>
-    <p>This record is:</p>
+  <p>If your data comes in multiple formats, use a line for each.</p>
+  <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
+  <hr/>
+  <p>This record is:</p>
 
-    <table>
-      <tr>
-        <td style="width: 30%;">
-          <label class="radio">
-            <input py:attrs="{'checked': 'checked' if not h.are_timeseries_resources(data) else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
-            A single file record
-          </label>
-          <label class="radio">
-            <input py:attrs="{'checked': 'checked' if h.are_timeseries_resources(data) else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
-            A timeseries record
-          </label>
-        </td>
-      </tr>
-    </table>
+  <div class="radio">
+    <label>
+      <input py:attrs="{'checked': 'checked' if not h.are_timeseries_resources(data) else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
+      A single file record
+    </label>
+  </div>
+  <div class="radio">
+    <label>
+      <input py:attrs="{'checked': 'checked' if h.are_timeseries_resources(data) else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
+      A timeseries record
+    </label>
+  </div>
 
     <!-- The resource fieldset for a timeseries dataset -->
-    <fieldset id="package_type-timeseries" class="well resources-well">
-      <p>If your data comes in multiple formats, use a line for each.</p>
-
-      <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional resources' section.</p>
-
-      <div class="form-inline instruction-needed well">
-        <div class="control-group">
-          <label for="update_frequency">Update frequency</label>
-          <span class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
-              <select class="col-md-2" id="update_frequency" name="update_frequency">
-                  <py:for each="freq_name, freq_desc in c.update_frequency">
-                    <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
-                      ${freq_desc}
-                    </option>
-                  </py:for>
-                  <option py:if="h.is_package_edit_form(data)" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
-              </select>
-              <img src="/images/information-grey.png" />
-          </span>
-          &nbsp;
-          &nbsp;
-          <label class="inline" for="update_frequency-other">Other:</label>
-            <input class="input-small" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
-        </div>
-      </div><!-- /form-inline -->
-      <div class="field_error" py:if="errors.get('update_frequency', '')">${errors.get('update_frequency', '')}</div>
+    <fieldset id="package_type-timeseries">
+      <div class="well form-inline">
+        <label for="update_frequency" class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+          Update frequency <i class="icon-info-sign"></i>
+        </label>
+        <select style="width: 200px;" class="form-control" id="update_frequency" name="update_frequency">
+            <py:for each="freq_name, freq_desc in c.update_frequency">
+              <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
+                ${freq_desc}
+              </option>
+            </py:for>
+            <option py:if="h.is_package_edit_form(data)" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
+        </select>
+        <label style="margin-left: 20px;" class="" for="update_frequency-other">Other:</label>
+        <input class="form-control" style="width: 200px;" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
+      </div><!-- /well -->
+      <py:if test="errors.get('update_frequency')">
+        <div class="alert alert-danger">${errors.get('update_frequency', '')}</div>
+      </py:if>
 
       <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
       <thead>
         <tr>
-          <th></th>
-          <th class="resource-date js-tooltip" title="Format: DD/MM/YYYY">Date: <img src="/images/information-grey.png"/></th>
-          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
-          <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
-          <th class="resource-format js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
-          <th></th>
+          <th class="resource-move-cell"></th>
+          <th class="resource-date">  <div class="js-tooltip" title="Format: DD/MM/YYYY">Date: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-name">  <div class="js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-url">   <div class="js-tooltip" title="Where the file is already hosted">URL: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-format"><div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
         </tr>
       </thead>
       <tbody>
@@ -162,8 +154,24 @@
         <tr class="timeseries_resources__${num} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
-              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
-              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+            <div class="hidden-resource-fields">
+              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                    to pull the others from the resource keys, strip the resource_columns and then
+                    ignore resource_type, id and resource_group_id.
+
+                    Code is long hand to keep the list comp understandable -->
+              <py:for each="col in h.timeseries_extra_fields(res)">
+                <input
+                       id="timeseries_resources__${num}__${col}"
+                       name="timeseries_resources__${num}__${col}"
+                       type="hidden"
+                       value="${res.get(col, '')}"/>
+              </py:for>
+              <span class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
+              <span class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
             </div>
           </td>
           <py:for each="col in ('date',) + c.resource_columns">
@@ -174,15 +182,17 @@
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-medium field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else 'input-medium'}"/>
-                <span class="control-group ${'error' if h.cell_has_errors(errors,'timeseries_resources', num, col)  else ''}" py:when="col=='url'">
+                       class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}" />
+                <span class="input-group ${'error' if h.cell_has_errors(errors,'timeseries_resources', num, col)  else ''}" py:when="col=='url'">
                   <input id="timeseries_resources__${num}__${col}"
                          name="timeseries_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         class="input-small"/>
-                  <button id="timeseries_resources__${num}__validate-resource-button"
-                         class="validate-resource-button btn btn-small">Check</button>
+                         class="form-control"/>
+                  <span class="input-group-btn">
+                    <button id="timeseries_resources__${num}__validate-resource-button"
+                        class="validate-resource-button btn btn-default">Check</button>
+                  </span>
                 </span>
 
                 <input py:otherwise=""
@@ -190,53 +200,33 @@
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       py:attrs="{'class': 'input-small field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else 'input-small'}"/>
-
+                       class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
+                       />
               </py:choose>
             </td>
           </py:for>
-          <td  class="hidden-resource-fields">
-            <!--! Because the resource fields are explicitly set in c.resource_columns, we need
-                  to pull the others from the resource keys, strip the resource_columns and then
-                  ignore resource_type, id and resource_group_id.
-
-                  Code is long hand to keep the list comp understandable -->
-            <py:for each="col in h.timeseries_extra_fields(res)">
-              <input
-                     id="timeseries_resources__${num}__${col}"
-                     name="timeseries_resources__${num}__${col}"
-                     type="hidden"
-                     value="${res.get(col, '')}"/>
-            </py:for>
-
-            <span class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
-            <span class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
-            <a py:if="len(data.get('timeseries_resources',[])) == num" href="javascript:;" id="timeseries_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a></td>
         </tr>
         </py:for>
       </tbody>
       </table>
+      <a href="javascript:;" id="timeseries_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
 
       <p class="field_error" py:if="errors.get('timeseries_resources', '')">Row(s) partially filled.</p>
-      <button class="validate-resources-button btn" id="validate-timeseries-button">Check all URLs</button>
+      <button class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
 
 
     <!-- The resource fieldset for an individual dataset -->
-    <fieldset id="package_type-individual" class="well resources-well">
-      <p>If your data comes in multiple formats, use a line for each.</p>
-
-      <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
+    <fieldset id="package_type-individual">
 
       <table class="table table-bordered table-condensed table-striped" id="individual_resources-table">
       <thead>
         <tr>
           <th></th>
-          <th class="resource-name js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <img src="/images/information-grey.png"/></th>
-          <th class="resource-url js-tooltip" title="Where the file is already hosted">URL: <img src="/images/information-grey.png"/></th>
-          <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
-          <th></th>
+          <th class="resource-name"><div class="js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-url"> <div class="js-tooltip" title="Where the file is already hosted">URL: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-url"> <div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
         </tr>
       </thead>
       <tbody>
@@ -244,8 +234,24 @@
         <tr class="individual_resources__${num} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
-              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
-              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+            <div class="hidden-resource-fields">
+              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                    to pull the others from the resource keys, strip the resource_columns and then
+                    ignore resource_type, id and resource_group_id.
+
+                    Code is long hand to keep the list comp understandable -->
+              <py:for each="col in h.resource_extra_fields(res)">
+                <input
+                       id="individual_resources__${num}__${col}"
+                       name="individual_resources__${num}__${col}"
+                       type="hidden"
+                       value="${res.get(col, '')}"/>
+              </py:for>
+              <span class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
+              <span class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
             </div>
           </td>
           <py:for each="col in c.resource_columns">
@@ -256,15 +262,18 @@
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-                     py:attrs="{'class': 'input-large field_error' if h.cell_has_errors(errors,'individual_resources', num, col) else 'input-large'}"/>
-              <span class="control-group ${'error' if h.cell_has_errors(errors,'individual_resources', num, col) else ''}" py:when="col=='url'">
+                     class="form-control ${'field_error' if h.cell_has_errors(errors,'individual_resources', num, col) else ''}"
+                     />
+              <span class="input-group ${'error' if h.cell_has_errors(errors,'individual_resources', num, col) else ''}" py:when="col=='url'">
                 <input id="individual_resources__${num}__${col}"
                        name="individual_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       class="input-medium"/>
-                <button id="individual_resources__${num}__validate-resource-button"
-                    class="validate-resource-button btn btn-small">Check</button>
+                       class="form-control"/>
+                <span class="input-group-btn">
+                  <button id="individual_resources__${num}__validate-resource-button"
+                      class="validate-resource-button btn btn-default">Check</button>
+                </span>
               </span>
               <input py:when="col=='format'"
                      id="individual_resources__${num}__${col}"
@@ -273,42 +282,29 @@
                      value="${res.get(col, '')}"
                      data-provider="typeahead"
                      data-items="8"
-                     py:attrs="{'class': 'input-small format-typeahead field_error' if h.cell_has_errors(errors,'additional_resources', num, col) else 'input-small format-typeahead'}"/>
+                     class="form-control format-typeahead ${'field_error' if h.cell_has_errors(errors,'additional_resources', num, col) else ''}"
+                     />
               <input py:otherwise=""
                      id="individual_resources__${num}__${col}"
                      name="individual_resources__${num}__${col}"
                      type="text"
                      value="${res.get(col, '')}"
-                     py:attrs="{'class': 'input-small field_error' if h.cell_has_errors(errors,'individual_resources', num, col) else 'input-small'}"/>
+                     class="input-small ${'field_error' if h.cell_has_errors(errors,'individual_resources', num, col) else ''}"
+                     />
             </py:choose>
             </td>
           </py:for>
-          <td class="hidden-resource-fields">
-            <!--! Because the resource fields are explicitly set in c.resource_columns, we need
-                  to pull the others from the resource keys, strip the resource_columns and then
-                  ignore resource_type, id and resource_group_id.
-
-                  Code is long hand to keep the list comp understandable -->
-            <py:for each="col in h.resource_extra_fields(res)">
-              <input
-                     id="individual_resources__${num}__${col}"
-                     name="individual_resources__${num}__${col}"
-                     type="hidden"
-                     value="${res.get(col, '')}"/>
-            </py:for>
-
-            <span class="resource-id"><input name="individual_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
-            <span class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
-            <a py:if="len(data.get('individual_resources',[])) == num" href="javascript:;" id="individual_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a>
-          </td>
         </tr>
         </py:for>
       </tbody>
       </table>
+      <a href="javascript:;" id="individual_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
+
       <p class="field_error" py:if="errors.get('individual_resources', '')">Row(s) partially filled.</p>
-      <button class="validate-resources-button btn" id="validate-timeseries-button">Check all URLs</button>
+      <button class="btn-default validate-resources-button btn" id="validate-timeseries-button">Check all URLs...</button>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
+    <hr/>
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
@@ -320,16 +316,15 @@
   <h3>Description</h3>
   <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
   <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
-  <textarea class="field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
+  <textarea class="form-control field_req" cols="260" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
   <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
 </fieldset>
 
-<fieldset class="tab-pane boxed whitebox fade" id="section-licence-field">
+<fieldset class="tab-pane boxed whitebox fade form-inline" id="section-licence-field">
   <h3>Licence</h3>
-    <div class="control-group">
-    <label class="control-label" for="license_id">Licence:</label>
-    <div class="controls">
-    <select id="license_id" class="col-md-4" name="license_id">
+    <div class="form-group">
+    <label for="license_id">Licence:</label>
+    <select id="license_id" class="form-control" name="license_id">
 
       <!--! An explanation of what's going on here...
            There are a few cases to handle here:
@@ -371,40 +366,36 @@
       <option py:if="not h.get_license_extra(c.pkg)" value="" py:attrs="{'selected': 'selected' if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else None}">Specify other...</option>
 
     </select>
-    <p class="instructions basic">The licence under which the dataset is released.</p>
-    <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
-    </div>
-    </div>
+  </div>
+  <p class="instructions basic">The licence under which the dataset is released.</p>
+  <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
 
-    <div class="control-group choose-other-licence">
-      <label class="control-label" for="license_extra">Licence (other):</label>
-      <div class="controls">
-        <textarea py:if="not h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="access_constraints">${data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else '')}</textarea>
-        <textarea py:if="h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${h.get_license_extra(c.pkg)}</textarea>
-        <input py:if="h.get_license_extra(c.pkg)" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
-
-        <p py:if="errors.get('license_id')" class="field_error" style="display: block;">${errors.get('license_id','')}</p>
-      </div>
+    <div class="form-group choose-other-licence">
+      <hr/>
+      <label for="license_extra">Licence (other):</label>
+      <textarea class="form-control" py:if="not h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="access_constraints">${data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else '')}</textarea>
+      <textarea class="form-control" py:if="h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${h.get_license_extra(c.pkg)}</textarea>
+      <input class="form-control" py:if="h.get_license_extra(c.pkg)" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
     </div>
+    <p py:if="errors.get('license_id')" class="field_error" style="display: block;">${errors.get('license_id','')}</p>
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-publisher-field">
   <h3>Publisher</h3>
-    <div class="control-group">
-      <label class="control-label" for="owner_org">Published by: </label>
-      <div class="controls">
-        <!--! data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. -->
-        <select id="owner_org" name="owner_org" py:with="owner_org=data.get('owner_org')">
-          <option value=" " py:attrs="{'selected': 'selected' if not owner_org else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
-          <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
-            <option value="${publisher.id}" py:attrs="{'selected': 'selected' if owner_org == publisher.id else None}" >
-              ${publisher['title']}
-            </option>
-          </py:for>
-        </select>
-        <p class="field_error" py:if="errors.get('owner_org', '')">Please select a publisher.</p>
-      </div>
+    <div class="form-group">
+      <label for="owner_org">Published by: </label>
+      <!--! data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. -->
+      <select class="form-control" id="owner_org" name="owner_org" py:with="owner_org=data.get('owner_org')">
+        <option value=" " py:attrs="{'selected': 'selected' if not owner_org else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
+        <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
+          <option value="${publisher.id}" py:attrs="{'selected': 'selected' if owner_org == publisher.id else None}" >
+            ${publisher['title']}
+          </option>
+        </py:for>
+      </select>
     </div>
+    <p class="field_error" py:if="errors.get('owner_org', '')">Please select a publisher.</p>
+    <hr/>
   <h3>Contact details</h3>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
     <py:with vars="group=h.edit_publisher_group(data)">
@@ -419,35 +410,34 @@
         <input id="contact-phone" name="contact-phone" type="hidden" value="${group.get('contact-phone', '')}"/>
 
         <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
-        <div style="display: none;" class="modal fade dgu-editor" id="edit-contact">
+        <div style="display: none;" class="modal dgu-editor" id="edit-contact">
+          <div class="modal-dialog">
+          <div class="modal-content">
           <div class="modal-header">
             <a class="close" data-dismiss="modal">x</a>
-            <h3>Edit Contact Information</h3>
+            <!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button-->
+            <h4 class="modal-title">Edit Contact Information</h4>
           </div>
           <div class="modal-body">
             <p>Edit any of the contact details below.</p>
-            <div class="control-group">
+            <div class="form-group">
               <label class="control-label" for="contact-name-editor">Name:</label>
-              <div class="controls">
-                <input type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" />
-              </div>
+              <input class="form-control" type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" />
             </div>
-            <div class="control-group">
+            <div class="form-group">
               <label class="control-label" for="contact-email-editor">Email:</label>
-              <div class="controls">
-                <input type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" />
-              </div>
+              <input class="form-control" type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" />
             </div>
-            <div class="control-group">
+            <div class="form-group">
               <label class="control-label" for="contact-phone-editor">Phone:</label>
-              <div class="controls">
-                <input type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" />
-              </div>
+              <input class="form-control" type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" />
             </div>
           </div>
           <div class="modal-footer">
             <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
             <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
+          </div>
+          </div>
           </div>
         </div>
       </fieldset>
@@ -466,41 +456,37 @@
         <input id="foi-phone" name="foi-phone" type="hidden" value="${group.get('foi-phone', '')}"/>
 
         <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
-        <div style="display: none;" class="modal fade dgu-editor" id="edit-foi">
+        <div style="display: none;" class="modal dgu-editor" id="edit-foi">
+          <div class="modal-dialog">
+          <div class="modal-content">
           <div class="modal-header">
             <a class="close" data-dismiss="modal">x</a>
-            <h3>Edit FOI Information</h3>
+            <h4 class="modal-title">Edit FOI Information</h4>
           </div>
           <div class="modal-body">
             <p>Edit any of the FOI details below.</p>
-            <div class="control-group">
-              <label class="control-label" for="foi-name-editor">Name:</label>
-              <div class="controls">
-                <input type="text" name="foi-name-dialog"  data-label="#foi-name-label"  data-input="#foi-name" />
-              </div>
+            <div class="form-group">
+              <label for="foi-name-editor">Name:</label>
+              <input class="form-control" type="text" name="foi-name-dialog"  data-label="#foi-name-label"  data-input="#foi-name" />
             </div>
-            <div class="control-group">
-              <label class="control-label" for="foi-email-editor">Email:</label>
-              <div class="controls">
-                <input type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" />
-              </div>
+            <div class="form-group">
+              <label for="foi-email-editor">Email:</label>
+              <input class="form-control" type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" />
             </div>
-            <div class="control-group">
-              <label class="control-label" for="foi-web-editor">Web:</label>
-              <div class="controls">
-                <input type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" />
-              </div>
+            <div class="form-group">
+              <label for="foi-web-editor">Web:</label>
+              <input class="form-control" type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" />
             </div>
-            <div class="control-group">
-              <label class="control-label" for="foi-phone-editor">Phone:</label>
-              <div class="controls">
-                <input type="text" name="foi-phone-dialog" data-label="#foi-phone-label" data-input="#foi-phone" />
-              </div>
+            <div class="form-group">
+              <label for="foi-phone-editor">Phone:</label>
+              <input class="form-control" type="text" name="foi-phone-dialog" data-label="#foi-phone-label" data-input="#foi-phone" />
             </div>
           </div>
           <div class="modal-footer">
             <a href="#" data-dismiss="modal" class="dgu-editor-save btn btn-primary">Save Changes</a>
             <a href="#" data-dismiss="modal" class="btn btn-black-text">Close</a>
+          </div>
+          </div>
           </div>
         </div>
       </fieldset>
@@ -530,16 +516,15 @@
     </div>
     <div class="clearfix">&nbsp;</div>
 
+    <hr/>
     <h3>Tags</h3>
     <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
-    <div class="control-group">
-      <label class="control-label" for="tag_string">Tags</label>
-      <div class="controls">
-        <input class="long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
-             data-tagcomplete-url="/api/2/util/tag/autocomplete"
-             id="tag_string" name="tag_string" size="60" type="text"
-             value="${data.get('tag_string') or ', '.join(h.free_tags(data))}" />
-      </div>
+    <div class="form-group">
+      <label for="tag_string">Tags</label>
+      <input class="form-control long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
+           data-tagcomplete-url="/api/2/util/tag/autocomplete"
+           id="tag_string" name="tag_string" size="60" type="text"
+           value="${data.get('tag_string') or ', '.join(h.free_tags(data))}" />
     </div>
 </fieldset>
 
@@ -551,10 +536,9 @@
       <tr>
         <th></th>
         <th class="resource-name">Description:</th>
-        <th class="resource-url js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <img src="/images/information-grey.png"/></th>
-        <th class="resource-url js-tooltip" title="The file format of the linked resource">Format: <img src="/images/information-grey.png"/></th>
-        <th class="resource-url js-tooltip" title="Name of ScraperWiki scraper to create resources from the webpage this resource describes. Only available when Format is 'HTML'.">Scraper name: <img src="/images/information-grey.png"/></th>
-        <th></th>
+        <th class="resource-url"><div class="js-tooltip" title="This is the Internet link directly to the data - by selecting this link in a web browser, the user will immediately download the full data set. Note that datasets are not hosted by data.gov.uk, but by the responsible department.">Link: <i class="icon-info-sign"></i></div></th>
+        <th class="resource-url"><div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
+        <th class="resource-url"><div class="js-tooltip" title="Name of ScraperWiki scraper to create resources from the webpage this resource describes. Only available when Format is 'HTML'.">Scraper name: <i class="icon-info-sign"></i></div></th>
       </tr>
     </thead>
     <tbody>
@@ -562,8 +546,24 @@
         <tr class="additional_resources__${num} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
-              <button class="btn btn-small resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
-              <button class="btn btn-small resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+            </div>
+            <div class="hidden-resource-fields">
+              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+                    to pull the others from the resource keys, strip the resource_columns and then
+                    ignore resource_type, id and resource_group_id.
+
+                    Code is long hand to keep the list comp understandable -->
+              <py:for each="col in h.additional_extra_fields(res)">
+                <input
+                       id="additional_resources__${num}__${col}"
+                       name="additional_resources__${num}__${col}"
+                       type="hidden"
+                       value="${res.get(col, '')}"/>
+              </py:for>
+              <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','documentation')}"/>
+              <input py:if="res.get('id','')" name="additional_resources__${num}__id" type="hidden" value="${res.get('id','')}"/>
             </div>
           </td>
           <py:def function="apply_error_class(field,error_class)">
@@ -574,17 +574,19 @@
                      name="additional_resources__${num}__description"
                      type="text"
                      value="${res.get('description', '')}"
-                     class="input-medium ${apply_error_class('description','field_error')}" />
+                     class="form-control ${apply_error_class('description','field_error')}" />
           </td>
           <td>
-            <span class="control-group ${apply_error_class('url','error')}">
+            <span class="input-group ${apply_error_class('url','error')}">
               <input id="additional_resources__${num}__url"
                      name="additional_resources__${num}__url"
                      type="text"
                      value="${res.get('url', '')}"
-                     class="input-small"/>
-              <button id="additional_resources__${num}__validate-resource-button"
-                      class="validate-resource-button btn btn-small">Check</button>
+                     class="form-control"/>
+              <span class="input-group-btn">
+                <button id="additional_resources__${num}__validate-resource-button"
+                        class="validate-resource-button btn btn-default">Check</button>
+              </span>
             </span>
           </td>
           <td>
@@ -592,72 +594,51 @@
                    name="additional_resources__${num}__format"
                    type="text"
                    value="${res.get('format', '')}"
-                   class="input_additional_resources_format input-small ${apply_error_class('format', 'field_error')}" />
+                   class="input_additional_resources_format form-control ${apply_error_class('format', 'field_error')}" />
           </td>
           <td>
               <input id="additional_resources__${num}__scraper_url"
                        name="additional_resources__${num}__scraper_url"
                        type="text"
                        value="${res.get('scraper_url', '')}"
-                       class="input_additional_resources_scraper input-small"
+                       class="input_additional_resources_scraper form-control"
                        disabled="disabled" />
-          </td>
-          <td class="hidden-resource-fields">
-            <!--! Because the resource fields are explicitly set in c.resource_columns, we need
-                  to pull the others from the resource keys, strip the resource_columns and then
-                  ignore resource_type, id and resource_group_id.
-
-                  Code is long hand to keep the list comp understandable -->
-            <py:for each="col in h.additional_extra_fields(res)">
-              <input
-                     id="additional_resources__${num}__${col}"
-                     name="additional_resources__${num}__${col}"
-                     type="hidden"
-                     value="${res.get(col, '')}"/>
-            </py:for>
-
-
-            <input name="additional_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type','documentation')}"/>
-
-            <input py:if="res.get('id','')" name="additional_resources__${num}__id" type="hidden" value="${res.get('id','')}"/>
-
-            <a py:if="len(data.get('additional_resources',[])) == num" href="javascript:;" id="additional_resources-add" class="add-button"><img src="/images/green_plus.gif"/></a>
           </td>
         </tr>
       </py:for>
     </tbody>
     </table>
+    <a href="javascript:;" id="additional_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
     <p style="display: block;" class="field_error" py:if="errors.get('additional_resources', '')">Row(s) partially filled.</p>
-    <button  class="validate-resources-button btn" id="validate-timeseries-button">Check all URLs</button>
+    <button  class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
     <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
-    <br/>
-    <br/>
+    <hr/>
 
-    <div class="control-group">
-      <label class="control-label" for="mandate">Mandate</label>
-      <div class="controls">
-        <input id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
-        <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-        <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
-        <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+    <div class="well form-inline">
+      <h3>Mandate</h3>
+      <div class="form-group">
+        <input class="form-control" id="mandate" name="mandate" size="40" type="text" value="${data.get('mandate', '')}"/>
       </div>
+      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
+      <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
+      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
     </div>
 
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-temporal-field">
   <h3>Time &amp; date</h3>
-  <div class="control-group">
-    <label class="control-label" for="temporal_coverage">Temporal coverage</label>
-    <div class="controls">
-      <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
-      <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
-      <input class="input-medium" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> -
-      <input class="input-medium" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
-      <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
-      <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the second box can be left blank.</p>
+  <label for="temporal_coverage">Temporal coverage</label>
+  <div class="form-inline">
+    <div class="form-group">
+      <input style="width:300px;" class="form-control" id="temporal_coverage-from" name="temporal_coverage-from" type="text" value="${data.get('temporal_coverage-from', '')}" /> -
+      <input style="width:300px;" class="form-control" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="${data.get('temporal_coverage-to', '')}" />
     </div>
   </div>
+  <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-from', '')">${errors.get('temporal_coverage-from', '')}</p>
+  <p style="display: block;" class="field_error" py:if="errors.get('temporal_coverage-to', '')">${errors.get('temporal_coverage-to', '')}</p>
+  <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
+  <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the second box can be left blank.</p>
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-geographic-field">
@@ -871,17 +852,22 @@
 </div>
 
 
-<div class="modal hide" id="package_type_modal">
-  <div class="modal-header">
-    <h3>Discard date information?</h3>
-  </div>
-  <div class="modal-body">
-    <p>Changing from a 'timeseries record' to a 'single file record' will discard the <code>date</code> information for each resource. Continue?</p>
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn cancel" data-dismiss="modal">Cancel</a>
-    <a href="#" class="btn ok btn-primary" data-dismiss="modal">OK</a>
-  </div>
-</div>
+<div class="modal fade" id="package_type_modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button-->
+        <h4 class="modal-title">Discard date information?</h4>
+      </div>
+      <div class="modal-body">
+        <p>Changing from a 'timeseries record' to a 'single file record' will discard the <code>date</code> information for each resource. Continue?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn cancel btn-default" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn ok btn-primary" data-dismiss="modal">OK</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 </form>
