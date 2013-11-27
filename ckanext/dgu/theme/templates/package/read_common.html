@@ -79,6 +79,35 @@
       <a class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">
         <i class="icon-time icon-2x"></i>
       </a>
+
+      <span class="dropdown" py:if="h.is_certificates_installed() and h.has_certificate(c.pkg)">
+        <py:with vars="certificate = h.get_certificate_data(c.pkg)">
+          <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="ODI Certificate">
+            <img border="0" src="${certificate.get('image_url') or 'https://certificates.theodi.org/datasets/347/certificates/90/badge.png'}" height="32" width="32" style="margin-top: -10px;"/>
+            <div class="dropdown-chevron"></div>
+          </a>
+          <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel" py:with="data = h.get_certificate_data(c.pkg)">
+            <div class="panel-heading">${certificate['cert_title']} (${certificate['status']})</div>
+            <div class="panel-body">
+                <ul style="list-style:none;padding:0; margin:0;">
+                  <li>
+                    <strong>Title</strong>: ${certificate['title']}
+                  </li>
+                  <li>
+                    <strong>Jurisdiction</strong>: ${certificate['jurisdiction']}
+                  </li>
+                  <li>
+                    <strong>Awarded</strong>: ${h.render_datestamp(certificate['created_at'])}
+                  </li>
+                  <li>
+                    <a href="${certificate['certificate_url']}">View certificate</a>
+                  </li>
+                </ul>
+            </div>
+          </div>
+        </py:with>
+      </span>
+
     </div>
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])} <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span></h1>
     <div class="h1-subheading" py:with="
