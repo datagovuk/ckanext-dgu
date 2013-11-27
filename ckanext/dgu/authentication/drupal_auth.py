@@ -192,61 +192,61 @@ class DrupalAuthMiddleware(object):
         except DrupalRequestError, e:
             log.error('Error checking session with Drupal: %s', e)
             return
-        if drupal_user_id:
-            # ask drupal about this user
-	    user_properties = self.drupal_client.get_user_properties(drupal_user_id)
-
-            # see if user already exists in CKAN
-            ckan_user_name = DrupalUserMapping.drupal_id_to_ckan_user_name(drupal_user_id)
-            from ckan import model
-            from ckan.model.meta import Session
-            query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
-            if not query.count():
-                # need to add this user to CKAN
-
-                date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
-                user = model.User(
-                    name=ckan_user_name,
-                    fullname=unicode(user_properties['name']),  # NB may change in Drupal db
-                    about=u'User account imported from Drupal system.',
-                    email=user_properties['mail'], # NB may change in Drupal db
-                    created=date_created,
-                )
-                Session.add(user)
-                Session.commit()
-                log.debug('Drupal user added to CKAN as: %s', user.name)
-            else:
-                user = query.one()
-                log.debug('Drupal user found in CKAN: %s', user.name)
-
-            self.set_roles(ckan_user_name, user_properties['roles'].values())
-
-            # There is a chance that on this request we needed to get authtkt
-            # to log-out. This would have created headers like this:
-            #   'Set-Cookie', 'auth_tkt="INVALID"...'
-            # but since we are about to login again, which will create a header
-            # setting that same cookie, we need to get rid of the invalidation
-            # header first.
-            new_headers[:] = [(key, value) for (key, value) in new_headers \
-                              if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
-            #log.debug('Headers reduced to: %r', new_headers)
-
-            # Ask auth_tkt to remember this user so that subsequent requests
-            # will be authenticated by auth_tkt.
-            # auth_tkt cookie template needs to also go in the response.
-            identity = {'repoze.who.userid': str(ckan_user_name),
-                        'tokens': '',
-                        'userdata': drupal_session_id}
-            headers = environ['repoze.who.plugins']['dgu_auth_tkt'].remember(environ, identity)
-            if headers:
-                new_headers.extend(headers)
-
-	    # Tell app during this request that the user is logged in
-	    environ['REMOTE_USER'] = user.name
-            log.debug('Set REMOTE_USER = %r', user.name)
-
-        else:
+        if not drupal_user_id:
             log.debug('Drupal said the session ID found in the cookie is not valid.')
+            return
+
+        # ask drupal about this user
+        user_properties = self.drupal_client.get_user_properties(drupal_user_id)
+
+        # see if user already exists in CKAN
+        ckan_user_name = DrupalUserMapping.drupal_id_to_ckan_user_name(drupal_user_id)
+        from ckan import model
+        from ckan.model.meta import Session
+        query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
+        if not query.count():
+            # need to add this user to CKAN
+
+            date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
+            user = model.User(
+                name=ckan_user_name,
+                fullname=unicode(user_properties['name']),  # NB may change in Drupal db
+                about=u'User account imported from Drupal system.',
+                email=user_properties['mail'], # NB may change in Drupal db
+                created=date_created,
+            )
+            Session.add(user)
+            Session.commit()
+            log.debug('Drupal user added to CKAN as: %s', user.name)
+        else:
+            user = query.one()
+            log.debug('Drupal user found in CKAN: %s', user.name)
+
+        self.set_roles(ckan_user_name, user_properties['roles'].values())
+
+        # There is a chance that on this request we needed to get authtkt
+        # to log-out. This would have created headers like this:
+        #   'Set-Cookie', 'auth_tkt="INVALID"...'
+        # but since we are about to login again, which will create a header
+        # setting that same cookie, we need to get rid of the invalidation
+        # header first.
+        new_headers[:] = [(key, value) for (key, value) in new_headers \
+                            if (not (key=='Set-Cookie' and value.startswith('auth_tkt="INVALID"')))]
+        #log.debug('Headers reduced to: %r', new_headers)
+
+        # Ask auth_tkt to remember this user so that subsequent requests
+        # will be authenticated by auth_tkt.
+        # auth_tkt cookie template needs to also go in the response.
+        identity = {'repoze.who.userid': str(ckan_user_name),
+                    'tokens': '',
+                    'userdata': drupal_session_id}
+        headers = environ['repoze.who.plugins']['dgu_auth_tkt'].remember(environ, identity)
+        if headers:
+            new_headers.extend(headers)
+
+        # Tell app during this request that the user is logged in
+        environ['REMOTE_USER'] = user.name
+        log.debug('Set REMOTE_USER = %r', user.name)
 
     def set_roles(self, user_name, drupal_roles):
         '''Sets CKAN user roles based on the drupal roles.

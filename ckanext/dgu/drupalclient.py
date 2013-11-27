@@ -77,7 +77,7 @@ class DrupalClient(object):
 
     def get_user_id_from_session_id(self, session_id):
         try:
-            session = self.drupal.session.retrieve(session_id)
+            user_id = self.drupal.session.retrieve(session_id)
         except socket.error, e:
             raise DrupalRequestError('Socket error with url \'%s\': %r' % (self.xmlrpc_url_log_safe, e))
         except Fault, e:
@@ -86,8 +86,11 @@ class DrupalClient(object):
             raise DrupalRequestError('Drupal returned protocol error for session_id %r: %r' % (session_id, e))
         except ExpatError, e:
             raise DrupalRequestError('Drupal return value not XML: %r' % (session_id, e))
-        log.info('Obtained Drupal session for session ID %r...: %r', session_id[:4], session)
-        return session
+        log.info('Obtained Drupal user_id for session ID %r...: %r', session_id[:4], user_id)
+        if str(user_id) == '0':
+            # This is what Drupal (now) returns when the session_id is not valid
+            return None
+        return user_id
 
     def get_department_from_organisation(self, id):
         try:
