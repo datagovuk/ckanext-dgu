@@ -83,7 +83,7 @@
       <span class="dropdown" py:if="h.is_certificates_installed() and h.has_certificate(c.pkg)">
         <py:with vars="certificate = h.get_certificate_data(c.pkg)">
           <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="ODI Certificate">
-            <img border="0" src="${certificate.get('image_url') or 'https://certificates.theodi.org/datasets/347/certificates/90/badge.png'}" height="32" width="32" style="margin-top: -10px;"/>
+            <img border="0" src="${certificate.get('badge_url') or 'https://certificates.theodi.org/datasets/347/certificates/90/badge.png'}" height="32" width="32" style="margin-top: -10px;"/>
             <div class="dropdown-chevron"></div>
           </a>
           <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel" py:with="data = h.get_certificate_data(c.pkg)">
