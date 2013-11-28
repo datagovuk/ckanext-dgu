@@ -160,7 +160,7 @@
 
 <span class="pre-notes dropdown" py:if="h.is_certificates_installed() and h.has_certificate(c.pkg)">
   <py:with vars="certificate = h.get_certificate_data(c.pkg)">
-    <b>Open Data Certificate:</b> ${certificate['level'].title()}
+    <b>Open Data Certificate:</b> ${certificate['level'].title()} Level
     <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" style="text-decoration:none; color: #999;">
       <i class="icon-sort-down"></i>
     </a>
