@@ -45,7 +45,7 @@ setup(
         dgu_api = ckanext.dgu.plugin:ApiPlugin
         dgu_last_major_modification_1 = ckanext.dgu.plugin:LastMajorModificationPlugin1
         dgu_last_major_modification_2 = ckanext.dgu.plugin:LastMajorModificationPlugin2
-
+        dgu_task_modification = ckanext.dgu.plugin:TaskModificationPlugin
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load
@@ -93,6 +93,7 @@ setup(
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
         inventory_init = ckanext.dgu.commands.inventory_init:InitDB
         commitment_init = ckanext.dgu.commands.commitment_init:InitDB
+        dgu_init_db = ckanext.dgu.commands.dgu_init_db:DGUInitDB
         ingest = ckanext.dgu.commands.ingester:Ingester
     """,
     test_suite = 'nose.collector',

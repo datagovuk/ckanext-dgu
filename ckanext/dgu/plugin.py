@@ -275,6 +275,36 @@ def update_package_major_time(package):
         log.exception(e)
         model.Session.remove()
 
+
+class TaskModificationPlugin(SingletonPlugin):
+    """
+    Intercepts the saving of TaskStatus objects to extract the
+    relevant data for Archive and QA tasks into separate tables.
+    """
+    implements(IDomainObjectModification, inherit=True)
+
+    def notify(self, entity, operation):
+        from ckan import model
+
+        if not isinstance(entity, model.TaskStatus):
+            return
+
+        if operation != model.DomainObjectOperation.new:
+            return
+
+        log.debug("Task status created: %s" % entity.task_type)
+        self.extract_task(entity)
+        model.Session.flush()
+
+    def extract_task(self, entity):
+        from ckanext.dgu.models import archive_tasks, qa_tasks
+
+        if entity.task_type == 'qa':
+            qa_tasks.QATask.create(entity)
+        elif entity.task_type == 'archiver':
+            archive_tasks.ArchiveTask.create(entity)
+
+
 class LastMajorModificationPlugin1(SingletonPlugin):
     implements(IDomainObjectModification, inherit=True)
 
