@@ -70,6 +70,9 @@ class DataController(BaseController):
     def carparks(self):
         return render('data/carparks.html')
 
+    def viz_social_investment_and_foundations(self):
+        return render('viz/social_investment_and_foundations.html')
+
 
     def resource_cache(self, root, resource_id, filename):
         """

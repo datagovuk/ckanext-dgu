@@ -1,0 +1,184 @@
+body {
+  background: #EFEFEF;
+}
+h3 { font-family: 'Open Sans'; }
+
+
+// --
+.viz-body {
+  background: #fff;
+  width: 940px;
+  margin: 30px auto;
+  ul.legend {
+    font-size: 10px;
+    font-weight: bold;
+    overflow: hidden;
+    color: #555;
+    margin-left: 0;
+    list-style-type: none;
+    width: 230px;
+    border: 1px solid #e0e0e0;
+    padding: 5px;
+    padding-left: 0px;
+    li { 
+      display: block;
+      text-align: right;
+      vertical-align: middle;
+      .swatch {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        vertical-align: middle;
+        margin-left: 8px;
+      }
+    }
+  }
+  #investment-total,
+  #coinvestment-total {
+    white-space: nowrap;
+    color: #555;
+    font-size: 37px;
+    .poundsign {
+      display: inline-block;
+      color: #333;
+      padding-right: 7px;
+      font-size: 48px;
+      vertical-align: middle;
+      margin-top: -6px;
+    }
+  }
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  #graph_bubble {
+    position: relative;
+    padding: 10px 20px;
+    .legend {
+      position: absolute;
+      top: 50px;
+      left: 110px;
+      width: 195px;
+    }
+    svg {
+      circle { opacity: 0.5; }
+    }
+    .coinvestment-right {
+      position: absolute;
+      right: 0;
+      top: 20px;
+      text-align: right;
+      padding-right: 10px;
+      pointer-events: none;
+      small {
+        margin: 0 0 0 44px;
+        display: block;
+        width: 229px;
+        color: #555;
+      }
+    }
+  }
+  #graph_sankey {
+    margin: 10px 20px;
+    .node rect {
+      cursor: move;
+      fill-opacity: .9;
+      shape-rendering: crispEdges;
+    }
+    .node text {
+      pointer-events: none;
+      font-size: 11px;
+      //font-family: 'Helvetica Neue';
+    }
+    .link {
+      fill: none;
+      stroke: #038;
+      stroke-opacity: .13;
+    }
+    .link:hover {
+      stroke-opacity: .32;
+    }
+  }
+  #graph_pie1,
+  #graph_pie2 {
+    .caption {
+      pointer-events: none;
+      width: 180px;
+      height: 40px;
+      position: absolute;
+      left: 48px;
+      top: 135px;
+      text-align:center;
+    }
+    position: relative;
+    .legend {
+      position: absolute;
+      top: 40px;
+      right: 20px;
+    }
+  }
+  #graph_pie1 {
+    padding: 10px 10px 10px 20px;
+    .legend { width: 220px; }
+  }
+  #graph_pie2 {
+    padding: 10px 20px 10px 10px;
+    .caption { width: 157px; }
+  }
+  #graph_yearonyear {
+    padding: 10px 20px;
+    position: relative;
+    .yearonyear-right {
+      position: absolute;
+      right: 20px;
+      top: 40px;
+      pointer-events: none;
+      text-align: right;
+      padding-right: 10px;
+    }
+    .caption {
+      background: #f0f;
+      position: absolute;
+      top: 10px;
+      left: 20px;
+      width: 100px;
+      height: 100px;
+    }
+    .legend {
+      position: absolute;
+      top: 140px;
+      right: 20px;
+    }
+    svg { 
+      margin: 0 auto;
+      display:block;
+    }
+    .legend {
+      background: rgba(255,255,255,0.8);
+    }
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+    rect {
+      shape-rendering: crispEdges;
+    }
+    .bar {
+      fill: steelblue;
+    }
+    .x.axis path {
+      display: none;
+    }
+  }
+}
+
+li {
+  &.hovering {
+    color: #000;
+    background: #e0e0e0;
+  }
+}
