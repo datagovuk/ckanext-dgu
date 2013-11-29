@@ -126,9 +126,9 @@ module.exports = function(grunt) {
       },
       json: {
         expand: true,
-        cwd: 'src/json/',
+        cwd: 'src/scripts/json/',
         src: '**/*.json',
-        dest: 'public/json/',
+        dest: 'public/scripts/json/',
       },
     },
     coffee: {

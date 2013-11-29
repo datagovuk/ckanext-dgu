@@ -3,7 +3,7 @@ window.viz ?= {}
 # Document.onload()
 # -----------------
 $ ->
-  d3.json "/json/social_investments_and_foundations/graphs.json", (data) ->
+  d3.json "/scripts/json/social_investments_and_foundations/graphs.json", (data) ->
     # Initialise sector colors
     data.pie1.forEach (x) -> 
       viz.sector_color x.name
