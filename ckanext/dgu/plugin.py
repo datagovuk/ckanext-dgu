@@ -4,6 +4,7 @@ from logging import getLogger
 from urllib import quote
 
 from pylons import config
+import sqlalchemy.orm
 
 from ckan.lib.helpers import flash_notice
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
@@ -258,14 +259,20 @@ def update_package_major_time(package):
     import datetime
     import ckan.model as model
 
-    package.extras['last_major_modification'] = model.Session.revision.timestamp.isoformat()
+    try:
+        package.extras['last_major_modification'] = model.Session.revision.timestamp.isoformat()
 
-    log.debug("Updating last_major_modification in the package: %s %s" % \
-              (package.name, package.extras['last_major_modification']))
+        log.debug("Updating last_major_modification in the package: %s %s" % \
+                (package.name, package.extras['last_major_modification']))
 
-    model.Session.flush()
-    # now that it is flushed, the change will get committed in the commit we
-    # are in (this code is called in a before_commit())
+        model.Session.flush()
+        # now that it is flushed, the change will get committed in the commit we
+        # are in (this code is called in a before_commit())
+    except sqlalchemy.orm.exc.StaleDataError, e:
+        # We get this sometimes - need to debug it. In the meantime, don't
+        # raise as that will cause the package not to be search indexed.
+        log.exception(e)
+        model.Session.remove()
 
 class LastMajorModificationPlugin1(SingletonPlugin):
     implements(IDomainObjectModification, inherit=True)
