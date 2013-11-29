@@ -165,14 +165,14 @@
           <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="">
           ${certificate['level'].title()} Level
           </a>
-          <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <div class="panel panel-default dropdown-menu pre-notes" role="menu" aria-labelledby="dLabel">
               <div class="panel-body col-md-6" style="width:400px;">
                 <img class="pull-right" src="${certificate.get('badge_url')}" width="30px" style="margin:-4px;"/>
                 <div>This dataset is awarded an Open Data Certificate</div>
                 <div><b>Level:</b> ${certificate.get('level').title()} (${certificate.get('status','').title()})</div>
                 <div><b>Date:</b> ${h.render_datestamp(certificate['created_at'])}</div>
                 <div><b>Source:</b> ${certificate.get('source', 'Not specified')}</div>
-                <a target="_blank" href="${certificate['certificate_url']}">Full details</a>
+                <a target="_blank" class="xpull-right" href="${certificate['certificate_url']}">Full details &rsaquo;</a>
               </div>
             </div>
         </py:with>
