@@ -132,9 +132,10 @@
         </py:for>
       </span>
     </div>
-    <div class="dataset-stars"
+    <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;"
       py:with="stars,reason,last_updated=h.calculate_dataset_stars(c.pkg.id)"
       >
+      Openness rating:
       <span class="star-rating">
         <span class="tooltip">
           <div class="star-rating-reason" py:if="reason">
@@ -155,27 +156,30 @@
             <i class="icon-star-empty"></i>
           </py:for>
         </a>
+
       </span>
+
+      <span class="dropdown" py:if="h.is_certificates_installed() and h.has_certificate(c.pkg)" style="margin-left: 24px;">
+        <py:with vars="certificate = h.get_certificate_data(c.pkg)">
+          Open Data Certificate:
+          <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="">
+          ${certificate['level'].title()} Level
+          </a>
+          <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+              <div class="panel-body col-md-6" style="width:400px;">
+                <img class="pull-right" src="${certificate.get('badge_url')}" width="30px" style="margin:-4px;"/>
+                <div>This dataset is awarded an Open Data Certificate</div>
+                <div><b>Level:</b> ${certificate.get('level').title()} (${certificate.get('status','').title()})</div>
+                <div><b>Date:</b> ${h.render_datestamp(certificate['created_at'])}</div>
+                <div><b>Source:</b> ${certificate.get('source', 'Not specified')}</div>
+                <a target="_blank" href="${certificate['certificate_url']}">Full details</a>
+              </div>
+            </div>
+        </py:with>
+      </span>
+
     </div>
 
-<span class="pre-notes dropdown" py:if="h.is_certificates_installed() and h.has_certificate(c.pkg)">
-  <py:with vars="certificate = h.get_certificate_data(c.pkg)">
-    <b>Open Data Certificate:</b> ${certificate['level'].title()} Level
-    <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" style="text-decoration:none; color: #999;">
-      <i class="icon-sort-down"></i>
-    </a>
-    <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
-        <div class="panel-body col-md-6" style="width:400px;">
-          <img class="pull-right" src="${certificate.get('badge_url')}" width="30px" style="margin:-4px;"/>
-          <div>This dataset is awarded an Open Data Certificate</div>
-          <div><b>Level:</b> ${certificate.get('level').title()} (${certificate.get('status','').title()})</div>
-          <div><b>Date:</b> ${h.render_datestamp(certificate['created_at'])}</div>
-          <div><b>Source:</b> ${certificate.get('source', 'Not specified')}</div>
-          <a target="_blank" href="${certificate['certificate_url']}">Full details</a>
-        </div>
-      </div>
-  </py:with>
-</span>
 
 
     <div class="row"
