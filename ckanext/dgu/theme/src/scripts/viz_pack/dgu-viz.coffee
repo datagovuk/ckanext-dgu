@@ -83,7 +83,7 @@ viz.money_to_string = (amount) ->
     out = ',' + amount.substring(amount.length-3) + out
     amount = amount.substring(0,amount.length-3)
   return amount + out
-viz.sector_color = d3.scale.category20c()
+viz.sector_color = d3.scale.category20()
 viz.sector_list = []
 viz.text_to_css_class = (x) ->
   x.toLowerCase().replace(/[ ]/g,'-').replace(/[^a-z-]/g,'')
