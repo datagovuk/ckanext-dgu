@@ -26,6 +26,21 @@ import_source_prefixes = {
     'DATA4NR': 'Data for Neighbourhoods and Regeneration import',
     }
 unpublished = 'Spreadsheet upload for unpublished datasets'
+OLD_THEMES = {
+    'Transportation': 'Transport',
+    'Finance': 'Government Spending',
+    'Spending Data': 'Government Spending',
+    'Spending': 'Government Spending',
+    'Economy': 'Business & Economy',
+    'Crime': 'Crime & Justice',
+    'Administration': 'Government',
+    'Environment': 'Geography',
+    'Location': 'Geography',
+    }
+THEMES = ('Society', 'Government Spending', 'Education', 'Crime & Justice',
+          'Geography', 'Health', 'Government', 'Defence', 'Business & Economy',
+          'Transport')
+
 
 date_converters = (
     (re.compile('(\d{4})(\d{2})(\d{2})'), '%Y%m%d'),
@@ -141,7 +156,7 @@ class TabularAnalysisFile(AnalysisFile):
         for date, analysis in self.get_data_by_date_sorted():
             data_row = [format_date(date)]
             for title in header[1:]:
-                data_row.append(analysis.get(title))
+                data_row.append(analysis.get(title, ''))
             data_rows.append(data_row)
         data_table = TabularData(data_rows, header)
         self.save_table(data_table)
@@ -157,7 +172,7 @@ class CsvAnalysisFile(TabularAnalysisFile):
             return TabularData()
         data_table = CsvReader().read(filepath_or_fileobj=self.analysis_filepath)
         return data_table
-    
+
     def save_table(self, data_table):
         fileobj = open(self.analysis_filepath, 'w')
         try:
@@ -227,6 +242,10 @@ class DumpAnalysis(object):
             pkg_bins = self.analyse_by_published_by(ons_packages)
             for bin, pkgs in pkg_bins.items():
                 self.analysis_dict['National Statistics Pub Hub by published_by: %s' % bin] = len(pkgs)
+        if self.options.analyse_by_theme:
+            pkg_bins = self.analyse_by_theme(packages)
+            for bin, pkgs in pkg_bins.items():
+                self.analysis_dict['Datasets by theme: %s' % bin] = len(pkgs)
                 
         self.print_analysis(pkg_bins)
 
@@ -320,6 +339,21 @@ class DumpAnalysis(object):
             pkg_bins['No value'].append(pkg['name'])
         return pkg_bins
 
+    def analyse_by_theme(self, packages):
+        pkg_bins = defaultdict(list)
+        for pkg in packages:
+            theme = pkg['extras'].get('theme-primary')
+            if (not theme) or (not theme.strip()):
+                pkg_bins['No value'].append(pkg['name'])
+                continue
+            # Fix old names for themes so they are consistent
+            if theme in OLD_THEMES:
+                theme = OLD_THEMES[theme]
+            if theme not in THEMES:
+                theme = 'Other: %s' % theme
+            pkg_bins[theme].append(pkg['name'])
+        return pkg_bins
+
     def print_analysis(self, pkg_bins):
         log.info('* Analysis by source *')
         for pkg_bin, pkgs in sorted(pkg_bins.items(), key=lambda (pkg_bin, pkgs): -len(pkgs)):
@@ -345,13 +379,16 @@ class Command(command.Command):
                                action="store_true")
         self.parser.add_option('--analyse-ons-by-published-by', dest='analyse_ons_by_published_by',
                                action="store_true")
+        self.parser.add_option('--analyse-by-theme', dest='analyse_by_theme',
+                               action="store_true")
 
     def parse_args(self):
         super(Command, self).parse_args()
-        if not (self.options.analyse_by_source or \
-                self.options.analyse_ons_by_published_by):
+        if not (self.options.analyse_by_source or
+                self.options.analyse_ons_by_published_by or
+                self.options.analyse_by_theme):
             self.parser.error('Need to specify one or more analysese.')
-    
+ 
     def command(self):
         input_file_descriptors = self.args
         input_filepaths = []

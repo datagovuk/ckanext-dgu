@@ -1,0 +1,48 @@
+[{"title": "Crime & Justice",
+  "stored_as": "Crime",
+  "description": "Statistics on crimes, policing, justice, courts, prisons, offenders, borders, and immigration.",
+  "topics": ["policing", "justice", "courts", "prisons", "offenders", "borders", "immigration"]
+  },
+  {"title": "Defence",
+   "description": "Statistics on the armed forces, Ministry of Defence, workforce, health & safety and search & rescue.",
+   "topics": ["armed forces" , "defence", "search & rescue"]
+   },
+   {"title": "Economy & Business",
+    "stored_as": "Economy",
+    "description": "Industry and small businesses. Statistics, surveys, economic indicators, import/exports and trade. Excludes government spending & salaries. Excludes household finances",
+    "topics": ["industry", "small businesses", "SMEs", "economic", "import", "export", "trade"]
+    },
+    {"title": "Education",
+    "description": "Data collected from schools, universities and libraries. Students, training, qualifications and the National Curriculum.",
+    "topics": ["schools", "universities", "colleges", "libraries", "students", "training", "qualifications", "national curriculum"]
+    },
+    {"title": "Geography",
+    "description": "Maps (including administrative boundaries), property addresses, aerial photographs, geology, weather, flooding, rivers, air quality, agriculture, energy use, construction, house market, and planning documents.",
+    "topics": ["maps", "boundaries", "property", "addresses", "aerial photographs", "geology", "weather", "flooding", "rivers", "air quality", "agriculture", "energy use", "construction", "house market", "town planning"],
+    "gemet": ["Addresses", "Hydrography", "Administrative units", "Land cover", "Agricultural and aquaculture facilities", "Land use", "Area management/restriction/regulation zones and reporting units", "Meteorological geographical features", "Atmospheric conditions", "Mineral resources", "Bio-geographical regions", "Natural risk zones", "Buildings", "Oceanographic geographical features", "Cadastral parcels", "Orthoimagery", "Coordinate reference systems", "Elevation", "Production and industrial facilities", "Energy resources", "Protected sites", "Environmental monitoring facilities", "Sea regions", "Geographical grid systems", "Soil", "Geographical names", "Species distribution", "Geology", "Statistical units", "Habitats and biotopes", "Utility and governmental services"]
+    },
+    {"title": "Government",
+    "description": "Organograms, staff numbers, expenses, staff pay, senior staff meetings, hospitality & gifts, lists of local councillors, department business plans, government buildings. Excludes spending.",
+    "topics": ["organograms", "staff", "expenses", "pay", "senior staff", "meetings", "hospitality", "gifts", "councillors", "business plans", "public buildings", "public properties"]
+    },
+    {"title": "Health",
+    "description": "Measurement of health, health care and social care. Includes medicine performance, hospitals, safety, mortality rates and data on smoking, drugs and alcohol.",
+    "topics": ["health", "health", "health care", "social care", "medicine", "hospital", "medical", "mortality", "smoking", "drugs", "alcohol"],
+    "gemet": ["Human health and safety"]
+    },
+    {"title": "Society",
+    "description": "Employment, benefits, household finances, poverty, population, demography, lifestyles, surveys and opinions",
+    "topics": ["employment", "benefits", "household finances", "poverty", "deprivation", "population", "demography", "lifestyles", "opinions", "household"],
+    "gemet": "Population distribution - demography"
+    },
+    {"title": "Government Spending",
+    "stored_as": "Spending",
+    "description": "Government transaction data. Mandated for public bodies (transactions above £25k & GPC card) and local authorities (transactions above £500). Includes grants. Excludes budgets and staff pay.",
+    "topics": ["spend transactions", "£25k", "25k", "£25,000", "£500", "grants"]
+    },
+    {"title": "Transport",
+    "description": "Airports, roads, freight, electric vehicles, parking, buses, footpaths and travel statistics.",
+    "topics": ["airports", "roads", "freight", "vehicles", "cars", "electric vehicles", "parking", "car park", "buses", "footpaths", "travel"],
+    "gemet": ["Transport networks"]
+    }
+]
