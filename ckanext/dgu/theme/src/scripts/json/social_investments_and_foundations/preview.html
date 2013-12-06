@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="assets/css/datagovuk.min.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/viz.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script src="assets/js/jquery-1.8.3.min.js"></script>
+    <script src="assets/js/vendor.min.js"></script>
+    <script src="assets/js/viz.js"></script>
+    <title>DataViz Prototype</title>
+  </head>
+  <body>
+    <div class="viz-body">
+      <hr/>
+      <div id="graph_bubble">
+        <h3>CoInvestment Contributions</h3>
+        <div class="coinvestment-right">
+          <h3>CoInvestment To Date</h3>
+          <h1 id="coinvestment-total"></h1>
+          <small>Foundations are collaborative investors in the sector. Of the £6.2 million invested by these foundations it contributes to a wider co-investment.</small>
+        </div>
+      </div>
+      <hr/>
+      <div id="graph_sankey">
+        <h3>Investment Strategies</h3>
+      </div>
+      <hr/>
+      <div>
+        <div style="width:50%;float:left;">
+          <div id="graph_pie1">
+            <h3>Sector Summary</h3>
+          </div>
+        </div>
+        <div style="width:50%;float:left;">
+          <div id="graph_pie2">
+            <h3>Unsecured Investments</h3>
+          </div>
+        </div>
+        <div class="clearfix">
+        </div>
+      </div>
+      <hr/>
+      <div id="graph_yearonyear">
+        <h3>Year-On-Year Cash Investment</h3>
+        <div class="yearonyear-right">
+          <h3>Investment To Date</h3>
+          <h1 id="investment-total"></h1>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Exploring: Social Investment and Foundations</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/dataset/social-investment-and-foundations">Social Investment and Foundations</a></li>
+    <li><a href="${request.url}">Data Explorer</a></li>
+  </py:match>
+
+  <py:def function="optional_head">
+    <link rel="stylesheet" type="text/css" href="/css/dgu-viz.min.css" />
+    <script type="text/javascript" src="/scripts/vendor/d3.v3.min.js"></script>
+    <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
+    <script type="text/javascript" src="/scripts/dgu-viz-pack.min.js"></script>
+  </py:def>
+
+  <py:match path="content">
+    <h1>Exploring: Social Investment and Foundations</h1>
+    <div class="container">
+      <div class="row">
+        <div class="whitebox" style="overflow: visible; width:">
+    <div class="viz-body">
+      <div class="panel panel-default">
+        <div class="panel-heading">Visualising Investment Data</div>
+        <div class="panel-body">
+          These visualisations tell the story of the <a href="/dataset/social-investment-and-foundations">Social Investment and Foundations</a> dataset. The raw data is a simple CSV file; here we use iPython Notebook to explore and extract the data, and <a href="http://d3js.org/">D3.js</a> to render a series of graphs.
+          <br/><br/>
+          If you are interested in the code, the <a href="http://nbviewer.ipython.org/gist/zephod/7708219">extract-transform-load script</a> is available on the iPython Notebook Viewer.
+        </div>
+      </div>
+      <div id="graph_yearonyear">
+        <h3>Year-On-Year Cash Investment</h3>
+        <div class="yearonyear-right">
+          <h3>Investment To Date</h3>
+          <h1 id="investment-total"></h1>
+        </div>
+      </div>
+      <hr/>
+      <div>
+        <div style="width:50%;float:left;">
+          <div id="graph_pie1">
+            <h3>Sector Summary</h3>
+          </div>
+        </div>
+        <div style="width:50%;float:left;">
+          <div id="graph_pie2">
+            <h3>Unsecured Investments</h3>
+          </div>
+        </div>
+        <div class="clearfix">
+        </div>
+      </div>
+      <hr/>
+      <div id="graph_sankey">
+        <h3>Investment Strategies</h3>
+      </div>
+      <hr style="display:none;"/>
+      <div id="graph_bubble" style="display:none;">
+        <h3>CoInvestment Contributions</h3>
+        <div class="coinvestment-right">
+          <h3>CoInvestment To Date</h3>
+          <h1 id="coinvestment-total"></h1>
+          <small>Foundations are collaborative investors in the sector. Of the £6.2 million invested by these foundations it contributes to a wider co-investment.</small>
+        </div>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+  </py:match>
+  <xi:include href="../layout.html" />
+</html>
+

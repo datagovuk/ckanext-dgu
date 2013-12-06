@@ -6,6 +6,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-imagemin');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-coffee');
 
   // Change relative directory
   grunt.file.setBase('ckanext/dgu/theme/');
@@ -32,6 +33,8 @@ module.exports = function(grunt) {
         files: {
           'public/scripts/vendor/jquery.tablesorter.min.js'   : 'src/scripts/vendor/jquery.tablesorter.js',
           'public/scripts/vendor/jquery.jstree.min.js'        : 'src/scripts/vendor/jquery.jstree.js',
+          'public/scripts/vendor/d3.v3.min.js'                : 'src/scripts/vendor/d3.v3.js',
+          'public/scripts/vendor/d3.sankey.min.js'            : 'src/scripts/vendor/d3.sankey.js',
         },
       },
       openspending: {
@@ -72,6 +75,10 @@ module.exports = function(grunt) {
         src: 'src/css/dgu-ckan.less',
         dest: 'public/css/dgu-ckan.min.css'
       },
+      viz: {
+        src: 'src/css/dgu-viz.less',
+        dest: 'public/css/dgu-viz.min.css',
+      },
       recline: {
         src: [ 
           'src/css/recline_pack/recline-data-explorer.min.css',
@@ -87,8 +94,12 @@ module.exports = function(grunt) {
         tasks: 'styles'
       },
       scripts: {
-        files: 'src/scripts/dgu*',
+        files: 'src/scripts/dgu*.js',
         tasks: 'uglify:app'
+      },
+      coffee: {
+        files: 'src/scripts/**/*.coffee',
+        tasks: 'coffee'
       },
     },
     imagemin: {
@@ -113,6 +124,21 @@ module.exports = function(grunt) {
         src: '**/*.gif',
         dest: 'public/images/',
       },
+      json: {
+        expand: true,
+        cwd: 'src/scripts/json/',
+        src: '**/*.json',
+        dest: 'public/scripts/json/',
+      },
+    },
+    coffee: {
+      viz_pack: {
+        src: [
+          'src/scripts/viz_pack/viz_lib/*.coffee',
+          'src/scripts/viz_pack/dgu-viz.coffee',
+        ],
+        dest: 'public/scripts/dgu-viz-pack.min.js'
+      }
     },
     timestamp: {
       build: {
@@ -126,7 +152,7 @@ module.exports = function(grunt) {
   });
   // Default task(s).
   grunt.registerTask('styles', ['less:build','timestamp']);
-  grunt.registerTask('scripts', ['uglify:app','timestamp']);
+  grunt.registerTask('scripts', ['uglify:app','timestamp','coffee']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
-  grunt.registerTask('default', ['uglify','less','imagemin','copy','timestamp']);
+  grunt.registerTask('default', ['uglify','coffee','less','imagemin','copy','timestamp']);
 };
