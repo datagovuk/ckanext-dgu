@@ -27,15 +27,22 @@ class Themes(object):
         self.data = {}
         self.topics_all = {}  # topic:theme_name
         self.gemet = {}  # gemet_keyword:theme_name
+        self.ons = {}  # ons_keyword:theme_name
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
+
+            for key in ('topics', 'gemet', 'nscl', 'ons'):
+                if key in theme_dict:
+                    assert isinstance(theme_dict[key], list), (name, key)
 
             theme_dict['topics_normalized'] = set(normalize_token(topic) for topic in theme_dict['topics'])
             for topic in theme_dict['topics_normalized']:
                 self.topics_all[topic] = name
 
             for gemet_keyword in theme_dict.get('gemet', []):
-                self.gemet[normalize_gemet_keyword(gemet_keyword)] = name
+                self.gemet[normalize_keyword(gemet_keyword)] = name
+            for ons_keyword in theme_dict.get('nscl', []) + theme_dict.get('ons', []):
+                self.ons[tag_munge(ons_keyword)] = name
             self.data[name] = theme_dict
         self.topics_all_set = self.topics_all.viewkeys() # can do set-like operations on it
         print 'Done'
@@ -145,6 +152,7 @@ def categorize(options, test=False):
         scores = defaultdict(list)  # theme:[(score, reason), ...]
         score_by_topic(pkg, scores, themes)
         score_by_gemet(pkg, scores, themes)
+        score_by_ons_theme(pkg, scores, themes)
 
         # add up scores
         theme_scores = defaultdict(int)  # theme:total_score
@@ -182,10 +190,10 @@ def score_by_topic(pkg, scores, themes):
                 print ' %s %s %s' % (theme, score, reason)
 
 def score_by_gemet(pkg, scores, themes):
-    if not pkg.extras.get('UKLP') == 'True':
+    if pkg.extras.get('UKLP') != 'True':
         return
     for tag_obj in pkg.get_tags():
-        tag = normalize_gemet_keyword(tag_obj.name)
+        tag = normalize_keyword(tag_obj.name)
         if tag in themes.gemet:
             theme = themes.gemet[tag]
             reason = '%s matched GEMET keyword' % tag
@@ -195,7 +203,25 @@ def score_by_gemet(pkg, scores, themes):
         else:
             print ' Non-GEMET keyword: %s' % tag
 
-def normalize_gemet_keyword(keyword):
+def score_by_ons_theme(pkg, scores, themes):
+    # There are 11 'Old ONS themes' e.g.: 'Agriculture and Environment', 'Business and Energy'
+    # http://www.statistics.gov.uk/hub/browse-by-theme/index.html
+    #
+    # and there are set to be 4 'New ONS themes' e.g. 'Business, Trade and Industry'
+    # which break down further, that we need to look at too.
+    # http://digitalpublishing.ons.gov.uk/2013/12/05/no-longer-taxing-we-hope/
+    if pkg.extras.get('external_reference') != 'ONSHUB':
+        return
+    for tag_obj in pkg.get_tags():
+        tag = tag_munge(tag_obj.name)
+        if tag in themes.ons:
+            theme = themes.ons[tag]
+            reason = '%s matched ONS keyword' % tag
+            score = 10
+            scores[theme].append((score, reason))
+            print ' %s ONS:%s %s' % (theme, score, reason)
+
+def normalize_keyword(keyword):
     name = keyword.lower()
     # take out not-allowed characters
     name = re.sub('[^a-z0-9]', '', name)

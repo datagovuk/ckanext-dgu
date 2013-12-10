@@ -1,48 +1,65 @@
 [{"title": "Crime & Justice",
   "stored_as": "Crime",
   "description": "Statistics on crimes, policing, justice, courts, prisons, offenders, borders, and immigration.",
-  "topics": ["crime", "policing", "justice", "courts", "prisons", "offenders", "borders", "immigration", "hate", "summons", "remand", "vandal", "bomb", "bail", "nuisance", "coroner", "convict", "judge", "plea", "casework", "victimisation", "repossess", "custody", "homophobe", "mortem", "obscene", "sentence", "theft", "victimize", "graffiti", "juvenile", "aggravated", "judiciary", "imprison", "prostitute"]
+  "topics": ["crime", "policing", "justice", "courts", "prisons", "offenders", "borders", "immigration", "hate", "summons", "remand", "vandal", "bomb", "bail", "nuisance", "coroner", "convict", "judge", "plea", "casework", "victimisation", "repossess", "custody", "homophobe", "mortem", "obscene", "sentence", "theft", "victimize", "graffiti", "juvenile", "aggravated", "judiciary", "imprison", "prostitute"],
+  "nscl": ["Crime and Justice"],
+  "ons": ["Crime and Justice"]
   },
   {"title": "Defence",
    "description": "Statistics on the armed forces, Ministry of Defence, workforce, health & safety and search & rescue.",
-   "topics": ["armed forces", "forces", "defence", "search", "rescue", "RAF", "corp", "tank", "airmen", "military", "gurka", "civilian", "veteran", "armour", "kill", "soldier", "regiment", "sailor", "barrack", "PTSD", "battalion", "amputee", "squadron", "combat", "commando", "enlist", "nato"]
+   "topics": ["armed forces", "forces", "defence", "search", "rescue", "RAF", "corp", "tank", "airmen", "military", "gurka", "civilian", "veteran", "armour", "kill", "soldier", "regiment", "sailor", "barrack", "PTSD", "battalion", "amputee", "squadron", "combat", "commando", "enlist", "nato"],
+   "nscl": ["Defence"]
    },
    {"title": "Economy & Business",
     "stored_as": "Economy",
     "description": "Industry and small businesses. Statistics, surveys, economic indicators, import/exports and trade. Excludes government spending & salaries. Excludes household finances",
-    "topics": ["industry", "business", "small businesses", "SMEs", "economic", "import", "export", "trade", "prices", "buyer", "worth", "macroeconomy", "currency", "factory", "acquisition", "bond", "discal", "entrepreneurship", "output", "disinvest", "RPI", "deflation", "infaltion"]
+    "topics": ["industry", "business", "small businesses", "SMEs", "economic", "import", "export", "trade", "prices", "buyer", "worth", "macroeconomy", "currency", "factory", "acquisition", "bond", "discal", "entrepreneurship", "output", "disinvest", "RPI", "deflation", "infaltion"],
+    "nscl": ["Businesses", "Primary Production", "Manufacturing", "Services", "National Accounts", "Prices, Output and Productivity", "Productivity", "Labour disputes"],
+    "ons": ["Business, Industry and Trade", "Economy", "Labour Productivity"]
     },
     {"title": "Education",
     "description": "Data collected from schools, universities and libraries. Students, training, qualifications and the National Curriculum.",
-    "topics": ["schools", "universities", "colleges", "libraries", "students", "training", "qualifications", "skills", "national curriculum", "education", "GCE", "enrol", "GCSE", "KS5", "KS3", "KS4", "KS2", "KS1", "degree", "diploma"]
+    "topics": ["schools", "universities", "colleges", "libraries", "students", "training", "qualifications", "skills", "national curriculum", "education", "GCE", "enrol", "GCSE", "KS5", "KS3", "KS4", "KS2", "KS1", "degree", "diploma"],
+    "nscl": ["Children, Education and Skills"],
+    "ons": ["Education and Childcare"]
     },
     {"title": "Geography",
     "description": "Maps (including administrative boundaries), property addresses, aerial photographs, geology, weather, flooding, rivers, air quality, agriculture, energy use, construction, house market, and planning documents.",
     "topics": ["geography", "maps", "boundaries", "property", "addresses", "aerial photographs", "geology", "weather", "water", "freshwater", "flooding", "rivers", "air quality", "agriculture", "energy use", "construction", "house market", "town planning", "environment", "environ", "fish", "mackeral", "kestrel", "loch", "chlorophyl", "oxide", "farmland", "evapotransipre", "falcon", "species", "cretacian", "brill", "wreck", "fossil", "rain", "fell", "nitrate", "ore", "worm", "rabbit", "titatnium", "selenium", "swale", "bromide", "feedingstuff", "salmonella", "slaughterhouse", "oxygen", "arid", "radioecology", "wastewater", "bacon", "suplhur", "tree", "seed", "carboniferous", "shale", "drought", "causeway", "earth", "sugar", "cadastral", "moth", "flour", "whitefish", "seabass", "alkaline", "reservoir", "berbicide", "colony", "aquatic", "timber", "landuse", "basin", "mushroom", "calcium", "zooplankton", "runoff", "bacteria", "hay", "permeable", "topography", "radioactive", "earthquake", "eagle", "toxic", "ice", "seabird", "microwave", "bioinformation", "bedrock", "geomagnetic", "solar", "flood", "pest", "crustacean", "seismograph", "iodine", "ammonium", "beetle", "tidal", "mussel", "broadband", "NIEA", "geoplace", "magnet", "hydrotherm", "precipitation", "sparrowhawk", "climatology", "insecticide", "address", "radon", "prehistoric", "stream", "hydropgraphic", "pond", "radionuclide", "molybdenum", "seahorse", "nitrogen", "farmer", "rock", "molecular", "bathmetric", "breed", "mollusc", "seabream", "fungus", "metalliferrous", "ortho", "butterflies", "perch", "reservoic", "biodiesel", "spectroscopy", "biogeography", "plankton", "berry", "sheepdrove", "sow", "soil", "ecology", "weed", "orthorectify", "isotope", "clam", "aquaculture", "clay", "lobster", "jurassic", "predatory", "chromium", "evaporate", "aquifer", "chloride", "shrimp", "playground", "hill", "bacteria", "arable", "drift", "flower", "greenway", "sewer", "nutrient", "carbon", "micropalaeontology", "mammal", "ozone", "geochemistry", "gravity", "geophysics", "topsoil", "cadastral", "spectrometry", "offshore", "sunshine", "shark", "invertebrate", "tideline", "halibut", "woodland", "bioscience", "chemistry", "humid", "leven", "agri", "petrology", "contour", "palaeontology", "evolution", "meterorlogy", "fishermen", "stickleback", "scintillometry", "mountain", "holt", "cave", "bioethanol", "landsat", "fungal", "orthoimagery", "native", "dump", "bark", "cartograph", "inion", "harbour", "scallop", "stratigraphy", "mineralogy", "evaporate", "boar", "ewe", "meteorology", "geohub", "cytometry", "fungicide", "virology", "occidental", "continent", "bollard", "bio", "macrofossil", "phosphorus", "borehole", "spring", "salmon", "outdoor", "irrigate", "frog", "EDTA", "insulate", "oyster", "topograph", "potassium", "reef", "groundwater", "doe", "polygon", "uranium", "drainage", "ecoli", "biostratigraphy", "lowland", "harvest", "wave", "seawater", "frost", "saline", "biomass", "crop", "acid", "scale", "crab", "coordinates", "floodplain", "biotop", "micrometeorology", "surface", "hydrology", "gazetteer", "fluvial", "brook", "microbiology", "cadmium", "rainfall", "hydrocarbon", "magnesium", "flux", "seismology", "temperature", "countryside", "ecosystem", "sediment", "arsenic", "estuary", "terrain", "jydrochemistry", "weland", "ph", "nuclear", "aqua", "moisture", "chernobyl", "gamma", "habitat", "glacial", "parasite", "hydrometry", "smartbuoy", "monument", "star", "astronomy", "seismic", "microfossil", "buoy", "allotment", "aqueduct", "geoscience", "bridges", "building control", "housing"],
-    "gemet": ["Addresses", "Hydrography", "Administrative units", "Land cover", "Agricultural and aquaculture facilities", "Land use", "Area management/restriction/regulation zones and reporting units", "Meteorological geographical features", "Atmospheric conditions", "Mineral resources", "Bio-geographical regions", "Natural risk zones", "Buildings", "Oceanographic geographical features", "Cadastral parcels", "Orthoimagery", "Coordinate reference systems", "Elevation", "Production and industrial facilities", "Energy resources", "Protected sites", "Environmental monitoring facilities", "Sea regions", "Geographical grid systems", "Soil", "Geographical names", "Species distribution", "Geology", "Statistical units", "Habitats and biotopes", "Utility and governmental services"]
+    "gemet": ["Addresses", "Hydrography", "Administrative units", "Land cover", "Agricultural and aquaculture facilities", "Land use", "Area management/restriction/regulation zones and reporting units", "Meteorological geographical features", "Atmospheric conditions", "Mineral resources", "Bio-geographical regions", "Natural risk zones", "Buildings", "Oceanographic geographical features", "Cadastral parcels", "Orthoimagery", "Coordinate reference systems", "Elevation", "Production and industrial facilities", "Energy resources", "Protected sites", "Environmental monitoring facilities", "Sea regions", "Geographical grid systems", "Soil", "Geographical names", "Species distribution", "Geology", "Statistical units", "Habitats and biotopes", "Utility and governmental services"],
+    "nscl": ["Agriculture and Environment", "Water and Sewage", "Building and Construction", "Housing Stock", "Planning"],
+    "ons": ["Housing"]
     },
     {"title": "Government",
     "description": "Organograms, staff numbers, expenses, staff pay, senior staff meetings, hospitality & gifts, lists of local councillors, department business plans, government buildings. Excludes spending.",
-    "topics": ["organograms", "staff", "expenses", "pay", "salary", "senior staff", "meetings", "hospitality", "gifts", "councillors", "business plans", "public buildings", "public properties", "civil service", "administrator", "council", "ministers", "management team", "board members", "consultation", "polling station", "local authority", "public bodies"]
+    "topics": ["organograms", "staff", "expenses", "pay", "salary", "senior staff", "meetings", "hospitality", "gifts", "councillors", "business plans", "public buildings", "public properties", "civil service", "administrator", "council", "ministers", "management team", "board members", "consultation", "polling station", "local authority", "public bodies"],
+    "nscl": ["Public Sector Finance", "Taxes and Revenue", "Local Government Finance", "Central and Local Government", "International affairs"],
+    "ons": ["Publish Sector Personnel", "Elections"]
     },
     {"title": "Health",
     "description": "Measurement of health, health care and social care. Includes medicine performance, hospitals, safety, mortality rates and data on smoking, drugs and alcohol.",
     "topics": ["health", "healthcare", "health care", "social care", "medicine", "hospital", "medical", "mortality", "smoking", "drugs", "alcohol", "bipolar", "prescription", "immunise", "optician", "therapy", "radiology", "depression", "bacteraemia", "premature", "poison", "ulcer", "diabetes", "superbug", "diagnosis", "antibacterial", "transplant", "cardiology", "respiratory", "epilepsi", "ailment", "infarction", "paediatric", "angioplasty", "surgery", "childbirth", "tumour", "psychosis", "hernia", "surgic", "birthweight", "gastroenterology", "crohn", "implant", "breastfeed", "fracture", "readmission", "BMI", "hospitalise", "antidepressant", "infection", "cardiovascular", "hysterectomy", "HIV", "breast", "schizophrenia", "asthma", "vascular", "episode", "angiogram", "infect", "diagnose", "sight", "MRSA", "prostate", "audiology", "pain", "kidney", "contraception", "psychiatric", "osteoporosis", "pacemaker", "CDiff", "dietitian", "cantagious", "fertility", "clostridium", "colorectal", "cancer", "mesothelioma", "lung", "cardiac", "gestation", "coronary", "norovirus", "midwifery", "disease"],
-    "gemet": ["Human health and safety"]
+    "gemet": ["Human health and safety"],
+    "nscl": ["Health and Social Care"],
+    "ons": ["Health and Social Care"]
     },
     {"title": "Society",
     "description": "Employment, benefits, household finances, poverty, population, demography, lifestyles, surveys and opinions",
     "topics": ["employment", "benefits", "household finances", "poverty", "deprivation", "population", "people", "demography", "lifestyles", "opinions", "household", "community", "nation", "society", "kid", "pyramid", "boy", "girl", "lone", "happiness", "rental", "dole", "underemployment", "centenarian", "belief", "household", "prejudice", "faith", "discriminate", "gini", "racism", "citizenship", "child protection"],
-    "gemet": "Population distribution - demography"
+    "gemet": ["Population distribution - demography"],
+    "nscl": ["Personal Finances", "Earnings", "Employment", "Hours of Work", "People not in Work", "Job Statistics", "People", "Households", "Housing Market", "Housing Need and Homelessness", "Communities", "Fire and Rescue Services", "Population Change", "Migration", "Families", "Ageing", "Births and fertility", "Deaths"],
+    "ons": ["Earnings and Working Hours", "Employment and Employee Types", "Workplace Disputes and Working Conditions", "Workplace Pensions", "People not in Work", "Births, Deaths and Marriages", "Community", "Cultural Identity", "Leisure and Tourism", "Personal and Household Finances", "Population and Migration", "Well-being"]
     },
     {"title": "Government Spending",
     "stored_as": "Spending",
     "description": "Government transaction data. Mandated for public bodies (transactions above £25k & GPC card) and local authorities (transactions above £500). Includes grants. Excludes budgets and staff pay.",
-    "topics": ["spend", "transactions", "£25k", "25k", "£25,000", "£500", "grants", "invoices"]
+    "topics": ["spend", "transactions", "£25k", "25k", "£25,000", "£500", "grants", "invoices"],
+    "nscl": ["Public Spending"]
     },
     {"title": "Transport",
     "description": "Airports, roads, freight, electric vehicles, parking, buses, footpaths and travel statistics.",
-    "topics": ["airports", "roads", "freight", "vehicles", "cars", "electric vehicles", "parking", "car park", "buses", "footpaths", "travel", "transport", "roadworthiness", "unlicensed", "journey", "HS2", "coach", "airline", "cyclist", "crossrail", "aviation", "congestion", "grit", "MOT", "rider", "cruise", "speed camera", "tram", "airplane", "roadworks", "DLR", "van"],
-    "gemet": ["Transport networks"]
+    "topics": ["airports", "roads", "freight", "vehicles", "cars", "electric vehicles", "parking", "car park", "buses", "footpaths", "travel", "transport", "roadworthiness", "unlicensed", "journey", "HS2", "coach", "airline", "cyclist", "crossrail", "aviation", "congestion", "grit", "MOT", "rider", "cruise", "speed camera", "tram", "airplane", "roadworks", "DLR", "van", "traffic"],
+    "gemet": ["Transport networks"],
+    "nscl": ["Travel and Transport"]
     }
 ]
