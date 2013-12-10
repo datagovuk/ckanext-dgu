@@ -11,6 +11,7 @@ import nltk
 from nltk.corpus import stopwords
 import common
 from running_stats import StatsList
+from ckanext.dgu.schema import tag_munge
 
 PRIMARY_THEME = 'theme-primary'
 SECONDARY_THEMES = 'themes-secondary'
@@ -25,11 +26,16 @@ class Themes(object):
         themes_list = json.loads(themes_json)
         self.data = {}
         self.topics_all = {}  # topic:theme_name
+        self.gemet = {}  # gemet_keyword:theme_name
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
+
             theme_dict['topics_normalized'] = set(normalize_token(topic) for topic in theme_dict['topics'])
             for topic in theme_dict['topics_normalized']:
                 self.topics_all[topic] = name
+
+            for gemet_keyword in theme_dict.get('gemet', []):
+                self.gemet[normalize_gemet_keyword(gemet_keyword)] = name
             self.data[name] = theme_dict
         self.topics_all_set = self.topics_all.viewkeys() # can do set-like operations on it
         print 'Done'
@@ -59,16 +65,23 @@ def learn(options):
             freq_fraction = float(freq)/max_freq
             if freq_fraction < freq_fraction_threshold:
                 break
-            fd_by_fraction[word].append((freq_fraction, theme))
+            fd_by_fraction[word].append((freq_fraction, theme, freq))
 
     stats = StatsList()
+    stats.report_value_limit = 1000
+    unique_words = defaultdict(list)  # theme: [word, ...]
     for word, counts in fd_by_fraction.items():
         if len(counts) == 1:
             print stats.add('unique', '%s %s' % (word, counts[0][1]))
+            unique_words[counts[0][1]].append('%s (%s)' % (word, counts[0][2]))
             continue
         sorted_counts = sorted(counts, key=lambda tup: -tup[0])
         winning_margin = sorted_counts[0][0] - sorted_counts[1][0]
         print stats.add('margin %.1f' % winning_margin, '%s %s-%s' % (word, sorted_counts[0][1], sorted_counts[1][1]))
+    print 'Unique words:'
+    for theme, words in unique_words.items():
+        print '%s: %s' % (theme, ' '.join(words))
+    print 'Summary:'
     print stats.report()
 
 def get_freq_dist(package_options, level):
@@ -114,7 +127,7 @@ def normalize_token(token):
 def categorize(options, test=False):
     themes = Themes()
     stats = StatsList()
-    stats.report_value_limit = 400
+    stats.report_value_limit = 600
 
     if options.dataset:
         packages = [model.Package.get(options.dataset)]
@@ -131,6 +144,7 @@ def categorize(options, test=False):
         print 'Dataset: %s' % pkg.name
         scores = defaultdict(list)  # theme:[(score, reason), ...]
         score_by_topic(pkg, scores, themes)
+        score_by_gemet(pkg, scores, themes)
 
         # add up scores
         theme_scores = defaultdict(int)  # theme:total_score
@@ -166,6 +180,28 @@ def score_by_topic(pkg, scores, themes):
                     reason += ' num=%s' % occurrences
                 scores[theme].append((score, reason))
                 print ' %s %s %s' % (theme, score, reason)
+
+def score_by_gemet(pkg, scores, themes):
+    if not pkg.extras.get('UKLP') == 'True':
+        return
+    for tag_obj in pkg.get_tags():
+        tag = normalize_gemet_keyword(tag_obj.name)
+        if tag in themes.gemet:
+            theme = themes.gemet[tag]
+            reason = '%s matched GEMET keyword' % tag
+            score = 10
+            scores[theme].append((score, reason))
+            print ' %s Gemet:%s %s' % (theme, score, reason)
+        else:
+            print ' Non-GEMET keyword: %s' % tag
+
+def normalize_gemet_keyword(keyword):
+    name = keyword.lower()
+    # take out not-allowed characters
+    name = re.sub('[^a-z0-9]', '', name)
+    # remove double spaces
+    name = re.sub('\s+', ' ', name)
+    return name
 
 def package_text(package, level):
     '''Given a package returns the text in it, from a particular level.
