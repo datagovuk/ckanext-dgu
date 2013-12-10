@@ -24,10 +24,16 @@ class Themes(object):
             themes_json = f.read()
         themes_list = json.loads(themes_json)
         self.data = {}
+        self.topics_all = {}  # topic:theme_name
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
+            theme_dict['topics_normalized'] = set(normalize_token(topic) for topic in theme_dict['topics'])
+            for topic in theme_dict['topics_normalized']:
+                self.topics_all[topic] = name
             self.data[name] = theme_dict
+        self.topics_all_set = self.topics_all.viewkeys() # can do set-like operations on it
         print 'Done'
+
 
 def learn(options):
     from ckan import model
@@ -66,6 +72,7 @@ def learn(options):
     print stats.report()
 
 def get_freq_dist(package_options, level):
+    '''Find all the words in the packages and return the freq dist of them.'''
     packages = get_packages(publisher=package_options.publisher,
                             theme=package_options.theme,
                             limit=options.limit)
@@ -76,10 +83,14 @@ def get_freq_dist(package_options, level):
         text.append(package_text(pkg, level))
     words = []
     text = ' '.join(text)
-    words = [normalize_token(w) for w in split_words(text)]
+    words = normalize_text(text)
     return nltk.FreqDist(words)
 
 porter = None
+
+def normalize_text(text):
+    words = [normalize_token(w) for w in split_words(text)]
+    return words
 
 def split_words(sentence, remove_stop_words=True):
     words = re.findall(r'\w+', sentence, flags=re.UNICODE)
@@ -100,22 +111,61 @@ def normalize_token(token):
     token = token.lower()
     return token
 
-def categorize(packages):
-    from ckan import model
-
+def categorize(options, test=False):
     themes = Themes()
     stats = StatsList()
+    stats.report_value_limit = 400
 
     if options.dataset:
         packages = [model.Package.get(options.dataset)]
     else:
+        if test:
+            theme = True
+        else:
+            theme = False
         packages = get_packages(publisher=options.publisher,
-                theme=command=='learn',
+                theme=theme,
                 limit=options.limit)
 
     for pkg in packages:
         print 'Dataset: %s' % pkg.name
+        scores = defaultdict(list)  # theme:[(score, reason), ...]
+        score_by_topic(pkg, scores, themes)
 
+        # add up scores
+        theme_scores = defaultdict(int)  # theme:total_score
+        for theme, theme_scores_ in scores.items():
+            for score, reason in theme_scores_:
+                theme_scores[theme] += score
+        theme_scores = sorted(theme_scores.items(), key=lambda y: -y[1])
+
+        primary_theme = theme_scores[0][0] if scores else None
+
+        if scores:
+            if primary_theme == pkg.extras.get(PRIMARY_THEME):
+                print stats.add('Theme matches', '%s %s %s' % (pkg.name, primary_theme, theme_scores[0][1]))
+            else:
+                print stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg.name, primary_theme, pkg.extras.get(PRIMARY_THEME), theme_scores[0][1]))
+        else:
+            print stats.add('No match', pkg.name)
+    print stats.report()
+
+def score_by_topic(pkg, scores, themes):
+    '''Examines the pkg and adds scores according to topics in it.'''
+    for level in range(3):
+        pkg_text = package_text(pkg, level)
+        words = normalize_text(pkg_text)
+        matching_words = set(words) & themes.topics_all_set
+        if matching_words:
+            for word in matching_words:
+                occurrences = words.count(word)
+                score = (3-level) * occurrences
+                theme = themes.topics_all[word]
+                reason = '"%s" matched level=%s' % (word, level)
+                if occurrences:
+                    reason += ' num=%s' % occurrences
+                scores[theme].append((score, reason))
+                print ' %s %s %s' % (theme, score, reason)
 
 def package_text(package, level):
     '''Given a package returns the text in it, from a particular level.
@@ -172,6 +222,7 @@ if __name__ == '__main__':
     usage: %prog [options] <ckan.ini> <command>
 Commands:
     learn - look at datasets already with themes and show the key words
+    test - try categorizing datasets that already have themes to see how well it does
     categorize - categorize datasets without themes"""
     parser = OptionParser(usage=usage)
     parser.add_option('-d', '--dataset', dest='dataset')
@@ -184,7 +235,7 @@ Commands:
     if len(args) != 2:
         parser.error('Wrong number of arguments (%i)' % len(args))
     config_ini, command = args
-    commands = ('learn', 'categorize')
+    commands = ('learn', 'test', 'categorize')
     if command not in commands:
         parser.error('Command %s should be one of: %s' % (command, commands))
     print 'Loading CKAN config...'
@@ -194,6 +245,8 @@ Commands:
     from ckan import model
     if command == 'learn':
         learn(options)
+    elif command == 'test':
+        categorize(options, test=True)
     elif command == 'categorize':
         categorize(options)
     else:

@@ -38,7 +38,7 @@
     {"title": "Government Spending",
     "stored_as": "Spending",
     "description": "Government transaction data. Mandated for public bodies (transactions above £25k & GPC card) and local authorities (transactions above £500). Includes grants. Excludes budgets and staff pay.",
-    "topics": ["spend transactions", "£25k", "25k", "£25,000", "£500", "grants"]
+    "topics": ["spend", "transactions", "£25k", "25k", "£25,000", "£500", "grants"]
     },
     {"title": "Transport",
     "description": "Airports, roads, freight, electric vehicles, parking, buses, footpaths and travel statistics.",
