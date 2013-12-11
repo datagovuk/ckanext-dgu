@@ -1,13 +1,19 @@
 
 // --
 .viz-body {
+  h4 {
+    color: #666;
+  }
+
   .foundation-selector {
-    margin-left: 0;
+    margin: 10px 30px;
     list-style-type: none;
-    text-align: center;
     li {
       display: inline-block;
       vertical-align: top;
+      .prefix {
+        padding: 20px 20px;
+      }
       a {
         display: block;
         width: 140px;
@@ -91,6 +97,18 @@
   }
   #graph_sankey {
     margin: 10px 20px;
+    position: relative;
+    .strategy-blurb {
+      position: absolute;
+      font-size: 100%;
+      font-size: 11px;
+      line-height: 14px;
+      right: 0px;
+      top: 2px;
+      width: 480px;
+      text-align: right;
+    }
+    svg { margin-top: 50px; }
     .node rect {
       cursor: move;
       fill-opacity: .9;
@@ -145,6 +163,15 @@
       top: 40px;
       pointer-events: none;
       text-align: right;
+      padding-right: 10px;
+    }
+    .yearonyear-right2 {
+      position: absolute;
+      display: block;
+      width: 318px;
+      left: 100px;
+      top: 15px;
+      pointer-events: none;
       padding-right: 10px;
     }
     .caption {

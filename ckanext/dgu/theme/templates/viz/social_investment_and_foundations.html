@@ -32,47 +32,56 @@
           If you are interested in the code, the <a href="http://nbviewer.ipython.org/gist/zephod/7708219">extract-transform-load script</a> is available on the iPython Notebook Viewer.
         </div>
       </div>
-      <div id="graph_yearonyear">
-        <h3>Year-On-Year Cash Investment</h3>
-        <div class="yearonyear-right">
-          <h3>Investment To Date</h3>
-          <h1 id="investment-total"></h1>
-        </div>
-      </div>
       <ul class="foundation-selector">
+        <li><h3 class="prefix">View data for:</h3></li>
         <li><a href="#" data-key="all" class="active first"><div style="padding-top: 24px;">All Foundations</div><div class="chevron"></div></a></li>
         <li><a href="#" data-key="foundation_barrow"><img style="margin-top: 3px;" src="/images/barrow.png" class="foundation" /><div class="chevron"></div></a></li>
         <li><a href="#" data-key="foundation_panahpur"><img style="margin-top:25px;" src="/images/panahpur.png" class="foundation" /><div class="chevron"></div></a></li>
         <li><a href="#" data-key="foundation_lankelly"><img style="margin-top:10px;" src="/images/lankellychase.png" class="foundation" /><div class="chevron"></div></a></li>
       </ul>
-      <hr/>
+      <div id="graph_yearonyear">
+        <div class="yearonyear-right">
+          <h3>Investment To Date</h3>
+          <h1 id="investment-total"></h1>
+        </div>
+        <small class="yearonyear-right2">
+          <h4>Year-On-Year Cash Investment</h4>
+          A summary of cash invested by foundations from 2010 to 2013. The donut charts beneath this show the cash invested per sector and the investment product types. <br/>
+          <em>Data Fields: Cash Invested, Sector, Product Type</em>
+        </small>
+      </div>
+      <ul class="foundation-selector">
+        <li><h3 class="prefix">View data for:</h3></li>
+        <li><a href="#" data-key="all" class="active first"><div style="padding-top: 24px;">All Foundations</div><div class="chevron"></div></a></li>
+        <li><a href="#" data-key="foundation_barrow"><img style="margin-top: 3px;" src="/images/barrow.png" class="foundation" /><div class="chevron"></div></a></li>
+        <li><a href="#" data-key="foundation_panahpur"><img style="margin-top:25px;" src="/images/panahpur.png" class="foundation" /><div class="chevron"></div></a></li>
+        <li><a href="#" data-key="foundation_lankelly"><img style="margin-top:10px;" src="/images/lankellychase.png" class="foundation" /><div class="chevron"></div></a></li>
+      </ul>
       <div>
         <div style="width:50%;float:left;">
           <div id="graph_pie1">
-            <h3>Sector Summary</h3>
+            <h4>Sector Summary</h4>
+            <div class="caption"></div>
           </div>
         </div>
         <div style="width:50%;float:left;">
           <div id="graph_pie2">
-            <h3>Unsecured Investments</h3>
+            <h4>Unsecured Investments</h4>
+            <div class="caption"></div>
           </div>
         </div>
         <div class="clearfix">
         </div>
       </div>
-      <ul class="foundation-selector">
-        <li><a href="#" data-key="all" class="active first"><div style="padding-top: 24px;">All Foundations</div><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_barrow"><img style="margin-top: 3px;" src="/images/barrow.png" class="foundation" /><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_panahpur"><img style="margin-top:25px;" src="/images/panahpur.png" class="foundation" /><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_lankelly"><img style="margin-top:10px;" src="/images/lankellychase.png" class="foundation" /><div class="chevron"></div></a></li>
-      </ul>
       <hr/>
       <div id="graph_sankey">
-        <h3>Investment Strategies</h3>
+        <h4>Investment Strategies</h4>
+        <small class="strategy-blurb">The chart shows where and how investments have been made by foundations between four categories. Hover your mouse over the threads to show the amount invested between each data field and move the coloured bars on a vertical axis to change the structure.
+          <br/><em>Data Fields: Cash Invested, Type of Organisation, Product Type, Purpose of Investment, Sector</em></small>
       </div>
-      <hr />
+      <hr/>
       <div id="graph_coinvestment">
-        <h3>CoInvestment Contributions</h3>
+        <h4>CoInvestment Contributions</h4>
         <div class="coinvestment-right">
           <h3>CoInvestment To Date</h3>
           <h1 id="coinvestment-total"></h1>
