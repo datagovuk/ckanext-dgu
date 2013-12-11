@@ -89,6 +89,10 @@ module.exports = function(grunt) {
       }
     },
     watch: {
+      json: { 
+        files: 'src/scripts/json/**/*.json',
+        tasks: 'copy:json'
+      },
       styles: {
         files: 'src/css/**/*',
         tasks: 'styles'
@@ -151,7 +155,7 @@ module.exports = function(grunt) {
     grunt.file.write(this.files[0].dest, 'asset_build_timestamp='+Date.now());
   });
   // Default task(s).
-  grunt.registerTask('styles', ['less:build','timestamp']);
+  grunt.registerTask('styles', ['less','timestamp']);
   grunt.registerTask('scripts', ['uglify:app','timestamp','coffee']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
   grunt.registerTask('default', ['uglify','coffee','less','imagemin','copy','timestamp']);
