@@ -9,6 +9,7 @@ from sqlalchemy import or_
 # Use nltk.download() to get the 'stopwords' corpus
 import nltk
 from nltk.corpus import stopwords
+from nltk.util import bigrams, trigrams
 import common
 from running_stats import StatsList
 from ckanext.dgu.schema import tag_munge
@@ -25,7 +26,9 @@ class Themes(object):
             themes_json = f.read()
         themes_list = json.loads(themes_json)
         self.data = {}
-        self.topics_all = {}  # topic:theme_name
+        self.topic_words = {}  # topic:theme_name
+        self.topic_bigrams = {} # (topicword1, topicword2):theme_name
+        self.topic_trigrams = {} # (topicword1, topicword2, topicword3):theme_name
         self.gemet = {}  # gemet_keyword:theme_name
         self.ons = {}  # ons_keyword:theme_name
         for theme_dict in themes_list:
@@ -35,22 +38,29 @@ class Themes(object):
                 if key in theme_dict:
                     assert isinstance(theme_dict[key], list), (name, key)
 
-            theme_dict['topics_normalized'] = set(normalize_token(topic) for topic in theme_dict['topics'])
-            for topic in theme_dict['topics_normalized']:
-                self.topics_all[topic] = name
+            for topic in theme_dict['topics']:
+                words = [normalize_token(word) for word in topic.split()]
+                if len(words) == 1:
+                    self.topic_words[words[0]] = name
+                elif len(words) == 2:
+                    self.topic_bigrams[tuple(words)] = name
+                elif len(words) == 3:
+                    self.topic_trigrams[tuple(words)] = name
+                else:
+                    assert 0, 'Too many words in topic: %s' % topic
 
             for gemet_keyword in theme_dict.get('gemet', []):
                 self.gemet[normalize_keyword(gemet_keyword)] = name
             for ons_keyword in theme_dict.get('nscl', []) + theme_dict.get('ons', []):
                 self.ons[tag_munge(ons_keyword)] = name
             self.data[name] = theme_dict
-        self.topics_all_set = self.topics_all.viewkeys() # can do set-like operations on it
+        self.topic_words_set = self.topic_words.viewkeys() # can do set-like operations on it
+        self.topic_bigrams_set = self.topic_bigrams.viewkeys()
+        self.topic_trigrams_set = self.topic_trigrams.viewkeys()
         print 'Done'
 
 
 def learn(options):
-    from ckan import model
-
     themes = Themes()
     level = 1
     freq_dists = {}
@@ -113,6 +123,8 @@ def normalize_text(text):
     return words
 
 def split_words(sentence, remove_stop_words=True):
+    # remove "," in a number
+    re.sub('(\d+),(\d+)', r'\1\2', sentence)
     words = re.findall(r'\w+', sentence, flags=re.UNICODE)
     if remove_stop_words:
         important_words = []
@@ -134,10 +146,12 @@ def normalize_token(token):
 def categorize(options, test=False):
     themes = Themes()
     stats = StatsList()
-    stats.report_value_limit = 600
+    stats.report_value_limit = 3000
 
     if options.dataset:
-        packages = [model.Package.get(options.dataset)]
+        pkg = model.Package.get(options.dataset)
+        assert pkg
+        packages = [pkg]
     else:
         if test:
             theme = True
@@ -163,11 +177,14 @@ def categorize(options, test=False):
 
         primary_theme = theme_scores[0][0] if scores else None
 
+        current_primary_theme = pkg.extras.get(PRIMARY_THEME)
         if scores:
-            if primary_theme == pkg.extras.get(PRIMARY_THEME):
+            if primary_theme == current_primary_theme:
                 print stats.add('Theme matches', '%s %s %s' % (pkg.name, primary_theme, theme_scores[0][1]))
+            elif current_primary_theme:
+                print stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg.name, primary_theme, current_primary_theme, theme_scores[0][1]))
             else:
-                print stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg.name, primary_theme, pkg.extras.get(PRIMARY_THEME), theme_scores[0][1]))
+                print stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg.name, primary_theme, theme_scores[0][1]))
         else:
             print stats.add('No match', pkg.name)
     print stats.report()
@@ -177,17 +194,31 @@ def score_by_topic(pkg, scores, themes):
     for level in range(3):
         pkg_text = package_text(pkg, level)
         words = normalize_text(pkg_text)
-        matching_words = set(words) & themes.topics_all_set
-        if matching_words:
-            for word in matching_words:
-                occurrences = words.count(word)
-                score = (3-level) * occurrences
-                theme = themes.topics_all[word]
-                reason = '"%s" matched level=%s' % (word, level)
-                if occurrences:
-                    reason += ' num=%s' % occurrences
-                scores[theme].append((score, reason))
-                print ' %s %s %s' % (theme, score, reason)
+        for num_words in (1, 2, 3):
+            if num_words == 1:
+                ngrams = words
+                topic_ngrams = themes.topic_words
+                topic_ngrams_set = themes.topic_words_set
+            elif num_words == 2:
+                ngrams = bigrams(words)
+                topic_ngrams = themes.topic_bigrams
+                topic_ngrams_set = themes.topic_bigrams_set
+            elif num_words == 3:
+                ngrams = trigrams(words)
+                topic_ngrams = themes.topic_trigrams
+                topic_ngrams_set = themes.topic_trigrams_set
+            matching_ngrams = set(ngrams) & topic_ngrams_set
+            if matching_ngrams:
+                for ngram in matching_ngrams:
+                    occurrences = ngrams.count(ngram)
+                    score = (3-level) * occurrences * num_words
+                    theme = topic_ngrams[ngram]
+                    ngram_printable = ' '.join(ngram) if isinstance(ngram, tuple) else ngram
+                    reason = '"%s" matched %s' % (ngram_printable, LEVELS[level])
+                    if occurrences:
+                        reason += ' num=%s' % occurrences
+                    scores[theme].append((score, reason))
+                    print ' %s %s %s' % (theme, score, reason)
 
 def score_by_gemet(pkg, scores, themes):
     if pkg.extras.get('UKLP') != 'True':
@@ -229,6 +260,7 @@ def normalize_keyword(keyword):
     name = re.sub('\s+', ' ', name)
     return name
 
+LEVELS = {0: 'title', 1: 'tags', 2: 'description'}
 def package_text(package, level):
     '''Given a package returns the text in it, from a particular level.
     The first level is the most important - title, followed by less important bits.
