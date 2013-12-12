@@ -134,13 +134,17 @@ def split_words(sentence, remove_stop_words=True):
         words = important_words
     return words
 
+# some words change meaning if you reduce them to their stem
+stem_exceptions = set(('parking',))
+
 def normalize_token(token):
     global porter
     if not porter:
         porter = nltk.PorterStemmer()
-    token = porter.stem(token)
     token = re.sub('[^\w]', '', token)
     token = token.lower()
+    if token not in stem_exceptions:
+        token = porter.stem(token)
     return token
 
 def categorize(options, test=False):
@@ -215,8 +219,8 @@ def score_by_topic(pkg, scores, themes):
                     theme = topic_ngrams[ngram]
                     ngram_printable = ' '.join(ngram) if isinstance(ngram, tuple) else ngram
                     reason = '"%s" matched %s' % (ngram_printable, LEVELS[level])
-                    if occurrences:
-                        reason += ' num=%s' % occurrences
+                    if occurrences > 1:
+                        reason += ' (%s times)' % occurrences
                     scores[theme].append((score, reason))
                     print ' %s %s %s' % (theme, score, reason)
 
@@ -230,7 +234,7 @@ def score_by_gemet(pkg, scores, themes):
             reason = '%s matched GEMET keyword' % tag
             score = 10
             scores[theme].append((score, reason))
-            print ' %s Gemet:%s %s' % (theme, score, reason)
+            print ' %s %s %s' % (theme, score, reason)
         else:
             print ' Non-GEMET keyword: %s' % tag
 
@@ -250,7 +254,7 @@ def score_by_ons_theme(pkg, scores, themes):
             reason = '%s matched ONS keyword' % tag
             score = 10
             scores[theme].append((score, reason))
-            print ' %s ONS:%s %s' % (theme, score, reason)
+            print ' %s %s %s' % (theme, score, reason)
 
 def normalize_keyword(keyword):
     name = keyword.lower()
