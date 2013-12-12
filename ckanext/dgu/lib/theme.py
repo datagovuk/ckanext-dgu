@@ -190,7 +190,7 @@ def score_by_gemet(pkg, scores):
         if tag in themes.gemet:
             theme = themes.gemet[tag]
             reason = '%s matched GEMET keyword' % tag
-            score = 10
+            score = 40 # needs to be high for e.g. urban-rural-classification-2011-12
             scores[theme].append((score, reason))
             log.debug(' %s %s %s', theme, score, reason)
         else:
