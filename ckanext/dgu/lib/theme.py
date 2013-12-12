@@ -80,7 +80,7 @@ def split_words(sentence):
     return words
 
 # some words change meaning if you reduce them to their stem
-stem_exceptions = set(('parking',))
+stem_exceptions = set(('parking', 'national'))
 
 porter = None
 def normalize_token(token):
