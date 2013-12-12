@@ -115,12 +115,18 @@ def dictize_package_nice(pkg):
                 'extras': dict([(extra['key'], extra['value']) for extra in pkg['extras']])
                 }
 
-def categorize_package(pkg, stats):
+def categorize_package(pkg, stats=None):
     '''Given a package it does various searching for topic keywords and returns
     its estimate for primary-theme and secondary-theme.
 
     package - object or dict
     '''
+    if not stats:
+        class MockStats:
+            def add(self, a, b):
+                return '%s: %s' % (a, b)
+        stats = MockStats()
+
     pkg = dictize_package_nice(pkg)
     scores = defaultdict(list)  # theme:[(score, reason), ...]
     score_by_topic(pkg, scores)
@@ -146,7 +152,7 @@ def categorize_package(pkg, stats):
             log.debug(stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg['name'], primary_theme, theme_scores[0][1])))
     else:
         log.debug(stats.add('No match', pkg['name']))
-    return (theme for theme, score in theme_scores[:2])
+    return [theme for theme, score in theme_scores[:2]]
 
 def score_by_topic(pkg, scores):
     '''Examines the pkg and adds scores according to topics in it.'''
