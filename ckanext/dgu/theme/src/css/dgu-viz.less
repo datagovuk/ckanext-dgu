@@ -1,11 +1,53 @@
-body {
-  background: #EFEFEF;
-}
-h3 { font-family: 'Open Sans'; }
-
 
 // --
 .viz-body {
+  h4 {
+    color: #666;
+  }
+
+  .foundation-selector {
+    margin: 10px 30px;
+    list-style-type: none;
+    li {
+      display: inline-block;
+      vertical-align: top;
+      .prefix {
+        padding: 20px 20px;
+      }
+      a {
+        display: block;
+        width: 140px;
+        height: 70px;
+        text-align: center;
+        color: #000;
+        font-size: 12px;
+        opacity: 0.4;
+        position: relative;
+        border: 1px solid #ccc;
+        .chevron {
+          display: none;
+          width: 0px;
+          height: 0px;
+          border: 7px solid transparent;
+          border-bottom-color: #000;
+          position: absolute;
+          left: 48%;
+          bottom: 0;
+        }
+        &.active,
+        &:hover {
+          opacity: 1.0;
+        }
+        &.active {
+          border: 1px solid #000;
+          .chevron { display: block; }
+        }
+        img.foundation {
+          width: 120px;
+        }
+      }
+    }
+  }
   background: #fff;
   width: 940px;
   margin: 30px auto;
@@ -53,35 +95,20 @@ h3 { font-family: 'Open Sans'; }
     stroke: #000;
     shape-rendering: crispEdges;
   }
-  #graph_bubble {
-    position: relative;
-    padding: 10px 20px;
-    .legend {
-      position: absolute;
-      top: 50px;
-      left: 110px;
-      width: 195px;
-    }
-    svg {
-      circle { opacity: 0.5; }
-    }
-    .coinvestment-right {
-      position: absolute;
-      right: 0;
-      top: 20px;
-      text-align: right;
-      padding-right: 10px;
-      pointer-events: none;
-      small {
-        margin: 0 0 0 44px;
-        display: block;
-        width: 229px;
-        color: #555;
-      }
-    }
-  }
   #graph_sankey {
     margin: 10px 20px;
+    position: relative;
+    .strategy-blurb {
+      position: absolute;
+      font-size: 100%;
+      font-size: 11px;
+      line-height: 14px;
+      right: 0px;
+      top: 2px;
+      width: 480px;
+      text-align: right;
+    }
+    svg { margin-top: 50px; }
     .node rect {
       cursor: move;
       fill-opacity: .9;
@@ -138,6 +165,15 @@ h3 { font-family: 'Open Sans'; }
       text-align: right;
       padding-right: 10px;
     }
+    .yearonyear-right2 {
+      position: absolute;
+      display: block;
+      width: 318px;
+      left: 100px;
+      top: 15px;
+      pointer-events: none;
+      padding-right: 10px;
+    }
     .caption {
       background: #f0f;
       position: absolute;
@@ -172,6 +208,49 @@ h3 { font-family: 'Open Sans'; }
     }
     .x.axis path {
       display: none;
+    }
+  }
+  #graph_coinvestment {
+    position: relative;
+    .coinvestment-right {
+      position: absolute;
+      right: 0;
+      top: 20px;
+      text-align: right;
+      padding-right: 10px;
+      pointer-events: none;
+      small {
+        margin: 0 0 0 44px;
+        display: block;
+        width: 229px;
+        color: #555;
+      }
+    }
+    svg {
+      margin-left: 90px;
+    }
+    svg:hover {
+      path {
+        opacity: 0.7;
+        &:hover {
+          opacity: 1.0;
+        }
+      }
+    }
+    .caption {
+      width: 277px;
+      top: 250px;
+      left: 201px;
+      position: absolute;
+      text-align: center;
+      p {
+        font-size: 16px;
+        margin-bottom: 0px;
+      }
+      small {
+        font-size: 12px;
+        color: #999;
+      }
     }
   }
 }

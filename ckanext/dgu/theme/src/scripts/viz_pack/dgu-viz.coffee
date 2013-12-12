@@ -5,16 +5,20 @@ window.viz ?= {}
 $ ->
   d3.json "/scripts/json/social_investments_and_foundations/graphs.json", (data) ->
     # Initialise sector colors
-    data.pie1.forEach (x) -> 
+    data.pie1['all'].forEach (x) -> 
       viz.sector_color x.name
       viz.sector_list.push x.name
     # Render Sankey of discrete relationships
     viz.renderSankey data.sankey
     # Render bar chart of yearly performance
-    viz.renderStackedBar data.bar
+    stackedBar = new viz.StackedBarChart '#graph_yearonyear', data.bar.all
     # Render totals
-    $('#coinvestment-total').html( '<span class="poundsign">£</span>'+viz.money_to_string data.coinvestment_total )
-    $('#investment-total').html( '<span class="poundsign">£</span>'+viz.money_to_string data.investment_total )
+    coinvestmentTotal = new viz.CashTotal '#coinvestment-total', data.coinvestment_total
+    investmentTotal = new viz.CashTotal '#investment-total', data.investment_total['all']
+    # Render coinvestment treemap
+    #treeMap = new viz.TreeMap '#graph_coinvestment', data.treemap
+    #circlePack = new viz.CirclePack '#graph_coinvestment', data.treemap
+    subburst = new viz.Sunburst '#graph_coinvestment', data.treemap
     # Render Bubblechart of coinvestments
     data.bubble.points.forEach (d) ->
       d.radius = Math.max(5,d.cash/20000)
@@ -22,7 +26,7 @@ $ ->
       d.date = d3.time.format("%Y-%m-%d").parse(d.date)
     viz.renderBubbleChart(data.bubble,'#graph_bubble',d3.scale.category10())
     # Render pie chart of sector investments
-    viz.renderPieChart(data.pie1,'#graph_pie1',viz.sector_color,32,viz.sector_list)
+    pie1 = new viz.PieChart('#graph_pie1',data.pie1['all'],viz.sector_color,32,viz.sector_list)
     # Render pie chart of unsecured investments
     known_colors = []
     pie2_color = (x) ->
@@ -35,8 +39,18 @@ $ ->
         if x=='Loans and facilities - Partially secured'
           return d3.rgb('#74C476')
         return d3.rgb('#193B79').brighter(index/2)
-    viz.renderPieChart(data.pie2,'#graph_pie2',pie2_color)
-
+    pie2 = new viz.PieChart('#graph_pie2',data.pie2['all'],pie2_color)
+    # Bind to buttons
+    $('.foundation-selector a').on 'click', (event) ->
+      event.preventDefault()
+      key = $(this).attr 'data-key'
+      stackedBar.setData data.bar[key]
+      pie1.setData data.pie1[key]
+      pie2.setData data.pie2[key]
+      investmentTotal.setData data.investment_total[key]
+      $('.foundation-selector a').removeClass 'active'
+      $('.foundation-selector a[data-key="'+key+'"]').addClass 'active'
+      return false
     # Bind to all hoverable elements
     $('.hoverable').on 'mouseover', (e) ->
       $('li.hoverable').removeClass 'hovering'
@@ -101,3 +115,4 @@ viz.legend = (container,elements,colorFunction,trim=-1) ->
       .append('div')\
       .attr('class','swatch')\
       .style('background-color',colorFunction)
+
