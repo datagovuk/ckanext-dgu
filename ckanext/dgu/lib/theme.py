@@ -69,18 +69,14 @@ class Themes(object):
 
 def normalize_text(text):
     words = [normalize_token(w) for w in split_words(text)]
-    return words
+    words_without_stopwords = [word for word in words
+            if word not in stopwords.words('english')]
+    return words, words_without_stopwords
 
-def split_words(sentence, remove_stop_words=True):
+def split_words(sentence):
     # remove "," in a number so that "25,000" is treated as one word
     re.sub('(\d+),(\d+)', r'\1\2', sentence)
     words = re.findall(r'\w+', sentence, flags=re.UNICODE)
-    if remove_stop_words:
-        important_words = []
-        for word in words:
-            if word not in stopwords.words('english'):
-                important_words.append(word)
-        words = important_words
     return words
 
 # some words change meaning if you reduce them to their stem
@@ -158,10 +154,10 @@ def score_by_topic(pkg, scores):
     themes = Themes.instance()
     for level in range(3):
         pkg_text = package_text(pkg, level)
-        words = normalize_text(pkg_text)
+        words, words_without_stopwords = normalize_text(pkg_text)
         for num_words in (1, 2, 3):
             if num_words == 1:
-                ngrams = words
+                ngrams = words_without_stopwords
                 topic_ngrams = themes.topic_words
                 topic_ngrams_set = themes.topic_words_set
             elif num_words == 2:
