@@ -21,7 +21,7 @@ class ReportsController(BaseController):
             context = {'model':model,'user': c.user, 'owner_org': id}
             t.check_access('package_create',context)
         except t.NotAuthorized, e:
-            h.redirect_to('/user?destination={0}'.format(request.path))
+            h.redirect_to('/user?destination={0}'.format(request.path[1:]))
 
         c.publisher = model.Group.get(id)
         if not c.publisher:

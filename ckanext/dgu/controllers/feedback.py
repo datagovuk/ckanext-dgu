@@ -160,7 +160,7 @@ class FeedbackController(BaseController):
             context = {'model':model,'user': c.user}
             check_access('feedback_create',context)
         except NotAuthorized, e:
-            h.redirect_to('/user?destination={0}'.format(request.path))
+            h.redirect_to('/user?destination={0}'.format(request.path[1:]))
 
         if request.method == "POST":
             if FeedbackBlockedUser.is_user_blocked(c.user):
