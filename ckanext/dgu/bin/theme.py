@@ -2,7 +2,9 @@ from optparse import OptionParser
 from collections import defaultdict
 import logging
 
+from sqlalchemy import or_
 import nltk
+
 import common
 from running_stats import StatsList
 
@@ -71,10 +73,10 @@ def get_freq_dist(package_options, level):
 
 
 def categorize(options, test=False):
-    from ckanext.dgu.lib.theme import categorize_package
-    
+    from ckanext.dgu.lib.theme import categorize_package, PRIMARY_THEME, SECONDARY_THEMES
+
     stats = StatsList()
-    stats.report_value_limit = 3000
+    stats.report_value_limit = 1000
 
     if options.dataset:
         pkg = model.Package.get(options.dataset)
@@ -89,10 +91,28 @@ def categorize(options, test=False):
                 theme=theme,
                 limit=options.limit)
 
+    themes_to_write = {}  # pkg_name:themes
+
     for pkg in packages:
         print 'Dataset: %s' % pkg.name
-        categorize_package(pkg, stats)
+        themes = categorize_package(pkg, stats)
+        if options.write and not pkg.extras.get(PRIMARY_THEME) and themes:
+            themes_to_write[pkg.name] = themes
+
+    print 'Categorize summary:'
     print stats.report()
+
+    if options.write:
+        rev = model.repo.new_revision()
+        rev.author = 'autotheme'
+        for pkg_name, themes in themes_to_write.items():
+                print 'WRITE %s %r' % (pkg_name, themes)
+                pkg = model.Package.get(pkg_name)
+                pkg.extras[PRIMARY_THEME] = themes[0]
+                if len(themes) > 1:
+                    pkg.extras[SECONDARY_THEMES] = '["%s"]' % themes[1]
+        model.repo.commit_and_remove()
+
 
 def get_packages(publisher=None, theme=None, limit=None):
     from ckan import model
@@ -143,9 +163,9 @@ Commands:
     parser = OptionParser(usage=usage)
     parser.add_option('-d', '--dataset', dest='dataset')
     parser.add_option('-p', '--publisher', dest='publisher')
-    #parser.add_option("-w", "--write",
-    #                  action="store_true", dest="write",
-    #                  help="write the theme to the datasets")
+    parser.add_option("-w", "--write",
+                      action="store_true", dest="write",
+                      help="write the theme to the datasets")
     parser.add_option('--limit', dest='limit')
     (options, args) = parser.parse_args()
     if len(args) != 2:

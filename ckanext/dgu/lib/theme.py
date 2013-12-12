@@ -4,7 +4,6 @@ import codecs
 import re
 from collections import defaultdict
 
-from sqlalchemy import or_
 # Use nltk.download() to get the 'stopwords' corpus
 import nltk
 from nltk.corpus import stopwords
@@ -121,7 +120,7 @@ def categorize_package(pkg, stats=None):
 
     package - object or dict
     '''
-    if not stats:
+    if stats is None:
         class MockStats:
             def add(self, a, b):
                 return '%s: %s' % (a, b)
