@@ -1,3 +1,4 @@
+import json
 import uuid
 from datetime import datetime
 
@@ -48,9 +49,30 @@ class ArchiveTask(Base):
     @classmethod
     def create(cls, entity):
         c = cls()
+
+        c.resource_id = entity.entity_id
         c.response = entity.value
-        # unpack the error json
         c.created = entity.last_updated
+
+        # We need to find the dataset_id for the resource.
+        q = """
+            SELECT P.id from package P
+            INNER JOIN resource_group RG ON RG.package_id = P.id
+            INNER JOIN resource R ON R.resource_group_id = RG.id
+            WHERE R.id = '%s';
+        """
+        row = model.Session.execute(q % c.resource_id).first()
+        c.dataset_id = row[0]
+
+        if entity.error:
+            d = json.loads(entity.error)
+            c.first_failure = d.get('first_failure') or None
+            c.last_success = d.get('last_success') or None
+
+            c.url_redirected_to = d.get('url_redirected_to', '')
+            c.reason = d.get('reason', '')
+            c.failure_count = d.get('failure_count')
+
         return c
 
 def init_tables(e):

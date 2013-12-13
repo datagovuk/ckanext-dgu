@@ -13,6 +13,7 @@ from ckan.lib.cli import CkanCommand
 
 class DGUInitDB(CkanCommand):
     """
+    Creates, if not present, the database tables specific to DGU
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
@@ -49,17 +50,20 @@ class DGUInitDB(CkanCommand):
         # Migrate archive and QA data only in an empty db
         if model.Session.query(a_model.ArchiveTask).count() == 0:
             log.info("Migrating Archive task data")
+
             # Do we want to migrate all, or do we want to migrate
             # only the latest information
-            print model.Session.query(model.TaskStatus)\
-                .filter(model.TaskStatus.task_type=='archiver')\
-                .filter(model.TaskStatus.key=='status').count()
+            for status in  model.Session.query(model.TaskStatus)\
+                    .filter(model.TaskStatus.task_type=='archiver')\
+                    .filter(model.TaskStatus.key=='status').yield_per(1000):
+                c = a_model.ArchiveTask.create(status)
+                model.Session.add(c)
+            model.Session.commit()
 
-
-        if model.Session.query(q_model.QATask).count() == 0:
-            log.info("Migrating QA task data")
+        #if model.Session.query(q_model.QATask).count() == 0:
+        #    log.info("Migrating QA task data")
             # Do we want to migrate all, or do we want to migrate
             # only the latest information
-            print model.Session.query(model.TaskStatus)\
-                .filter(model.TaskStatus.task_type=='qa')\
-                .filter(model.TaskStatus.key=='status').first()
+        #    print model.Session.query(model.TaskStatus)\
+        #        .filter(model.TaskStatus.task_type=='qa')\
+        #        .filter(model.TaskStatus.key=='status').first()
