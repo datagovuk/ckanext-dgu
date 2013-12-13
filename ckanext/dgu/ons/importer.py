@@ -7,6 +7,7 @@ import HTMLParser
 from ckanext.importlib.importer import PackageImporter
 from ckanext.dgu import schema
 from ckanext.dgu.ons.producers import get_ons_producers
+from ckanext.dgu.lib.theme import categorize_package, PRIMARY_THEME, SECONDARY_THEMES
 from datautildate import date
 
 guid_prefix = 'http://www.statistics.gov.uk/hub/id/'
@@ -144,6 +145,13 @@ class OnsImporter(PackageImporter):
         tags = list(tags)
         tags.sort()
         pkg_dict['tags'] = tags
+
+        themes = categorize_package(pkg_dict)
+        log.debug('%s given themes: %r', munged_title, themes)
+        if themes:
+            pkg_dict['extras'][PRIMARY_THEME] = themes[0]
+            if len(themes) == 2:
+                pkg_dict['extras'][SECONDARY_THEMES] = '["%s"]' % themes[1]
 
         return pkg_dict
 

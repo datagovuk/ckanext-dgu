@@ -11,10 +11,12 @@ class OnsLoader(ResourceSeriesLoader):
             'geographic_coverage', 'temporal_granularity',
             'precision', 'url', 'taxonomy_url',
             'license_id']
+        extras_to_not_overwrite = ['theme-primary', 'themes-secondary']
         super(OnsLoader, self).__init__(
             ckanclient,
             field_keys_to_find_pkg_by,
             field_keys_to_expect_invariant=field_keys_to_expect_invariant,
+            extras_to_not_overwrite=extras_to_not_overwrite,
             )
 
     def _get_search_options(self, field_keys, pkg_dict):

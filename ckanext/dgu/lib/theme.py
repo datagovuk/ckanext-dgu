@@ -103,12 +103,21 @@ def dictize_package_nice(pkg):
                 'extras': pkg.extras
                 }
     else:
-        return {'name': pkg['name'],
-                'title': pkg['title'],
-                'tags': [tag['name'] for tag in pkg['tags']],
-                'notes': pkg['notes'],
-                'extras': dict([(extra['key'], extra['value']) for extra in pkg['extras']])
-                }
+        pkg_dict = {'name': pkg['name'],
+                    'title': pkg['title'],
+                    'notes': pkg['notes'],
+                    }
+        # Cope with tags as a list of dicts or just a list
+        if pkg['tags'] and isinstance(pkg['tags'][0], dict):
+            pkg_dict['tags'] = [tag['name'] for tag in pkg['tags']]
+        else:
+            pkg_dict['tags'] = pkg['tags'][:]
+        # Cope with extas as a list of dicts or just a dict
+        if pkg['extras'] and isinstance(pkg['extras'], list):
+            pkg_dict['extras'] = dict([(extra['key'], extra['value']) for extra in pkg['extras']])
+        else:
+            pkg_dict['extras'] = dict(pkg['extras'].items())
+        return pkg_dict
 
 def categorize_package(pkg, stats=None):
     '''Given a package it does various searching for topic keywords and returns
