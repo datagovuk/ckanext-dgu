@@ -60,10 +60,13 @@ class DGUInitDB(CkanCommand):
                 model.Session.add(c)
             model.Session.commit()
 
-        #if model.Session.query(q_model.QATask).count() == 0:
-        #    log.info("Migrating QA task data")
+        if model.Session.query(q_model.QATask).count() == 0:
+            log.info("Migrating QA task data")
             # Do we want to migrate all, or do we want to migrate
             # only the latest information
-        #    print model.Session.query(model.TaskStatus)\
-        #        .filter(model.TaskStatus.task_type=='qa')\
-        #        .filter(model.TaskStatus.key=='status').first()
+            for status in model.Session.query(model.TaskStatus)\
+                    .filter(model.TaskStatus.task_type=='qa')\
+                    .filter(model.TaskStatus.key=='status').yield_per(1000):
+                qt = q_model.QATask.create(status)
+                model.Session.add(qt)
+            model.Session.commit()

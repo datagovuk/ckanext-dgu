@@ -35,7 +35,8 @@ class QATask(Base):
 
     url = Column(types.UnicodeText)
     format = Column(types.UnicodeText)
-    is_broken = openness_score_reason = Column(types.Boolean)
+    is_broken = Column(types.Boolean)
+    archiver_status = Column(types.UnicodeText)
     created   = Column(types.DateTime, default=datetime.now)
 
     def __init__(self, **kwargs):
@@ -44,13 +45,38 @@ class QATask(Base):
 
     @classmethod
     def create(cls, entity):
+        from paste.deploy.converters import asbool
+
         c = cls()
         c.created = entity.last_updated
+        c.resource_id = entity.entity_id
+        c.created = entity.last_updated
 
-        # unpack the error json
+        # We need to find the dataset_id for the resource.
+        q = """
+            SELECT P.id from package P
+            INNER JOIN resource_group RG ON RG.package_id = P.id
+            INNER JOIN resource R ON R.resource_group_id = RG.id
+            WHERE R.id = '%s';
+        """
+        row = model.Session.execute(q % c.resource_id).first()
+        if row:
+            c.dataset_id = row[0]
+        else:
+            # If there is no row, we can't add the dataset. This may be
+            # that the resource no longer exists.
+            c.dataset_id = ''
+
+        c.openness_score = int(entity.value)
+
+        if entity.error:
+            d = json.loads(entity.error)
+            c.is_broken = asbool(d.get('is_broken', False))
+            c.format = d.get('format')
+            c.archiver_status = d.get('archiver_status')
+            c.openness_score_reason = d.get('reason')
+
         return c
-
-
 
 def init_tables(e):
     Base.metadata.create_all(e)
