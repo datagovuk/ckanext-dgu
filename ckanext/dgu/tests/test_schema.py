@@ -1,5 +1,5 @@
 from ckanext.dgu.schema import (suggest_tags, tags_parse, tag_munge, \
-                                DrupalHelper, name_munge, \
+                                name_munge, \
                                 canonise_organisation_name, GeoCoverageType)
 from nose.tools import assert_equal
 from ckanext.dgu.tests import MockDrupalCase
@@ -109,17 +109,7 @@ class TestName:
         for str_, name in expected_data:
             result_name = name_munge(str_)
             assert_equal(result_name, name)
-    
-class TestDrupalHelper(MockDrupalCase):
-    def test_dept_to_organisation(self):
-        source_agency = 'Ealing PCT'
-        publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
-        assert publisher == 'Ealing PCT [2]'
 
-    def test_dept_to_organisation_no_id(self):
-        source_agency = 'Ealing PCT'
-        publisher = DrupalHelper.department_or_agency_to_organisation(source_agency, include_id=False)
-        assert publisher == 'Ealing PCT'
 
 class TestGovTags(object):
     def test_tags_parse(self):

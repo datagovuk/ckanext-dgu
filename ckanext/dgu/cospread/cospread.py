@@ -234,7 +234,6 @@ class CospreadImporter(SpreadsheetPackageImporter):
                  generate_names=False,
                  **kwargs):
         self.include_given_tags = include_given_tags
-        self._drupal_helper = schema.DrupalHelper(xmlrpc_settings)
         super(CospreadImporter, self).__init__(record_params=[generate_names], record_class=CospreadDataRecords, **kwargs)
 
     @classmethod
@@ -364,7 +363,8 @@ class CospreadImporter(SpreadsheetPackageImporter):
         for key in ['published_by', 'published_via', 'department', 'agency']:
             org_name = extras_dict.get(key)
             if org_name:
-                org = self._drupal_helper.cached_department_or_agency_to_organisation(org_name)
+                # FIXME just use CKAN orgs instead of this
+                #org = self._drupal_helper.cached_department_or_agency_to_organisation(org_name)
                 if org:
                     orgs.append(org)
         # limit/pad number of orgs to be 2

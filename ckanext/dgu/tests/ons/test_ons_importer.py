@@ -8,7 +8,6 @@ from ckan.tests import *
 from ckan import model
 from ckanext.dgu.ons import importer
 from ckanext.dgu.ons.producers import get_ons_producers
-from ckanext.dgu.schema import DrupalHelper
 from ckanext.dgu.tests import MockDrupalCase, strip_organisation_id, PackageDictUtil
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -101,13 +100,6 @@ class TestOnsImporter(MockDrupalCase):
         for coverage_str, expected_coverage_db in coverage_tests:
             coverage_db = importer.OnsImporter._parse_geographic_coverage(coverage_str)
             assert_equal(coverage_db, expected_coverage_db)
-
-    def test_dept_to_organisation(self):
-        for source_agency in get_ons_producers():
-            publisher = DrupalHelper.department_or_agency_to_organisation(source_agency)
-            assert publisher, source_agency
-            publisher = strip_organisation_id(publisher)
-            assert '[some_number]' in publisher, publisher
 
     def test_record_2_package(self):
         record = OrderedDict([
