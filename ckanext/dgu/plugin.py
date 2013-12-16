@@ -297,12 +297,18 @@ class TaskModificationPlugin(SingletonPlugin):
         model.Session.flush()
 
     def extract_task(self, entity):
+        from ckan import model
         from ckanext.dgu.models import archive_tasks, qa_tasks
 
         if entity.task_type == 'qa':
-            qa_tasks.QATask.create(entity)
+            t = qa_tasks.QATask.create(entity)
         elif entity.task_type == 'archiver':
-            archive_tasks.ArchiveTask.create(entity)
+            t = archive_tasks.ArchiveTask.create(entity)
+        else:
+            return
+
+        model.Session.add(t)
+        model.Session.commit()
 
 
 class LastMajorModificationPlugin1(SingletonPlugin):
