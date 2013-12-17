@@ -47,7 +47,7 @@ class Themes(object):
                     assert isinstance(theme_dict[key], list), (name, key)
 
             for topic in theme_dict['topics']:
-                words = [normalize_token(word) for word in topic.split()]
+                words = [normalize_token(word) for word in split_words(topic)]
                 if len(words) == 1:
                     self.topic_words[words[0]] = name
                 elif len(words) == 2:
@@ -80,7 +80,7 @@ def split_words(sentence):
     return words
 
 # some words change meaning if you reduce them to their stem
-stem_exceptions = set(('parking', 'national'))
+stem_exceptions = set(('parking', 'national', 'coordinates', 'granted'))
 
 porter = None
 def normalize_token(token):

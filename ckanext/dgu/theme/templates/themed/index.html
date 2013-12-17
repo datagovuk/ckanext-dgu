@@ -39,17 +39,32 @@
             </a>
           </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
             <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Education">
               <div class="img-scrollbox">
                 <div class="img-container">
-                  <img style="top:-65%;" src="/images/education.jpg"/>
+                  <img src="/images/education.jpg"/>
                 </div>
                 <div class="description"><div class="inner">Data collected from schools, universities and libraries.<br/>Students, training, qualifications and the National Curriculum.</div></div>
               </div>
               <div class="inner-text">
                 <h2>Education <br/><small>${theme_count.get('Education')} datasets &raquo;</small></h2>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="boxed" style="padding: 0 0 0 0;">
+            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Mapping">
+              <div class="img-scrollbox">
+                <div class="img-container">
+                  <img style="top:-4%;" src="/images/map.png"/>
+                </div>
+                <div class="description"><div class="inner">Administrative boundaries, property addresses, land ownership, aerial photographs, the shape of the seabed and land terrain, general-purpose maps. <b>Excludes</b> maps of any specific topic.</div></div>
+              </div>
+              <div class="inner-text">
+                <h2 style="font-size: 18px;">Mapping <br/><small>${theme_count.get('Mapping')} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
@@ -71,17 +86,32 @@
             </a>
           </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Geography">
+            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Environment">
               <div class="img-scrollbox">
                 <div class="img-container">
-                  <img style="top:-132%;" src="/images/environment.jpg"/>
+                  <img src="/images/environment.jpg"/>
                 </div>
-                <div class="description"><div class="inner">Maps (including administrative boundaries), property addresses, aerial photographs, geology, weather, flooding, rivers, air quality, agriculture, energy use, construction, house market, and planning documents.</div></div>
+                <div class="description"><div class="inner">Management and measurement of the natural environment. For example: weather, flooding, rivers, air quality, living creatures, geology and agriculture.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Geography <br/><small>${theme_count.get('Geography')} datasets &raquo;</small></h2>
+                <h2>Environment <br/><small>${theme_count.get('Environment')} datasets &raquo;</small></h2>
+              </div>
+            </a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="boxed" style="padding: 0 0 0 0;">
+            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Towns">
+              <div class="img-scrollbox">
+                <div class="img-container">
+                  <img src="/images/town.png"/>
+                </div>
+                <div class="description"><div class="inner">Housing, urban planning, leisure, waste, energy production, energy consumption (macroscopic)</div></div>
+              </div>
+              <div class="inner-text">
+                <h2>Towns &amp; Cities <br/><small>${theme_count.get('Towns')} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>

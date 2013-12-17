@@ -1,21 +1,20 @@
 import re
-import time
-import datetime
-
-from ckanext.dgu.drupalclient import DrupalClient, DrupalKeyError
 
 # Map: Database entry -> Displayname
+# Ensure this agrees with themes.json
 THEMES = {
-    u"Health"     : u"Health",
-    u"Geography"  : u"Geography",
-    u"Education"  : u"Education",
-    u"Crime"      : u"Crime & Justice",      
-    u"Government" : u"Government",
-    u"Defence"    : u"Defence",
-    u"Economy"    : u"Business & Economy",
-    u"Transport"  : u"Transport",
-    u"Spending"   : u"Government Spending",
-    u"Society"    : u"Society",    
+    u"Health": u"Health",
+    u"Environment": u"Environment",
+    u"Education": u"Education",
+    u"Crime": u"Crime & Justice",
+    u"Government": u"Government",
+    u"Defence": u"Defence",
+    u"Economy": u"Business & Economy",
+    u"Transport": u"Transport",
+    u"Spending": u"Government Spending",
+    u"Society": u"Society",
+    u"Mapping": u"Mapping",
+    u"Towns": u"Towns & Cities",
 }
 
 
