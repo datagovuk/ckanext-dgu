@@ -92,6 +92,7 @@ setup(
         dgu_init_db = ckanext.dgu.commands.dgu_init_db:DGUInitDB
         ingest = ckanext.dgu.commands.ingester:Ingester
         clean_resource_dates = ckanext.dgu.commands.clean_resource_dates:CleanResourceDates
+        sync_apps = ckanext.dgu.commands.appsync:AppSync
     """,
     test_suite = 'nose.collector',
 )
