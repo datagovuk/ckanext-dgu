@@ -8,51 +8,24 @@ $ ->
     data.pie1['all'].forEach (x) -> 
       viz.sector_color x.name
       viz.sector_list.push x.name
-    # Render Sankey of discrete relationships
-    viz.renderSankey data.sankey
-    # Render bar chart of yearly performance
-    stackedBar = new viz.StackedBarChart '#graph_yearonyear', data.bar.all
-    # Render totals
-    coinvestmentTotal = new viz.CashTotal '#coinvestment-total', data.coinvestment_total
-    investmentTotal = new viz.CashTotal '#investment-total', data.investment_total['all']
-    # Render coinvestment treemap
-    #treeMap = new viz.TreeMap '#graph_coinvestment', data.treemap
-    #circlePack = new viz.CirclePack '#graph_coinvestment', data.treemap
-    sunburst = new viz.Sunburst '#graph_coinvestment', data.treemap
-    # Render Bubblechart of coinvestments
-    data.bubble.points.forEach (d) ->
-      d.radius = Math.max(5,d.cash/20000)
-      d.y = d.coinvestment
-      d.date = d3.time.format("%Y-%m-%d").parse(d.date)
-    viz.renderBubbleChart(data.bubble,'#graph_bubble',d3.scale.category10())
-    # Render pie chart of sector investments
-    pie1 = new viz.PieChart('#graph_pie1',data.pie1['all'],viz.sector_color,32,viz.sector_list)
-    # Render pie chart of unsecured investments
-    known_colors = []
-    pie2_color = (x) ->
-        index = known_colors.indexOf(x)
-        if index==-1
-          known_colors.push x
-          index = known_colors.indexOf(x)
-        if x=='Loans and facilities - Unsecured'
-          return d3.rgb('#74C476').brighter 1
-        if x=='Loans and facilities - Partially secured'
-          return d3.rgb('#74C476')
-        return d3.rgb('#193B79').brighter(index/2)
-    pie2 = new viz.PieChart('#graph_pie2',data.pie2['all'],pie2_color)
+    graph_sankey = new viz.Sankey "#graph_sankey",data.sankey
+    graph_stackedBar = new viz.StackedBarChart '#graph_yearonyear', data.bar.all
+    graph_coinvestmentTotal = new viz.CashTotal '#coinvestment-total', data.coinvestment_total
+    graph_investmentTotal = new viz.CashTotal '#investment-total', data.investment_total['all']
+    graph_sunburst = new viz.Sunburst '#graph_coinvestment', data.sunburst
+    graph_pie1 = new viz.PieChart('#graph_pie1',data.pie1['all'],viz.sector_color,32,viz.sector_list)
+    graph_pie2 = new viz.PieChart('#graph_pie2',data.pie2['all'],viz.colour_product_type())
     # Bind to buttons
     $('.foundation-selector a').on 'click', (event) ->
       event.preventDefault()
       key = $(this).attr 'data-key'
-      stackedBar.setData data.bar[key]
-      pie1.setData data.pie1[key]
-      pie2.setData data.pie2[key]
-      investmentTotal.setData data.investment_total[key]
+      graph_stackedBar.setData data.bar[key]
+      graph_pie1.setData data.pie1[key]
+      graph_pie2.setData data.pie2[key]
+      graph_investmentTotal.setData data.investment_total[key]
       $('.foundation-selector a').removeClass 'active'
       $('.foundation-selector a[data-key="'+key+'"]').addClass 'active'
       return false
-    $('#button-logarithmic').on 'click', sunburst.logarithmic
-    $('#button-linear').on 'click', sunburst.linear
 
     # Bind to all hoverable elements
     $('.hoverable').on 'mouseover', (e) ->
@@ -104,18 +77,31 @@ viz.sector_color = d3.scale.category20()
 viz.sector_list = []
 viz.text_to_css_class = (x) ->
   x.toLowerCase().replace(/[ ]/g,'-').replace(/[^a-z-]/g,'')
+viz.colour_product_type = ->
+  known_colors = []
+  return (x) ->
+    index = known_colors.indexOf(x)
+    if index==-1
+      known_colors.push x
+      index = known_colors.indexOf(x)
+    if x=='Loans and facilities - Unsecured'
+      return d3.rgb('#74C476').brighter 1
+    if x=='Loans and facilities - Partially secured'
+      return d3.rgb('#74C476')
+    return d3.rgb('#193B79').brighter(index/2)
+
 
 viz.legend = (container,elements,colorFunction,trim=-1) ->
-    ul = container\
-      .append("ul")\
-      .attr('class','legend')
-    ul.selectAll('li')\
-      .data(elements)\
-      .enter()\
-      .append('li')\
-      .attr("class", (d) -> "hoverable hover-"+viz.text_to_css_class(d))\
-      .text( (d) -> viz.trim(d,trim) )
-      .append('div')\
-      .attr('class','swatch')\
-      .style('background-color',colorFunction)
+  ul = container
+    .append("ul")
+    .attr('class','legend')
+  ul.selectAll('li')
+    .data(elements)
+    .enter()
+    .append('li')
+    .attr("class", (d) -> "hoverable hover-"+viz.text_to_css_class(d))
+    .text( (d) -> viz.trim(d,trim) )
+    .append('div')
+    .attr('class','swatch')
+    .style('background-color',colorFunction)
 
