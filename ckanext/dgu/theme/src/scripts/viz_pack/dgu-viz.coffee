@@ -18,7 +18,7 @@ $ ->
     # Render coinvestment treemap
     #treeMap = new viz.TreeMap '#graph_coinvestment', data.treemap
     #circlePack = new viz.CirclePack '#graph_coinvestment', data.treemap
-    subburst = new viz.Sunburst '#graph_coinvestment', data.treemap
+    sunburst = new viz.Sunburst '#graph_coinvestment', data.treemap
     # Render Bubblechart of coinvestments
     data.bubble.points.forEach (d) ->
       d.radius = Math.max(5,d.cash/20000)
@@ -51,6 +51,9 @@ $ ->
       $('.foundation-selector a').removeClass 'active'
       $('.foundation-selector a[data-key="'+key+'"]').addClass 'active'
       return false
+    $('#button-logarithmic').on 'click', sunburst.logarithmic
+    $('#button-linear').on 'click', sunburst.linear
+
     # Bind to all hoverable elements
     $('.hoverable').on 'mouseover', (e) ->
       $('li.hoverable').removeClass 'hovering'

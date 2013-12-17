@@ -12,6 +12,16 @@
   </py:match>
 
   <py:def function="optional_head">
+    <!--[if lte IE 8]>
+      <script type="text/javascript">
+        $(function() {
+          $('.viz-body')
+          .css('padding','4px')
+          .html('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>')
+          .append('<img src="/images/graph-socialinvestment.png"/>');
+        });
+      </script>
+    <![endif]-->
     <link rel="stylesheet" type="text/css" href="/css/dgu-viz.min.css" />
     <script type="text/javascript" src="/scripts/vendor/d3.v3.min.js"></script>
     <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
@@ -25,11 +35,13 @@
         <div class="whitebox" style="overflow: visible; width:">
     <div class="viz-body">
       <div class="panel panel-default">
-        <div class="panel-heading">Visualising Investment Data</div>
+        <div class="panel-heading">Visualising Social Investment Data</div>
         <div class="panel-body">
-          These visualisations tell the story of the <a href="/dataset/social-investment-and-foundations">Social Investment and Foundations</a> dataset. The raw data is a simple CSV file; here we use iPython Notebook to explore and extract the data, and <a href="http://d3js.org/">D3.js</a> to render a series of graphs.
+          Alongside established grant making, foundations are using social investment as a tool to help them achieve their social mission. This open dataset (<a href="/dataset/social-investment-and-foundations">Social Investement and Foundations</a>) and accompanying visualisations showcases where and how a number of Foundations are investing. This early stage dataset is just a snapshot of the current market and over time we anticipate more Foundations will contribute data to this resource.
           <br/><br/>
-          If you are interested in the code, the <a href="http://nbviewer.ipython.org/gist/zephod/7708219">extract-transform-load script</a> is available on the iPython Notebook Viewer.
+          The raw data is a simple CSV file; here we use iPython Notebook to explore and extract the data, and <a href="http://d3js.org/">D3.js</a> to render a series of graphs. If you are interested in the code, the <a href="http://nbviewer.ipython.org/gist/zephod/7708219">extract-transform-load script</a> is available on the iPython Notebook Viewer.
+          <br/><br/>
+          The data fields are aligned to the EngagedX Investment reporting STandards (EXIST) <em>&copy; 2013 Engaged Investment Ltd</em>.
         </div>
       </div>
       <ul class="foundation-selector">
@@ -66,7 +78,7 @@
         </div>
         <div style="width:50%;float:left;">
           <div id="graph_pie2">
-            <h4>Unsecured Investments</h4>
+            <h4>Product Type</h4>
             <div class="caption"></div>
           </div>
         </div>
@@ -85,7 +97,10 @@
         <div class="coinvestment-right">
           <h3>CoInvestment To Date</h3>
           <h1 id="coinvestment-total"></h1>
-          <small>Foundations are collaborative investors in the sector. Of the £6.2 million invested by these foundations it contributes to a wider co-investment.<br/><em>(Graph segments not to scale: Logarithmic sizes are used for clarity).</em></small>
+          <small>Foundations are collaborative investors in the sector. This visualisation shows that by investing £6.2m, these three foundations have contributed towards wider a total investments of £105.6m.<br/><br/>For example, the total investment of £12m has included co-investment by The LankellyChase Foundation (£600k), The Barrow Cadbury Trust (£600k) and other investors (£10.8m).<br/><hr/>
+            The outer segments show specific investments by foundations and the inner segments show the investment totals.<br/>
+            (Graph segments not to scale:<br/> Logarithmic sizes are used for clarity)<br/>
+<em>Data fields: Cash Invested, Total Value, Foundation</em></small>
         </div>
         <div class="caption"></div>
       </div>

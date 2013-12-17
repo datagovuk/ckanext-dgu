@@ -15,22 +15,22 @@ class viz.Sunburst
           .attr("height", height)
           .append("g")
           .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
-        partition = d3.layout.partition()
+        @partition = d3.layout.partition()
           .sort(null)
           .size([2 * Math.PI, radius * radius])
           .value((d) -> Math.log(d.size))
-        arc = d3.svg.arc()
+        @arc = d3.svg.arc()
           .startAngle((d) -> d.x)
           .endAngle((d) -> d.x + d.dx)
           .innerRadius((d) -> Math.sqrt d.y)
           .outerRadius((d) -> Math.sqrt d.y + d.dy)
         path = svg.datum(root)
           .selectAll("path")
-          .data(partition.nodes)
+          .data(@partition.nodes)
           .enter()
           .append("path")
           .attr("display", (d) -> (if d.depth then null else "none"))
-          .attr("d", arc)
+          .attr("d", @arc)
           .style("stroke", "#fff")
           .style("fill", (d) -> 
             if d.children
@@ -45,4 +45,18 @@ class viz.Sunburst
             caption.html '<p>£'+viz.money_to_string(d.size)+'</p><small>'+d.name+'</small>'
           )
           .on('mouseout', (d)-> caption.html '')
+
+    logarithmic: =>
+        console.log 'logarithmic'
+        @partition.value((d) -> Math.log(d.size))
+
+    linear: =>
+        console.log 'linear'
+        @partition.value((d) -> d.size)
+        console.log @partition.nodes
+        svg = d3.select(@selector)
+        svg.selectAll('path')
+          .data(@partition.nodes)
+
+
 

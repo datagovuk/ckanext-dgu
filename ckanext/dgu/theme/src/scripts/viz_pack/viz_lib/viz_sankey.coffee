@@ -49,7 +49,7 @@ viz.renderSankey = (data) ->
     .attr("d", path)\
     .style("stroke-width", (d) -> Math.max 1, d.dy)
     .sort((a, b) -> b.dy - a.dy)
-  link.append("title").text( (d) -> '"'+d.source.name + "\" → \"" + d.target.name + "\"\n" + format(d.value) )
+  link.append("title").text( (d) -> '"'+d.source.name + "\" → \"" + d.target.name + "\"\nTotal: " + format(d.value) + "\"\nTmp: " + format(d.tmp) )
 
   node = svg\
     .append("g")\
