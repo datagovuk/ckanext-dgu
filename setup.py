@@ -94,6 +94,7 @@ setup(
         inventory_init = ckanext.dgu.commands.inventory_init:InitDB
         commitment_init = ckanext.dgu.commands.commitment_init:InitDB
         ingest = ckanext.dgu.commands.ingester:Ingester
+        sync_apps = ckanext.dgu.commands.appsync:AppSync
     """,
     test_suite = 'nose.collector',
 )
