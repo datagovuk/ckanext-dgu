@@ -30,7 +30,7 @@ class Themes(object):
         themes_filepath = os.path.abspath(os.path.join(__file__, '../../themes.json'))
         assert os.path.exists(themes_filepath), themes_filepath
         log.debug('Reading themes.json')
-        with codecs.open(themes_filepath, encoding='windows-1252') as f:
+        with codecs.open(themes_filepath, encoding='utf8') as f:
             themes_json = f.read()
         themes_list = json.loads(themes_json)
         self.data = {}

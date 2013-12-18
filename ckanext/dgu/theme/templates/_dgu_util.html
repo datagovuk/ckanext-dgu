@@ -429,4 +429,23 @@
     </div>
   </py:def>
 
+  <!--! Form input for primary/secondary themes -->
+  <py:def function="primary_theme_input(data, errors)">
+    <py:for each="theme, theme_dict in sorted(h.themes().iteritems())">
+      <label class="radio js-tooltip" data-original-title="${theme_dict['description'].replace('£', '&pound;')}">
+        <input type="radio" name="theme-primary" value="${theme}" py:attrs="{'checked': 'checked' if data.get('theme-primary', '') == theme else None}" />
+          ${theme_dict['title']}
+      </label>
+    </py:for>
+    <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
+  </py:def>
+  <py:def function="secondary_theme_input(data, errors)">
+    <py:for each="theme, theme_dict in sorted(h.themes().iteritems())">
+      <label class="checkbox js-tooltip" data-original-title="${theme_dict['description'].replace('£', '&pound;')}">
+        <input type="checkbox" name="theme-secondary" value="${theme}" py:attrs="{'checked': 'checked' if theme in h.secondary_themes(data) else None}"/>
+          ${theme_dict['title']}
+      </label>
+    </py:for>
+    <p class="field_error" py:if="errors.get('themes-secondary', '')">${errors.get('themes-secondary', '')}</p>
+  </py:def>
 </html>

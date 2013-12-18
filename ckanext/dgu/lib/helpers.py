@@ -1628,9 +1628,9 @@ def themes_count():
         theme_count[theme] = count
     return theme_count
 
-def themes_displayname():
-    from ckanext.dgu.schema import THEMES
-    return THEMES
+def themes():
+    from ckanext.dgu.lib.theme import Themes
+    return Themes.instance().data
 
 def span_read_more(text, word_limit, classes=""):
     trimmed = truncate(text,length=word_limit,whole_word=True)

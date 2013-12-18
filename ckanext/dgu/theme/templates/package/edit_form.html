@@ -6,6 +6,8 @@
   role="form"
 >
 
+<xi:include href="../_dgu_util.html" />
+
 <!-- recursive function turns errors into hierarchical lists -->
 <py:def function="dump(o)">
   <ul py:if="type(o) is dict and bool(o)">
@@ -496,31 +498,22 @@
 <fieldset class="tab-pane boxed whitebox fade" id="section-themes-field">
     <div style="width: 45%; float: left; margin-right: 4%;">
     <h3 style="font-weight: bold;">Primary Theme</h3>
-    <p>1. Please choose a primary theme which this data record falls under from the options below.<br/>See the <a href="/data/themes" target="_blank"><strong>themes page</strong></a> for more information.</p>
-      <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(), key=lambda x:x[1])">
-      <label class="radio">
-        <input type="radio" name="theme-primary" value="${dbname}" py:attrs="{'checked': 'checked' if data.get('theme-primary', '') == dbname else None}" />
-          ${displayname}
-      </label>
-      </py:for>
-      <p class="field_error" py:if="errors.get('theme-primary', '')">${errors.get('theme-primary', '')}</p>
+    <p>1. Please choose a primary theme which this data record falls under from the options below.</p>
+        ${primary_theme_input(data, errors)}
     </div>
     <div style="width: 45%; float: left; padding-left: 4%; border-left: 1px solid #aaa;">
       <h3>Secondary Theme</h3>
       <p>2. If there are other themes in this data, select them here:</p>
       <div class="well">
-        <py:for each="dbname,displayname in sorted(h.themes_displayname().iteritems(), key=lambda x:x[1])">
-          <label class="checkbox"><input type="checkbox" name="theme-secondary" value="${dbname}" py:attrs="{'checked': 'checked' if dbname in h.secondary_themes(data) else None}"/>${displayname}</label>
-        </py:for>
+        ${secondary_theme_input(data, errors)}
       </div>
     </div>
     <div class="clearfix">&nbsp;</div>
 
     <hr/>
     <h3>Tags</h3>
-    <p>3. Please provide additional tags for this data record to help users find and browse between related data records.  Just type and click enter to add more tags:</p>
+    <p>Please list tags which describe the subject of this data in commonly used terms abstract terms e.g. "air quality, pollution, roads". For government spend transactions, include the special tag "spend-transactions". Put commas between each tag.</p>
     <div class="form-group">
-      <label for="tag_string">Tags</label>
       <input class="form-control long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
            data-tagcomplete-url="/api/2/util/tag/autocomplete"
            id="tag_string" name="tag_string" size="60" type="text"
