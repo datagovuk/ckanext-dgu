@@ -4,7 +4,7 @@ class viz.StackedBarChart
   constructor: (@selector, data) ->
     margin =
       top: 20
-      right: 250
+      right: 290
       bottom: 30
       left: 40
     @width  = 920 - margin.left - margin.right
