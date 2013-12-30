@@ -120,7 +120,7 @@
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
-  <div py:def="search_form(mini=False, placeholder='Search for datasets...', set_fields=None, extra_options=None)" class="search-area">
+  <div py:def="search_form(mini=False, placeholder='Search for data...', set_fields=None, extra_options=None)" class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
       <div class="${if_(mini,'mini','left')}">
         <div class="left-inner auto-height">
