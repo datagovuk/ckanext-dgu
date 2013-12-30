@@ -172,4 +172,6 @@
     /* Additional resources scraper fields */
     CKAN.Dgu.setupAdditionalResourcesScrapers();
 
+    /* Apply a datepicker to all date rows */
+    $('.needs-datepicker').datepicker({dateFormat:'dd-mm-yy'});
   });

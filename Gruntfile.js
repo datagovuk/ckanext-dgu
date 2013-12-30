@@ -33,6 +33,7 @@ module.exports = function(grunt) {
         files: {
           'public/scripts/vendor/jquery.tablesorter.min.js'   : 'src/scripts/vendor/jquery.tablesorter.js',
           'public/scripts/vendor/jquery.jstree.min.js'        : 'src/scripts/vendor/jquery.jstree.js',
+          'public/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js'        : 'src/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.js',
           'public/scripts/vendor/d3.v3.min.js'                : 'src/scripts/vendor/d3.v3.js',
           'public/scripts/vendor/d3.sankey.min.js'            : 'src/scripts/vendor/d3.sankey.js',
         },
@@ -78,6 +79,10 @@ module.exports = function(grunt) {
       viz: {
         src: 'src/css/dgu-viz.less',
         dest: 'public/css/dgu-viz.min.css',
+      },
+      datepicker: {
+        src: 'src/css/jquery-ui-1.9.2.custom.datepicker.css',
+        dest: 'public/css/jquery-ui-1.9.2.custom.datepicker.min.css',
       },
       recline: {
         src: [ 

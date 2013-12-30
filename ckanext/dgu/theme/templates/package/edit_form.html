@@ -202,7 +202,7 @@
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
+                       class="form-control ${if_(col=='date','needs-datepicker')} ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
                        />
               </py:choose>
             </td>
