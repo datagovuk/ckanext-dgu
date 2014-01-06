@@ -39,14 +39,17 @@
     </div>
   </div>
 
-<div id="form-tabs" class="tabbable tabs-left">
+<div id="form-tabs" class="tabbable tabs-left" style="min-height: 550px;" py:with="edit_mode=h.is_package_edit_form(data)">
   <div class="row">
     <div class="col-lg-3 col-sm-4">
       <ul class="nav nav-pills nav-stacked" py:with="
           boilerplate={'disabled':'disabled'} if h.use_wizard(data, errors) else {}; 
           classes = 'disabled' if h.use_wizard(data, errors) else '';
         ">
-        <li class="active"><a data-toggle="tab" data-hash="tab-name" id="section-name" href="#section-name-fields">Name</a></li>
+        <py:if test="not edit_mode">
+          <li class="active"><a data-toggle="tab" data-hash="tab-intro" id="section-intro" href="#section-intro-pane">Introduction</a></li>
+        </py:if>
+        <li class="${if_(edit_mode,'active')}"><a data-toggle="tab" class="${classes}" data-hash="tab-name" id="section-name" py:attrs="boilerplate" href="#section-name-fields">Name</a></li>
         <li><a data-toggle="tab" class="${classes}" data-hash="tab-data" id="section-data" py:attrs="boilerplate" href="#section-data-field">Data Files</a></li>
         <li><a data-toggle="tab" class="${classes}" data-hash="tab-description" id="section-description" py:attrs="boilerplate" href="#section-description-field">Description</a></li>
         <li><a data-toggle="tab" class="${classes}" data-hash="tab-licence" id="section-licence" py:attrs="boilerplate" href="#section-licence-field">Licence</a></li>
@@ -62,7 +65,60 @@
     <div class="col-lg-9 col-sm-8">
 
   <div class="tab-content">
-<fieldset class="tab-pane boxed whitebox fade active in" id="section-name-fields">
+<fieldset class="tab-pane boxed whitebox fade active in" id="section-intro-pane" py:if="not edit_mode">
+  <h3>Standard data</h3>
+  Please indicate if this data are part of these standard releases across public bodies:<br/>
+  (It makes it easier to guide the filling of this form and easier for users to find datasets of these types)
+  <br/>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="1"></input>
+        Spend Transactions - central government over £25k
+        <span style="color:#bbb;">(<a href="https://www.gov.uk/government/news/letter-to-government-departments-on-opening-up-data">more info</a> <img src="http://data.gov.uk/profiles/dgu/modules/contrib/extlink/extlink.png"/>)</span>
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="2"></input>
+        Spend Transactions - central government GPC card over £500
+        <span style="color:#bbb;">(<a href="https://www.gov.uk/government/news/letter-to-cabinet-ministers-on-transparency-and-open-data">more info</a> <img src="http://data.gov.uk/profiles/dgu/modules/contrib/extlink/extlink.png"/>)</span>
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="3"></input>
+        Spend Transactions - local authority over £500
+        <span style="color:#bbb;">(<a href="http://localspending.readandcomment.com/">more info</a> <img src="http://data.gov.uk/profiles/dgu/modules/contrib/extlink/extlink.png"/>)</span>
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="4"></input>
+        Organograms - central government departments and agencies
+        <span style="color:#bbb;">(<a href="https://www.gov.uk/government/news/letter-to-government-departments-on-opening-up-data">more info</a> <img src="http://data.gov.uk/profiles/dgu/modules/contrib/extlink/extlink.png"/>)</span>
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="5"></input>
+        Senior Salaries - local authority
+        <span style="color:#bbb;">(<a href="http://localsalaries.readandcomment.com/">more info</a> <img src="http://data.gov.uk/profiles/dgu/modules/contrib/extlink/extlink.png"/>)</span>
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="6"></input>
+        INSPIRE
+      </label>
+    </div>
+    <div class="radio">
+      <label>
+        <input type="radio" name="intro_type" value="other"></input>
+        Other
+      </label>
+    </div>
+</fieldset>
+<fieldset class="tab-pane boxed whitebox fade ${if_(edit_mode,'active in')}" id="section-name-fields">
   <p>Please name your data record.</p>
   <div class="form-group">
     <label for="title" class="js-tooltip tooltip-paragraph" data-placement="right" title="The main subject of the data should be clear. For cross-government data requirements, such as spend data, specify the public body the data belongs to or its geographical coverage, in order to distinguish your data from other similar datasets in data.gov.uk. If the data relates to a period of time, include that in the name, although this would not be appropriate for data which is updated over time. This field is not a full description - save that for the Description field. Do not put a trailing full stop.">
