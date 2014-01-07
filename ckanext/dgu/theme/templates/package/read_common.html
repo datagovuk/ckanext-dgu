@@ -76,9 +76,12 @@
           </div>
         </div>
       </span>
-      <a class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">
-        <i class="icon-time icon-2x"></i>
-      </a>
+      <py:if test="c.user"> <!-- #1272 Only viewable if you log in -->
+        <a class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="${h.url_for(controller='package', action='history', id=c.pkg.name)}">
+          <i class="icon-time icon-2x"></i>
+        </a>
+      </py:if>
+
 
     </div>
     <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])} <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span></h1>
