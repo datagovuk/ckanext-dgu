@@ -55,14 +55,14 @@ class CommitmentController(BaseController):
         """
         Allows editing of commitments for a specific publisher
         """
-        import ckan.new_authz as new_authz
         from ckanext.dgu.model.commitment import Commitment
+        from ckanext.dgu.lib import helpers as dgu_helpers
 
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
                    'save': 'save' in request.params}
 
-        if not new_authz.is_sysadmin(c.userobj):
+        if not dgu_helpers.is_sysadmin():
             abort(401, "You are not allowed to edit the commitments for this publisher")
 
         try:

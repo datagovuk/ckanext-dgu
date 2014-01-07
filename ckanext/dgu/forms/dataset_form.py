@@ -19,6 +19,7 @@ import ckan.logic.validators as val
 
 from ckan.plugins import implements, IDatasetForm, SingletonPlugin
 from ckanext.dgu.lib import publisher as publib
+from ckanext.dgu.lib import helpers as dgu_helpers
 from ckanext.dgu.schema import GeoCoverageType
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_resources, \
@@ -99,10 +100,25 @@ class DatasetForm(SingletonPlugin):
     implements(IDatasetForm, inherit=True)
 
     def create_package_schema(self):
-        return self.form_to_db_schema()
+        return self.update_package_schema()
 
     def update_package_schema(self):
-        return self.form_to_db_schema()
+        schema = self.form_to_db_schema()
+
+        # Sysadmins can save UKLP datasets with looser validation
+        # constraints.  This is because UKLP datasets are created using
+        # a custom schema passed in from the harvester.  However, when it
+        # comes to re-saving the dataset via the dataset form, there are
+        # some validation requirements we need to drop.  That's what this
+        # section of code does.
+        #pkg = context.get('package')
+        #if dgu_helpers.is_sysadmin_by_context(context) and \
+        #   pkg and pkg.extras.get('UKLP', 'False') == 'True':
+        #    schema.update(self._uklp_sysadmin_schema_updates)
+        #if dgu_helpers.is_sysadmin_by_context(context) and \
+        #   pkg and pkg.extras.get('external_reference') == 'ONSHUB':
+        #    self._ons_sysadmin_schema_updates(schema)
+        return schema
 
     def show_package_schema(self):
         return self.db_to_form_schema()
@@ -172,11 +188,11 @@ class DatasetForm(SingletonPlugin):
         # some validation requirements we need to drop.  That's what this
         # section of code does.
         pkg = context.get('package')
-        user = context.get('user', '')
-        if new_authz.is_sysadmin(unicode(user)) and \
+        if dgu_helpers.is_sysadmin_by_context(context) and \
            pkg and pkg.extras.get('UKLP', 'False') == 'True':
             schema.update(self._uklp_sysadmin_schema_updates)
-        if new_authz.is_sysadmin(unicode(user)) and \
+        import pdb; pdb.set_trace()
+        if dgu_helpers.is_sysadmin_by_context(context) and \
            pkg and pkg.extras.get('external_reference') == 'ONSHUB':
             self._ons_sysadmin_schema_updates(schema)
         return schema
@@ -366,7 +382,7 @@ class DatasetForm(SingletonPlugin):
     def get_publishers(self):
         from ckan.model.group import Group
 
-        if new_authz.is_sysadmin(c.user):
+        if dgu_helpers.is_sysadmin():
             groups = Group.all(group_type='organization')
         elif c.userobj:
             # need to get c.userobj again as it may be detached from the

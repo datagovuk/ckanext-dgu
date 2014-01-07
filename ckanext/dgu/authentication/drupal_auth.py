@@ -271,13 +271,12 @@ class DrupalAuthMiddleware(object):
         # Sysadmin or not
         log.debug('User roles in Drupal: %r', drupal_roles)
         should_be_sysadmin = bool(set(('administrator', 'package admin', 'publisher admin', 'ckan administrator')) & set(drupal_roles))
-        is_sysadmin = new_authz.is_sysadmin(user)
-        if should_be_sysadmin and not is_sysadmin:
+        if should_be_sysadmin and not user.sysadmin:
             # Make user a sysadmin
             user.syadmin = True
             log.info('User made a sysadmin: %s', user_name)
             needs_commit = True
-        elif not should_be_sysadmin and is_sysadmin:
+        elif not should_be_sysadmin and user.sysadmin:
             # Stop user being a sysadmin - disabled for time being which 'ckan
             # administrator' is populated
             #user.sysadmin = False
