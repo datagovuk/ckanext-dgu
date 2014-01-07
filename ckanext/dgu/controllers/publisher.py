@@ -90,8 +90,8 @@ class PublisherController(OrganizationController):
                           'because: dgu.admin.email is not setup in CKAN config.',
                           c.user, group.name)
                 h.flash_error(_("There is a problem with the system configuration"))
-                errors = {"reason": ["%s does not have an administrator user to contact" % group.name]}
-                return self.apply(group.id, data=data, errors=errors,
+                errors = {"reason": ["data.gov.uk error"]}
+                return self.apply(group.id, errors=errors,
                                   error_summary=error_summary(errors))
             recipients = [(config.get('dgu.admin.name', "DGU Admin"),
                            config['dgu.admin.email'])]
@@ -121,7 +121,7 @@ class PublisherController(OrganizationController):
                                email_msg)
         except Exception, e:
             h.flash_error(_("There is a problem with the system configuration"))
-            errors = {"reason": ["No mail server was found"]}
+            errors = {"reason": ["data.gov.uk error"]}
             log.error('User "%s" prevented from applying for publisher access for "%s" because of mail configuration error: %s',
                       c.user, group.name, e)
             return self.apply(group.id, errors=errors,
