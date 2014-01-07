@@ -23,7 +23,7 @@ class PackageController(ckan.controllers.package.PackageController):
 
     def history(self, id):
         if not c.user:
-            abort(403, 'Log-in to see this page')
+            abort(401, 'Log-in to see this page')
         return super(PackageController, self).history(id)
 
     def delete(self, id):
