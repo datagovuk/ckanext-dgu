@@ -1114,7 +1114,8 @@ def are_legacy_extras(data):
 
 
 def timeseries_resources():
-    return c.pkg_dict.get('timeseries_resources', [])
+    unsorted = c.pkg_dict.get('timeseries_resources', [])    
+    return sorted(unsorted, key=lambda x:x.get('date',''))
 
 def additional_resources():
     return c.pkg_dict.get('additional_resources', [])
