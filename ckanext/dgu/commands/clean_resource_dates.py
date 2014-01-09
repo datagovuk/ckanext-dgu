@@ -7,7 +7,7 @@ from datetime import datetime
 import csv
 from ckan.lib.field_types import DateType,DateConvertError
 
-log = logging.getLogger('ckanext')
+log = logging.getLogger('ckanext.dgu.clean_resource_dates')
 
 class CleanResourceDates(CkanCommand):
     """
@@ -46,7 +46,6 @@ class CleanResourceDates(CkanCommand):
         import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
-        model.repo.new_revision()
         log.info("Database access initialised")
         data = self._get_dates(model)
         log.info('Scanning and cleaning...')
@@ -72,7 +71,8 @@ class CleanResourceDates(CkanCommand):
             log.info('CHANGES WILL BE COMMITTED!')
             model.Session.remove()
             model.Session.configure(bind=model.meta.engine)
-            model.repo.new_revision()
+            rev = model.repo.new_revision()
+            rev.author = 'Date format tidier'
         with open('changelog.csv','w') as f:
             writer = csv.writer(f)
             writer.writerow(['resource_id','old_date','iso_date'])
