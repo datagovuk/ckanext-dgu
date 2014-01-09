@@ -20,6 +20,7 @@ class CleanResourceDates(CkanCommand):
     max_args = 1
     min_args = 0
 
+    regex_date           = re.compile('^\d\d$')
     regex_year           = re.compile('^\d\d\d\d$')
     regex_year_month     = re.compile('^\d\d\d\d-\d\d$')
     regex_year_month_day = re.compile('^\d\d\d\d-\d\d-\d\d$')
@@ -47,7 +48,7 @@ class CleanResourceDates(CkanCommand):
         model.Session.configure(bind=model.meta.engine)
         model.repo.new_revision()
         log.info("Database access initialised")
-        data = self._get_broken_dates(model)
+        data = self._get_dates(model)
         log.info('Scanning and cleaning...')
         can_be_cleaned = {}
         cannot_be_cleaned = {}
@@ -60,12 +61,12 @@ class CleanResourceDates(CkanCommand):
         if len(cannot_be_cleaned):
             log.info('=============')
             for dirty in sorted(cannot_be_cleaned.items(),key=lambda x:x[0]):
-                log.info('Could not clean: %s -> %s' % dirty)
+                log.info('FAIL: %s -> %s' % dirty)
             log.info('=============')
-        log.info('Summary:')
-        log.info('  %d can be cleaned.' % len(can_be_cleaned) )
-        log.info('  %d cannot be cleaned.' % len(cannot_be_cleaned) )
-        log.info('-------------')
+            log.info('FAIL: I cannot clean %d dates.' % len(cannot_be_cleaned))
+            log.info('Update the script and try again.')
+            log.info('Clean all dates at once to be safe. "2011-12" is ambiguous: It validates but it needs cleaning.')
+            exit()
         log.info('Writing changelog.csv...')
         if commit:
             log.info('CHANGES WILL BE COMMITTED!')
@@ -82,11 +83,15 @@ class CleanResourceDates(CkanCommand):
                         resource.extras['date'] = new_date
                         model.Session.add(resource)
         if commit:
+            log.info('Review changes that were made in changelog.csv.')
             log.info('Committing...')
             model.Session.commit()
+        else:
+            log.info('Review changes to be made in changelog.csv.')
+            log.info('Re-run with argument "commit" to apply.')
         log.info('Finished.')
 
-    def _get_broken_dates(self,model):
+    def _get_dates(self,model):
         log.info( 'Fetching metadata for %d resources...' % model.Session.query(model.Resource).count() )
         # Format: { 'Nov 2012': ['resource_id_1','resource_id_2'...], '28/01/01': [...] }
         out = {}
@@ -97,11 +102,10 @@ class CleanResourceDates(CkanCommand):
             out[date].append( resource )
         log.info( 'Done. %d unique date strings found.' % len(out) )
         log.info( 'Validating:' )
-        for key in out.keys():
-            if self._is_clean_date(key):
-                log.info('Already clean: '+key)
-                del out[key]
-        log.info( '%d date strings failed to validate:' % len(out) )
+        #for key in out.keys():
+        #    if self._is_clean_date(key):
+        #        log.info('Already clean: '+key)
+        #        del out[key]
         return out
 
     def _is_clean_date(self,db_string):
@@ -140,6 +144,9 @@ class CleanResourceDates(CkanCommand):
             # Handle "October - December 2012". Semi-Frequently happens.
             month = tmp[0]
             year = tmp[2]
+        elif len(tmp)==2 and self.regex_year.match(tmp[0]) and self.regex_date.match(tmp[1]):
+            # Handle 2011-12. Ambiguous, but THAT IS NOT A MONTH!
+            year  = tmp[0]
         elif len(tmp)==3:
             day   = tmp[0]
             month = tmp[1]

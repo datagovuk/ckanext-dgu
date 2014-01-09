@@ -195,7 +195,7 @@
             <py:if test="res.get('scraped') or res.get('scraper_url')">
               ${h.scraper_icon(res, alt=if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}
             </py:if>
-            ${res.get('date')}
+            ${h.render_db_date(res.get('date',''))}
             ${h.resource_display_name(res)}
           </div>
         </div>
