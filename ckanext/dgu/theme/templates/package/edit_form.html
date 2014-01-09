@@ -179,31 +179,43 @@
           <py:for each="col in ('date',) + c.resource_columns">
             <td class="resource-${col}">
               <py:choose test="">
-                <input py:when="col=='description'"
-                       id="timeseries_resources__${num}__${col}"
-                       name="timeseries_resources__${num}__${col}"
-                       type="text"
-                       value="${res.get(col, '')}"
-                       class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}" />
-                <span class="input-group ${'error' if h.cell_has_errors(errors,'timeseries_resources', num, col)  else ''}" py:when="col=='url'">
+                <py:when test="col=='description'">
                   <input id="timeseries_resources__${num}__${col}"
                          name="timeseries_resources__${num}__${col}"
                          type="text"
                          value="${res.get(col, '')}"
-                         class="form-control"/>
-                  <span class="input-group-btn">
-                    <button id="timeseries_resources__${num}__validate-resource-button"
-                        class="validate-resource-button btn btn-default">Check</button>
+                         class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}" />
+                </py:when>
+                <py:when test="col=='url'">
+                  <span class="input-group ${'error' if h.cell_has_errors(errors,'timeseries_resources', num, col)  else ''}">
+                    <input id="timeseries_resources__${num}__${col}"
+                           name="timeseries_resources__${num}__${col}"
+                           type="text"
+                           value="${res.get(col, '')}"
+                           class="form-control"/>
+                    <span class="input-group-btn">
+                      <button id="timeseries_resources__${num}__validate-resource-button"
+                          class="validate-resource-button btn btn-default">Check</button>
+                    </span>
                   </span>
-                </span>
-
-                <input py:otherwise=""
+                </py:when>
+                <py:when test="col=='date'">
+                  <input 
                        id="timeseries_resources__${num}__${col}"
                        name="timeseries_resources__${num}__${col}"
                        type="text"
                        value="${res.get(col, '')}"
-                       class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
-                       />
+                       class="form-control needs-datepicker ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
+                   />
+                </py:when>
+                <py:otherwise>
+                  <input id="timeseries_resources__${num}__${col}"
+                         name="timeseries_resources__${num}__${col}"
+                         type="text"
+                         value="${res.get(col, '')}"
+                         class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
+                   />
+                </py:otherwise>
               </py:choose>
             </td>
           </py:for>

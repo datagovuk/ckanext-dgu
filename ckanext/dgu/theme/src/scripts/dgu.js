@@ -329,6 +329,10 @@ CKAN.Dgu = function($, my) {
       });
       // Reset button visiblity
       CKAN.Dgu.setVisibleResourceMoveButtons(table);
+      // Date rows think they have a datepicker applied, but they are copies. They don't.
+      newRow.find('.needs-datepicker').removeClass('hasDatepicker');
+      // So give them a datepicker:
+      newRow.find('.needs-datepicker').datepicker({dateFormat:'yy-mm-dd'});
       return newRow;
   };
 
