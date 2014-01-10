@@ -9,7 +9,7 @@
       <li>
           <span class="label label-danger">Error</span> URL gives an error<br/>
           <py:for each="reason in qa['reason_list']">
-            ${reason}<br/>
+            <li>${reason}</li>
           </py:for>
           <!--! Reason contains the format
                 and (since it is a broken link) the date checked -->

@@ -221,8 +221,9 @@ class SearchIndexing(object):
                     pkg_score = score
         if not pkg.resources:
             pkg_score = 0
-        if pkg_score is None:
+        if pkg_score is None or pkg_score == ' ':
             pkg_score = -1
+
         pkg_dict['openness_score'] = pkg_score
         log.debug('Openness score %s: %s', pkg_score, pkg_dict['name'])
         return pkg # for use in other methods

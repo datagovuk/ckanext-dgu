@@ -282,6 +282,15 @@ class TaskModificationPlugin(p.SingletonPlugin):
 
         if entity.task_type == 'qa':
             t = qa_tasks.QATask.create(entity)
+            # We will find the resource referenced by the task, and add
+            # an extra with the url status
+            log.info("Setting resource (%s) is_broken to %s" % (t.resource_id, t.is_broken))
+            try:
+                res = toolkit.get_action('resource_show')({'ignore_auth': True, 'user': ''}, {'id': t.resource_id})
+                res['is_broken'] = t.is_broken
+                toolkit.get_action('resource_update')({'ignore_auth': True, 'user': ''}, res)
+            except:
+                log.error("Unable to update resource: %s" % qt.resource_id)
         elif entity.task_type == 'archiver':
             t = archive_tasks.ArchiveTask.create(entity)
         else:
