@@ -7,8 +7,6 @@ from datetime import datetime
 import csv
 from ckan.lib.field_types import DateType,DateConvertError
 
-log = logging.getLogger('ckanext.dgu.clean_resource_dates')
-
 class CleanResourceDates(CkanCommand):
     """
     Iterate through resources, cleaning up dates to conform to DateType YYYY-MM-DD database spec.
@@ -32,6 +30,10 @@ class CleanResourceDates(CkanCommand):
 
     def command(self):
         self._load_config()
+
+        # Logger is created here because you can't create the logger object
+        # until the config is read, or it ends up .disabled and does nothing.
+        log = self.log = logging.getLogger('ckanext.dgu.clean_resource_dates')
 
         commit = False
         if len(self.args)>0:
@@ -92,10 +94,17 @@ class CleanResourceDates(CkanCommand):
         log.info('Finished.')
 
     def _get_dates(self,model):
-        log.info( 'Fetching metadata for %d resources...' % model.Session.query(model.Resource).count() )
+        log = self.log
+        resources = model.Session.query(model.Resource) \
+                                 .filter_by(state='active') \
+                                 .join(model.ResourceGroup) \
+                                 .join(model.Package) \
+                                 .filter_by(state='active') \
+                                 .all()
+        log.info( 'Fetching metadata for %d resources...' % len(resources) )
         # Format: { 'Nov 2012': ['resource_id_1','resource_id_2'...], '28/01/01': [...] }
         out = {}
-        for resource in model.Session.query(model.Resource):
+        for resource in resources:
             date = resource.extras.get('date')
             if date is None: continue
             out[date] = out.get(date,[])
