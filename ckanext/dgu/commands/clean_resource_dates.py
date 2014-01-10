@@ -128,9 +128,15 @@ class CleanResourceDates(CkanCommand):
     def _clean_date(self,datestring):
         original_datestring = datestring
         datestring = datestring.strip()
+        # Fixed by hand overrides everything
         instant_win = fixed_by_hand.get(datestring)
         if instant_win is not None:
             return instant_win 
+        # Perfect dates are already in unambiguous full ISO, eg. 2013-10-21. 
+        # 2011-12 is NOT a perfect date. It needs cleaning, but it already conforms to schema. 
+        is_perfect = self.regex_year_month_day.match(datestring)
+        if is_perfect:
+            return datestring
         datestring = datestring.replace('/',' ')
         datestring = datestring.replace('-',' ')
         datestring = datestring.replace('.',' ')
