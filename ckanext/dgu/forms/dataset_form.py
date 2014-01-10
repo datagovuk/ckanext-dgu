@@ -69,6 +69,11 @@ def resources_schema():
     })
     return schema
 
+def resources_schema_to_form():
+    schema = resources_schema().copy()
+    schema['date'] = [ignore_missing,date_to_form]
+    return schema
+
 def additional_resource_schema():
     schema = resources_schema()
     schema['format'] = [not_empty, unicode]
@@ -87,7 +92,7 @@ def individual_resource_schema():
 
 def timeseries_resource_schema():
     schema = resources_schema()
-    schema['date'] = [not_empty, unicode, convert_to_extras]
+    schema['date'] = [not_empty, unicode, convert_to_extras, date_to_db]
     schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
     schema['url'] = [not_empty]
@@ -317,7 +322,7 @@ class DatasetForm(SingletonPlugin):
             'temporal_coverage-to': [convert_from_extras, ignore_missing, date_to_form],
             'taxonomy_url': [convert_from_extras, ignore_missing],
 
-            'resources': resources_schema(),
+            'resources': resources_schema_to_form(),
             'extras': {
                 'key': [],
                 'value': [],

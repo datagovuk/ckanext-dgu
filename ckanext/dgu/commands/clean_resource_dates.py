@@ -7,8 +7,6 @@ from datetime import datetime
 import csv
 from ckan.lib.field_types import DateType,DateConvertError
 
-log = logging.getLogger('ckanext')
-
 class CleanResourceDates(CkanCommand):
     """
     Iterate through resources, cleaning up dates to conform to DateType YYYY-MM-DD database spec.
@@ -33,6 +31,10 @@ class CleanResourceDates(CkanCommand):
     def command(self):
         self._load_config()
 
+        # Logger is created here because you can't create the logger object
+        # until the config is read, or it ends up .disabled and does nothing.
+        log = self.log = logging.getLogger('ckanext.dgu.clean_resource_dates')
+
         commit = False
         if len(self.args)>0:
             if self.args[0]=='commit':
@@ -46,7 +48,6 @@ class CleanResourceDates(CkanCommand):
         import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
-        model.repo.new_revision()
         log.info("Database access initialised")
         data = self._get_dates(model)
         log.info('Scanning and cleaning...')
@@ -72,7 +73,8 @@ class CleanResourceDates(CkanCommand):
             log.info('CHANGES WILL BE COMMITTED!')
             model.Session.remove()
             model.Session.configure(bind=model.meta.engine)
-            model.repo.new_revision()
+            rev = model.repo.new_revision()
+            rev.author = 'Date format tidier'
         with open('changelog.csv','w') as f:
             writer = csv.writer(f)
             writer.writerow(['resource_id','old_date','iso_date'])
@@ -92,10 +94,17 @@ class CleanResourceDates(CkanCommand):
         log.info('Finished.')
 
     def _get_dates(self,model):
-        log.info( 'Fetching metadata for %d resources...' % model.Session.query(model.Resource).count() )
+        log = self.log
+        resources = model.Session.query(model.Resource) \
+                                 .filter_by(state='active') \
+                                 .join(model.ResourceGroup) \
+                                 .join(model.Package) \
+                                 .filter_by(state='active') \
+                                 .all()
+        log.info( 'Fetching metadata for %d resources...' % len(resources) )
         # Format: { 'Nov 2012': ['resource_id_1','resource_id_2'...], '28/01/01': [...] }
         out = {}
-        for resource in model.Session.query(model.Resource):
+        for resource in resources:
             date = resource.extras.get('date')
             if date is None: continue
             out[date] = out.get(date,[])
@@ -128,9 +137,15 @@ class CleanResourceDates(CkanCommand):
     def _clean_date(self,datestring):
         original_datestring = datestring
         datestring = datestring.strip()
+        # Fixed by hand overrides everything
         instant_win = fixed_by_hand.get(datestring)
         if instant_win is not None:
             return instant_win 
+        # Perfect dates are already in unambiguous full ISO, eg. 2013-10-21. 
+        # 2011-12 is NOT a perfect date. It needs cleaning, but it already conforms to schema. 
+        is_perfect = self.regex_year_month_day.match(datestring)
+        if is_perfect:
+            return datestring
         datestring = datestring.replace('/',' ')
         datestring = datestring.replace('-',' ')
         datestring = datestring.replace('.',' ')
