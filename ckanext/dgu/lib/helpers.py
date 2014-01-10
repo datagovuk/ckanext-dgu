@@ -1424,9 +1424,9 @@ def search_facet_tooltip(key,value):
         try:
             stars = int(value)
         except ValueError:
-            return 
+            return
         if stars == -1:
-            return 
+            return
         mini_stars = stars * '&#9733'
         mini_stars += '&#9734' * (5-stars)
         captions = [
@@ -1438,7 +1438,7 @@ def search_facet_tooltip(key,value):
             'Linked data - data URIs and linked to other data (e.g. RDF)'
             ]
         return captions[stars]
-    return 
+    return
 
 def social_url_twitter(url,title):
     import urllib

@@ -43,7 +43,7 @@
   <div class="row">
     <div class="col-lg-3 col-sm-4">
       <ul class="nav nav-pills nav-stacked" py:with="
-          boilerplate={'disabled':'disabled'} if h.use_wizard(data, errors) else {}; 
+          boilerplate={'disabled':'disabled'} if h.use_wizard(data, errors) else {};
           classes = 'disabled' if h.use_wizard(data, errors) else '';
         ">
         <py:if test="not edit_mode">

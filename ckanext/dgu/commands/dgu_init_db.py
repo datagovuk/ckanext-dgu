@@ -35,6 +35,8 @@ class DGUInitDB(CkanCommand):
         #model.repo.new_revision()
         log.info("Database access initialised")
 
+        from ckan.logic import get_action
+
         import ckanext.dgu.model.commitment as c_model
         c_model.init_tables(model.meta.engine)
         log.info("Commitment table is setup")
@@ -55,7 +57,7 @@ class DGUInitDB(CkanCommand):
             # only the latest information
             for status in  model.Session.query(model.TaskStatus)\
                     .filter(model.TaskStatus.task_type=='archiver')\
-                    .filter(model.TaskStatus.key=='status').yield_per(1000):
+                    .filter(model.TaskStatus.key=='status').all():
                 c = a_model.ArchiveTask.create(status)
                 model.Session.add(c)
             model.Session.commit()
@@ -66,7 +68,16 @@ class DGUInitDB(CkanCommand):
             # only the latest information
             for status in model.Session.query(model.TaskStatus)\
                     .filter(model.TaskStatus.task_type=='qa')\
-                    .filter(model.TaskStatus.key=='status').yield_per(1000):
+                    .filter(model.TaskStatus.key=='status').all():
                 qt = q_model.QATask.create(status)
+                log.info("Setting resource (%s) is_broken to %s" % (qt.resource_id, qt.is_broken))
+                try:
+                    res = get_action('resource_show')({'ignore_auth':True, 'user': ''}, {'id': qt.resource_id})
+                    res['is_broken'] = qt.is_broken
+                    get_action('resource_update')({'ignore_auth':True, 'user': ''}, res)
+                except:
+                    log.error("Unable to update resource: %s" % qt.resource_id)
+                    continue
+
                 model.Session.add(qt)
-            model.Session.commit()
+                model.Session.commit()
