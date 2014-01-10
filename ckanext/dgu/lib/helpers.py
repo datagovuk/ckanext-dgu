@@ -1112,10 +1112,11 @@ def are_legacy_extras(data):
             break
     return are_legacy_extras
 
-
 def timeseries_resources():
+    from ckan.lib.field_types import DateType
     unsorted = c.pkg_dict.get('timeseries_resources', [])    
-    return sorted(unsorted, key=lambda x:x.get('date',''))
+    get_iso_date = lambda resource: DateType.form_to_db(resource.get('date'))
+    return sorted(unsorted, key=get_iso_date)
 
 def additional_resources():
     return c.pkg_dict.get('additional_resources', [])
