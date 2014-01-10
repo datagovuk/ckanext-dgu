@@ -50,7 +50,7 @@
         return false;
       }
     });
-    $('.package_create_form a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+    $('.package_create_form a[data-toggle="tab"]').on('shown', function(e) {
       var target_a = $(e.target);
       var target_li = target_a.parent();
       var hasPrevious = target_li.prev().length > 0;
