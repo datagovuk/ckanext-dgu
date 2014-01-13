@@ -6,9 +6,8 @@ import re
 import sqlalchemy
 import urlparse
 
-import ckan.new_authz as new_authz
-from ckanext.dgu.schema import THEMES
-from ckan.lib.base import BaseController, model, abort, h, g
+from ckanext.dgu.lib import helpers as dgu_helpers
+from ckan.lib.base import BaseController, model, abort, h
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
 
 log = logging.getLogger(__name__)
@@ -35,8 +34,7 @@ class DataController(BaseController):
         return render('data/api.html')
 
     def system_dashboard(self):
-        is_sysadmin = new_authz.is_sysadmin(c.userobj) if c.userobj else False
-        if not is_sysadmin:
+        if not dgu_helpers.is_sysadmin():
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')
 
@@ -44,7 +42,7 @@ class DataController(BaseController):
         return render('data/openspending_browse.html')
 
     def _set_openspending_reports_dir(self):
-	c.openspending_report_dir = os.path.expanduser(pylons.config.get(
+        c.openspending_report_dir = os.path.expanduser(pylons.config.get(
             'dgu.openspending_reports_dir',
             '/var/lib/ckan/dgu/openspending_reports'))
 

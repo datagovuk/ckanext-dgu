@@ -1,8 +1,7 @@
 from pylons.i18n import _
-import ckan.new_authz as new_authz
-from ckan.logic.auth import get_package_object, get_group_object
+from ckan.logic.auth import get_package_object
 import ckan.logic.auth
-from ckan.plugins import implements, SingletonPlugin, IAuthFunctions
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 def dgu_package_update(context, data_dict):
     model = context['model']
@@ -17,7 +16,7 @@ def dgu_package_update(context, data_dict):
     #         ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
     # Sysadmins can edit ONS packages.
     #   Note: the dgu user *is* a sysadmin
-    if new_authz.is_sysadmin(user_obj):
+    if user_obj.sysadmin:
         return {'success': True}
 
     fail = {'success': False,
@@ -28,7 +27,7 @@ def dgu_package_update(context, data_dict):
     if package.extras.get('UKLP', '') == 'True':
         return fail
 
-    # ONSHUB datastes cannot be edited by the average admin/editor because they
+    # ONSHUB datasets cannot be edited by the average admin/editor because they
     # are automatically updated
     if package.extras.get('external_reference') == 'ONSHUB':
         return fail
@@ -50,7 +49,7 @@ def dgu_dataset_delete(context, data_dict):
     package = get_package_object(context, data_dict)
 
     # Sysadmin can delete any package, including UKLP
-    if new_authz.is_sysadmin(user_obj):
+    if user_obj.sysadmin:
         return {'success': True}
 
     # Don't allow admin/editor to delete (apart from UKLP datasets which CAN be
@@ -68,7 +67,7 @@ def dgu_extra_fields_editable(context, data_dict):
     Typically, this is only something we want sysadmins to be able to do.
     """
     user = context.get('user')
-    if new_authz.is_sysadmin(unicode(user)):
+    if dgu_helpers.is_sysadmin_by_context(context):
         return {'success': True}
     else:
         return {'success': False,
@@ -88,7 +87,7 @@ def dgu_user_list(context, data_dict):
     user = context.get('user','')
     user_obj = model.User.get(user)
 
-    if new_authz.is_sysadmin(unicode(user)):
+    if dgu_helpers.is_sysadmin_by_context(context):
         return {'success': True}
 
     if not user or not user_obj:

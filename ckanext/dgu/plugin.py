@@ -1,26 +1,10 @@
-﻿import os
-
-from logging import getLogger
-from urllib import quote
+﻿from logging import getLogger
 
 from pylons import config
 import sqlalchemy.orm
 
 from ckan.lib.helpers import flash_notice
-from ckanext.dgu.plugins_toolkit import ObjectNotFound
-from ckan.plugins import implements, SingletonPlugin
-from ckan.plugins import IRoutes
-from ckan.plugins import IConfigurer
-from ckan.plugins import ITemplateHelpers
-from ckan.plugins import IMiddleware
-from ckan.plugins import IAuthFunctions
-from ckan.plugins import IPackageController
-from ckan.plugins import ISession
-from ckan.plugins import IActions
-from ckan.plugins import IDomainObjectModification
-from ckan.plugins import IResourceUrlChange
-from ckan.plugins import IActions
-from ckan.plugins import ICachedReport
+import ckan.plugins as p
 import ckan.plugins.toolkit as toolkit
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
 from ckanext.dgu.authorize import (
@@ -34,7 +18,6 @@ from ckanext.dgu.authorize import (
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
-import ckanext.dgu
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
 from ckan.exceptions import CkanUrlException
@@ -54,8 +37,8 @@ def not_found(self, url):
 def _guess_package_type(self, expecting_name=False):
     return 'dataset'
 
-class ReportsPlugin(SingletonPlugin):
-    implements(IRoutes, inherit=True)
+class ReportsPlugin(p.SingletonPlugin):
+    p.implements(p.IRoutes, inherit=True)
 
     def before_map(self, map):
         """
@@ -64,8 +47,8 @@ class ReportsPlugin(SingletonPlugin):
         report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
         map.connect('reports', '/data/reports', controller=report_ctlr, action='index')
         # Resource reports
-        map.connect('resources_report','/data/reports/resources', controller=report_ctlr, action='resources')
-        map.connect('resources_report_org','/data/reports/resources/:id', controller=report_ctlr, action='resources')
+        map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
+        map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')
 
         # QA
         qa_home = 'ckanext.qa.controllers.qa_home:QAHomeController'
@@ -91,11 +74,11 @@ class ReportsPlugin(SingletonPlugin):
         # Feedback reports
         map.connect('feedback_reports', '/data/reports/feedback',
                     controller=report_ctlr, action='feedback')
-        map.connect('feedback_reports_csv','/data/reports/feedback/:id.{format}',
+        map.connect('feedback_reports_csv', '/data/reports/feedback/:id.{format}',
                     controller=report_ctlr, action='feedback')
-        map.connect('feedback_report_org','/data/reports/feedback/:id',
+        map.connect('feedback_report_org', '/data/reports/feedback/:id',
                     controller=report_ctlr, action='feedback')
-        map.connect('feedback_report_org_csv','/data/reports/feedback.{format}',
+        map.connect('feedback_report_org_csv', '/data/reports/feedback.{format}',
                     controller=report_ctlr, action='feedback')
 
         # Activity reports
@@ -106,13 +89,12 @@ class ReportsPlugin(SingletonPlugin):
 
         # Commitment reports
         c_ctlr = 'ckanext.dgu.controllers.commitment:CommitmentController'
-        map.connect('commitments','/data/reports/commitments',
+        map.connect('commitments', '/data/reports/commitments',
                     controller=c_ctlr, action='index')
-        map.connect('commitments_publisher','/data/reports/commitments/:id',
+        map.connect('commitments_publisher', '/data/reports/commitments/:id',
                     controller=c_ctlr, action='commitments')
         map.connect('/data/reports/commitments/:id/edit',
                     controller=c_ctlr, action='edit')
-
 
         # Redirecting these so as to not break existing links
         map.redirect('/data/feedback/report/{id}.{format}', '/data/reports/feedback/{id}.format')
@@ -126,13 +108,13 @@ class ReportsPlugin(SingletonPlugin):
         return map
 
 
-class ThemePlugin(SingletonPlugin):
+class ThemePlugin(p.SingletonPlugin):
     '''
     DGU Visual Theme for a CKAN install embedded in dgu/Drupal.
     '''
-    implements(IConfigurer)
-    implements(IRoutes, inherit=True)
-    implements(ITemplateHelpers, inherit=True)
+    p.implements(p.IConfigurer)
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.ITemplateHelpers, inherit=True)
 
     from ckan.lib.base import h, BaseController
     # [Monkey patch] Replace h.linked_user with a version to hide usernames
@@ -179,8 +161,6 @@ class ThemePlugin(SingletonPlugin):
                 helper_dict[name] = fn
 
         return helper_dict
-
-
 
     def before_map(self, map):
         """
@@ -247,6 +227,7 @@ class ThemePlugin(SingletonPlugin):
     def after_map(self, map):
         return map
 
+
 def ensure_package_major_time_remains(package):
     '''A write to the package may remove the last_major_modification extra,
     so make sure it remains.'''
@@ -257,7 +238,6 @@ def ensure_package_major_time_remains(package):
         model.Session.flush()
 
 def update_package_major_time(package):
-    import datetime
     import ckan.model as model
 
     try:
@@ -276,12 +256,12 @@ def update_package_major_time(package):
         model.Session.remove()
 
 
-class TaskModificationPlugin(SingletonPlugin):
+class TaskModificationPlugin(p.SingletonPlugin):
     """
     Intercepts the saving of TaskStatus objects to extract the
     relevant data for Archive and QA tasks into separate tables.
     """
-    implements(IDomainObjectModification, inherit=True)
+    p.implements(p.IDomainObjectModification, inherit=True)
 
     def notify(self, entity, operation):
         from ckan import model
@@ -311,8 +291,8 @@ class TaskModificationPlugin(SingletonPlugin):
         model.Session.commit()
 
 
-class LastMajorModificationPlugin1(SingletonPlugin):
-    implements(IDomainObjectModification, inherit=True)
+class LastMajorModificationPlugin1(p.SingletonPlugin):
+    p.implements(p.IDomainObjectModification, inherit=True)
 
     def notify(self, entity, operation):
         from ckan import model
@@ -346,26 +326,27 @@ class LastMajorModificationPlugin1(SingletonPlugin):
                     ensure_package_major_time_remains(pkg)
 
 
-class LastMajorModificationPlugin2(SingletonPlugin):
-    implements(IResourceUrlChange, inherit=True)
+class LastMajorModificationPlugin2(p.SingletonPlugin):
+    p.implements(p.IResourceUrlChange, inherit=True)
 
     def notify(self, resource):
         log.debug("URL for resource %s has changed" % resource.id)
         update_package_major_time(resource.resource_group.package)
 
 
-class DrupalAuthPlugin(SingletonPlugin):
+class DrupalAuthPlugin(p.SingletonPlugin):
     '''Reads Drupal login cookies to log user in.'''
-    implements(IMiddleware, inherit=True)
+    p.implements(p.IMiddleware, inherit=True)
 
     def make_middleware(self, app, config):
         return DrupalAuthMiddleware(app, config)
 
-class AuthApiPlugin(SingletonPlugin):
+
+class AuthApiPlugin(p.SingletonPlugin):
     '''Adds functions that work out if the user is allowed to do
     certain edits.'''
 
-    implements(IAuthFunctions, inherit=True)
+    p.implements(p.IAuthFunctions, inherit=True)
 
     def get_auth_functions(self):
         return {
@@ -379,35 +360,31 @@ class AuthApiPlugin(SingletonPlugin):
                }
 
 
-class DguForm(SingletonPlugin):
+class DguForm(p.SingletonPlugin):
+    # NB the actual form (IDatasetForm) is in forms/dataset_form.py
 
-    implements(IRoutes, inherit=True)
-    implements(IConfigurer)
+    p.implements(p.IRoutes, inherit=True)
+
+    # IRoutes
 
     def before_map(self, map):
         dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
-        map.connect('dataset_new','/dataset/new', controller=dgu_package_controller, action='new')
-        map.connect('dataset_edit','/dataset/edit/{id}', controller=dgu_package_controller, action='edit')
+        map.connect('dataset_new', '/dataset/new', controller=dgu_package_controller, action='new')
+        map.connect('dataset_edit', '/dataset/edit/{id}', controller=dgu_package_controller, action='edit')
         map.connect('/dataset/delete/{id}', controller=dgu_package_controller, action='delete')
-        map.connect('dataset_history','/dataset/history/{id}', controller=dgu_package_controller, action='history')
+        map.connect('dataset_history', '/dataset/history/{id}', controller=dgu_package_controller, action='history')
         map.connect('/dataset/{id}.{format}', controller=dgu_package_controller, action='read')
         map.connect('/dataset/{id}', controller=dgu_package_controller, action='read')
         map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
 
         return map
 
-    def after_map(self, map):
-        return map
 
-    def update_config(self, config):
-        pass
+class PublisherPlugin(p.SingletonPlugin):
 
-
-class PublisherPlugin(SingletonPlugin):
-
-    implements(IRoutes, inherit=True)
-    implements(ISession, inherit=True)
-    implements(ICachedReport)
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.ISession, inherit=True)
+    p.implements(p.ICachedReport)
 
     def before_commit(self, session):
         """
@@ -422,7 +399,7 @@ class PublisherPlugin(SingletonPlugin):
             return
 
         pubctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
-        for obj in set( session._object_cache['new'] ):
+        for obj in set(session._object_cache['new']):
             if isinstance(obj, (User)):
                 try:
                     url = url_for(controller=pubctlr, action='apply')
@@ -441,7 +418,6 @@ class PublisherPlugin(SingletonPlugin):
                     #log.debug('Did not add a flash message due to a missing session: %s' % msg)
                     pass
 
-
     def before_map(self, map):
         pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
 
@@ -452,30 +428,30 @@ class PublisherPlugin(SingletonPlugin):
                     controller=pub_ctlr, action='index')
         map.connect('publisher_edit',
                     '/publisher/edit/:id',
-                    controller=pub_ctlr, action='edit' )
+                    controller=pub_ctlr, action='edit')
         map.connect('publisher_apply',
                     '/publisher/apply/:id',
-                    controller=pub_ctlr, action='apply' )
+                    controller=pub_ctlr, action='apply')
         map.connect('publisher_apply_empty',
                     '/publisher/apply',
-                    controller=pub_ctlr, action='apply' )
+                    controller=pub_ctlr, action='apply')
         map.connect('publisher_users',
                     '/publisher/users/:id',
-                    controller=pub_ctlr, action='users' )
+                    controller=pub_ctlr, action='users')
         map.connect('publisher_new',
                     '/publisher/new',
-                    controller=pub_ctlr, action='new'  )
+                    controller=pub_ctlr, action='new')
         map.connect('/publisher/report_groups_without_admins',
-                    controller=pub_ctlr, action='report_groups_without_admins' )
+                    controller=pub_ctlr, action='report_groups_without_admins')
         map.connect('/publisher/report_publishers_and_users',
-                    controller=pub_ctlr, action='report_publishers_and_users' )
+                    controller=pub_ctlr, action='report_publishers_and_users')
         map.connect('/publisher/report_users',
-                    controller=pub_ctlr, action='report_users' )
+                    controller=pub_ctlr, action='report_users')
         map.connect('/publisher/report_users_not_assigned_to_groups',
-                    controller=pub_ctlr, action='report_users_not_assigned_to_groups' )
+                    controller=pub_ctlr, action='report_users_not_assigned_to_groups')
         map.connect('publisher_read',
                     '/publisher/:id',
-                    controller=pub_ctlr, action='read' )
+                    controller=pub_ctlr, action='read')
 
         return map
 
@@ -505,8 +481,8 @@ class PublisherPlugin(SingletonPlugin):
         from ckanext.dgu.lib.publisher import cached_openness_scores
         from ckanext.dgu.lib.reports import cached_reports
 
-        return { 'Cached Openness Scores': cached_openness_scores,
-                 'Cached reports': cached_reports }
+        return {'Cached Openness Scores': cached_openness_scores,
+                'Cached reports': cached_reports}
 
     def list_report_keys(self):
         """
@@ -517,17 +493,17 @@ class PublisherPlugin(SingletonPlugin):
                 'feedback-report', 'publisher-activity-report']
 
 
-class InventoryPlugin(SingletonPlugin):
+class InventoryPlugin(p.SingletonPlugin):
 
-    implements(IRoutes, inherit=True)
-    implements(IConfigurer)
-    implements(ISession, inherit=True)
-    implements(IAuthFunctions, inherit=True)
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.IConfigurer)
+    p.implements(p.ISession, inherit=True)
+    p.implements(p.IAuthFunctions, inherit=True)
 
     def get_auth_functions(self):
         return {
-            'feedback_update' : dgu_feedback_update,
-            'feedback_create' : dgu_feedback_create,
+            'feedback_update': dgu_feedback_update,
+            'feedback_create': dgu_feedback_create,
             'feedback_delete': dgu_feedback_delete,
         }
 
@@ -551,7 +527,6 @@ class InventoryPlugin(SingletonPlugin):
         map.connect('/dataset/:id/feedback/add',
                     controller=fb_ctlr, action='add')
 
-
         # As users have been sent out a direct link to /inventory/publisher-name/edit
         # we will (at least for a short while) allow /inventory to redirect to
         # /unpublished
@@ -562,18 +537,17 @@ class InventoryPlugin(SingletonPlugin):
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
         map.connect('/unpublished/:id/edit',
-                    controller=inv_ctlr, action='edit' )
+                    controller=inv_ctlr, action='edit')
         map.connect('/unpublished/:id/edit/download',
-                    controller=inv_ctlr, action='download' )
+                    controller=inv_ctlr, action='download')
         map.connect('/unpublished/:id/edit/template',
-                    controller=inv_ctlr, action='template' )
+                    controller=inv_ctlr, action='template')
         map.connect('/unpublished/:id/edit/upload',
-                    controller=inv_ctlr, action='upload' )
+                    controller=inv_ctlr, action='upload')
         map.connect('/unpublished/:id/edit/upload_complete',
-                    controller=inv_ctlr, action='upload_complete' )
+                    controller=inv_ctlr, action='upload_complete')
         map.connect('/unpublished/:id/edit/upload/:upload_id',
-                    controller=inv_ctlr, action='upload_status' )
-
+                    controller=inv_ctlr, action='upload_status')
 
         return map
 
@@ -584,7 +558,7 @@ class InventoryPlugin(SingletonPlugin):
         pass
 
 
-class SearchPlugin(SingletonPlugin):
+class SearchPlugin(p.SingletonPlugin):
     """
     DGU-specific searching.
 
@@ -602,7 +576,7 @@ class SearchPlugin(SingletonPlugin):
     well as the group name.
     """
 
-    implements(IPackageController, inherit=True)
+    p.implements(p.IPackageController, inherit=True)
 
     def read(self, entity):
         pass
@@ -692,17 +666,17 @@ class SearchPlugin(SingletonPlugin):
 
         # Extract multiple theme values (concatted with ' ') into one multi-value schema field
         all_themes = set()
-        for value in ( pkg_dict.get('theme-primary',''), pkg_dict.get('theme-secondary','') ):
+        for value in (pkg_dict.get('theme-primary', ''), pkg_dict.get('theme-secondary', '')):
             for theme in value.split(' '):
                 if theme:
                     all_themes.add(theme)
         pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 
-class ApiPlugin(SingletonPlugin):
+class ApiPlugin(p.SingletonPlugin):
     '''DGU-specific API'''
-    implements(IRoutes, inherit=True)
-    implements(IActions)
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.IActions)
 
     def before_map(self, map):
         api_controller = 'ckanext.dgu.controllers.api:DguApiController'
@@ -724,6 +698,7 @@ class ApiPlugin(SingletonPlugin):
         return {
             'publisher_show': publisher_show,
             }
+
 
 def is_plugin_enabled(plugin_name):
     return plugin_name in config.get('ckan.plugins', '').split()

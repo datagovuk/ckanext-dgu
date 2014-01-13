@@ -162,13 +162,9 @@ Configuration
 Different parts of the DGU extension require options to be set in the
 CKAN configuration file (.ini) in the [app:main] section
 
-To use the DGU form specify::
+To use the DGU package form specify::
 
-    package_form = package_gov3
-
-To enable the Form API::
-
-    ckan.plugins = dgu_form_api
+    ckan.plugins = dgu_form dgu_package_form
 
 For the Drupal RPC connection (for user data etc.) supply the hostname, 
 and credentials for HTTP Basic Authentication (if necessary)::
@@ -177,7 +173,7 @@ and credentials for HTTP Basic Authentication (if necessary)::
     dgu.xmlrpc_username = ckan
     dgu.xmlrpc_password = letmein
 
-The DGU-version of the SOLR schema is required instead of the CKAN 1.4 SOLR schema. Whether you use a single or mult-core SOLR setup, you'll need a link to the DGU SOLR schema like this::
+The DGU-version of the SOLR schema is required instead of the CKAN SOLR schema. Whether you use a single or mult-core SOLR setup, you'll need a link to the DGU SOLR schema like this::
 
     sudo ln -s /home/okfn/pyenv/src/ckanext-dgu/config/solr/schema-1.4-dgu.xml /etc/solr/conf/schema.xml
 
