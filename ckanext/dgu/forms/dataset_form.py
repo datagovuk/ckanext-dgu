@@ -10,12 +10,12 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       missing,
                                       not_missing,
                                       keep_extras,
-                                     )
+                                      )
 
 import ckan.logic.schema as default_schema
 import ckan.logic.validators as val
 
-from ckan.plugins import implements, IDatasetForm, SingletonPlugin
+import ckan.plugins as p
 import ckan.plugins.toolkit as toolkit
 from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.lib import helpers as dgu_helpers
@@ -46,15 +46,16 @@ update_frequency = [('', ''),
                     ('monthly', 'monthly'),
                     ('other', 'other - please specify')]
 
-temporal_granularity = [("",""),
-                       ("year","year"),
-                       ("quarter","quarter"),
-                       ("month","month"),
-                       ("week","week"),
-                       ("day","day"),
-                       ("hour","hour"),
-                       ("point","point"),
-                       ("other","other - please specify")]
+temporal_granularity = [("", ""),
+                        ("year", "year"),
+                        ("quarter", "quarter"),
+                        ("month", "month"),
+                        ("week", "week"),
+                        ("day", "day"),
+                        ("hour", "hour"),
+                        ("point", "point"),
+                        ("other", "other - please specify")]
+
 
 def resources_schema():
     schema = default_schema.default_resource_schema()
@@ -69,6 +70,7 @@ def resources_schema():
     })
     return schema
 
+
 def additional_resource_schema():
     schema = resources_schema()
     schema['format'] = [not_empty, unicode]
@@ -77,6 +79,7 @@ def additional_resource_schema():
     schema['description'] = [not_empty]
     return schema
 
+
 def individual_resource_schema():
     schema = resources_schema()
     schema['format'] = [not_empty, unicode]
@@ -84,6 +87,7 @@ def individual_resource_schema():
     schema['url'] = [not_empty]
     schema['description'] = [not_empty]
     return schema
+
 
 def timeseries_resource_schema():
     schema = resources_schema()
@@ -94,18 +98,18 @@ def timeseries_resource_schema():
     schema['description'] = [not_empty]
     return schema
 
-class DatasetForm(SingletonPlugin):
 
-    implements(IDatasetForm, inherit=True)
+class DatasetForm(p.SingletonPlugin):
+
+    p.implements(p.IDatasetForm, inherit=True)
 
     # We don't customize the schema here - instead it is done in the validate
     # function, because there it has the context.
     #def create_package_schema(self):
     #def update_package_schema(self):
-      
+
     def show_package_schema(self):
         return self.db_to_form_schema()
-
 
     def new_template(self):
         return 'package/new.html'
@@ -206,8 +210,7 @@ class DatasetForm(SingletonPlugin):
         for resources in ('additional_resources',
                           'timeseries_resources',
                           'individual_resources'):
-            schema[resources]['format'] = [unicode] # i.e. optional
-
+            schema[resources]['format'] = [unicode]  # i.e. optional
 
     def _ons_sysadmin_schema_updates(self, schema):
         schema.update(
@@ -217,7 +220,7 @@ class DatasetForm(SingletonPlugin):
         for resources in ('additional_resources',
                           'timeseries_resources',
                           'individual_resources'):
-            schema[resources]['format'] = [unicode] # i.e. optional
+            schema[resources]['format'] = [unicode]  # i.e. optional
 
     @property
     def _resource_format_optional(self):
@@ -225,19 +228,9 @@ class DatasetForm(SingletonPlugin):
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
         }
 
-    def _ons_sysadmin_schema_updates(self, schema):
-        schema.update(
-            {
-                'theme-primary': [ignore_missing, unicode, convert_to_extras],
-                })
-        for resources in ('additional_resources',
-                          'timeseries_resources',
-                          'individual_resources'):
-            schema[resources]['format'] = [unicode] # i.e. optional
-
     def db_to_form_schema_options(self, options={}):
         context = options.get('context', {})
-        schema = context.get('schema',None)
+        schema = context.get('schema', None)
         if schema:
             return schema
         else:
@@ -341,8 +334,8 @@ class DatasetForm(SingletonPlugin):
                 '__extras': [keep_extras]
             },
 
-            'organization' : [],
-            'owner_org' : [],
+            'organization': [],
+            'owner_org': [],
 
             'groups': {
                 'name': [not_empty, unicode]
@@ -396,11 +389,11 @@ class DatasetForm(SingletonPlugin):
 
             editor_groups = c.userobj.get_groups('organization', 'editor')
             groups = list(admin_groups) + editor_groups
-        else: # anonymous user shouldn't have access to this page anyway.
+        else:  # anonymous user shouldn't have access to this page anyway.
             groups = []
 
         # Be explicit about which fields we make available in the template
-        groups = [ {
+        groups = [{
             'name': g.name,
             'id': g.id,
             'title': g.title,
@@ -411,9 +404,10 @@ class DatasetForm(SingletonPlugin):
             'foi-email': g.extras.get('foi-email', ''),
             'foi-phone': g.extras.get('foi-phone', ''),
             'foi-web': g.extras.get('foi-name', ''),
-        } for g in groups ]
+        } for g in groups]
 
-        return dict( (g['name'], g) for g in groups )
+        return dict((g['name'], g) for g in groups)
+
 
 def date_to_db(value, context):
     try:
@@ -422,6 +416,7 @@ def date_to_db(value, context):
         raise Invalid(str(e))
     return value
 
+
 def date_to_form(value, context):
     try:
         value = DateType.db_to_form(value)
@@ -429,13 +424,15 @@ def date_to_form(value, context):
         raise Invalid(str(e))
     return value
 
+
 def convert_to_extras(key, data, errors, context):
 
-    current_index = max( [int(k[1]) for k in data.keys() \
-                                    if len(k) == 3 and k[0] == 'extras'] + [-1] )
+    current_index = max([int(k[1]) for k in data.keys()
+                         if len(k) == 3 and k[0] == 'extras'] + [-1])
 
     data[('extras', current_index+1, 'key')] = key[-1]
     data[('extras', current_index+1, 'value')] = data[key]
+
 
 def convert_from_extras(key, data, errors, context):
 
@@ -445,12 +442,14 @@ def convert_from_extras(key, data, errors, context):
             and data_value == key[-1]):
             data[key] = data[('extras', data_key[1], 'value')]
 
+
 def use_other(key, data, errors, context):
 
     other_key = key[-1] + '-other'
     other_value = data.get((other_key,), '').strip()
     if other_value:
         data[key] = other_value
+
 
 def extract_other(option_list):
 
@@ -467,6 +466,7 @@ def extract_other(option_list):
             data[(other_key,)] = value
     return other
 
+
 def convert_geographic_to_db(value, context):
 
     if isinstance(value, list):
@@ -478,14 +478,17 @@ def convert_geographic_to_db(value, context):
 
     return GeoCoverageType.get_instance().form_to_db(regions)
 
+
 def convert_geographic_to_form(value, context):
 
     return GeoCoverageType.get_instance().db_to_form(value)
+
 
 def validate_group_id_or_name_exists_if_not_blank(value, context):
     if not value.strip():
         return True
     return val.group_id_or_name_exists(value, context)
+
 
 def tags_schema():
     schema = {
@@ -494,7 +497,7 @@ def tags_schema():
                  unicode,
                  val.tag_length_validator,
                  val.tag_name_validator,
-                ],
+                 ],
         'revision_timestamp': [ignore],
         'state': [ignore],
     }
