@@ -250,7 +250,7 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
         if match:
             drupal_user_id = match.groups()[0]
             user = model.User.get('user_d%s' % drupal_user_id)
-    user_is_official = not user or (user.get_groups('publisher') or is_sysadmin(user))
+    user_is_official = not user or (user.get_groups('publisher') or user.sysadmin)
     if user and user.name.startswith('user_d'):
         user_drupal_name = user.fullname
     else:
@@ -912,11 +912,20 @@ def is_package_deleted(pkg):
 
 
 def is_sysadmin(u=None):
-    from ckan import new_authz
+    from ckan import new_authz, model
     user = u or c.userobj
     if not user:
         return False
+    if isinstance(user, model.User):
+        return user.sysadmin
     return new_authz.is_sysadmin(user)
+
+def is_sysadmin_by_context(context):
+    # For a context, returns whether this user is a syadmin or not
+    from ckan import new_authz
+    if 'auth_user_obj' in context:
+        return context['auth_user_obj'].sysadmin
+    return new_authz.is_sysadmin(context['user'])
 
 def prep_user_detail():
     # Non-sysadmins cannot see personally identifiable information

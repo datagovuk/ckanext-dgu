@@ -293,11 +293,15 @@ class PublisherController(OrganizationController):
         group_type = self._get_group_type(id.split('@')[0])
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author,
-                   'schema': self._form_to_db_schema(group_type=type)}
+                   'schema': self._form_to_db_schema(group_type=group_type),
+                   'for_view': True}
         data_dict = {'id': id}
 
         try:
-            c.group_dict = get_action('group_show')(context, data_dict)
+            # Do not query for the group datasets when dictizing, as they will
+            # be ignored and get requested on the controller anyway
+            context['include_datasets'] = False
+            c.group_dict = get_action('organization_show')(context, data_dict)
             c.group = context['group']
         except ObjectNotFound:
             self._redirect_if_previous_name(id)
@@ -327,7 +331,8 @@ class PublisherController(OrganizationController):
                 'rows':limit,
                 'start':(page-1)*limit,
             }
-            query = get_action('package_search')(context,data_dict)
+            search_context = dict((k, v) for (k, v) in context.items() if k != 'schema')
+            query = get_action('package_search')(search_context, data_dict)
 
             c.page = h.Page(
                 collection=query['results'],

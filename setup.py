@@ -66,10 +66,6 @@ setup(
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
 
-
-        [ckan.forms]
-        package_gov3 = ckanext.dgu.forms.package_gov3:get_gov3_fieldset
-
         [curate.actions]
         report=ckanext.dgu.curation:report
 
