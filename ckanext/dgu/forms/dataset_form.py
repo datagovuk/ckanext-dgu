@@ -1,7 +1,5 @@
 ﻿import json
 
-from ckan import new_authz
-
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid
@@ -18,6 +16,7 @@ import ckan.logic.schema as default_schema
 import ckan.logic.validators as val
 
 from ckan.plugins import implements, IDatasetForm, SingletonPlugin
+import ckan.plugins.toolkit as toolkit
 from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckanext.dgu.schema import GeoCoverageType
@@ -99,27 +98,11 @@ class DatasetForm(SingletonPlugin):
 
     implements(IDatasetForm, inherit=True)
 
-    def create_package_schema(self):
-        return self.update_package_schema()
-
-    def update_package_schema(self):
-        schema = self.form_to_db_schema()
-
-        # Sysadmins can save UKLP datasets with looser validation
-        # constraints.  This is because UKLP datasets are created using
-        # a custom schema passed in from the harvester.  However, when it
-        # comes to re-saving the dataset via the dataset form, there are
-        # some validation requirements we need to drop.  That's what this
-        # section of code does.
-        #pkg = context.get('package')
-        #if dgu_helpers.is_sysadmin_by_context(context) and \
-        #   pkg and pkg.extras.get('UKLP', 'False') == 'True':
-        #    schema.update(self._uklp_sysadmin_schema_updates)
-        #if dgu_helpers.is_sysadmin_by_context(context) and \
-        #   pkg and pkg.extras.get('external_reference') == 'ONSHUB':
-        #    self._ons_sysadmin_schema_updates(schema)
-        return schema
-
+    # We don't customize the schema here - instead it is done in the validate
+    # function, because there it has the context.
+    #def create_package_schema(self):
+    #def update_package_schema(self):
+      
     def show_package_schema(self):
         return self.db_to_form_schema()
 
@@ -168,18 +151,29 @@ class DatasetForm(SingletonPlugin):
 
         c.schema_fields = set(self.form_to_db_schema().keys())
 
-    def form_to_db_schema_options(self, options={}):
-        context = options.get('context', {})
-        schema = context.get('schema',None)
-        if schema:
-            return schema
+    # Override the form validation to be able to vary the schema by the type of
+    # package and user
+    def validate(self, context, data_dict, schema, action):
+        if action in ('package_update', 'package_create'):
+            # If the caller to package_update specified a schema (e.g.
+            # harvesters specify the default schema) then we don't want to
+            # override that.
+            if not context.get('schema'):
+                if 'api_version' in context:
+                    # When accessed by the API, just use the default schemas.
+                    # It's only the forms that are customized to make it easier
+                    # for humans.
+                    if action == 'package_create':
+                        schema = default_schema.default_create_package_schema()
+                    else:
+                        schema = default_schema.default_update_package_schema()
+                else:
+                    # Customized schema for DGU form
+                    schema = self.form_to_db_schema_options(context)
+        return toolkit.navl_validate(data_dict, schema, context)
 
-        elif options.get('api'):
-            if options.get('type') == 'create':
-                return default_schema.default_create_package_schema()
-            else:
-                return default_schema.default_update_package_schema()
-
+    def form_to_db_schema_options(self, context):
+        '''Returns the schema for the customized DGU form.'''
         schema = self.form_to_db_schema()
         # Sysadmins can save UKLP datasets with looser validation
         # constraints.  This is because UKLP datasets are created using
@@ -189,17 +183,16 @@ class DatasetForm(SingletonPlugin):
         # section of code does.
         pkg = context.get('package')
         if dgu_helpers.is_sysadmin_by_context(context) and \
-           pkg and pkg.extras.get('UKLP', 'False') == 'True':
-            schema.update(self._uklp_sysadmin_schema_updates)
-        import pdb; pdb.set_trace()
+           pkg and pkg.extras.get('UKLP') == 'True':
+            self._uklp_sysadmin_schema_updates(schema)
         if dgu_helpers.is_sysadmin_by_context(context) and \
            pkg and pkg.extras.get('external_reference') == 'ONSHUB':
             self._ons_sysadmin_schema_updates(schema)
         return schema
 
-    @property
-    def _uklp_sysadmin_schema_updates(self):
-        return {
+    def _uklp_sysadmin_schema_updates(self, schema):
+        schema.update(
+          {
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-from': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-to': [ignore_missing, unicode, convert_to_extras],
@@ -208,8 +201,13 @@ class DatasetForm(SingletonPlugin):
                 'name': [ignore_missing, validate_group_id_or_name_exists_if_not_blank, unicode],
                 'id': [ignore_missing, unicode],
             },
+          }
+          )
+        for resources in ('additional_resources',
+                          'timeseries_resources',
+                          'individual_resources'):
+            schema[resources]['format'] = [unicode] # i.e. optional
 
-        }
 
     def _ons_sysadmin_schema_updates(self, schema):
         schema.update(

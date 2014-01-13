@@ -344,9 +344,11 @@ class AuthApiPlugin(SingletonPlugin):
 
 
 class DguForm(SingletonPlugin):
+    # NB the actual form (IDatasetForm) is in forms/dataset_form.py
 
     implements(IRoutes, inherit=True)
-    implements(IConfigurer)
+
+    # IRoutes
 
     def before_map(self, map):
         dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
@@ -359,12 +361,6 @@ class DguForm(SingletonPlugin):
         map.connect('/dataset/{id}/resource/{resource_id}', controller=dgu_package_controller, action='resource_read')
 
         return map
-
-    def after_map(self, map):
-        return map
-
-    def update_config(self, config):
-        pass
 
 
 class PublisherPlugin(SingletonPlugin):
