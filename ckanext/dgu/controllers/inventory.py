@@ -116,16 +116,16 @@ class InventoryController(BaseController):
                    'user': c.user or c.author, 'for_view': True}
 
         try:
-            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group_dict = get_action('organization_show')(context, {"id": id})
             c.group = context['group']
         except ObjectNotFound:
-            abort(404, 'Group not found')
+            abort(404, 'Organisation not found')
         except NotAuthorized:
             abort(401, 'Unauthorized to read group %s' % id)
 
         try:
             context['group'] = c.group
-            check_access('group_update', context)
+            check_access('organization_update', context)
         except NotAuthorized, e:
             abort(401, 'User %r not authorized to view internal unpublished' % (c.user))
 
@@ -138,17 +138,16 @@ class InventoryController(BaseController):
                    'user': c.user or c.author, 'for_view': True}
 
         try:
-            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group_dict = get_action('organization_show')(context, {"id": id})
             c.group = context['group']
         except ObjectNotFound:
-            self._redirect_if_previous_name(id)
             abort(404, 'Group not found')
         except NotAuthorized:
             abort(401, 'Unauthorized to read group %s' % id)
 
         try:
             context['group'] = c.group
-            check_access('group_update', context)
+            check_access('organization_update', context)
         except NotAuthorized, e:
             abort(401, 'User %r not authorized to view internal inventory' % (c.user))
 
@@ -181,7 +180,7 @@ class InventoryController(BaseController):
                    'user': c.user or c.author, 'for_view': True}
 
         try:
-            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group_dict = get_action('organization_show')(context, {"id": id})
             c.group = context['group']
         except ObjectNotFound:
             abort(404, 'Group not found')
@@ -190,7 +189,7 @@ class InventoryController(BaseController):
 
         try:
             context['group'] = c.group
-            check_access('group_update', context)
+            check_access('organization_update', context)
         except NotAuthorized, e:
             abort(401, 'User %r not authorized to upload unpublished' % (c.user))
 
@@ -210,16 +209,16 @@ class InventoryController(BaseController):
                    'user': c.user or c.author, 'for_view': True}
 
         try:
-            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group_dict = get_action('organization_show')(context, {"id": id})
             c.group = context['group']
         except ObjectNotFound:
-            abort(404, 'Group not found')
+            abort(404, 'Organization not found')
         except NotAuthorized:
             abort(401, 'Unauthorized to read group %s' % id)
 
         try:
             context['group'] = c.group
-            check_access('group_update', context)
+            check_access('organization_update', context)
         except NotAuthorized, e:
             abort(401, 'User %r not authorized to upload inventory' % (c.user))
 
@@ -288,17 +287,16 @@ class InventoryController(BaseController):
                    'group': id}
 
         try:
-            c.group_dict = get_action('group_show')(context, {"id": id})
+            c.group_dict = get_action('organization_show')(context, {"id": id})
             c.group = context['group']
         except ObjectNotFound:
-            self._redirect_if_previous_name(id)
-            abort(404, 'Group not found')
+            abort(404, 'Organization not found')
         except NotAuthorized:
-            abort(401, 'Unauthorized to read group %s' % id)
+            abort(401, 'Unauthorized to read Organization %s' % id)
 
         try:
             context['group'] = c.group
-            check_access('group_update', context)
+            check_access('organization_update', context)
         except NotAuthorized, e:
             abort(401, 'User %r not authorized to download unpublished '% (c.user))
 
