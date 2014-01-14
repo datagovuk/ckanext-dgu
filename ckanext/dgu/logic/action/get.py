@@ -5,7 +5,7 @@ import ckan.lib.dictization.model_dictize as model_dictize
 from ckan import plugins
 import ckan.lib.plugins as lib_plugins
 from ckan.lib.navl.dictization_functions import validate
-from ckan.logic.action.get import group_show
+from ckan.logic.action.get import organization_show
 
 #from ckan.plugins.toolkit as t
 
@@ -18,7 +18,7 @@ def publisher_show(context, data_dict):
 
     May raise NotFound or NotAuthorized.
     '''
-    group_dict = group_show(context, data_dict)
+    group_dict = organization_show(context, data_dict)
 
     model = context['model']
     id = get_or_bust(data_dict, 'id')
