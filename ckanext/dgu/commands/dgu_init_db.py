@@ -35,7 +35,7 @@ class DGUInitDB(CkanCommand):
         #model.repo.new_revision()
         log.info("Database access initialised")
 
-        from ckan.logic import get_action
+        from ckan.logic import get_action, NotFound
 
         import ckanext.dgu.model.commitment as c_model
         c_model.init_tables(model.meta.engine)
@@ -58,25 +58,36 @@ class DGUInitDB(CkanCommand):
             for status in  model.Session.query(model.TaskStatus)\
                     .filter(model.TaskStatus.task_type=='archiver')\
                     .filter(model.TaskStatus.key=='status').all():
-                c = a_model.ArchiveTask.create(status)
-                model.Session.add(c)
+                try:
+                    c = a_model.ArchiveTask.create(status)
+                    model.Session.add(c)
+                except Exception, e:
+                    log.debug("Failed to migrate archive task: %s" % e)
+
             model.Session.commit()
 
         if model.Session.query(q_model.QATask).count() == 0:
             log.info("Migrating QA task data")
             # Do we want to migrate all, or do we want to migrate
             # only the latest information
-            for status in model.Session.query(model.TaskStatus)\
-                    .filter(model.TaskStatus.task_type=='qa')\
-                    .filter(model.TaskStatus.key=='status').all():
+
+            statuses = list(model.Session.query(model.TaskStatus)\
+                            .filter(model.TaskStatus.task_type=='qa')\
+                            .filter(model.TaskStatus.key=='status').all())
+            for status in statuses:
                 qt = q_model.QATask.create(status)
                 log.info("Setting resource (%s) is_broken to %s" % (qt.resource_id, qt.is_broken))
                 try:
                     res = get_action('resource_show')({'ignore_auth':True, 'user': ''}, {'id': qt.resource_id})
                     res['is_broken'] = qt.is_broken
                     get_action('resource_update')({'ignore_auth':True, 'user': ''}, res)
-                except:
+                except NotFound:
+                    # No such resource
+                    log.debug("Resource %s not found, may be deleted" % qt.resource_id)
+                    continue
+                except Exception, e:
                     log.error("Unable to update resource: %s" % qt.resource_id)
+                    log.exception(e)
                     continue
 
                 model.Session.add(qt)
