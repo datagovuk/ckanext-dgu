@@ -198,8 +198,6 @@
                </div>
              </div>
              <div class="right">
-                <!--! AA suggested he wanted something like this, but not enabling it so
-                      that Tom doesn't shout -->
                 <py:if test="h.is_core_dataset(package)">
                   <div class="format-box" style='background-color: #8BC658;'>NII</div>
                 </py:if>
@@ -215,12 +213,12 @@
                    <span style="display: none;" class="js-data-extent">${','.join(h.get_wms_info_extent(package))}</span>
                    ${map_preview_button_direct(package)}
                    <py:with vars="in_basket=package.id in session.get('preview_list',[])">
-                     <span 
+                     <span
                           class="preview-add js-dataset-${package.id}-add"
                           style="${if_(in_basket,'display: none;')}">
                             <button data-id="${package.id}" class="btn btn-default btn-xs btn-info btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Add to Preview List</button>
                      </span>
-                     <span 
+                     <span
                           class="preview-remove js-dataset-${package.id}-remove"
                           style="${if_(not in_basket,'display: none;')}">
                           <button data-id="${package.id}" class="btn btn-danger btn-xs btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Remove from List</button>
