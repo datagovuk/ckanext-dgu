@@ -2,7 +2,7 @@
   xmlns:i18n="http://genshi.edgewall.org/i18n"
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
-  
+
   <py:def function="page_title">Tags</py:def>
   <py:match path="breadcrumbs">
     <li><a href="/tag">Tags</a></li>
@@ -44,7 +44,7 @@
 
     <div style="padding-bottom: 30px;">
       <py:for each="tag in c.page.items">
-        <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
+        <a href="/data/search?tags=${tag.name}" class="tag">${tag.display_name}</a>
       </py:for>
       <div class="clearfix"></div>
     </div>
