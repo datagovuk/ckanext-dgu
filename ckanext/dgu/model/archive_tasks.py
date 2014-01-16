@@ -62,6 +62,8 @@ class ArchiveTask(Base):
             WHERE R.id = '%s';
         """
         row = model.Session.execute(q % c.resource_id).first()
+        if not row or not row[0]:
+            raise Exception("Missing dataset")
         c.dataset_id = row[0]
 
         if entity.error:

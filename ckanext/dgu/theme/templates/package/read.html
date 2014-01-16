@@ -44,7 +44,7 @@
       <div class="col-lg-push-2 col-lg-4 col-md-push-1 col-md-4 col-sm-5">
         <div class="dataset-map-info">
           <div style="margin-bottom:10px;" py:if="h.get_wms_info_urls(c.pkg_dict)">
-            ${map_preview_button_direct(c.pkg_dict, small=False)} 
+            ${map_preview_button_direct(c.pkg_dict, small=False)}
           </div>
           <py:if test="h.has_bounding_box(c.pkg_extras) and h.get_extent()">
           <h3>Dataset Extent</h3>
@@ -192,6 +192,12 @@
       <div class="dataset-resource-text">
         <div class="inner">
           <div class="inner2">
+            <py:if test="res.get('is_broken', 'False') == True">
+              <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="This resource has errors" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}#linkcheck" style="text-decoration:none;color:red;">
+                <i class="icon-exclamation-sign"></i>
+              </a>
+            </py:if>
+
             <py:if test="res.get('scraped') or res.get('scraper_url')">
               ${h.scraper_icon(res, alt=if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}
             </py:if>
@@ -200,11 +206,11 @@
           </div>
         </div>
       </div>
-      <div class="dropdown">
-        <a href="#" class="dataset-resource-chevron" data-toggle="dropdown">
+      <div class="dropdown" style="pointer-events:none;">
+        <a href="#" class="dataset-resource-chevron" data-toggle="dropdown"  style="pointer-events:auto;">
           <i class="icon-chevron-down"></i>
         </a>
-        <ul class="dropdown-menu" role="menu" py:with="gemini = res.get('gemini',False)">
+        <ul class="dropdown-menu"  style="pointer-events:auto;" role="menu" py:with="gemini = res.get('gemini',False)">
           <li py:if="gemini">
             <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
               <i class="icon-search"></i>&nbsp; ${res['action']}
