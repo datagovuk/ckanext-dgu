@@ -295,9 +295,9 @@ categories = (('core-department', 'UK Government Core Department'),
               ('devolved', 'Devolved Government Body'),
               ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
               ('local-council', 'Local Council'),
-              ('gov-corporation', 'Government Corporation'),
+              ('gov-corporation', 'Public Corporation'),
               ('private', 'Private Sector'),
-              ('grouping', 'A notional grouping of organisations'),
+              ('grouping', 'A notional grouping, team or organisation'),
               )
 
 def validate_publisher_category(key, data, errors, context):
