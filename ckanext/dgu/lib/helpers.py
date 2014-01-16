@@ -972,8 +972,15 @@ def is_sysadmin(u=None):
 def is_sysadmin_by_context(context):
     # For a context, returns whether this user is a syadmin or not
     from ckan import new_authz
-    if 'auth_user_obj' in context:
-        return context['auth_user_obj'].sysadmin
+
+    # auth_user_obj is set to None in check_access if it isn't already
+    # present in the context.  This means that it will break for places where
+    # check_access is called (and then this function) before the c.userobj is
+    # set
+    auth_user_obj = context.get('auth_user_obj')
+    if auth_user_obj:
+        return auth_user_obj.sysadmin
+
     return new_authz.is_sysadmin(context['user'])
 
 def prep_user_detail():
@@ -1172,7 +1179,7 @@ def are_legacy_extras(data):
 
 def timeseries_resources():
     from ckan.lib.field_types import DateType
-    unsorted = c.pkg_dict.get('timeseries_resources', [])    
+    unsorted = c.pkg_dict.get('timeseries_resources', [])
     get_iso_date = lambda resource: DateType.form_to_db(resource.get('date'),may_except=False)
     return sorted(unsorted, key=get_iso_date)
 
