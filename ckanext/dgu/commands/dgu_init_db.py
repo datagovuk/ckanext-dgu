@@ -111,24 +111,29 @@ class DGUInitDB(CkanCommand):
             # Do we want to migrate all, or do we want to migrate
             # only the latest information
 
-            statuses = list(model.Session.query(model.TaskStatus)\
+            total = model.Session.query(model.TaskStatus)\
                             .filter(model.TaskStatus.task_type=='qa')\
-                            .filter(model.TaskStatus.key=='status').all())
-            for status in statuses:
-                qt = q_model.QATask.create(status)
-                log.info("Setting resource (%s) is_broken to %s" % (qt.resource_id, qt.is_broken))
-                try:
-                    res = get_action('resource_show')({'ignore_auth':True, 'user': site_user['name']}, {'id': qt.resource_id})
-                    res['is_broken'] = qt.is_broken
-                    get_action('resource_update')({'ignore_auth':True, 'user': site_user['name']}, res)
-                except NotFound:
-                    # No such resource
-                    log.debug("Resource %s not found, may be deleted" % qt.resource_id)
-                    continue
-                except Exception, e:
-                    log.error("Unable to update resource: %s" % qt.resource_id)
-                    log.exception(e)
-                    continue
+                            .filter(model.TaskStatus.key=='status').count()
 
-                model.Session.add(qt)
-                model.Session.commit()
+            for minimum in xrange(0, total, 100):
+                log.info('Processing qa items from %d to %d' % (minimum,minimum+100,))
+                for status in model.Session.query(model.TaskStatus)\
+                        .filter(model.TaskStatus.task_type=='qa')\
+                        .filter(model.TaskStatus.key=='status').offset(minimum).limit(100):
+                    qt = q_model.QATask.create(status)
+                    log.info("Setting resource (%s) is_broken to %s" % (qt.resource_id, qt.is_broken))
+                    try:
+                        res = get_action('resource_show')({'ignore_auth':True, 'user': site_user['name']}, {'id': qt.resource_id})
+                        res['is_broken'] = qt.is_broken
+                        get_action('resource_update')({'ignore_auth':True, 'user': site_user['name']}, res)
+                    except NotFound:
+                        # No such resource
+                        log.debug("Resource %s not found, may be deleted" % qt.resource_id)
+                        continue
+                    except Exception, e:
+                        log.error("Unable to update resource: %s" % qt.resource_id)
+                        log.exception(e)
+                        continue
+
+                    model.Session.add(qt)
+                    model.Session.commit()
