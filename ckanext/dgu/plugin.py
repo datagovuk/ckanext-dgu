@@ -185,6 +185,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/carparks', controller=data_controller, action='carparks')
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
+        map.connect('/data/viz/social-incubator-fund', controller=data_controller, action='viz_social_incubator_fund')
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')

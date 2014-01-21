@@ -1,8 +1,8 @@
 window.viz ?= {}
 
-# Document.onload()
-# -----------------
-$ ->
+# Social Investments & Foundations
+# --------------------------------
+window.viz.loadSocialInvestmentsAndFoundations = ->
   d3.json "/scripts/json/social_investments_and_foundations/graphs.json", (data) ->
     # Initialise sector colors
     data.pie1['all'].forEach (x) -> 
@@ -59,6 +59,12 @@ $ ->
                 el.css('stroke','none' )
               if el.is('circle')
                 el.css('opacity',1)
+
+# Social Incubator Fund
+# ---------------------
+window.viz.loadSocialIncubatorFund = ->
+  console.log 'here'
+
 
 # Util
 # ----
