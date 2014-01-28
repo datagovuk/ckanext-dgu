@@ -5,7 +5,7 @@
 
   <py:def function="page_title">Tags</py:def>
   <py:match path="breadcrumbs">
-    <li><a href="/tag">Tags</a></li>
+    <li><a href="/data/tag">Tags</a></li>
   </py:match>
 
   <div py:match="content">
@@ -44,7 +44,7 @@
 
     <div style="padding-bottom: 30px;">
       <py:for each="tag in c.page.items">
-        <a href="/data/search?tags=${tag.name}" class="tag">${tag.display_name}</a>
+        <a href="/data/search?tags=${tag}" class="tag">${tag}</a>
       </py:for>
       <div class="clearfix"></div>
     </div>
