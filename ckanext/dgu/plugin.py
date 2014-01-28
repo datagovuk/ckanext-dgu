@@ -225,6 +225,15 @@ class ThemePlugin(p.SingletonPlugin):
         return map
 
     def after_map(self, map):
+        # Delete routes to /tag since we use /data/tag and /tag is confusing to
+        # have kicking around still when it uses the same template with
+        # different inputs.
+        matches_to_delete = []
+        for match in map.matchlist:
+            if match.routepath.startswith('/tag'):
+                matches_to_delete.append(match)
+        for match in matches_to_delete:
+            map.matchlist.remove(match)
         return map
 
 
