@@ -134,7 +134,8 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
     @classmethod
     def harvest_resources(cls, linked_data_registry):
         for res in linked_data_registry.get_harvestable_resources():
-            cls.harvest_resource(res, linked_data_registry)
+            pkg_dict, action = cls.get_pkg_dict(res, linked_data_registry)
+            cls.create_or_update(pkg_dict, action)
 
     @classmethod
     def print_resource(cls, resource, ldr):
@@ -154,7 +155,7 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
                 break
 
     @classmethod
-    def harvest_resource(cls, resource, ldr):
+    def get_pkg_dict(cls, resource, ldr):
         from ckan import model
 
         pkg_dict = OrderedDict()
@@ -215,10 +216,11 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
         extras['status'] = str(status).split('#')[-1]
         extras['harvested_version'] = str(metadata[OWL.versionInfo].next())
         extras['data_standard_type'] = dgu_type
+        pkg_dict['type'] = 'data-standard'
 
-        pkg_dict['extras'] = extras
+        pkg_dict['extras'] = [{'key': k, 'value': v} for k, v in extras.items()]
         pkg_dict['resources'] = resources
-        return pkg_dict
+        return pkg_dict, action
 
     @classmethod
     def get_resource_metadata(cls, uri):
@@ -261,6 +263,45 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
         else:
             return DGU_TYPE__CONTROLLED_LIST
 
+    @classmethod
+    def create_or_update(cls, pkg_dict, action):
+        from ckan import model
+        from ckan.model import Session
+        log = __import__('logging').getLogger(__name__)
+
+        #TODO deal with 'HarvestObject.current' etc
+        # c.f. https://github.com/okfn/ckanext-geodatagov/blob/master/ckanext/geodatagov/harvesters/arcgis.py#L219
+        #if action == 'new':
+        #    package_schema = logic.schema.default_create_package_schema()
+        #else:
+        #    package_schema = logic.schema.default_update_package_schema()
+        class MockHarvestObject: pass
+        harvest_object = MockHarvestObject()
+        harvest_object.guid = pkg_dict['name']
+
+        context = {'model':model, 'session':Session, 'user':'harvest',
+                   'api_version': 3, 'extras_as_string': True} #TODO: user
+
+        if action == 'new':
+            try:
+                package_id = p.toolkit.get_action('package_create')(context, pkg_dict)
+                log.info('Created new package %s with guid %s', package_id, harvest_object.guid)
+            except p.toolkit.ValidationError, e:
+                print '!!! Validation error:', e.error_summary
+                #cls._save_object_error('Validation Error: %s' % str(e.error_summary), harvest_object, 'Import')
+                return False
+        elif action == 'update':
+            try:
+                package_id = p.toolkit.get_action('package_update')(context, pkg_dict)
+                log.info('Updated package %s with guid %s', package_id, harvest_object.guid)
+            except p.toolkit.ValidationError,e:
+                print '!!! Validation error:', e.error_summary
+                #cls._save_object_error('Validation Error: %s' % str(e.error_summary), harvest_object, 'Import')
+                return False
+
+        model.Session.commit()
+        return True
+
 if __name__ == '__main__':
     import sys
     from ckanext.dgu.bin import common
@@ -292,5 +333,6 @@ if __name__ == '__main__':
     #ldr.get_resource(sr.identifier)
     #LinkedDataRegistryHarvester.harvest_resources(ldr)
     res_uri = 'http://environment.data.gov.uk/registry/def/catchment-planning/RiverBasinDistrict'
-    from pprint import pprint
-    pprint(LinkedDataRegistryHarvester.harvest_resource(ldr.get_resource(res_uri), ldr))
+    pkg_dict, action = LinkedDataRegistryHarvester.get_pkg_dict(ldr.get_resource(res_uri), ldr)
+    LinkedDataRegistryHarvester.create_or_update(pkg_dict, action)
+
