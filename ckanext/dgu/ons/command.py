@@ -1,6 +1,8 @@
 import datetime
+import logging
 
 from ckanext.importlib.api_command import ApiCommand
+from ckanext.dgu.bin.running_stats import StatsList
 
 class OnsLoaderCmd(ApiCommand):
     user_agent = 'ONS Loader'
@@ -35,7 +37,10 @@ class OnsLoaderCmd(ApiCommand):
         self.parser.add_option("-c", "--cache-dir",
                                dest="ons_cache_dir",
                                help="Path to store downloads from ONS Pub Hub")
-        
+        self.parser.add_option("--publisher",
+                               dest="publisher",
+                               help="Filter by this publisher")
+
     def parse_date(self, date_str):
         return datetime.date(*[int(date_chunk) for date_chunk in date_str.split('-')])
 
@@ -48,8 +53,9 @@ class OnsLoaderCmd(ApiCommand):
         from ckanext.dgu.ons.loader import OnsLoader
 
         ApiCommand.command(self)
+        log = logging.getLogger(__name__)
 
-        try:        
+        try:
             if self.options.days:
                 self.options.days = int(self.options.days)
             if self.options.start_date:
@@ -85,14 +91,21 @@ class OnsLoaderCmd(ApiCommand):
             else:
                 self.parser.error('Please specify a time period')
 
-            importer = OnsImporter(filepaths=data_filepaths, ckanclient=self.client)
-            loader = OnsLoader(self.client)
+            filter_ = {}
+            if self.options.publisher:
+                filter_['publisher'] = self.options.publisher
+
+            stats = StatsList()
+            importer = OnsImporter(filepaths=data_filepaths,
+                                   ckanclient=self.client, stats=stats,
+                                   filter_=filter_)
+            loader = OnsLoader(self.client, stats)
 
             loader.load_packages(importer.pkg_dict())
+            log.info('Summary:\n' + stats.report())
         except:
             # Any problem, make sure it gets logged
-            import logging
-            logging.getLogger(__name__).exception('ONS Loader exception')
+            log.exception('ONS Loader exception')
             raise
 
 def load():
