@@ -72,6 +72,8 @@ class DataController(BaseController):
         return render('viz/social_investment_and_foundations.html')
     def viz_social_incubator_fund(self):
         return render('viz/social_incubator_fund.html')
+    def viz_front_page(self):
+        return render('viz/front_page.html')
 
 
     def resource_cache(self, root, resource_id, filename):

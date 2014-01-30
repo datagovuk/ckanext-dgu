@@ -888,37 +888,84 @@ ul.ui-autocomplete {
 
 /* PAGE: Front Page */
 /* ---------------- */
-body.controller-data.action-index {
-    .dataset-summary {
-      border: 1px solid #ccc !important;
+body#front-page {
+  #breadcrumbs {
+    display: none;
+  }
+  .front-page-container {
+    margin: 20px 0;
+  }
+  .front-page-box {
+    display: block;
+    margin-bottom: 16px;
+    position: relative;
+    height: 100px;
+    .img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      img {
+        width: 100%;
+      }
     }
-    div#tagcloud {
-        clear: both;
-        margin: 10px auto;
-        @media(min-width:992px) { 
-          margin-top: 50px;
-        }
-        text-align: center;
-        * {
-            display: inline-block;
-            vertical-align: middle;
-            line-height: 0.9;
-            //line-height: 1.15; /* Fixes clipping on IE7. The "//" is ignored by IE7 */
-        }
-        a {
-            text-decoration: none;
-            &:hover {
-                text-decoration: underline;
-            }
-        }
+    .text {
+      display: block;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 10px;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      small { 
+        display: block;
+        font-size: 80%; 
+        color: #fff;
+      }
+      .posttext { opacity: 0; }
     }
-    .dataset-header .format-box {
-        /* These look kind of broken on the front page */
-        display: none;
+    &:hover {
+      text-decoration: none;
+      .text {
+        background: rgba(0,0,0,0.9);
+        small { color: #ccc; }
+        .posttext { opacity: 1; }
+      }
     }
-    .space-between-rows {
-      height: 15px;
+  }
+}
+// @media(max-width: 767px) { min-width: 25px; }
+// @media(max-width: 991px) { min-width: 19px; }
+@media (min-width: 450px) and (max-width:767px) { 
+  body#front-page {
+    .col-md-4 .front-page-box{
+      height: 150px;
     }
+  }
+}
+@media(min-width: 768px) { 
+  body#front-page {
+    .col-md-4:nth-child(1) .front-page-box,
+    .col-md-4:nth-child(2) .front-page-box {
+      height: 200px;
+    }
+  }
+}
+@media(min-width: 992px) { 
+  body#front-page {
+    .col-md-4:nth-child(1) .front-page-box,
+    .col-md-4:nth-child(2) .front-page-box,
+    .col-md-4:nth-child(3) .front-page-box {
+      height: 200px;
+      .img img {
+        min-height: 200px;
+      }
+    }
+  }
 }
 
 
