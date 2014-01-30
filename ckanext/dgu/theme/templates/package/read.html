@@ -14,6 +14,7 @@
   <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets</py:def>
 
   <xi:include href="../inventory/inventory_util.html" />
+  <xi:include href="../comments/util.html" />
 
   <py:match path="breadcrumbs">
     <li><a href="/data/search">Datasets</a></li>
@@ -148,7 +149,11 @@
     </div>
 
 
-    <div id="comments-container">
+    --
+    ${show_comments('/dataset/school_characteristics_-_religious_character_size_status')}
+    --
+
+    <div id="xcomments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
       <div style="height: 50px;" class="comments-spinner"></div>
     </div>
