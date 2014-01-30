@@ -2,6 +2,106 @@ window.viz ?= {}
 
 # Social Investments & Foundations
 # --------------------------------
+window.viz.loadFrontPage = ->
+    barChart = new viz.frontPageStackedBar( window.viz_graph_datasets )
+
+
+class window.viz.frontPageStackedBar
+    constructor: (data) ->
+        @setData data
+
+    setData: (data) ->
+        data = d3.csv.parse(data)
+        stack = ['published','unpublished']
+
+        #console.log 'graphing',data
+        margin = 
+            top: 20
+            right: 20
+            bottom: 20
+            left: 40
+        width = 560 - margin.left - margin.right
+        height = 300 - margin.top - margin.bottom
+        # Graph settings
+        # --------------
+        x = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .1)
+        y = d3.scale.linear()
+            .rangeRound([height, 0])
+        color = d3.scale.ordinal()
+            .range(["#8BC658", "#bedba4"])
+        xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+        yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .tickFormat(d3.format(".2s"))
+        svg = d3.select(".graph1").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .style("margin", "0 auto")
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        color.domain(  d3.keys(data[0]).filter((key)->key!="date")  )
+        data.forEach((d)->
+            y0 = 0
+            d.ages = color.domain().map((name)->{name: name, y0: y0, y1: y0 += +d[name]})
+            d.total = d.ages[d.ages.length - 1].y1
+        )
+        x.domain( data.map((d)->d.date) )
+        y.domain( [0, d3.max(data, (d)->d.total)] )
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .append("text")
+            .attr("x", 6)
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .text("Weekly Sample")
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("No. of Datasets")
+        state = svg.selectAll(".state")
+            .data(data)
+            .enter().append("g")
+                .attr("class", "g")
+                .attr("transform", (d) -> "translate("+x(d.date)+",0)" )
+        state.selectAll("rect")
+              .data((d) -> d.ages )
+          .enter().append("rect")
+              .attr("width", x.rangeBand())
+              .attr("y", (d) -> y(d.y1) )
+              .attr("height", (d) -> y(d.y0) - y(d.y1) )
+              .style("fill", (d) -> color(d.name) )
+        legend = svg.selectAll(".legend")
+            .data(color.domain().slice().reverse())
+          .enter().append("g")
+            .attr("class", "legend")
+            .attr("transform", (d,i) -> "translate(0,"+i*20+")" );
+        legend.append("rect")
+            .attr("x", width/3 - 18)
+            .attr("width", 18)
+            .attr("height", 18)
+            .style("fill", color)
+        legend.append("text")
+            .attr("x", width/3 - 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "end")
+            .text((d)->d )
+
+
+
+
+# Social Investments & Foundations
+# --------------------------------
 window.viz.loadSocialInvestmentsAndFoundations = ->
   d3.json "/scripts/json/social_investments_and_foundations/graphs.json", (data) ->
     # Initialise sector colors

@@ -23,7 +23,90 @@
     <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
     <script type="text/javascript" src="/scripts/dgu-viz-pack.min.js"></script>
     <script type="text/javascript">
-      $(function() { viz.loadSocialInvestmentsAndFoundations(); })
+
+      window.viz_graph_datasets = "date,published,unpublished\n\
+2013-08-01,9733,0\n\
+2013-08-08,9769,0\n\
+2013-08-15,9799,0\n\
+2013-08-22,9838,10\n\
+2013-08-29,9973,15\n\
+2013-09-05,10058,3099\n\
+2013-09-12,10118,3385\n\
+2013-09-19,10160,3400\n\
+2013-09-26,10263,3598\n\
+2013-10-03,10285,3625\n\
+2013-10-10,10314,3628\n\
+2013-10-17,10352,3630\n\
+2013-10-24,10385,3647\n\
+2013-10-31,10475,3792\n\
+2013-11-07,10716,4169\n\
+2013-11-14,12256,4169\n\
+2013-11-21,12359,4169\n\
+2013-11-28,12650,4169\n\
+2013-12-05,13047,4169\n\
+2013-12-12,13308,4170\n\
+2013-12-19,13447,4170\n\
+2013-12-26,13602,4170\n\
+2014-01-02,13605,4170\n\
+2014-01-09,13625,4170\n\
+2014-01-16,13625,4170\n\
+2014-01-23,13625,4170\n\
+2014-01-30,13625,4170";
+      window.viz_graph_formats = [
+    {
+        "value": 21118, 
+        "format": "csv"
+    }, 
+    {
+        "value": 4710, 
+        "format": "xls"
+    }, 
+    {
+        "value": 1845, 
+        "format": "html"
+    }, 
+    {
+        "value": 1620, 
+        "format": "pdf"
+    }, 
+    {
+        "value": 1037, 
+        "format": "xml"
+    }, 
+    {
+        "value": 724, 
+        "format": "etc"
+    }, 
+    {
+        "value": 454, 
+        "format": "zip"
+    }, 
+    {
+        "value": 322, 
+        "format": "ods"
+    }, 
+    {
+        "value": 302, 
+        "format": "wms"
+    }, 
+    {
+        "value": 263, 
+        "format": "rdf"
+    }, 
+    {
+        "value": 227, 
+        "format": "txt"
+    }, 
+    {
+        "value": 161, 
+        "format": "doc"
+    }, 
+    {
+        "value": 110, 
+        "format": "csv/zip"
+    }
+];
+      $(function() { viz.loadFrontPage(); })
     </script>
   </py:def>
 
@@ -38,102 +121,72 @@
 
   <py:match path="content">
     <div class="container front-page-container">
-      <div class="row">
-        ${front_page_box('#',
-            'Linked data, registries and talking about the weather',
-            '/images/frontpage-weather.jpg'
-        )}
-        ${front_page_box('#',
-            'Of open data, sticky sweets and nights in Ibiza',
-            '/images/frontpage-hackday.jpg'
-        )}
-        ${front_page_box('#',
-            'Data.gov.uk to go',
-            '/images/frontpage-to-go.png',
-            subtitle='Integrated release of our Ckan-Drupal stack',
-            img_style='margin-top:-11%;'
-        )}
-        ${front_page_box('#',
-            'What did open data ever do for us?',
-            '/images/frontpage-paul-maltby.jpg'
-        )}
-        ${front_page_box('#',
-            'Improvements to data.gov.uk',
-            '/images/frontpage-antonio-acuna.jpg',
-            img_style='margin-top:-21%;'
-        )}
-        ${front_page_box('#',
-            'A quick guide to working with data',
-            '/images/frontpage-guide.jpg'
-        )}
-      </div>
-      <div class="row">
-        <div class="whitebox" style="overflow: visible; width:">
-    <div class="viz-body">
-      <ul class="foundation-selector">
-        <li><h3 class="prefix">View data for:</h3></li>
-        <li><a href="#" data-key="all" class="active first"><div style="padding-top: 24px;">All Foundations</div><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_barrow"><img style="margin-top: 3px;" src="/images/barrow.png" class="foundation" /><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_panahpur"><img style="margin-top:25px;" src="/images/panahpur.png" class="foundation" /><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_lankelly"><img style="margin-top:10px;" src="/images/lankellychase.png" class="foundation" /><div class="chevron"></div></a></li>
-      </ul>
-      <div id="graph_yearonyear">
-        <div class="yearonyear-right">
-          <h3>Investment To Date</h3>
-          <h1 id="investment-total"></h1>
-        </div>
-        <small class="yearonyear-right2">
-          <h4>Year-On-Year Cash Investment</h4>
-          A summary of cash invested by foundations from 2010 to 2013. The donut charts beneath this show the cash invested per sector and the investment product types. <br/>
-          <em>Data Fields: Cash Invested, Sector, Product Type</em>
-        </small>
-      </div>
-      <ul class="foundation-selector">
-        <li><h3 class="prefix">View data for:</h3></li>
-        <li><a href="#" data-key="all" class="active first"><div style="padding-top: 24px;">All Foundations</div><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_barrow"><img style="margin-top: 3px;" src="/images/barrow.png" class="foundation" /><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_panahpur"><img style="margin-top:25px;" src="/images/panahpur.png" class="foundation" /><div class="chevron"></div></a></li>
-        <li><a href="#" data-key="foundation_lankelly"><img style="margin-top:10px;" src="/images/lankellychase.png" class="foundation" /><div class="chevron"></div></a></li>
-      </ul>
-      <div>
-        <div style="width:50%;float:left;">
-          <div id="graph_pie1">
-            <h4>Sector Summary</h4>
-            <div class="caption"></div>
-          </div>
-        </div>
-        <div style="width:50%;float:left;">
-          <div id="graph_pie2">
-            <h4>Product Type</h4>
-            <div class="caption"></div>
-          </div>
-        </div>
-        <div class="clearfix">
-        </div>
-      </div>
-      <hr/>
-      <div id="graph_sankey">
-        <h4>Investment Strategies</h4>
-        <small class="strategy-blurb">The chart shows where and how investments have been made by foundations between four categories. Hover your mouse over the threads to show the amount invested between each data field and move the coloured bars on a vertical axis to change the structure.
-          <br/><em>Data Fields: Cash Invested, Type of Organisation, Product Type, Purpose of Investment, Sector</em></small>
-      </div>
-      <hr/>
-      <div id="graph_coinvestment">
-        <h4>CoInvestment Contributions</h4>
-        <div class="coinvestment-right">
-          <h3>CoInvestment To Date</h3>
-          <h1 id="coinvestment-total"></h1>
-          <small>Foundations are collaborative investors in the sector. This visualisation shows that by investing £6.2m, these three foundations have contributed towards wider a total investments of £105.6m.<br/><br/>For example, the total investment of £12m has included co-investment by The LankellyChase Foundation (£600k), The Barrow Cadbury Trust (£600k) and other investors (£10.8m).<br/><hr/>
-            The outer segments show specific investments by foundations and the inner segments show the investment totals.<br/>
-            (Graph segments not to scale:<br/> Logarithmic sizes are used for clarity)<br/>
-<em>Data fields: Cash Invested, Total Value, Foundation</em></small>
-        </div>
-        <div class="caption"></div>
+      <div class="row" style="margin-bottom: 20px;">
+      ${front_page_box('blog/linked-data-registries-and-talking-about-weather',
+          'Linked data, registries and talking about the weather',
+          '/images/frontpage-weather.jpg'
+      )}
+      ${front_page_box('blog/open-data-sticky-sweets-and-nights-ibiza',
+          'Of open data, sticky sweets and nights in Ibiza',
+          '/images/frontpage-hackday.jpg'
+      )}
+      ${front_page_box('blog/datagovuk-to-go',
+          'Data.gov.uk to go',
+          '/images/frontpage-to-go.png',
+          subtitle='Integrated release of our Ckan-Drupal stack',
+          img_style='margin-top:-11%;'
+      )}
+      ${front_page_box('blog/what-did-open-data-ever-do-us',
+          'What did open data ever do for us?',
+          '/images/frontpage-paul-maltby.jpg',
+          img_style='margin-top:-6%;'
+      )}
+      ${front_page_box('blog/improved-datagovuk',
+          'Improvements to data.gov.uk',
+          '/images/frontpage-antonio-acuna.jpg',
+          img_style='margin-top:-21%;'
+      )}
+      ${front_page_box('blog/simple-intro-open-data',
+          'A quick guide to working with data',
+          '/images/frontpage-guide.jpg'
+      )}
+  </div><!--/row-->
+  <hr/>
+  <div class="row" style="margin-bottom: 20px;">
+    <div class="col-sm-4">
+    <div class="counts counts1">
+      <h2>Data Catalogue</h2>
+      <a class="count" href="/data/search?unpublished=true">
+        <div class="big">4168</div>
+        <div class="small">unpublished datasets</div>
+      </a>
+      <a class="count" href="/data/search?unpublished=false">
+        <div class="big">13748</div>
+        <div class="small">published datasets</div>
+      </a>
+    </div>
+    </div>
+    <div class="col-sm-8">
+    <div class="graph graph1">
+    </div>
+    </div>
+    </div>
+    <div class="row" style="margin-bottom: 20px;">
+    <div class="col-sm-8">
+    <div class="graph graph2">
+      (resources pie chart)
+    </div>
+    </div>
+    <div class="col-sm-4">
+    <div class="counts counts2">
+      <div class="count">
+        <div class="big">70243</div>
+        <div class="small">resources</div>
       </div>
     </div>
-        </div>
-      </div>
     </div>
+  </div><!--/row-->
+  </div><!--/container-->
   </py:match>
   <xi:include href="../layout.html" />
 </html>
