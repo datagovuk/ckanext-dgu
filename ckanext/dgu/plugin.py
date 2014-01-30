@@ -35,6 +35,9 @@ def not_found(self, url):
     abort(404)
 
 def _guess_package_type(self, expecting_name=False):
+    parts = [x for x in request.path.split('/') if x]
+    if parts[0] in ('data', 'dataset'):
+        return 'dataset'
     return 'dataset'
 
 class ReportsPlugin(p.SingletonPlugin):
@@ -127,10 +130,11 @@ class ThemePlugin(p.SingletonPlugin):
     # and there is no need to attempt to barf on their unicode characters
     from ckan.controllers.template import TemplateController
     TemplateController.view = not_found
+
     # [Monkey patch] Stop autodetecting package-type by the URL since it seems
     # to think /data/search should search for 'search' packages!
-    from ckan.controllers.package import PackageController
-    PackageController._guess_package_type = _guess_package_type
+    #from ckan.controllers.package import PackageController
+    #PackageController._guess_package_type = _guess_package_type
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'theme/templates')
@@ -163,19 +167,17 @@ class ThemePlugin(p.SingletonPlugin):
         return helper_dict
 
     def before_map(self, map):
-        """
-        Make "/data" the homepage.
-        """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
         tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
         map.redirect('/', '/data')
-        map.redirect('/data', '/data/search')
+        map.redirect('/data', '/dataset')
+        map.redirect('/data/search', '/dataset')
         #map.connect('/data', controller=data_controller, action='index')
 
         map.connect('/data/tag', controller=tag_controller, action='index')
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
-        map.connect('/data/search', controller='package', action='search')
+        map.connect('/dataset', controller='package', action='search')
         map.connect('/data/api', controller=data_controller, action='api')
         map.connect('/data/system_dashboard', controller=data_controller, action='system_dashboard')
         map.connect('/data/openspending-browse', controller=data_controller, action='openspending_browse')
