@@ -8,7 +8,7 @@ var webshot = require('webshot');
  */
 var targets = [
 {
-  url: 'http://localhost:2008/data/viz/social-investment-and-foundations',
+  url: 'http://localhost:3008/data/viz/social-investment-and-foundations',
   dest: 'src/images/graph-socialinvestment.png',
 }
 ];
