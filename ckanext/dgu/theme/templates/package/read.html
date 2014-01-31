@@ -148,15 +148,8 @@
       <a class="view-feedback-link" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}">View all feedback &raquo;</a>
     </div>
 
-
-    --
     ${show_comments('/dataset/%s' % c.pkg.name)}
-    --
 
-    <div id="xcomments-container">
-      <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
-      <div style="height: 50px;" class="comments-spinner"></div>
-    </div>
   </py:def>
 
 
