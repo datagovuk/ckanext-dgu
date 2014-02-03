@@ -121,6 +121,10 @@ class DGUInitDB(CkanCommand):
                         .filter(model.TaskStatus.task_type=='qa')\
                         .filter(model.TaskStatus.key=='status').offset(minimum).limit(100):
                     qt = q_model.QATask.create(status)
+                    if not qt:
+                        log.error("Failed to create a QATask for TaskStatus@%s" % status.id )
+                        continue
+
                     log.info("Setting resource (%s) is_broken to %s" % (qt.resource_id, qt.is_broken))
                     try:
                         res = get_action('resource_show')({'ignore_auth':True, 'user': site_user['name']}, {'id': qt.resource_id})

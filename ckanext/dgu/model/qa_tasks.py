@@ -48,9 +48,16 @@ class QATask(Base):
         from paste.deploy.converters import asbool
 
         c = cls()
-        c.created = entity.last_updated
-        c.resource_id = entity.entity_id
-        c.created = entity.last_updated
+        try:
+            # Entirely possible that the entity will be missing
+            # and cause sqlalchemy to throw a wobbly
+            c.created = entity.last_updated
+            c.resource_id = entity.entity_id
+            c.created = entity.last_updated
+        except:
+            # Caller will log the error
+            return None
+
 
         # We need to find the dataset_id for the resource.
         q = """
