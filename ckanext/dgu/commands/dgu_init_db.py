@@ -122,7 +122,7 @@ class DGUInitDB(CkanCommand):
                         .filter(model.TaskStatus.key=='status').offset(minimum).limit(100):
                     qt = q_model.QATask.create(status)
                     if not qt:
-                        log.error("Failed to create a QATask for TaskStatus@%s" % status.id )
+                        log.error("Failed to create a QATask for TaskStatus" )
                         continue
 
                     log.info("Setting resource (%s) is_broken to %s" % (qt.resource_id, qt.is_broken))
