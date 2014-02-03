@@ -67,17 +67,20 @@
         </div>
 
         <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
-          <tr>
-            <th>Dataset</th>
-            <th>Publish Date</th>
-            <th>Publisher</th>
-            <th>Economic growth</th>
-            <th>Social growth</th>
-            <th>Effective services</th>
-            <th>Linked data</th>
-            <th>Other</th>
-            <th>Total</th>
-          </tr>
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Publish Date</th>
+              <th>Publisher</th>
+              <th>Economic growth</th>
+              <th>Social growth</th>
+              <th>Effective services</th>
+              <th>Linked data</th>
+              <th>Other</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
           <py:for each="stats in c.page.items">
             <tr>
                 <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
@@ -92,6 +95,7 @@
                 <td>${stats.get('total-comments',0)}</td>
             </tr>
           </py:for>
+          </tbody>
       </table>
 
           <a class='pull-right' py:if="c.publisher" href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">View all publishers</a>
@@ -103,6 +107,21 @@
         <div class="clearfix"></div>
     </div>
   </div>
+
+  <py:def function="optional_footer">
+    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
+    <script type="text/javascript">
+      //<![CDATA[
+      $(document).ready(function()
+        {
+          $("#report-table").tablesorter({
+              dateFormat: "uk",
+          });
+        }
+      );
+    // ]]>
+    </script>
+  </py:def>
 
   <xi:include href="../layout_base.html" />
 </html>
