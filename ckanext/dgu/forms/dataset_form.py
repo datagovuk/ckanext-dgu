@@ -1,4 +1,5 @@
 ﻿import re
+import json
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
