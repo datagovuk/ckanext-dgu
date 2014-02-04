@@ -131,7 +131,7 @@
           </ul>
         </div>
       </span>
-      <a class="js-tooltip dropdown-button rss-link" data-placement="top" title="" data-delay="300" data-original-title="RSS&nbsp;Feed" href="${h.url(controller='feed', action='group', id=c.group['name'])}">
+      <a class="js-tooltip dropdown-button rss-link" data-placement="top" title="" data-delay="300" data-original-title="RSS&nbsp;Feed" href="${h.url(controller='feed', action='organization', id=c.group['name'])}">
         <i class="icon-rss icon-2x"></i>
       </a>
     </div>
@@ -209,8 +209,8 @@
   </py:match>
 
   <py:def function="optional_feed">
-    <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
-      href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
+    <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in organization '${c.group['title']}'"
+      href="${h.url(controller='feed', action='organization', id=c.group['name'])}" />
   </py:def>
 
   <py:def function="optional_footer">

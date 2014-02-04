@@ -1,12 +1,10 @@
 import xml.sax
 import re
 import os
-import glob
 import HTMLParser
 
-from ckanext.importlib.importer import PackageImporter
+from ckanext.importlib.importer import PackageImporter, RowParseError
 from ckanext.dgu import schema
-from ckanext.dgu.ons.producers import get_ons_producers
 from ckanext.dgu.lib.theme import categorize_package, PRIMARY_THEME, SECONDARY_THEMES
 from datautildate import date
 
@@ -16,7 +14,7 @@ log = __import__("logging").getLogger(__name__)
 
 
 class OnsImporter(PackageImporter):
-    def __init__(self, filepaths, ckanclient):
+    def __init__(self, filepaths, ckanclient, stats, filter_=None):
         if not isinstance(filepaths, (list, tuple)):
             filepaths = [filepaths]
         self._current_filename = os.path.basename(filepaths[0]) \
@@ -25,6 +23,13 @@ class OnsImporter(PackageImporter):
         self._new_package_count = 0
         self._crown_license_id = u'uk-ogl'
         self._ckanclient = ckanclient
+        self._filter = filter_ or {}
+        for key in self._filter.keys():
+            if key == 'publisher':
+                filter_['publisher'] = self._source_to_publisher(filter_['publisher'])
+            else:
+                raise NotImplementedError
+        self._stats = stats
         super(OnsImporter, self).__init__(filepath=filepaths)
 
     def import_into_package_records(self):
@@ -35,22 +40,36 @@ class OnsImporter(PackageImporter):
         for filepath in self._filepath:
             log.info('Importing from file: %s', filepath)
             self._current_filename = os.path.basename(filepath)
-            count = 0
+            count_imported = count_not_imported = 0
             for item in OnsDataRecords(filepath):
                 log.info('Item %s %s', item['guid'][-9:], item['pubDate'])
-                yield self.record_2_package(item)
-                count += 1
-            log.info('%i records were imported from file: %s', count, filepath)
+                # record_2_package might raise RowParseError if bad guid
+                pkg_dict = self.record_2_package(item)
+                if pkg_dict:
+                    yield pkg_dict
+                    count_imported += 1
+                else:
+                    count_not_imported += 1
+            log.info('%i/%i records were imported from file: %s',
+                     count_imported,
+                     count_imported + count_not_imported, filepath)
+
+    def _add_stat(self, message, item):
+        item_id = '%s (%s)' % (item['title'], item['pubDate'])
+        return self._stats.add(message, item_id)
 
     def record_2_package(self, item):
         assert isinstance(item, dict)
-
-        # process item
         title, release = self._split_title(item['title'])
         munged_title = schema.name_munge(title)
         publisher_id = self._source_to_publisher(item['hub:source-agency'])
         if not publisher_id:
             log.warn('Did not find publisher for source-agency: %s', item['hub:source-agency'])
+
+        if 'publisher' in self._filter and publisher_id != self._filter['publisher']:
+            self._add_stat('Filtered out publisher', item)
+            log.info('Ignoring item from publisher: %s', item['hub:source-agency'])
+            return
 
         # Resources
         guid = item['guid'] or None
@@ -60,7 +79,6 @@ class OnsImporter(PackageImporter):
             guid = guid[len(guid_prefix):]
             if 'http' in guid:
                 raise RowParseError('GUID de-prefixed should not have \'http\' in it still: %r' % (guid))
-        existing_resource = None
         download_url = item.get('link', None)
 
         notes_list = []

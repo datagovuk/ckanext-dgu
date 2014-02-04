@@ -5,7 +5,7 @@ from datautildate import date
 from ckanext.importlib.loader import ResourceSeriesLoader
 
 class OnsLoader(ResourceSeriesLoader):
-    def __init__(self, ckanclient):
+    def __init__(self, ckanclient, stats):
         field_keys_to_find_pkg_by = ['title', 'owner_org', 'external_reference']
         field_keys_to_expect_invariant = [
             'geographic_coverage', 'temporal_granularity',
@@ -17,6 +17,7 @@ class OnsLoader(ResourceSeriesLoader):
             field_keys_to_find_pkg_by,
             field_keys_to_expect_invariant=field_keys_to_expect_invariant,
             extras_to_not_overwrite=extras_to_not_overwrite,
+            stats=stats
             )
 
     def _get_search_options(self, field_keys, pkg_dict):

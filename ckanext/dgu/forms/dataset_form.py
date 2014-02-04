@@ -1,4 +1,5 @@
-﻿import json
+﻿import re
+import json
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
@@ -175,6 +176,8 @@ class DatasetForm(p.SingletonPlugin):
                         schema = default_schema.default_create_package_schema()
                     else:
                         schema = default_schema.default_update_package_schema()
+                    # Tag validation is looser than CKAN default
+                    schema['tags'] = tags_schema()
                 else:
                     # Customized schema for DGU form
                     schema = self.form_to_db_schema_options(context)
@@ -494,13 +497,20 @@ def validate_group_id_or_name_exists_if_not_blank(value, context):
     return val.group_id_or_name_exists(value, context)
 
 
+def tag_name_extended_validator(value, context):
+    tagname_match = re.compile('[\w \-.()\':&/,+=\[\]]*$', re.UNICODE)
+    if not tagname_match.match(value):
+        raise Invalid(('Tag "%s" must be alphanumeric '
+            'characters or symbols: -_.()\':&/,+=[]') % (value))
+    return value
+
 def tags_schema():
+    # Allow tags of 1 character e.g. B (chemical name for Boron)
     schema = {
         'name': [not_missing,
                  not_empty,
                  unicode,
-                 val.tag_length_validator,
-                 val.tag_name_validator,
+                 tag_name_extended_validator,
                  ],
         'revision_timestamp': [ignore],
         'state': [ignore],

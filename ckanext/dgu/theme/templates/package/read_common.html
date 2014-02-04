@@ -122,6 +122,7 @@
               <span py:if="not url" rel="dc:rights"><em>&ldquo;${license_text}&rdquo;</em>${separator}</span>
             </py:if>
           </py:with>
+
           <!--
           &nbsp;
           <py:if test="isopen == True">
@@ -135,6 +136,7 @@
         </py:for>
       </span>
     </div>
+
     <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;"
       py:with="stars,reason,last_updated=h.calculate_dataset_stars(c.pkg.id)"
       >
@@ -159,7 +161,6 @@
             <i class="icon-star-empty"></i>
           </py:for>
         </a>
-
       </span>
 
       <span class="dropdown" py:if="h.is_certificates_installed() and h.has_certificate(c.pkg)" style="margin-left: 24px;">
@@ -180,6 +181,10 @@
             </div>
         </py:with>
       </span>
+
+      <div class="js-tooltip format-box pull-right" style='font-weight: bold; padding: 8px; background-color: #8BC658;' py:if="h.is_core_dataset(c.pkg_dict)" title="National Information Infrastructure">
+          <span>NII</span>
+      </div>
 
     </div>
 
@@ -210,7 +215,7 @@
         <!-- blank style tag avoids a bug in jquery.dotdotdot -->
         <div class="notes" style="">
           <div class="dataset-theme theme-${h.get_primary_theme(c.pkg_dict) or 'none'}">
-            <span class="theme-name">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</span>
+            <div class="theme-name">${h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}</div>
           </div>
           <a
             class="dataset-optional-logo"
@@ -226,6 +231,7 @@
           >
             <img src="/images/uk_location.gif" />
           </a>
+
           <div class="notes-inner">
             ${h.render_markdown(c.pkg_dict.get('notes',''))}
             <py:if test="h.is_unpublished_item(c.pkg_dict)" py:with="notes=c.pkg.extras.get('release-notes','').strip()">
@@ -279,7 +285,6 @@
         <div class="panel-body">This dataset is ${deleted}. Only administrators can view it in this state.</div>
       </py:with>
     </div>
-
     ${package_content()}
   </div>
 
