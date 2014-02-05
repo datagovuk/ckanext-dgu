@@ -1,6 +1,84 @@
 
 // --
 .viz-body {
+  .moneyline_mouseover {
+    min-height: 10px;
+    width: 230px;
+    max-width: 230px;
+    position: absolute;
+    padding: 10px;
+    top: 34px;
+    left: 10px;
+    z-index: 999;
+    display: none;
+    background: #fff;
+    border: 1px solid #888;
+    &:hover {
+      display: block !important;
+    }
+  }
+  .moneyline {
+    height: 40px;
+    position: relative;
+    border: 2px solid #555;
+    border-top: none;
+    border-bottom: none;
+    .bg {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: #555;
+    }
+    .point {
+      position: absolute;
+      border: rgba(0,0,0,0.4);
+      width: 5px;
+      height: 20px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.1);
+      top: 50%;
+      margin-top: -9px;
+      &.active {
+        background: rgba(0,0,0,0.4);
+        border-color: #000;
+      }
+    }
+    .min, 
+    .max {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 10px;
+      color: #555;
+      padding: 0 3px;
+    }
+    .max {
+      left: auto;
+      right: 0;
+      text-align: right;
+    }
+  }
+  .headline {
+    white-space: nowrap;
+    .top {
+      color: #555;
+      font-size: 37px;
+      .poundsign {
+        display: inline-block;
+        color: #333;
+        padding-right: 7px;
+        font-size: 48px;
+        vertical-align: middle;
+        margin-top: -6px;
+      }
+    }
+    .bottom {
+      color: #999;
+    }
+  }
+
   h4 {
     color: #666;
   }

@@ -1,7 +1,5 @@
 window.viz ?= {}
 
-# Social Investments & Foundations
-# --------------------------------
 window.viz.loadFrontPage = ->
     barChart = new viz.frontPageStackedBar( window.viz_graph_datasets )
 
@@ -162,8 +160,88 @@ window.viz.loadSocialInvestmentsAndFoundations = ->
 
 # Social Incubator Fund
 # ---------------------
-window.viz.loadSocialIncubatorFund = ->
-  console.log 'here'
+window.viz.loadInvestmentReadiness = ->
+    # data = 
+    #     icrf_mean : 28954
+    #     icrf_count: 47
+    #     icrf_items: [
+    #         { name: 'one',   amount: 1953, url: '#', },
+    #         { name: 'two',   amount: 2201, url: '#', },
+    #         { name: 'two',   amount: 2206, url: '#', },
+    #         { name: 'three', amount: 2099, url: '#', },
+    #     ]
+    d3.json '/scripts/json/investment-readiness-programme/tmp.json', (data) ->
+        #console.log data
+        new viz.headline('#icrf_headline1', data.icrf_mean, 'mean investment', money=true)
+        new viz.headline('#icrf_headline2', data.icrf_count, 'organisations funded')
+        new viz.moneyLine('#icrf_cash', data.icrf_items)
+        window.data = data
+
+class viz.moneyLine
+    constructor: (@selector, @items) ->
+        base = d3.select(@selector)
+        base.style('position','relative')
+        @mouseOverBox = base.append('div')
+            .classed('moneyline_mouseover',true)
+        @container = base.append('div')
+            .classed('moneyline',true)
+        @container.append('div').classed('bg',true)
+        min = d3.min(@items, (d)->d.amount)*0.95
+        max = d3.max(@items, (d)->d.amount)*1.05
+        @points = @container.selectAll('.point')
+            .data(@items)
+            .enter()
+            .append('div')
+            .classed('point',true)
+            .style('left',(d) -> ((d.amount-min)*100)/(max-min)+'%')
+        @container.append('div')
+            .classed('min',true)
+            .html('£'+viz.money_to_string(Math.floor(min)))
+        @container.append('div')
+            .classed('max',true)
+            .html('£'+viz.money_to_string(Math.ceil(max)))
+        @container.on 'mousemove', @onMouseMove
+        base.on 'mouseout', @onMouseOut
+        # Store some precomputed values for elegance and speed
+        @containerBounds = containerBounds = @container[0][0].getBoundingClientRect()
+        @points.each -> @myLeft=@getBoundingClientRect().left-containerBounds.left
+
+    onMouseMove: =>
+        left = d3.mouse(@container[0][0])[0]
+        lit = []
+        @points.classed 'active', (d)-> 
+            if Math.abs(left-@myLeft) < 8
+                lit.push d
+                return true
+        html = lit.map((x)->"<div class=\"entry\"><a href=\"#{x.url}\">#{x.name}</a> <b>£#{viz.money_to_string(x.amount)}</b></div>")
+            .join('<hr/>')
+        if lit.length
+            max_w = @containerBounds.width - 250
+            @mouseOverBox.html(html)
+                .style('left', Math.max(0, Math.min(max_w, left-125))+'px')
+                .style('display','block')
+        else
+            @mouseOverBox.style('display','none')
+
+
+    onMouseOut: =>
+        @points.classed 'active', false
+        @mouseOverBox.style('display','none')
+
+
+class viz.headline
+    constructor: (@selector, top, bottom, money=false) ->
+        if money
+            top = '<span class="poundsign">£</span>'+viz.money_to_string(top)
+        @container = d3.select(@selector)
+            .append('div')
+            .classed('headline',true)
+        @container.append('div')
+            .classed('top',true)
+            .html(top)
+        @container.append('div')
+            .classed('bottom',true)
+            .html(bottom)
 
 
 # Util
