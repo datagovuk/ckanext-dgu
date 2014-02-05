@@ -172,9 +172,10 @@ window.viz.loadInvestmentReadiness = ->
     #     ]
     d3.json '/scripts/json/investment-readiness-programme/tmp.json', (data) ->
         #console.log data
-        new viz.headline('#icrf_headline1', data.icrf_mean, 'mean investment', money=true)
+        new viz.headline('#icrf_headline1', data.icrf_mean, 'mean amount invested', money=true)
         new viz.headline('#icrf_headline2', data.icrf_count, 'organisations funded')
         new viz.moneyLine('#icrf_cash', data.icrf_items)
+        d3.select('#icrf_map').html('(map goes here)')
         window.data = data
 
 class viz.moneyLine
@@ -188,12 +189,14 @@ class viz.moneyLine
         @container.append('div').classed('bg',true)
         min = d3.min(@items, (d)->d.amount)*0.95
         max = d3.max(@items, (d)->d.amount)*1.05
+        point_color = d3.interpolateRgb('#5c5','#00f')
         @points = @container.selectAll('.point')
             .data(@items)
             .enter()
             .append('div')
             .classed('point',true)
             .style('left',(d) -> ((d.amount-min)*100)/(max-min)+'%')
+            .style('background',(d)->point_color (d.amount-min)/(max-min))
         @container.append('div')
             .classed('min',true)
             .html('£'+viz.money_to_string(Math.floor(min)))
@@ -213,16 +216,18 @@ class viz.moneyLine
             if Math.abs(left-@myLeft) < 8
                 lit.push d
                 return true
-        html = lit.map((x)->"<div class=\"entry\"><a href=\"#{x.url}\">#{x.name}</a> <b>£#{viz.money_to_string(x.amount)}</b></div>")
-            .join('<hr/>')
         if lit.length
+            lit.sort (a,b)->a.amount-b.amount
+            html = lit.map (x) ->
+                    link = if x.url then "<a href=\"#{x.url}\">#{x.name}</a>" else x.name
+                    return "<div class=\"entry\">#{link} <b>£#{viz.money_to_string(x.amount)}</b></div>" 
+                .join('<hr/>')
             max_w = @containerBounds.width - 250
             @mouseOverBox.html(html)
                 .style('left', Math.max(0, Math.min(max_w, left-125))+'px')
                 .style('display','block')
         else
             @mouseOverBox.style('display','none')
-
 
     onMouseOut: =>
         @points.classed 'active', false

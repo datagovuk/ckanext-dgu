@@ -1,13 +1,35 @@
 
 // --
 .viz-body {
+  #icrf_container {
+    position: relative;
+  }
+  #icrf_headline1 {
+    position: absolute;
+    top: 130px;
+    right: 100px;
+  }
+  #icrf_headline2 {
+    position: absolute;
+    top: 210px;
+    right: 100px;
+  }
+  #icrf_cash {
+    margin: 5px 0 20px 0;
+  }
+  #icrf_map {
+    width: 150px;
+    height: 200px;
+    margin-left: 400px;
+    border: 1px dashed #fcf;
+  }
   .moneyline_mouseover {
     min-height: 10px;
     width: 230px;
     max-width: 230px;
     position: absolute;
     padding: 10px;
-    top: 34px;
+    top: 40px;
     left: 10px;
     z-index: 999;
     display: none;
@@ -18,7 +40,7 @@
     }
   }
   .moneyline {
-    height: 40px;
+    height: 50px;
     position: relative;
     border: 2px solid #555;
     border-top: none;
@@ -33,16 +55,15 @@
     }
     .point {
       position: absolute;
-      border: rgba(0,0,0,0.4);
       width: 5px;
       height: 20px;
       border-radius: 3px;
-      background: rgba(0,0,0,0.1);
       top: 50%;
       margin-top: -9px;
+      opacity: 0.5;
       &.active {
-        background: rgba(0,0,0,0.4);
-        border-color: #000;
+        height: 30px;
+        margin-top: -14px;
       }
     }
     .min, 
@@ -62,14 +83,19 @@
   }
   .headline {
     white-space: nowrap;
+    width: 200px;
+    text-align: center;
+    padding-top: 9px;
     .top {
       color: #555;
       font-size: 37px;
+      line-height: 32px;
       .poundsign {
         display: inline-block;
         color: #333;
         padding-right: 7px;
         font-size: 48px;
+        line-height: 37px;
         vertical-align: middle;
         margin-top: -6px;
       }
