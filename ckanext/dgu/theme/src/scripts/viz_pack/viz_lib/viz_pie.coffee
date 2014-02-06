@@ -1,14 +1,25 @@
 window.viz ?= {}
 
 class viz.PieChart
-    constructor: (@selector, data, @colorFunction, trimLegend=-1, legendData=null) ->
-        legendData ?= data.map (x) -> x.name
-        width = 450
-        height = 200
-        radius = Math.min(width, height) / 2
+    constructor: (@selector, data, @colorFunction, _options={} ) ->
+        options = 
+            width : 450
+            height: 200
+            trimLegend: -1
+            legendData: data.map (x) -> x.name
+            radius: -1
+            innerRadius: -1
+            legend: true
+        for k,v of _options
+            options[k] = v
+        if options.radius == -1
+            options.radius = Math.min(options.width, options.height) / 2
+        if options.innerRadius == -1
+            options.innerRadius = options.radius - 50
+        options['innerRadius'] = _options.innerRadius
         @arc = d3.svg.arc()
-          .outerRadius(radius - 10)
-          .innerRadius(radius - 50)
+          .outerRadius(options.radius)
+          .innerRadius(options.innerRadius)
         @pie = d3.layout.pie()
           .sort(null)\
           .value((d) -> d.value)
@@ -16,10 +27,10 @@ class viz.PieChart
 
         @svg = d3.select(@selector)
           .append("svg")
-          .attr("width", width)
-          .attr("height", height)
+          .attr("width", options.width)
+          .attr("height", options.height)
           .append("g")
-          .attr("transform", "translate("+(15+radius)+"," + height / 2 + ")")
+          .attr("transform", "translate("+(options.radius)+"," + options.radius + ")")
 
         @path = @svg.datum(data).selectAll('path')
           .data(@pie)
@@ -30,11 +41,8 @@ class viz.PieChart
           .attr('data-caption',(d)->'£'+viz.money_to_string d.value)
           .attr("class", (d) -> "hoverable hover-"+viz.text_to_css_class(d.data.name))
 
-        #   .attr("data-col1", (d) => @colorFunction(d.data.name))
-        #   .attr("data-col2", (d) => d3.rgb(@colorFunction(d.data.name)).brighter .5)
-
-        legendData = data.map (d)->d.name
-        viz.legend( d3.select(@selector), legendData, @colorFunction, trimLegend )
+        if options.legend
+          viz.legend( d3.select(@selector), options.legendData, @colorFunction, options.trimLegend )
 
         # Dynamic captioning
         caption = d3.select(@selector).select('.caption')

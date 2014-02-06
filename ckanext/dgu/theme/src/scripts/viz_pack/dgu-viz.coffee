@@ -111,7 +111,7 @@ window.viz.loadSocialInvestmentsAndFoundations = ->
     graph_coinvestmentTotal = new viz.CashTotal '#coinvestment-total', data.coinvestment_total
     graph_investmentTotal = new viz.CashTotal '#investment-total', data.investment_total['all']
     graph_sunburst = new viz.Sunburst '#graph_coinvestment', data.sunburst
-    graph_pie1 = new viz.PieChart('#graph_pie1',data.pie1['all'],viz.sector_color,32,viz.sector_list)
+    graph_pie1 = new viz.PieChart('#graph_pie1',data.pie1['all'],viz.sector_color,{trimLegend:32, legendData:viz.sector_list})
     graph_pie2 = new viz.PieChart('#graph_pie2',data.pie2['all'],viz.colour_product_type())
     # Bind to buttons
     $('.foundation-selector a').on 'click', (event) ->
@@ -161,30 +161,51 @@ window.viz.loadSocialInvestmentsAndFoundations = ->
 # Social Incubator Fund
 # ---------------------
 window.viz.loadInvestmentReadiness = ->
-    # data = 
-    #     icrf_mean : 28954
-    #     icrf_count: 47
-    #     icrf_items: [
-    #         { name: 'one',   amount: 1953, url: '#', },
-    #         { name: 'two',   amount: 2201, url: '#', },
-    #         { name: 'two',   amount: 2206, url: '#', },
-    #         { name: 'three', amount: 2099, url: '#', },
-    #     ]
     d3.json '/scripts/json/investment-readiness-programme/tmp.json', (data) ->
-        #console.log data
-        new viz.headline('#icrf_headline1', data.icrf_mean, 'mean amount invested', money=true)
-        new viz.headline('#icrf_headline2', data.icrf_count, 'organisations funded')
-        new viz.moneyLine('#icrf_cash', data.icrf_items)
+        new viz.Headline(d3.select('#icrf_headline1'), data.icrf_mean, 'mean investment', money=true)
+        new viz.Headline(d3.select('#icrf_headline2'), data.icrf_count, 'organisations funded')
+        new viz.MoneyLine(d3.select('#icrf_cash'), data.icrf_items)
         d3.select('#icrf_map').html('(map goes here)')
+        vizTable = new viz.SibTable('#sib_table',data.sib)
+        #vizTable.on('viz.selectRow', (x)->console.log(x))
         window.data = data
+        sector_legend = []
+        # -- pie chart setup
+        color1 = d3.scale.category20()
+        color2 = d3.scale.category20()
+        for i in [1..8]
+            color2('x'+i)
+        piechart_options = { width:170, height: 190, innerRadius:0,radius:85,trimLegend:35,legend:true}
+        # DOM building and bniding
+        graph_pie1 = new viz.PieChart('#sib_pie1',data.sib[0].sector_pie,color1,piechart_options)
+        graph_pie2 = new viz.PieChart('#sib_pie2',data.sib[0].target_pie,color2,piechart_options)
+        rowz = d3.select('#sib_table').selectAll('.row')
+        rowz.each((data,index)-> @onclick = ((event) ->
+            rowz.classed('active',(dd,ii)->ii==index)
+            graph_pie1.setData(data.sector_pie)
+            graph_pie2.setData(data.target_pie)
+            d3.selectAll('#sib_container .venturename').text(data.name)
+        ))
+        rowz.on('click',(event) ->
+            @onclick(event)
+            #window.clearInterval(window.sib_interval)
+        )
+        d3.select(rowz[0][0]).classed('active',true)
+        n=1
+        #window.sib_interval = window.setInterval((->rowz[0][n++%4].onclick()),1800)
+        ## Hack in some tooltips for the sector icons
+        d3.selectAll('#sib_container .icon').each (d)->
+            text = data.icon_to_sector[d]
+            $(@).tooltip({title:text,placement:'bottom'})
 
-class viz.moneyLine
-    constructor: (@selector, @items) ->
-        base = d3.select(@selector)
-        base.style('position','relative')
-        @mouseOverBox = base.append('div')
+
+
+class viz.MoneyLine
+    constructor: (@domElement, @items) ->
+        @domElement.style('position','relative')
+        @mouseOverBox = @domElement.append('div')
             .classed('moneyline_mouseover',true)
-        @container = base.append('div')
+        @container = @domElement.append('div')
             .classed('moneyline',true)
         @container.append('div').classed('bg',true)
         min = d3.min(@items, (d)->d.amount)*0.95
@@ -204,7 +225,7 @@ class viz.moneyLine
             .classed('max',true)
             .html('£'+viz.money_to_string(Math.ceil(max)))
         @container.on 'mousemove', @onMouseMove
-        base.on 'mouseout', @onMouseOut
+        @domElement.on 'mouseout', @onMouseOut
         # Store some precomputed values for elegance and speed
         @containerBounds = containerBounds = @container[0][0].getBoundingClientRect()
         @points.each -> @myLeft=@getBoundingClientRect().left-containerBounds.left
@@ -234,12 +255,37 @@ class viz.moneyLine
         @mouseOverBox.style('display','none')
 
 
-class viz.headline
-    constructor: (@selector, top, bottom, money=false) ->
-        if money
-            top = '<span class="poundsign">£</span>'+viz.money_to_string(top)
-        @container = d3.select(@selector)
+class viz.SibTable
+    constructor: (@selector, @data) ->
+        table = d3.select @selector
+        row = table.selectAll('div.row')
+            .data(@data)
+            .enter()
             .append('div')
+            .classed('row',true)
+        row.append('div')
+            .classed('name',true)
+            .html((d)->"<img src=\"#{d.img}\"/>")
+            # .html((d)->"<a href=\"#{d.url}\"><img src=\"#{d.img}\"/></a>")
+        row.each (d) -> new viz.Headline( d3.select(@).append('div').classed('funding',true), d.total_funding, 'Total Funding', true)
+        row.each (d) -> new viz.Headline( d3.select(@).append('div').classed('mean',true), d.mean_investment, 'Mean Investment', true)
+        row.append('div')
+            .classed('investments',true)
+            .html((d) ->"<div class=\"prefix\">Investment Ventures (#{d.investment_sectors.length}): </div>")
+            .selectAll('i')
+            .data( (d)->d.investment_sectors)
+            .enter()
+            .append('i')
+            .classed('icon',true)
+            .each((d) -> @className+=' '+d )
+
+class viz.Headline
+    constructor: (@domElement, top, bottom, money=false) ->
+        if top==-1
+            top = '<span class="unknown">(unknown)</span>'
+        else if money
+            top = '<span class="poundsign">£</span>'+viz.money_to_string(top)
+        @container = @domElement.append('div')
             .classed('headline',true)
         @container.append('div')
             .classed('top',true)
