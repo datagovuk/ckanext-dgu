@@ -3,6 +3,12 @@
 .viz-body {
   #sib_container {
     position: relative;
+    .legend {
+      li.hovering {
+        text-decoration: underline;
+        background: none;
+      }
+    }
     #sib_table .row {
       cursor: pointer;
       position: relative;
@@ -84,6 +90,15 @@
         right: 0;
         top: 18px;
         border: none;
+      }
+      &:hover {
+        path {
+          opacity: 0.7;
+          &.hovering,
+          &:hover {
+            opacity: 1.0;
+          }
+        }
       }
     }
     #sib_pie2 {

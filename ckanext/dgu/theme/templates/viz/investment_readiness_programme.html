@@ -7,7 +7,7 @@
 
   <py:match path="breadcrumbs">
     <li><a href="/data/search">Datasets</a></li>
-    <li><a href="#">Investment Readiness Programme (TODO link required)</a></li>
+    <li><a href="/dataset/icrf-data">Investment Readiness Programme</a></li>
     <li><a href="${request.url}">Data Explorer</a></li>
   </py:match>
 
@@ -39,7 +39,14 @@
           <div class="panel panel-default">
             <div class="panel-heading">Visualising Social Investment Data</div>
             <div class="panel-body">
-              These data are collected from a group of Excel spreadsheets in this <a href="#">dataset</a> (<i><b>TODO</b></i> dataset link required). The raw data goes through an <a href="http://nbviewer.ipython.org/gist/zephod/8844079">ETL pipeline</a> which uses Python to Extract, Transform and Load the data. The following analysis is rendered in the browser using <a href="http://d3js.org/">D3.js</a>.
+              This data is collected from a group of Excel spreadsheets in this <a href="/dataset/icrf-data">dataset</a>. The raw data goes through an <a href="http://nbviewer.ipython.org/gist/zephod/8844079">ETL pipeline</a> which uses Python to Extract, Transform and Load the data. The following analysis is rendered in the browser using <a href="http://d3js.org/">D3.js</a>.
+              <br/><br/>Additional Datasets used:
+              <ul>
+                <li><a href="/dataset/sifbgv">Social Incubator Fund Data (Bethnal Green Ventures)</a></li>
+                <li>Social Incubator Fund Data (The Hub Launchpad)</li>
+                <li>Social Incubator Fund Data (Social Incubator North)</li>
+                <li>Social Incubator Fund Data (Wayra UnLtd)</li>
+              </ul>
             </div>
           </div>
           <div class="viz-body">

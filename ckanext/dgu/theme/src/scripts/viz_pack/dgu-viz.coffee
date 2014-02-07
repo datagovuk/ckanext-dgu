@@ -197,6 +197,41 @@ window.viz.loadInvestmentReadiness = ->
         d3.selectAll('#sib_container .icon').each (d)->
             text = data.icon_to_sector[d]
             $(@).tooltip({title:text,placement:'bottom'})
+        # (jQuery hack) Bind to all hoverable elements
+        $('.hoverable').on 'mouseover', (e) ->
+          $('li.hoverable').removeClass 'hovering'
+          $('svg .hoverable').each (i,el) ->
+              $(el).css
+                'fill'   : $(el).attr('data-col1') 
+                'stroke' : 'none'
+          $('.hoverable').trigger 'hoverend'
+          $('circle.hoverable').css('opacity',0.5)
+          # get hover class name eg. hover-foo-bar
+          classes = $(this).attr('class').split(' ')
+          # get hover class name eg. hover-foo-bar
+          for x in classes
+            if x.substring(0,6)=='hover-'
+              elements = $('.'+x)
+              elements.trigger 'hoverstart' 
+              elements.each (i,el) ->
+                el = $(el)
+                if el.is('li')
+                  if e.type=="mouseover"
+                    el.addClass 'hovering'
+                  else
+                    el.removeClass 'hovering'
+                else if el.is('rect') or el.is('path') or el.is('circle')
+                  if e.type=="mouseover"
+                    el.css('fill',el.attr('data-col2') )
+                    el.css('stroke','#000' )
+                    el.addClass 'hovering'
+                  else
+                    el.css('fill',el.attr('data-col1') )
+                    el.css('stroke','none' )
+                    el.removeClass 'hovering'
+                  if el.is('circle')
+                    el.css('opacity',1)
+
 
 
 

@@ -16,7 +16,6 @@ class viz.PieChart
             options.radius = Math.min(options.width, options.height) / 2
         if options.innerRadius == -1
             options.innerRadius = options.radius - 50
-        options['innerRadius'] = _options.innerRadius
         @arc = d3.svg.arc()
           .outerRadius(options.radius)
           .innerRadius(options.innerRadius)
