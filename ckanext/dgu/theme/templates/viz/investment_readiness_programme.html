@@ -15,10 +15,9 @@
     <!--[if lte IE 8]>
       <script type="text/javascript">
         $(function() {
-          $('.viz-body')
-          .css('padding','4px')
+          $('.ie7-kill')
           .html('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>')
-          .append('<img src="/images/graph-socialinvestment.png"/>');
+          .append('<img src="/images/graph-investmentreadiness.png"/>');
         });
       </script>
     <![endif]-->
@@ -33,7 +32,7 @@
 
   <py:match path="content">
     <div class="container">
-      <div class="row">
+      <div class="row ie7-kill">
         <!--div class="panel panel-default">
           <div class="panel-heading">Visualising Social Investment Data</div>
           <div class="panel-body">
