@@ -15,9 +15,10 @@
     <!--[if lte IE 8]>
       <script type="text/javascript">
         $(function() {
-          $('.ie7-kill')
-          .html('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>')
-          .append('<img src="/images/graph-investmentreadiness.png"/>');
+          $('#main-content .row:first')
+          .prepend('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>');
+          $('#sib_container').html('<img src="/images/graph-investmentreadiness1.png" alt="(Interactive graphs not available)" />')
+          $('#icrf_container').html('<img src="/images/graph-investmentreadiness2.png" alt="(Interactive graphs not available)" />')
         });
       </script>
     <![endif]-->
@@ -32,7 +33,7 @@
 
   <py:match path="content">
     <div class="container">
-      <div class="row ie7-kill">
+      <div class="row">
         <!--div class="panel panel-default">
           <div class="panel-heading">Visualising Social Investment Data</div>
           <div class="panel-body">

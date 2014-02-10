@@ -15,8 +15,17 @@ var targets = [
 },
 {
   url       : 'http://localhost:3008/data/viz/investment-readiness-programme',
-  dest      : 'src/images/graph-investmentreadiness.png',
+  dest      : 'src/images/graph-investmentreadiness1.png',
   shotHeight: 1280,
+  shotOffsetTop: 294 + 140,
+  shotHeight: 506,
+},
+{
+  url       : 'http://localhost:3008/data/viz/investment-readiness-programme',
+  dest      : 'src/images/graph-investmentreadiness2.png',
+  shotHeight: 1280,
+  shotOffsetTop: 1080 + 140,
+  shotHeight: 192,
 }
 ];
 
