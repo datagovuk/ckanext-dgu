@@ -179,7 +179,7 @@ window.viz.loadInvestmentReadiness = ->
         # DOM building and bniding
         graph_pie1 = new viz.PieChart('#sib_pie1',data.sib[0].sector_pie,color1,piechart_options)
         graph_pie2 = new viz.PieChart('#sib_pie2',data.sib[0].target_pie,color2,piechart_options)
-        rowz = d3.select('#sib_table').selectAll('.row')
+        rowz = d3.select('#sib_table').selectAll('.sib_row')
         rowz.each((data,index)-> @onclick = ((event) ->
             rowz.classed('active',(dd,ii)->ii==index)
             graph_pie1.setData(data.sector_pie)
@@ -264,6 +264,9 @@ class viz.MoneyLine
         # Store some precomputed values for elegance and speed
         @containerBounds = containerBounds = @container[0][0].getBoundingClientRect()
         @points.each -> @myLeft=@getBoundingClientRect().left-containerBounds.left
+        @container.append('div')
+          .classed('moneyline_hint',true)
+          .html('Who has received investments?<br/>Point your mouse for details.')
 
     onMouseMove: =>
         left = d3.mouse(@container[0][0])[0]
@@ -293,11 +296,11 @@ class viz.MoneyLine
 class viz.SibTable
     constructor: (@selector, @data) ->
         table = d3.select @selector
-        row = table.selectAll('div.row')
+        row = table.selectAll('div.sib_row')
             .data(@data)
             .enter()
             .append('div')
-            .classed('row',true)
+            .classed('sib_row',true)
         row.append('div')
             .classed('name',true)
             .html((d)->"<img src=\"#{d.img}\"/>")

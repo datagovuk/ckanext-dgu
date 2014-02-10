@@ -32,40 +32,49 @@
   </py:def>
 
   <py:match path="content">
-    <h1>Exploring: Investment Readiness Programme</h1>
     <div class="container">
       <div class="row">
-        <div class="whitebox" style="overflow: visible;">
-          <div class="panel panel-default">
-            <div class="panel-heading">Visualising Social Investment Data</div>
-            <div class="panel-body">
-              This data is collected from a group of Excel spreadsheets in this <a href="/dataset/icrf-data">dataset</a>. The raw data goes through an <a href="http://nbviewer.ipython.org/gist/zephod/8844079">ETL pipeline</a> which uses Python to Extract, Transform and Load the data. The following analysis is rendered in the browser using <a href="http://d3js.org/">D3.js</a>.
-              <br/><br/>Additional Datasets used:
-              <ul>
-                <li><a href="/dataset/sifbgv">Social Incubator Fund Data (Bethnal Green Ventures)</a></li>
-                <li>Social Incubator Fund Data (The Hub Launchpad)</li>
-                <li>Social Incubator Fund Data (Social Incubator North)</li>
-                <li>Social Incubator Fund Data (Wayra UnLtd)</li>
-              </ul>
-            </div>
+        <!--div class="panel panel-default">
+          <div class="panel-heading">Visualising Social Investment Data</div>
+          <div class="panel-body">
+            This data is collected from a group of Excel spreadsheets in this <a href="/dataset/icrf-data">dataset</a>. The raw data goes through an <a href="http://nbviewer.ipython.org/gist/zephod/8844079">ETL pipeline</a> which uses Python to Extract, Transform and Load the data. The following analysis is rendered in the browser using <a href="http://d3js.org/">D3.js</a>.
+            <br/><br/>Additional Datasets used:
+            <ul>
+              <li><a href="/dataset/sifbgv">Social Incubator Fund Data (Bethnal Green Ventures)</a></li>
+              <li>Social Incubator Fund Data (The Hub Launchpad)</li>
+              <li>Social Incubator Fund Data (Social Incubator North)</li>
+              <li>Social Incubator Fund Data (Wayra UnLtd)</li>
+            </ul>
           </div>
-          <div class="viz-body">
-            <div id="icrf_container">
-              <h2>Investment Contract Readiness Fund (ICRF)</h2>
-              <p>Who has received investments? Mouse over for details:</p>
-              <div id="icrf_cash"></div>
-              <div id="icrf_headline1"></div>
-              <div id="icrf_headline2"></div>
-              <div id="icrf_map"></div>
-            </div>
-            <hr/>
-            <h2>Social Incubator Fund (SIF)</h2>
-            <div id="sib_container">
-              <div id="sib_table"></div>
-              <div id="sib_pie1"><h4>Primary Sectors: <i class="venturename">Bethnal Green Ventures</i></h4></div>
-              <div id="sib_pie2"><h4>Primary Beneficiaries: <i class="venturename">Bethnal Green Ventures</i></h4></div>
-            </div>
-          </div>
+        </div-->
+        <h1>Social Incubator Fund (SIF)</h1>
+        <div class="whitebox">
+          <p>The visualisations shows incubator level summary detail about the Social Incubator Fund, a £10m fund administered by BIG, which supports social incubators to help them provide investment and support to early stage social ventures in the UK. Click on the incubator icons below to show a sector and beneficiary breakdown of the current ventures.</p>
+          <p>The data is available for all live incubators and is updated by the incubators themselves:</p>
+          <ul>
+            <li><a href="/dataset/sifbgv">Social Incubator Fund Data (Bethnal Green Ventures)</a></li>
+            <li>Social Incubator Fund Data (The Hub Launchpad)</li>
+            <li>Social Incubator Fund Data (Social Incubator North)</li>
+            <li>Social Incubator Fund Data (Wayra UnLtd)</li>
+          </ul>
+        </div>
+        <div id="sib_container">
+          <div id="sib_table"></div>
+          <div id="sib_pie1"><h4>Primary Sectors: <i class="venturename">Bethnal Green Ventures</i></h4></div>
+          <div id="sib_pie2"><h4>Primary Beneficiaries: <i class="venturename">Bethnal Green Ventures</i></h4></div>
+        </div>
+        <hr/>
+        <h1>Investment Contract Readiness Fund (ICRF)</h1>
+        <div class="whitebox">
+          <img src="/images/icrf.gif" style="float: right;margin: 0 0 8px 8px;" alt="ICRF logo"/>
+          <p>This visualisation shows investments made by the Investment and Contract Readiness Fund into high growth potential social ventures. The Investment and Contract Readiness Fund pays for business support to help social ventures raise investment of over £500k or win bids to deliver public services contracts valued at over £1m. Hover your mouse over the lines below to view links to the ventures supported and the grant amount received.</p>
+          <p>The data is available for the <a href="/dataset/icrf-data">ICRF investments</a>. The data shows: the venture supported, the grant amount, and the postcode where the venture is headquartered.</p>
+        </div>
+        <div id="icrf_container">
+          <div id="icrf_cash"></div>
+          <div id="icrf_headline1"></div>
+          <div id="icrf_headline2"></div>
+          <div id="icrf_map"></div>
         </div>
       </div>
     </div>
