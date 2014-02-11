@@ -35,11 +35,12 @@ class ReportsController(BaseController):
         import ckan.model as model
         from ckanext.dgu.lib.reports import nii_report
 
-        try:
-            context = {'model':model,'user': c.user, 'owner_org': id}
-            t.check_access('package_create',context)
-        except t.NotAuthorized, e:
-            h.redirect_to('/user?destination={0}'.format(request.path[1:]))
+        # Temporarily anyone can see this...
+        #try:
+        #    context = {'model':model,'user': c.user, 'owner_org': id}
+        #    t.check_access('package_create',context)
+        #except t.NotAuthorized, e:
+        #    h.redirect_to('/user?destination={0}'.format(request.path[1:]))
 
         c.data = nii_report()
         return t.render('reports/nii.html')
