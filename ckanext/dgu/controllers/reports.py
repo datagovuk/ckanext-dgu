@@ -31,6 +31,19 @@ class ReportsController(BaseController):
         c.modified = data['modified']
         return t.render('reports/activity.html')
 
+    def nii(self, format=None):
+        import ckan.model as model
+        from ckanext.dgu.lib.reports import nii_report
+
+        try:
+            context = {'model':model,'user': c.user, 'owner_org': id}
+            t.check_access('package_create',context)
+        except t.NotAuthorized, e:
+            h.redirect_to('/user?destination={0}'.format(request.path[1:]))
+
+        c.data = nii_report()
+        return t.render('reports/nii.html')
+
     def resources(self, id=None):
         try:
             c.include_sub_publishers = t.asbool(t.request.params.get('include_sub_publishers') or False)
