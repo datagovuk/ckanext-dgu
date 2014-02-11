@@ -49,6 +49,8 @@ class ReportsPlugin(p.SingletonPlugin):
         # Resource reports
         map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
         map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')
+        map.connect('nii_report', '/data/reports/nii', controller=report_ctlr, action='nii')
+        map.connect('nii_report_csv', '/data/reports/nii.csv', controller=report_ctlr, action='nii', format='csv')
 
         # QA
         qa_home = 'ckanext.qa.controllers.qa_home:QAHomeController'
