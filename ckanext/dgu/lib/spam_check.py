@@ -1,4 +1,9 @@
-from Mollom import MollomAPI
+
+try:
+    from Mollom import MollomAPI
+except:
+    from mollom import MollomAPI
+
 from pylons import config
 
 import logging

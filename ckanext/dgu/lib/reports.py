@@ -1,3 +1,4 @@
+import collections
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 from ckanext.dgu.lib.publisher import go_down_tree
@@ -5,6 +6,40 @@ from ckanext.dgu.lib.publisher import go_down_tree
 import logging
 
 log = logging.getLogger(__name__)
+
+
+def nii_report():
+
+    packages = model.Session.query(model.Package)\
+        .join(model.PackageExtra, model.PackageExtra.package_id == model.Package.id)\
+        .filter(model.PackageExtra.key == 'core-dataset')\
+        .filter(model.PackageExtra.value == 'true')\
+        .filter(model.Package.state == 'active').all()
+
+    data = collections.defaultdict(list)
+
+    def broken_resources_for_package(pkg):
+        if pkg.extras.get('unpublished'):
+            return []
+
+        import json
+        res = []
+        for resource in pkg.resources:
+            ts = model.Session.query(model.TaskStatus)\
+                .filter(model.TaskStatus.entity_id == resource.id )\
+                .filter(model.TaskStatus.task_type == 'qa')\
+                .filter(model.TaskStatus.key == 'status').first()
+            if ts:
+                j = json.loads(ts.error)
+                if j['is_broken']:
+                    res.append(resource)
+        return res;
+
+    for package in packages:
+        org = package.get_organization()
+        data[org].append({package: broken_resources_for_package(package)})
+
+    return data
 
 def sql_to_filter_by_organisation(organisation,
                                   include_sub_organisations=False):

@@ -1,0 +1,78 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+
+<xi:include href="../feedback/_feedback_util.html" />
+
+  <py:def function="page_title">NII Report</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/data/reports">Reports</a></li>
+    <li><a href="${h.url_for('nii_report')}">NII report</a></li>
+  </py:match>
+
+  <div py:match="content" class="dataset">
+
+    <a href="${h.url_for('nii_report_csv')}" class="btn btn-primary pull-right">
+      <div class="download">
+           <i class="icon-download"></i>&nbsp;
+          Download as CSV
+      </div>
+    </a>
+
+
+    <div class="widget-container">
+
+        <h1>NII report</h1>
+
+        <ul>
+        <py:for each="publisher in sorted(c.data.keys(),key=lambda x: x.title)">
+          <li><a href="#${publisher.name}">${publisher.title}</a></li>
+        </py:for>
+        </ul>
+
+        <py:for each="publisher in sorted(c.data.keys(),key=lambda x: x.title)">
+          <h2><a name="${publisher.name}" href="/publisher/${publisher.name}">${publisher.title}</a></h2>
+          <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Dataset</th>
+                  <th>Broken resource count</th>
+                  <th>Broken Resources</th>
+                </tr>
+              </thead>
+              <tbody>
+                <py:for each="lod in c.data.get(publisher)">
+                  <py:for each="pkg,res in lod.iteritems()">
+                    <tr py:attrs="{'class':'warning' if len(res) > 0 else None}">
+                        <td><a href="/dataset/${pkg.name}">${pkg.title}</a> <span py:if="pkg.extras.get('unpublished')">(Unpublished)</span></td>
+                        <td>${len(res)}</td>
+                        <td py:if="len(res) == 0">No broken resources</td>
+                        <td py:if="len(res) != 0">
+                            <ul>
+                              <py:for each="r in res">
+                                <li>
+                                    <a href="/dataset/${pkg.name}/resource/${r.id}">${r.description or "Unnamed"}</a>
+                                </li>
+                              </py:for>
+                            </ul>
+                        </td>
+                    </tr>
+                  </py:for>
+                </py:for>
+              </tbody>
+          </table>
+
+        </py:for>
+
+
+        <div class="clearfix"></div>
+    </div>
+  </div>
+
+  <xi:include href="../layout_base.html" />
+</html>
+

@@ -49,6 +49,8 @@ class ReportsPlugin(p.SingletonPlugin):
         # Resource reports
         map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
         map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')
+        map.connect('nii_report', '/data/reports/nii', controller=report_ctlr, action='nii')
+        map.connect('nii_report_csv', '/data/reports/nii.csv', controller=report_ctlr, action='nii', format='csv')
 
         # QA
         qa_home = 'ckanext.qa.controllers.qa_home:QAHomeController'
@@ -295,14 +297,18 @@ class TaskModificationPlugin(p.SingletonPlugin):
             t = qa_tasks.QATask.create(entity)
             # We will find the resource referenced by the task, and add
             # an extra with the url status
-            log.info("Setting resource (%s) is_broken to %s" % (t.resource_id, t.is_broken))
+            log.debug("Setting resource (%s) is_broken to %s" % (t.resource_id, t.is_broken))
             try:
+                site_user = get_action('get_site_user')({'model': model,'ignore_auth': True}, {})
                 res = toolkit.get_action('resource_show')({'ignore_auth': True, 'user': ''}, {'id': t.resource_id})
                 res['is_broken'] = t.is_broken
-                toolkit.get_action('resource_update')({'ignore_auth': True, 'user': ''}, res)
-            except:
-                log.error("Unable to update resource: %s" % qt.resource_id)
+                toolkit.get_action('resource_update')({'ignore_auth': True, 'user': site_user['name']}, res)
+            except Exception, e:
+                log.error("Unable to update resource from QATask: %s" % qt.resource_id)
+                log.exception(e)
+
         elif entity.task_type == 'archiver':
+            log.debug("Creating ArchiveTask")
             t = archive_tasks.ArchiveTask.create(entity)
         else:
             return

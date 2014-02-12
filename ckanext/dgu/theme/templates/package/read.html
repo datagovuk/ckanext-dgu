@@ -192,7 +192,7 @@
       <div class="dataset-resource-text">
         <div class="inner">
           <div class="inner2">
-            <py:if test="res.get('is_broken', 'False') == True">
+            <py:if test="h.asbool(res.get('is_broken', 'False')) == True">
               <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="This resource has errors" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}#linkcheck" style="text-decoration:none;color:red;">
                 <i class="icon-exclamation-sign"></i>
               </a>
