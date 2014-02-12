@@ -42,6 +42,7 @@
                   <th>Dataset</th>
                   <th>Broken resource count</th>
                   <th>Broken Resources</th>
+                  <th>Via StatsHub</th>
                 </tr>
               </thead>
               <tbody>
@@ -59,6 +60,15 @@
                                 </li>
                               </py:for>
                             </ul>
+                        </td>
+                        <td>
+                          <py:if test="pkg.extras.get('external_reference','') == 'ONSHUB'">
+                            Yes
+                          </py:if>
+                          <py:if test="pkg.extras.get('external_reference','') != 'ONSHUB'">
+                            No
+                          </py:if>
+
                         </td>
                     </tr>
                   </py:for>
