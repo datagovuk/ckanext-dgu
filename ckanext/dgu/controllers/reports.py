@@ -4,7 +4,7 @@ import ckan.plugins.toolkit as t
 import ckan.lib.helpers as h
 import ckanext.dgu.lib.helpers as dguhelpers
 from ckanext.dgu.lib import reports
-from ckan.lib.base import BaseController, abort, request
+from ckan.lib.base import BaseController, abort, request, response
 
 c = t.c
 
@@ -34,15 +34,49 @@ class ReportsController(BaseController):
     def nii(self, format=None):
         import ckan.model as model
         from ckanext.dgu.lib.reports import nii_report
-
-        # Temporarily anyone can see this...
-        #try:
-        #    context = {'model':model,'user': c.user, 'owner_org': id}
-        #    t.check_access('package_create',context)
-        #except t.NotAuthorized, e:
-        #    h.redirect_to('/user?destination={0}'.format(request.path[1:]))
-
         c.data = nii_report()
+
+        def _stringify(s, encoding, errors):
+            if s is None:
+                return ''
+            if isinstance(s, unicode):
+                return s.encode(encoding, errors)
+            elif isinstance(s, (int , float)):
+                pass #let csv.QUOTE_NONNUMERIC do its thing.
+            elif not isinstance(s, str):
+                s=str(s)
+            return s
+
+        if format == 'csv':
+            import csv
+
+            # Set the content-disposition so that it downloads the file
+            response.headers['Content-Type'] = "text/csv; charset=utf-8"
+            response.headers['Content-Disposition'] = str('attachment; filename=nii-broken-resources.csv')
+
+            writer = csv.writer(response)
+            writer.writerow(['Publisher', 'Parent publisher', 'Dataset name', 'Resource title', 'Resource link', 'Data link'])
+            for publisher in c.data.keys():
+                parent_groups = publisher.get_parent_groups(type='organization')
+                parent_publisher = parent_groups[0].title if len(parent_groups) > 0 else ''
+
+                for items in c.data[publisher]:
+                    for dataset, resources in items.iteritems():
+                        if len(resources) == 0:
+                            continue
+                        for res in resources:
+                            row = [
+                                publisher.title,
+                                parent_publisher,
+                                _stringify(dataset.title, 'utf-8', 'ignore'),
+                                _stringify(res.description, 'utf-8', 'ignore') or 'No name',
+                                'http://data.gov.uk/dataset/%s/resource/%s' % (dataset.name,res.id,),
+                                _stringify(res.url, 'utf-8', 'ignore')
+                            ]
+                            writer.writerow(row)
+
+            return ''
+
         return t.render('reports/nii.html')
 
     def resources(self, id=None):
