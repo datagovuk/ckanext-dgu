@@ -71,7 +71,8 @@ class ReportsController(BaseController):
                                 _stringify(dataset.title, 'utf-8', 'ignore'),
                                 _stringify(res.description, 'utf-8', 'ignore') or 'No name',
                                 'http://data.gov.uk/dataset/%s/resource/%s' % (dataset.name,res.id,),
-                                _stringify(res.url, 'utf-8', 'ignore')
+                                _stringify(res.url, 'utf-8', 'ignore'),
+                                'Yes' if dataset.extras.get('external_reference','') == 'ONSHUB' else 'No'
                             ]
                             writer.writerow(row)
 
