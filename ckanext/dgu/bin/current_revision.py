@@ -31,7 +31,7 @@ def no_current(options):
     stats = StatsList()
     need_to_commit = False
     for res in resources:
-        latest_res_rev = model.Session.query(model.ResourceRevision).filter_by(id=res.id).filter_by(revision_id=res.revision.id).first()
+        latest_res_rev = model.Session.query(model.ResourceRevision).filter_by(id=res.id).order_by(model.ResourceRevision.revision_timestamp.desc()).first()
         if not latest_res_rev.current:
             print add_stat('No current revision', res, stats)
             if options.write:
@@ -39,6 +39,12 @@ def no_current(options):
                 need_to_commit = True
         else:
             add_stat('Ok', res, stats)
+        if latest_res_rev.revision_id != res.revision_id:
+            print add_stat('Revision ID of resource too old', res, stats)
+            if options.write:
+                res.revision_id = latest_res_rev.revision_id
+                need_to_commit = True
+
     print 'Summary', stats.report()
     if options.write and need_to_commit:
         model.repo.commit_and_remove()
