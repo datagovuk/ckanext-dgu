@@ -680,6 +680,9 @@ def get_package_fields(package, pkg_extras, dataset_type):
         field_names.add_at_start('theme')
         if pkg_extras.get('theme-secondary'):
             field_names.add_after('theme', 'theme-secondary')
+    elif dataset_type == 'data-standard':
+        field_names.add(['status', 'harvested_version', 'data_standard_type'])
+        field_names.remove(['geographic_coverage', 'mandate', 'temporal_coverage'])
 
     temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
     temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
@@ -710,6 +713,9 @@ def get_package_fields(package, pkg_extras, dataset_type):
             secondary_themes = str(secondary_themes)
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
+
+    dates = get_package_mini_metadata(package)
+
     field_value_map = {
         # field_name : {display info}
         'state': {'label': 'State', 'value': c.pkg.state},
@@ -718,6 +724,8 @@ def get_package_fields(package, pkg_extras, dataset_type):
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
         'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
         'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
+        'date-added-computed': {'label': 'Added to data.gov.uk', 'value': dates['date-added-computed']},
+        'date-updated-computed': {'label': 'Modified on data.gov.uk', 'value': dates['date-updated-computed']},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
@@ -1223,6 +1231,8 @@ def dataset_type(pkg_extras):
         resource_type = extras.get('resource-type') + ' record' # dataset/service
     elif extras.get('external_reference') == 'ONSHUB':
         dataset_type = 'ons'
+    elif extras.get('registry_uri'):
+        dataset_type = 'data-standard'
     return dataset_type
 
 def has_bounding_box(extras):

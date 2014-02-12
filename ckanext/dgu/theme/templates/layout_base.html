@@ -150,8 +150,9 @@ ${h.top_level_init()}
   <div id="greenbar">
     <div class="container">
       <ul class="subnav subnav-data active">
-        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/search') else ''}" href="${h.url_for(controller='package', action='search')}">Datasets</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/dataset') else ''}" href="${h.url_for(controller='package', action='search')}">Datasets</a></li>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/map-based-search') else ''}" href="/data/map-based-search">Map Search</a></li>
+        <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data-standard') else ''}" href="/data-standard">Data Standards</a></li>
         <li><a class="" href="/odug">Data Requests</a></li>
         <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/publisher') else ''}" href="/publisher">Publishers</a></li>
         <!--<li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/tag') else ''}" href="${h.url(controller='ckanext.dgu.controllers.tag:TagController', action='index')}">Tags</a></li>-->

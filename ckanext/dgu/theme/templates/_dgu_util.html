@@ -120,11 +120,11 @@
   <!-- pure one-liner to avoid whitespace glitches -->
   <py:def function="if_(testValue,stringIfTrue,stringIfFalse='')"><py:if test="testValue">${stringIfTrue}</py:if><py:if test="not testValue">${stringIfFalse}</py:if></py:def>
 
-  <div py:def="search_form(mini=False, placeholder='Search for data...', set_fields=None, extra_options=None)" class="search-area">
+  <div py:def="search_form(mini=False, placeholder='Search for data...', set_fields=None, extra_options=None, package_type='dataset')" class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
       <div class="${if_(mini,'mini','left')}">
         <div class="left-inner auto-height">
-        <form class="form-search" action="${h.url_for(controller='package', action='search')}" method="GET">
+        <form class="form-search" action="/${package_type}" method="GET">
           <div class="input-group">
             <input class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="${placeholder}" />
             <span class="input-group-btn">
@@ -300,13 +300,14 @@
     </div>
   </py:def>
 
-  <div py:def="facet_filters()" class="datasets">
+  <div py:def="facet_filters(type='dataset')" class="datasets">
     <div class="facet-filters">
       <div class="visible-xs visible-sm">
         <a href="#" class="hide-facets">
           <i class="icon-remove-circle icon-4x"></i>
         </a>
       </div>
+      <py:if test="type=='dataset'">
       ${facet_box(
           'Show only...',
           h.search_facets_unselected(['unpublished']),
@@ -321,6 +322,7 @@
           'No further filters to apply.'
           )}
       <div class="facet-divider"></div>
+      </py:if>
       ${facet_box(
           'Licence',
           h.search_facets_unselected(['license_id-is-ogl']),
@@ -383,6 +385,7 @@
         )}
       </py:if>
       <div class="facet-divider"></div>
+      <py:if test="type=='dataset'">
       ${facet_box(
           'Openness Score (beta)',
           h.search_facets_unselected(['openness_score'],'name'),
@@ -396,6 +399,7 @@
           h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),
           'No further type filters to apply.'
       )}
+      </py:if>
     </div><!-- /facet-filters -->
   </div>
 

@@ -1,0 +1,202 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  xmlns:foaf="http://xmlns.com/foaf/0.1/"
+  xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+  xmlns:dc="http://purl.org/dc/terms/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:dcat="http://www.w3.org/ns/dcat#"
+  typeof="dcat:Dataset"
+  about=""
+  py:strip="">
+
+  <py:def function="page_title">${c.pkg_dict.get('title', c.pkg_dict['name'])} - Datasets</py:def>
+
+  <xi:include href="../inventory/inventory_util.html" />
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data-standard">Data Standards</a></li>
+    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
+  </py:match>
+
+  <py:def function="package_content">
+    <!-- Warn if reading old revision -->
+    <div py:if="c.pkg_revision_id" class="panel panel-warning">
+      <div class="panel-heading">Viewing Data Standard Revision</div>
+      <div class="panel-body" py:if="c.pkg_revision_not_latest">
+        This is an old revision of this data standard, as edited at ${h.render_datetime(c.pkg_revision_timestamp)}. It may differ significantly from the <a href="${h.url(controller='package', action='read', id=c.pkg.name)}">current revision</a>.
+      </div>
+      <div class="panel-body" py:if="not c.pkg_revision_not_latest">
+        This is the current revision of this data standard, as edited at ${h.render_datetime(c.pkg_revision_timestamp)}.
+      </div>
+    </div>
+
+    <div id="dataset">
+      <!--! id=dataset for ckanext-spatial -->
+    </div>
+
+    <div py:with="uri=dict(c.pkg_extras).get('registry_uri')">
+      <h2 style="text-transform: none; margin-top: 5px; margin-bottom: 15px">
+        URI
+        <a href="${uri}">${uri}</a>
+      </h2>
+    </div>
+
+    <div class="dataset-resources" py:if="not h.is_unpublished_item(c.pkg_dict)">
+      <!-- Resources -->
+      <py:if test="h.individual_resources()">
+        <h2>Data Resources (${len(h.individual_resources())})</h2>
+        <py:if test="not h.has_group_ons_resources()">
+          ${resource_table(h.individual_resources())}
+        </py:if>
+        <py:if test="h.has_group_ons_resources() and c.all_resources">
+          ${ons_grouped_table(h.get_ons_releases())}
+        </py:if>
+        <py:if test="h.has_group_ons_resources() and not c.all_resources">
+          ${ons_grouped_table(h.get_limited_ons_releases(), 10)}
+        </py:if>
+      </py:if>
+      <py:if test="h.timeseries_resources()">
+        <h2>Data Resources (${len(h.timeseries_resources())} in a time series)</h2>
+        ${resource_table(h.timeseries_resources())}
+      </py:if>
+    </div>
+    <div class="dataset-resources-additional" py:if="not h.is_unpublished_item(c.pkg_dict)">
+      <py:if test="h.additional_resources() or h.gemini_resources()">
+        <h2>Additional Links (${len(h.additional_resources()) + len(h.gemini_resources())})</h2>
+        ${resource_table(h.additional_resources() + h.gemini_resources())}
+      </py:if>
+
+      <py:if test="not (h.dataset_type(c.pkg_extras) == 'uklp' or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
+        <em>(none)</em>
+      </py:if>
+    </div>
+
+    <div class="dataset-additional-information" py:if="not h.is_unpublished_item(c.pkg_dict)">
+      <!-- Dataset Information Section -->
+      <h2>Additional Information</h2>
+      <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
+        <tbody>
+          <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras))">
+            <td class="key" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
+            <td class="value" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
+          </tr>
+          <tr py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service')">
+            <py:with vars="is_service=dict(c.pkg_extras).get('resource-type')=='service'">
+            <td class="key">Coupled ${if_(is_service,'Services','Datasets')}</td>
+            <td class="value">
+              <ul py:if="h.coupled_pkg_tuples(c.pkg)">
+                <li py:for="name, title in h.coupled_pkg_tuples(c.pkg)">
+                  <a href="/dataset/${name}">${title}</a>
+                </li>
+              </ul>
+              <span py:if="not h.coupled_pkg_tuples(c.pkg)">(none)</span>
+            </td>
+            </py:with>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="comments-container">
+      <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
+      <div style="height: 50px;" class="comments-spinner"></div>
+    </div>
+  </py:def>
+
+
+  <py:def function="package_optional_head">
+    <py:if test="h.get_extent() and not h.is_unpublished_item(c.pkg_dict)">
+      <script src="http://osinspiremappingprod.ordnancesurvey.co.uk/libraries/openlayers-openlayers-56e25fc/OpenLayers.js" type="text/javascript"></script>
+      <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-dataset-map.min.js')}"></script>
+      <script type="text/javascript">
+        $(document).ready(function(){
+          CKAN.DguDatasetMap.tiles_url = "${h.get_tiles_url()}";
+          CKAN.DguDatasetMap.map_type = 'os';
+          CKAN.DguDatasetMap.extent = '${h.get_extent()}';
+          CKAN.DguDatasetMap.setup();
+        })
+      </script>
+      <style type="text/css">
+        /* Make sure we don't break the tiles in the map */
+        #dataset-map-container img { max-width: inherit; }
+      </style>
+    </py:if>
+  </py:def>
+
+
+  <div py:def="resource_table(resources)" class="row">
+    <div class="col-sm-6" py:for="res in resources">
+    <div class="dataset-resource">
+      <div class="dataset-resource-format">
+        <i class="icon-3x icon-file-text"></i>
+        <span class="format-name">
+          <py:if test="res.get('gemini',False)">
+            ${res.get('type','')}
+          </py:if>
+          <py:if test="not res.get('gemini',False)">
+            ${res.get('format','')}
+          </py:if>
+        </span>
+      </div>
+      <div class="dataset-resource-text">
+        <div class="inner">
+          <div class="inner2">
+            <py:if test="res.get('is_broken', 'False') == True">
+              <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="This resource has errors" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}#linkcheck" style="text-decoration:none;color:red;">
+                <i class="icon-exclamation-sign"></i>
+              </a>
+            </py:if>
+
+            <py:if test="res.get('scraped') or res.get('scraper_url')">
+              ${h.scraper_icon(res, alt=if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}
+            </py:if>
+            ${res.get('date','')}
+            ${h.resource_display_name(res)}
+          </div>
+        </div>
+      </div>
+      <div class="dropdown" style="pointer-events:none;">
+        <a href="#" class="dataset-resource-chevron" data-toggle="dropdown"  style="pointer-events:auto;">
+          <i class="icon-chevron-down"></i>
+        </a>
+        <ul class="dropdown-menu"  style="pointer-events:auto;" role="menu" py:with="gemini = res.get('gemini',False)">
+          <li py:if="gemini">
+            <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
+              <i class="icon-search"></i>&nbsp; ${res['action']}
+            </a>
+          </li>
+          <li py:if="not gemini">
+            <a href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}">
+              <i class="icon-search"></i>&nbsp; ${'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}
+            </a>
+          </li>
+          <li py:if="not gemini">
+            <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
+              <i class="icon-download-alt"></i>&nbsp;
+              <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
+              <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
+            </a>
+          </li>
+          <li py:if="not gemini and h.get_cache_url(res)">
+            <a href="${h.get_cache_url(res)}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
+              <i class="icon-save"></i>&nbsp;
+              Cached
+            </a>
+          </li>
+          <li py:if="not gemini and not h.get_cache_url(res)">
+            <a class="disabled">
+              <i class="icon-save"></i>&nbsp;
+              (no cache available)
+            </a>
+          </li>
+        </ul><!-- /dropdown-mnu-->
+      </div><!--/dropdown-->
+    </div><!-- /dataset-resource -->
+    </div><!-- /col-sm-6 -->
+  </div>
+
+  <xi:include href="../package/read_common.html" />
+</html>
+

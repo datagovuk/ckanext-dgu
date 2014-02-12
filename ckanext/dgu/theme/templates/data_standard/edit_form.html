@@ -97,7 +97,7 @@
   </py:if>
 </fieldset>
 
-<fieldset class="tab-pane boxed whitebox fade" id="section-data-field">
+<fieldset class="tab-pane boxed whitebox fade" id="section-data-field" py:with="resource_columns=('description', 'url', 'format')">
   <h3>Data Files</h3>
   <p>In this tab you enter the links to the files containing the actual data at the heart of this record.</p>
 
@@ -105,131 +105,6 @@
   <p>If your data comes in multiple formats, use a line for each.</p>
   <p><strong>NB: Do not put links to web pages here.</strong> These and other useful documents that are not actually the data should go in the 'Additional Resources' section.</p>
   <hr/>
-  <p>This record is:</p>
-
-  <div class="radio">
-    <label>
-      <input py:attrs="{'checked': 'checked' if not h.are_timeseries_resources(data) else None}" id="package_type-individual-radio" type="radio" name="package_type" value="individual"/>
-      A single file record
-    </label>
-  </div>
-  <div class="radio">
-    <label>
-      <input py:attrs="{'checked': 'checked' if h.are_timeseries_resources(data) else None}" id="package_type-timeseries-radio" type="radio" name="package_type" value="timeseries"/>
-      A timeseries record
-    </label>
-  </div>
-
-    <!-- The resource fieldset for a timeseries dataset -->
-    <fieldset id="package_type-timeseries">
-      <div class="well form-inline">
-        <label for="update_frequency" class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
-          Update frequency <i class="icon-info-sign"></i>
-        </label>
-        <select style="width: 200px;" class="form-control" id="update_frequency" name="update_frequency">
-            <py:for each="freq_name, freq_desc in c.update_frequency">
-              <option value="${freq_name}" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == freq_name else None}" >
-                ${freq_desc}
-              </option>
-            </py:for>
-            <option py:if="h.is_package_edit_form(data)" value="discontinued" py:attrs="{'selected': 'selected' if data.get('update_frequency', '') == 'discontinued' else None}" >discontinued</option>
-        </select>
-        <label style="margin-left: 20px;" class="" for="update_frequency-other">Other:</label>
-        <input class="form-control" style="width: 200px;" id="update_frequency-other" name="update_frequency-other" type="text" value="${data.get('update_frequency-other', '')}"/>
-      </div><!-- /well -->
-      <py:if test="errors.get('update_frequency')">
-        <div class="alert alert-danger">${errors.get('update_frequency', '')}</div>
-      </py:if>
-
-      <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
-      <thead>
-        <tr>
-          <th class="resource-move-cell"></th>
-          <th class="resource-date">  <div class="js-tooltip" title="Format: DD/MM/YYYY">Date: <i class="icon-info-sign"></i></div></th>
-          <th class="resource-name">  <div class="js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <i class="icon-info-sign"></i></div></th>
-          <th class="resource-url">   <div class="js-tooltip" title="Where the file is already hosted">URL: <i class="icon-info-sign"></i></div></th>
-          <th class="resource-format"><div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
-        </tr>
-      </thead>
-      <tbody>
-        <py:for each="num, res in enumerate(data.get('timeseries_resources', []) + [{}])">
-        <tr class="timeseries_resources__${num} resource">
-          <td class="resource-move-cell">
-            <div class="btn-group">
-              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
-              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
-            </div>
-            <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
-                    to pull the others from the resource keys, strip the resource_columns and then
-                    ignore resource_type, id and resource_group_id.
-
-                    Code is long hand to keep the list comp understandable -->
-              <py:for each="col in h.timeseries_extra_fields(res)">
-                <input
-                       id="timeseries_resources__${num}__${col}"
-                       name="timeseries_resources__${num}__${col}"
-                       type="hidden"
-                       value="${res.get(col, '')}"/>
-              </py:for>
-              <span class="resource-id"><input name="timeseries_resources__${num}__id" type="hidden" value="${res.get('id', '')}" /></span>
-              <span class="resource-type"><input name="timeseries_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
-            </div>
-          </td>
-          <py:for each="col in ('date',) + c.resource_columns">
-            <td class="resource-${col}">
-              <py:choose test="">
-                <py:when test="col=='description'">
-                  <input id="timeseries_resources__${num}__${col}"
-                         name="timeseries_resources__${num}__${col}"
-                         type="text"
-                         value="${res.get(col, '')}"
-                         class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}" />
-                </py:when>
-                <py:when test="col=='url'">
-                  <span class="input-group ${'error' if h.cell_has_errors(errors,'timeseries_resources', num, col)  else ''}">
-                    <input id="timeseries_resources__${num}__${col}"
-                           name="timeseries_resources__${num}__${col}"
-                           type="text"
-                           value="${res.get(col, '')}"
-                           class="form-control"/>
-                    <span class="input-group-btn">
-                      <button id="timeseries_resources__${num}__validate-resource-button"
-                          class="validate-resource-button btn btn-default">Check</button>
-                    </span>
-                  </span>
-                </py:when>
-                <py:when test="col=='date'">
-                  <input 
-                       id="timeseries_resources__${num}__${col}"
-                       name="timeseries_resources__${num}__${col}"
-                       type="text"
-                       value="${res.get(col, '')}"
-                       class="form-control needs-datepicker ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
-                   />
-                </py:when>
-                <py:otherwise>
-                  <input id="timeseries_resources__${num}__${col}"
-                         name="timeseries_resources__${num}__${col}"
-                         type="text"
-                         value="${res.get(col, '')}"
-                         class="form-control ${'field_error' if h.cell_has_errors(errors,'timeseries_resources', num, col) else ''}"
-                   />
-                </py:otherwise>
-              </py:choose>
-            </td>
-          </py:for>
-        </tr>
-        </py:for>
-      </tbody>
-      </table>
-      <a href="javascript:;" id="timeseries_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
-
-      <p class="field_error" py:if="errors.get('timeseries_resources', '')">Row(s) partially filled.</p>
-      <button class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
-      <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
-    </fieldset>
-
 
     <!-- The resource fieldset for an individual dataset -->
     <fieldset id="package_type-individual">
@@ -252,7 +127,7 @@
               <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
             </div>
             <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+              <!--! Because the resource fields are explicitly set in resource_columns, we need
                     to pull the others from the resource keys, strip the resource_columns and then
                     ignore resource_type, id and resource_group_id.
 
@@ -268,7 +143,7 @@
               <span class="resource-type"><input name="individual_resources__${num}__resource_type" type="hidden" value="${res.get('resource_type', '')}" /></span>
             </div>
           </td>
-          <py:for each="col in c.resource_columns">
+          <py:for each="col in resource_columns">
             <td class="resource-${col}">
             <py:choose test="">
               <input py:when="col=='description'"
@@ -399,11 +274,11 @@
     <div class="form-group">
       <label for="owner_org">Published by: </label>
       <!--! data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. -->
-      <select class="form-control" id="owner_org" name="owner_org" py:with="owner_org=data.get('owner_org')">
+      <select class="form-control" id="owner_org" name="owner_org" py:with="owner_org=data.get('owner_org'); organizations_available = h.organizations_available('create_dataset')">
         <option value=" " py:attrs="{'selected': 'selected' if not owner_org else None}" >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
-        <py:for each="publisher_name, publisher in sorted(c.publishers.items())">
+        <py:for each="publisher in organizations_available"><!-- TODO sort-->
           <option value="${publisher.id}" py:attrs="{'selected': 'selected' if owner_org == publisher.id else None}" >
-            ${publisher['title']}
+            ${publisher.title}
           </option>
         </py:for>
       </select>
@@ -412,7 +287,7 @@
     <hr/>
   <h3>Contact details</h3>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
-    <py:with vars="group=h.edit_publisher_group(data)">
+    <py:with vars="group={} #h.edit_publisher_group(data)"> <!--TODO fix-->
       <fieldset id="publisher-information-field" class="well" >
         <h3>Publisher Contact Details</h3>
         <p><b>Name: </b> <span id="contact-name-label">${group.get('contact-name', '')}</span></p>
@@ -856,23 +731,5 @@
 </div><!-- row -->
 </div>
 
-
-<div class="modal fade" id="package_type_modal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <!--button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button-->
-        <h4 class="modal-title">Discard date information?</h4>
-      </div>
-      <div class="modal-body">
-        <p>Changing from a 'timeseries record' to a 'single file record' will discard the <code>date</code> information for each resource. Continue?</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn cancel btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn ok btn-primary" data-dismiss="modal">OK</button>
-      </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
 
 </form>

@@ -21,6 +21,7 @@ from ckanext.harvest.harvesters.base import HarvesterBase
 import ckan.plugins as p
 
 from ckanext.dgu.lib.formats import Formats
+from ckanext.dgu.lib.theme import categorize_package
 
 REG = rdflib.Namespace('http://purl.org/linked-data/registry#')
 SKOS = rdflib.Namespace('http://www.w3.org/2004/02/skos/core#')
@@ -35,6 +36,9 @@ DGU_TYPE__CONTROLLED_LIST = 'Controlled list'
 
 TTL_PARAM = '?_format=ttl'
 METADATA_PARAM = '&_view=with_metadata'
+
+class BlankDataError(Exception):
+    pass
 
 def printable_uri(uri):
     for namespace, abbrev in ((REG, 'reg'), (SKOS, 'skos'),
@@ -123,7 +127,7 @@ class LinkedDataRegistry(object):
             yield res
         else:
             for subres_uri in self.get_sub_registers(res):
-                if '/system/' in subres_uri:
+                if '/system/' in subres_uri or subres_uri.endswith('/system'):
                     print 'Skipping system register: ', subres_uri
                     continue
                 for res in self._get_harvestable_resources(subres_uri, recurses + 1):
@@ -134,8 +138,12 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
     @classmethod
     def harvest_resources(cls, linked_data_registry):
         for res in linked_data_registry.get_harvestable_resources():
-            pkg_dict, action = cls.get_pkg_dict(res, linked_data_registry)
-            cls.create_or_update(pkg_dict, action)
+            try:
+                pkg_dict, action = cls.get_pkg_dict(res, linked_data_registry)
+                cls.create_or_update(pkg_dict, action)
+            except BlankDataError, e:
+                print '!!        Error with data: %s' % e
+                # but continue with other records
 
     @classmethod
     def print_resource(cls, resource, ldr):
@@ -176,8 +184,9 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
             pkg_dict['name'] = pkg.name
             action = 'update'
         else:
-            pkg_dict['id'] = unicode(uuid.uuid4())
+            #pkg_dict['id'] = unicode(uuid.uuid4())
             pkg_dict['name'] = cls._gen_new_name(pkg_dict['title'])
+            pkg_dict['name'] = cls._check_name(pkg_dict['name'])
             action = 'new'
 
         dgu_type = cls.get_dgu_type(resource)
@@ -199,10 +208,23 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
                               'format': format_dgu,
                               'resource_type': 'file'})
 
-        pkg_dict['notes'] = unicode(resource[DCT.description].next())
-        licence_url = str(resource[DCT.license].next())
+        try:
+            pkg_dict['notes'] = unicode(resource[DCT.description].next())
+        except StopIteration:
+            print '!         No description given'
+            pkg_dict['notes'] = ''
+        try:
+            licence_url = str(resource[DCT.license].next())
+        except StopIteration:
+            # HACK licence for WMO
+            if 'codes.wmo.int' in ldr.top_level_uri:
+                licence_url = 'other-nc'
+            else:
+                raise BlankDataError('!!        No licence given')
         if 'open-government-licence' in licence_url:
-            pkg_dict['licence_id'] = 'uk-ogl'
+            pkg_dict['license_id'] = 'uk-ogl'
+        elif 'other-nc' == licence_url:
+            pkg_dict['license_id'] = 'other-nc'
         else:
             extras['licence_url'] = licence_url
             # not sure how this will display as just as URL
@@ -219,7 +241,17 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
         pkg_dict['type'] = 'data-standard'
 
         pkg_dict['extras'] = [{'key': k, 'value': v} for k, v in extras.items()]
+
+        pkg_dict['tags'] = []
+        themes = categorize_package(pkg_dict)
+        if themes:
+            pkg_dict['extras'].append({'key': 'theme-primary', 'value': themes[0]})
+            if len(themes) > 1:
+                pkg_dict['extras'].append({'key': 'theme-secondary', 'value': themes[1:]})
+
         pkg_dict['resources'] = resources
+
+
         return pkg_dict, action
 
     @classmethod
@@ -236,14 +268,28 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
     def get_publisher(cls, resource):
         from ckan import model
 
-        publisher_uri = str(resource[DCT.publisher].next().identifier)
+        try:
+            publisher_uri = str(resource[DCT.publisher].next().identifier)
+        except StopIteration:
+            # HACK publisher for WMO
+            if 'codes.wmo.int' in ldr.top_level_uri:
+                publisher_uri = 'http://www.wmo.int/'
+            else:
+                raise BlankDataError('No dct:publisher value')
         assert publisher_uri
         publisher_url = publisher_uri + TTL_PARAM
         publisher_graph = rdflib.Graph().parse(publisher_url)
         publisher_resource = publisher_graph.resource(publisher_uri)
-        publisher_label = unicode(publisher_resource[RDFS.label].next())
+        try:
+            publisher_label = unicode(publisher_resource[RDFS.label].next())
+        except StopIteration:
+            # HACK publisher for WMO
+            if 'codes.wmo.int' in ldr.top_level_uri:
+                publisher_label = 'World Meteorological Organization'
+            else:
+                raise BlankDataError('No rdfs:label on resolved publisher URI %s' % publisher_url)
         results = model.Group.search_by_name_or_title(publisher_label, is_org=True).all()
-        assert len(results) == 1, '%s %r' % (publisher_label, results)
+        assert len(results) == 1, 'Could not find publisher in DGU: %r %r' % (publisher_label, results)
         return results[0]
 
     @classmethod
@@ -284,18 +330,18 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
 
         if action == 'new':
             try:
-                package_id = p.toolkit.get_action('package_create')(context, pkg_dict)
-                log.info('Created new package %s with guid %s', package_id, harvest_object.guid)
+                package = p.toolkit.get_action('package_create')(context, pkg_dict)
+                log.info('          Created new package %s with guid %s', package['id'][:4], harvest_object.guid)
             except p.toolkit.ValidationError, e:
-                print '!!! Validation error:', e.error_summary
+                print '!!!       Validation error (new):', e.error_summary
                 #cls._save_object_error('Validation Error: %s' % str(e.error_summary), harvest_object, 'Import')
                 return False
         elif action == 'update':
             try:
-                package_id = p.toolkit.get_action('package_update')(context, pkg_dict)
-                log.info('Updated package %s with guid %s', package_id, harvest_object.guid)
+                package = p.toolkit.get_action('package_update')(context, pkg_dict)
+                log.info('          Updated package %s with guid %s', package['id'][:4], harvest_object.guid)
             except p.toolkit.ValidationError,e:
-                print '!!! Validation error:', e.error_summary
+                print '!!!       Validation error (update):', e.error_summary
                 #cls._save_object_error('Validation Error: %s' % str(e.error_summary), harvest_object, 'Import')
                 return False
 
@@ -324,15 +370,18 @@ if __name__ == '__main__':
     themeLogger.addHandler(handler)
     #logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
-    top_uri = 'http://environment.data.gov.uk/registry/def'
-    #top_uri = 'http://codes.wmo.int/'
+    #top_uri = 'http://environment.data.gov.uk/registry/def'
+    top_uri = 'http://codes.wmo.int/'
     #top_uri = 'http://codes.wmo.int/49-2'
     ldr = LinkedDataRegistry(top_uri)
     #res = ldr.get_resource(top_uri)
     #sr = [sr for sr in ldr.get_sub_registers(res)][0]
     #ldr.get_resource(sr.identifier)
-    #LinkedDataRegistryHarvester.harvest_resources(ldr)
-    res_uri = 'http://environment.data.gov.uk/registry/def/catchment-planning/RiverBasinDistrict'
-    pkg_dict, action = LinkedDataRegistryHarvester.get_pkg_dict(ldr.get_resource(res_uri), ldr)
-    LinkedDataRegistryHarvester.create_or_update(pkg_dict, action)
+ 
+    #res_uri = 'http://environment.data.gov.uk/registry/def/catchment-planning/RiverBasinDistrict'
+    #pkg_dict, action = LinkedDataRegistryHarvester.get_pkg_dict(ldr.get_resource(res_uri), ldr)
+    #LinkedDataRegistryHarvester.create_or_update(pkg_dict, action)
+
+    LinkedDataRegistryHarvester.harvest_resources(ldr)
+
 

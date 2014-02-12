@@ -1,5 +1,7 @@
 import ckan.plugins as p
-#import ckan.plugins.toolkit as toolkit
+import ckan.logic.schema as default_schema
+
+from dataset_form import DatasetForm 
 
 class DataStandardForm(p.toolkit.DefaultDatasetForm, p.SingletonPlugin):
 
@@ -23,6 +25,38 @@ class DataStandardForm(p.toolkit.DefaultDatasetForm, p.SingletonPlugin):
 
     def package_form(self):
         return 'data_standard/edit_form.html'
+
+    def read_template(self):
+        return 'data_standard/read.html'
+
+    def show_package_schema(self):
+        return DatasetForm.db_to_form_schema()
+
+    # We don't customize the schema here - instead it is done in the validate
+    # function, because there it has the context.
+    #def create_package_schema(self):
+    #def update_package_schema(self):
+
+    # Override the form validation to be able to vary the schema by the type of
+    # package and user
+    def validate(self, context, data_dict, schema, action):
+        if action in ('package_update', 'package_create'):
+            # If the caller to package_update specified a schema (e.g.
+            # harvesters specify the default schema) then we don't want to
+            # override that.
+            if not context.get('schema'):
+                if 'api_version' in context:
+                    # When accessed by the API, just use the default schemas.
+                    # It's only the forms that are customized to make it easier
+                    # for humans.
+                    if action == 'package_create':
+                        schema = default_schema.default_create_package_schema()
+                    else:
+                        schema = default_schema.default_update_package_schema()
+                else:
+                    # Customized schema for DGU form - leave as for dataset for now
+                    schema = DatasetForm.form_to_db_schema(context)
+        return p.toolkit.navl_validate(data_dict, schema, context)
 
     # IRoutes
 

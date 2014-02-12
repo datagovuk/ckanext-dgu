@@ -240,6 +240,7 @@ class DatasetForm(p.SingletonPlugin):
         else:
             return self.db_to_form_schema()
 
+    @classmethod
     def form_to_db_schema(self, package_type=None):
 
         schema = {
@@ -313,6 +314,7 @@ class DatasetForm(p.SingletonPlugin):
         }
         return schema
 
+    @classmethod
     def db_to_form_schema(data, package_type=None):
         schema = {
             'date_released': [convert_from_extras, ignore_missing, date_to_form],

@@ -60,7 +60,7 @@
               <li><a href="/node/add/data-request?dataset=${c.pkg_dict.get('name')}">Request new data &raquo;</a></li>
             </ul>
 
-            The information on this page (the dataset metadata) is also available in JSON format.
+            The information on this page (the ${c.pkg.type} metadata) is also available in JSON format.
             <ul>
               <li>
                 <b>API: </b><a href="${h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}">
@@ -84,7 +84,11 @@
 
 
     </div>
-    <h1>${c.pkg_dict.get('title', c.pkg_dict['name'])} <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span></h1>
+    <h1>
+      ${c.pkg_dict.get('title', c.pkg_dict['name'])} 
+      <span class="unpublished-text" py:if="c.pkg.type == 'data-standard'"> - ${dict(c.pkg_extras).get('data_standard_type')}</span>
+      <span class="unpublished-text" py:if="h.is_unpublished_item(c.pkg_dict)">(Unpublished)</span>
+    </h1>
     <div class="h1-subheading" py:with="
       all_licences = h.get_licenses(c.pkg);
       publisher = c.pkg_dict.get('organization')
@@ -140,6 +144,7 @@
     <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;"
       py:with="stars,reason,last_updated=h.calculate_dataset_stars(c.pkg.id)"
       >
+     <py:if test="c.pkg.type=='dataset'">
       Openness rating:
       <span class="star-rating">
         <span class="tooltip">
@@ -185,6 +190,7 @@
       <div class="js-tooltip format-box pull-right" style='font-weight: bold; padding: 8px; background-color: #8BC658;' py:if="h.is_core_dataset(c.pkg_dict)" title="National Information Infrastructure">
           <span>NII</span>
       </div>
+     </py:if>
 
     </div>
 

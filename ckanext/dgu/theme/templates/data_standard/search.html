@@ -1,0 +1,74 @@
+﻿<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <xi:include href="../facets.html" />
+
+  <py:def function="page_title">Data Search</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data-standard">Data Standards</a></li>
+  </py:match>
+
+  <py:def function="sidebar">
+    <div class="sidebar-search">
+      ${search_form(mini=True, placeholder='Search for data standard...', package_type='data-standard')}
+    </div>
+
+    <py:if test="c.page.item_count">
+      ${facet_filters(type='data-standard')}
+    </py:if>
+  </py:def>
+
+  <div py:match="content">
+    <a href="#" class="visible-sm visible-xs btn btn-primary btn-sm show-facets">Show Search Facets &raquo;</a>
+
+    <py:if test="c.query_error">
+      <div class="panel panel-danger">
+        <div class="panel-heading"><strong>There was an error while searching.</strong></div>
+        <div class="panel-body">Please try again.</div>
+      </div>
+    </py:if>
+
+    <form class="form-inline pull-right" id="search-sort-by">
+      <py:def function="sort_option(text, value, selected, disabled=False)">
+        <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
+      </py:def>
+      <label>Sort by:</label>
+      <select name="dataset-results-sort" class="form-control" style="display:inline-block;">
+        <!-- Can optimise this bit of the template, particularly results_sort_by -->
+        ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
+        ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
+        ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
+        ${sort_option('Last Updated', c.sort_by([('last_major_modification','desc')]), 'last_major_modification' in h.results_sort_by())}
+      </select>
+<!--      <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+        <i class="icon-rss-sign"></i>
+      </a> -->
+    </form>
+
+    <py:if test="not c.query_error">
+      <h1>${c.page.item_count if c.page not in (None, '') else c.package_count or 0} Results</h1>
+    </py:if>
+    <py:if test="c.query_error">
+      <h1>Search Error</h1>
+    </py:if>
+
+    ${package_list_from_dict(c.page.items)}
+    <div py:if="c.page.items">
+      ${paginator(c.page)}
+    </div>
+  </div>
+
+  <py:def function="optional_feed">
+  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Data Standards found with custom search: '${c.search_url_params}'"
+    href="${h.url(controller='feed', action='custom')}?${c.search_url_params}" />
+  </py:def>
+
+  <xi:include href="../layout_base.html" />
+</html>
+
+
