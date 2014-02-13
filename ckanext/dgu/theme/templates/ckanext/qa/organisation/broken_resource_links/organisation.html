@@ -55,6 +55,7 @@
               <th title="First failed attempt">First fail</th>
               <th title="Most recent failed attempt">Latest fail</th>
               <th title="The last time it was successfully obtained">Last success</th>
+              <th title="Where the data was harvested from">Via</th>
             </tr>
          </thead>
          <tbody>
@@ -69,6 +70,7 @@
               <td>${row_dict.get('first_failure').strftime('%d/%m/%y  %H:%M') if row_dict.get('first_failure') else 'not recorded'}</td>
               <td>${row_dict.get('last_updated').strftime('%d/%m/%y  %H:%M') if row_dict.get('last_updated') else 'not recorded'}</td>
               <td>${row_dict.get('last_success').strftime('%d/%m/%y  %H:%M') if row_dict.get('last_success') else 'not recorded'}</td>
+              <td>${row_dict.get('via', '')}</td>
             </tr>
           </tbody>
         </table>
