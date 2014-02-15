@@ -29,7 +29,7 @@ $(function() {
   /* Recursive. Runs through a row of the index */
   function updateSearch(searchString) {
     searchString = searchString.toLowerCase();
-    if (searchString.length==0 || searchString=='search for publishers...') {
+    if (searchString.length==0 || searchString=='start typing a name...') {
       var p = $('.publisher');
       hacky_count = p.length;
       p.removeClass('match');
