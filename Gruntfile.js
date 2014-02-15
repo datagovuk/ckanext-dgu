@@ -26,7 +26,6 @@ module.exports = function(grunt) {
           'public/scripts/dgu-publisher-forms.min.js'      : 'src/scripts/dgu-publisher-forms.js',
           'public/scripts/dgu-publisher-index.min.js'      : 'src/scripts/dgu-publisher-index.js',
           'public/scripts/dgu-publisher-read.min.js'       : 'src/scripts/dgu-publisher-read.js',
-          'public/scripts/dgu-publisher.min.js'            : 'src/scripts/dgu-publisher.js',
         },
       },
       vendor: {
