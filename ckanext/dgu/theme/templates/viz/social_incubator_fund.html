@@ -1,0 +1,48 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Exploring: Social Investment and Foundations</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/dataset/social-investment-and-foundations">Social Investment and Foundations</a></li>
+    <li><a href="${request.url}">Data Explorer</a></li>
+  </py:match>
+
+  <py:def function="optional_head">
+    <!--[if lte IE 8]>
+      <script type="text/javascript">
+        $(function() {
+          $('.viz-body')
+          .css('padding','4px')
+          .html('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>')
+          .append('<img src="/images/graph-socialinvestment.png"/>');
+        });
+      </script>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="/css/dgu-viz.min.css" />
+    <script type="text/javascript" src="/scripts/vendor/d3.v3.min.js"></script>
+    <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
+    <script type="text/javascript" src="/scripts/dgu-viz-pack.min.js"></script>
+    <script type="text/javascript">
+      $(function() { viz.loadSocialIncubatorFund(); })
+    </script>
+  </py:def>
+
+  <py:match path="content">
+    <h1>Exploring: Social Investment and Foundations</h1>
+    <div class="container">
+      <div class="row">
+        <div class="whitebox" style="overflow: visible;">
+          <div class="viz-body">
+            (Not yet implemented)
+          </div>
+        </div>
+      </div>
+    </div>
+  </py:match>
+  <xi:include href="../layout.html" />
+</html>
+

@@ -1,0 +1,193 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Main</py:def>
+
+  <py:def function="body_id">front-page</py:def>
+
+  <py:def function="optional_head">
+    <!--[if lte IE 8]>
+      <script type="text/javascript">
+        $(function() {
+          $('.viz-body')
+          .css('padding','4px')
+          .html('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>')
+          .append('<img src="/images/graph-socialinvestment.png"/>');
+        });
+      </script>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="/css/dgu-viz.min.css" />
+    <script type="text/javascript" src="/scripts/vendor/d3.v3.min.js"></script>
+    <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
+    <script type="text/javascript" src="/scripts/dgu-viz-pack.min.js"></script>
+    <script type="text/javascript">
+
+      window.viz_graph_datasets = "date,published,unpublished\n\
+2013-08-01,9733,0\n\
+2013-08-08,9769,0\n\
+2013-08-15,9799,0\n\
+2013-08-22,9838,10\n\
+2013-08-29,9973,15\n\
+2013-09-05,10058,3099\n\
+2013-09-12,10118,3385\n\
+2013-09-19,10160,3400\n\
+2013-09-26,10263,3598\n\
+2013-10-03,10285,3625\n\
+2013-10-10,10314,3628\n\
+2013-10-17,10352,3630\n\
+2013-10-24,10385,3647\n\
+2013-10-31,10475,3792\n\
+2013-11-07,10716,4169\n\
+2013-11-14,12256,4169\n\
+2013-11-21,12359,4169\n\
+2013-11-28,12650,4169\n\
+2013-12-05,13047,4169\n\
+2013-12-12,13308,4170\n\
+2013-12-19,13447,4170\n\
+2013-12-26,13602,4170\n\
+2014-01-02,13605,4170\n\
+2014-01-09,13625,4170\n\
+2014-01-16,13625,4170\n\
+2014-01-23,13625,4170\n\
+2014-01-30,13625,4170";
+      window.viz_graph_formats = [
+    {
+        "value": 21118, 
+        "format": "csv"
+    }, 
+    {
+        "value": 4710, 
+        "format": "xls"
+    }, 
+    {
+        "value": 1845, 
+        "format": "html"
+    }, 
+    {
+        "value": 1620, 
+        "format": "pdf"
+    }, 
+    {
+        "value": 1037, 
+        "format": "xml"
+    }, 
+    {
+        "value": 724, 
+        "format": "etc"
+    }, 
+    {
+        "value": 454, 
+        "format": "zip"
+    }, 
+    {
+        "value": 322, 
+        "format": "ods"
+    }, 
+    {
+        "value": 302, 
+        "format": "wms"
+    }, 
+    {
+        "value": 263, 
+        "format": "rdf"
+    }, 
+    {
+        "value": 227, 
+        "format": "txt"
+    }, 
+    {
+        "value": 161, 
+        "format": "doc"
+    }, 
+    {
+        "value": 110, 
+        "format": "csv/zip"
+    }
+];
+      $(function() { viz.loadFrontPage(); })
+    </script>
+  </py:def>
+
+  <py:def function="front_page_box(link_url, link_text, img_url, subtitle='', img_style='')">
+    <div class="col-md-4 col-xs-6">
+      <a class="front-page-box row1" href="${link_url}">
+        <div class="img"><img src="${img_url}" style="${img_style}"/></div>
+        <div class="text">${link_text} <span class="posttext">&raquo;</span><small py:if="subtitle">${subtitle}</small></div>
+      </a>
+    </div>
+  </py:def>
+
+  <py:match path="content">
+    <div class="container front-page-container">
+      <div class="row" style="margin-bottom: 20px;">
+      ${front_page_box('blog/linked-data-registries-and-talking-about-weather',
+          'Linked data, registries and talking about the weather',
+          '/images/frontpage-weather.jpg'
+      )}
+      ${front_page_box('blog/open-data-sticky-sweets-and-nights-ibiza',
+          'Of open data, sticky sweets and nights in Ibiza',
+          '/images/frontpage-hackday.jpg'
+      )}
+      ${front_page_box('blog/datagovuk-to-go',
+          'Data.gov.uk to go',
+          '/images/frontpage-to-go.png',
+          subtitle='Integrated release of our Ckan-Drupal stack',
+          img_style='margin-top:-11%;'
+      )}
+      ${front_page_box('blog/what-did-open-data-ever-do-us',
+          'What did open data ever do for us?',
+          '/images/frontpage-paul-maltby.jpg',
+          img_style='margin-top:-6%;'
+      )}
+      ${front_page_box('blog/improved-datagovuk',
+          'Improvements to data.gov.uk',
+          '/images/frontpage-antonio-acuna.jpg',
+          img_style='margin-top:-21%;'
+      )}
+      ${front_page_box('blog/simple-intro-open-data',
+          'A quick guide to working with data',
+          '/images/frontpage-guide.jpg'
+      )}
+  </div><!--/row-->
+  <hr/>
+  <div class="row" style="margin-bottom: 20px;">
+    <div class="col-sm-4">
+    <div class="counts counts1">
+      <h2>Data Catalogue</h2>
+      <a class="count" href="/data/search?unpublished=true">
+        <div class="big">4168</div>
+        <div class="small">unpublished datasets</div>
+      </a>
+      <a class="count" href="/data/search?unpublished=false">
+        <div class="big">13748</div>
+        <div class="small">published datasets</div>
+      </a>
+    </div>
+    </div>
+    <div class="col-sm-8">
+    <div class="graph graph1">
+    </div>
+    </div>
+    </div>
+    <div class="row" style="margin-bottom: 20px;">
+    <div class="col-sm-8">
+    <div class="graph graph2">
+      (resources pie chart)
+    </div>
+    </div>
+    <div class="col-sm-4">
+    <div class="counts counts2">
+      <div class="count">
+        <div class="big">70243</div>
+        <div class="small">resources</div>
+      </div>
+    </div>
+    </div>
+  </div><!--/row-->
+  </div><!--/container-->
+  </py:match>
+  <xi:include href="../layout.html" />
+</html>
+

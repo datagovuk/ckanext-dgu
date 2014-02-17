@@ -6,7 +6,7 @@ $(function() {
       var b = new OpenSpending.Browser(
         "#openspending_browser",
         "ukgov-25k-spending",
-        {'source': 'http://openspending.org'}
+        {'source': 'https://openspending.org'}
       );
       b.init();
 
