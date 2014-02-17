@@ -38,7 +38,7 @@
   OpenSpending.DataTable = (function() {
 
     DataTable.prototype.options = {
-      source: '/api/2/search',
+      source: '/api/2/search?callback=?',
       columns: [],
       resultCollection: function(data) {
         return data.results;
@@ -166,7 +166,6 @@
       this.lastParams = newparams;
       rq = $.ajax({
         url: this.options.source,
-        jsonpCallback: 'key_' + btoa($.param(newparams)).replace(/\=/g, ''),
         cache: true,
         data: newparams,
         dataType: 'jsonp'
