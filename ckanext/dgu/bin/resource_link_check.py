@@ -59,7 +59,12 @@ def report():
     for task in tasks:
         d = json.loads(task.error)
         if 'is_broken' in d and d['is_broken']:
-            resource = model.Resource.get(task.entity_id)
+            try:
+                resource = model.Resource.get(task.entity_id)
+            except Exception, e:
+                log.error("Resource.first(%s) failed: %s" % (task.entity_id, e))
+                continue
+
             if resource:
                 stats.increment('Broken resource')
                 broken_resources.writerow([resource.id, resource.url.encode('utf8')])
