@@ -44,6 +44,8 @@ def command(config_ini):
 def report():
     import ckan.model as model
 
+    log = logging.getLogger(__name__)
+
     stats = StatsCount()
     #stats.increment('Fixable')
 
