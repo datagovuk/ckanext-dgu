@@ -450,7 +450,7 @@ def render_datetime(datetime_, date_format=None, with_hours=False):
             date_format += ' %H:%M'
     return ckan.lib.helpers.render_datetime(datetime_, date_format)
 
-def dgu_drill_down_url(params_to_keep, added_params):
+def dgu_drill_down_url(params_to_keep, added_params, package_type):
     '''Since you must not mix spatial search with other facets,
     we need to strip off "sort=spatial+desc" from the params if it
     is there.
@@ -466,7 +466,7 @@ def dgu_drill_down_url(params_to_keep, added_params):
     params = set(params_to_keep)
     params |= set(added_params.items())
 
-    return search_url(params)
+    return search_url(params, package_type)
 
 def render_json(json_str):
     '''Given a JSON string, list or dict, return it for display,
@@ -1356,7 +1356,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
 def publisher_has_spend_data(publisher):
     return publisher.extras.get('category','') == 'core-department'
 
-def search_facets_unselected(facet_keys,sort_by='count'):
+def search_facets_unselected(facet_keys, package_type=None, sort_by='count'):
     unselected_raw = []
     for key in facet_keys:
         for value in unselected_facet_items(key):
@@ -1364,7 +1364,7 @@ def search_facets_unselected(facet_keys,sort_by='count'):
     unselected_raw = sorted(unselected_raw,reverse=True,key=lambda x:x[1][sort_by])
     unselected = []
     for key,value in unselected_raw:
-        link = dgu_drill_down_url(facet_params_to_keep(), {key: value['name']})
+        link = dgu_drill_down_url(facet_params_to_keep(), {key: value['name']}, package_type)
         text = "%s (%d)" % (search_facet_text(key,value['name']),value['count'])
         tooltip = search_facet_tooltip(key,value['name'])
         unselected.append( (link,text,tooltip) )
@@ -1372,15 +1372,17 @@ def search_facets_unselected(facet_keys,sort_by='count'):
     if 'publisher' in facet_keys and request.params.get('publisher',''):
         params_to_keep = dict(facet_params_to_keep())
         del params_to_keep['publisher']
-        link = dgu_drill_down_url(params_to_keep.items(), {'parent_publishers':request.params.get('publisher','')})
+        link = dgu_drill_down_url(params_to_keep.items(), {'parent_publishers':request.params.get('publisher','')}, package_type)
         unselected.append( (link,'Include sub-publishers',None) )
     return unselected
 
-def search_facets_selected(facet_keys):
+def search_facets_selected(facet_keys, package_type=None):
+    from ckan.controllers.package import search_url
     selected = []
+    basic_search_url = search_url([], package_type).rstrip('?')
     for (key,value) in c.fields:
         if key not in facet_keys: continue
-        link = c.remove_field(key,value)
+        link = c.remove_field(key, value, alternative_url=basic_search_url)
         text = search_facet_text(key,value)
         tooltip = search_facet_tooltip(key,value)
         selected.append( (link,text,tooltip) )
@@ -1388,7 +1390,7 @@ def search_facets_selected(facet_keys):
     if 'parent_publishers' in facet_keys and request.params.get('parent_publishers',''):
         params_to_keep = dict(facet_params_to_keep())
         del params_to_keep['parent_publishers']
-        link = dgu_drill_down_url(params_to_keep.items(), {'publisher':request.params.get('parent_publishers','')})
+        link = dgu_drill_down_url(params_to_keep.items(), {'publisher':request.params.get('parent_publishers','')}, package_type)
         selected.append( (link,'Include sub-publishers',None) )
     return selected
 

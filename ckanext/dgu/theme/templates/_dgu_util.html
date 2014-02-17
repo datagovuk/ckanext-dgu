@@ -300,33 +300,33 @@
     </div>
   </py:def>
 
-  <div py:def="facet_filters(type='dataset')" class="datasets">
+  <div py:def="facet_filters(package_type='dataset')" class="datasets">
     <div class="facet-filters">
       <div class="visible-xs visible-sm">
         <a href="#" class="hide-facets">
           <i class="icon-remove-circle icon-4x"></i>
         </a>
       </div>
-      <py:if test="type=='dataset'">
+      <py:if test="package_type=='dataset'">
       ${facet_box(
           'Show only...',
-          h.search_facets_unselected(['unpublished']),
-          h.search_facets_selected(['unpublished']),
+          h.search_facets_unselected(['unpublished'], package_type),
+          h.search_facets_selected(['unpublished'], package_type),
           'No further filters to apply.'
           )}
       <div class="facet-divider"></div>
       ${facet_box(
           'NII datasets',
-          h.search_facets_unselected(['core_dataset']),
-          h.search_facets_selected(['core_dataset']),
+          h.search_facets_unselected(['core_dataset'], package_type),
+          h.search_facets_selected(['core_dataset'], package_type),
           'No further filters to apply.'
           )}
       <div class="facet-divider"></div>
       </py:if>
       ${facet_box(
           'Licence',
-          h.search_facets_unselected(['license_id-is-ogl']),
-          h.search_facets_selected(['license_id-is-ogl']),
+          h.search_facets_unselected(['license_id-is-ogl'], package_type),
+          h.search_facets_selected(['license_id-is-ogl'], package_type),
           'No further licence filters to apply.'
       )}
       <div class="facet-divider"></div>
@@ -340,8 +340,8 @@
       <div class="facets-theme-primary">
       ${facet_box(
           'Theme',
-          h.search_facets_unselected(['theme-primary']),
-          h.search_facets_selected(['theme-primary']),
+          h.search_facets_unselected(['theme-primary'], package_type),
+          h.search_facets_selected(['theme-primary'], package_type),
           'No further theme filters to apply.',
           more_button='more-prithemes-button'
       )}
@@ -350,8 +350,8 @@
       <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
       ${facet_box(
           'Themes',
-          h.search_facets_unselected(['all_themes']),
-          h.search_facets_selected(['all_themes']),
+          h.search_facets_unselected(['all_themes'], package_type),
+          h.search_facets_selected(['all_themes'], package_type),
           'No further theme filters to apply.',
           more_button='more-themes-button'
       )}
@@ -360,8 +360,8 @@
       <div class="facet-divider"></div>
       ${facet_box(
           'Resource Format',
-          h.search_facets_unselected(['res_format']),
-          h.search_facets_selected(['res_format']),
+          h.search_facets_unselected(['res_format'], package_type),
+          h.search_facets_selected(['res_format'], package_type),
           'No further format filters to apply.',
           more_button='more-formats-button'
       )}
@@ -369,8 +369,8 @@
       <py:if test="request.params.get('parent_publishers','')">
         ${facet_box(
             'Publisher',
-            h.search_facets_unselected(['parent_publishers']),
-            h.search_facets_selected(['parent_publishers']),
+            h.search_facets_unselected(['parent_publishers'], package_type),
+            h.search_facets_selected(['parent_publishers'], package_type),
             'No further publisher filters to apply.',
             more_button='more-publishers-button'
         )}
@@ -378,25 +378,25 @@
       <py:if test="not request.params.get('parent_publishers','')">
         ${facet_box(
             'Publisher',
-            h.search_facets_unselected(['publisher']),
-            h.search_facets_selected(['publisher']),
+            h.search_facets_unselected(['publisher'], package_type),
+            h.search_facets_selected(['publisher'], package_type),
             'No further publisher filters to apply.',
             more_button='more-publishers-button'
         )}
       </py:if>
       <div class="facet-divider"></div>
-      <py:if test="type=='dataset'">
+      <py:if test="package_type=='dataset'">
       ${facet_box(
           'Openness Score (beta)',
-          h.search_facets_unselected(['openness_score'],'name'),
-          h.search_facets_selected(['openness_score']),
+          h.search_facets_unselected(['openness_score'], package_type, 'name'),
+          h.search_facets_selected(['openness_score'], package_type),
           'No further openness filters to apply.',
       )}
       <div class="facet-divider"></div>
       ${facet_box(
           'UK Location Dataset Type',
-          h.search_facets_unselected(['UKLP','resource-type','spatial-data-service-type']),
-          h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),
+          h.search_facets_unselected(['UKLP','resource-type','spatial-data-service-type'], package_type),
+          h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type'], package_type),
           'No further type filters to apply.'
       )}
       </py:if>

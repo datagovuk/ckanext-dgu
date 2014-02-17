@@ -63,6 +63,7 @@ class DataStandardForm(p.toolkit.DefaultDatasetForm, p.SingletonPlugin):
     def before_map(self, map):
         #controller = 'ckanext.dgu.controllers.package:PackageController'
         controller = 'package'
+        map.connect('data-standard_search', controller=controller, action='search')
         map.connect('/data-standard/new', controller=controller, action='new')
         map.connect('/data-standard/edit/{id}', controller=controller, action='edit')
         map.connect('/data-standard/delete/{id}', controller=controller, action='delete')
