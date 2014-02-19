@@ -161,7 +161,7 @@ window.viz.loadSocialInvestmentsAndFoundations = ->
 # Social Incubator Fund
 # ---------------------
 window.viz.loadInvestmentReadiness = ->
-    d3.json '/scripts/json/investment-readiness-programme/tmp.json', (data) ->
+    d3.json '/scripts/json/investment-readiness-programme/investment-readiness-d3.json', (data) ->
         new viz.Headline(d3.select('#icrf_headline1'), data.icrf_mean, 'mean investment', money=true)
         new viz.Headline(d3.select('#icrf_headline2'), data.icrf_count, 'organisations funded')
         new viz.MoneyLine(d3.select('#icrf_cash'), data.icrf_items)
