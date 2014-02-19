@@ -75,21 +75,34 @@ def report():
 
     user_agent = {'User-agent': 'data.gov.uk - please contact ross@servercode.co.uk with problems'}
 
+    def make_query(resource_id, new_url):
+        q = [
+            u"UPDATE resource_revision SET url='%s' WHERE id='%s' and current=true;" % (new_url, resource_id,),
+            u"UPDATE resource SET url='%s' WHERE id='%s';" % (new_url, resource_id,)
+        ]
+        return "\n".join(q)
+
+
+    output = open('resource_updates.sql', 'w')
     with open(TMP_FILE, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
+            rid = row[0]
             url = "http://webarchive.nationalarchives.gov.uk/+/" + row[1]
 
             try:
                 req = requests.head(url, headers=user_agent, verify=False)
                 if req.status_code == 200:
                     stats.increment('Fixable')
+                    output.write(make_query(rid, url))
                 else:
                     stats.increment('Not fixable')
             except:
                 stats.increment("Broken check")
             time.sleep(random.randint(1,3))
 
+
+    output.close()
 
     print '*' * 60, 'Fixability Report'
     print stats.report()
