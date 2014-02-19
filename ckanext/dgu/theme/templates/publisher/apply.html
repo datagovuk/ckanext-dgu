@@ -7,8 +7,13 @@
 
  <py:match path="breadcrumbs">
     <li><a href="/publisher">Publishers</a></li>
-    <li><a href="/publisher/${c.group.name}">${c.group.display_name}</a></li>
-    <li><a href="/publisher/apply/${c.group.name}">Apply for membership</a></li>
+    <py:if test="not c.group">
+      <li><a href="/publisher/apply}">Apply for membership</a></li>
+    </py:if>
+    <py:if test="c.group">
+      <li><a href="/publisher/${c.group.name}">${c.group.display_name}</a></li>
+      <li><a href="/publisher/apply/${c.group.name}">Apply for membership</a></li>
+    </py:if>
   </py:match>
 
   <div py:match="content" class="group-edit-form">
