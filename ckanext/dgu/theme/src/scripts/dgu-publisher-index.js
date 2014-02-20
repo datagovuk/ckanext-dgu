@@ -29,7 +29,7 @@ $(function() {
   /* Recursive. Runs through a row of the index */
   function updateSearch(searchString) {
     searchString = searchString.toLowerCase();
-    if (searchString.length==0 || searchString=='search for publishers...') {
+    if (searchString.length==0 || searchString=='start typing a name...') {
       var p = $('.publisher');
       hacky_count = p.length;
       p.removeClass('match');
@@ -94,8 +94,19 @@ $(function() {
   searchBox.on('keypress',onChange);
   searchBox.change(onChange);
   updateSearch(searchBox.val());
-});
 
-$(function() {
+  // -- Init base form
   $('input[name="q"]').focus();
+  
+  // -- Handle expand/collapse
+  $('.js-expand,.js-collapse').click(function(e) {
+    e.preventDefault();
+    var target = $(e.delegateTarget);
+    var expanding = target.hasClass('js-expand');
+    console.log('here',target,expanding);
+    target.parent()
+      .toggleClass('expanded',expanding)
+      .toggleClass('collapsed',!expanding);
+    return false;
+  });
 });

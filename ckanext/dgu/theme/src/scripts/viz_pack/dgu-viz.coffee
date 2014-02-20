@@ -106,11 +106,11 @@ window.viz.loadSocialInvestmentsAndFoundations = ->
     data.pie1['all'].forEach (x) -> 
       viz.sector_color x.name
       viz.sector_list.push x.name
-    graph_sankey = new viz.Sankey "#graph_sankey",data.sankey
+    graph_sankey = new viz.Sankey "#social_investment_sankey",data.sankey
     graph_stackedBar = new viz.StackedBarChart '#graph_yearonyear', data.bar.all
     graph_coinvestmentTotal = new viz.CashTotal '#coinvestment-total', data.coinvestment_total
     graph_investmentTotal = new viz.CashTotal '#investment-total', data.investment_total['all']
-    graph_sunburst = new viz.Sunburst '#graph_coinvestment', data.sunburst
+    graph_sunburst = new viz.Sunburst '#social_investment_coinvestment', data.sunburst
     graph_pie1 = new viz.PieChart('#graph_pie1',data.pie1['all'],viz.sector_color,{trimLegend:32, legendData:viz.sector_list})
     graph_pie2 = new viz.PieChart('#graph_pie2',data.pie2['all'],viz.colour_product_type())
     # Bind to buttons
@@ -161,7 +161,7 @@ window.viz.loadSocialInvestmentsAndFoundations = ->
 # Social Incubator Fund
 # ---------------------
 window.viz.loadInvestmentReadiness = ->
-    d3.json '/scripts/json/investment-readiness-programme/tmp.json', (data) ->
+    d3.json '/scripts/json/investment-readiness-programme/investment-readiness-d3.json', (data) ->
         new viz.Headline(d3.select('#icrf_headline1'), data.icrf_mean, 'mean investment', money=true)
         new viz.Headline(d3.select('#icrf_headline2'), data.icrf_count, 'organisations funded')
         new viz.MoneyLine(d3.select('#icrf_cash'), data.icrf_items)
