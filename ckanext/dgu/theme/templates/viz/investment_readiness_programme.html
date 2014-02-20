@@ -1,0 +1,74 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Exploring: Investment Readiness Programme</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/dataset/icrf-data">Investment Readiness Programme</a></li>
+    <li><a href="${request.url}">Data Explorer</a></li>
+  </py:match>
+
+  <py:def function="optional_head">
+    <!--[if lte IE 8]>
+      <script type="text/javascript">
+        $(function() {
+          $('#main-content .row:first')
+          .prepend('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>');
+          $('#sib_container').html('<img src="/images/graph-investmentreadiness1.png" alt="(Interactive graphs not available)" />')
+          $('#icrf_container').html('<img src="/images/graph-investmentreadiness2.png" alt="(Interactive graphs not available)" />')
+        });
+      </script>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="/css/dgu-viz.min.css" />
+    <script type="text/javascript" src="/scripts/vendor/d3.v3.min.js"></script>
+    <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
+    <script type="text/javascript" src="/scripts/dgu-viz-pack.min.js"></script>
+    <script type="text/javascript">
+      $(function() { viz.loadInvestmentReadiness(); })
+    </script>
+  </py:def>
+
+  <py:match path="content">
+    <div class="container">
+      <div class="row">
+        <h1>Social Incubator Fund (SIF)</h1>
+        <div class="whitebox">
+          <div class="notebook_link">
+            <a href="http://nbviewer.ipython.org/gist/zephod/8844079">View the code</a> to see how we used the CKAN API to fetch and process the data for this visualisation.
+          </div>
+          <p>The visualisations shows incubator level summary detail about the Social Incubator Fund, a £10m fund administered by BIG, which supports social incubators to help them provide investment and support to early stage social ventures in the UK. Click on the incubator icons below to show a sector and beneficiary breakdown of the current ventures.</p>
+          <p>The data is available for all live incubators and is updated by the incubators themselves:</p>
+          <ul>
+            <li><a href="http://data.gov.uk/dataset/sifbgv">Social Incubator Fund Data (Bethnal Green Ventures)</a></li>
+            <li><a href="http://data.gov.uk/dataset/social-incubator-fund-data-hub-launchpad">Social Incubator Fund Data (The Hub Launchpad)</a></li>
+            <li><a href="http://data.gov.uk/dataset/sinsif">Social Incubator Fund Data (Social Incubator North)</a></li>
+            <li><a href="http://data.gov.uk/dataset/social-incubator-fund-data-wayra-unltd">Social Incubator Fund Data (Wayra UnLtd)</a></li>
+          </ul>
+        </div>
+        <div id="sib_container">
+          <div id="sib_table"></div>
+          <div id="sib_pie1"><h4>Primary Sectors: <i class="venturename">Bethnal Green Ventures</i></h4></div>
+          <div id="sib_pie2"><h4>Primary Beneficiaries: <i class="venturename">Bethnal Green Ventures</i></h4></div>
+        </div>
+        <hr/>
+        <h1>Investment Contract Readiness Fund (ICRF)</h1>
+        <div class="whitebox">
+          <img src="/images/icrf.gif" style="float: right;margin: 0 0 8px 8px;" alt="ICRF logo"/>
+          <p>This visualisation shows investments made by the Investment and Contract Readiness Fund into high growth potential social ventures. The Investment and Contract Readiness Fund pays for business support to help social ventures raise investment of over £500k or win bids to deliver public services contracts valued at over £1m. Hover your mouse over the lines below to view links to the ventures supported and the grant amount received.</p>
+          <p>The data is available for the <a href="/dataset/icrf-data">ICRF investments</a>. The data shows: the venture supported, the grant amount, and the postcode where the venture is headquartered.</p>
+        </div>
+        <div id="icrf_container">
+          <div id="icrf_cash"></div>
+          <div id="icrf_headline1"></div>
+          <div id="icrf_headline2"></div>
+          <div id="icrf_map"></div>
+        </div>
+      </div>
+    </div>
+  </py:match>
+  <xi:include href="../layout.html" />
+</html>
+
