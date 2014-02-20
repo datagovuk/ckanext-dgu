@@ -63,6 +63,9 @@ def report():
         if 'is_broken' in d and d['is_broken']:
             try:
                 resource = model.Resource.get(task.entity_id)
+                if resource.resource_group.package.extras.get('UKLP', ''):
+                    # Skipping UKLP datasets
+                    continue
             except Exception, e:
                 log.error("Resource.first(%s) failed: %s" % (task.entity_id, e))
                 continue
@@ -75,6 +78,8 @@ def report():
 
     user_agent = {'User-agent': 'data.gov.uk - please contact ross@servercode.co.uk with problems'}
 
+
+    # TODO, turn this into an actual change to the resource ....
     def make_query(resource_id, new_url):
         q = [
             u"UPDATE resource_revision SET url='%s' WHERE id='%s' and current=true;" % (new_url, resource_id,),
