@@ -24,7 +24,11 @@ class DguCreateTestDataCommand(ckan.lib.cli.CkanCommand):
         from ckan import plugins
         from ckanext.dgu.testtools.create_test_data import DguCreateTestData
         
-        plugins.load('synchronous_search') # so packages get indexed
+        try:
+            plugins.load('synchronous_search') # so packages get indexed
+        except:
+            pass
+
         self.log = logging.getLogger(__name__)
 
         if self.args:

@@ -70,8 +70,16 @@
     </div><!-- /search-area -->
     <div class="publisher-hierarchy empty-search">
       <py:def function="render_publisher(pub)">
-        <div class="publisher">
-          <a class="publisher-row" href="/publisher/${pub['name']}">${pub['title']}</a>
+        <div class="publisher collapsed">
+          <py:if test="len(pub['children'])">
+            <button class="btn btn-xs btn-primary js-expand"><i class="icon icon-plus"/></button>
+            <button class="btn btn-xs btn-default js-collapse"><i class="icon icon-minus"/></button>
+          </py:if>
+          <div class="publisher-row">
+            <a href="/publisher/${pub['name']}">
+              ${pub['title']}
+            </a>
+          </div>
           <py:for each="child in pub['children']">
             ${render_publisher(child)}
           </py:for>
