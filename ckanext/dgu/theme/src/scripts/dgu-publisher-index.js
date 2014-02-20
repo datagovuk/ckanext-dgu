@@ -3,11 +3,12 @@ $(function() {
     var out = []
     parentDiv.find('> .publisher').each(function(i,row) {
       row = $(row);
+      var link = row.find('> .publisher-row > a:first');
       out.push({
         div        : row,
-        link       : row.find('> a:first'),
-        rawtext    : row.find('> a:first').text(),
-        searchtext : row.find('> a:first').text().toLowerCase(),
+        link       : link,
+        rawtext    : link.text(),
+        searchtext : link.text().toLowerCase(),
         children   : buildIndex(row),
       });
     });
@@ -103,7 +104,6 @@ $(function() {
     e.preventDefault();
     var target = $(e.delegateTarget);
     var expanding = target.hasClass('js-expand');
-    console.log('here',target,expanding);
     target.parent()
       .toggleClass('expanded',expanding)
       .toggleClass('collapsed',!expanding);
