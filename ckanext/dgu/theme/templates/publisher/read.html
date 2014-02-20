@@ -50,7 +50,9 @@
           <div class="panel-body publisher-dropdown">
             <py:def function="render_child(pub)">
                 <div class="publisher">
-                  <a class="${if_(pub['name']==c.group.name,'active')} publisher-row" href="/publisher/${child['name']}">${child['title']}</a>
+                  <div class="publisher-row">
+                    <a class="${if_(pub['name']==c.group.name,'active')} publisher-row" href="/publisher/${child['name']}">${child['title']}</a>
+                  </div>
                   <py:for each="child in pub['children']">
                     ${render_child(child)}
                   </py:for>
