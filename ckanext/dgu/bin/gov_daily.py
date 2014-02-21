@@ -254,7 +254,7 @@ def command(config_file):
                                                ('p', 'db_port')):
             if db_details.get(db_details_key):
                 cmd += '-%s %s ' % (pg_dump_option, db_details[db_details_key])
-        cmd += '%(db_name)s' % db_details + ' > %s' % pg_dump_filepath
+        cmd += ' -E utf8 %(db_name)s' % db_details + ' > %s' % pg_dump_filepath
         log.info('Backup command: %s' % cmd)
         ret = os.system(cmd)
         if ret == 0:

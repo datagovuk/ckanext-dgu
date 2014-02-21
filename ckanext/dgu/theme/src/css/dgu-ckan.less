@@ -662,12 +662,21 @@ table.tablesorter {
 .publisher-hierarchy {
   .publisher {
     display: none;
+    position: relative;
+    > .js-expand,
+    > .js-collapse {
+      display: none;
+      position: absolute;
+      left: 9px;
+      top: 5px;
+    }
     .publisher-row {
-      color: #444;
       background: #F4F4F4;
-      display: block;
       margin-bottom: 4px;
-      padding: 6px 20px;
+      padding: 6px 20px 6px 48px;
+      a { 
+        color: #444; 
+      }
       &.active {
         background: #d3d3d3;
       }
@@ -691,6 +700,14 @@ table.tablesorter {
   &.empty-search {
     .publisher {
       display: block;
+      &.collapsed {
+        > .js-expand { display: inline-block; }
+        > .publisher { display: none; }
+      }
+      &.expanded  {
+        > .js-collapse { display: inline-block; }
+        > .publisher   { display: block; }
+      }
       .publisher-row {
         .highlight {
           background: none;
@@ -838,7 +855,7 @@ ul.ui-autocomplete {
   }
   .dropdown {
     /* IE7 will render menus beneath content unless relative item has z-index */
-    z-index: 10;
+    z-index: 5;
     &.open a.dropdown-button { 
       text-decoration: none;
       color: #000;
