@@ -506,9 +506,11 @@ class PublisherPlugin(p.SingletonPlugin):
         """
         from ckanext.dgu.lib.publisher import cached_openness_scores
         from ckanext.dgu.lib.reports import cached_reports
+        from ckanext.dgu.lib.reports import nii_report
 
         return {'Cached Openness Scores': cached_openness_scores,
-                'Cached reports': cached_reports}
+                'Cached reports': cached_reports,
+                'NII Report': nii_report}
 
     def list_report_keys(self):
         """
@@ -516,7 +518,7 @@ class PublisherPlugin(p.SingletonPlugin):
         returning each key name as an item in a list.
         """
         return ['openness-scores', 'openness-scores-withsub',
-                'feedback-report', 'publisher-activity-report']
+                'feedback-report', 'publisher-activity-report', 'nii_report']
 
 
 class InventoryPlugin(p.SingletonPlugin):
