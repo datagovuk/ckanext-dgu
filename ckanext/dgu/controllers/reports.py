@@ -37,6 +37,8 @@ class ReportsController(BaseController):
         tmpdata = nii_report(use_cache=True)
         c.data = {}
 
+        c.total_broken_packages = 0
+        c.total_broken_resources = 0
         # Convert the lists of IDs into something usable in the template,
         # this could be faster if we did a bulk-fetch of groupname->obj for
         # instance.
@@ -45,6 +47,9 @@ class ReportsController(BaseController):
             c.data[g] = []
             for dct in list_of_dicts:
                 for pkgname,results in dct.iteritems():
+                    c.total_broken_resources += len(results)
+                    if len(results):
+                        c.total_broken_packages += 1
                     c.data[g].append({model.Package.get(pkgname): results})
 
         def _stringify(s, encoding, errors):

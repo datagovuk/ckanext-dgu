@@ -26,7 +26,7 @@
 
     <div class="widget-container">
 
-        <h1>NII report</h1>
+        <h1>NII report <small>${c.total_broken_resources} broken resources in ${c.total_broken_packages} broken datasets.</small></h1>
 
         <ul>
         <py:for each="publisher in sorted(c.data.keys(),key=lambda x: x.title)">
