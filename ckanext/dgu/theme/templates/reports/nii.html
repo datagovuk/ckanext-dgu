@@ -54,9 +54,9 @@
                         <td py:if="len(res) == 0">No broken resources</td>
                         <td py:if="len(res) != 0">
                             <ul>
-                              <py:for each="r in res">
+                              <py:for each="rid,rdesc in res">
                                 <li>
-                                    <a href="/dataset/${pkg.name}/resource/${r.id}">${r.description or "Unnamed"}</a>
+                                    <a href="/dataset/${pkg.name}/resource/${rid}">${rdesc or "Unnamed"}</a>
                                 </li>
                               </py:for>
                             </ul>

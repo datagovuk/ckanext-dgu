@@ -8,7 +8,15 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def nii_report():
+def nii_report(use_cache=False):
+
+    if use_cache:
+        cache = model.DataCache.get_fresh('__all__', 'nii-report')
+        if cache:
+            log.debug("Found NII report in cache")
+            return cache
+
+        log.debug("Did not find cached NII report")
 
     packages = model.Session.query(model.Package)\
         .join(model.PackageExtra, model.PackageExtra.package_id == model.Package.id)\
@@ -32,12 +40,14 @@ def nii_report():
             if ts:
                 j = json.loads(ts.error)
                 if j['is_broken']:
-                    res.append(resource)
-        return res;
+                    res.append([resource.id, resource.description])
+        return res
+
+    # { publisher_name: [ {package_name: [ [resource_id, resource_desc] ]} ]}
 
     for package in packages:
         org = package.get_organization()
-        data[org].append({package: broken_resources_for_package(package)})
+        data[org.name].append({package.name: broken_resources_for_package(package)})
 
     return data
 
@@ -402,14 +412,20 @@ def cached_reports(reports_to_run=None):
     import json
     from ckan.lib.json import DateTimeJsonEncoder
 
-    local_reports = set(['feedback-report', 'publisher-activity-report'])
+    local_reports = set(['feedback-report', 'publisher-activity-report', 'nii_report'])
     if reports_to_run:
       local_reports = set(reports_to_run) & local_reports
 
     if not local_reports:
       return
 
-    log.info("Generating feedback report")
+    log.info("Generating reports")
+
+    if 'nii_report' in local_reports:
+      log.info("Generating NII report")
+      val = nii_report(use_cache=False)
+      model.DataCache.set('__all__', "nii-report", json.dumps(val))
+      model.Session.commit()
 
     if 'feedback-report' in local_reports:
       log.info("Generating feedback report for all publishers")
@@ -419,6 +435,7 @@ def cached_reports(reports_to_run=None):
       log.info("Generating feedback report for all publishers")
       val = feedback_report(None, use_cache=False, include_published=True)
       model.DataCache.set('__all__', "feedback-all-report", json.dumps(val))
+      model.Session.commit()
 
     publishers = model.Session.query(model.Group).\
         filter(model.Group.type=='organization').\
