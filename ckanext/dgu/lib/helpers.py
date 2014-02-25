@@ -272,8 +272,9 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
                 # public use the Drupal user page. Drupal user page has removed the
-                # . from any users names so ross.jones becomes rossjones.
-                link_url = '/users/%s' % user_drupal_name.replace('.', '')
+                # . from any users names so ross.jones becomes rossjones. It also converts
+                # spaces to -.
+                link_url = '/users/%s' % user_drupal_name.replace('.', '').replace(' ', '-')
             return h.link_to(link_text,
                              urllib.quote(link_url))
         else:
