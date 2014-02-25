@@ -56,18 +56,18 @@ def report():
     tasks = model.Session.query(model.TaskStatus)\
         .filter(model.TaskStatus.task_type == 'qa')\
         .filter(model.TaskStatus.key == 'status')\
-        .distinct("entity_id")\
+        .distinct('entity_id')\
         .all()
     for task in tasks:
         d = json.loads(task.error)
         if 'is_broken' in d and d['is_broken']:
             try:
                 resource = model.Resource.get(task.entity_id)
-                if resource.resource_group.package.extras.get('UKLP', ''):
+                if resource.resource_group.package.extras.get('UKLP', '') == True:
                     # Skipping UKLP datasets
                     continue
             except Exception, e:
-                log.error("Resource.first(%s) failed: %s" % (task.entity_id, e))
+                log.error("Resource.get(%s) failed: %s" % (task.entity_id, e))
                 continue
 
             if resource:
