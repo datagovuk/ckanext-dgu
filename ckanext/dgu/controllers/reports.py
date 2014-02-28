@@ -1,4 +1,5 @@
 import collections
+import datetime
 
 import ckan.plugins.toolkit as t
 import ckan.lib.helpers as h
@@ -34,8 +35,23 @@ class ReportsController(BaseController):
     def nii(self, format=None):
         import ckan.model as model
         from ckanext.dgu.lib.reports import nii_report
+
+        if 'regenerate' in request.GET and dguhelpers.is_sysadmin():
+            from ckan.lib.helpers import flash_notice
+            from ckanext.dgu.lib.reports import cached_reports
+            cached_reports(['nii_report'])
+            flash_notice("Report regenerated")
+            h.redirect_to('/data/reports/nii')
+
         tmpdata = nii_report(use_cache=True)
         c.data = {}
+
+        # Get the date time the report was generated, or now if it doesn't
+        # appear in the cache
+        cache_data = model.Session.query(model.DataCache.created)\
+            .filter(model.DataCache.object_id=='__all__')\
+            .filter(model.DataCache.key == 'nii-report').first()
+        c.generated_date = cache_data[0] if cache_data else datetime.datetime.now()
 
         c.total_broken_packages = 0
         c.total_broken_resources = 0
