@@ -422,20 +422,22 @@ def cached_reports(reports_to_run=None):
     log.info("Generating reports")
 
     if 'nii_report' in local_reports:
-      log.info("Generating NII report")
-      val = nii_report(use_cache=False)
-      model.DataCache.set('__all__', "nii-report", json.dumps(val))
-      model.Session.commit()
+        log.info("Generating NII report")
+        val = nii_report(use_cache=False)
+        model.DataCache.set('__all__', "nii-report", json.dumps(val))
+        model.Session.commit()
+        log.info("NII report generated")
 
     if 'feedback-report' in local_reports:
-      log.info("Generating feedback report for all publishers")
-      val = feedback_report(None, use_cache=False)
-      model.DataCache.set('__all__', "feedback-report", json.dumps(val))
+        log.info("Generating feedback report for all publishers")
+        val = feedback_report(None, use_cache=False)
+        model.DataCache.set('__all__', "feedback-report", json.dumps(val))
 
-      log.info("Generating feedback report for all publishers")
-      val = feedback_report(None, use_cache=False, include_published=True)
-      model.DataCache.set('__all__', "feedback-all-report", json.dumps(val))
-      model.Session.commit()
+        log.info("Generating feedback report for all publishers")
+        val = feedback_report(None, use_cache=False, include_published=True)
+        model.DataCache.set('__all__', "feedback-all-report", json.dumps(val))
+        model.Session.commit()
+        log.info("Feedback report generated")
 
     publishers = model.Session.query(model.Group).\
         filter(model.Group.type=='organization').\
