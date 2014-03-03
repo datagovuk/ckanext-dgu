@@ -289,7 +289,7 @@ def feedback_report(publisher, include_sub_publishers=False, include_published=F
           key = 'feedback-all-report'
 
         if include_sub_publishers:
-            key = "".join([key, '-withsubpub'])
+            key = "".join([key, '-withsub'])
         cache = model.DataCache.get_fresh(publisher_name, key)
         if cache is None:
             log.info("Did not find cached report - %s/%s" % (publisher_name,key,))
@@ -364,7 +364,7 @@ def publisher_activity_report(publisher, include_sub_publishers=False, use_cache
     if use_cache:
         key = 'publisher-activity-report'
         if include_sub_publishers:
-            key = "".join([key, '-withsubpub'])
+            key = "".join([key, '-withsub'])
         cache = model.DataCache.get_fresh(publisher.name, key)
         if cache is None:
             log.info("Did not find cached activity report - %s/%s" % (publisher.name,key,))

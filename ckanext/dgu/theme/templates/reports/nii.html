@@ -28,7 +28,7 @@
 
         <h1>NII report <small>${c.total_broken_resources} broken resources in ${c.total_broken_packages} broken datasets.</small></h1>
 
-        <h2>Last generated: ${h.render_datetime(c.generated_date, with_hours=True)}</h2>
+        <h2>Last generated: ${h.render_datetime(h.report_generated_at('nii-report'), with_hours=True)}</h2>
 
         <div py:if="h.is_sysadmin()" class="panel panel-info">
           <div class="panel-heading"><strong>Rebuild report</strong></div>

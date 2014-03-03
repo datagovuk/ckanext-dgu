@@ -32,6 +32,9 @@
       </a>
     <h1>Openness scores <small>${c.data['publisher_title']}</small></h1>
 
+    <h2>Last generated: ${h.render_datetime(h.report_generated_at('openness-report', c.org_name, withsub=c.include_sub_publishers), with_hours=True)}</h2>
+
+
     <div class="qa-content">
       <py:if test="(not c.data) or (not c.data['data'])">
         <p>No results found for this publisher.</p>
