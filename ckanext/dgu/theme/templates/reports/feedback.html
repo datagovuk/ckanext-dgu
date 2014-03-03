@@ -39,6 +39,9 @@
     <div class="widget-container">
 
         <h1>NII Feedback <small py:if="c.publisher"> ${c.publisher.title}</small></h1>
+        <h2 py:if="c.publisher">Last generated: ${h.render_datetime(h.report_generated_at('feedback-report', c.publisher.name, c.include_subpublisher), with_hours=True)}</h2>
+
+        <h2 py:if="not c.publisher">Last generated: ${h.render_datetime(h.report_generated_at('feedback-all-report'), with_hours=True)}</h2>
 
         <div>
           <form action="" class="form-inline">

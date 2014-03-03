@@ -28,6 +28,7 @@
     <div class="widget-container">
 
         <h1>Activity report <small py:if="c.publisher"> ${c.publisher.title}</small></h1>
+        <h2>Last generated: ${h.render_datetime(h.report_generated_at(' publisher-activity-report',c.publisher.name, withsub=c.include_sub_publishers), with_hours=True)}</h2>
 
         <div style="margin-top: 10px; margin-bottom:10px;">
           <h3>Datasets created</h3>
