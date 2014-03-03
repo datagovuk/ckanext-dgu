@@ -1794,3 +1794,16 @@ def is_core_dataset(package):
         pass
 
     return False
+
+def report_generated_at(reportname, object_id='__all__', withsub=False):
+    import ckan.model as model
+    nm = reportname
+    if withsub:
+        nm = nm + '-withsub'
+    cache_data = model.Session.query(model.DataCache.created)\
+        .filter(model.DataCache.object_id == object_id)\
+        .filter(model.DataCache.key == nm).first()
+    log.debug("Generation date for {0} using {1} - found? {2}"\
+        .format(nm, object_id, cache_data is not None))
+    return cache_data[0] if cache_data else datetime.datetime.now()
+
