@@ -7,20 +7,27 @@
   >
 
 
+<tr py:def="editable_commitment_row(commitment=None, src=None,idx=0)">
+    <td>
+        <input type="hidden" name="${commitment.id if commitment else ''}:id" value="${commitment.id if commitment else ''}"/>
+        <input type="hidden" name="source" value="${src}"/>
 
-<tr py:def="editable_commitment_row(commitment=None, idx=0)">
-    <td>
-        <input type="hidden" name="${idx}_id" value="${commitment.id if commitment else ''}"/>
-        <input type="text"  class="input-small" value="${commitment.source if commitment else ''}"/>
+        <textarea class="form-control" name="${commitment.id if commitment else ''}:commitment_text" rows='8'>${(commitment.commitment_text or commitment.dataset_name) if commitment else ''}</textarea>
     </td>
     <td>
-        <textarea rows='3'>${commitment.commitment_text if commitment else ''}</textarea>
+        <textarea class="form-control" rows='8'>${commitment.notes  if commitment else ''}</textarea>
     </td>
-    <td>
-        <textarea rows='3'>${commitment.notes if commitment else ''}</textarea>
-    </td>
-    <td>
-        <input type="text"/>
+    <td style="width:20%">
+        <select class="chzn-select" style="width:200px;" name="${commitment.id if commitment else ''}:commitment_dataset">
+          <option value="">Please select</option>
+          <py:for each="name,title in c.packages">
+            <option value="${name}" py:attrs="{'selected':'selected'} if name == (commitment.dataset if commitment else '') else None">${title}</option>
+          </py:for>
+        </select>
+
+        <span style="width:100%; text-align:center;">or non-data.gov.uk URL</span>
+
+        <input class="form-control" type="text" name="${commitment.id if commitment else ''}:commitment_url" value="${commitment.dataset if (commitment and commitment.dataset.lower().startswith('http')) else ''}"></input>
     </td>
 </tr>
 
