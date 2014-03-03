@@ -122,7 +122,7 @@
           </tr>
           <tr py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service')">
             <py:with vars="is_service=dict(c.pkg_extras).get('resource-type')=='service'">
-            <td class="key">Coupled ${if_(is_service,'Services','Datasets')}</td>
+            <td class="key">Coupled ${if_(is_service,'Datasets','Services')}</td>
             <td class="value">
               <ul py:if="h.coupled_pkg_tuples(c.pkg)">
                 <li py:for="name, title in h.coupled_pkg_tuples(c.pkg)">
