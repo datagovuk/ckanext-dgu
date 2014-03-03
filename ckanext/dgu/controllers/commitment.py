@@ -73,10 +73,14 @@ class CommitmentController(BaseController):
             abort(404, _('Publisher not found'))
 
         c.publisher = context.get('group')
-        c.publishers = model.Session.query(model.Group).filter(model.Group.state=='active')\
-            .order_by(model.Group.title).all()
-
         c.errors = {}
+
+        # We'll prefetch the available datasets for this publisher and add them to the drop-down
+        # on the page so that we don't have to work out how to constrain an autocomplete.
+        c.packages = model.Session.query(model.Package.name, model.Package.title)\
+            .filter(model.Package.state == 'active')\
+            .filter(model.Package.owner_org == c.publisher.id )\
+            .order_by(model.Package.title).all()
 
         if request.method == "POST":
             # need to flatten the request into some commitments, if there is an ID then

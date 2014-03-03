@@ -95,7 +95,7 @@ class ReportsPlugin(p.SingletonPlugin):
                     controller=c_ctlr, action='index')
         map.connect('commitments_publisher', '/data/reports/commitments/:id',
                     controller=c_ctlr, action='commitments')
-        map.connect('/data/reports/commitments/:id/edit',
+        map.connect('commitments_edit', '/data/reports/commitments/:id/edit',
                     controller=c_ctlr, action='edit')
 
         # Redirecting these so as to not break existing links
