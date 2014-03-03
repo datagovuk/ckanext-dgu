@@ -26,7 +26,19 @@
 
     <div class="widget-container">
 
-        <h1>NII report</h1>
+        <h1>NII report <small>${c.total_broken_resources} broken resources in ${c.total_broken_packages} broken datasets.</small></h1>
+
+        <h2>Last generated: ${h.render_datetime(h.report_generated_at('nii-report'), with_hours=True)}</h2>
+
+        <div py:if="h.is_sysadmin()" class="panel panel-info">
+          <div class="panel-heading"><strong>Rebuild report</strong></div>
+          <div class="panel-body">
+          <p>As a system administrator you are able to rebuild this report on demand by clicking the 'Rebuild' button.  This may take some time to complete.</p>
+
+          <a href="/data/reports/nii?regenerate" class="btn btn-info pull-right">Rebuild</a>
+          </div>
+        </div>
+
 
         <ul>
         <py:for each="publisher in sorted(c.data.keys(),key=lambda x: x.title)">
@@ -54,9 +66,9 @@
                         <td py:if="len(res) == 0">No broken resources</td>
                         <td py:if="len(res) != 0">
                             <ul>
-                              <py:for each="r in res">
+                              <py:for each="rid,rdesc in res">
                                 <li>
-                                    <a href="/dataset/${pkg.name}/resource/${r.id}">${r.description or "Unnamed"}</a>
+                                    <a href="/dataset/${pkg.name}/resource/${rid}">${rdesc or "Unnamed"}</a>
                                 </li>
                               </py:for>
                             </ul>

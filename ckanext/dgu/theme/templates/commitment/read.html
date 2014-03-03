@@ -20,6 +20,8 @@
   <py:match path="content">
     <h1>Data publication commitments <small>${c.publisher.title}</small></h1>
 
+    <h2>Last generated: ${h.render_datetime(h.report_generated_at('commitments', c.publisher.name), with_hours=True)}</h2>
+
     <div>
         <p>
            This page lists the public commitments to the release of further datasets by the Department along with links to the data where is has been released or identified as an unpublished dataset. These commitments are only those which have been made to the release of data and Departments may have made public commitments in terms of further activity. This page does not list links to the corporate commitments which all central government Departments and ALBs have been committed to release from the Coalition Agreement and letters from the Prime Minister of May 2010 and July 2011.

@@ -1,4 +1,5 @@
 import collections
+import datetime
 
 import ckan.plugins.toolkit as t
 import ckan.lib.helpers as h
@@ -34,7 +35,38 @@ class ReportsController(BaseController):
     def nii(self, format=None):
         import ckan.model as model
         from ckanext.dgu.lib.reports import nii_report
-        c.data = nii_report()
+
+        if 'regenerate' in request.GET and dguhelpers.is_sysadmin():
+            from ckan.lib.helpers import flash_notice
+            from ckanext.dgu.lib.reports import cached_reports
+            cached_reports(['nii_report'])
+            flash_notice("Report regenerated")
+            h.redirect_to('/data/reports/nii')
+
+        tmpdata = nii_report(use_cache=True)
+        c.data = {}
+
+        # Get the date time the report was generated, or now if it doesn't
+        # appear in the cache
+        cache_data = model.Session.query(model.DataCache.created)\
+            .filter(model.DataCache.object_id=='__all__')\
+            .filter(model.DataCache.key == 'nii-report').first()
+        c.generated_date = cache_data[0] if cache_data else datetime.datetime.now()
+
+        c.total_broken_packages = 0
+        c.total_broken_resources = 0
+        # Convert the lists of IDs into something usable in the template,
+        # this could be faster if we did a bulk-fetch of groupname->obj for
+        # instance.
+        for k,list_of_dicts in tmpdata.iteritems():
+            g = model.Group.get(k)
+            c.data[g] = []
+            for dct in list_of_dicts:
+                for pkgname,results in dct.iteritems():
+                    c.total_broken_resources += len(results)
+                    if len(results):
+                        c.total_broken_packages += 1
+                    c.data[g].append({model.Package.get(pkgname): results})
 
         def _stringify(s, encoding, errors):
             if s is None:
@@ -64,14 +96,15 @@ class ReportsController(BaseController):
                     for dataset, resources in items.iteritems():
                         if len(resources) == 0:
                             continue
-                        for res in resources:
+                        for resid,resdesc in resources:
+                            resource = model.Resource.get(resid)
                             row = [
                                 publisher.title,
                                 parent_publisher,
                                 _stringify(dataset.title, 'utf-8', 'ignore'),
-                                _stringify(res.description, 'utf-8', 'ignore') or 'No name',
-                                'http://data.gov.uk/dataset/%s/resource/%s' % (dataset.name,res.id,),
-                                _stringify(res.url, 'utf-8', 'ignore'),
+                                _stringify(resource.description, 'utf-8', 'ignore') or 'No name',
+                                'http://data.gov.uk/dataset/%s/resource/%s' % (dataset.name,resource.id,),
+                                _stringify(resource.url, 'utf-8', 'ignore'),
                                 'Yes' if dataset.extras.get('external_reference','') == 'ONSHUB' else 'No'
                             ]
                             writer.writerow(row)

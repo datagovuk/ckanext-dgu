@@ -271,8 +271,10 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
                 # officials use the CKAN user page for the time being (useful for debug)
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # public use the Drupal user page
-                link_url = '/users/%s' % user_drupal_name
+                # public use the Drupal user page. Drupal user page has removed the
+                # . from any users names so ross.jones becomes rossjones. It also converts
+                # spaces to -.
+                link_url = '/users/%s' % user_drupal_name.replace('.', '').replace(' ', '-')
             return h.link_to(link_text,
                              urllib.quote(link_url))
         else:
@@ -1792,3 +1794,16 @@ def is_core_dataset(package):
         pass
 
     return False
+
+def report_generated_at(reportname, object_id='__all__', withsub=False):
+    import ckan.model as model
+    nm = reportname
+    if withsub:
+        nm = nm + '-withsub'
+    cache_data = model.Session.query(model.DataCache.created)\
+        .filter(model.DataCache.object_id == object_id)\
+        .filter(model.DataCache.key == nm).first()
+    log.debug("Generation date for {0} using {1} - found? {2}"\
+        .format(nm, object_id, cache_data is not None))
+    return cache_data[0] if cache_data else datetime.datetime.now()
+
