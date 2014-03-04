@@ -19,7 +19,7 @@ class Ingester(CkanCommand):
 
             Provides a list of items it knows how to read
 
-        ingest <named-item> <filename>
+        read <named-item> <filename>
 
             Reads in the file from filename and processese it using
             the named-item.  This should be a value returned from a

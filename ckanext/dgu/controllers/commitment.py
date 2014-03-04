@@ -15,6 +15,7 @@ from ckan.lib.search import SearchIndexError
 from ckan.logic import tuplize_dict, clean_dict, parse_params, flatten_to_string_key
 from ckanext.dgu.plugins_toolkit import (render, c, request, _,
     ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access)
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 
 class CommitmentController(BaseController):
@@ -51,12 +52,44 @@ class CommitmentController(BaseController):
 
         return render('commitment/read.html')
 
+    def _save(self, context, data_dict):
+        if not dgu_helpers.is_sysadmin():
+            abort(401, "You are not allowed to edit the commitments for this publisher")
+
+        import ckan.model as model
+        import ckanext.dgu.model.commitment as cmodel
+
+        for _, items in data_dict.iteritems():
+            # items is now a list of dicts that can all be processed individually
+            # if they have an ID, then we're updating, if they don't they're new.
+            for item in items:
+                commitment = None
+
+                # 'url': u'https://online.contractsfinder.businesslink.gov.uk/',  'dataset': u'', 'source': u'PM1', 'id': u'e0f6b900-3c85-4d1b-a44d-bbbdb7aa19ec'}
+                if item.get('id'):
+                    # Get the current commitment
+                    commitment = cmodel.Commitment.get(item.get('id'))
+                    commitment.source = item.get('source')
+                else:
+                    commitment = cmodel.Commitment(source=item.get('source'))
+
+                # text, notes, dataset (or url)
+                commitment.commitment_text = item.get('commitment_text', '')
+                commitment.notes = item.get('notes', '')
+                commitment.dataset = item.get('dataset') or item.get('url')
+                commitment.dataset_name = item.get('dataset_name', '')
+
+                model.Session.add(commitment)
+
+            # Commit each source to the database
+            model.Session.commit()
+
+
     def edit(self, id):
         """
         Allows editing of commitments for a specific publisher
         """
         from ckanext.dgu.model.commitment import Commitment
-        from ckanext.dgu.lib import helpers as dgu_helpers
 
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,
@@ -74,6 +107,13 @@ class CommitmentController(BaseController):
 
         c.publisher = context.get('group')
         c.errors = {}
+
+        if request.method == "POST":
+            from ckan.logic import clean_dict, tuplize_dict, parse_params
+            from ckan.lib.navl.dictization_functions import unflatten
+            data_dict = clean_dict(unflatten(tuplize_dict(parse_params(request.params))))
+            self._save(context, data_dict)
+
 
         # We'll prefetch the available datasets for this publisher and add them to the drop-down
         # on the page so that we don't have to work out how to constrain an autocomplete.
