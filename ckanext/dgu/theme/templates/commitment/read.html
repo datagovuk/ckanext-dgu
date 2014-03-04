@@ -52,14 +52,11 @@
                 <py:with vars="dataset = h.commitment_dataset(commitment)">
                   <tr>
                       <td>
-                        <py:if test="commitment.dataset_name">
-                            ${commitment.dataset_name}
+                        <py:if test="commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip())">
+                            <strong>${commitment.dataset_name}</strong>
                             <br/>
                         </py:if>
-                          <py:if test="commitment.commitment_text and not commitment.commitment_text == commitment.dataset_name">
-                            ${commitment.commitment_text}
-                          </py:if>
-
+                        ${commitment.commitment_text}
                       </td>
 
                       <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
@@ -96,13 +93,11 @@
                 <py:with vars="dataset = h.commitment_dataset(commitment)">
                   <tr>
                       <td>
-                        <py:if test="commitment.dataset_name">
-                            ${commitment.dataset_name}
+                        <py:if test="commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip())">
+                            <strong>${commitment.dataset_name}</strong>
                             <br/>
                         </py:if>
-                          <py:if test="commitment.commitment_text and not commitment.commitment_text == commitment.dataset_name">
-                            ${commitment.commitment_text}
-                          </py:if>
+                        ${commitment.commitment_text}
                       </td>
 
                       <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
@@ -141,13 +136,11 @@
                 <py:with vars="dataset = h.commitment_dataset(commitment)">
                   <tr>
                       <td>
-                        <py:if test="commitment.dataset_name">
-                            ${commitment.dataset_name}
+                        <py:if test="commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip())">
+                            <strong>${commitment.dataset_name}</strong>
                             <br/>
                         </py:if>
-                          <py:if test="commitment.commitment_text and not commitment.commitment_text == commitment.dataset_name">
-                            ${commitment.commitment_text}
-                          </py:if>
+                        ${commitment.commitment_text}
                       </td>
 
                       <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>

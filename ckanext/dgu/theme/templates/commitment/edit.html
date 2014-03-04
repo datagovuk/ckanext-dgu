@@ -27,7 +27,6 @@
 
     <div class="boxed">
 
-
     <h2><a href="http://www.number10.gov.uk/news/letter-to-government-departments-on-opening-up-data">Prime Minister's Letter May 2010</a></h2>
     <py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM1')">
         <table class="table table-striped table-bordered" width="100%">
@@ -40,10 +39,9 @@
           </thead>
 
           <tbody>
-          <py:for each="commitment in commitments">
-              ${editable_commitment_row(commitment, src="PM1")}
+          <py:for each="idx,commitment in enumerate(commitments)">
+              ${editable_commitment_row(commitment, idx=idx, src="PM1")}
           </py:for>
-          ${editable_commitment_row(None, src="PM1")}
           </tbody>
 
           </table>
@@ -61,8 +59,8 @@
           </thead>
 
           <tbody>
-          <py:for each="commitment in commitments">
-              ${editable_commitment_row(commitment, src="PM2")}
+          <py:for each="idx,commitment in enumerate(commitments)">
+              ${editable_commitment_row(commitment,idx=idx,  src="PM2")}
           </py:for>
           </tbody>
 
@@ -84,8 +82,8 @@
           </thead>
 
           <tbody>
-          <py:for each="commitment in commitments">
-              ${editable_commitment_row(commitment, src="ODS")}
+          <py:for each="idx,commitment in enumerate(commitments)">
+              ${editable_commitment_row(commitment, idx=idx, src="ODS")}
           </py:for>
           </tbody>
 

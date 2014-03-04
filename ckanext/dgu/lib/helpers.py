@@ -1758,6 +1758,7 @@ def commitments_by_source(all_commitments, source):
     for co in all_commitments:
         if co.source == source:
             commitments.append(co)
+    commitments.sort(key=lambda x: x.commitment_text)
     return commitments
 
 def commitment_dataset(commitment):
