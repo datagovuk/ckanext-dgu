@@ -1,5 +1,6 @@
 import os
 import csv
+import logging
 import json
 from urllib import urlencode
 
@@ -17,6 +18,7 @@ from ckanext.dgu.plugins_toolkit import (render, c, request, _,
     ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access)
 from ckanext.dgu.lib import helpers as dgu_helpers
 
+log = logging.getLogger(__name__)
 
 class CommitmentController(BaseController):
 
@@ -48,24 +50,27 @@ class CommitmentController(BaseController):
             abort(404, _('Publisher not found'))
 
         c.publisher = context.get('group')
-        c.commitments = Commitment.get_for_publisher(c.publisher.name).order_by('commitment.dataset_name').all()
+        c.commitments = Commitment.get_for_publisher(c.publisher.name)\
+            .order_by('commitment.dataset_name').all()
 
         return render('commitment/read.html')
 
-    def _save(self, context, data_dict):
-        if not dgu_helpers.is_sysadmin():
-            abort(401, "You are not allowed to edit the commitments for this publisher")
-
+    def _save(self, context, data_dict, publisher):
         import ckan.model as model
         import ckanext.dgu.model.commitment as cmodel
 
         for _, items in data_dict.iteritems():
-            # items is now a list of dicts that can all be processed individually
-            # if they have an ID, then we're updating, if they don't they're new.
+            # items is now a list of dicts that can all be processed
+            # individually if they have an ID, then we're updating,
+            # if they don't they're new.
             for item in items:
                 commitment = None
 
-                # 'url': u'https://online.contractsfinder.businesslink.gov.uk/',  'dataset': u'', 'source': u'PM1', 'id': u'e0f6b900-3c85-4d1b-a44d-bbbdb7aa19ec'}
+                if not item.get('commitment_text') and not item.get('dataset_name', ''):
+                    # TODO: We're ignoring empty dicts here as unfilled items but we
+                    # might well want to do some error checking too
+                    continue
+
                 if item.get('id'):
                     # Get the current commitment
                     commitment = cmodel.Commitment.get(item.get('id'))
@@ -78,11 +83,16 @@ class CommitmentController(BaseController):
                 commitment.notes = item.get('notes', '')
                 commitment.dataset = item.get('dataset') or item.get('url')
                 commitment.dataset_name = item.get('dataset_name', '')
+                commitment.publisher = publisher.name
+                commitment.author = c.user
+                commitment.state = 'active'
 
                 model.Session.add(commitment)
 
             # Commit each source to the database
             model.Session.commit()
+
+        log.info("Commitments for {0} updated by {1}".format(publisher.name, c.user))
 
 
     def edit(self, id):
@@ -92,16 +102,18 @@ class CommitmentController(BaseController):
         from ckanext.dgu.model.commitment import Commitment
 
         context = {'model': model, 'session': model.Session,
-                   'user': c.user or c.author, 'extras_as_string': True,
+                   'user': c.user, 'extras_as_string': True,
                    'save': 'save' in request.params}
 
-        if not dgu_helpers.is_sysadmin():
-            abort(401, "You are not allowed to edit the commitments for this publisher")
+        try:
+            check_access('organization_update', {'id': id})
+        except Exception, e:
+            abort(401, "Not authorised")
 
         try:
             c.publisher_dict = get_action('organization_show')(context, {'id': id})
         except NotAuthorized:
-            abort(401, _('Unauthorized to read commitments'))
+            abort(401, _('Unauthorised to read commitments'))
         except ObjectNotFound:
             abort(404, _('Publisher not found'))
 
@@ -112,7 +124,7 @@ class CommitmentController(BaseController):
             from ckan.logic import clean_dict, tuplize_dict, parse_params
             from ckan.lib.navl.dictization_functions import unflatten
             data_dict = clean_dict(unflatten(tuplize_dict(parse_params(request.params))))
-            self._save(context, data_dict)
+            self._save(context, data_dict, c.publisher)
 
 
         # We'll prefetch the available datasets for this publisher and add them to the drop-down
