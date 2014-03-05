@@ -153,7 +153,6 @@
           $('.addrow').on('click',function (e) {
               e.preventDefault();
 
-              console.log('In!')
               // we want the TR before this one, want to copy it, reset the names and then
               // insert just before.
 
@@ -163,27 +162,27 @@
               var currentCount = $(this).closest('tr').siblings().length;
               var previousId = currentCount - 1;
 
-              console.log(currentCount + "  " + previousId)
               var prev = $(this).closest('tr').prev();
               var tr_new = prev.clone(true, true);
               $(tr_new).find(':input', 'select', 'textarea').each(function(){
                   // Reset the value and update the name attributes on all of the new
                   // fields
-                  var currentName = $(this).attr('name')
-                  if (currentName)
+                  var currentName = $(this).attr('name');
+                  if (currentName) {
                     if (currentName.indexOf('source') == -1) {
                         $(this).val("");
                     }
+                  }
                   if (currentName) {
-                    $(this).attr('name', currentName.replace(previousId.toString(), currentCount.toString()))
+                    $(this).attr('name', currentName.replace(previousId.toString(), currentCount.toString()));
                   }
               });
 
               $(tr_new).find('select').each(function(){
                   // Remove all of the chosen info.
-                  $(this).removeClass("chzn-done")
-                  $(this).removeAttr("id")
-                  $(this).css("display", "block")
+                  $(this).removeClass("chzn-done");
+                  $(this).removeAttr("id");
+                  $(this).css("display", "block");
                   $(this).next().remove();
               });
 
