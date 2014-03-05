@@ -22,7 +22,7 @@
 
   <div py:match="content" class="dataset">
 
-    <a py:if="c.publisher" href="/data/reports/feedback/${c.publisher.name}.csv" class="btn btn-primary pull-right">
+    <a py:if="c.publisher" href="/data/reports/feedback/${c.publisher.name}.csv?show-zero-feedback=${int(c.show_zero_feedback)}&amp;show-published=${int(c.include_published)}&amp;show-subpub=${int(c.include_subpublisher)}" class="btn btn-primary pull-right">
       <div class="download">
            <i class="icon-download"></i>&nbsp;
           Download as CSV
