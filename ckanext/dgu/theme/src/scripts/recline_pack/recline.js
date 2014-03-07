@@ -3131,6 +3131,10 @@ this.recline.Backend = this.recline.Backend || {};
         if ( results.extra_text ) {
           $('#ckanext-datapreview-extra').html(results.extra_text)
         }
+        if ( results.archived ) {
+            $("#ckanext-datapreview-source").html(results.archived);
+        }
+
         // Rename duplicate fieldIds as each field name needs to be
         // unique.
         var seen = {};
