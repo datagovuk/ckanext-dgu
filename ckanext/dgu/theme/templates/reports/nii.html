@@ -61,7 +61,7 @@
                 <py:for each="lod in c.data.get(publisher)">
                   <py:for each="pkg,res in lod.iteritems()">
                     <tr py:attrs="{'class':'warning' if len(res) > 0 else None}">
-                        <td><a href="/dataset/${pkg.name}">${pkg.title}</a> <span py:if="pkg.extras.get('unpublished')">(Unpublished)</span></td>
+                        <td><a href="/dataset/${pkg.name}">${pkg.title}</a> <span py:if="h.asbool(pkg.extras.get('unpublished'))">(Unpublished)</span></td>
                         <td>${len(res)}</td>
                         <td py:if="len(res) == 0">No broken resources</td>
                         <td py:if="len(res) != 0">
