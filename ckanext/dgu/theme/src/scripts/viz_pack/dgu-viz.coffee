@@ -378,3 +378,82 @@ viz.legend = (container,elements,colorFunction,trim=-1) ->
     .attr('class','swatch')
     .style('background-color',colorFunction)
 
+
+window.viz.loadOrganograms = ->
+  d3.json "/scripts/json/organograms/organograms/graph.json", (root) ->
+    # Aesthetic settings
+    width = 940
+    height = 940
+    radius = 320
+    offset = (y) -> (y*y)/radius # Redistribute y values to cluser around the core
+    pw = 100
+    ph = 7
+    linkline = d3.svg.line().interpolate('basis')
+    # --
+    tree = d3.layout.cluster().size([360,radius])
+    nodes = tree.nodes(root)
+    links = tree.links(nodes)
+    container = d3.select('#organogram-viz')
+    svg = d3.select('#organogram-viz')
+      .append('svg')
+      .attr('width',width)
+      .attr('height',height)
+      .append('g')
+      .attr('transform',"translate(#{width/2},#{height/2})")
+    # Lines between boxes
+    svg.selectAll(".link")
+      .data(links)
+      .enter()
+      .append("path")
+      .attr("class", "link")
+      .attr('fill','none')
+      .attr('stroke','rgba(0,0,0,0.2)')
+      .attr("d", (d) ->
+        sx = (d.source.x-90) * Math.PI / 180
+        sy = offset(d.source.y)
+        tx = (d.target.x-90) * Math.PI / 180
+        ty = offset(d.target.y)
+        # Lots of aesthetic tweaks...
+        #if sy!=0 then sy+= pw/2  # All except root box
+        if sy==0 then sx = tx    # Align angles for the central node
+        point = (angle,offset) -> [ Math.cos(angle)*offset, Math.sin(angle)*offset ]
+        return linkline [ 
+          point(sx,sy), 
+          #point((sx*3+tx)/4,sy+pw/2), 
+          point(sx,sy+80),
+          point(tx,ty-40), 
+          point(tx,ty) 
+        ]
+      )
+    # Group per person
+    person = svg.selectAll('.person')
+      .data(nodes)
+      .enter()
+      .append('g')
+      .classed('person',true)
+      .classed('senior',(d)->d['senior'])
+      .attr('transform', (d) ->
+        if d.y==0 then return "translate(-50)"
+        "rotate(#{d.x-90})translate(#{offset(d.y)})"
+      )
+      .style('opacity',(d)->if d['senior'] then 1.0 else 0.2)
+    # Box object
+    person.append('path') 
+      .attr('d',"M0,#{-ph}H#{pw}V#{ph}H0V#{-ph}")
+      .attr('r',5)
+      .attr('stroke','#000')
+      .attr('stroke-width',(d)->if d['senior'] then 1 else 0)
+      .attr('fill',(d)->if d['senior'] then '#fff' else '#ccf')
+    # Text object
+    person.append('text')
+      .attr('fill','#000')
+      .attr('dy','0.31em')
+      .style('font-size','9px')
+      .attr("dx", (d) -> if d.y==0 or d.x<180 then "2px" else "-2px")
+      .attr("text-anchor", (d) -> if d.y==0 or d.x<180 then "start" else "end")
+      .attr("transform", (d) -> if d.y==0 or d.x<180 then null else "rotate(180)")
+      .text( (d) -> 
+        out = if d.senior then d['Job Title'] else d['Generic Job Title']
+        return viz.trim(out,18)
+      )
+

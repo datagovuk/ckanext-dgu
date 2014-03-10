@@ -1,0 +1,42 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Organograms 2.0 Alpha</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="${request.url}">Organograms (alpha)</a></li>
+  </py:match>
+
+  <py:def function="optional_head">
+    <!--[if lte IE 8]>
+      <script type="text/javascript">
+        $(function() {
+          $('#main-content .row:first')
+          .prepend('<div class="alert alert-danger"><strong>The graphs below are static images and cannot be clicked</strong>. Your browser is out of date and cannot render dynamic content.</div>');
+        });
+      </script>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="/css/dgu-viz.min.css" />
+    <script type="text/javascript" src="/scripts/vendor/d3.v3.min.js"></script>
+    <script type="text/javascript" src="/scripts/vendor/d3.sankey.min.js"></script>
+    <script type="text/javascript" src="/scripts/dgu-viz-pack.min.js"></script>
+    <script type="text/javascript">
+      $(function() { viz.loadOrganograms(); })
+    </script>
+  </py:def>
+
+  <py:match path="content">
+    <div class="container">
+      <div class="row">
+        <h1>Organograms <small>2.0 Alpha</small></h1>
+        <div class="alert alert-info">This page is an <strong>alpha</strong> test of an ongoing development, and is not yet intended for public use.</div>
+        <div id="organogram-viz"></div>
+      </div>
+    </div>
+  </py:match>
+  <xi:include href="../layout.html" />
+</html>
+

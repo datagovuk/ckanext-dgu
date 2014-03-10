@@ -189,6 +189,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
         map.connect('/data/viz/new-front-page', controller=data_controller, action='viz_front_page')
+        map.connect('/data/viz/organograms-beta', controller=data_controller, action='viz_organograms')
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')

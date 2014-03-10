@@ -74,6 +74,8 @@ class DataController(BaseController):
         return render('viz/investment_readiness_programme.html')
     def viz_front_page(self):
         return render('viz/front_page.html')
+    def viz_organograms(self):
+        return render('viz/organograms.html')
 
 
     def resource_cache(self, root, resource_id, filename):
