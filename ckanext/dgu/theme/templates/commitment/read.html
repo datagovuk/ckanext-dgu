@@ -22,7 +22,7 @@
 
     <h2>Last generated: ${h.render_datetime(h.report_generated_at('commitments', c.publisher.name), with_hours=True)}</h2>
 
-    <div class="admin-toolkit pull-right"  py:if="h.check_access('organization_update',{'id':c.publisher.id})">
+    <div class="admin-toolkit pull-right"  py:if="h.check_access('organization_update',{'id':c.publisher.id}) and h.has_commitment(c.publisher)">
       <div class="panel panel-info">
         <div class="panel-heading"><strong>Administrator tools</strong></div>
         <div class="panel-body">
