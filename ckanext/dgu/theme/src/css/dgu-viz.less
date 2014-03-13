@@ -515,7 +515,7 @@ ul.legend {
             margin-bottom: 0px;
         }
         small {
-            font-size: 12px;
+
             color: #999;
         }
     }
@@ -527,5 +527,34 @@ ul.legend {
   svg {
     margin: 0 auto;
     display: block;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+    text { pointer-events: none; }
+  }
+  position: relative;
+  .hoverbox {
+    position: absolute;
+    display: none;
+    width: 280px;
+    font-size: 9px;
+    border: 1px solid #000;
+    padding: 2px;
+    background: #fff;
+    table { 
+      margin: 0 0 0 0; 
+      td {
+        padding: 1px 5px;
+      }
+      td:first-child {
+        font-weight: bold;
+        text-align: right;
+        min-width: 45%;
+      }
+    }
   }
 }

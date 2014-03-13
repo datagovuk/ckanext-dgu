@@ -376,6 +376,10 @@ viz.shallowCopy = (object) ->
     out[k] = v
   return out
 
+d3.selection.prototype.moveToBack = ->
+    @each ->
+        firstChild = @parentNode.firstChild
+        if (firstChild) then @parentNode.insertBefore(this, firstChild)
 
 viz.legend = (container,elements,colorFunction,trim=-1) ->
   ul = container
@@ -399,8 +403,8 @@ window.viz.loadOrganograms = ->
 
 class window.viz.organogram
   width: 940
-  height: 940
-  radius: 320
+  height: 800
+  radius: 270
   pw: 130
   ph: 14
   # OrgChart: Redistribute y values to cluser around the core
@@ -410,7 +414,7 @@ class window.viz.organogram
   constructor: (raw_root)->
     @orgChart = @buildOrgChart(raw_root,'','root')
     @treeMap = @buildTreeMap(@orgChart)
-    container = d3.select('#organogram-viz')
+    @container = d3.select('#organogram-viz')
     @svg = d3.select('#organogram-viz')
       .append('svg')
       .attr('width',@width)
@@ -418,12 +422,6 @@ class window.viz.organogram
       .append('g')
       .attr('transform',"translate(#{@width/2},#{@height/2})")
     @defs = @svg.append('defs')
-    @defs.append('clipPath')
-      .attr('id','boxClip')
-      .append('rect')
-      .attr('x',2)
-      .attr('width',@pw-4)
-      .attr('height',@ph)
     # Initial state
     @renderOrgChart(delay=1500)
     # Bind interactive elements
@@ -431,6 +429,8 @@ class window.viz.organogram
     btnz.on 'click',(_x,index)=>
       btnz.classed('active',(_x,i)->i==index)
       if index==0 then @renderOrgChart() else @renderTreeMap()
+    @hoverBox = @container.append('div')
+      .classed('hoverbox',true)
 
   # Recursive function
   buildOrgChart: (d, parentId, myId) =>
@@ -448,6 +448,9 @@ class window.viz.organogram
       out.children = ( @buildOrgChart(child,myId,"#{myId}.#{i}") for child,i in d.children )
     return out
 
+  # Bizarre behaviour of the D3 Treemap engine means
+  # I have to create a shallow copy of the entire tree
+  # with a /subtly/ different structure...!
   buildTreeMap: (d) =>
     if not d.children then return d
     out =
@@ -459,6 +462,59 @@ class window.viz.organogram
     for child in d.children
       out.children.push @buildTreeMap(child)
     return out
+
+  hoverPerson: =>
+    parent = this
+    return (d,i) ->
+      if parent.hovering == d.original
+        return
+      parent.hovering = d.original
+      w = 280
+      space = 20
+      bbox        = @.getBoundingClientRect()
+      bbox_parent = parent.container[0][0].getBoundingClientRect()
+      if (bbox.left-bbox_parent.left+bbox.width/2) > (bbox_parent.width/2)
+        left = bbox.left - bbox_parent.left - w - space
+      else
+        left = bbox.left - bbox_parent.left + bbox.width + space
+      left = Math.max(0,Math.min(bbox_parent.width-w,left))
+      top = bbox.top - bbox_parent.top - (if d.original.senior then 100 else 50)
+      top = Math.max(-50,Math.min(bbox_parent.height-100,top))
+      parent.hoverBox.style(
+        display:'block'
+        left:Math.round(left)+'px'
+        top:Math.round(top)+'px'
+      )
+      email_link = (x) -> if '@' not in x then x else "<a href=\"mailto:#{x}\">#{x}</a>"
+      if d.original.senior
+        parent.hoverBox.html "
+          <table class=\"table table-bordered table-condensed\">
+            <tr><td>Job&nbsp;Title</td><td>#{d.original['Job Title']}</td></tr>
+            <tr><td>Unit</td><td>#{d.original['Unit']}</td></tr>
+            <tr><td>Group</td><td>#{d.original['Professional/Occupational Group']}</td></tr>
+            <tr><td>Salary</td><td>£#{viz.money_to_string(d.original['Actual Pay Floor (£)'])} - £#{viz.money_to_string(d.original['Actual Pay Ceiling (£)'])}</td></tr>
+            <tr><td>Type</td><td><em>Senior Civil Servant</em></td></tr>
+            <tr><td colspan=\"2\" style=\"text-align: left;font-weight:normal;font-style:italic;\">#{d.original['Job/Team Function']}</td></tr>
+            <tr><td>Name</td><td>#{d.original['Name']}</td></tr>
+            <tr><td>Grade</td><td>#{d.original['Grade']}</td></tr>
+            <tr><td>#&nbsp;Roles</td><td>#{d.original['FTE']} (full-time equivalent)</td></tr>
+            <tr><td>Phone</td><td>#{d.original['Contact Phone']}</td></tr>
+            <tr><td>Email</td><td>#{email_link(d.original['Contact E-mail'])}</td></tr>
+          </table>"
+      else
+        parent.hoverBox.html "
+          <table class=\"table table-bordered table-condensed\">
+            <tr><td>Job&nbsp;Title</td><td>#{d.original['Generic Job Title']}</td></tr>
+            <tr><td>Unit</td><td>#{d.original['Unit']}</td></tr>
+            <tr><td>Group</td><td>#{d.original['Professional/Occupational Group']}</td></tr>
+            <tr><td>Salary</td><td>£#{viz.money_to_string(d.original['Payscale Minimum (£)'])} - £#{viz.money_to_string(d.original['Payscale Maximum (£)'])}</td></tr>
+            <tr><td>Type</td><td><em>Junior Civil Servant</em></td></tr>
+            <tr><td>Grade</td><td>#{d.original['Grade']}</td></tr>
+            <tr><td>#&nbsp;Roles</td><td>#{d.original['Number of Posts in FTE']} (full-time equivalent)</td></tr>
+          </table>"
+
+
+
 
   linkPath: (d) =>
     # Lines between boxes
@@ -478,18 +534,15 @@ class window.viz.organogram
     ]
 
   setData: (persons,links) =>
-    # clippath_id = viz.uniqueClassGenerator('clippath')
-    #
-    # pathz = @defs.datum(@root)
-    #   .selectAll('.treemap-clippath')
-    #   .data(treemap.nodes, key = (d)->"#{d.dx},#{d.dy}")
-    #   .enter()
-    #   .append('clipPath')
-    #   .attr('id',(d)->clippath_id("#{d.dx},#{d.dy}"))
-    #   .classed('treemap-clippath',true)
-    #   .append('rect')
-    #   .attr('width',(d)->Math.max(0,d.dx-1))
-    #   .attr('height',(d)->d.dy)
+    clippath_selection = @defs.selectAll('.clipRect')
+      .data(persons, key = (d)->d.key)
+    clippath_selection.exit().remove()
+    clippath_selection.enter().append('clipPath')
+      .classed('clipRect',true)
+      .attr('id',(d)->d.key)
+      .append('rect')
+      .attr('width',@pw)
+      .attr('height',@ph)
     # -- Links
     link_selection = @svg.selectAll(".link")
       .data(links,key=(d)->d.target.key)
@@ -500,82 +553,100 @@ class window.viz.organogram
       .attr('stroke','rgba(0,0,0,0.2)')
       .attr("d", @linkPath)
       .style('opacity',0)
+      .moveToBack()
     # -- Persons
+    bgcol = (d) =>
+      out = d3.rgb( @color d.group )
+      if d.isLeaf then out else out.darker(0.6)
+    textcol = (d) ->
+      bg = d3.hsl bgcol(d)
+      if bg.l<0.7 then '#fff' else '#000'
     person_selection = @svg.selectAll('.person')
       .data(persons, key=(d)->d.key)
     person_selection.exit().remove()
     g_enter = person_selection.enter().append('g')
       .classed('person',true)
+      .attr('clip-path',(d)->"url(##{d.key})")
     g_enter.append('rect')
       .style('display', (d)-> if d.name then 'inline' else 'none')
-      .attr('fill',(d) => 
-        out = d3.rgb( @color d.group )
-        if d.isLeaf then out else out.darker(0.6)
-      )
-      .attr('stroke','#fff')
-      .attr('stroke-width','1px')
+      .attr('fill',bgcol)
+      # .attr('stroke','#fff')
+      # .attr('stroke-width','1px')
+      .on('mouseover',@hoverPerson())
     g_enter.append('text')
       .style('display', (d)-> if d.name then 'inline' else 'none')
+      .attr('fill',textcol)
       .attr('dx','2px')
       .attr('dy','1.2em')
       .style('font-size','9px')
       .text((d)->d.name)
-    #  .attr('clip-path',(d)->"url(##{clippath_id("#{d.dx},#{d.dy}")})")
     g_enter.append('text')
       .style('display', (d)->if d.name then 'inline' else 'none')
+      .attr('fill',textcol)
       .attr('dx','2px')
       .attr('dy','2.4em')
       .style('font-size','9px')
       .text( (d) -> if not d.name then null else '£'+viz.money_to_string(d.value))
 
   renderOrgChart: (delay=0) =>
-    duration = 1000
-    ripple = 5
-    # --
     orgLayout = d3.layout.cluster().size([360,@radius])
     nodes = orgLayout.nodes(@orgChart)
+    ripple = (d,i) =>
+      i = (nodes.length*.5 + i) % nodes.length
+      return i*20
+    duration = 500
     @setData nodes, orgLayout.links(nodes)
     @svg.selectAll(".link").transition()
       .transition()
-      .duration(300)
-      .delay((d,i)->delay+300+i*10)
+      .duration(200)
+      .delay(2000)
       .style('opacity',1)
     @svg.selectAll('.person')
       .transition()
       .duration(duration)
-      .delay((d,i)->delay+i*ripple)
+      .delay(ripple)
       #.style('opacity',(d)->if d['senior'] then 1.0 else 0.2)
       .attr('transform', (d) =>
-        if d.y==0 then return "translate(#{-@pw/2},#{-@ph/2})"
+        if d.y==0 then  return "translate(#{-@pw/2},#{-@ph/2})"
         if d.x<180 then return "translate(0,#{-@ph/2})rotate(#{d.x-90},0,#{@ph/2})translate(#{@offset(d.y)})"
         else            return "translate(0,#{-@ph/2})rotate(#{d.x-270},0,#{@ph/2})translate(#{-@offset(d.y)-@pw})"
       )
     @svg.selectAll('.person').select('rect')
-      # .attr('stroke','#000')
-      # .attr('stroke-width',(d)->if d.original.senior then 1 else 0)
       .transition()
       .duration(duration)
-      .delay( (d,i) -> i*ripple)
+      .delay(ripple)
+      .attr('width',@pw)
+      .attr('height',@ph)
+    @svg.selectAll('.clipRect').select('rect').transition()
+      .duration(duration)
+      .delay(ripple)
       .attr('width',@pw)
       .attr('height',@ph)
 
   renderTreeMap: =>
-    duration = 1000
-    ripple = 10
-    # ---
+    ripple  = (d,i) =>
+      @known ?= []
+      if @known.indexOf(d.group) < 0
+        @known.push d.group
+      index = @known.indexOf d.group
+      return Math.floor(index/2)*300
     treemap = d3.layout.treemap()
       .size([@width,@height])
       .sticky(true)
       .value( (d) -> d.value )
     @setData treemap.nodes(@treeMap), []
-    @svg.selectAll('.link').transition().duration(1000).style('opacity',0)
     @svg.selectAll('.person')
       .transition()
-      .duration(duration)
-      .delay( (d,i) -> i*ripple)
+      .duration(500)
+      .delay(ripple)
       .attr('transform',(d)=>"translate(#{d.x-@width/2},#{d.y-@height/2})")
     @svg.selectAll('.person').select('rect').transition()
-      .duration(duration)
-      .delay( (d,i) -> i*ripple)
-      .attr('width',(d)->Math.max(0,d.dx))
-      .attr('height',(d)->Math.max(0,d.dy))
+      .duration(500)
+      .delay(ripple)
+      .attr('width',(d)->d.dx)
+      .attr('height',(d)->d.dy)
+    @svg.selectAll('.clipRect').select('rect').transition()
+      .duration(500)
+      .delay(ripple)
+      .attr('width',(d)->Math.max(0,d.dx-1))
+      .attr('height',(d)->Math.max(0,d.dy-1))
