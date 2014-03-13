@@ -400,6 +400,9 @@ window.viz.loadOrganograms = ->
       .attr('height',height)
       .append('g')
       .attr('transform',"translate(#{width/2},#{height/2})")
+    # if true 
+    #   viz.vizAsTreeMap(root,svg,width,height)
+    #   return
     # Lines between boxes
     svg.selectAll(".link")
       .data(links)
@@ -456,4 +459,70 @@ window.viz.loadOrganograms = ->
         out = if d.senior then d['Job Title'] else d['Generic Job Title']
         return viz.trim(out,18)
       )
+
+window.viz.vizAsTreeMap = (root,svg,width,height) ->
+  
+  color = d3.scale.category20c()
+  treemap_node = (d) ->
+    myname = if d.senior then d['Job Title'] else d['Generic Job Title']
+    mysize = if d['senior'] then d['Actual Pay Floor (£)'] else d['Payscale Minimum (£)']
+    if not (d.children and d.children.length) 
+      return {
+        name : myname
+        size : mysize
+        original : d
+        color: 'rgba(255,255,255,0.2)'
+      }
+    children = ( treemap_node(child) for child in d.children )
+    children.push( { name : myname, size: mysize, original: d })
+    return {
+      # Just a rectangle with my children and myself as leaf node...
+      color: color(myname)
+      children: children
+    }
+  test = 
+    'Job Title': 'Root'
+    senior: true
+    'Actual Pay Floor (£)': 100
+    children: [
+      'Job Title': 'One'
+      senior: true
+      'Actual Pay Floor (£)': 50
+      children: []
+    ]
+
+  myTree = treemap_node(root)
+  console.log myTree
+
+  window.x = myTree
+  treemap = d3.layout.treemap()
+    .size([width,height])
+    .sticky(true)
+    .value( (d) -> d.size )
+  nodes = svg.datum(myTree)
+    .selectAll('.node')
+    .data(treemap.nodes)
+    .enter()
+    .append('g')
+    .classed('node',true)
+    .attr('transform',(d)->"translate(#{d.x-width/2},#{d.y-height/2})")
+  nodes.append('rect')
+    .attr('width',(d)->Math.max(0,d.dx))
+    .attr('height',(d)->Math.max(0,d.dy))
+    .attr('fill', (d)->d.color or 'none')
+    .attr('stroke','#fff')
+    .attr('stroke-width',(d)-> if d.invisible then '0px' else '1px')
+  nodes.append('text')
+    .style('display', (d)-> if d.name then 'inline' else 'none')
+    .attr('dx','2px')
+    .attr('dy','1.2em')
+    .style('font-size','9px')
+    .text((d)-> viz.trim(d.name or '',999) )
+
+  # nodes.append('text')
+  #   .attr('fill','rgba(0,0,0,0.7)')
+  #   .attr('dx','2px')
+  #   .attr('dy','2.4em')
+  #   .style('font-size','9px')
+  #   .text( (d) -> '£'+viz.money_to_string(d.value))
 
