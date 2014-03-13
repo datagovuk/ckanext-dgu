@@ -362,6 +362,14 @@ viz.colour_product_type = ->
     if x=='Loans and facilities - Partially secured'
       return d3.rgb('#74C476')
     return d3.rgb('#193B79').brighter(index/2)
+viz.uniqueClassGenerator = (prefix="unique") ->
+  known = {}
+  latest = 0
+  return (x) ->
+    if not (x of known)
+      out = prefix+(latest++)
+      known[x] = out
+    return known[x]
 
 
 viz.legend = (container,elements,colorFunction,trim=-1) ->
@@ -386,8 +394,8 @@ window.viz.loadOrganograms = ->
     height = 940
     radius = 320
     offset = (y) -> (y*y)/radius # Redistribute y values to cluser around the core
-    pw = 100
-    ph = 7
+    pw = 130
+    ph = 14
     linkline = d3.svg.line().interpolate('basis')
     # --
     tree = d3.layout.cluster().size([360,radius])
@@ -400,9 +408,17 @@ window.viz.loadOrganograms = ->
       .attr('height',height)
       .append('g')
       .attr('transform',"translate(#{width/2},#{height/2})")
-    # if true 
-    #   viz.vizAsTreeMap(root,svg,width,height)
-    #   return
+    defs = svg.append('defs')
+    defs.append('clipPath')
+      .attr('id','boxClip')
+      .append('rect')
+      .attr('x',2)
+      .attr('width',pw-4)
+      .attr('height',ph)
+
+    if true 
+      viz.vizAsTreeMap(root,svg,defs,width,height)
+      return
     # Lines between boxes
     svg.selectAll(".link")
       .data(links)
@@ -417,12 +433,10 @@ window.viz.loadOrganograms = ->
         tx = (d.target.x-90) * Math.PI / 180
         ty = offset(d.target.y)
         # Lots of aesthetic tweaks...
-        #if sy!=0 then sy+= pw/2  # All except root box
         if sy==0 then sx = tx    # Align angles for the central node
         point = (angle,offset) -> [ Math.cos(angle)*offset, Math.sin(angle)*offset ]
         return linkline [ 
           point(sx,sy), 
-          #point((sx*3+tx)/4,sy+pw/2), 
           point(sx,sy+80),
           point(tx,ty-40), 
           point(tx,ty) 
@@ -436,32 +450,34 @@ window.viz.loadOrganograms = ->
       .classed('person',true)
       .classed('senior',(d)->d['senior'])
       .attr('transform', (d) ->
-        if d.y==0 then return "translate(-50)"
-        "rotate(#{d.x-90})translate(#{offset(d.y)})"
+        if d.y==0 then return "translate(-50,#{-ph/2})"
+        if d.x<180 then return "translate(0,#{-ph/2})rotate(#{d.x-90},0,#{ph/2})translate(#{offset(d.y)})"
+        else            return "translate(0,#{-ph/2})rotate(#{d.x-270},0,#{ph/2})translate(#{-offset(d.y)-pw})"
       )
       .style('opacity',(d)->if d['senior'] then 1.0 else 0.2)
     # Box object
-    person.append('path') 
-      .attr('d',"M0,#{-ph}H#{pw}V#{ph}H0V#{-ph}")
-      .attr('r',5)
+    person.append('rect') 
+      .attr('x',0)
+      .attr('y',0)
+      .attr('width',pw)
+      .attr('height',ph)
       .attr('stroke','#000')
       .attr('stroke-width',(d)->if d['senior'] then 1 else 0)
       .attr('fill',(d)->if d['senior'] then '#fff' else '#ccf')
     # Text object
     person.append('text')
       .attr('fill','#000')
-      .attr('dy','0.31em')
+      .attr('dy','1.10em')
       .style('font-size','9px')
-      .attr("dx", (d) -> if d.y==0 or d.x<180 then "2px" else "-2px")
-      .attr("text-anchor", (d) -> if d.y==0 or d.x<180 then "start" else "end")
-      .attr("transform", (d) -> if d.y==0 or d.x<180 then null else "rotate(180)")
-      .text( (d) -> 
-        out = if d.senior then d['Job Title'] else d['Generic Job Title']
-        return viz.trim(out,18)
-      )
+      .attr("dx", "2px")
+      # .attr("dx", (d) -> if d.y==0 or d.x<180 then "2px" else "#{pw-2}px")
+      # .attr("text-anchor", (d) -> if d.y==0 or d.x<180 then "start" else "end")
+      # .attr("transform", (d) -> if d.y==0 or d.x<180 then null else "rotate(180)")
+      .text( (d) -> if d.senior then d['Job Title'] else d['Generic Job Title'])
+      .attr('clip-path','url(#boxClip)')
 
-window.viz.vizAsTreeMap = (root,svg,width,height) ->
-  
+
+window.viz.vizAsTreeMap = (root,svg,defs,width,height) ->
   color = d3.scale.category20c()
   treemap_node = (d) ->
     myname = if d.senior then d['Job Title'] else d['Generic Job Title']
@@ -499,25 +515,41 @@ window.viz.vizAsTreeMap = (root,svg,width,height) ->
     .size([width,height])
     .sticky(true)
     .value( (d) -> d.size )
-  nodes = svg.datum(myTree)
-    .selectAll('.node')
+
+  clippath_id = viz.uniqueClassGenerator('clippath')
+
+  console.log treemap.nodes
+  pathz = defs.datum(myTree)
+    .selectAll('.treemap-clippath')
+    .data(treemap.nodes, key = (d)->"#{d.dx},#{d.dy}")
+    .enter()
+    .append('clipPath')
+    .attr('id',(d)->clippath_id("#{d.dx},#{d.dy}"))
+    .classed('treemap-clippath',true)
+    .append('rect')
+    .attr('width',(d)->d.dx-1)
+    .attr('height',(d)->d.dy)
+
+  person = svg.datum(myTree)
+    .selectAll('.person')
     .data(treemap.nodes)
     .enter()
     .append('g')
-    .classed('node',true)
+    .classed('person',true)
     .attr('transform',(d)->"translate(#{d.x-width/2},#{d.y-height/2})")
-  nodes.append('rect')
+  person.append('rect')
     .attr('width',(d)->Math.max(0,d.dx))
     .attr('height',(d)->Math.max(0,d.dy))
     .attr('fill', (d)->d.color or 'none')
     .attr('stroke','#fff')
     .attr('stroke-width',(d)-> if d.invisible then '0px' else '1px')
-  nodes.append('text')
+  person.append('text')
     .style('display', (d)-> if d.name then 'inline' else 'none')
     .attr('dx','2px')
     .attr('dy','1.2em')
     .style('font-size','9px')
-    .text((d)-> viz.trim(d.name or '',999) )
+    .text((d)->d.name)
+    .attr('clip-path',(d)->"url(##{clippath_id("#{d.dx},#{d.dy}")})")
 
   # nodes.append('text')
   #   .attr('fill','rgba(0,0,0,0.7)')
