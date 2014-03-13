@@ -370,6 +370,11 @@ viz.uniqueClassGenerator = (prefix="unique") ->
       out = prefix+(latest++)
       known[x] = out
     return known[x]
+viz.shallowCopy = (object) ->
+  out = {}
+  for k,v of object
+    out[k] = v
+  return out
 
 
 viz.legend = (container,elements,colorFunction,trim=-1) ->
@@ -389,172 +394,188 @@ viz.legend = (container,elements,colorFunction,trim=-1) ->
 
 window.viz.loadOrganograms = ->
   d3.json "/scripts/json/organograms/organograms/graph.json", (root) ->
-    # Aesthetic settings
-    width = 940
-    height = 940
-    radius = 320
-    offset = (y) -> (y*y)/radius # Redistribute y values to cluser around the core
-    pw = 130
-    ph = 14
-    linkline = d3.svg.line().interpolate('basis')
-    # --
-    tree = d3.layout.cluster().size([360,radius])
-    nodes = tree.nodes(root)
-    links = tree.links(nodes)
+    organogram_graph = new viz.organogram(root)
+
+
+class window.viz.organogram
+  width: 940
+  height: 940
+  radius: 320
+  pw: 130
+  ph: 14
+  # OrgChart: Redistribute y values to cluser around the core
+  offset: (y) => (y*y)/@radius 
+  color: d3.scale.category20c()
+
+  constructor: (raw_root)->
+    @orgChart = @buildOrgChart(raw_root,'','root')
+    @treeMap = @buildTreeMap(@orgChart)
     container = d3.select('#organogram-viz')
-    svg = d3.select('#organogram-viz')
+    @svg = d3.select('#organogram-viz')
       .append('svg')
-      .attr('width',width)
-      .attr('height',height)
+      .attr('width',@width)
+      .attr('height',@height)
       .append('g')
-      .attr('transform',"translate(#{width/2},#{height/2})")
-    defs = svg.append('defs')
-    defs.append('clipPath')
+      .attr('transform',"translate(#{@width/2},#{@height/2})")
+    @defs = @svg.append('defs')
+    @defs.append('clipPath')
       .attr('id','boxClip')
       .append('rect')
       .attr('x',2)
-      .attr('width',pw-4)
-      .attr('height',ph)
+      .attr('width',@pw-4)
+      .attr('height',@ph)
+    # Initial state
+    @renderOrgChart(delay=1500)
+    # Bind interactive elements
+    btnz = d3.selectAll('.organogram-button')
+    btnz.on 'click',(_x,index)=>
+      btnz.classed('active',(_x,i)->i==index)
+      if index==0 then @renderOrgChart() else @renderTreeMap()
 
-    if true 
-      viz.vizAsTreeMap(root,svg,defs,width,height)
-      return
-    # Lines between boxes
-    svg.selectAll(".link")
-      .data(links)
-      .enter()
-      .append("path")
-      .attr("class", "link")
-      .attr('fill','none')
-      .attr('stroke','rgba(0,0,0,0.2)')
-      .attr("d", (d) ->
-        sx = (d.source.x-90) * Math.PI / 180
-        sy = offset(d.source.y)
-        tx = (d.target.x-90) * Math.PI / 180
-        ty = offset(d.target.y)
-        # Lots of aesthetic tweaks...
-        if sy==0 then sx = tx    # Align angles for the central node
-        point = (angle,offset) -> [ Math.cos(angle)*offset, Math.sin(angle)*offset ]
-        return linkline [ 
-          point(sx,sy), 
-          point(sx,sy+80),
-          point(tx,ty-40), 
-          point(tx,ty) 
-        ]
-      )
-    # Group per person
-    person = svg.selectAll('.person')
-      .data(nodes)
-      .enter()
-      .append('g')
-      .classed('person',true)
-      .classed('senior',(d)->d['senior'])
-      .attr('transform', (d) ->
-        if d.y==0 then return "translate(-50,#{-ph/2})"
-        if d.x<180 then return "translate(0,#{-ph/2})rotate(#{d.x-90},0,#{ph/2})translate(#{offset(d.y)})"
-        else            return "translate(0,#{-ph/2})rotate(#{d.x-270},0,#{ph/2})translate(#{-offset(d.y)-pw})"
-      )
-      .style('opacity',(d)->if d['senior'] then 1.0 else 0.2)
-    # Box object
-    person.append('rect') 
-      .attr('x',0)
-      .attr('y',0)
-      .attr('width',pw)
-      .attr('height',ph)
-      .attr('stroke','#000')
-      .attr('stroke-width',(d)->if d['senior'] then 1 else 0)
-      .attr('fill',(d)->if d['senior'] then '#fff' else '#ccf')
-    # Text object
-    person.append('text')
-      .attr('fill','#000')
-      .attr('dy','1.10em')
-      .style('font-size','9px')
-      .attr("dx", "2px")
-      # .attr("dx", (d) -> if d.y==0 or d.x<180 then "2px" else "#{pw-2}px")
-      # .attr("text-anchor", (d) -> if d.y==0 or d.x<180 then "start" else "end")
-      # .attr("transform", (d) -> if d.y==0 or d.x<180 then null else "rotate(180)")
-      .text( (d) -> if d.senior then d['Job Title'] else d['Generic Job Title'])
-      .attr('clip-path','url(#boxClip)')
-
-
-window.viz.vizAsTreeMap = (root,svg,defs,width,height) ->
-  color = d3.scale.category20c()
-  treemap_node = (d) ->
-    myname = if d.senior then d['Job Title'] else d['Generic Job Title']
-    mysize = if d['senior'] then d['Actual Pay Floor (£)'] else d['Payscale Minimum (£)']
-    if not (d.children and d.children.length) 
-      return {
-        name : myname
-        size : mysize
-        original : d
-        color: 'rgba(255,255,255,0.2)'
-      }
-    children = ( treemap_node(child) for child in d.children )
-    children.push( { name : myname, size: mysize, original: d })
-    return {
-      # Just a rectangle with my children and myself as leaf node...
-      color: color(myname)
-      children: children
+  # Recursive function
+  buildOrgChart: (d, parentId, myId) =>
+    out = {
+      original : d
+      name     : if d.senior then d['Job Title'] else d['Generic Job Title']
+      value    : if d.senior then d['Actual Pay Floor (£)'] else d['Payscale Minimum (£)']
+      key      : myId
+      group    : parentId
+      isLeaf   : true
     }
-  test = 
-    'Job Title': 'Root'
-    senior: true
-    'Actual Pay Floor (£)': 100
-    children: [
-      'Job Title': 'One'
-      senior: true
-      'Actual Pay Floor (£)': 50
+    if (d.children and d.children.length) 
+      out.isLeaf   = false
+      out.group    = myId
+      out.children = ( @buildOrgChart(child,myId,"#{myId}.#{i}") for child,i in d.children )
+    return out
+
+  buildTreeMap: (d) =>
+    if not d.children then return d
+    out =
+      key: "tmp-#{d.key}"
       children: []
+    myself = viz.shallowCopy d
+    myself.children = undefined
+    out.children.push myself
+    for child in d.children
+      out.children.push @buildTreeMap(child)
+    return out
+
+  linkPath: (d) =>
+    # Lines between boxes
+    @linkline ?= d3.svg.line().interpolate('basis')
+    sx = (d.source.x-90) * Math.PI / 180
+    sy = @offset(d.source.y)
+    tx = (d.target.x-90) * Math.PI / 180
+    ty = @offset(d.target.y)
+    # Lots of aesthetic tweaks...
+    if sy==0 then sx = tx    # Align angles or the central node
+    point = (angle,offset) -> [ Math.cos(angle)*offset, Math.sin(angle)*offset ]
+    return @linkline [
+      point(sx,sy),
+      point(sx,sy+80),
+      point(tx,ty-40),
+      point(tx,ty)
     ]
 
-  myTree = treemap_node(root)
-  console.log myTree
+  setData: (persons,links) =>
+    # clippath_id = viz.uniqueClassGenerator('clippath')
+    #
+    # pathz = @defs.datum(@root)
+    #   .selectAll('.treemap-clippath')
+    #   .data(treemap.nodes, key = (d)->"#{d.dx},#{d.dy}")
+    #   .enter()
+    #   .append('clipPath')
+    #   .attr('id',(d)->clippath_id("#{d.dx},#{d.dy}"))
+    #   .classed('treemap-clippath',true)
+    #   .append('rect')
+    #   .attr('width',(d)->Math.max(0,d.dx-1))
+    #   .attr('height',(d)->d.dy)
+    # -- Links
+    link_selection = @svg.selectAll(".link")
+      .data(links,key=(d)->d.target.key)
+    link_selection.exit().transition().duration(500).style('opacity',0).remove()
+    link_selection.enter().append("path")
+      .classed("link", true)
+      .attr('fill','none')
+      .attr('stroke','rgba(0,0,0,0.2)')
+      .attr("d", @linkPath)
+      .style('opacity',0)
+    # -- Persons
+    person_selection = @svg.selectAll('.person')
+      .data(persons, key=(d)->d.key)
+    person_selection.exit().remove()
+    g_enter = person_selection.enter().append('g')
+      .classed('person',true)
+    g_enter.append('rect')
+      .style('display', (d)-> if d.name then 'inline' else 'none')
+      .attr('fill',(d) => 
+        out = d3.rgb( @color d.group )
+        if d.isLeaf then out else out.darker(0.6)
+      )
+      .attr('stroke','#fff')
+      .attr('stroke-width','1px')
+    g_enter.append('text')
+      .style('display', (d)-> if d.name then 'inline' else 'none')
+      .attr('dx','2px')
+      .attr('dy','1.2em')
+      .style('font-size','9px')
+      .text((d)->d.name)
+    #  .attr('clip-path',(d)->"url(##{clippath_id("#{d.dx},#{d.dy}")})")
+    g_enter.append('text')
+      .style('display', (d)->if d.name then 'inline' else 'none')
+      .attr('dx','2px')
+      .attr('dy','2.4em')
+      .style('font-size','9px')
+      .text( (d) -> if not d.name then null else '£'+viz.money_to_string(d.value))
 
-  window.x = myTree
-  treemap = d3.layout.treemap()
-    .size([width,height])
-    .sticky(true)
-    .value( (d) -> d.size )
+  renderOrgChart: (delay=0) =>
+    duration = 1000
+    ripple = 5
+    # --
+    orgLayout = d3.layout.cluster().size([360,@radius])
+    nodes = orgLayout.nodes(@orgChart)
+    @setData nodes, orgLayout.links(nodes)
+    @svg.selectAll(".link").transition()
+      .transition()
+      .duration(300)
+      .delay((d,i)->delay+300+i*10)
+      .style('opacity',1)
+    @svg.selectAll('.person')
+      .transition()
+      .duration(duration)
+      .delay((d,i)->delay+i*ripple)
+      #.style('opacity',(d)->if d['senior'] then 1.0 else 0.2)
+      .attr('transform', (d) =>
+        if d.y==0 then return "translate(#{-@pw/2},#{-@ph/2})"
+        if d.x<180 then return "translate(0,#{-@ph/2})rotate(#{d.x-90},0,#{@ph/2})translate(#{@offset(d.y)})"
+        else            return "translate(0,#{-@ph/2})rotate(#{d.x-270},0,#{@ph/2})translate(#{-@offset(d.y)-@pw})"
+      )
+    @svg.selectAll('.person').select('rect')
+      # .attr('stroke','#000')
+      # .attr('stroke-width',(d)->if d.original.senior then 1 else 0)
+      .transition()
+      .duration(duration)
+      .delay( (d,i) -> i*ripple)
+      .attr('width',@pw)
+      .attr('height',@ph)
 
-  clippath_id = viz.uniqueClassGenerator('clippath')
-
-  console.log treemap.nodes
-  pathz = defs.datum(myTree)
-    .selectAll('.treemap-clippath')
-    .data(treemap.nodes, key = (d)->"#{d.dx},#{d.dy}")
-    .enter()
-    .append('clipPath')
-    .attr('id',(d)->clippath_id("#{d.dx},#{d.dy}"))
-    .classed('treemap-clippath',true)
-    .append('rect')
-    .attr('width',(d)->d.dx-1)
-    .attr('height',(d)->d.dy)
-
-  person = svg.datum(myTree)
-    .selectAll('.person')
-    .data(treemap.nodes)
-    .enter()
-    .append('g')
-    .classed('person',true)
-    .attr('transform',(d)->"translate(#{d.x-width/2},#{d.y-height/2})")
-  person.append('rect')
-    .attr('width',(d)->Math.max(0,d.dx))
-    .attr('height',(d)->Math.max(0,d.dy))
-    .attr('fill', (d)->d.color or 'none')
-    .attr('stroke','#fff')
-    .attr('stroke-width',(d)-> if d.invisible then '0px' else '1px')
-  person.append('text')
-    .style('display', (d)-> if d.name then 'inline' else 'none')
-    .attr('dx','2px')
-    .attr('dy','1.2em')
-    .style('font-size','9px')
-    .text((d)->d.name)
-    .attr('clip-path',(d)->"url(##{clippath_id("#{d.dx},#{d.dy}")})")
-
-  # nodes.append('text')
-  #   .attr('fill','rgba(0,0,0,0.7)')
-  #   .attr('dx','2px')
-  #   .attr('dy','2.4em')
-  #   .style('font-size','9px')
-  #   .text( (d) -> '£'+viz.money_to_string(d.value))
-
+  renderTreeMap: =>
+    duration = 1000
+    ripple = 10
+    # ---
+    treemap = d3.layout.treemap()
+      .size([@width,@height])
+      .sticky(true)
+      .value( (d) -> d.value )
+    @setData treemap.nodes(@treeMap), []
+    @svg.selectAll('.link').transition().duration(1000).style('opacity',0)
+    @svg.selectAll('.person')
+      .transition()
+      .duration(duration)
+      .delay( (d,i) -> i*ripple)
+      .attr('transform',(d)=>"translate(#{d.x-@width/2},#{d.y-@height/2})")
+    @svg.selectAll('.person').select('rect').transition()
+      .duration(duration)
+      .delay( (d,i) -> i*ripple)
+      .attr('width',(d)->Math.max(0,d.dx))
+      .attr('height',(d)->Math.max(0,d.dy))
