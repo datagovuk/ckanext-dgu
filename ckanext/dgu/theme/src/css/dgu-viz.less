@@ -534,7 +534,25 @@ ul.legend {
     -ms-user-select: none;
     user-select: none;
     cursor: default;
-    text { pointer-events: none; }
+    text { 
+      pointer-events: none; 
+      fill: #000;
+    }
+    text.invertText {
+      fill: #fff;
+    }
+    .person:hover {
+      rect {
+        fill-opacity: 0.8;
+      }
+      text {
+        stroke: #000;
+        stroke-width: 0.5px;
+      }
+      text.invertText {
+        stroke: #fff;
+      }
+    }
   }
   position: relative;
   .hoverbox {

@@ -423,7 +423,7 @@ class window.viz.organogram
       .attr('transform',"translate(#{@width/2},#{@height/2})")
     @defs = @svg.append('defs')
     # Initial state
-    @renderOrgChart(delay=1500)
+    @renderOrgChart(intro=true)
     # Bind interactive elements
     btnz = d3.selectAll('.organogram-button')
     btnz.on 'click',(_x,index)=>
@@ -466,10 +466,11 @@ class window.viz.organogram
   hoverPerson: =>
     parent = this
     return (d,i) ->
+      window.clearTimeout window.viz.organogram_hover_timeout
       if parent.hovering == d.original
         return
       parent.hovering = d.original
-      w = 280
+      w     = 280
       space = 20
       bbox        = @.getBoundingClientRect()
       bbox_parent = parent.container[0][0].getBoundingClientRect()
@@ -478,14 +479,15 @@ class window.viz.organogram
       else
         left = bbox.left - bbox_parent.left + bbox.width + space
       left = Math.max(0,Math.min(bbox_parent.width-w,left))
-      top = bbox.top - bbox_parent.top - (if d.original.senior then 100 else 50)
+      top = bbox.top - bbox_parent.top + bbox.height/2 - (if d.original.senior then 100 else 50)
       top = Math.max(-50,Math.min(bbox_parent.height-100,top))
       parent.hoverBox.style(
         display:'block'
         left:Math.round(left)+'px'
         top:Math.round(top)+'px'
       )
-      email_link = (x) -> if '@' not in x then x else "<a href=\"mailto:#{x}\">#{x}</a>"
+      #email_link = (x) -> if '@' not in x then x else "<a href=\"mailto:#{x}\">#{x}</a>"
+      email_link = (x) -> x
       if d.original.senior
         parent.hoverBox.html "
           <table class=\"table table-bordered table-condensed\">
@@ -513,8 +515,10 @@ class window.viz.organogram
             <tr><td>#&nbsp;Roles</td><td>#{d.original['Number of Posts in FTE']} (full-time equivalent)</td></tr>
           </table>"
 
-
-
+  hoverPersonOut: (d,i) =>
+    window.clearTimeout window.viz.organogram_hover_timeout
+    @hovering = null
+    window.viz.organogram_hover_timeout = window.setTimeout (=>@hoverBox.style('display','none')), 300
 
   linkPath: (d) =>
     # Lines between boxes
@@ -558,54 +562,55 @@ class window.viz.organogram
     bgcol = (d) =>
       out = d3.rgb( @color d.group )
       if d.isLeaf then out else out.darker(0.6)
-    textcol = (d) ->
-      bg = d3.hsl bgcol(d)
-      if bg.l<0.7 then '#fff' else '#000'
+    invertText = (d) -> d3.hsl(bgcol(d)).l < 0.7
     person_selection = @svg.selectAll('.person')
       .data(persons, key=(d)->d.key)
     person_selection.exit().remove()
     g_enter = person_selection.enter().append('g')
       .classed('person',true)
       .attr('clip-path',(d)->"url(##{d.key})")
+      #.style('opacity',0)
     g_enter.append('rect')
       .style('display', (d)-> if d.name then 'inline' else 'none')
       .attr('fill',bgcol)
-      # .attr('stroke','#fff')
-      # .attr('stroke-width','1px')
       .on('mouseover',@hoverPerson())
+      .on('mouseout',@hoverPersonOut)
     g_enter.append('text')
       .style('display', (d)-> if d.name then 'inline' else 'none')
-      .attr('fill',textcol)
+      .classed('invertText',invertText)
       .attr('dx','2px')
       .attr('dy','1.2em')
       .style('font-size','9px')
       .text((d)->d.name)
     g_enter.append('text')
       .style('display', (d)->if d.name then 'inline' else 'none')
-      .attr('fill',textcol)
+      .classed('invertText',invertText)
       .attr('dx','2px')
       .attr('dy','2.4em')
       .style('font-size','9px')
       .text( (d) -> if not d.name then null else '£'+viz.money_to_string(d.value))
 
-  renderOrgChart: (delay=0) =>
+  renderOrgChart: (intro=false) =>
     orgLayout = d3.layout.cluster().size([360,@radius])
     nodes = orgLayout.nodes(@orgChart)
     ripple = (d,i) =>
-      i = (nodes.length*.5 + i) % nodes.length
-      return i*20
+      i = nodes.length-i
+      return i*14
     duration = 500
+    if intro
+      duration = 0
+      ripple = -> 0
     @setData nodes, orgLayout.links(nodes)
     @svg.selectAll(".link").transition()
       .transition()
-      .duration(200)
-      .delay(2000)
+      .duration(duration*5)
+      .delay(if intro then 0 else 1000)
       .style('opacity',1)
     @svg.selectAll('.person')
+      .attr('display','inline')
       .transition()
       .duration(duration)
       .delay(ripple)
-      #.style('opacity',(d)->if d['senior'] then 1.0 else 0.2)
       .attr('transform', (d) =>
         if d.y==0 then  return "translate(#{-@pw/2},#{-@ph/2})"
         if d.x<180 then return "translate(0,#{-@ph/2})rotate(#{d.x-90},0,#{@ph/2})translate(#{@offset(d.y)})"
@@ -624,29 +629,35 @@ class window.viz.organogram
       .attr('height',@ph)
 
   renderTreeMap: =>
-    ripple  = (d,i) =>
-      @known ?= []
-      if @known.indexOf(d.group) < 0
-        @known.push d.group
-      index = @known.indexOf d.group
-      return Math.floor(index/2)*300
     treemap = d3.layout.treemap()
       .size([@width,@height])
       .sticky(true)
       .value( (d) -> d.value )
-    @setData treemap.nodes(@treeMap), []
+    nodes = treemap.nodes(@treeMap)
+    groups = []
+    for node in nodes
+      if groups.indexOf(node.group) < 0 then groups.push node.group
+    @setData nodes, []
+    # --
+    duration = 500
+    ripple  = (d,i) =>
+      return i*14
+      index = groups.indexOf(d.group)
+      return (index%(groups.length)) * 260
+    # --
     @svg.selectAll('.person')
+      .attr('display',(d)->if d.value then 'inline' else 'none')
       .transition()
-      .duration(500)
+      .duration(duration)
       .delay(ripple)
       .attr('transform',(d)=>"translate(#{d.x-@width/2},#{d.y-@height/2})")
     @svg.selectAll('.person').select('rect').transition()
-      .duration(500)
+      .duration(duration)
       .delay(ripple)
       .attr('width',(d)->d.dx)
       .attr('height',(d)->d.dy)
     @svg.selectAll('.clipRect').select('rect').transition()
-      .duration(500)
+      .duration(duration)
       .delay(ripple)
       .attr('width',(d)->Math.max(0,d.dx-1))
       .attr('height',(d)->Math.max(0,d.dy-1))
