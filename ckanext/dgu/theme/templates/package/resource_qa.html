@@ -4,16 +4,17 @@
   py:strip="">
 
 <div class="resource-qa">
+  <py:if test="qa['is_broken']">
+      <span>
+        <i style="color:#D43F3A;" class="icon-exclamation-sign"></i>
+        There is an error with this resource
+      </span>
+  </py:if>
   <ul>
     <py:if test="qa['is_broken']">
-      <li>
-          <span class="label label-danger">Error</span> URL gives an error<br/>
-          <py:for each="reason in qa['reason_list']">
-            <li>${reason}</li>
-          </py:for>
-          <!--! Reason contains the format
-                and (since it is a broken link) the date checked -->
-      </li>
+      <py:for each="reason in qa['reason_list']">
+        <li>${reason}</li>
+      </py:for>
     </py:if>
     <py:if test="not qa['is_broken']">
       <py:if test="qa['value']==0 and is_data">
