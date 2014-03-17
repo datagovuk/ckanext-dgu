@@ -493,7 +493,7 @@ class window.viz.organogram
           <table class=\"table table-bordered table-condensed\">
             <tr><td>Job&nbsp;Title</td><td>#{d.original['Job Title']}</td></tr>
             <tr><td>Unit</td><td>#{d.original['Unit']}</td></tr>
-            <tr><td>Group</td><td>#{d.original['Professional/Occupational Group']}</td></tr>
+            <tr><td>Profession</td><td>#{d.original['Professional/Occupational Group']}</td></tr>
             <tr><td>Salary</td><td>£#{viz.money_to_string(d.original['Actual Pay Floor (£)'])} - £#{viz.money_to_string(d.original['Actual Pay Ceiling (£)'])}</td></tr>
             <tr><td>Type</td><td><em>Senior Civil Servant</em></td></tr>
             <tr><td colspan=\"2\" style=\"text-align: left;font-weight:normal;font-style:italic;\">#{d.original['Job/Team Function']}</td></tr>
@@ -508,7 +508,7 @@ class window.viz.organogram
           <table class=\"table table-bordered table-condensed\">
             <tr><td>Job&nbsp;Title</td><td>#{d.original['Generic Job Title']}</td></tr>
             <tr><td>Unit</td><td>#{d.original['Unit']}</td></tr>
-            <tr><td>Group</td><td>#{d.original['Professional/Occupational Group']}</td></tr>
+            <tr><td>Profession</td><td>#{d.original['Professional/Occupational Group']}</td></tr>
             <tr><td>Salary</td><td>£#{viz.money_to_string(d.original['Payscale Minimum (£)'])} - £#{viz.money_to_string(d.original['Payscale Maximum (£)'])}</td></tr>
             <tr><td>Type</td><td><em>Junior Civil Servant</em></td></tr>
             <tr><td>Grade</td><td>#{d.original['Grade']}</td></tr>
