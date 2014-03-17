@@ -3,6 +3,7 @@ import logging
 import socket
 from xmlrpclib import ServerProxy, Fault, ProtocolError
 from xml.parsers.expat import ExpatError
+from httplib import BadStatusLine
 
 log = logging.getLogger(__name__)
 
@@ -84,8 +85,10 @@ class DrupalClient(object):
             raise DrupalRequestError('Drupal returned error for session_id %r: %r' % (session_id, e))
         except ProtocolError, e:
             raise DrupalRequestError('Drupal returned protocol error for session_id %r: %r' % (session_id, e))
+        except BadStatusLine, e:
+            raise DrupalRequestError('Drupal returned bad status for session_id %r: %r' % (session_id, e))
         except ExpatError, e:
-            raise DrupalRequestError('Drupal return value not XML: %r' % (session_id, e))
+            raise DrupalRequestError('Drupal return value not XML for session_id %r: %r' % (session_id, e))
         log.info('Obtained Drupal user_id for session ID %r...: %r', session_id[:4], user_id)
         if str(user_id) == '0':
             # This is what Drupal (now) returns when the session_id is not valid
