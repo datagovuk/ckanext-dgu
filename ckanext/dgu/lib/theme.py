@@ -39,10 +39,12 @@ class Themes(object):
         self.topic_trigrams = {} # (topicword1, topicword2, topicword3):theme_name
         self.gemet = {}  # gemet_keyword:theme_name
         self.ons = {}  # ons_keyword:theme_name
+        self.lga_functions = {} # LGA functions extra
+        self.lga_services = {}  # LGA services extra
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
 
-            for key in ('topics', 'gemet', 'nscl', 'ons'):
+            for key in ('topics', 'gemet', 'nscl', 'ons', 'lga_functions', 'lga_services'):
                 if key in theme_dict:
                     assert isinstance(theme_dict[key], list), (name, key)
 
@@ -61,6 +63,10 @@ class Themes(object):
                 self.gemet[normalize_keyword(gemet_keyword)] = name
             for ons_keyword in theme_dict.get('nscl', []) + theme_dict.get('ons', []):
                 self.ons[tag_munge(ons_keyword)] = name
+            for function_id in theme_dict.get('lga_functions', []):
+                self.lga_functions[function_id] = name
+            for service_id in theme_dict.get('lga_services', []):
+                self.lga_services[service_id] = name
             self.data[name] = theme_dict
         self.topic_words_set = self.topic_words.viewkeys() # can do set-like operations on it
         self.topic_bigrams_set = self.topic_bigrams.viewkeys()
@@ -136,6 +142,7 @@ def categorize_package(pkg, stats=None):
     score_by_topic(pkg, scores)
     score_by_gemet(pkg, scores)
     score_by_ons_theme(pkg, scores)
+    score_by_lga_function(pkg, scores)
 
     # add up scores
     theme_scores = defaultdict(int)  # theme:total_score
@@ -223,6 +230,50 @@ def score_by_ons_theme(pkg, scores):
             score = 10
             scores[theme].append((score, reason))
             log.debug(' %s %s %s' % (theme, score, reason))
+
+def score_by_lga_function(pkg, scores):
+    ''' Grants a score based on the presence of an LGA function
+    extra. This is set by the LGA harvester and will be a list of
+    URLS to the fixed function list at
+    http://standards.esd.org.uk/?uri=list%2Ffunctions of the form
+    http://id.esd.org.uk/function/1 '''
+    if not pkg['extras'].get('functions', False):
+        return
+
+    themes = Themes.instance()
+    for furl in pkg['extras'].get('functions'):
+        # function id is the last part of the URL
+        fid = furl.split('/')[-1]
+        if fid in themes.lga_functions:
+            theme = themes.lga_functions[fid]
+            reason = "Function ID was matched"
+            score = 100
+            scores[theme].append((score,reason,))
+            log.debug("%s %s %s", theme, score, reason)
+        else:
+            log.debug("A non-LGA function identifier was found")
+
+def score_by_lga_service(pkg, scores):
+    ''' Grants a score based on the presence of an LGA services
+    extra. This is set by the LGA harvester and will be a list of
+    URLS to the fixed services list at
+    http://standards.esd.org.uk/?uri=list%2Fservices of the form
+    http://id.esd.org.uk/service/1 '''
+    if not pkg['extras'].get('services', False):
+        return
+
+    themes = Themes.instance()
+    for surl in pkg['extras'].get('services'):
+        # service id is the last part of the URL
+        sid = surl.split('/')[-1]
+        if sid in themes.lga_services:
+            theme = themes.lga_services[fid]
+            reason = "Service ID was matched"
+            score = 10
+            scores[theme].append((score,reason,))
+            log.debug("%s %s %s", theme, score, reason)
+        else:
+            log.debug("A non-LGA service identifier was found")
 
 def normalize_keyword(keyword):
     name = keyword.lower()
