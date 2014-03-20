@@ -13,7 +13,7 @@ from ckanext.dgu.authorize import (
                              dgu_dataset_delete, dgu_user_list, dgu_user_show,
                              dgu_feedback_update, dgu_feedback_create,
                              dgu_feedback_delete, dgu_organization_delete,
-                             dgu_group_change_state,
+                             dgu_group_change_state
                              )
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
@@ -461,9 +461,16 @@ class PublisherPlugin(p.SingletonPlugin):
         map.connect('publisher_apply_empty',
                     '/publisher/apply',
                     controller=pub_ctlr, action='apply')
+
+        map.connect('publisher_users',
+                    '/publisher/users/delete/:id',
+                    controller='organization', action='member_delete')
+        map.connect('publisher_users',
+                    '/publisher/users/new/:id',
+                    controller='organization', action='member_new')
         map.connect('publisher_users',
                     '/publisher/users/:id',
-                    controller=pub_ctlr, action='users')
+                    controller='organization', action='members')
         map.connect('publisher_new',
                     '/publisher/new',
                     controller=pub_ctlr, action='new')
@@ -533,6 +540,7 @@ class InventoryPlugin(p.SingletonPlugin):
             'feedback_update': dgu_feedback_update,
             'feedback_create': dgu_feedback_create,
             'feedback_delete': dgu_feedback_delete,
+            'organization_member_delete': organization_member_delete
         }
 
     def before_commit(self, session):

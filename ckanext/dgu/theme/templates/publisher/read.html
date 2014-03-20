@@ -179,7 +179,7 @@
                   <a href="${h.url_for('dataset_new')}?owner_org=${c.group.name}"><span class="wrap-icon"><i class="icon-plus-sign-alt"></i> </span>Add a new dataset &raquo;</a>
                 </li>
                 <li py:if="organizationupdate">
-                  <a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='users', id=c.group.name)}"><span class="wrap-icon"><i class="icon-unlock-alt"></i> </span>Edit user permissions &raquo;</a>
+                  <a href="${h.url_for(controller='organization', action='member_new', id=c.group.name)}"><span class="wrap-icon"><i class="icon-unlock-alt"></i> </span>Edit user permissions &raquo;</a>
                 </li>
               </ul>
             </div>

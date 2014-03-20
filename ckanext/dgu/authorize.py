@@ -2,6 +2,8 @@ from pylons.i18n import _
 from ckan.logic.auth import get_package_object
 import ckan.logic.auth
 from ckanext.dgu.lib import helpers as dgu_helpers
+import ckan.logic as logic
+
 
 def dgu_package_update(context, data_dict):
     model = context['model']
