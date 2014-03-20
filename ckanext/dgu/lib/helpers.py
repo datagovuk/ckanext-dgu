@@ -241,6 +241,11 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
         user_name = unicode(user)
         user = model.User.get(user_name) or model.Session.query(model.User).filter_by(fullname=user_name).first()
 
+    # Check if this is the site_user, and if so return 'system update' without an URL.
+    site_user_name = config.get('ckan.site_id', 'ckan_site_user')
+    if user_name == site_user_name:
+        return "system update"
+
     this_is_me = user and (c.user in (user.name, user.fullname))
 
     if not user:
