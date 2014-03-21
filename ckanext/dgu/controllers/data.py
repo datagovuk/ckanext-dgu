@@ -30,6 +30,64 @@ class DataController(BaseController):
             else:
                 raise
 
+    def ukld_github_pull(self):
+        """
+
+        """
+        import git
+
+        if not dgu_helpers.is_sysadmin() and not c.user in ['user_d24373', 'user_d102361']:
+            abort(403)
+
+        c.repo_url = pylons.config.get("ukgovld.repo.url", None)
+        c.repo_branch = pylons.config.get("ukgovld.repo.branch", None)
+        repo_local_path = pylons.config.get("ukgovld.local.path", None)
+        repo_target_path = pylons.config.get("ukgovld.local.target", None)
+
+        if not all([c.repo_url, c.repo_branch, repo_local_path,repo_target_path]) or \
+                not os.path.exists(repo_local_path):
+            c.error = "System not configured, please setup ckan.ini"
+            if not os.path.exists(repo_local_path):
+                c.error = "%s - repo path does not exist" % c.error
+            return render('data/ukgovld.html')
+
+        # Does our repo exist locally?
+        try:
+            repo = git.Repo(repo_local_path)
+            origin = repo.remotes.origin
+        except git.InvalidGitRepositoryError, e:
+            repo = git.Repo.init(repo_local_path)
+            origin = repo.create_remote('origin', c.repo_url)
+
+        repo.git.fetch()
+        repo.git.checkout(c.repo_branch)
+        # We have updated our local repo with the latest from the remote
+
+        from time import strftime
+        from datetime import datetime
+
+        c.latest_remote_commit = repo.head.commit
+        c.latest_when = datetime.fromtimestamp(int(c.latest_remote_commit.committed_date)).strftime('%H:%M %d-%m-%Y')
+
+        if request.method == "POST":
+            def get_exitcode_stdout_stderr(cmd):
+                import shlex
+                from subprocess import Popen, PIPE
+
+                args = shlex.split(cmd)
+                proc = Popen(args, stdout=PIPE, stderr=PIPE)
+                out, err = proc.communicate()
+                exitcode = proc.returncode
+                return exitcode, out, err
+
+            exitcode, out, err = get_exitcode_stdout_stderr('jekyll build --trace --source "%s" --destination "%s"' % (repo_local_path,repo_target_path))
+            c.stdout = out.replace('\n','<br/>')
+            c.stderr = err.replace('\n','<br/>')
+
+        c.last_deploy = 'Never'
+
+        return render('data/ukgovld.html')
+
     def api(self):
         return render('data/api.html')
 
