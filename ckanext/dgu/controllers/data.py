@@ -85,7 +85,9 @@ class DataController(BaseController):
             c.stderr = err.replace('\n','<br/>')
 
         c.last_deploy = 'Never'
-
+        if os.path.exists(os.path.join(repo_target_path, 'index.html')):
+            s = os.stat(os.path.join(repo_target_path, 'index.html'))
+            c.last_deploy = datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
         return render('data/ukgovld.html')
 
     def api(self):
