@@ -138,6 +138,13 @@
 
     <field name="openness_score" type="int" indexed="true" stored="true"/>
 
+    <!-- Spatial extent -->
+    <field name="bbox_area" type="float" indexed="true" stored="true" />
+    <field name="maxx" type="float" indexed="true" stored="true" />
+    <field name="maxy" type="float" indexed="true" stored="true" />
+    <field name="minx" type="float" indexed="true" stored="true" />
+    <field name="miny" type="float" indexed="true" stored="true" />
+
     <!-- Copy the title field into title_string, and treat as a string
          (rather than text type).  This allows us to sort on the title_string -->
     <field name="title_string" type="string" indexed="true" stored="false" />

@@ -15,6 +15,27 @@
 
   <py:def function="sidebar">
     <div class="sidebar-search">
+
+      <section id="dataset-map">
+        <h2>
+            <i class="icon-medium icon-globe"></i>
+            Filter by location
+            <a href="${ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }" class="action">Clear</a>
+        </h2>
+        <?python 
+          default_extent = [[15.62, -139.21], [64.92, -61.87]]
+          map_config = h.get_common_map_config()
+        ?>
+        <div class="dataset-map" data-module="spatial-query" data-default_extent="${ default_extent }" data-module-map_config="${ h.dump_json(map_config) }">
+            <div id="dataset-map-container"></div>
+        </div>
+        <!--
+        <div id="dataset-map-attribution">
+            {% snippet "spatial/snippets/map_attribution.html", map_config=map_config %}
+        </div>
+        -->
+      </section>
+
       ${search_form(mini=True)}
       <div class="map-search-link">
         <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
@@ -78,6 +99,16 @@
   <py:def function="optional_feed">
   <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets found with custom search: '${c.search_url_params}'"
     href="${h.url(controller='feed', action='custom')}?${c.search_url_params}" />
+  </py:def>
+
+  <py:def function="optional_head">
+      <link rel="stylesheet" href="/js/vendor/leaflet/leaflet.css" />
+      <link rel="stylesheet" href="/js/vendor/leaflet/leaflet.ie.css" />
+      <link rel="stylesheet" href="/js/vendor/leaflet.draw/leaflet.draw.css" />
+      <link rel="stylesheet" href="/js/vendor/leaflet.draw/leaflet.draw.ie.css" />
+      <script type="text/javascript" src="/scripts/dgu-spatial-query.min.js"></script>
+      <script type="text/javascript" src="/js/vendor/leaflet/leaflet.js"></script>
+      <script type="text/javascript" src="/js/vendor/leaflet.draw/leaflet.draw.js"></script>
   </py:def>
 
   <xi:include href="layout.html" />
