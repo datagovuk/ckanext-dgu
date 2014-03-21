@@ -1,0 +1,53 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">UKGovLD Pull from Github</py:def>
+  <py:def function="page_heading">UK Government Linked Data Working Group</py:def>
+
+<py:match path="breadcrumbs">
+    <li><a href="/data/">Datasets</a></li>
+    <li><a href="/data/linked-data">Linked Data</a></li>
+    <li><a href="/data/linked-data/admin">Admin</a></li>
+
+  </py:match>
+
+  <div py:match="content">
+    <h1>UK Government Linked Data Working Group</h1>
+
+    <py:if test="c.error">
+      <div class="alert alert-danger">
+      ${c.error}
+      </div>
+    </py:if>
+
+    <py:if test="not c.error">
+      <h2>Info</h2>
+      <p>
+        Latest commit on github is ${c.latest_remote_commit} from ${c.latest_when}.
+        <blockquote>${c.latest_remote_commit.message}</blockquote>
+      </p>
+      <p>
+        Last deploy on data.gov.uk from '<strong>${c.repo_branch}</strong>' was on: ${c.last_deploy}
+        <form action="" method="post">
+          <button class="btn btn-info" href="">Deploy now!</button>
+        </form>
+      </p>
+
+      <py:if test="c.stdout or c.stderr">
+        <h2>Deployment output</h2>
+        <div style="border: solid 2px #e5e5e5; border-radius: 8px; margin: 20px; padding:20px; ">
+            ${Markup(c.stdout)}
+            <hr/>
+            ${Markup(c.stderr)}
+        </div>
+      </py:if>
+    </py:if>
+
+  </div>
+  <xi:include href="../layout.html" />
+
+</html>

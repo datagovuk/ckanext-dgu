@@ -175,6 +175,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.redirect('/data', '/data/search')
         #map.connect('/data', controller=data_controller, action='index')
 
+        map.connect('/data/linked-data/admin', controller=data_controller, action='ukld_github_pull')
         map.connect('/data/tag', controller=tag_controller, action='index')
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('/data/search', controller='package', action='search')
