@@ -43,6 +43,7 @@ class DataController(BaseController):
         c.repo_branch = pylons.config.get("ukgovld.repo.branch", None)
         repo_local_path = pylons.config.get("ukgovld.local.path", None)
         repo_target_path = pylons.config.get("ukgovld.local.target", None)
+        build_deploy = pylons.config.get("ukgovld.local.deploy", None)
 
         if not all([c.repo_url, c.repo_branch, repo_local_path,repo_target_path]) or \
                 not os.path.exists(repo_local_path):
@@ -80,7 +81,7 @@ class DataController(BaseController):
                 exitcode = proc.returncode
                 return exitcode, out, err
 
-            exitcode, out, err = get_exitcode_stdout_stderr('jekyll build --trace --source "%s" --destination "%s"' % (repo_local_path,repo_target_path))
+            c.exitcode, out, err = get_exitcode_stdout_stderr('jekyll build --trace --source "%s" --destination "%s"' % (repo_local_path,repo_target_path))
             c.stdout = out.replace('\n','<br/>')
             c.stderr = err.replace('\n','<br/>')
 
@@ -88,6 +89,15 @@ class DataController(BaseController):
         if os.path.exists(os.path.join(repo_target_path, 'index.html')):
             s = os.stat(os.path.join(repo_target_path, 'index.html'))
             c.last_deploy = datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
+
+        if c.exitcode == 0 and build_deploy and os.path.exists(build_deploy):
+            # Use distutils to copy the entire tree, shutil will likely complain
+            import distutils.core
+            distutils.dir_util.copy_tree(repo_target_path, build_deploy)
+
+        if c.exitcode == 1:
+            c.deploy_error = "Site not deployed, Jekyll did not complete successfully."
+
         return render('data/ukgovld.html')
 
     def api(self):

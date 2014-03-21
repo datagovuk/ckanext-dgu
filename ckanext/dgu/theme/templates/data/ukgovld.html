@@ -23,6 +23,12 @@
       </div>
     </py:if>
 
+    <py:if test="c.deploy_error">
+      <div class="alert alert-warning">
+      ${c.deploy_error}
+      </div>
+    </py:if>
+
     <py:if test="not c.error">
       <h2>Info</h2>
       <p>
