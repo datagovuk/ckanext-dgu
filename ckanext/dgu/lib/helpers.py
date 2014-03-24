@@ -243,7 +243,7 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
 
     # Check if this is the site_user, and if so return 'system update' without an URL.
     site_user_name = config.get('ckan.site_id', 'ckan_site_user')
-    if user == site_user_name:
+    if user and user.name == site_user_name:
         return "System Process"
 
     this_is_me = user and (c.user in (user.name, user.fullname))
@@ -857,13 +857,13 @@ def get_dataset_openness(pkg):
     return None
 
 def get_contact_details(pkg, pkg_extras):
-    publisher_groups = c.pkg.get_groups('organization') # assume only one
+    publisher = c.pkg.get_organization()
     name = pkg_extras.get('contact-name')
     email = pkg_extras.get('contact-email')
     phone = pkg_extras.get('contact-phone')
     web_url = web_name = None
-    if not (name or email or phone) and publisher_groups:
-             extras = publisher_groups[0].extras
+    if not (name or email or phone) and publisher:
+             extras = publisher.extras
              name = extras.get('contact-name')
              email = extras.get('contact-email')
              phone = extras.get('contact-phone')
@@ -878,27 +878,27 @@ def have_foi_contact_details(pkg, pkg_extras):
 def get_contact_name(pkg, extras):
     name = extras.get('contact-name')
     if not name:
-        publisher_groups = pkg.get_groups('organization')
-        if publisher_groups:
-            name = publisher_groups[0].extras.get('contact-name')
+        publisher = pkg.get_organization()
+        if publisher:
+            name = publisher.extras.get('contact-name')
     return name
 
 def get_foi_contact_name(pkg, extras):
     name = extras.get('foi-name')
     if not name:
-        publisher_groups = pkg.get_groups('organization')
-        if publisher_groups:
-            name = publisher_groups[0].extras.get('foi-name')
+        publisher = pkg.get_organization()
+        if publisher:
+            name = publisher.extras.get('foi-name')
     return name
 
 def get_foi_contact_details(pkg, pkg_extras):
-    publisher_groups = c.pkg.get_groups('organization') # assume only one
+    publisher = c.pkg.get_organization()
     foi_name = pkg_extras.get('foi-name')
     foi_email = pkg_extras.get('foi-email')
     foi_phone = pkg_extras.get('foi-phone')
     foi_web = pkg_extras.get('foi-web')
-    if not (foi_phone or foi_email or foi_phone or foi_web) and publisher_groups:
-             extras = publisher_groups[0].extras
+    if not (foi_phone or foi_email or foi_phone or foi_web) and publisher:
+             extras = publisher.extras
              foi_name = extras.get('foi-name')
              foi_email = extras.get('foi-email')
              foi_phone = extras.get('foi-phone')
@@ -1625,7 +1625,7 @@ def inventory_status(package_items):
         pid = p['package']
         action = p['action']
         pkg = model.Package.get(pid)
-        grp = pkg.get_groups('organization')[0]
+        grp = pkg.get_organization()
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 

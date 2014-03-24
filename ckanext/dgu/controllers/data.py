@@ -80,16 +80,19 @@ class DataController(BaseController):
             def get_exitcode_stdout_stderr(cmd):
                 import shlex
                 from subprocess import Popen, PIPE
+                import ckanext.dgu
+
+                cwd = os.path.abspath(os.path.join(ckanext.dgu.__file__, "../../../"))
 
                 args = shlex.split(cmd)
                 log.debug('Running command: %r', args)
-                proc = Popen(args, stdout=PIPE, stderr=PIPE)
+                proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
                 out, err = proc.communicate()
                 exitcode = proc.returncode
                 return exitcode, out, err
             config_paths = ','.join((os.path.join(source_repo_path, '_config.yml'),
                                     os.path.join(source_repo_path, '_config_dgu.yml')))
-            cmd_line = 'jekyll build --config "%s" --source "%s" --destination "%s"'\
+            cmd_line = 'bundle exec jekyll build --config "%s" --source "%s" --destination "%s"'\
                        % (config_paths, source_repo_path, build_path)
             c.exitcode, out, err = get_exitcode_stdout_stderr(cmd_line)
             c.stdout = cmd_line + '<br/><br/>' + out.replace('\n','<br/>')
