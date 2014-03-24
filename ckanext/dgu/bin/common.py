@@ -33,3 +33,23 @@ def register_translator():
     global translator_obj
     translator_obj=MockTranslator() 
     registry.register(translator, translator_obj) 
+
+def get_resources(state='active', resource_id=None, dataset_name=None):
+    ''' Returns all active resources, or filtered by the given criteria. '''
+    from ckan import model
+    resources = model.Session.query(model.Resource) \
+                .filter_by(state=state) \
+                .join(model.ResourceGroup) \
+                .join(model.Package) \
+                .filter_by(state='active')
+    criteria = [state]
+    if dataset_name:
+        resources = resources.filter(model.Package.name==dataset_name)
+        criteria.append('Dataset:%s' % dataset_name)
+    if resource_id:
+        resources = resources.filter(model.Resource.id==resource_id)
+        criteria.append('Resource:%s' % resource_id)
+    resources = resources.all()
+    print '%i resources (%s)' % (len(resources), ' '.join(criteria))
+    return resources
+

@@ -33,12 +33,17 @@ print package_stats.report()
 '''
 
 import copy
+import datetime
 
 class StatsCount(dict):
     # {category:count}
     _init_value = 0
     report_value_limit = 150
-    
+
+    def __init__(self, *args, **kwargs):
+        self._start_time = datetime.datetime.now()
+        super(StatsCount, self).__init__(*args, **kwargs)
+
     def _init_category(self, category):
         if not self.has_key(category):
             self[category] = copy.deepcopy(self._init_value)
@@ -54,7 +59,7 @@ class StatsCount(dict):
             value = value[:self.report_value_limit] + '...'
         return (value, self[category])
 
-    def report(self, indent=1, order_by_title=False):
+    def report(self, indent=1, order_by_title=False, show_time_taken=True):
         lines = []
         indent_str = '\t' * indent
         report_dict = dict()
@@ -72,6 +77,10 @@ class StatsCount(dict):
             lines.append(indent_str + '%s: %s' % (category, value))
         if not self:
             lines = [indent_str + 'None']
+
+        if show_time_taken:
+            time_taken = datetime.datetime.now() - self._start_time
+            lines.append(indent_str + 'Time taken (h:m:s): %s' % time_taken)
         return '\n'.join(lines)
 
 class StatsList(StatsCount):
