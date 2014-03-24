@@ -5,6 +5,7 @@ import pylons
 import re
 import sqlalchemy
 import urlparse
+import datetime
 
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h
@@ -30,7 +31,7 @@ class DataController(BaseController):
             else:
                 raise
 
-    def ukld_github_pull(self):
+    def linked_data_admin(self):
         """
 
         """
@@ -39,36 +40,41 @@ class DataController(BaseController):
         if not dgu_helpers.is_sysadmin() and not c.user in ['user_d24373', 'user_d102361']:
             abort(403)
 
-        c.repo_url = pylons.config.get("ukgovld.repo.url", None)
-        c.repo_branch = pylons.config.get("ukgovld.repo.branch", None)
-        repo_local_path = pylons.config.get("ukgovld.local.path", None)
-        repo_target_path = pylons.config.get("ukgovld.local.target", None)
-        build_deploy = pylons.config.get("ukgovld.local.deploy", None)
+        prefix = 'dgu.jekyll.ukgovld.'
+        c.repo_url = pylons.config.get(prefix + "repo.url", None)
+        c.repo_branch = pylons.config.get(prefix + "repo.branch", None)
+        source_repo_path = pylons.config.get(prefix + "local.source", None)
+        build_path = pylons.config.get(prefix + "local.build", None)
+        deploy_path = pylons.config.get(prefix + "local.deploy", None)
 
-        if not all([c.repo_url, c.repo_branch, repo_local_path,repo_target_path]) or \
-                not os.path.exists(repo_local_path):
+        if not all([c.repo_url, c.repo_branch, source_repo_path, build_path,
+                    deploy_path]) or \
+                not os.path.exists(source_repo_path):
             c.error = "System not configured, please setup ckan.ini"
-            if not os.path.exists(repo_local_path):
-                c.error = "%s - repo path does not exist" % c.error
+            if not os.path.exists(source_repo_path):
+                c.error = "Repo path %s does not exist" % source_repo_path
             return render('data/ukgovld.html')
 
-        # Does our repo exist locally?
+        # Ensure repo exists locally
         try:
-            repo = git.Repo(repo_local_path)
-            origin = repo.remotes.origin
+            repo = git.Repo(source_repo_path)
         except git.InvalidGitRepositoryError, e:
-            repo = git.Repo.init(repo_local_path)
-            origin = repo.create_remote('origin', c.repo_url)
+            repo = git.Repo.init(source_repo_path)
+            repo.create_remote('origin', c.repo_url)
 
+        # Get updates from the repo
         repo.git.fetch()
         repo.git.checkout(c.repo_branch)
-        # We have updated our local repo with the latest from the remote
+        repo.git.branch("--set-upstream", "gh-pages", "origin/gh-pages")
 
-        from time import strftime
-        from datetime import datetime
+        # Get the repo's current commit (we call it: repo_status)
+        latest_remote_commit = repo.head.commit
+        latest_when = datetime.datetime.fromtimestamp(int(latest_remote_commit.committed_date)).strftime('%H:%M %d-%m-%Y')
+        c.repo_status = '"%s" %s (%s)' % (latest_remote_commit.message,
+                                          latest_when, str(latest_remote_commit)[:8])
 
-        c.latest_remote_commit = repo.head.commit
-        c.latest_when = datetime.fromtimestamp(int(c.latest_remote_commit.committed_date)).strftime('%H:%M %d-%m-%Y')
+        index_html_filepath = os.path.join(build_path, 'index.html')
+        repo_status_filepath = os.path.join(build_path, 'repo_status.txt')
 
         if request.method == "POST":
             def get_exitcode_stdout_stderr(cmd):
@@ -79,24 +85,44 @@ class DataController(BaseController):
                 cwd = os.path.abspath(os.path.join(ckanext.dgu.__file__, "../../../"))
 
                 args = shlex.split(cmd)
+                log.debug('Running command: %r', args)
                 proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
                 out, err = proc.communicate()
                 exitcode = proc.returncode
                 return exitcode, out, err
-
-            c.exitcode, out, err = get_exitcode_stdout_stderr('bundle exec jekyll build --source "%s" --destination "%s"' % (repo_local_path,repo_target_path))
-            c.stdout = out.replace('\n','<br/>')
+            config_paths = ','.join((os.path.join(source_repo_path, '_config.yml'),
+                                    os.path.join(source_repo_path, '_config_dgu.yml')))
+            cmd_line = 'bundle jekyll build --config "%s" --source "%s" --destination "%s"'\
+                       % (config_paths, source_repo_path, build_path)
+            c.exitcode, out, err = get_exitcode_stdout_stderr(cmd_line)
+            c.stdout = cmd_line + '<br/><br/>' + out.replace('\n','<br/>')
             c.stderr = err.replace('\n','<br/>')
+            if c.exitcode == 0:
+                # If successful, write the repo_status to a file so that
+                # we can see what commit was published.
+                try:
+                    with open(repo_status_filepath, 'w') as f:
+                        f.write(c.repo_status)
+                except Exception, e:
+                    # e.g. permission error, when running in paster
+                    log.exception(e)
 
         c.last_deploy = 'Never'
-        if os.path.exists(os.path.join(repo_target_path, 'index.html')):
-            s = os.stat(os.path.join(repo_target_path, 'index.html'))
-            c.last_deploy = datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
+        if os.path.exists(index_html_filepath):
+            s = os.stat(index_html_filepath)
+            c.last_deploy = datetime.datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
+            if os.path.exists(repo_status_filepath):
+                with open(repo_status_filepath, 'r') as f:
+                    c.deploy_status = f.read()
 
-        if c.exitcode == 0 and build_deploy and os.path.exists(build_deploy):
+        if c.exitcode == 0 and deploy_path and os.path.exists(deploy_path):
             # Use distutils to copy the entire tree, shutil will likely complain
             import distutils.core
-            distutils.dir_util.copy_tree(repo_target_path, build_deploy)
+            try:
+                distutils.dir_util.copy_tree(build_path, deploy_path)
+            except Exception, e:
+                log.exception(e)
+                c.deploy_error = 'Site not deployed - error with deployment: %r' % e.args
 
         if c.exitcode == 1:
             c.deploy_error = "Site not deployed, Jekyll did not complete successfully."

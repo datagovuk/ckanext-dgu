@@ -5,17 +5,18 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-  <py:def function="page_title">UKGovLD Pull from Github</py:def>
-  <py:def function="page_heading">UK Government Linked Data Working Group</py:def>
+  <py:def function="page_title">Linked-Data pages admin</py:def>
+  <py:def function="page_heading">Linked-Data pages admin</py:def>
 
-<py:match path="breadcrumbs">
+  <py:match path="breadcrumbs">
     <li><a href="/linked-data">Linked Data</a></li>
     <li><a href="/linked-data-admin">Admin</a></li>
-
   </py:match>
 
   <div py:match="content">
-    <h1>UK Government Linked Data Working Group</h1>
+    <h1>Linked-Data pages admin</h1>
+    
+    <p>This is a tool to update the Linked-Data pages at <a href="/linked-data">http://data.gov.uk/linked-data</a> according to the latest markdown in GitHub.</p>
 
     <py:if test="c.error">
       <div class="alert alert-danger">
@@ -30,20 +31,38 @@
     </py:if>
 
     <py:if test="not c.error">
-      <h2>Info</h2>
+      <h2>GitHub status</h2>
+      <table class="table table-bordered table-condensed">
+      <tr>
+        <th>GitHub repository</th>
+        <td py:with="repo_url_with_branch = '%s/tree/%s' % (c.repo_url.replace('.git', ''), c.repo_branch)">
+          <a href="${repo_url_with_branch}" target="None">${repo_url_with_branch}</a>
+        </td>
+      </tr>
+      <tr>
+        <th>Version</th>
+        <td>${c.repo_status}</td>
+      </tr>
+      </table>
+      <h2>data.gov.uk publish status</h2>
+      <table class="table table-bordered table-condensed">
+      <tr>
+        <th>Last deployed</th>
+        <td>${c.last_deploy} <!--"${c.latest_remote_commit.message}" ${c.latest_remote_commit}--></td>
+      </tr>
+      <tr>
+        <th>Version</th>
+        <td>${c.deploy_status}</td>
+      </tr>
+      </table>
       <p>
-        Latest commit on github is ${c.latest_remote_commit} from ${c.latest_when}.
-        <blockquote>${c.latest_remote_commit.message}</blockquote>
-      </p>
-      <p>
-        Last deploy on data.gov.uk from '<strong>${c.repo_branch}</strong>' was on: ${c.last_deploy}
         <form action="" method="post">
-          <button class="btn btn-info" href="">Deploy now!</button>
+          <button class="btn btn-info" href="">Publish latest version</button>
         </form>
       </p>
 
       <py:if test="c.stdout or c.stderr">
-        <h2>Deployment output</h2>
+        <h2>Publish results (Jekyll output)</h2>
         <div style="border: solid 2px #e5e5e5; border-radius: 8px; margin: 20px; padding:20px; ">
             ${Markup(c.stdout)}
             <hr/>

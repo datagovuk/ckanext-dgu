@@ -244,7 +244,7 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
     # Check if this is the site_user, and if so return 'system update' without an URL.
     site_user_name = config.get('ckan.site_id', 'ckan_site_user')
     if user and user.name == site_user_name:
-        return "system update"
+        return "System Process"
 
     this_is_me = user and (c.user in (user.name, user.fullname))
 
