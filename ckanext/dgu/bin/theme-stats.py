@@ -27,7 +27,7 @@ def command(config_ini):
     global_log = log
 
     from ckan import model
-    model.init_model(engine)    
+    model.init_model(engine)
 
     generate_stats()
 
@@ -48,11 +48,11 @@ def generate_stats():
             counter[package.extras['theme-primary'] or 'Empty'] = counter[package.extras['theme-primary'] or 'Empty'] + 1
         else:
             counter['No theme'] = counter['No theme'] + 1
-            gps = package.get_groups()
-            if not gps:
-                print package.name, "has no groups"
+            org = package.get_organization()
+            if not org
+                print package.name, "has no organization"
             else:
-                empties[gps[0].name] = empties[gps[0].name] + 1
+                empties[org.name] = empties[org.name] + 1
 
     import operator
     print "Themed datasets"
@@ -77,7 +77,7 @@ def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
     global_log.warn(msg, *params)
-    
+
 
 def usage():
     print """
@@ -86,7 +86,7 @@ Usage:
 
     python theme-stats.py <CKAN config ini filepath>
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         usage()

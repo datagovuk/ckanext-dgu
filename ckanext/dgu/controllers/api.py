@@ -64,10 +64,10 @@ class DguApiController(ApiController):
         pkg_dicts = []
         for pkg_dict in query['results']:
             pkg = model.Package.get(pkg_dict['id'])
-            publishers = pkg.get_groups('organization')
-            if publishers:
-                pub_title = publishers[0].title
-                pub_link = '/publisher/%s' % publishers[0].name
+            publisher = pkg.get_organization()
+            if publisher:
+                pub_title = publisher.title
+                pub_link = '/publisher/%s' % publisher.name
             else:
                 pub_title = pub_link = None
             last_modified = pkg.metadata_modified
@@ -199,8 +199,7 @@ class DguApiController(ApiController):
         lots of times.
         '''
         pkg = model.Session.query(model.Package).get(pkg_id)
-        pubs = pkg.get_groups()
-        pub = pubs[0] if pubs else None
+        pub = pkg.get_organization()
         return OrderedDict((('id', pkg_id),
                             ('name', pkg.name),
                             ('title', pkg.title),
