@@ -18,7 +18,7 @@ class RefinePackages(CkanCommand):
     max_args = 2
     min_args = 2
 
-    # Fields to write to the CSV. 
+    # Fields to write to the CSV.
     # To update: See export_row() and import_row()
     csv_headers = [
             'name',
@@ -86,9 +86,9 @@ class RefinePackages(CkanCommand):
             log.info('Iterating over %d packages...' % count)
             n = 0
             def extract_publisher(pkg):
-                groups = pkg.get_groups()
-                if len(groups):
-                    return groups[0].title
+                publisher = pkg.get_organization()
+                if publisher:
+                    return publisher.title
                 return ''
             for pkg in q:
                 row = {

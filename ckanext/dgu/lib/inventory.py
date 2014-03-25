@@ -18,12 +18,12 @@ def inventory_dumper(tmpfile, query):
         if not pkg.extras.get('unpublished', False):
             continue
 
-        grps = pkg.get_groups('organization')
-        if not grps:
+        org = pkg.get_organization()
+        if not org:
             # This should not happen, but does appear in test data during development
             grp = 'Unknown'
         else:
-            grp = grps[0].title
+            grp = org.title
 
 
         publish_date = pkg.extras.get('publish-date', '')
