@@ -135,9 +135,17 @@ class ReportsController(BaseController):
         LIMIT = 50
 
         c.has_publisher = id
-        c.include_subpublisher = t.asbool(request.params.get('show-subpub', 0))
-        c.show_zero_feedback = t.asbool(request.params.get('show-zero-feedback', 0))
-        c.include_published = t.asbool(request.params.get('show-published', 0))
+        try:
+            c.include_subpublisher = t.asbool(request.params.get('show-subpub', 0))
+            c.show_zero_feedback = t.asbool(request.params.get('show-zero-feedback', 0))
+            c.include_published = t.asbool(request.params.get('show-published', 0))
+        except:
+            # If t.asbool throws an exception because of bad content being passed we
+            # will reset to the default.  It shouldn't happen through the UI but any
+            # manually concocted params can cause a fail here
+            c.include_subpublisher = False
+            c.show_zero_feedback = False
+            c.include_published = False
 
         try:
             page = int(request.params.get('page', 1))
