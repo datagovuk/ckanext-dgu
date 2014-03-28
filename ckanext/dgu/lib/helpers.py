@@ -33,6 +33,16 @@ def resource_as_json(resource):
     import json
     return json.dumps(resource)
 
+def is_resource_broken(resource_id):
+    import ckan.model as model
+    from ckanext.qa.model import QATask
+
+    q = model.Session.query(QATask)\
+        .filter(QATask.resource_id==resource_id)\
+        .filter(QATask.is_broken==True)
+    return q.count() > 0
+
+
 def _is_additional_resource(resource):
     """
     Returns true iff the given resource identifies as an additional resource.
