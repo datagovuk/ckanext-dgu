@@ -27,23 +27,19 @@ def nii_report(use_cache=False):
     data = collections.defaultdict(list)
 
     def broken_resources_for_package(pkg):
+        from ckanext.qa.model import QATask
+
         if pkg.extras.get('unpublished'):
             return []
 
-        import json
         res = []
         for resource in pkg.resources:
-            ts = model.Session.query(model.TaskStatus)\
-                .filter(model.TaskStatus.entity_id == resource.id )\
-                .filter(model.TaskStatus.task_type == 'qa')\
-                .filter(model.TaskStatus.key == 'status').first()
+            ts = model.Session.query(QATask)\
+                .filter(QATask.resource_id == resource.id )\
+                .filter(QATask.is_broken==True).first()
             if ts:
-                j = json.loads(ts.error)
-                if j['is_broken']:
-                    res.append([resource.id, resource.description])
+                res.append([resource.id, resource.description])
         return res
-
-    # { publisher_name: [ {package_name: [ [resource_id, resource_desc] ]} ]}
 
     for package in packages:
         org = package.get_organization()
