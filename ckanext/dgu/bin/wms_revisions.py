@@ -9,7 +9,7 @@ import common
 from running_stats import StatsList
 
 # pip install 'ProgressBar==2.3'
-from progressbar import ProgressBar
+from progressbar import ProgressBar, Percentage, Bar, ETA, Counter
 
 # NB put no CKAN imports here, or logging breaks
 
@@ -41,7 +41,8 @@ def wms_revisions(options):
     stats.report_value_limit = 1000
     total_bad_revisions = 0
     need_to_commit = False
-    progress = ProgressBar()
+    widgets = ['Resources: ', Percentage(), ' ', Bar(), ' ', ETA()]
+    progress = ProgressBar(widgets=widgets)
     for res in progress(resources):
         res = model.Resource.get(res.id)  # as the session gets flushed during the loop
         res_rev_q = model.Session.query(model.ResourceRevision).filter_by(id=res.id).order_by(model.ResourceRevision.revision_timestamp)
@@ -60,6 +61,7 @@ def wms_revisions(options):
         if not bad_res_revs:
             add_stat('Resource ok', res, stats)
             continue
+        print ' ' # don't overwrite progress bar
         print add_stat('Bad revisions', res, stats, '(%d/%d)' % (len(bad_res_revs), len(res_revs)))
         total_bad_revisions += len(bad_res_revs)
 
@@ -77,29 +79,46 @@ def wms_revisions(options):
 
         # Delete the revisions and resource_revisions
         print '  Deleting bad revisions...'
-        sql = '''BEGIN;
-        ALTER TABLE package_tag DROP CONSTRAINT package_tag_revision_id_fkey;
-        ALTER TABLE package_extra DROP CONSTRAINT package_extra_revision_id_fkey;
-        ALTER TABLE resource DROP CONSTRAINT resource_revision_id_fkey;
-        '''
-        for res_rev in bad_res_revs:
-            sql += "DELETE from resource_revision where id='%s' and revision_id='%s';\n" % (res.id, res_rev.revision_id)
-            # a revision created (e.g. over the API) can be connect to multiple
-            # resources, so only delete the revision if only connected to this
-            # one.
-            if model.Session.query(model.ResourceRevision).filter_by(revision_id=res_rev.revision_id).count() == 1:
-                sql += "DELETE from revision where id='%s';\n" % res_rev.revision_id
-        sql += "UPDATE resource SET revision_id='%s' WHERE id='%s';\n" % \
-               (latest_good_res_rev.revision_id, res.id)
-        sql += '''
-        ALTER TABLE package_tag ADD CONSTRAINT package_tag_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
-        ALTER TABLE package_extra ADD CONSTRAINT package_extra_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
-        ALTER TABLE resource ADD CONSTRAINT resource_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
-        COMMIT;'''
-        print '  ..',
-        model.Session.execute(sql)
-        print '  .committing'
-        model.Session.remove()
+        def delete_bad_revisions(res_revs):
+            # Build the sql as a list, as it is faster when you have 1000 strings to append
+            sql = ['''BEGIN;
+            ALTER TABLE package_tag DROP CONSTRAINT package_tag_revision_id_fkey;
+            ALTER TABLE package_extra DROP CONSTRAINT package_extra_revision_id_fkey;
+            ALTER TABLE resource DROP CONSTRAINT resource_revision_id_fkey;
+            ''']
+            for res_rev in res_revs:
+                sql.append("DELETE from resource_revision where id='%s' and revision_id='%s';\n" % (res.id, res_rev.revision_id))
+                # a revision created (e.g. over the API) can be connect to other
+                # resources or a dataset, so only delete the revision if only
+                # connected to this one.
+                if model.Session.query(model.ResourceRevision).\
+                        filter_by(revision_id=res_rev.revision_id).\
+                        count() == 1 and \
+                        model.Session.query(model.PackageRevision).\
+                        filter_by(revision_id=res_rev.revision_id).count() == 0:
+                    sql.append("DELETE from revision where id='%s';\n" % res_rev.revision_id)
+            sql.append("UPDATE resource SET revision_id='%s' WHERE id='%s';\n" % \
+                (latest_good_res_rev.revision_id, res.id))
+            sql.append('''
+            ALTER TABLE package_tag ADD CONSTRAINT package_tag_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+            ALTER TABLE package_extra ADD CONSTRAINT package_extra_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+            ALTER TABLE resource ADD CONSTRAINT resource_revision_id_fkey FOREIGN KEY (revision_id) REFERENCES revision(id);
+            COMMIT;''')
+            print '  sql..',
+            model.Session.execute(''.join(sql))
+            print '.committed'
+            model.Session.remove()
+        def chunks(l, n):
+            '''Yield successive n-sized chunks from l.'''
+            for i in xrange(0, len(l), n):
+                yield l[i:i+n]
+        # chunk revisions in chunks to cope when there are so many
+        widgets = ['Creating SQL: ', Counter(),
+                   'k/%sk ' % int(float(len(bad_res_revs))/1000.0), Bar(),
+                   ' ', ETA()]
+        progress2 = ProgressBar(widgets=widgets, maxval=int(float(len(bad_res_revs))/1000.0))
+        for chunk_of_bad_res_revs in progress2(chunks(bad_res_revs, 1000)):
+            delete_bad_revisions(chunk_of_bad_res_revs)
 
         # Knit together the remaining revisions again
         print '  Knitting existing revisions back together...'
