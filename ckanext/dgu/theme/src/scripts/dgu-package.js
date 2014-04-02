@@ -50,6 +50,7 @@ $(function() {
           success: function(data, textStatus, xhr) {
             commentsSpinner.stop();
             $('#comments-container').html(data);
+            comments();
           },
           error: function(xhr, status, exception) {
             commentsSpinner.stop();
