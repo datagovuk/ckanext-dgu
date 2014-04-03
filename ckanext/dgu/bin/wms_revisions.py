@@ -116,7 +116,7 @@ def wms_revisions(options):
         widgets = ['Creating SQL: ', Counter(),
                    'k/%sk ' % int(float(len(bad_res_revs))/1000.0), Bar(),
                    ' ', ETA()]
-        progress2 = ProgressBar(widgets=widgets, maxval=int(float(len(bad_res_revs))/1000.0))
+        progress2 = ProgressBar(widgets=widgets, maxval=int(float(len(bad_res_revs))/1000.0) or 1)
         for chunk_of_bad_res_revs in progress2(chunks(bad_res_revs, 1000)):
             delete_bad_revisions(chunk_of_bad_res_revs)
 
