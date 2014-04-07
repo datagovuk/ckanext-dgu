@@ -540,21 +540,6 @@ def name_for_uklp_type(package):
     else:
         item_type = 'Dataset'
 
-def updated_string(package):
-    if package.get('metadata_modified') == package.get('metadata_created') or \
-           updated_date(package) == package.get('metadata_created'):
-        updated_string = 'Created'
-    else:
-        updated_string = 'Updated'
-    return updated_string
-
-def updated_date(package):
-    for extra in package['extras']:
-        if extra['key'] == 'last_major_modification':
-            return extra['value']
-    log.warning('Could not get value for "last_major_modification": %s', package['name'])
-    return package['metadata_modified']
-
 def package_publisher_dict(package):
     if not package:
         return {'name':'', 'title': ''}
@@ -1260,7 +1245,7 @@ def facet_values(facet_tuples, facet_key):
 def get_package_mini_metadata(pkg):
     return {
         'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
-        'date-updated-computed': render_datetime(pkg.extras.get('last_major_modification'),date_format="%d/%m/%Y"),
+        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y")
     }
 
 def get_extent():
@@ -1638,17 +1623,6 @@ def inventory_status(package_items):
         grp = pkg.get_organization()
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
-
-def upsert_extra(extras_dict_list, key, value):
-    '''Given a list of extras dicts, update or insert the given
-    key-value pair. Changes the extras_dict_list in-place.'''
-    for extra in extras_dict_list:
-        if extra['key'] == key:
-            extra['value'] = value
-            break
-    else:
-        extras_dict_list.append({'key': key,
-                                 'value': value})
 
 def themes_count():
     from ckanext.dgu.schema import THEMES

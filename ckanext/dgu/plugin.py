@@ -242,125 +242,6 @@ class ThemePlugin(p.SingletonPlugin):
         return map
 
 
-def ensure_package_major_time_remains(package):
-    '''A write to the package may remove the last_major_modification extra,
-    so make sure it remains.'''
-    import ckan.model as model
-    extra = model.Session.query(model.PackageExtra).filter_by(package_id=package.id).filter_by(key='last_major_modification').first()
-    if extra.state == 'deleted':
-        extra.state = 'active'
-        model.Session.flush()
-
-def update_package_major_time(package):
-    import ckan.model as model
-
-    try:
-        package.extras['last_major_modification'] = model.Session.revision.timestamp.isoformat()
-
-        log.debug("Updating last_major_modification in the package: %s %s" % \
-                (package.name, package.extras['last_major_modification']))
-
-        model.Session.flush()
-        # now that it is flushed, the change will get committed in the commit we
-        # are in (this code is called in a before_commit())
-    except sqlalchemy.orm.exc.StaleDataError, e:
-        # We get this sometimes - need to debug it. In the meantime, don't
-        # raise as that will cause the package not to be search indexed.
-        log.exception(e)
-        model.Session.remove()
-
-
-class TaskModificationPlugin(p.SingletonPlugin):
-    """
-    Intercepts the saving of TaskStatus objects to extract the
-    relevant data for Archive and QA tasks into separate tables.
-    """
-    p.implements(p.IDomainObjectModification, inherit=True)
-
-    def notify(self, entity, operation):
-        from ckan import model
-
-        if not isinstance(entity, model.TaskStatus):
-            return
-
-        if operation != model.DomainObjectOperation.new:
-            return
-
-        log.debug("Task status created: %s" % entity.task_type)
-        self.extract_task(entity)
-        model.Session.flush()
-
-    def extract_task(self, entity):
-        from ckan import model
-        from ckanext.dgu.models import archive_tasks, qa_tasks
-
-        if entity.task_type == 'qa':
-            t = qa_tasks.QATask.create(entity)
-            # We will find the resource referenced by the task, and add
-            # an extra with the url status
-            log.debug("Setting resource (%s) is_broken to %s" % (t.resource_id, t.is_broken))
-            try:
-                site_user = get_action('get_site_user')({'model': model,'ignore_auth': True}, {})
-                res = toolkit.get_action('resource_show')({'ignore_auth': True, 'user': ''}, {'id': t.resource_id})
-                res['is_broken'] = t.is_broken
-                toolkit.get_action('resource_update')({'ignore_auth': True, 'user': site_user['name']}, res)
-            except Exception, e:
-                log.error("Unable to update resource from QATask: %s" % qt.resource_id)
-                log.exception(e)
-
-        elif entity.task_type == 'archiver':
-            log.debug("Creating ArchiveTask")
-            t = archive_tasks.ArchiveTask.create(entity)
-        else:
-            return
-
-        model.Session.add(t)
-        model.Session.commit()
-
-
-class LastMajorModificationPlugin1(p.SingletonPlugin):
-    p.implements(p.IDomainObjectModification, inherit=True)
-
-    def notify(self, entity, operation):
-        from ckan import model
-        if isinstance(entity, model.Package):
-            if operation != model.DomainObjectOperation.new:
-                return
-            log.debug("Package created: %s" % entity.name)
-            update_package_major_time(entity)
-
-        elif isinstance(entity, model.Resource):
-            if not entity.resource_group:
-                log.warning("Resource has no resource_group")
-                return
-
-            model.Session.flush()
-            pkg = entity.resource_group.package
-
-            if operation == model.DomainObjectOperation.new:
-                log.debug("A new resource was created")
-                update_package_major_time(pkg)
-            elif operation == model.DomainObjectOperation.changed:
-                # If we get a change, then we should just check if the
-                # state is deleted, if so then we should update the
-                # modification date on the package. If the state isn't
-                # deleted then we will instead catch the URL change with
-                #  IResourceUrlChange
-                if entity.state == 'deleted':
-                    log.debug("A resource was deleted")
-                    update_package_major_time(pkg)
-                else:
-                    ensure_package_major_time_remains(pkg)
-
-
-class LastMajorModificationPlugin2(p.SingletonPlugin):
-    p.implements(p.IResourceUrlChange, inherit=True)
-
-    def notify(self, resource):
-        log.debug("URL for resource %s has changed" % resource.id)
-        update_package_major_time(resource.resource_group.package)
-
-
 class DrupalAuthPlugin(p.SingletonPlugin):
     '''Reads Drupal login cookies to log user in.'''
     p.implements(p.IMiddleware, inherit=True)
@@ -687,11 +568,10 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_field__publisher(pkg_dict)
         if is_plugin_enabled('harvest'):
             SearchIndexing.add_field__harvest_document(pkg_dict)
-        pkg = SearchIndexing.add_field__openness(pkg_dict)
+        SearchIndexing.add_field__openness(pkg_dict)
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
-        SearchIndexing.add_field__last_major_modification(pkg_dict, pkg)
 
         # Extract multiple theme values (concatted with ' ') into one multi-value schema field
         all_themes = set()

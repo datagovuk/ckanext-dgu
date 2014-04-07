@@ -43,9 +43,6 @@ setup(
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
-        dgu_last_major_modification_1 = ckanext.dgu.plugin:LastMajorModificationPlugin1
-        dgu_last_major_modification_2 = ckanext.dgu.plugin:LastMajorModificationPlugin2
-        dgu_task_modification = ckanext.dgu.plugin:TaskModificationPlugin
 
         [console_scripts]
         ons_loader = ckanext.dgu.ons.command:load
