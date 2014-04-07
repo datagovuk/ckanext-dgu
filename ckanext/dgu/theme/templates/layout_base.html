@@ -117,39 +117,28 @@ ${h.top_level_init()}
           </form>
         </div>
         <py:with vars="
-          drupal_mode=('dgu_drupal_auth' in config['ckan.plugins']);
-          logged_in=bool(c.user);
+          url='/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me');
+          destination='' if c.user else '?destination=%s'%request.path[1:];
         ">
-          <py:if test="logged_in">
-            <span class="dropdown">
-              <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-user"></i></a>
-              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
-                <li><a href="${if_(drupal_mode,'/user',h.url_for(controller='user',action='me'))}"><i class="icon-user"></i>&nbsp; ${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}'s profile</a></li>
-                <li><a href="${if_(drupal_mode,'/user/logout',h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
-              </ul>
-            </span>
-
-            <!-- Publisher dropdown -->
-            <span py:if="h.check_access('package_create')" class="dropdown">
-              <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
-              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
-                <li role="presentation" class="dropdown-header">Tools</li>
-                <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
-                <li py:if="h.is_sysadmin()"><a href="${h.url_for('publisher_new')}">Add a Publisher</a></li>
-                <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
-
-                <li role="presentation" class="dropdown-header">My publishers</li>
-                <py:for each="group in h.groups_for_current_user()">
-                    <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
-                </py:for>
-              </ul>
-            </span>
-
-          </py:if>
-          <py:if test="not logged_in">
-            <a class="nav-user btn btn-primary" href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.path[1:]}"><i class="icon-user"></i></a>
-          </py:if>
+          <a class="nav-user btn btn-primary" href="${url}${destination}"><i class="icon-user"></i></a>
         </py:with>
+        <py:if test="bool(c.user)">
+          <!-- Publisher dropdown -->
+          <span py:if="h.check_access('package_create')" class="dropdown">
+            <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
+            <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+              <li role="presentation" class="dropdown-header">Tools</li>
+              <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+              <li py:if="h.is_sysadmin()"><a href="${h.url_for('publisher_new')}">Add a Publisher</a></li>
+              <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+
+              <li role="presentation" class="dropdown-header">My publishers</li>
+              <py:for each="group in h.groups_for_current_user()">
+                  <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
+              </py:for>
+            </ul>
+          </span>
+        </py:if>
       </nav>
     </div>
   </div>
