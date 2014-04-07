@@ -54,7 +54,7 @@
         ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
         ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
         ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
-        ${sort_option('Last Updated', c.sort_by([('last_major_modification','desc')]), 'last_major_modification' in h.results_sort_by())}
+        ${sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in h.results_sort_by())}
         ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
       </select>
       <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">

@@ -55,12 +55,11 @@ class DguApiController(ApiController):
                 'facet':'false',
                 'start':0,
                 'rows': limit,
-                'sort': 'last_major_modification desc'
+                'sort': 'metadata_modified desc'
             }
             query = get_action('package_search')(context,data_dict)
         except SearchError, se:
             log.error('Search error: %s', se)
-            count = 0
 
         pkg_dicts = []
         for pkg_dict in query['results']:
@@ -71,7 +70,7 @@ class DguApiController(ApiController):
                 pub_link = '/publisher/%s' % publishers[0].name
             else:
                 pub_title = pub_link = None
-            last_modified = date_str_to_datetime(pkg.extras.get('last_major_modification'))
+            last_modified = pkg.metadata_modified
             pkg_dict = OrderedDict((
                 ('name', pkg.name),
                 ('title', pkg.title),
