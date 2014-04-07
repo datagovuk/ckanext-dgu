@@ -97,6 +97,33 @@ ${h.top_level_init()}
       id="${(defined('body_id') and body_id()) or ''}"
       py:with="breakout = defined('break_out_page') and break_out_page"
   >
+  <div py:if="bool(c.userobj)" id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
+    <div class="toolbar-menu clearfix">
+      <ul id="toolbar-home">
+        <li class="home first last">
+          <a href="/" title="Home"><span class="home-link">Home</span></a>
+        </li>
+      </ul>
+      <ul id="toolbar-user">
+        <li class="account first">
+          <a href="/user" title="User account">Hello <strong>${c.userobj.display_name}</strong></a>
+        </li>
+        <li class="logout last">
+          <a href="/user/logout">Log out</a>
+        </li>
+      </ul>
+      <ul id="toolbar-menu">
+        <li class="menu-211 path-admin-workbench first last">
+          <a href="/admin/workbench" id="toolbar-link-admin-workbench" title="My Workbench area">
+            <span class="icon"></span>
+            Manage my content
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="toolbar-drawer clearfix">
+    </div>
+  </div>
   <div id="blackbar" class="${if_(h.check_access('package_create'),'with-publisher','without-publisher')}">
     <div class="container">
       <a class="brand" href="/" rel="home"></a>
