@@ -26,17 +26,17 @@
       </a>
       <h1>Broken resource links <small>${c.data['publisher_title']}</small></h1>
 
-    <h2>Last generated: ${h.render_datetime(h.report_generated_at('broken-link-report',c.org_name, withsub=c.include_sub_publishers), with_hours=True)}</h2>
+    <p>Report updated: ${h.render_datetime(h.report_generated_at('broken-link-report',c.org_name, withsub=c.include_sub_publishers), with_hours=True)}</p>
 
     <div class="qa-content ">
       <py:if test="(not c.data) or (not c.data['data'])">
         <p>
-          No results found for this publisher
-          <py:if test="c.include_sub_publishers"> and its subpublishers</py:if>
-          .
+          No results found for this publisher<py:if test="c.include_sub_publishers"> and its subpublishers</py:if>.
         </p>
       </py:if>
-
+      <h2>
+          ${len(c.data['data'])} results
+      </h2>
       <div>
           <form action="">
             <label class="checkbox">
