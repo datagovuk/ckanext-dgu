@@ -12,7 +12,7 @@
   </py:def>
 
  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
+    <li><a href="/publisher">Publishers</a></li>
     <li><a href="/publisher/${c.data['publisher_name']}">${c.data['publisher_title']}</a></li>
     <li><a href="${h.url_for('qa_organisation_action_reports', action='broken_resource_links')}">Broken links</a></li>
   </py:match>
@@ -30,26 +30,31 @@
 
     <div class="qa-content ">
       <py:if test="(not c.data) or (not c.data['data'])">
-        <p>No results found for this publisher.</p>
+        <p>
+          No results found for this publisher
+          <py:if test="c.include_sub_publishers"> and its subpublishers</py:if>
+          .
+        </p>
       </py:if>
 
-      <py:if test="c.data and c.data['data']">
-
-
-        <div>
+      <div>
           <form action="">
             <label class="checkbox">
               <input type="checkbox" name="checkbox-submit-on-change" value="${'?' if c.include_sub_publishers else '?include_sub_publishers=1'}" class="inline" py:attrs="{'checked': 'checked'} if c.include_sub_publishers else {}"/>
               Include results from sub-publishers
             </label>
           </form>
-        </div>
+      </div>
+
+      <py:if test="c.data and c.data['data']">
+
+
         <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
          <thead>
             <tr class="js-tooltip">
               <th >Dataset</th>
               <th py:if="c.include_sub_publishers">Publisher</th>
-              <th  title="Index/position of the resource in the dataset">Index</th>
+              <th  title="Index/position of the resource in the dataset">Resource (number)</th>
               <th >URL</th>
               <th style="">Status</th>
               <th >Reason</th>
@@ -65,7 +70,7 @@
               <td><a href="${h.url_for(controller='package', action='read', id=row_dict['dataset_name'])}">${row_dict['dataset_title']}</a></td>
               <td py:if="c.include_sub_publishers"><a href="/publisher/${row_dict['publisher_name']}">${row_dict['publisher_title']}</a></td>
               <td><a href="/dataset/${row_dict['dataset_name']}/resource/${row_dict['resource_id']}">${row_dict['resource_position']}</a></td>
-              <td><a href="${row_dict['resource_url']}" style="word-wrap:break-word;">${row_dict['resource_url']}</a></td>
+              <td><a href="${row_dict['resource_url']}" style="word-wrap:break-word;">${row_dict['resource_url']}</a>${' (NB has changed since)' if row_dict['url_up_to_date'] == False else ''}</td>
               <td>${row_dict.get('status', 'not recorded')}</td>
               <td>${row_dict.get('reason', 'not recorded')}</td>
               <td>${row_dict.get('failure_count', 'not recorded')}</td>
