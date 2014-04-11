@@ -11,10 +11,10 @@ log = logging.getLogger(__name__)
 def nii_report(use_cache=False):
 
     if use_cache:
-        cache = model.DataCache.get_fresh('__all__', 'nii-report')
-        if cache:
+        report, report_date = model.DataCache.get_if_fresh('__all__', 'nii-report')
+        if report:
             log.debug("Found NII report in cache")
-            return cache
+            return report, report_date
 
         log.debug("Did not find cached NII report")
 
@@ -49,7 +49,8 @@ def nii_report(use_cache=False):
         org = package.get_organization()
         data[org.name].append({package.name: broken_resources_for_package(package)})
 
-    return data
+    log.info('Report generated: nii_report')
+    return data, 'just now'
 
 def sql_to_filter_by_organisation(organisation,
                                   include_sub_organisations=False):
@@ -290,12 +291,12 @@ def feedback_report(publisher, include_sub_publishers=False, include_published=F
 
         if include_sub_publishers:
             key = "".join([key, '-withsub'])
-        cache = model.DataCache.get_fresh(publisher_name, key)
-        if cache is None:
-            log.info("Did not find cached report - %s/%s" % (publisher_name,key,))
+        report, report_date = model.DataCache.get_if_fresh(publisher_name, key)
+        if report is None:
+            log.info("Did not find cached report - %s/%s" % (publisher_name, key))
         else:
             log.info("Found feedback report in cache")
-            return cache
+            return report, report_date
 
     if publisher:
         group_ids = [publisher.id]
@@ -349,7 +350,10 @@ def feedback_report(publisher, include_sub_publishers=False, include_published=F
                                      data['effective']])
         results.append(data)
 
-    return sorted(results, key=itemgetter('package-title'))
+    log.info('Report generated: feedback_report publishers=%s subpub=%s published=%s',
+             publisher.name if publisher else 'all',
+             include_sub_publishers, include_published)
+    return sorted(results, key=itemgetter('package-title')), 'just now'
 
 
 def publisher_activity_report(publisher, include_sub_publishers=False, use_cache=False):
@@ -365,12 +369,12 @@ def publisher_activity_report(publisher, include_sub_publishers=False, use_cache
         key = 'publisher-activity-report'
         if include_sub_publishers:
             key = "".join([key, '-withsub'])
-        cache = model.DataCache.get_fresh(publisher.name, key)
-        if cache is None:
+        report, report_date = model.DataCache.get_if_fresh(publisher.name, key)
+        if report is None:
             log.info("Did not find cached activity report - %s/%s" % (publisher.name,key,))
         else:
             log.info("Found activity report in cache for %s" % publisher.name)
-            return cache
+            return report, report_date
 
     created = []
     modified = []
@@ -400,42 +404,41 @@ def publisher_activity_report(publisher, include_sub_publishers=False, use_cache
     created.sort(key=lambda x: x[1])
     modified.sort(key=lambda x: x[1])
 
-    return { 'created': created, 'modified': modified}
+    log.info('Report generated: publisher_activity_report publisher=%s subpub=%s',
+             publisher.name if publisher else 'all',
+             include_sub_publishers)
+    return {'created': created, 'modified': modified}, 'just now'
 
 
 
 def cached_reports(reports_to_run=None):
     """
-    This function is called by the ICachedReport plugin which will
-    iterate over all if the reports that need to be run
+    Run all the reports and cache the results.
     """
-    import json
-    from ckan.lib.json import DateTimeJsonEncoder
-
     local_reports = set(['feedback-report', 'publisher-activity-report', 'nii_report'])
     if reports_to_run:
-      local_reports = set(reports_to_run) & local_reports
+        local_reports = set(reports_to_run) & local_reports
 
     if not local_reports:
-      return
+        return
 
     log.info("Generating reports")
 
     if 'nii_report' in local_reports:
         log.info("Generating NII report")
-        val = nii_report(use_cache=False)
-        model.DataCache.set('__all__', "nii-report", json.dumps(val))
+        val, date = nii_report(use_cache=False)
+        model.DataCache.set('__all__', "nii-report", val, convert_json=True)
         model.Session.commit()
         log.info("NII report generated")
 
     if 'feedback-report' in local_reports:
         log.info("Generating feedback report for all publishers")
-        val = feedback_report(None, use_cache=False)
-        model.DataCache.set('__all__', "feedback-report", json.dumps(val))
+        val, date = feedback_report(None, use_cache=False)
+        model.DataCache.set('__all__', "feedback-report", val, convert_json=True)
 
-        log.info("Generating feedback report for all publishers")
-        val = feedback_report(None, use_cache=False, include_published=True)
-        model.DataCache.set('__all__', "feedback-all-report", json.dumps(val))
+        log.info("Generating feedback report for all publishers including published datasets")
+        val, date = feedback_report(None, use_cache=False, include_published=True)
+        model.DataCache.set('__all__', "feedback-all-report", val, convert_json=True)
         model.Session.commit()
         log.info("Feedback report generated")
 
@@ -447,31 +450,31 @@ def cached_reports(reports_to_run=None):
         # Run the feedback report with and without include_sub_organisations set
         if 'publisher-activity-report' in local_reports:
             log.info("Generating activity report for %s" % publisher.name)
-            val = publisher_activity_report(publisher, use_cache=False)
-            model.DataCache.set(publisher.name, "publisher-activity-report", json.dumps(val))
+            val, date = publisher_activity_report(publisher, use_cache=False)
+            model.DataCache.set(publisher.name, "publisher-activity-report", val, convert_json=True)
 
             log.info("Generating activity report for %s and children" % publisher.name)
-            val = publisher_activity_report(publisher, include_sub_publishers=True, use_cache=False)
-            model.DataCache.set(publisher.name, "publisher-activity-report-withsubpub", json.dumps(val))
+            val, date = publisher_activity_report(publisher, include_sub_publishers=True, use_cache=False)
+            model.DataCache.set(publisher.name, "publisher-activity-report-withsubpub", val, convert_json=True)
 
             model.Session.commit()
 
         if 'feedback-report' in local_reports:
             log.info("Generating unpublished feedback report for %s" % publisher.name)
-            val = feedback_report(publisher, use_cache=False)
-            model.DataCache.set(publisher.name, "feedback-report", json.dumps(val))
+            val, date = feedback_report(publisher, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-report", val, convert_json=True)
 
             log.info("Generating unpublished feedback report for %s and children" % publisher.name)
-            val = feedback_report(publisher, include_sub_publishers=True, use_cache=False)
-            model.DataCache.set(publisher.name, "feedback-report-withsubpub", json.dumps(val))
+            val, date = feedback_report(publisher, include_sub_publishers=True, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-report-withsubpub", val, convert_json=True)
 
             log.info("Generating feedback report for %s" % publisher.name)
-            val = feedback_report(publisher, include_published=True, use_cache=False)
-            model.DataCache.set(publisher.name, "feedback-all-report", json.dumps(val))
+            val, date = feedback_report(publisher, include_published=True, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-all-report", val, convert_json=True)
 
             log.info("Generating feedback report for %s and children" % publisher.name)
-            val = feedback_report(publisher, include_sub_publishers=True, include_published=True, use_cache=False)
-            model.DataCache.set(publisher.name, "feedback-all-report-withsubpub", json.dumps(val))
+            val, date = feedback_report(publisher, include_sub_publishers=True, include_published=True, use_cache=False)
+            model.DataCache.set(publisher.name, "feedback-all-report-withsubpub", val, convert_json=True)
 
             model.Session.commit()
 
