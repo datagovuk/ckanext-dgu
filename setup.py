@@ -86,7 +86,6 @@ setup(
         refine_packages = ckanext.dgu.commands.refine_packages:RefinePackages
         inventory_init = ckanext.dgu.commands.inventory_init:InitDB
         commitment_init = ckanext.dgu.commands.commitment_init:InitDB
-        dgu_init_db = ckanext.dgu.commands.dgu_init_db:DGUInitDB
         ingest = ckanext.dgu.commands.ingester:Ingester
         clean_resource_dates = ckanext.dgu.commands.clean_resource_dates:CleanResourceDates
         sync_apps = ckanext.dgu.commands.appsync:AppSync
