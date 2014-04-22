@@ -32,9 +32,8 @@ class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
             else:
                 log.error('I do not recognise the caller %r, so not remembering identity', caller)
         else:
-            log.debug('Drupal auth disabled')
+            #log.debug('Drupal auth disabled')
             return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)
-            
 
     def who_called_me(self, n=0):
         frame = sys._getframe(n)

@@ -1,11 +1,12 @@
 from nose.tools import assert_equal
+from pylons import config
 
 from ckan.tests.pylons_controller import PylonsTestCase
 from ckan import model
 
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 from ckanext.dgu.lib.helpers import dgu_linked_user
-from ckanext.dgu.plugins_toolkit import c
+from ckanext.dgu.plugins_toolkit import c, get_action
 
 class TestLinkedUser(PylonsTestCase):
     @classmethod
@@ -20,9 +21,9 @@ class TestLinkedUser(PylonsTestCase):
 
         c.is_an_official = False
         assert_equal(str(dgu_linked_user(user)),
-                '<a href="/publisher/national-health-service">National Heal...</a>')
+                '<a href="/publisher/national-health-service">National Health Service</a>')
         assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/publisher/national-health-service">National Heal...</a>')
+                '<a href="/publisher/national-health-service">National Health Service</a>')
 
         c.is_an_official = True
         assert_equal(str(dgu_linked_user(user)),
@@ -37,15 +38,15 @@ class TestLinkedUser(PylonsTestCase):
 
         c.is_an_official = False
         assert_equal(str(dgu_linked_user(user)),
-                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+                '<a href="/users/102">John Doe - a public user</a>')
         assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+                '<a href="/users/102">John Doe - a public user</a>')
 
         c.is_an_official = True
         assert_equal(str(dgu_linked_user(user)),
-                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+                '<a href="/users/102">John Doe - a public user</a>')
         assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/users/John%20Doe%20-%20a%20public%20user">John Doe - a ...</a>')
+                '<a href="/users/102">John Doe - a public user</a>')
 
     def test_view_sysadmin(self):
         # very common case
@@ -79,9 +80,21 @@ class TestLinkedUser(PylonsTestCase):
 
         c.is_an_official = False
         assert_equal(str(dgu_linked_user(user)),
-                '<a href="/publisher/national-health-service">National Heal...</a>')
+                '<a href="/publisher/national-health-service">National Health Service</a>')
 
         c.is_an_official = True
         assert_equal(str(dgu_linked_user(user)),
-                '<a href="/data/user/user_d101">NHS Editor im...</a>')
+                '<a href="/data/user/user_d101">NHS Editor imported f...</a>')
+
+    def test_view_system_user(self):
+        # created on the API
+        user_dict = get_action('get_site_user')({'model': model, 'ignore_auth': True}, {})
+        user = user_dict['name']
+
+        c.is_an_official = False
+        assert_equal(str(dgu_linked_user(user)), 'System Process')
+
+        c.is_an_official = True
+        assert_equal(str(dgu_linked_user(user, maxlength=100)),
+                '<a href="/data/user/test.ckan.net">System Process (Site user)</a>')
 
