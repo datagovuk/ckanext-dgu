@@ -45,12 +45,15 @@ class ReportsPlugin(p.SingletonPlugin):
         Make "/data" the homepage.
         """
         report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
-        map.connect('reports', '/data/reports', controller=report_ctlr, action='index')
+        map.connect('reports', '/data/report', controller=report_ctlr, action='index')
+        map.redirect('/data/reports', '/data/report')
+        map.connect('report', '/data/report/:report_name', controller=report_ctlr, action='view')
+        map.connect('report', '/data/report/:report_name/:organization', controller=report_ctlr, action='view')
         # Resource reports
-        map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
-        map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')
-        map.connect('nii_report', '/data/reports/nii', controller=report_ctlr, action='nii')
-        map.connect('nii_report_csv', '/data/reports/nii.csv', controller=report_ctlr, action='nii', format='csv')
+        #map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
+        #map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')
+        #map.connect('nii_report', '/data/reports/nii', controller=report_ctlr, action='nii')
+        #map.connect('nii_report_csv', '/data/reports/nii.csv', controller=report_ctlr, action='nii', format='csv')
 
         # QA
         qa_home = 'ckanext.qa.controllers.qa_home:QAHomeController'
@@ -292,7 +295,7 @@ class PublisherPlugin(p.SingletonPlugin):
 
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.ISession, inherit=True)
-    p.implements(p.ICachedReport)
+    p.implements(p.IReportCache)
 
     def before_commit(self, session):
         """
@@ -373,35 +376,14 @@ class PublisherPlugin(p.SingletonPlugin):
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
 
-    # ICachedReport
- 
+    # IReportCache
+
     def register_reports(self):
-        """
-        This method will be called so that the plugin can register the
-        reports it wants run.  The reports will then be executed on a
-        24 hour schedule and the appropriate tasks called.
-
-        This call should return a dictionary, where the key is a description
-        and the value should be the function to run. This function should
-        take a single parameter, which is a list of the reports to generate
-        by key.  If the plugin is unable to process that key then it should
-        return immediately.  If no list of keys is supplied then the plugin
-        should generate all reports.
-        """
-        from ckanext.dgu.lib.publisher import cached_openness_scores
-        from ckanext.dgu.lib.reports import cached_reports
-
-        return {'Cached Openness Scores': cached_openness_scores,
-                'Cached reports': cached_reports,
-                }
-
-    def list_report_keys(self):
-        """
-        Returns a list of the reports that the plugin can generate by
-        returning each key name as an item in a list.
-        """
-        return ['openness-scores', 'openness-scores-withsub',
-                'feedback-report', 'publisher-activity-report', 'nii_report']
+        """Register details of an extension's reports"""
+        from ckanext.dgu.lib import reports
+        return [reports.nii_report_info,
+                reports.feedback_report_info,
+                reports.publisher_activity_report_info]
 
 
 class InventoryPlugin(p.SingletonPlugin):
