@@ -152,7 +152,7 @@
             <div class="star-rating-entry ${if_(i>stars,'fail')}">${h.mini_stars_and_caption(i)}</div>
           </py:for>
           <div class="star-rating-last-updated" py:if="last_updated">
-            <b>Score updated: </b>${last_updated.strftime('%d/%m/%Y')}
+            <b>Score updated: </b>${h.render_datestamp(last_updated)}
           </div>
         </span>
         <a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">
