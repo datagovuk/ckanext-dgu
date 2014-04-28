@@ -31,6 +31,13 @@ log = logging.getLogger(__name__)
 def resource_as_json(resource):
     return json.dumps(resource)
 
+def is_resource_broken(resource_id):
+    import ckan.model as model
+    from ckanext.archiver.model import Archival
+
+    archival = Archival.get_for_resource(resource_id)
+    return archival and archival.is_broken==True
+
 def _is_additional_resource(resource):
     """
     Returns true iff the given resource identifies as an additional resource.
@@ -372,20 +379,12 @@ def get_cache_url(resource_dict):
     # on a machine other than data.gov.uk
     return url.replace('http://data.gov.uk/', '/')
 
-def get_stars_aggregate(dataset_id):
-    '''For a dataset, of all its resources, get details of the one with the highest QA score.
-    returns a dict of details including:
-      {'value': 3, 'last_updated': '2012-06-15T13:20:11.699', ...}
-    '''
-    try:
-        import ckanext.qa
-    except ImportError:
-        return None
-    from ckanext.qa.reports import dataset_five_stars
-    stars_dict = dataset_five_stars(dataset_id)
-    return stars_dict
 
+# used in render_stars and read_common.html
 def mini_stars_and_caption(num_stars):
+    '''
+    Returns HTML for a numbers of mini-stars with a caption describing the meaning.
+    '''
     mini_stars = num_stars * '&#9733'
     mini_stars += '&#9734' * (5-num_stars)
     captions = [
@@ -398,24 +397,36 @@ def mini_stars_and_caption(num_stars):
         ]
     return t.literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
+# Used in read_common.html
 def calculate_dataset_stars(dataset_id):
-    stars_dict = get_stars_aggregate(dataset_id)
-    if not stars_dict:
-        return (0,'','')
-    return (stars_dict.get('value',0),stars_dict.get('reason',''),stars_dict.get('last_updated',''),)
+    from ckan.logic import get_action, NotFound
+    from ckan import model
+    try:
+        context = {'model': model, 'session': model.Session}
+        qa = get_action('qa_package_show')(context, {'id': dataset_id})
+    except NotFound:
+        return (0, '', '')
+    if not qa:
+        return (0, '', '')
+    return (qa['openness_score'],
+            qa['openness_score_reason'],
+            qa['updated'])
 
+# Used in resource_read.html
 def render_resource_stars(resource_id):
-    from ckanext.qa import reports
-    if not c.resource_five_stars or \
-           resource_id != c.resource_five_stars['resource_id']:
-        c.resource_five_stars = reports.resource_five_stars(resource_id)
-        c.resource_five_stars['resource_id'] = resource_id
-        if not c.resource_five_stars:
-            return 'To be determined'
-    return render_stars(c.resource_five_stars.get('openness_score', -1),
-                        c.resource_five_stars.get('openness_score_reason'),
-                        c.resource_five_stars.get('openness_updated'))
+    from ckan.logic import get_action, NotFound
+    from ckan import model
+    try:
+        context = {'model': model, 'session': model.Session}
+        qa = get_action('qa_resource_show')(context, {'id': resource_id})
+    except NotFound:
+        return 'To be determined'
+    if not qa:
+        return 'To be determined'
+    return render_stars(qa['openness_score'], qa['openness_score_reason'],
+                        qa['updated'])
 
+# used by render_qa_info_for_resource
 def does_detected_format_disagree(detected_format, resource_format):
     '''Returns boolean saying if there is an anomoly between the format of the
     resolved URL detected by ckanext-qa and resource.format (as input by the
@@ -425,28 +436,31 @@ def does_detected_format_disagree(detected_format, resource_format):
     is_disagreement = detected_format.strip().lower() != resource_format.strip().lower()
     return is_disagreement
 
+# used by resource_read.html
 def render_qa_info_for_resource(resource_dict):
     resource_id = resource_dict['id']
+    from ckan.logic import get_action, NotFound
+    from ckan import model
     try:
-        from ckanext.qa import reports
-    except ImportError:
-        return ''
-    if not c.resource_five_stars or \
-           resource_id != c.resource_five_stars['resource_id']:
-        c.resource_five_stars = reports.resource_five_stars(resource_id)
-        if not c.resource_five_stars:
-            return 'To be determined'
-    if not c.resource_five_stars.get('reason'):
+        context = {'model': model, 'session': model.Session}
+        qa = get_action('qa_resource_show')(context, {'id': resource_id})
+    except NotFound:
         return 'To be determined'
-    c.resource_five_stars['reason_list'] = c.resource_five_stars['reason'].replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
-    ctx = {'qa': c.resource_five_stars,
-           'resource_format': resource_dict['format'],
-           'resource_format_disagrees': does_detected_format_disagree(c.resource_five_stars['format'], resource_dict['format']),
+    if not qa:
+        return 'To be determined'
+    reason_list = qa['openness_score_reason'].replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
+    resource = model.Resource.get(resource_id)
+    ctx = {'qa': qa,
+           'reason_list': reason_list,
+           'resource_format': resource.format,
+           'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
            'is_data': resource_dict['resource_type'] in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
 
 def render_stars(stars, reason, last_updated):
+    '''Returns HTML to show a number of stars out of five, with a reason and
+    date, plus a tooltip describing the levels.'''
     if stars==0:
         stars_html = 5 * '<i class="icon-star-empty"></i>'
     else:
@@ -458,7 +472,7 @@ def render_stars(stars, reason, last_updated):
         tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
     if last_updated:
-        datestamp = last_updated.strftime('%d/%m/%Y')
+        datestamp = render_datestamp(last_updated)
         tooltip += t.literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
     return t.literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))

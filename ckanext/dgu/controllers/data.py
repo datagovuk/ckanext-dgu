@@ -186,6 +186,7 @@ class DataController(BaseController):
         from pylons import response
         from paste.fileapp import FileApp
         from ckanext.dgu.lib.helpers import tidy_url
+        from ckanext.qa.model import QA
 
         archive_root = pylons.config.get('ckanext-archiver.archive_dir')
         if not archive_root:
@@ -198,13 +199,9 @@ class DataController(BaseController):
 
         fmt = ""
         if resource:
-            task_status = model.Session.query(model.TaskStatus).\
-                          filter(model.TaskStatus.task_type=='qa').\
-                          filter(model.TaskStatus.key=='status').\
-                          filter(model.TaskStatus.entity_id==resource.id).first()
-            if task_status:
-                status = json.loads(task_status.error)
-                fmt = status['format']
+            qa = QA.get_for_resource(resource.id)
+            if qa:
+                fmt = qa.format
 
         # Make an attempt at getting the correct content type but fail with
         # application/octet-stream in cases where we don't know.
