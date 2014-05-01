@@ -34,20 +34,23 @@ def nii_report():
     def broken_resources_for_package(package_id):
         from ckanext.archiver.model import Archival
 
-        archivals = model.Session.query(Archival)\
-                         .filter(Archival.is_broken == True)\
-                         .join(model.Package, Archival.package_id == package_id)\
-                         .filter(model.Package.state == 'active')\
-                         .join(model.Resource, Archival.resource_id == model.Resource.id)\
-                         .filter(model.Resource.state == 'active')
+        results = model.Session.query(Archival, model.Resource)\
+                       .filter(Archival.package_id == package_id)\
+                       .filter(Archival.is_broken == True)\
+                       .join(model.Package, Archival.package_id == model.Package.id)\
+                       .filter(model.Package.state == 'active')\
+                       .join(model.Resource, Archival.resource_id == model.Resource.id)\
+                       .filter(model.Resource.state == 'active')
 
-        broken_resources = [(archival.resource.description, archival.resource.id)
-                            for archival in archivals.all()]
+        broken_resources = [(resource.description, resource.id)
+                            for archival, resource in results.all()]
         return broken_resources
 
     nii_dataset_details = []
-    total_broken_resources = 0
-    total_broken_datasets = 0
+    num_resources = 0
+    num_broken_resources = 0
+    num_broken_datasets = 0
+    broken_organization_names = set()
     nii_organizations = set()
     for dataset_object in nii_dataset_objects:
         broken_resources = broken_resources_for_package(dataset_object.id)
@@ -62,18 +65,24 @@ def nii_report():
                 'source': get_source(dataset_object)
                 }
         nii_dataset_details.append(dataset_details)
-        total_broken_resources += len(broken_resources)
         if broken_resources:
-            total_broken_datasets += 1
+            num_broken_resources += len(broken_resources)
+            num_broken_datasets += 1
+            broken_organization_names.add(org.name)
         nii_organizations.add(org)
+        num_resources += len(dataset_object.resources)
 
     org_tuples = [(org.name, org.title) for org in
                   sorted(nii_organizations, key=lambda o: o.title)]
 
     return {'data': nii_dataset_details,
             'organizations': org_tuples,
-            'total_broken_resources': total_broken_resources,
-            'total_broken_datasets': total_broken_datasets,
+            'num_resources': num_resources,
+            'num_datasets': len(nii_dataset_objects),
+            'num_organizations': len(nii_organizations),
+            'num_broken_resources': num_broken_resources,
+            'num_broken_datasets': num_broken_datasets,
+            'num_broken_organizations': len(broken_organization_names),
             }
 
 nii_report_info = {
@@ -308,20 +317,16 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
     For the publisher provided (and optionally for sub-publishers) this
     function will generate a report on the feedback for that publisher.
     """
-    import collections
     import datetime
     import ckan.lib.helpers as helpers
     from ckanext.dgu.lib.publisher import go_down_tree
     from ckanext.dgu.model.feedback import Feedback
-    from operator import itemgetter
 
     if organization:
-        organization_name = organization
-        organization = model.Group.by_name(organization_name)
+        organization = model.Group.by_name(organization)
         if not organization:
             raise p.toolkit.NotFound()
     else:
-        organization_name = '__all__'
         organization = None
 
     # Get packages for these organization(s)
@@ -345,7 +350,9 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
             .filter(model.Member.table_name == 'package')\
             .filter(model.Package.state == 'active')
 
+    # For each package, count the feedback comments
     results = []
+    num_pkgs_with_feedback = 0
     for member in memberships.all():
         pkg = model.Package.get(member.table_id)
 
@@ -353,29 +360,34 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
         if not include_published and not pkg.extras.get('unpublished', False):
             continue
 
-        data = collections.defaultdict(int)
-        data['organization-name'] = member.group.name
-        data['generated-at'] = helpers.render_datetime(datetime.datetime.now(), "%d/%m/%Y %H:%M")
-        data['organization-title'] = member.group.title
-        data['package-name'] = pkg.name
-        data['package-title'] = pkg.title
-        data['publish-date'] = pkg.extras.get('publish-date', '')
+        pkg_data = collections.defaultdict(int)
+        pkg_data['organization-name'] = member.group.name
+        pkg_data['generated-at'] = helpers.render_datetime(datetime.datetime.now(), "%d/%m/%Y %H:%M")
+        pkg_data['organization-title'] = member.group.title
+        pkg_data['package-name'] = pkg.name
+        pkg_data['package-title'] = pkg.title
+        pkg_data['publish-date'] = pkg.extras.get('publish-date', '')
 
-        for item in model.Session.query(Feedback).filter(Feedback.visible == True)\
+        for feedback in model.Session.query(Feedback).filter(Feedback.visible == True)\
                 .filter(Feedback.package_id == member.table_id )\
                 .filter(Feedback.active == True ):
-            if item.economic: data['economic'] += 1
-            if item.social: data['social'] += 1
-            if item.linked: data['linked'] += 1
-            if item.other: data['other'] += 1
-            if item.effective: data['effective'] += 1
+            if feedback.economic: pkg_data['economic'] += 1
+            if feedback.social: pkg_data['social'] += 1
+            if feedback.linked: pkg_data['linked'] += 1
+            if feedback.other: pkg_data['other'] += 1
+            if feedback.effective: pkg_data['effective'] += 1
 
-        data['total-comments'] = sum([data['economic'], data['social'],
-                                     data['linked'], data['other'],
-                                     data['effective']])
-        results.append(data)
+        data['total-comments'] = sum([pkg_data['economic'], pkg_data['social'],
+                                     pkg_data['linked'], pkg_data['other'],
+                                     pkg_data['effective']])
+        results.append(pkg_data)
+        if pkg_data['total-comments'] > 0:
+            num_pkgs_with_feedback += 1
 
-    return sorted(results, key=itemgetter('package-title'))
+    return {'data': sorted(results, key=lambda x: -x.get('total-comments')),
+            'dataset_count': len(results),
+            'dataset_count_with_feedback': num_pkgs_with_feedback,
+            }
 
 
 def all_organizations():
@@ -408,7 +420,7 @@ feedback_report_info = {
                                     ('include_published', False))),
     'option_combinations': feedback_report_combinations,
     'generate': feedback_report,
-    'template': 'reports/feedback_report.html',
+    'template': 'reports/feedback.html',
     }
 
 

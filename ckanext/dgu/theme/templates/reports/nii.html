@@ -7,7 +7,10 @@
     <div class="widget-container">
 
         <p>
-          ${c.data['total_broken_resources']} broken resources in ${c.data['total_broken_datasets']} broken datasets
+          NII totals: ${c.data['num_resources']} resources in ${c.data['num_datasets']} datasets across ${c.data['num_organizations']} organizations
+        </p>
+        <p>
+          Broken: ${c.data['num_broken_resources']} broken resources in ${c.data['num_broken_datasets']} broken datasets across ${c.data['num_broken_organizations']} organizations
         </p>
         <ul>
         <py:for each="publisher_name, publisher_title in c.data['organizations']">

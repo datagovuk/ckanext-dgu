@@ -48,7 +48,7 @@ class ReportsPlugin(p.SingletonPlugin):
         map.connect('reports', '/data/report', controller=report_ctlr, action='index')
         map.redirect('/data/reports', '/data/report')
         map.connect('report', '/data/report/:report_name', controller=report_ctlr, action='view')
-        map.connect('report', '/data/report/:report_name/:organization', controller=report_ctlr, action='view')
+        map.connect('report-org', '/data/report/:report_name/:organization', controller=report_ctlr, action='view')
         # Resource reports
         #map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
         #map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')

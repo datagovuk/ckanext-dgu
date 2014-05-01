@@ -29,39 +29,49 @@ class ReportsController(t.BaseController):
             'organization' not in report.option_defaults:
                 t.redirect_to(dguhelpers.relative_url_for(organization=None))
         elif 'organization' not in t.request.environ['pylons.routes_dict'] and \
-            'organization' in report.option_defaults:
+            'organization' in report.option_defaults and \
+            report.option_defaults['organization']:
                 org = report.option_defaults['organization']
                 t.redirect_to(dguhelpers.relative_url_for(organization=org))
-
-        # options
         if 'organization' in t.request.params:
             # organization should only be in the url - let the param overwrite
             # the url.
             t.redirect_to(dguhelpers.relative_url_for())
+
+        # options
         c.options = report.add_defaults_to_options(t.request.params)
         if 'format' in c.options:
             format = c.options.pop('format')
         else:
             format = None
-        if organization:
+        if 'organization' in report.option_defaults:
             c.options['organization'] = organization
+            c.offer_organization_index = \
+                    report.option_defaults['organization'] == None
         c.options_html = {}
         for option in c.options:
             try:
                 c.options_html[option] = \
                     t.render_snippet('reports/option_%s.html' % option)
-            except TemplateNotFound, e:
+            except TemplateNotFound:
                 continue
         c.report_title = report.title
 
         # Refresh the cache if requested
         if t.request.method == 'POST' and not format:
-            #if t.asbool(t.request.params.get('refresh')):
             if not (c.userobj and c.userobj.sysadmin):
                 t.abort(401)
             report.refresh_cache(c.options)
+
+        # Alternative way to refresh the cache - not in the UI, but is
+        # handy for testing
+        if t.asbool(t.request.params.get('refresh')):
+            if not (c.userobj and c.userobj.sysadmin):
+                t.abort(401)
+            c.options.pop('refresh')
+            report.refresh_cache(c.options)
             # Don't want the refresh=1 in the url once it is done
-            #t.redirect_to(dguhelpers.relative_url_for(refresh=None))
+            t.redirect_to(dguhelpers.relative_url_for(refresh=None))
 
         c.data, c.report_date = report.get_fresh_report(**c.options)
 
@@ -330,7 +340,7 @@ def make_csv_from_dicts(rows):
             item = row.get(header, 'no record')
             if isinstance(item, datetime.datetime):
                 item = item.strftime('%Y-%m-%d %H:%M')
-            elif isinstance(item, (int, long, float)):
+            elif isinstance(item, (int, long, float, list, tuple)):
                 item = unicode(item)
             elif item is None:
                 item = ''
@@ -347,7 +357,7 @@ def make_csv_from_dicts(rows):
 def ensure_data_is_dicts(data):
     '''Ensure that the data is a list of dicts, rather than a list of tuples
     with column names, as sometimes is the case. Changes it in place'''
-    if isinstance(data['data'], (list, tuple)):
+    if data['data'] and isinstance(data['data'][0], (list, tuple)):
         new_data = []
         columns = data['columns']
         for row in data['data']:
