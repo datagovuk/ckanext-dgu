@@ -81,10 +81,10 @@
           <div class="panel-heading">Reports</div>
           <div class="panel-body">
             <ul>
-              <li><a href="${h.url_for('qa_organisation_action_id_reports', action='broken_resource_links',id=c.group.name)}">
+              <li><a href="${h.url_for('report-org', report_name='broken-links-for-organization', organization=c.group.name)}">
               Broken links report</a></li>
 
-              <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback', id=c.group.name)}">
+              <li><a href="${h.url_for('report-org', report_name='feedback', organization=c.group.name)}">
               Feedback report</a></li>
 
               <li><a href="${h.url_for('qa_organisation_action_id_reports', action='scores',id=c.group.name)}">

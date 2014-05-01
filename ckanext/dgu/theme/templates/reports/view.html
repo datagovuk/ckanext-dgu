@@ -13,17 +13,14 @@
       <h1>${c.report_title}</h1>
       <p>
           Generated: ${h.render_datetime(c.report_date, '%d/%m/%Y %H:%M')}
-          <form action="" method="POST" py:if="c.userobj and c.userobj.sysadmin">
-            <input type="submit" value="Refresh" class="btn btn-primary"/>
-          </form>
       </p>
-      <div py:if="h.is_sysadmin()" class="panel panel-info">
-          <div class="panel-heading"><strong>Rebuild report</strong></div>
+      <div py:if="h.is_sysadmin()" class="panel panel-info" style="width=700px">
+          <div class="panel-heading"><strong>Refresh report</strong></div>
           <div class="panel-body">
-            <p>As a system administrator you are able to refresh this report on demand by clicking the 'Refresh' button. This may take a minute to complete.</p>
             <form action="" method="POST">
-              <input type="submit" value="Refresh" class="btn btn-info pull-right"/>
+              <input type="submit" value="Refresh" class="btn btn-info pull-right" style="margin-left: 15px"/>
             </form>
+            <p>As a system administrator you are able to refresh this report on demand by clicking the 'Refresh' button. This may take a few moments to complete. Occasionally it will take longer than 30s, in which case you'll see receive error 503. If this occurs, please wait a few minutes before reloading the page to see the refreshed report.</p>
           </div>
       </div>
 

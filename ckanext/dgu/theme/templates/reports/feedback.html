@@ -3,71 +3,11 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-
-<xi:include href="../feedback/_feedback_util.html" />
-
-  <py:def function="page_title">Dataset Feedback Report</py:def>
-
-  <py:match path="breadcrumbs">
-    <py:if test="not c.publisher">
-    <li><a href="/data/search">Datasets</a></li>
-      <li><a href="${h.url_for('feedback_reports')}">NII Feedback</a></li>
-    </py:if>
-    <py:if test="c.publisher">
-      <li><a href="/data/search">Datasets</a></li>
-      <li><a href="/publisher/${c.publisher.name}">${c.publisher.title}</a></li>
-      <li><a href="${h.url_for('feedback_reports')}">NII Feedback Report</a></li>
-    </py:if>
-  </py:match>
-
-  <div py:match="content" class="dataset">
-
-    <a py:if="c.publisher" href="/data/reports/feedback/${c.publisher.name}.csv?show-zero-feedback=${int(c.show_zero_feedback)}&amp;show-published=${int(c.include_published)}&amp;show-subpub=${int(c.include_subpublisher)}" class="btn btn-primary pull-right">
-      <div class="download">
-           <i class="icon-download"></i>&nbsp;
-          Download as CSV
-      </div>
-    </a>
-    <a py:if="not c.publisher" href="/data/reports/feedback.csv" class="btn btn-primary pull-right">
-      <div class="download">
-           <i class="icon-download"></i>&nbsp;
-          Download as CSV
-      </div>
-    </a>
-
-
     <div class="widget-container">
 
-        <h1>NII Feedback <small py:if="c.publisher"> ${c.publisher.title}</small></h1>
-        <h2 py:if="c.publisher">Last generated: ${h.render_datetime(h.report_generated_at('feedback-report', c.publisher.name, c.include_subpublisher), with_hours=True)}</h2>
-
-        <h2 py:if="not c.publisher">Last generated: ${h.render_datetime(h.report_generated_at('feedback-all-report'), with_hours=True)}</h2>
-
-        <div>
-          <form action="" class="form-inline">
-            <h4 style="margin-left:16px;">${c.dataset_count} <py:if test="not c.include_published">unpublished</py:if> datasets / ${c.dataset_count_with_feedback} with feedback
-            </h4>
-
-            <label py:if="c.has_publisher" class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_subpublisher, 'show-subpub')">
-              <input type="checkbox" name="checkbox-submit-on-change" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
-              Include sub-publishers
-            </label>
-
-            &nbsp;&nbsp;
-            <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.show_zero_feedback, 'show-zero-feedback')">
-              <input type="checkbox" name="checkbox-submit-on-change" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
-              Include datasets with no feedback
-            </label>
-
-            &nbsp;&nbsp;
-            <label class="checkbox" py:with="val,checked = h.feedback_report_checkbox_value(c.include_published, 'show-published')">
-              <input type="checkbox" name="checkbox-submit-on-change" value="${val}" class="inline" py:attrs="{'checked': 'checked'} if checked else {}"/>
-              Include published datasets
-            </label>
-
-
-          </form>
-        </div>
+        <p>
+          ${c.data['dataset_count']} <py:if test="not c.options['include_published']">unpublished</py:if> datasets / ${c.data['dataset_count_with_feedback']} with feedback
+        </p>
 
         <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
           <thead>
@@ -84,12 +24,11 @@
             </tr>
           </thead>
           <tbody>
-          <py:for each="stats in c.page.items">
+          <py:for each="stats in c.data['data']">
             <tr>
                 <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
                 <td>${h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}</td>
-                <td><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController',
-                                   action='feedback', id=stats['publisher-name'])}">${stats.get('publisher-title','')}</a></td>
+                <td><a href="${h.relative_url_for(organization=stats['organization-name'])}">${stats.get('organization-title','')}</a></td>
                 <td>${stats.get('economic',0)}</td>
                 <td>${stats.get('social',0)}</td>
                 <td>${stats.get('effective',0)}</td>
@@ -99,33 +38,11 @@
             </tr>
           </py:for>
           </tbody>
-      </table>
+        </table>
 
-          <a class='pull-right' py:if="c.publisher" href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">View all publishers</a>
+        <a class='pull-right' py:if="c.options['organization']" href="${h.relative_url_for(organization=None)}">View all publishers</a>
 
-        <div py:if="c.page.items">
-          ${paginator(c.page)}
-        </div>
-
-        <div class="clearfix"></div>
     </div>
-  </div>
 
-  <py:def function="optional_footer">
-    <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
-    <script type="text/javascript">
-      //<![CDATA[
-      $(document).ready(function()
-        {
-          $("#report-table").tablesorter({
-              dateFormat: "uk",
-          });
-        }
-      );
-    // ]]>
-    </script>
-  </py:def>
-
-  <xi:include href="../layout_base.html" />
 </html>
 
