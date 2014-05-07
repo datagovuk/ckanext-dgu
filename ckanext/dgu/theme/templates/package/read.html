@@ -224,13 +224,15 @@
               <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
             </a>
           </li>
-          <li py:if="not gemini and h.get_cache_url(res)">
-            <a href="${h.get_cache_url(res)}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on ${h.render_datestamp(res.get('cache_last_updated')) or 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
-              <i class="icon-save"></i>&nbsp;
-              Cached
-            </a>
-          </li>
-          <li py:if="not gemini and not h.get_cache_url(res)">
+          <py:with vars="cache_url, cache_timestamp = h.get_cache(res)">
+            <li py:if="not gemini and cache_url">
+              <a href="${cache_url}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on ${cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
+                <i class="icon-save"></i>&nbsp;
+                Cached
+              </a>
+            </li>
+          </py:with>
+          <li py:if="not gemini and not h.get_cache(res)[0]">
             <a class="disabled">
               <i class="icon-save"></i>&nbsp;
               (no cache available)

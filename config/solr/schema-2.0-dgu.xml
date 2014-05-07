@@ -137,6 +137,7 @@
     <field name="parent_publishers" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <field name="openness_score" type="int" indexed="true" stored="true"/>
+    <field name="broken_links" type="string" indexed="true" stored="true"/>
 
     <!-- Copy the title field into title_string, and treat as a string
          (rather than text type).  This allows us to sort on the title_string -->

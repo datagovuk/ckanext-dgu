@@ -3,7 +3,7 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
             <label for="option-organization" py:with="selected_org=c.options['organization']">
-              Publisher
+              Publisher:
               <a py:if="c.offer_organization_index and selected_org != None" href="${h.relative_url_for(organization=None)}">Index of all publishers</a>
               <select class="inline js-auto-submit" id="option-organization" name="organization">
                 <option py:if="c.offer_organization_index" value="" py:attrs="{'selected': 'selected' if selected_org == None else None}">
