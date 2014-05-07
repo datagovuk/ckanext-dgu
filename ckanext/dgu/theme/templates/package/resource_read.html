@@ -56,13 +56,15 @@
           </py:otherwise>
         </py:choose>
       </a>
-      <a py:if="h.get_cache_url(c.resource) and not bool(h.get_resource_wms(c.resource))" class="btn btn-danger resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${h.get_cache_url(c.resource)}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
-        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: ${h.render_datestamp(c.resource.get('cache_last_updated')) or 'unknown'}">
+      <py:with vars="cache_url, cache_timestamp = h.get_cache(c.resource)">
+       <a py:if="cache_url and not bool(h.get_resource_wms(c.resource))" class="btn btn-danger resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${cache_url}" onclick="${h.ga_download_tracking(c.resource, 'download-cache')}">
+        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: ${cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown'}">
           <py:if test="not bool(h.get_resource_wms(c.resource))">
               <i class="icon-save"></i>&nbsp; Cached
           </py:if>
         </div>
-      </a>
+       </a>
+      </py:with>
       <py:if test="config.get('ckan.datastore.enabled', False)">
         <py:if test="c.resource.get('webstore_url')">
           <a class="btn btn-success btn-datagov" data-toggle="modal" href=".modal-data-api-help">Data API</a>

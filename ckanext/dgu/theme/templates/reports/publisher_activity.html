@@ -4,29 +4,37 @@
   py:strip="">
 
 
-<!--  <xi:include href="../feedback/_feedback_util.html" />-->
-
+      <div py:for="quarter in c.data['quarters']" style="margin-top: 10px; margin-bottom:10px;">
+        <h3>
+            ${quarter.capitalize()} Quarter
+            (${h.render_datetime(c.data['quarters'][quarter][0])} -
+             ${h.render_datetime(c.data['quarters'][quarter][1])})
+        </h3>
         <div py:for="type in ('created', 'modified')" style="margin-top: 10px; margin-bottom:10px;">
-          <p>${type.capitalize()} in the last 3 months:</p>
-          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
-            <tr>
-              <th>Dataset</th>
-              <th>${type.capitalize()}</th>
-              <th>By</th>
-              <th>Published data</th>
-            </tr>
-            <py:for each="name,title,created_or_modified,timestamp,user,pub in c.data['data']">
-              <tr py:if="created_or_modified==type">
-                  <td><a href="${h.url_for(controller='package',action='read',id=name)}">${ title }</a></td>
-                  <td>${ h.render_datetime(timestamp, with_hours=True) }</td>
-                  <td>${ h.linked_user(user) }</td>
-                  <td><span py:if="pub">Yes</span>
-                      <span py:if="not pub">No</span>
-                  </td>
-              </tr>
-            </py:for>
-          </table>
+          <py:with vars="rows = [row for row in c.data['data'] if (row[2]==type and row[3]==quarter)]">
+          <p>${type.capitalize()} (${len(rows)}):</p>
+            <table py:if="rows" class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
+                <tr>
+                <th>Dataset</th>
+                <th>${type.capitalize()}</th>
+                <th>By</th>
+                <th>Published data</th>
+                </tr>
+                <py:for each="name,title,created_or_modified,quarter_,timestamps,users,pub in rows">
+                <tr>
+                    <td><a href="${h.url_for(controller='package',action='read',id=name)}">${ title }</a></td>
+                    <td>${ h.literal(', '.join((h.render_datetime(timestamp) for timestamp in timestamps.split(' ')))) }</td>
+                    <td>${ h.literal(', '.join((h.linked_user(user) for user in users.split(' ')))) }</td>
+                    <td><span py:if="pub">Yes</span>
+                        <span py:if="not pub">No</span>
+                    </td>
+                </tr>
+                </py:for>
+            </table>
+            <p py:if="not rows" style="font-style: italic; margin-left:20px">None</p>
+          </py:with>
         </div>
+      </div>
 
 </html>
 

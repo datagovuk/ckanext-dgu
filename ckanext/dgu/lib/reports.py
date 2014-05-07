@@ -1,4 +1,5 @@
 import collections
+import datetime
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 from ckanext.dgu.lib.publisher import go_down_tree
@@ -114,14 +115,6 @@ def sql_to_filter_by_organisation(organisation,
         sub_org_filters = ['"group".name=\'%s\'' % org.name for org in go_down_tree(organisation)]
         sql_org_filter['org_filter'] = '(%s)' % ' or '.join(sub_org_filters)
     return sql_org_filter, sql_params
-
-
-def british_date_formatter(datetime_):
-    return datetime_.strftime('%d/%m/%Y')
-
-
-def british_datetime_formatter(datetime_):
-    return datetime_.strftime('%d/%m/%Y  %H:%M')
 
 
 def organisation_resources(organisation_name,
@@ -317,7 +310,6 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
     For the publisher provided (and optionally for sub-publishers) this
     function will generate a report on the feedback for that publisher.
     """
-    import datetime
     import ckan.lib.helpers as helpers
     from ckanext.dgu.lib.publisher import go_down_tree
     from ckanext.dgu.model.feedback import Feedback
@@ -423,51 +415,110 @@ feedback_report_info = {
     'template': 'reports/feedback.html',
     }
 
+def get_quarter_dates(datetime_now):
+    '''Returns the dates for this (current) quarter and last quarter. Uses
+    calendar year, so 1 Jan to 31 Mar etc.'''
+    now = datetime_now
+    month_this_q_started = (now.month - 1) // 3 * 3 + 1
+    this_q_started = datetime.datetime(now.year, month_this_q_started, 1)
+    this_q_ended = datetime.datetime(now.year, now.month, now.day)
+    last_q_started = datetime.datetime(
+                      this_q_started.year + (this_q_started.month-3)/12,
+                      (this_q_started.month-4) % 12 + 1,
+                      1)
+    last_q_ended = this_q_started - datetime.timedelta(days=1)
+    return {'this': (this_q_started, this_q_ended),
+            'last': (last_q_started, last_q_ended)}
+
 
 def publisher_activity(organization, include_sub_organizations=False):
     """
-    Contains information about the datasets a specific organization has released within
-    the last 3 months.
+    Contains information about the datasets a specific organization has
+    released in this and last quarter (calendar year). This is needed by
+    departments for their quarterly transparency reports.
     """
     import datetime
     import ckan.model as model
     from paste.deploy.converters import asbool
 
-    created = []
-    modified = []
+    system_authors = ('autotheme', 'co-prod3.dh.bytemark.co.uk', 'Date format tidier', 'current_revision_fixer', 'current_revision_fixer2')
 
-    cutoff = datetime.datetime.now() - datetime.timedelta(3*365/12)
+    created = {'this': [], 'last': []}
+    modified = {'this': [], 'last': []}
+
+    now = datetime.datetime.now()
+    quarters = get_quarter_dates(now)
 
     publisher = model.Group.by_name(organization)
     if not publisher:
         raise p.toolkit.NotFound()
 
     for pkg in model.Session.query(model.Package)\
-            .filter(model.Package.owner_org==publisher.id)\
-            .filter(model.Package.state=='active').all():
+            .filter(model.Package.owner_org == publisher.id)\
+            .all():
 
-        rc = model.Session.query(model.PackageRevision)\
-            .filter(model.PackageRevision.id==pkg.id) \
+        created_ = model.Session.query(model.PackageRevision)\
+            .filter(model.PackageRevision.id == pkg.id) \
             .order_by("revision_timestamp asc").first()
-        rm = model.Session.query(model.PackageRevision)\
-            .filter(model.PackageRevision.id==pkg.id) \
-            .order_by("revision_timestamp desc").first()
 
-        if rc.revision_timestamp > cutoff:
-            rc.published = not asbool(pkg.extras.get('unpublished'))
-            created.append((rc.name,rc.title,'created',rc.revision_timestamp.isoformat(),rc.revision.author,rc.published))
+        pr_q = model.Session.query(model.PackageRevision, model.Revision)\
+            .filter(model.PackageRevision.id == pkg.id)\
+            .filter_by(state='active')\
+            .join(model.Revision)\
+            .filter(~model.Revision.author.in_(system_authors))
+        rr_q = model.Session.query(model.Package, model.ResourceRevision, model.Revision)\
+            .filter(model.Package.id == pkg.id)\
+            .filter_by(state='active')\
+            .join(model.ResourceGroup)\
+            .join(model.ResourceRevision,
+                  model.ResourceGroup.id == model.ResourceRevision.resource_group_id)\
+            .join(model.Revision)\
+            .filter(~model.Revision.author.in_(system_authors))
+        pe_q = model.Session.query(model.Package, model.PackageExtraRevision, model.Revision)\
+            .filter(model.Package.id == pkg.id)\
+            .filter_by(state='active')\
+            .join(model.PackageExtraRevision,
+                  model.Package.id == model.PackageExtraRevision.package_id)\
+            .join(model.Revision)\
+            .filter(~model.Revision.author.in_(system_authors))
 
-        if rm.revision_timestamp > cutoff:
-            exists = [rc[0] for rc in created]
-            if not rm.name in exists:
-                rm.published = not asbool(pkg.extras.get('unpublished'))
-                modified.append((rm.name,rm.title,'modified',rm.revision_timestamp.isoformat(),rm.revision.author,rm.published))
+        for quarter_name in quarters:
+            quarter = quarters[quarter_name]
+            if quarter[0] < created_.revision_timestamp < quarter[1]:
+                published = not asbool(pkg.extras.get('unpublished'))
+                created[quarter_name].append(
+                    (created_.name, created_.title, 'created', quarter_name,
+                     created_.revision_timestamp.isoformat(),
+                     created_.revision.author, published))
+            else:
+                prs = pr_q.filter(model.PackageRevision.revision_timestamp > quarter[0])\
+                          .filter(model.PackageRevision.revision_timestamp < quarter[1])
+                rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > quarter[0])\
+                          .filter(model.ResourceRevision.revision_timestamp < quarter[1])
+                pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > quarter[0])\
+                          .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
+                authors = ' '.join(set([r[1].author for r in prs] +
+                                      [r[2].author for r in rrs] +
+                                      [r[2].author for r in pes]))
+                dates = set([r[1].timestamp.date() for r in prs] +
+                            [r[2].timestamp.date() for r in rrs] +
+                            [r[2].timestamp.date() for r in pes])
+                dates_formatted = ' '.join([date.isoformat()
+                                            for date in sorted(dates)])
+                if authors:
+                    published = not asbool(pkg.extras.get('unpublished'))
+                    modified[quarter_name].append(
+                        (pkg.name, pkg.title, 'modified', quarter_name,
+                         dates_formatted, authors, published))
 
-    datasets = sorted(created, key=lambda x: x[1])
-    datasets += sorted(modified, key=lambda x: x[1])
-    columns = ('Dataset name', 'Dataset title', 'Modified or created', 'Timestamp', 'Author', 'Published')
+    datasets = []
+    for quarter_name in quarters:
+        datasets += sorted(created[quarter_name], key=lambda x: x[1])
+        datasets += sorted(modified[quarter_name], key=lambda x: x[1])
+    columns = ('Dataset name', 'Dataset title', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
-    return {'data': datasets, 'columns': columns}
+    return {'data': datasets, 'columns': columns,
+            'quarters': quarters}
 
 def publisher_activity_combinations():
     for org in all_organizations():

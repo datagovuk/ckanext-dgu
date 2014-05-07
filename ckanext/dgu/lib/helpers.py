@@ -32,7 +32,6 @@ def resource_as_json(resource):
     return json.dumps(resource)
 
 def is_resource_broken(resource_id):
-    import ckan.model as model
     from ckanext.archiver.model import Archival
 
     archival = Archival.get_for_resource(resource_id)
@@ -370,14 +369,16 @@ def render_datestamp(datestamp_str, format='%d/%m/%Y'):
     except Exception:
         return ''
 
-def get_cache_url(resource_dict):
-    url = resource_dict.get('cache_url')
-    if not url:
-        return
-    url = url.strip().replace('None', '')
+def get_cache(resource_dict):
+    from ckanext.archiver.model import Archival
+    archival = Archival.get_for_resource(resource_dict['id'])
+    if not archival:
+        return (None, None)
+    url = archival.cache_url.strip().replace('None', '')
     # strip off the domain, in case this is running in test
     # on a machine other than data.gov.uk
-    return url.replace('http://data.gov.uk/', '/')
+    url = url.replace('http://data.gov.uk/', '/')
+    return url, archival.updated
 
 
 # used in render_stars and read_common.html

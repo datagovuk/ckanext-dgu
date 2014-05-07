@@ -46,7 +46,7 @@ class SearchIndexing(object):
         log.debug('Unpublished? %s: %s', pkg_dict['unpublished'], pkg_dict['name'])
 
         pkg_dict['core_dataset'] = pkg_dict.get('core-dataset', False)
-        log.debug('Core-dataset? %s: %s', pkg_dict['core_dataset'], pkg_dict['name'])
+        log.debug('NII dataset? %s: %s', pkg_dict['core_dataset'], pkg_dict['name'])
 
         # We also need to mark whether it is restricted (as in it will never be
         # released).
@@ -57,7 +57,7 @@ class SearchIndexing(object):
     @classmethod
     def add_field__is_ogl(cls, pkg_dict):
         '''Adds the license_id-is-ogl field.'''
-        if not pkg_dict.has_key('license_id-is-ogl'):
+        if 'license_id-is-ogl' not in pkg_dict:
             is_ogl = cls._is_ogl(pkg_dict)
             pkg_dict['license_id-is-ogl'] = is_ogl
             pkg_dict['extras_license_id-is-ogl'] = is_ogl
@@ -206,23 +206,25 @@ class SearchIndexing(object):
     @classmethod
     def add_field__openness(cls, pkg_dict):
         '''Add the openness score (stars) to the search index'''
-        pkg = model.Session.query(model.Package).get(pkg_dict['id'])
-        pkg_score = None
-        for res in pkg.resources:
-            status = model.Session.query(model.TaskStatus).\
-                     filter_by(entity_id=res.id).\
-                     filter_by(task_type='qa').\
-                     filter_by(key='status').first()
-            if status:
-                score = status.value
-                if not pkg_score or score > pkg_score:
-                    pkg_score = score
-        if not pkg.resources:
-            pkg_score = 0
-        if pkg_score is None or pkg_score == ' ':
-            pkg_score = -1
-
-        pkg_dict['openness_score'] = pkg_score
-        log.debug('Openness score %s: %s', pkg_score, pkg_dict['name'])
-        return pkg # for use in other methods
+        import ckan
+        from ckanext.dgu.plugins_toolkit import get_action
+        context = {'model': ckan.model, 'session': ckan.model.Session,
+                   'ignore_auth': True}
+        data_dict = {'id': pkg_dict['id']}
+        try:
+            qa = get_action('qa_package_show')(context, data_dict)
+        except ObjectNotFound:
+            log.warning('No QA info for package %s', pkg_dict['name'])
+            return
+        pkg_dict['openness_score'] = qa.get('openness_score')
+        if not hasattr(cls, 'broken_links_map'):
+            cls.broken_links_map = {
+                    True: 'Broken',
+                    'some': 'Partially broken',
+                    False: 'OK',
+                    None: 'TBC'
+                    }
+        pkg_dict['broken_links'] = cls.broken_links_map[qa.get('archival_is_broken')]
+        log.debug('Openness score %s: %s', pkg_dict['openness_score'], pkg_dict['name'])
+        log.debug('Broken links %s: %s', pkg_dict['broken_links'], pkg_dict['name'])
 
