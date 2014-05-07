@@ -265,9 +265,9 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
             user = model.User.get('user_d%s' % drupal_user_id)
     user_is_official = not user or (user.get_groups('publisher') or user.sysadmin)
     if user and user.name.startswith('user_d'):
-        user_drupal_name = user.fullname
+        drupal_user_id = int(user.name[6:])
     else:
-        user_drupal_name = None
+        drupal_user_id = None
 
     # Now decide how to display the user
     if (c.is_an_official or this_is_me or not user_is_official):
@@ -280,14 +280,11 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
 
             display_name = '%s (%s)' % (user.fullname, publisher)
             link_text = truncate(user.fullname or user.name, length=maxlength)
-            if user_is_official or not user_drupal_name:
+            if user_is_official or not drupal_user_id:
                 # officials use the CKAN user page for the time being (useful for debug)
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # public use the Drupal user page. Drupal user page has removed the
-                # . from any users names so ross.jones becomes rossjones. It also converts
-                # spaces to -.
-                link_url = '/users/%s' % user_drupal_name.replace('.', '').replace(' ', '-')
+                link_url = '/user/%d' % drupal_user_id
             return h.link_to(link_text,
                              urllib.quote(link_url))
         else:
