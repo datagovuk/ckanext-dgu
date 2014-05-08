@@ -158,7 +158,7 @@ ${h.top_level_init()}
       <ul class="subnav subnav-data active" py:with="url=c.environ.get('CKAN_CURRENT_URL')">
         <li><a class="${if_(url.startswith('/data/search') or url.startswith('/dataset/'),'active')}" href="${h.url_for(controller='package', action='search')}">Datasets</a></li>
         <li><a class="${if_(url.startswith('/data/map-based-search'),'active')}" href="/data/map-based-search">Map Search</a></li>
-        <li><a class="" href="/odug">Data Requests</a></li>
+        <li><a class="" href="/data-request">Data Requests</a></li>
         <li><a class="${if_(url.startswith('/publisher'),'active')}" href="/publisher">Publishers</a></li>
         <li><a class="" href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
         <li><a class="${if_(url.startswith('/data/openspending-browse'),'active')}" href="/data/openspending-browse">OpenSpending</a></li>
