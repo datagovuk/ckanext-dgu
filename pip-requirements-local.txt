@@ -12,7 +12,12 @@
 # pastescript isn't required as a dependency, but it *is* required
 # in order to be able to run paster commands within the correct
 # virtualenv when deployed.
+paste
+pastedeploy
 pastescript
+
+# unicodecsv for refine_packages command
+unicodecsv
 
 # Beautiful Soup for gov_daily.py
 beautifulsoup4
