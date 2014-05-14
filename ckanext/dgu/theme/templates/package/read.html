@@ -212,7 +212,7 @@
         <a href="#" class="dataset-resource-chevron" data-toggle="dropdown" style="pointer-events:auto;">
           <i class="icon-chevron-down"></i>
         </a>
-        <ul class="dropdown-menu" role="menu" py:with="gemini = res.get('gemini',False)">
+        <ul class="dropdown-menu" role="menu" style="pointer-events:auto;" py:with="gemini = res.get('gemini',False)">
           <li py:if="gemini">
             <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
               <i class="icon-search"></i>&nbsp; ${res['action']}
