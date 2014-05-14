@@ -441,17 +441,16 @@ def publisher_activity(organization, include_sub_organizations=False):
         raise p.toolkit.ObjectNotFound()
 
     if include_sub_organizations:
-        if include_sub_organizations:
-            orgs = sorted([x for x in go_down_tree(organization)],
-                          key=lambda x: x.title)
-            org_ids = [x.id for x in orgs]
-            pkgs = model.Session.query(model.Package)\
-                        .filter(model.Package.owner_org.in_(org_ids))\
-                        .all()
-        else:
-            pkgs = model.Session.query(model.Package)\
-                        .filter(model.Package.owner_org == organization.id)\
-                        .all()
+        orgs = sorted([x for x in go_down_tree(organization)],
+                      key=lambda x: x.title)
+        org_ids = [x.id for x in orgs]
+        pkgs = model.Session.query(model.Package)\
+                    .filter(model.Package.owner_org.in_(org_ids))\
+                    .all()
+    else:
+        pkgs = model.Session.query(model.Package)\
+                    .filter(model.Package.owner_org == organization.id)\
+                    .all()
 
     for pkg in pkgs:
         created_ = model.Session.query(model.PackageRevision)\
