@@ -32,14 +32,10 @@ def resource_as_json(resource):
     return json.dumps(resource)
 
 def is_resource_broken(resource_id):
-    import ckan.model as model
-    from ckanext.qa.model import QATask
+    from ckanext.archiver.model import Archival
 
-    q = model.Session.query(QATask)\
-        .filter(QATask.resource_id==resource_id)\
-        .filter(QATask.is_broken==True)
-    return q.count() > 0
-
+    archival = Archival.get_for_resource(resource_id)
+    return archival and archival.is_broken==True
 
 def _is_additional_resource(resource):
     """
@@ -82,6 +78,14 @@ def resource_type(resource):
     fs = zip(('additional', 'timeseries', 'individual'),
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
+
+def organization_list():
+    from ckan import model
+    organizations = model.Session.query(model.Group).\
+        filter(model.Group.type=='organization').\
+        filter(model.Group.state=='active').order_by('title')
+    for organization in organizations:
+        yield (organization.name, organization.title)
 
 def publisher_hierarchy():
     from ckan.logic import get_action
@@ -229,32 +233,40 @@ def userobj_from_username(username):
     from ckan import model
     return model.User.get(username)
 
-def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwrite h.linked_user
-    '''Given a user.name, user object or Drupal user name , return the HTML for a user,
-    making sure officials are kept anonymous to the public.
-    user parameter can be any of:
+
+def user_properties(user):
+    '''
+    Given a user, returns the user object and whether they are a system user or
+    an official (requiring some anonymity).
+
+    `user` parameter can be any of:
     * CKAN user.name e.g. 'user_d845'
     * user object
     * Drupal user name e.g. 'davidread'
     * Old Drupal user ID as stored in revisions e.g. 'NHS North Staffordshire (uid 6107 )'
+
+    Returns: (user_name, user, type, this_is_me)
+    where:
+    * user might be None if there isn't an object for the user_name
+    * type is in (None, 'system', 'official')
     '''
     from ckan import model
-    from ckan.lib.base import h
-
-    # Work out who the user is that we want to view
+    is_system = False
     if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
         # These values occur in tests only?
-        return user
+        user_name = user
+        is_system = True
     if not isinstance(user, model.User):
         user_name = unicode(user)
         user = model.User.get(user_name) or model.Session.query(model.User).filter_by(fullname=user_name).first()
+    else:
+        user_name = user.name
 
-    # Check if this is the site_user, and if so return 'system update' without an URL.
+    # Check if this is the site_user
     site_user_name = config.get('ckan.site_id', 'ckan_site_user')
     if user and user.name == site_user_name:
-        return "System Process"
-
-    this_is_me = user and (c.user in (user.name, user.fullname))
+        user_name = 'Site user'
+        is_system = True
 
     if not user:
         # Up til Jun 2012, CKAN saved Drupal users in this format:
@@ -263,41 +275,56 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
         if match:
             drupal_user_id = match.groups()[0]
             user = model.User.get('user_d%s' % drupal_user_id)
-    user_is_official = not user or (user.get_groups('publisher') or user.sysadmin)
+
+    this_is_me = user and (c.user in (user.name, user.fullname))
+
+    is_official = not user or (user.get_groups('organization') or user.sysadmin)
     if user and user.name.startswith('user_d'):
-        user_drupal_name = user.fullname
+        user_drupal_id = user.name.split('user_d')[-1]
     else:
-        user_drupal_name = None
+        user_drupal_id = None
+    type_ = 'system' if is_system else ('official' if is_official else None)
+    return user_name, user, user_drupal_id, type_, this_is_me
+
+def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
+    '''Given a user, return the display name and link to their profile page.
+    '''
+    from ckan.lib.base import h
+
+    # Work out who the user is that we want to view
+    user_name, user, user_drupal_id, type_, this_is_me = user_properties(user_name)
 
     # Now decide how to display the user
-    if (c.is_an_official or this_is_me or not user_is_official):
-        # To see the actual user name:
-        # * viewing ones own user
+    if c.is_an_official is '':
+        c.is_an_official = bool(c.groups or is_sysadmin())
+    if (c.is_an_official or this_is_me or type_ is None):
+        # User can see the actual user name - i.e. if:
         # * viewer is an official
+        # * viewing ones own user
         # * viewing a member of public
         if user:
-            publisher = ', '.join([group.title for group in user.get_groups('organization')])
-
-            display_name = '%s (%s)' % (user.fullname, publisher)
-            link_text = truncate(user.fullname or user.name, length=maxlength)
-            if user_is_official or not user_drupal_name:
+            if type_ == 'system':
+                name = 'System Process (%s)' % user_name
+            else:
+                name = user.fullname or user.name
+            if type_ == 'official' or not user_drupal_id:
                 # officials use the CKAN user page for the time being (useful for debug)
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # public use the Drupal user page. Drupal user page has removed the
-                # . from any users names so ross.jones becomes rossjones. It also converts
-                # spaces to -.
-                link_url = '/users/%s' % user_drupal_name.replace('.', '').replace(' ', '-')
-            return h.link_to(link_text,
-                             urllib.quote(link_url))
+                # Public use the Drupal user page.
+                link_url = '/users/%s' % user_drupal_id
+            return (name, link_url)
         else:
-            return truncate(user_name, length=maxlength)
+            if type_ == 'system':
+                user_name = 'System Process (%s)' % user_name
+            return (user_name, None)
     else:
-        # joe public just gets a link to the user's publisher(s)
+        # Can't see the user name - it gets anonymised.
+        # Joe public just gets a link to the user's publisher(s)
         if user:
             groups = user.get_groups('organization')
-            if is_sysadmin(user):
-                return 'System Administrator'
+            if type_ == 'official' and is_sysadmin(user):
+                return ('System Administrator', None)
             elif groups:
                 # We don't want to show all of the groups that the user belongs to.
                 # We will try and match the organisation name if provided and use that
@@ -308,17 +335,30 @@ def dgu_linked_user(user, maxlength=16, avatar=30, organisation=None):  # Overwr
                     if group.title == organisation:
                         matched_group = group
                         break
-
                 if not matched_group:
                     matched_group = groups[0]
 
-                val = h.link_to(truncate(matched_group.title, length=maxlength),
-                                                 '/publisher/%s' % matched_group.name)
-                return t.literal(val)
+                return (matched_group.title,
+                       '/publisher/%s' % matched_group.name)
+            elif type_ == 'system':
+                return ('System Process', None)
             else:
-                return 'Staff'
+                return ('Staff', None)
         else:
-            return 'Staff'
+            return ('System process' if type_ == 'system' else 'Staff', None)
+
+def dgu_linked_user(user_name, maxlength=24, organisation=None):  # Overwrite h.linked_user
+    '''Given a user, return the HTML Anchor to their user profile page, making
+    sure officials are kept anonymous to the public.
+    '''
+    from ckan.lib.base import h
+    display_name, href = user_link_info(user_name, organisation=organisation)
+    display_name = truncate(display_name, length=maxlength)
+    if href:
+        return h.link_to(display_name, urllib.quote(href))
+    else:
+        return display_name
+
 
 def render_datestamp(datestamp_str, format='%d/%m/%Y'):
     # e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
@@ -329,29 +369,23 @@ def render_datestamp(datestamp_str, format='%d/%m/%Y'):
     except Exception:
         return ''
 
-def get_cache_url(resource_dict):
-    url = resource_dict.get('cache_url')
-    if not url:
-        return
-    url = url.strip().replace('None', '')
+def get_cache(resource_dict):
+    from ckanext.archiver.model import Archival
+    archival = Archival.get_for_resource(resource_dict['id'])
+    if not archival:
+        return (None, None)
+    url = (archival.cache_url or '').strip().replace('None', '')
     # strip off the domain, in case this is running in test
     # on a machine other than data.gov.uk
-    return url.replace('http://data.gov.uk/', '/')
+    url = url.replace('http://data.gov.uk/', '/')
+    return url, archival.updated
 
-def get_stars_aggregate(dataset_id):
-    '''For a dataset, of all its resources, get details of the one with the highest QA score.
-    returns a dict of details including:
-      {'value': 3, 'last_updated': '2012-06-15T13:20:11.699', ...}
-    '''
-    try:
-        import ckanext.qa
-    except ImportError:
-        return None
-    from ckanext.qa.reports import dataset_five_stars
-    stars_dict = dataset_five_stars(dataset_id)
-    return stars_dict
 
+# used in render_stars and read_common.html
 def mini_stars_and_caption(num_stars):
+    '''
+    Returns HTML for a numbers of mini-stars with a caption describing the meaning.
+    '''
     mini_stars = num_stars * '&#9733'
     mini_stars += '&#9734' * (5-num_stars)
     captions = [
@@ -364,24 +398,36 @@ def mini_stars_and_caption(num_stars):
         ]
     return t.literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
+# Used in read_common.html
 def calculate_dataset_stars(dataset_id):
-    stars_dict = get_stars_aggregate(dataset_id)
-    if not stars_dict:
-        return (0,'','')
-    return (stars_dict.get('value',0),stars_dict.get('reason',''),stars_dict.get('last_updated',''),)
+    from ckan.logic import get_action, NotFound
+    from ckan import model
+    try:
+        context = {'model': model, 'session': model.Session}
+        qa = get_action('qa_package_openness_show')(context, {'id': dataset_id})
+    except NotFound:
+        return (0, '', '')
+    if not qa:
+        return (0, '', '')
+    return (qa['openness_score'],
+            qa['openness_score_reason'],
+            qa['updated'])
 
+# Used in resource_read.html
 def render_resource_stars(resource_id):
-    from ckanext.qa import reports
-    if not c.resource_five_stars or \
-           resource_id != c.resource_five_stars['resource_id']:
-        c.resource_five_stars = reports.resource_five_stars(resource_id)
-        c.resource_five_stars['resource_id'] = resource_id
-        if not c.resource_five_stars:
-            return 'To be determined'
-    return render_stars(c.resource_five_stars.get('openness_score', -1),
-                        c.resource_five_stars.get('openness_score_reason'),
-                        c.resource_five_stars.get('openness_updated'))
+    from ckan.logic import get_action, NotFound
+    from ckan import model
+    try:
+        context = {'model': model, 'session': model.Session}
+        qa = get_action('qa_resource_show')(context, {'id': resource_id})
+    except NotFound:
+        return 'To be determined'
+    if not qa:
+        return 'To be determined'
+    return render_stars(qa['openness_score'], qa['openness_score_reason'],
+                        qa['updated'])
 
+# used by render_qa_info_for_resource
 def does_detected_format_disagree(detected_format, resource_format):
     '''Returns boolean saying if there is an anomoly between the format of the
     resolved URL detected by ckanext-qa and resource.format (as input by the
@@ -391,40 +437,43 @@ def does_detected_format_disagree(detected_format, resource_format):
     is_disagreement = detected_format.strip().lower() != resource_format.strip().lower()
     return is_disagreement
 
+# used by resource_read.html
 def render_qa_info_for_resource(resource_dict):
     resource_id = resource_dict['id']
+    from ckan.logic import get_action, NotFound
+    from ckan import model
     try:
-        from ckanext.qa import reports
-    except ImportError:
-        return ''
-    if not c.resource_five_stars or \
-           resource_id != c.resource_five_stars['resource_id']:
-        c.resource_five_stars = reports.resource_five_stars(resource_id)
-        if not c.resource_five_stars:
-            return 'To be determined'
-    if not c.resource_five_stars.get('reason'):
+        context = {'model': model, 'session': model.Session}
+        qa = get_action('qa_resource_show')(context, {'id': resource_id})
+    except NotFound:
         return 'To be determined'
-    c.resource_five_stars['reason_list'] = c.resource_five_stars['reason'].replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
-    ctx = {'qa': c.resource_five_stars,
-           'resource_format': resource_dict['format'],
-           'resource_format_disagrees': does_detected_format_disagree(c.resource_five_stars['format'], resource_dict['format']),
+    if not qa:
+        return 'To be determined'
+    reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
+    resource = model.Resource.get(resource_id)
+    ctx = {'qa': qa,
+           'reason_list': reason_list,
+           'resource_format': resource.format,
+           'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
            'is_data': resource_dict['resource_type'] in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
 
 def render_stars(stars, reason, last_updated):
+    '''Returns HTML to show a number of stars out of five, with a reason and
+    date, plus a tooltip describing the levels.'''
     if stars==0:
         stars_html = 5 * '<i class="icon-star-empty"></i>'
     else:
-        stars_html = stars * '<i class="icon-star"></i>'
+        stars_html = (stars or 0) * '<i class="icon-star"></i>'
 
     tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
     for i in range(5,0,-1):
-        classname = 'fail' if (i > stars) else ''
+        classname = 'fail' if (i > (stars or 0)) else ''
         tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
     if last_updated:
-        datestamp = last_updated.strftime('%d/%m/%Y')
+        datestamp = render_datestamp(last_updated)
         tooltip += t.literal('<div class="star-rating-last-updated"><b>Score updated: </b>%s</div>' % datestamp)
 
     return t.literal('<span class="star-rating"><span class="tooltip">%s</span><a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">%s</a></span>' % (tooltip, stars_html))
@@ -1795,3 +1844,15 @@ def report_generated_at(reportname, object_id='__all__', withsub=False):
         .format(nm, object_id, cache_data is not None))
     return cache_data[0] if cache_data else datetime.datetime.now()
 
+def relative_url_for(**kwargs):
+    '''Return the existing URL but amended for the given url_for-style
+    parameters'''
+    from ckan.lib.base import h
+    args = dict(request.environ['pylons.routes_dict'].items()
+                + request.params.items()
+                + kwargs.items())
+    # remove blanks
+    for k, v in args.items():
+        if not v:
+            del args[k]
+    return h.url_for(**args)

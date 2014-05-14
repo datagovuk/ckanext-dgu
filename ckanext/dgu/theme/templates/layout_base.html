@@ -21,7 +21,7 @@
   </py:if>
   <!--! IE=edge tells IE8 not to be tempted to use IE7 compatibility/quirks modes.
         chrome=IE7 tells IE7 to use the Chrome Frame if available - good for Flex machines.
-        Should be the first meta tag in the body. -->
+        Should be the first meta tag in the head. -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=IE7" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -168,6 +168,7 @@ ${h.top_level_init()}
         <py:if test="h.ga_report_installed()">
           <li><a class="${if_(url.startswith('/data/site-usage'),'active')}" href="/data/site-usage">Site Analytics</a></li>
         </py:if>
+          <li><a class="${if_(url.startswith('/data/report'),'active')}" href="/data/report">Reports</a></li>
         <br/>
 
         <py:if test="h.is_sysadmin()">

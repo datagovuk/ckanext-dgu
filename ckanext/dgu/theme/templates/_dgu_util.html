@@ -385,6 +385,13 @@
       )}
       <div class="facet-divider"></div>
       ${facet_box(
+          'Broken links',
+          h.search_facets_unselected(['broken_links']),
+          h.search_facets_selected(['broken_links']),
+          'No further broken link filters to apply.'
+      )}
+      <div class="facet-divider"></div>
+      ${facet_box(
           'UK Location Dataset Type',
           h.search_facets_unselected(['UKLP','resource-type','spatial-data-service-type']),
           h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),

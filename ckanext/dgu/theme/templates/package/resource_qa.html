@@ -3,36 +3,36 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   py:strip="">
 
-<div class="resource-qa">
-  <py:if test="qa['is_broken']">
+<div class="resource-qa" py:with="is_broken = qa['archival_is_broken']">
+  <py:if test="is_broken">
       <span>
         <i style="color:#D43F3A;" class="icon-exclamation-sign"></i>
         There is an error with this resource
       </span>
   </py:if>
   <ul>
-    <py:if test="qa['is_broken']">
-      <py:for each="reason in qa['reason_list']">
+    <py:if test="is_broken">
+      <py:for each="reason in reason_list">
         <li>${reason}</li>
       </py:for>
     </py:if>
-    <py:if test="not qa['is_broken']">
-      <py:if test="qa['value']==0 and is_data">
+    <py:if test="not is_broken">
+      <py:if test="qa['openness_score']==0 and is_data">
         <!--! link works but scores 0 stars - show warning -->
-        <li><span class="label label-danger">Error</span> URL does not appear to be open data</li>
-        <li>${qa['reason']}</li>
+        <li><span class="label label-warning">Warning</span> URL does not appear to be open data</li>
+        <li>${qa['openness_score_reason']}</li>
         <!--! Reason contains the format -->
       </py:if>
-      <py:if test="not (qa['value']==0 and is_data)">
+      <py:if test="not (qa['openness_score']==0 and is_data)">
         <!--! link works but since it is not data we don't care how many stars
               so no need to show any warning -->
-              <li py:if="qa['is_broken']==False"><span class="label label-primary">OK</span> URL works</li>
+              <li py:if="is_broken"><span class="label label-primary">OK</span> URL works</li>
               <li>Detected format: <div class="format-box">${qa['format']}</div></li>
       </py:if>
       <li py:if="resource_format_disagrees">
-        <span class="label label-danger">Error</span> Detected format "${qa['format']}" does not match the format described by the publisher "${resource_format}"
+        <span class="label label-warning">Warning</span> Detected format "${qa['format']}" does not match the format described by the publisher "${resource_format}"
       </li>
-      <li>Last checked: ${qa['last_updated'].strftime("%d/%m/%Y")}</li>
+      <li>Last checked: ${h.render_datestamp(qa['updated'])}</li>
     </py:if>
     <li py:if="qa.get('url_redirected_to')">URL redirects to: ${qa['url_redirected_to']}</li>
   </ul>

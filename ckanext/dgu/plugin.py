@@ -45,49 +45,10 @@ class ReportsPlugin(p.SingletonPlugin):
         Make "/data" the homepage.
         """
         report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
-        map.connect('reports', '/data/reports', controller=report_ctlr, action='index')
-        # Resource reports
-        map.connect('resources_report', '/data/reports/resources', controller=report_ctlr, action='resources')
-        map.connect('resources_report_org', '/data/reports/resources/:id', controller=report_ctlr, action='resources')
-        map.connect('nii_report', '/data/reports/nii', controller=report_ctlr, action='nii')
-        map.connect('nii_report_csv', '/data/reports/nii.csv', controller=report_ctlr, action='nii', format='csv')
-
-        # QA
-        qa_home = 'ckanext.qa.controllers.qa_home:QAHomeController'
-        qa_pkg = 'ckanext.qa.controllers.qa_package:QAPackageController'
-        qa_org = 'ckanext.qa.controllers.qa_organisation:QAOrganisationController'
-
-        map.connect('qa_reports', '/data/reports/qa', controller=qa_home, action='index')
-        map.connect('qa_dataset_reports', '/data/reports/qa/dataset/',
-                    controller=qa_pkg, action='index')
-        map.connect('qa_dataset_action_reports', '/data/reports/qa/dataset/{action}',
-                    controller=qa_pkg)
-
-        map.connect('qa_organisation_reports',
-                    '/data/reports/qa/organisation/',
-                    controller=qa_org, action='index')
-        map.connect('qa_organisation_action_reports', '/data/reports/qa/organisation/{action}',
-                    controller=qa_org)
-        map.connect('qa_organisation_action_id_reports',
-                    '/data/reports/qa/organisation/{action}/:id',
-                    controller=qa_org)
-
-
-        # Feedback reports
-        map.connect('feedback_reports', '/data/reports/feedback',
-                    controller=report_ctlr, action='feedback')
-        map.connect('feedback_reports_csv', '/data/reports/feedback/:id.{format}',
-                    controller=report_ctlr, action='feedback')
-        map.connect('feedback_report_org', '/data/reports/feedback/:id',
-                    controller=report_ctlr, action='feedback')
-        map.connect('feedback_report_org_csv', '/data/reports/feedback.{format}',
-                    controller=report_ctlr, action='feedback')
-
-        # Activity reports
-        map.connect('activity_reports_csv', '/data/reports/activity/{id}.{format}',
-                    controller=report_ctlr, action='activity')
-        map.connect('activity_reports', '/data/reports/activity/:id',
-                    controller=report_ctlr, action='activity')
+        map.connect('reports', '/data/report', controller=report_ctlr, action='index')
+        map.redirect('/data/reports', '/data/report')
+        map.connect('report', '/data/report/:report_name', controller=report_ctlr, action='view')
+        map.connect('report-org', '/data/report/:report_name/:organization', controller=report_ctlr, action='view')
 
         # Commitment reports
         c_ctlr = 'ckanext.dgu.controllers.commitment:CommitmentController'
@@ -98,11 +59,42 @@ class ReportsPlugin(p.SingletonPlugin):
         map.connect('commitments_edit', '/data/reports/commitments/:id/edit',
                     controller=c_ctlr, action='edit')
 
-        # Redirecting these so as to not break existing links
-        map.redirect('/data/feedback/report/{id}.{format}', '/data/reports/feedback/{id}.format')
+        # Redirects for changed report locations May 2014
+        map.redirect('/data/reports/qa/organisation/broken_resource_links',
+                     '/data/report/broken-links')
+        map.redirect('/data/reports/qa/organisation/broken_resource_links/:organization',
+                     '/data/report/broken-links/:organization')
+        map.redirect('/data/reports/feedback',
+                     '/data/report/feedback')
+        map.redirect('/data/reports/feedback/:organization',
+                     '/data/report/feedback/:organization')
+        map.redirect('/data/reports/resources/:organization',
+                     '/data/report/publisher-resources/:organization')
+        # openness done
+        map.redirect('/data/reports/qa',
+                     '/data/report')
+        map.redirect('/data/reports/qa/organisation/:organization',
+                     '/data/report/openness/:organization')
+        map.redirect('/api/2/util/qa/{a:.*}',
+                     '/data/report')
+        map.redirect('/data/reports/qa/organisation/scores',
+                     '/data/report/openness')
+        map.redirect('/data/reports/qa/organisation/scores/:organization',
+                     '/data/report/openness/:organization')
+        # commitments - keep in existing controller
+        #   /data/reports/commitments
+        #   /data/reports/commitments/cabinet-office
+        # site usage - keep as it is
+        # Other misc:
+        #   /publisher/report_publishers_and_users
+        #   /publisher/report_groups_without_admins
+        #   /publisher/report_users_not_assigned_to_groups
+
+        # Older redirect
+        map.redirect('/data/feedback/report/{id}.{format}', '/data/report/feedback/{id}?format={format}')
         map.redirect('/data/feedback/report/{id}', '/data/reports/feedback/{id}')
-        map.redirect('/data/feedback/report.{format}', '/data/reports/feedback.{format}')
-        map.redirect('/data/feedback/report', '/data/reports/feedback')
+        map.redirect('/data/feedback/report.{format}', '/data/report/feedback?format={format}')
+        map.redirect('/data/feedback/report', '/data/report/feedback')
 
         return map
 
@@ -292,7 +284,7 @@ class PublisherPlugin(p.SingletonPlugin):
 
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.ISession, inherit=True)
-    p.implements(p.ICachedReport)
+    p.implements(p.IReportCache)
 
     def before_commit(self, session):
         """
@@ -373,35 +365,16 @@ class PublisherPlugin(p.SingletonPlugin):
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
 
-    # ICachedReport
- 
+    # IReportCache
+
     def register_reports(self):
-        """
-        This method will be called so that the plugin can register the
-        reports it wants run.  The reports will then be executed on a
-        24 hour schedule and the appropriate tasks called.
-
-        This call should return a dictionary, where the key is a description
-        and the value should be the function to run. This function should
-        take a single parameter, which is a list of the reports to generate
-        by key.  If the plugin is unable to process that key then it should
-        return immediately.  If no list of keys is supplied then the plugin
-        should generate all reports.
-        """
-        from ckanext.dgu.lib.publisher import cached_openness_scores
-        from ckanext.dgu.lib.reports import cached_reports
-
-        return {'Cached Openness Scores': cached_openness_scores,
-                'Cached reports': cached_reports,
-                }
-
-    def list_report_keys(self):
-        """
-        Returns a list of the reports that the plugin can generate by
-        returning each key name as an item in a list.
-        """
-        return ['openness-scores', 'openness-scores-withsub',
-                'feedback-report', 'publisher-activity-report', 'nii_report']
+        """Register details of an extension's reports"""
+        from ckanext.dgu.lib import reports
+        return [reports.nii_report_info,
+                reports.feedback_report_info,
+                reports.publisher_activity_report_info,
+                reports.publisher_resources_info,
+                ]
 
 
 class InventoryPlugin(p.SingletonPlugin):
@@ -596,11 +569,6 @@ class ApiPlugin(p.SingletonPlugin):
         map.connect('/api/util/latest-unpublished', controller=api_controller, action='latest_unpublished')
         map.connect('/api/util/popular-unpublished', controller=api_controller, action='popular_unpublished')
 
-        reports_api_controller = 'ckanext.dgu.controllers.api:DguReportsController'
-        map.connect('reports_api',
-                    '/api/2/util/reports/{action}/:(id).:(format)',
-                    conditions=dict(method=['GET']),
-                    controller=reports_api_controller)
         return map
 
     def get_actions(self):

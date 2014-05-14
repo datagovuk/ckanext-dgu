@@ -10,12 +10,15 @@
   <py:def function="page_title">Reports</py:def>
 
   <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
     <li><a href="${h.url_for('reports')}">Reports</a></li>
   </py:match>
 
   <div py:match="content" class="dataset">
-    <!-- THIS TEMPLATE SHOULD NOW BE HIDDEN -->
+    <ul py:for="plugin, report_name, report_title in c.reports">
+      <li>
+        <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='view', report_name=report_name)}">${report_title}</a>
+      </li>
+    </ul>
   </div>
   <xi:include href="../layout_base.html" />
 

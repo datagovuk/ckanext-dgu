@@ -4,97 +4,57 @@
   py:strip="">
 
 
-<xi:include href="../feedback/_feedback_util.html" />
-
-  <py:def function="page_title">NII Report</py:def>
-
-  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="/data/reports">Reports</a></li>
-    <li><a href="${h.url_for('nii_report')}">NII report</a></li>
-  </py:match>
-
-  <div py:match="content" class="dataset">
-
-    <a href="${h.url_for('nii_report_csv')}" class="btn btn-primary pull-right">
-      <div class="download">
-           <i class="icon-download"></i>&nbsp;
-          Download as CSV
-      </div>
-    </a>
-
-
     <div class="widget-container">
 
-        <h1>NII report <small>${c.total_broken_resources} broken resources in ${c.total_broken_packages} broken datasets.</small></h1>
-
-        <h2>Last generated: ${h.render_datetime(h.report_generated_at('nii-report'), with_hours=True)}</h2>
-
-        <div py:if="h.is_sysadmin()" class="panel panel-info">
-          <div class="panel-heading"><strong>Rebuild report</strong></div>
-          <div class="panel-body">
-          <p>As a system administrator you are able to rebuild this report on demand by clicking the 'Rebuild' button.  This may take some time to complete.</p>
-
-          <a href="/data/reports/nii?regenerate" class="btn btn-info pull-right">Rebuild</a>
-          </div>
-        </div>
-
-
+        <p>
+          NII totals: ${c.data['num_resources']} resources in ${c.data['num_datasets']} datasets across ${c.data['num_organizations']} organizations
+        </p>
+        <p>
+          Broken: ${c.data['num_broken_resources']} broken resources in ${c.data['num_broken_datasets']} broken datasets across ${c.data['num_broken_organizations']} organizations
+        </p>
         <ul>
-        <py:for each="publisher in sorted(c.data.keys(),key=lambda x: x.title)">
-          <li><a href="#${publisher.name}">${publisher.title}</a></li>
+        <py:for each="publisher_name, publisher_title in c.data['organizations']">
+          <li><a href="#${publisher_name}">${publisher_title}</a></li>
         </py:for>
         </ul>
 
-        <py:for each="publisher in sorted(c.data.keys(),key=lambda x: x.title)">
-          <h2><a name="${publisher.name}" href="/publisher/${publisher.name}">${publisher.title}</a></h2>
+        <py:for each="publisher_name, publisher_title in c.data['organizations']">
+          <h2><a name="${publisher_name}" href="/publisher/${publisher_name}">${publisher_title}</a></h2>
           <table class="table table-bordered">
               <thead>
                 <tr>
                   <th>Dataset</th>
                   <th>Broken resource count</th>
-                  <th>Broken Resources</th>
-                  <th>Via StatsHub</th>
+                  <th>Broken resources</th>
+                  <th>Source</th>
                 </tr>
               </thead>
               <tbody>
-                <py:for each="lod in c.data.get(publisher)">
-                  <py:for each="pkg,res in lod.iteritems()">
-                    <tr py:attrs="{'class':'warning' if len(res) > 0 else None}">
-                        <td><a href="/dataset/${pkg.name}">${pkg.title}</a> <span py:if="h.asbool(pkg.extras.get('unpublished'))">(Unpublished)</span></td>
-                        <td>${len(res)}</td>
-                        <td py:if="len(res) == 0">No broken resources</td>
-                        <td py:if="len(res) != 0">
-                            <ul>
-                              <py:for each="rid,rdesc in res">
+                <py:for each="dataset in __import__('itertools').ifilter(lambda d: d['organization_name'] == publisher_name, c.data['data'])">
+                    <tr py:attrs="{'class':'warning' if dataset['num_broken_resources'] > 0 else None}">
+                        <td><a href="/dataset/${dataset['name']}">${dataset['title']}</a>
+                            <span py:if="dataset['unpublished']">(Unpublished)</span>
+                        </td>
+                        <td>${dataset['num_broken_resources']}</td>
+                        <td>
+                            <ul py:if="dataset['broken_resources']">
+                              <py:for each="rdesc,rid in dataset['broken_resources']">
                                 <li>
-                                    <a href="/dataset/${pkg.name}/resource/${rid}">${rdesc or "Unnamed"}</a>
+                                    <a href="/dataset/${dataset['name']}/resource/${rid}">${rdesc or "Unnamed"}</a>
                                 </li>
                               </py:for>
                             </ul>
                         </td>
                         <td>
-                          <py:if test="pkg.extras.get('external_reference','') == 'ONSHUB'">
-                            Yes
-                          </py:if>
-                          <py:if test="pkg.extras.get('external_reference','') != 'ONSHUB'">
-                            No
-                          </py:if>
-
+                          ${dataset['source']}
                         </td>
                     </tr>
-                  </py:for>
                 </py:for>
               </tbody>
           </table>
 
         </py:for>
-
-
-        <div class="clearfix"></div>
     </div>
-  </div>
 
-  <xi:include href="../layout_base.html" />
 </html>
 
