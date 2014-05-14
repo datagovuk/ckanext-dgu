@@ -10,6 +10,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 def get_source(package):
     '''Returns the source of package object if it is not entered by the form.
     Of particular interest are those from the NS Pub Hub (StatsHub) and
@@ -19,6 +20,7 @@ def get_source(package):
     if p.toolkit.asbool(package.extras.get('external_reference') == 'ONSHUB'):
         return 'StatsHub'
     return ''
+
 
 def nii_report():
     '''A list of the NII datasets, grouped by publisher, with details of broken
@@ -95,107 +97,83 @@ nii_report_info = {
     'template': 'reports/nii.html',
 }
 
-def sql_to_filter_by_organisation(organisation,
-                                  include_sub_organisations=False):
-    '''
-    Returns: (sql_org_filter, sql_params)
-    In your sql you need:
-          WHERE %(org_filter)s
-    Run this function:
-          sql_org_filter, sql_params = sql_to_filter_by_organisation( ... )
-    And execute your sql with the tuple:
-          rows = model.Session.execute(sql % sql_org_filter, sql_params)
-    '''
-    sql_org_filter = {}
-    sql_params = {}
-    if not include_sub_organisations:
-        sql_org_filter['org_filter'] = '"group".name = :org_name'
-        sql_params['org_name'] = organisation.name
-    else:
-        sub_org_filters = ['"group".name=\'%s\'' % org.name for org in go_down_tree(organisation)]
-        sql_org_filter['org_filter'] = '(%s)' % ' or '.join(sub_org_filters)
-    return sql_org_filter, sql_params
 
-
-def organisation_resources(organisation_name,
-                           include_sub_organisations=False,
-                           date_formatter=None):
+def publisher_resources(organization=None,
+                        include_sub_organizations=False):
     '''
     Returns a dictionary detailing resources for each dataset in the
     organisation specified.
-
-    headings: ['Publisher title', 'Publisher name', 'Dataset title', 'Dataset name', 'Resource index', 'Description', 'URL', 'Format', 'Date created']
-
-    i.e.:
-    {'organization_name': 'cabinet-office',
-     'organization_title:': 'Cabinet Office',
-     'schema': {'Publisher title': 'organization_id',
-                'Publisher name': 'organization_name',
-                ...},
-     'rows': [ row_dict, row_dict, ... ]
-    }
     '''
-    sql = """
-        select package.id as package_id,
-               package.title as package_title,
-               package.name as package_name,
-               resource.id as resource_id,
-               resource.url as resource_url,
-               resource.format as resource_format,
-               resource.description as resource_description,
-               resource.position as resource_position,
-               resource.created as resource_created,
-               "group".id as publisher_id,
-               "group".name as publisher_name,
-               "group".title as publisher_title
-        from resource
-            left join resource_group on resource.resource_group_id = resource_group.id
-            left join package on resource_group.package_id = package.id
-            left join member on member.table_id = package.id
-            left join "group" on member.group_id = "group".id
-        where
-            package.state='active'
-            and resource.state='active'
-            and resource_group.state='active'
-            and "group".state='active'
-            and %(org_filter)s
-        order by "group".name, package.name, resource.position
-        """
-    org = model.Group.by_name(organisation_name)
+    org = model.Group.by_name(organization)
     if not org:
-        abort(404, 'Publisher not found')
-    organisation_title = org.title
+        raise p.toolkit.ObjectNotFound('Publisher not found')
 
-    sql_org_filter, sql_params = sql_to_filter_by_organisation(
-        org,
-        include_sub_organisations=include_sub_organisations)
-    raw_rows = model.Session.execute(sql % sql_org_filter, sql_params)
+    # Get packages
+    if include_sub_organizations:
+        orgs = sorted([x for x in go_down_tree(org)], key=lambda x: x.name)
+        org_ids = [x.id for x in orgs]
+        pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')\
+                .filter(model.Package.owner_org.in_(org_ids))\
+                .all()
+    else:
+        pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')\
+                .filter(model.Package.owner_org == org.id)\
+                .all()
 
-    schema = OrderedDict((('Organization title', 'publisher_title'),
-                          ('Organization name', 'publisher_name'),
-                          ('Dataset title', 'package_title'),
-                          ('Dataset name', 'package_name'),
-                          ('Resource index', 'resource_position'),
-                          ('Resource ID', 'resource_id'),
-                          ('Description', 'resource_description'),
-                          ('URL', 'resource_url'),
-                          ('Format', 'resource_format'),
-                          ('Date created', 'resource_created'),
-                          ))
+    # Get their resources
+    def create_row(pkg_, resource_dict):
+        org_ = pkg_.get_organization()
+        return OrderedDict((
+                ('publisher_title', org_.title),
+                ('publisher_name', org_.name),
+                ('package_title', pkg_.title),
+                ('package_name', pkg_.name),
+                ('resource_position', resource_dict.get('position')),
+                ('resource_id', resource_dict.get('id')),
+                ('resource_description', resource_dict.get('description')),
+                ('resource_url', resource_dict.get('url')),
+                ('resource_format', resource_dict.get('format')),
+                ('resource_created', resource_dict.get('created')),
+               ))
+    num_resources = 0
     rows = []
-    for raw_row in raw_rows:
-        #row = [getattr(raw_row, key) for key in schema.values()]
-        row = OrderedDict([(key, getattr(raw_row, key)) for key in schema.values()])
-        if date_formatter:
-            for col in ('resource_created',):
-                if row[col]:
-                    row[col] = date_formatter(row[col])
-        rows.append(row)
+    for pkg in pkgs:
+        resources = pkg.resources
+        if resources:
+            for res in resources:
+                res_dict = {'id': res.id, 'position': res.position,
+                            'description': res.description, 'url': res.url,
+                            'format': res.format, 'created': res.created}
+                rows.append(create_row(pkg, res_dict))
+            num_resources += len(resources)
+        else:
+            # packages with no resources are still listed
+            rows.append(create_row(pkg, {}))
+
     return {'organization_name': org.name,
             'organization_title': org.title,
-            'schema': schema,
-            'rows': rows,
+            'num_datasets': len(pkgs),
+            'num_resources': num_resources,
+            'data': rows,
             }
+
+def publisher_resources_combinations():
+    for organization in all_organizations():
+        for include_sub_organizations in (False, True):
+                yield {'organization': organization,
+                       'include_sub_organizations': include_sub_organizations}
+
+publisher_resources_info = {
+    'name': 'publisher-resources',
+    'option_defaults': OrderedDict((('organization', 'cabinet-office'),
+                                    ('include_sub_organizations', False))),
+    'option_combinations': publisher_resources_combinations,
+    'generate': publisher_resources,
+    'template': 'reports/publisher_resources.html',
+    }
+
 
 def organisation_dataset_scores(organisation_name,
                                 include_sub_organisations=False):
@@ -249,7 +227,7 @@ def organisation_dataset_scores(organisation_name,
     sql_options = {}
     org = model.Group.by_name(organisation_name)
     if not org:
-        abort(404, 'Publisher not found')
+        raise p.toolkit.ObjectNotFound('Publisher not found')
     organisation_title = org.title
 
     if not include_sub_organisations:
@@ -317,7 +295,7 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
     if organization:
         organization = model.Group.by_name(organization)
         if not organization:
-            raise p.toolkit.NotFound()
+            raise p.toolkit.ObjectNotFound()
     else:
         organization = None
 
@@ -369,9 +347,11 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
             if feedback.other: pkg_data['other'] += 1
             if feedback.effective: pkg_data['effective'] += 1
 
-        data['total-comments'] = sum([pkg_data['economic'], pkg_data['social'],
-                                     pkg_data['linked'], pkg_data['other'],
-                                     pkg_data['effective']])
+        pkg_data['total-comments'] = sum([pkg_data['economic'],
+                                          pkg_data['social'],
+                                          pkg_data['linked'],
+                                          pkg_data['other'],
+                                          pkg_data['effective']])
         results.append(pkg_data)
         if pkg_data['total-comments'] > 0:
             num_pkgs_with_feedback += 1
@@ -441,7 +421,14 @@ def publisher_activity(organization, include_sub_organizations=False):
     import ckan.model as model
     from paste.deploy.converters import asbool
 
-    system_authors = ('autotheme', 'co-prod3.dh.bytemark.co.uk', 'Date format tidier', 'current_revision_fixer', 'current_revision_fixer2')
+    # These are the authors whose revisions we ignore, as they are trivial
+    # changes. NB we do want to know about revisions by:
+    # * harvest (harvested metadata)
+    # * dgu (NS Stat Hub imports)
+    # * Fix national indicators
+    system_authors = ('autotheme', 'co-prod3.dh.bytemark.co.uk',
+                      'Date format tidier', 'current_revision_fixer',
+                      'current_revision_fixer2')
 
     created = {'this': [], 'last': []}
     modified = {'this': [], 'last': []}
@@ -449,14 +436,24 @@ def publisher_activity(organization, include_sub_organizations=False):
     now = datetime.datetime.now()
     quarters = get_quarter_dates(now)
 
-    publisher = model.Group.by_name(organization)
-    if not publisher:
-        raise p.toolkit.NotFound()
+    organization = model.Group.by_name(organization)
+    if not organization:
+        raise p.toolkit.ObjectNotFound()
 
-    for pkg in model.Session.query(model.Package)\
-            .filter(model.Package.owner_org == publisher.id)\
-            .all():
+    if include_sub_organizations:
+        if include_sub_organizations:
+            orgs = sorted([x for x in go_down_tree(organization)],
+                          key=lambda x: x.title)
+            org_ids = [x.id for x in orgs]
+            pkgs = model.Session.query(model.Package)\
+                        .filter(model.Package.owner_org.in_(org_ids))\
+                        .all()
+        else:
+            pkgs = model.Session.query(model.Package)\
+                        .filter(model.Package.owner_org == organization.id)\
+                        .all()
 
+    for pkg in pkgs:
         created_ = model.Session.query(model.PackageRevision)\
             .filter(model.PackageRevision.id == pkg.id) \
             .order_by("revision_timestamp asc").first()

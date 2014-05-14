@@ -212,11 +212,18 @@ class SearchIndexing(object):
                    'ignore_auth': True}
         data_dict = {'id': pkg_dict['id']}
         try:
-            qa = get_action('qa_package_show')(context, data_dict)
+            qa_openness = get_action('qa_package_openness_show')(context, data_dict)
         except ObjectNotFound:
             log.warning('No QA info for package %s', pkg_dict['name'])
             return
-        pkg_dict['openness_score'] = qa.get('openness_score')
+        pkg_dict['openness_score'] = qa_openness.get('openness_score')
+        log.debug('Openness score %s: %s', pkg_dict['openness_score'], pkg_dict['name'])
+
+        try:
+            qa_broken = get_action('qa_package_broken_show')(context, data_dict)
+        except ObjectNotFound:
+            log.warning('No brokenness info for package %s', pkg_dict['name'])
+            return
         if not hasattr(cls, 'broken_links_map'):
             cls.broken_links_map = {
                     True: 'Broken',
@@ -224,7 +231,6 @@ class SearchIndexing(object):
                     False: 'OK',
                     None: 'TBC'
                     }
-        pkg_dict['broken_links'] = cls.broken_links_map[qa.get('archival_is_broken')]
-        log.debug('Openness score %s: %s', pkg_dict['openness_score'], pkg_dict['name'])
+        pkg_dict['broken_links'] = cls.broken_links_map[qa_broken.get('archival_is_broken')]
         log.debug('Broken links %s: %s', pkg_dict['broken_links'], pkg_dict['name'])
 
