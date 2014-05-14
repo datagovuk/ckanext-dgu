@@ -168,7 +168,7 @@ ${h.top_level_init()}
         <py:if test="h.ga_report_installed()">
           <li><a class="${if_(url.startswith('/data/site-usage'),'active')}" href="/data/site-usage">Site Analytics</a></li>
         </py:if>
-          <li><a class="${if_(url.startswith('/data/site-usage'),'active')}" href="/data/report">Reports</a></li>
+          <li><a class="${if_(url.startswith('/data/report'),'active')}" href="/data/report">Reports</a></li>
         <br/>
 
         <py:if test="h.is_sysadmin()">
