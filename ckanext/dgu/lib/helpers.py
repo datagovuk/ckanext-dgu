@@ -449,7 +449,7 @@ def render_qa_info_for_resource(resource_dict):
         return 'To be determined'
     if not qa:
         return 'To be determined'
-    reason_list = qa['openness_score_reason'].replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
+    reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
     resource = model.Resource.get(resource_id)
     ctx = {'qa': qa,
            'reason_list': reason_list,
@@ -465,11 +465,11 @@ def render_stars(stars, reason, last_updated):
     if stars==0:
         stars_html = 5 * '<i class="icon-star-empty"></i>'
     else:
-        stars_html = stars * '<i class="icon-star"></i>'
+        stars_html = (stars or 0) * '<i class="icon-star"></i>'
 
     tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
     for i in range(5,0,-1):
-        classname = 'fail' if (i > stars) else ''
+        classname = 'fail' if (i > (stars or 0)) else ''
         tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
 
     if last_updated:
