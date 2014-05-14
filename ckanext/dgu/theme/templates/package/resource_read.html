@@ -110,7 +110,7 @@
         <td class="value">${h.render_resource_stars(c.resource['id'])}</td>
       </tr>
       <tr>
-        <td class="key">Quality Check:</td>
+        <td class="key">Quality Check:<a name="qualitycheck"></a></td>
         <td class="value">${h.render_qa_info_for_resource(c.resource)}</td>
       </tr>
       <tr py:for="field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource,dict(c.pkg_extras))">
