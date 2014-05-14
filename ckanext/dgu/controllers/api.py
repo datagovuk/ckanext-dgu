@@ -234,19 +234,3 @@ class DguApiController(ApiController):
 
         return self._finish_ok(count)
 
-class DguReportsController(ApiController):
-    def organisation_resources(self, id, format='json'):
-        #return json.dumps(reports.organisation_resources(id, date_formatter))
-        include_sub_publishers = t.asbool(request.params.get('include_sub_publishers') or False)
-        result = reports.organisation_resources(id,
-            include_sub_organisations=include_sub_publishers,
-            date_formatter=reports.british_date_formatter)
-        if format == 'csv':
-            filename = 'resources%s.csv' % (('_' + id) if id else '')
-            response.headers['Content-Type'] = 'application/csv'
-            response.headers['Content-Disposition'] = str('attachment; filename=%s' % (filename))
-            return make_csv_from_dicts(result['rows'])
-        else:
-            response.headers['Content-Type'] = 'application/json'
-            return json.dumps(result)
-

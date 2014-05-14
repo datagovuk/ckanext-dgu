@@ -374,7 +374,7 @@ def get_cache(resource_dict):
     archival = Archival.get_for_resource(resource_dict['id'])
     if not archival:
         return (None, None)
-    url = archival.cache_url.strip().replace('None', '')
+    url = (archival.cache_url or '').strip().replace('None', '')
     # strip off the domain, in case this is running in test
     # on a machine other than data.gov.uk
     url = url.replace('http://data.gov.uk/', '/')
@@ -404,7 +404,7 @@ def calculate_dataset_stars(dataset_id):
     from ckan import model
     try:
         context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_package_show')(context, {'id': dataset_id})
+        qa = get_action('qa_package_openness_show')(context, {'id': dataset_id})
     except NotFound:
         return (0, '', '')
     if not qa:
