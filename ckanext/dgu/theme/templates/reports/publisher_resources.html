@@ -12,18 +12,20 @@
          <thead>
             <tr class="js-tooltip">
               <th py:if="c.options['include_sub_organizations']" >Publisher</th>
-              <th >Dataset</th>
-              <th title="Index/position of the resource in the dataset">Index</th>
-              <th >URL</th>
-              <th >Description</th>
-              <th >Format</th>
-              <th >Created</th>
+              <th style="width: 100px">Dataset</th>
+              <th style="width: 40px">Notes</th>
+              <th style="width: 30px" title="Index/position of the resource in the dataset">Index</th>
+              <th style="width: 100px">URL</th>
+              <th style="width: 100px">Description</th>
+              <th style="width: 30px">Format</th>
+              <th style="width: 50px">Created</th>
             </tr>
          </thead>
          <tbody>
             <tr py:for="row_dict in c.data['data']">
               <td py:if="c.options['include_sub_organizations']"><a href="/publisher/${row_dict['publisher_name']}">${row_dict['publisher_title']}</a></td>
               <td><a href="${h.url_for(controller='package', action='read', id=row_dict['package_name'])}">${row_dict['package_title']}</a></td>
+              <td>${row_dict.get('package_notes')}</td>
               <td><a href="/dataset/${row_dict['package_name']}/resource/${row_dict['resource_id']}">${row_dict['resource_position']}</a></td>
               <td><a href="${row_dict['resource_url']}" style="word-wrap:break-word;">${row_dict['resource_url']}</a></td>
               <td>${row_dict.get('resource_description', 'not recorded')}</td>

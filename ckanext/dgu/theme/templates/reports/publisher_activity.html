@@ -11,18 +11,20 @@
              ${h.render_datetime(c.data['quarters'][quarter][1])})
         </h3>
         <div py:for="type in ('created', 'modified')" style="margin-top: 10px; margin-bottom:10px;">
-          <py:with vars="rows = [row for row in c.data['data'] if (row[2]==type and row[3]==quarter)]">
+          <py:with vars="rows = [row for row in c.data['data'] if (row[3]==type and row[4]==quarter)]">
           <p>${type.capitalize()} (${len(rows)}):</p>
             <table py:if="rows" class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
                 <tr>
-                <th>Dataset</th>
-                <th>${type.capitalize()}</th>
-                <th>By</th>
-                <th>Published data</th>
+                <th style="width: 500px">Dataset</th>
+                <th style="width: 100px">Notes</th>
+                <th style="width: 100px">${type.capitalize()}</th>
+                <th style="width: 150px">By</th>
+                <th style="width: 100px">Published data</th>
                 </tr>
-                <py:for each="name,title,created_or_modified,quarter_,timestamps,users,pub in rows">
+                <py:for each="name,title,notes,created_or_modified,quarter_,timestamps,users,pub in rows">
                 <tr>
                     <td><a href="${h.url_for(controller='package',action='read',id=name)}">${ title }</a></td>
+                    <td>${notes}</td>
                     <td>${ h.literal(', '.join((h.render_datetime(timestamp) for timestamp in timestamps.split(' ')))) }</td>
                     <td>${ h.literal(', '.join((h.linked_user(user) for user in users.split(' ')))) }</td>
                     <td><span py:if="pub">Yes</span>

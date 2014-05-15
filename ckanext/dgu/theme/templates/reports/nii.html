@@ -24,17 +24,16 @@
               <thead>
                 <tr>
                   <th>Dataset</th>
+                  <th>Notes</th>
                   <th>Broken resource count</th>
                   <th>Broken resources</th>
-                  <th>Source</th>
                 </tr>
               </thead>
               <tbody>
                 <py:for each="dataset in __import__('itertools').ifilter(lambda d: d['organization_name'] == publisher_name, c.data['data'])">
                     <tr py:attrs="{'class':'warning' if dataset['num_broken_resources'] > 0 else None}">
-                        <td><a href="/dataset/${dataset['name']}">${dataset['title']}</a>
-                            <span py:if="dataset['unpublished']">(Unpublished)</span>
-                        </td>
+                        <td><a href="/dataset/${dataset['name']}">${dataset['title']}</a></td>
+                        <td>${dataset['dataset_notes']}</td>
                         <td>${dataset['num_broken_resources']}</td>
                         <td>
                             <ul py:if="dataset['broken_resources']">
@@ -44,9 +43,6 @@
                                 </li>
                               </py:for>
                             </ul>
-                        </td>
-                        <td>
-                          ${dataset['source']}
                         </td>
                     </tr>
                 </py:for>

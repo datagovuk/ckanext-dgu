@@ -1,12 +1,13 @@
 import collections
 import datetime
+import logging
+
+from pylons import config
+
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 from ckanext.dgu.lib.publisher import go_down_tree
-
 import ckan.plugins as p
-
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ def nii_report():
         dataset_details = {
                 'name': dataset_object.name,
                 'title': dataset_object.title,
+                'dataset_notes': dataset_notes(dataset_object),
                 'organization_name': org.name,
                 'unpublished': p.toolkit.asbool(dataset_object.extras.get('unpublished')),
                 'num_broken_resources': len(broken_resources),
@@ -130,6 +132,7 @@ def publisher_resources(organization=None,
                 ('publisher_name', org_.name),
                 ('package_title', pkg_.title),
                 ('package_name', pkg_.name),
+                ('package_notes', dataset_notes(pkg_)),
                 ('resource_position', resource_dict.get('position')),
                 ('resource_id', resource_dict.get('id')),
                 ('resource_description', resource_dict.get('description')),
@@ -483,7 +486,8 @@ def publisher_activity(organization, include_sub_organizations=False):
             if quarter[0] < created_.revision_timestamp < quarter[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
                 created[quarter_name].append(
-                    (created_.name, created_.title, 'created', quarter_name,
+                    (created_.name, created_.title, dataset_notes(pkg),
+                     'created', quarter_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
             else:
@@ -504,14 +508,15 @@ def publisher_activity(organization, include_sub_organizations=False):
                 if authors:
                     published = not asbool(pkg.extras.get('unpublished'))
                     modified[quarter_name].append(
-                        (pkg.name, pkg.title, 'modified', quarter_name,
+                        (pkg.name, pkg.title, dataset_notes(pkg),
+                         'modified', quarter_name,
                          dates_formatted, authors, published))
 
     datasets = []
     for quarter_name in quarters:
         datasets += sorted(created[quarter_name], key=lambda x: x[1])
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
-    columns = ('Dataset name', 'Dataset title', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
+    columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
     return {'data': datasets, 'columns': columns,
             'quarters': quarters}
@@ -531,3 +536,9 @@ publisher_activity_report_info = {
     'generate': publisher_activity,
     'template': 'reports/publisher_activity.html',
     }
+
+
+def dataset_notes(pkg):
+    '''Returns a string with notes about the given package. It is configurable.'''
+    expression = config.get('ckanext-report.notes.dataset')
+    return eval(expression, None, {'pkg': pkg, 'asbool': p.toolkit.asbool})
