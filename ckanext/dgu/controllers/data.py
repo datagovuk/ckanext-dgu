@@ -92,7 +92,7 @@ class DataController(BaseController):
                 return exitcode, out, err
             config_paths = ','.join((os.path.join(source_repo_path, '_config.yml'),
                                     os.path.join(source_repo_path, '_config_dgu.yml')))
-            cmd_line = 'bundle jekyll build --config "%s" --source "%s" --destination "%s"'\
+            cmd_line = 'bundle exec jekyll build --config "%s" --source "%s" --destination "%s"'\
                        % (config_paths, source_repo_path, build_path)
             c.exitcode, out, err = get_exitcode_stdout_stderr(cmd_line)
             c.stdout = cmd_line + '<br/><br/>' + out.replace('\n','<br/>')
