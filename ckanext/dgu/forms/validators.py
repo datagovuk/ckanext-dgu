@@ -290,14 +290,22 @@ def remove_blank_resources(key, data, errors, context):
                 if triple in errors:
                     del errors[triple]
 
-categories = (('core-department', 'UK Government Core Department'),
-              ('non-core-department', 'UK Government Non-Core Department'),
+categories = (
+              #('core-department', 'UK Government Core Department'),
+              #('non-core-department', 'UK Government Non-Core Department'),
+              ('ministerial-department', 'Ministerial department'),
+              ('non-ministerial-department', 'Non-ministerial department'),
               ('devolved', 'Devolved Government Body'),
-              ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
+              #('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
+              ('executive-ndpb', 'Executive non-departmental public body'),
+              ('advisory-ndpb', 'Advisory non-departmental public body'),
+              ('executive-agency', 'Executive agency'),
               ('local-council', 'Local Council'),
-              ('gov-corporation', 'Government Corporation'),
+              ('gov-corporation', 'Public Corporation'),
               ('private', 'Private Sector'),
               ('grouping', 'A notional grouping of organisations'),
+              ('sub-organisation', 'Sub-organisation'),
+              ('other', 'Other'),
               )
 
 def validate_publisher_category(key, data, errors, context):
