@@ -67,7 +67,6 @@ def resources_schema():
         'last_modified': [ignore_missing],
         'cache_last_updated': [ignore_missing],
         'webstore_last_updated': [ignore_missing],
-        'is_broken': [ignore_missing]
     })
     return schema
 
