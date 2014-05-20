@@ -104,9 +104,9 @@ ${h.top_level_init()}
       <nav id="dgu-nav">
         <div class="text-links">
            <a href="/" class="nav-home">Home</a>
-           <a href="#" class="trigger-subnav nav-data">Data</a>
-           <a href="#" class="trigger-subnav nav-apps">Apps</a>
-           <a href="#" class="trigger-subnav nav-interact">Interact</a>
+           <a href="/data" class="trigger-subnav nav-data">Data</a>
+           <a href="/apps" class="trigger-subnav nav-apps">Apps</a>
+           <a href="/interact" class="trigger-subnav nav-interact">Interact</a>
          </div>
         <div class="nav-search" style="width: 200px;">
           <form action="/data/search" class="input-group input-group-sm">
@@ -177,10 +177,6 @@ ${h.top_level_init()}
           <li><a class="${if_(url.startswith('/harvest'),'active')}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
           <li><a class="${if_(url.startswith('/data/feedback/moderation'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </py:if>
-      </ul>
-      <ul class="subnav subnav-apps">
-        <li><a href="/apps">Browse Apps</a></li>
-        <li><a href="/search/everything/?f%5B0%5D=bundle%3Aapp">Search Apps</a></li>
       </ul>
 
       <ul class="subnav subnav-interact">
