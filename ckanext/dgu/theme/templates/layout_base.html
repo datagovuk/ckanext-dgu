@@ -109,7 +109,7 @@ ${h.top_level_init()}
           <a href="/user" title="User account">Hello <strong>${c.userobj.display_name}</strong></a>
         </li>
         <li class="logout last">
-          <a href="/user/logout">Log out</a>
+          <a href="${if_('dgu_drupal_auth' in config['ckan.plugins'],'/user/logout',h.url_for('/data/user/logout'))}">Log out</a>
         </li>
       </ul>
       <ul id="toolbar-menu">
