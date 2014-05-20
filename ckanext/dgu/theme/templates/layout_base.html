@@ -178,10 +178,6 @@ ${h.top_level_init()}
           <li><a class="${if_(url.startswith('/data/feedback/moderation'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </py:if>
       </ul>
-      <ul class="subnav subnav-apps">
-        <li><a href="/apps">Browse Apps</a></li>
-        <li><a href="/search/everything/?f%5B0%5D=bundle%3Aapp">Search Apps</a></li>
-      </ul>
 
       <ul class="subnav subnav-interact">
         <li><a class="" href="/location">Location</a></li>
