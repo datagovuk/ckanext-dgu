@@ -1,4 +1,5 @@
 ﻿import re
+import json
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
@@ -153,6 +154,7 @@ class DatasetForm(p.SingletonPlugin):
         # being called from
         if 'save' in context:
             c.publishers = self.get_publishers()
+            c.publishers_json = json.dumps(c.publishers)
 
         c.resource_columns = ('description', 'url', 'format')
 
