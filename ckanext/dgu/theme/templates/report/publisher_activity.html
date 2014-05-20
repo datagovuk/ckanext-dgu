@@ -11,7 +11,7 @@
              ${h.render_datetime(c.data['quarters'][quarter][1])})
         </h3>
         <div py:for="type in ('created', 'modified')" style="margin-top: 10px; margin-bottom:10px;">
-          <py:with vars="rows = [row for row in c.data['data'] if (row[3]==type and row[4]==quarter)]">
+          <py:with vars="rows = [row for row in c.data['table'] if (row[3]==type and row[4]==quarter)]">
           <p>${type.capitalize()} (${len(rows)}):</p>
             <table py:if="rows" class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
                 <tr>

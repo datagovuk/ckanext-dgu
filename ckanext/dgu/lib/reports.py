@@ -80,7 +80,7 @@ def nii_report():
     org_tuples = [(org.name, org.title) for org in
                   sorted(nii_organizations, key=lambda o: o.title)]
 
-    return {'data': nii_dataset_details,
+    return {'table': nii_dataset_details,
             'organizations': org_tuples,
             'num_resources': num_resources,
             'num_datasets': len(nii_dataset_objects),
@@ -96,7 +96,7 @@ nii_report_info = {
     'option_defaults': OrderedDict([]),
     'option_combinations': None,
     'generate': nii_report,
-    'template': 'reports/nii.html',
+    'template': 'report/nii.html',
 }
 
 
@@ -159,7 +159,7 @@ def publisher_resources(organization=None,
             'organization_title': org.title,
             'num_datasets': len(pkgs),
             'num_resources': num_resources,
-            'data': rows,
+            'table': rows,
             }
 
 def publisher_resources_combinations():
@@ -174,7 +174,7 @@ publisher_resources_info = {
                                     ('include_sub_organizations', False))),
     'option_combinations': publisher_resources_combinations,
     'generate': publisher_resources,
-    'template': 'reports/publisher_resources.html',
+    'template': 'report/publisher_resources.html',
     }
 
 
@@ -187,7 +187,7 @@ def organisation_dataset_scores(organisation_name,
     i.e.:
     {'organization_name': 'cabinet-office',
      'organization_title:': 'Cabinet Office',
-     'data': [
+     'table': [
        {'package_name', 'package_title', 'resource_url', 'openness_score', 'reason', 'last_updated', 'is_broken', 'format'}
       ...]
 
@@ -283,7 +283,7 @@ def organisation_dataset_scores(organisation_name,
 
     return {'organization_name': organisation_name,
             'organization_title': organisation_title,
-            'data': data.values()}
+            'table': data.values()}
 
 
 def feedback_report(organization=None, include_sub_organizations=False, include_published=False):
@@ -359,13 +359,15 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
         if pkg_data['total-comments'] > 0:
             num_pkgs_with_feedback += 1
 
-    return {'data': sorted(results, key=lambda x: -x.get('total-comments')),
+    return {'table': sorted(results, key=lambda x: -x.get('total-comments')),
             'dataset_count': len(results),
             'dataset_count_with_feedback': num_pkgs_with_feedback,
             }
 
 
-def all_organizations():
+def all_organizations(include_none=False):
+    if include_none:
+        yield None
     orgs = model.Session.query(model.Group).\
         filter(model.Group.type=='organization').\
         filter(model.Group.state=='active').order_by('name')
@@ -395,7 +397,7 @@ feedback_report_info = {
                                     ('include_published', False))),
     'option_combinations': feedback_report_combinations,
     'generate': feedback_report,
-    'template': 'reports/feedback.html',
+    'template': 'report/feedback.html',
     }
 
 def get_quarter_dates(datetime_now):
@@ -439,11 +441,15 @@ def publisher_activity(organization, include_sub_organizations=False):
     now = datetime.datetime.now()
     quarters = get_quarter_dates(now)
 
-    organization = model.Group.by_name(organization)
-    if not organization:
-        raise p.toolkit.ObjectNotFound()
+    if organization:
+        organization = model.Group.by_name(organization)
+        if not organization:
+            raise p.toolkit.ObjectNotFound()
 
-    if include_sub_organizations:
+    if not organization:
+        pkgs = model.Session.query(model.Package)\
+                .all()
+    elif include_sub_organizations:
         orgs = sorted([x for x in go_down_tree(organization)],
                       key=lambda x: x.title)
         org_ids = [x.id for x in orgs]
@@ -518,11 +524,11 @@ def publisher_activity(organization, include_sub_organizations=False):
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
     columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
-    return {'data': datasets, 'columns': columns,
+    return {'table': datasets, 'columns': columns,
             'quarters': quarters}
 
 def publisher_activity_combinations():
-    for org in all_organizations():
+    for org in all_organizations(include_none=False):
         for include_sub_organizations in (False, True):
             yield {'organization': org,
                    'include_sub_organizations': include_sub_organizations}
@@ -534,7 +540,7 @@ publisher_activity_report_info = {
                                     )),
     'option_combinations': publisher_activity_combinations,
     'generate': publisher_activity,
-    'template': 'reports/publisher_activity.html',
+    'template': 'report/publisher_activity.html',
     }
 
 

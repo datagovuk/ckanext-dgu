@@ -22,7 +22,7 @@
             </tr>
          </thead>
          <tbody>
-            <tr py:for="row_dict in c.data['data']">
+            <tr py:for="row_dict in c.data['table']">
               <td py:if="c.options['include_sub_organizations']"><a href="/publisher/${row_dict['publisher_name']}">${row_dict['publisher_title']}</a></td>
               <td><a href="${h.url_for(controller='package', action='read', id=row_dict['package_name'])}">${row_dict['package_title']}</a></td>
               <td>${row_dict.get('package_notes')}</td>

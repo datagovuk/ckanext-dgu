@@ -30,7 +30,7 @@
                 </tr>
               </thead>
               <tbody>
-                <py:for each="dataset in __import__('itertools').ifilter(lambda d: d['organization_name'] == publisher_name, c.data['data'])">
+                <py:for each="dataset in __import__('itertools').ifilter(lambda d: d['organization_name'] == publisher_name, c.data['table'])">
                     <tr py:attrs="{'class':'warning' if dataset['num_broken_resources'] > 0 else None}">
                         <td><a href="/dataset/${dataset['name']}">${dataset['title']}</a></td>
                         <td>${dataset['dataset_notes']}</td>

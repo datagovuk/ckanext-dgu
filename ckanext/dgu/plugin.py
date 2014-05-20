@@ -15,6 +15,7 @@ from ckanext.dgu.authorize import (
                              dgu_feedback_delete, dgu_organization_delete,
                              dgu_group_change_state,
                              )
+from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user
 from ckanext.dgu.lib.search import solr_escape
@@ -37,14 +38,12 @@ def not_found(self, url):
 def _guess_package_type(self, expecting_name=False):
     return 'dataset'
 
-class ReportsPlugin(p.SingletonPlugin):
+class DguReportPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
 
     def before_map(self, map):
-        """
-        Make "/data" the homepage.
-        """
-        report_ctlr = 'ckanext.dgu.controllers.reports:ReportsController'
+        # Put reports at /data/reports instead of /reports
+        report_ctlr = 'ckanext.report.controllers:ReportController'
         map.connect('reports', '/data/report', controller=report_ctlr, action='index')
         map.redirect('/data/reports', '/data/report')
         map.connect('report', '/data/report/:report_name', controller=report_ctlr, action='view')
@@ -92,7 +91,7 @@ class ReportsPlugin(p.SingletonPlugin):
 
         # Older redirect
         map.redirect('/data/feedback/report/{id}.{format}', '/data/report/feedback/{id}?format={format}')
-        map.redirect('/data/feedback/report/{id}', '/data/reports/feedback/{id}')
+        map.redirect('/data/feedback/report/{id}', '/data/report/feedback/{id}')
         map.redirect('/data/feedback/report.{format}', '/data/report/feedback?format={format}')
         map.redirect('/data/feedback/report', '/data/report/feedback')
 
@@ -284,7 +283,7 @@ class PublisherPlugin(p.SingletonPlugin):
 
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.ISession, inherit=True)
-    p.implements(p.IReportCache)
+    p.implements(IReport)
 
     def before_commit(self, session):
         """
@@ -365,7 +364,7 @@ class PublisherPlugin(p.SingletonPlugin):
         # same for the harvesting auth profile
         config['ckan.harvest.auth.profile'] = 'publisher'
 
-    # IReportCache
+    # IReport
 
     def register_reports(self):
         """Register details of an extension's reports"""
