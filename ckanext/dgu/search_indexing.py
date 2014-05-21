@@ -216,6 +216,10 @@ class SearchIndexing(object):
         except ObjectNotFound:
             log.warning('No QA info for package %s', pkg_dict['name'])
             return
+        except KeyError:
+            # occurs during tests or if you've not install ckanext-qa
+            log.warning('QA not installed - not indexing it.')
+            return
         pkg_dict['openness_score'] = qa_openness.get('openness_score')
         log.debug('Openness score %s: %s', pkg_dict['openness_score'], pkg_dict['name'])
 
