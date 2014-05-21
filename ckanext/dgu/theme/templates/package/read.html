@@ -195,7 +195,7 @@
         <div class="inner">
           <div class="inner2">
             <py:if test="h.is_resource_broken(res['id'])">
-              <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="There is an error with this resource" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}#linkcheck" style="text-decoration:none;color:#D43F3A;">
+              <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="There is an error with this resource" href="${h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}#qualitycheck" style="text-decoration:none;color:#D43F3A;">
                 <i class="icon-exclamation-sign"></i>
               </a>
             </py:if>
@@ -212,7 +212,7 @@
         <a href="#" class="dataset-resource-chevron" data-toggle="dropdown"  style="pointer-events:auto;">
           <i class="icon-chevron-down"></i>
         </a>
-        <ul class="dropdown-menu"  style="pointer-events:auto;" role="menu" py:with="gemini = res.get('gemini',False)">
+        <ul class="dropdown-menu" role="menu" style="pointer-events:auto;" py:with="gemini = res.get('gemini',False)">
           <li py:if="gemini">
             <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
               <i class="icon-search"></i>&nbsp; ${res['action']}
