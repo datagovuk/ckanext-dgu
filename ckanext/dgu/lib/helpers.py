@@ -265,9 +265,8 @@ def user_properties(user):
     # Check if this is the site_user
     site_user_name = config.get('ckan.site_id', 'ckan_site_user')
     if user and user.name == site_user_name:
-        return "System Process"
-
-    this_is_me = user and (c.user in (user.name, user.fullname))
+        user_name = 'Site user'
+        is_system = True
 
     if not user:
         # Up til Jun 2012, CKAN saved Drupal users in this format:
