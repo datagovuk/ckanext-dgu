@@ -41,8 +41,19 @@ def _guess_package_type(self, expecting_name=False):
 class DguReportPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
 
-    def before_map(self, map):
+    def after_map(self, map):
         # Put reports at /data/reports instead of /reports
+        # Delete routes to /report otherwise url_for links end up pointed there.
+        matches_to_delete = []
+        for match in map.matchlist:
+            if match.routepath.startswith('/report'):
+                matches_to_delete.append(match)
+        for match in matches_to_delete:
+            map.matchlist.remove(match)
+        for route_name in ('reports', 'report', 'report-org'):
+            del map._routenames[route_name]
+
+        # Add new routes to /data/reports
         report_ctlr = 'ckanext.report.controllers:ReportController'
         map.connect('reports', '/data/report', controller=report_ctlr, action='index')
         map.redirect('/data/reports', '/data/report')
@@ -95,9 +106,6 @@ class DguReportPlugin(p.SingletonPlugin):
         map.redirect('/data/feedback/report.{format}', '/data/report/feedback?format={format}')
         map.redirect('/data/feedback/report', '/data/report/feedback')
 
-        return map
-
-    def after_map(self, map):
         return map
 
 
