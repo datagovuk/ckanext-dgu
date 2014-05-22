@@ -2,12 +2,10 @@ import collections
 import datetime
 import logging
 
-from pylons import config
-
 from ckan import model
 from ckan.lib.helpers import OrderedDict
-from ckanext.dgu.lib.publisher import go_down_tree
 import ckan.plugins as p
+from ckanext.report import lib
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +60,7 @@ def nii_report():
         dataset_details = {
                 'name': dataset_object.name,
                 'title': dataset_object.title,
-                'dataset_notes': dataset_notes(dataset_object),
+                'dataset_notes': lib.dataset_notes(dataset_object),
                 'organization_name': org.name,
                 'unpublished': p.toolkit.asbool(dataset_object.extras.get('unpublished')),
                 'num_broken_resources': len(broken_resources),
@@ -93,6 +91,7 @@ def nii_report():
 nii_report_info = {
     'name': 'nii',
     'title': 'National Information Infrastructure',
+    'description': 'Details of the datasets in the NII.',
     'option_defaults': OrderedDict([]),
     'option_combinations': None,
     'generate': nii_report,
@@ -112,7 +111,7 @@ def publisher_resources(organization=None,
 
     # Get packages
     if include_sub_organizations:
-        orgs = sorted([x for x in go_down_tree(org)], key=lambda x: x.name)
+        orgs = sorted([x for x in lib.go_down_tree(org)], key=lambda x: x.name)
         org_ids = [x.id for x in orgs]
         pkgs = model.Session.query(model.Package)\
                 .filter_by(state='active')\
@@ -132,7 +131,7 @@ def publisher_resources(organization=None,
                 ('publisher_name', org_.name),
                 ('package_title', pkg_.title),
                 ('package_name', pkg_.name),
-                ('package_notes', dataset_notes(pkg_)),
+                ('package_notes', lib.dataset_notes(pkg_)),
                 ('resource_position', resource_dict.get('position')),
                 ('resource_id', resource_dict.get('id')),
                 ('resource_description', resource_dict.get('description')),
@@ -163,13 +162,14 @@ def publisher_resources(organization=None,
             }
 
 def publisher_resources_combinations():
-    for organization in all_organizations():
+    for organization in lib.all_organizations():
         for include_sub_organizations in (False, True):
                 yield {'organization': organization,
                        'include_sub_organizations': include_sub_organizations}
 
 publisher_resources_info = {
     'name': 'publisher-resources',
+    'description': 'A list of all the datasets and resources for a publisher.',
     'option_defaults': OrderedDict((('organization', 'cabinet-office'),
                                     ('include_sub_organizations', False))),
     'option_combinations': publisher_resources_combinations,
@@ -237,7 +237,7 @@ def organisation_dataset_scores(organisation_name,
         sql_options['org_filter'] = 'and "group".name = :org_name'
         values['org_name'] = organisation_name
     else:
-        sub_org_filters = ['"group".name=\'%s\'' % org.name for org in go_down_tree(org)]
+        sub_org_filters = ['"group".name=\'%s\'' % org.name for org in lib.go_down_tree(org)]
         sql_options['org_filter'] = 'and (%s)' % ' or '.join(sub_org_filters)
 
     rows = model.Session.execute(sql % sql_options, values)
@@ -292,7 +292,6 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
     function will generate a report on the feedback for that publisher.
     """
     import ckan.lib.helpers as helpers
-    from ckanext.dgu.lib.publisher import go_down_tree
     from ckanext.dgu.model.feedback import Feedback
 
     if organization:
@@ -306,7 +305,7 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
     if organization:
         group_ids = [organization.id]
         if include_sub_organizations:
-            groups = sorted([x for x in go_down_tree(organization)], key=lambda x: x.title)
+            groups = sorted([x for x in lib.go_down_tree(organization)], key=lambda x: x.title)
             group_ids = [x.id for x in groups]
 
         memberships = model.Session.query(model.Member)\
@@ -365,16 +364,6 @@ def feedback_report(organization=None, include_sub_organizations=False, include_
             }
 
 
-def all_organizations(include_none=False):
-    if include_none:
-        yield None
-    orgs = model.Session.query(model.Group).\
-        filter(model.Group.type=='organization').\
-        filter(model.Group.state=='active').order_by('name')
-    for org in orgs:
-        yield org.name
-
-
 def feedback_report_combinations():
     organization = None
     include_sub_organizations = True  # assumed for index anyway
@@ -383,7 +372,7 @@ def feedback_report_combinations():
                'include_sub_organizations': include_sub_organizations,
                'include_published': include_published}
 
-    for organization in all_organizations():
+    for organization in lib.all_organizations():
         for include_sub_organizations in (False, True):
             for include_published in (False, True):
                 yield {'organization': organization,
@@ -392,6 +381,7 @@ def feedback_report_combinations():
 
 feedback_report_info = {
     'name': 'feedback',
+    'description': 'A summary of the feedback given on datasets, originally used to determine those to make part of the NII.',
     'option_defaults': OrderedDict((('organization', None),
                                     ('include_sub_organizations', False),
                                     ('include_published', False))),
@@ -450,7 +440,7 @@ def publisher_activity(organization, include_sub_organizations=False):
         pkgs = model.Session.query(model.Package)\
                 .all()
     elif include_sub_organizations:
-        orgs = sorted([x for x in go_down_tree(organization)],
+        orgs = sorted([x for x in lib.go_down_tree(organization)],
                       key=lambda x: x.title)
         org_ids = [x.id for x in orgs]
         pkgs = model.Session.query(model.Package)\
@@ -492,7 +482,7 @@ def publisher_activity(organization, include_sub_organizations=False):
             if quarter[0] < created_.revision_timestamp < quarter[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
                 created[quarter_name].append(
-                    (created_.name, created_.title, dataset_notes(pkg),
+                    (created_.name, created_.title, lib.dataset_notes(pkg),
                      'created', quarter_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
@@ -514,7 +504,7 @@ def publisher_activity(organization, include_sub_organizations=False):
                 if authors:
                     published = not asbool(pkg.extras.get('unpublished'))
                     modified[quarter_name].append(
-                        (pkg.name, pkg.title, dataset_notes(pkg),
+                        (pkg.name, pkg.title, lib.dataset_notes(pkg),
                          'modified', quarter_name,
                          dates_formatted, authors, published))
 
@@ -528,13 +518,14 @@ def publisher_activity(organization, include_sub_organizations=False):
             'quarters': quarters}
 
 def publisher_activity_combinations():
-    for org in all_organizations(include_none=False):
+    for org in lib.all_organizations(include_none=False):
         for include_sub_organizations in (False, True):
             yield {'organization': org,
                    'include_sub_organizations': include_sub_organizations}
 
 publisher_activity_report_info = {
     'name': 'publisher-activity',
+    'description': 'A quarterly list of datasets created and edited by a publisher.',
     'option_defaults': OrderedDict((('organization', 'cabinet-office'),
                                     ('include_sub_organizations', False),
                                     )),
@@ -544,7 +535,3 @@ publisher_activity_report_info = {
     }
 
 
-def dataset_notes(pkg):
-    '''Returns a string with notes about the given package. It is configurable.'''
-    expression = config.get('ckanext-report.notes.dataset')
-    return eval(expression, None, {'pkg': pkg, 'asbool': p.toolkit.asbool})
