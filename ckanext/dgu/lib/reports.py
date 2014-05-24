@@ -383,7 +383,7 @@ feedback_report_info = {
     'name': 'feedback',
     'description': 'A summary of the feedback given on datasets, originally used to determine those to make part of the NII.',
     'option_defaults': OrderedDict((('organization', None),
-                                    ('include_sub_organizations', False),
+                                    ('include_sub_organizations', True),
                                     ('include_published', False))),
     'option_combinations': feedback_report_combinations,
     'generate': feedback_report,
