@@ -1,6 +1,12 @@
 '''
-Checks the URLs of broken resource links to see if NationalArchives has
-a copy we can use instead.
+For every resource URL that is marked broken, it checks to see if NationalArchives has
+a copy we could use instead. Records the results in /tmp/broken_resources.csv and
+writes resource_updates.sql with the SQL commands that would change the resource urls.
+
+TODO:
+    * change from TaskStatus to the new archival table
+    * maybe ignore short-term breakages - e.g. check for 1 month breakage
+    * might be better to write revisions for the changes
 '''
 
 import csv
@@ -10,7 +16,7 @@ import logging
 import sys
 import requests
 import random
-from sqlalchemy import engine_from_config, or_
+from sqlalchemy import engine_from_config
 from pylons import config
 import time
 
@@ -114,9 +120,7 @@ def report():
 
 
 def usage():
-    print """
-        Checks broken resource links against nationalarchive
-
+    print __doc__ + """
         python ckanext/dgu/bin/resource_link_check.py <CONFIG_FILE>
     """
 
