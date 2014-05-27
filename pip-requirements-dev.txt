@@ -1,0 +1,9 @@
+# Dependencies needed by a developer of ckanext-dgu
+# i.e. for running tests and bin scripts that wouldn't normally be run on a server
+
+# Selenium driver for Python
+selenium==2.28.0
+fabric==1.5.3
+
+# unicodecsv for refine_packages command
+unicodecsv
