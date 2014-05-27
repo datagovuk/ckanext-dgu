@@ -24,7 +24,7 @@
             </tr>
           </thead>
           <tbody>
-          <py:for each="stats in c.data['data']">
+          <py:for each="stats in c.data['table']">
             <tr>
                 <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
                 <td>${h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}</td>
