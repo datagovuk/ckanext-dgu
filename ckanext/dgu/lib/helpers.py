@@ -852,6 +852,40 @@ def advanced_search_url():
         params['parent_publishers'] = c.group.name
     return search_url(params.items())
 
+
+def isopen(pkg):
+    '''Replacement for ckan.model.package.isopen.
+    Returns True or False'''
+    # Normal datasets (created in the form) store the licence in the
+    # pkg.license value as a License.id value.
+    if pkg.license:
+        return bool(pkg.license.isopen())
+    elif pkg.license_id:
+        # However if the user selects 'free text' in the form, that is stored
+        # in the same pkg.license field.
+        license_text = pkg.license_id
+    else:
+        # UKLP might have multiple licenses and don't adhere to the License
+        # values, so are in the 'licence' extra.
+        license_text_list = json_list(pkg.extras.get('licence') or '')
+        # UKLP might also have a URL to go with its licence
+        license_text_list.extend([pkg.extras.get('licence_url', ''),
+                                  pkg.extras.get('licence_url_title')])
+        license_text = ';'.join(license_text_list)
+    open_licenses = [
+        'Open Government Licen',
+        'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/',
+        'http://reference.data.gov.uk/id/open-government-licence',
+        'OS OpenData Licence',
+        'OS Open Data Licence',
+        'Ordnance Survey OpenData Licence',
+        'http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf',
+    ]
+    for open_license in open_licenses:
+        if open_license in license_text:
+            return True
+    return False
+
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
     licenses = [] # [(title, url, isopen, isogl), ... ]

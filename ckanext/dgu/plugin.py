@@ -132,6 +132,11 @@ class ThemePlugin(p.SingletonPlugin):
     # to think /data/search should search for 'search' packages!
     from ckan.controllers.package import PackageController
     PackageController._guess_package_type = _guess_package_type
+    # [Monkey patch] We have complicated UKLP license info, so need a custom
+    # isopen method
+    from ckan import model
+    from lib import helpers as dgu_helpers
+    model.Package.isopen = dgu_helpers.isopen
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'theme/templates')
