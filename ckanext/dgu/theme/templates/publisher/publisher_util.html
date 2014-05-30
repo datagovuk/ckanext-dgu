@@ -38,14 +38,6 @@
     </div>
 
     <!--! Pending completion of issues/spend data
-    <py:if test="dgu_helpers.publisher_has_spend_data(publisher)">
-      <div class="alert alert-${css_light[lights['spending']]}">
-        <a href="${h.url_for('openspending_publisher_report', id=publisher.name)}">(details)</a>
-        <b>Spend reports: </b>
-        ${text_light[lights['spending']]}
-      </div>
-    </py:if>
-
     <py:if test="h.issues_installed()">
       <div class="alert alert-${css_light[lights.get('issues')]}">
         <a href="${h.url_for(controller='ckanext.issues.controller:IssueController',action='publisher_issue_page', publisher_id=publisher.id)}">(details)</a>

@@ -137,33 +137,6 @@ class DataController(BaseController):
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')
 
-    def openspending_browse(self):
-        return render('data/openspending_browse.html')
-
-    def _set_openspending_reports_dir(self):
-        c.openspending_report_dir = os.path.expanduser(pylons.config.get(
-            'dgu.openspending_reports_dir',
-            '/var/lib/ckan/dgu/openspending_reports'))
-
-    def openspending_report(self):
-        self._set_openspending_reports_dir()
-        return render('data/openspending_report.html')
-
-    def openspending_publisher_report(self, id):
-        id = id.replace('.html', '')
-        if id.startswith('publisher-'):
-            publisher_name = id.replace('publisher-', '')
-            # Check the publisher actually exists, for security
-            publisher = model.Group.by_name(publisher_name)
-            if publisher:
-                c.report_name = id
-            else:
-                abort(404, 'Publisher not found')
-            self._set_openspending_reports_dir()
-            return render('data/openspending_publisher_report.html')
-        else:
-            abort(404)
-
     def carparks(self):
         return render('data/carparks.html')
 

@@ -44,21 +44,17 @@ def command(config_file):
         default_dump_dir = '/var/lib/ckan/%s/static/dump' % ckan_instance_name
         default_analysis_dir = '/var/lib/ckan/%s/static/dump_analysis' % ckan_instance_name
         default_backup_dir = '/var/backups/ckan/%s' % ckan_instance_name
-        default_openspending_reports_dir = '/var/lib/ckan/%s/openspending_reports' % ckan_instance_name
     else:
         # test purposes
         default_dump_dir = '~/dump'
         default_analysis_dir = '~/dump_analysis'
         default_backup_dir = '~/backups'
-        default_openspending_reports_dir = '~/openspending_reports'
     dump_dir = os.path.expanduser(config.get('ckan.dump_dir',
                                              default_dump_dir))
     analysis_dir = os.path.expanduser(config.get('ckan.dump_analysis_dir',
                                              default_analysis_dir))
     backup_dir = os.path.expanduser(config.get('ckan.backup_dir',
                                                default_backup_dir))
-    openspending_reports_dir = os.path.expanduser(config.get('dgu.openspending_reports_dir',
-                                                             default_openspending_reports_dir))
     ga_token_filepath = os.path.expanduser(config.get('googleanalytics.token.filepath', ''))
     dump_filebase = config.get('ckan.dump_filename_base',
                                'data.gov.uk-ckan-meta-data-%Y-%m-%d')
@@ -67,9 +63,6 @@ def command(config_file):
     backup_filebase = config.get('ckan.backup_filename_base',
                                  ckan_instance_name + '.%Y-%m-%d.pg_dump')
     tmp_filepath = config.get('ckan.temp_filepath', '/tmp/dump.tmp')
-    openspending_reports_url = config.get('ckan.openspending_reports_url',
-                                          'http://data.etl.openspending.org/uk25k/report/')
-
 
     log = logging.getLogger('ckanext.dgu.bin.gov_daily')
     log.info('----------------------------')
@@ -112,69 +105,6 @@ def command(config_file):
     except Exception, exc_analytics:
         log.error("Failed to process Google Analytics data")
         log.exception(exc_analytics)
-
-    # Copy openspending reports
-    if run_task('openspending'):
-        log.info('Copying in OpenSpending reports')
-        if not os.path.exists(openspending_reports_dir):
-            log.info('Creating dump dir: %s' % openspending_reports_dir)
-            os.makedirs(openspending_reports_dir)
-        try:
-            publisher_response = urllib2.urlopen('http://data.gov.uk/api/rest/group').read()
-        except urllib2.HTTPError, e:
-            log.error('Could not get list of publishers for OpenSpending reports: %s',
-                      e)
-        else:
-            try:
-                publishers = json.loads(publisher_response)
-                assert isinstance(publishers, list), publishers
-                assert len(publishers) > 500, len(publishers)
-                log.info('Got list of %i publishers starting: %r',
-                         len(publishers), publishers[:3])
-            except Exception, e:
-                log.error('Could not decode list of publishers for OpenSpending reports: %s',
-                          e)
-            else:
-                urls = [openspending_reports_url]
-                for publisher in publishers:
-                    urls.append('%spublisher-%s.html' % (openspending_reports_url, publisher))
-
-                for url in urls:
-                    try:
-                        report_response = urllib2.urlopen(url).read()
-                    except urllib2.HTTPError, e:
-                        if e.code == 404:
-                            log.info('Got 404 for openspending report %s' % url)
-                        else:
-                            log.error('Could not download openspending report %r: %s',
-                                      url, e)
-                    else:
-                        report_html = report_response
-                        # remove header
-                        report_html = "".join(report_html.split('---')[2:])
-                        # add import timestamp
-                        report_html += '<p class="import-date">\n<a href="%s">Page</a> imported from <a href="http://openspending.org/">OpenSpending</a> on %s. Read more about <a href="http://openspending.org/resources/gb-spending/index.html">OpenSpending on data.gov.uk</a>\n</p>' % \
-                                       (url.encode('utf8'),
-                                        datetime.datetime.now().strftime('%d-%m-%Y'))
-                        # add <html>
-                        report_html = '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:i18n="http://genshi.edgewall.org/i18n" '\
-                                      'xmlns:py="http://genshi.edgewall.org/" xmlns:xi="http://www.w3.org/2001/XInclude" '\
-                                      'py:strip="">' + report_html + '</html>'
-                        # Sort out non-encoded symbols
-                        report_html = re.sub(u' & ', ' &amp; ', report_html)
-                        report_html = re.sub('\xc2\xa3', '&pound;', report_html)
-                        report_html = re.sub(u'\u2714', '&#x2714;', report_html)
-                        report_html = re.sub(u'\u2718', '&#x2718;', report_html)
-                        report_html = re.sub(u'\u0141', '&#x0141;', report_html)
-                        # save it
-                        filename = url[url.rfind('/')+1:] or 'index.html'
-                        filepath = os.path.join(openspending_reports_dir, filename)
-                        f = open(filepath, 'wb')
-                        try:
-                            f.write(report_html)
-                        finally:
-                            f.close()
-                        log.info('Wrote openspending report %s', filepath)
 
     # Create dumps for users
     if run_task('dump_csv'):
@@ -277,14 +207,14 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump_csv','backup']
+TASKS_TO_RUN = ['analytics', 'dump_csv', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
     Usage: python %s [config.ini]
 
     You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from analytics,openspending,dump_csv,backup or run multiple by
+    and you can choose from analytics,dump_csv,backup or run multiple by
     separating by a comma.
     ''' % sys.argv[0]
 
