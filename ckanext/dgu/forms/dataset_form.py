@@ -1,4 +1,5 @@
 ﻿import re
+import json
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
@@ -67,7 +68,6 @@ def resources_schema():
         'last_modified': [ignore_missing],
         'cache_last_updated': [ignore_missing],
         'webstore_last_updated': [ignore_missing],
-        'is_broken': [ignore_missing]
     })
     return schema
 
@@ -154,6 +154,7 @@ class DatasetForm(p.SingletonPlugin):
         # being called from
         if 'save' in context:
             c.publishers = self.get_publishers()
+            c.publishers_json = json.dumps(c.publishers)
 
         c.resource_columns = ('description', 'url', 'format')
 

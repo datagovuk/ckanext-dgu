@@ -97,6 +97,33 @@ ${h.top_level_init()}
       id="${(defined('body_id') and body_id()) or ''}"
       py:with="breakout = defined('break_out_page') and break_out_page"
   >
+  <div py:if="bool(c.userobj)" id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
+    <div class="toolbar-menu clearfix">
+      <ul id="toolbar-home">
+        <li class="home first last">
+          <a href="/" title="Home"><span class="home-link">Home</span></a>
+        </li>
+      </ul>
+      <ul id="toolbar-user">
+        <li class="account first">
+          <a href="/user" title="User account">Hello <strong>${c.userobj.display_name}</strong></a>
+        </li>
+        <li class="logout last">
+          <a href="${if_('dgu_drupal_auth' in config['ckan.plugins'],'/user/logout',h.url_for('/data/user/logout'))}">Log out</a>
+        </li>
+      </ul>
+      <ul id="toolbar-menu">
+        <li class="menu-211 path-admin-workbench first last">
+          <a href="/admin/workbench" id="toolbar-link-admin-workbench" title="My Workbench area">
+            <span class="icon"></span>
+            Manage my content
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="toolbar-drawer clearfix">
+    </div>
+  </div>
   <div id="blackbar" class="${if_(h.check_access('package_create'),'with-publisher','without-publisher')}">
     <div class="container">
       <a class="brand" href="/" rel="home"></a>
@@ -104,9 +131,9 @@ ${h.top_level_init()}
       <nav id="dgu-nav">
         <div class="text-links">
            <a href="/" class="nav-home">Home</a>
-           <a href="#" class="trigger-subnav nav-data">Data</a>
-           <a href="#" class="trigger-subnav nav-apps">Apps</a>
-           <a href="#" class="trigger-subnav nav-interact">Interact</a>
+           <a href="/data" class="trigger-subnav nav-data">Data</a>
+           <a href="/apps" class="trigger-subnav nav-apps">Apps</a>
+           <a href="/interact" class="trigger-subnav nav-interact">Interact</a>
          </div>
         <div class="nav-search" style="width: 200px;">
           <form action="/data/search" class="input-group input-group-sm">
@@ -117,39 +144,28 @@ ${h.top_level_init()}
           </form>
         </div>
         <py:with vars="
-          drupal_mode=('dgu_drupal_auth' in config['ckan.plugins']);
-          logged_in=bool(c.user);
+          url='/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me');
+          destination='' if c.user else '?destination=%s'%request.path[1:];
         ">
-          <py:if test="logged_in">
-            <span class="dropdown">
-              <a class="nav-user btn btn-primary dropdown-button" data-toggle="dropdown" href="#"><i class="icon-user"></i></a>
-              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
-                <li><a href="${if_(drupal_mode,'/user',h.url_for(controller='user',action='me'))}"><i class="icon-user"></i>&nbsp; ${c.userobj.fullname if (c.userobj and c.userobj.fullname) else c.user}'s profile</a></li>
-                <li><a href="${if_(drupal_mode,'/user/logout',h.url_for('/data/user/logout'))}"><i class="icon-signout"></i>&nbsp; Log out</a></li>
-              </ul>
-            </span>
-
-            <!-- Publisher dropdown -->
-            <span py:if="h.check_access('package_create')" class="dropdown">
-              <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
-              <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
-                <li role="presentation" class="dropdown-header">Tools</li>
-                <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
-                <li py:if="h.is_sysadmin()"><a href="${h.url_for('publisher_new')}">Add a Publisher</a></li>
-                <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
-
-                <li role="presentation" class="dropdown-header">My publishers</li>
-                <py:for each="group in h.groups_for_current_user()">
-                    <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
-                </py:for>
-              </ul>
-            </span>
-
-          </py:if>
-          <py:if test="not logged_in">
-            <a class="nav-user btn btn-primary" href="${'/user' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for(controller='user',action='me')}?destination=${request.path[1:]}"><i class="icon-user"></i></a>
-          </py:if>
+          <a class="nav-user btn btn-primary" href="${url}${destination}"><i class="icon-user"></i></a>
         </py:with>
+        <py:if test="bool(c.user)">
+          <!-- Publisher dropdown -->
+          <span py:if="h.check_access('package_create')" class="dropdown">
+            <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
+            <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+              <li role="presentation" class="dropdown-header">Tools</li>
+              <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
+              <li py:if="h.is_sysadmin()"><a href="${h.url_for('publisher_new')}">Add a Publisher</a></li>
+              <li><a href="${h.url_for('harvest')}">Dataset Harvesting</a></li>
+
+              <li role="presentation" class="dropdown-header">My publishers</li>
+              <py:for each="group in h.groups_for_current_user()">
+                  <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
+              </py:for>
+            </ul>
+          </span>
+        </py:if>
       </nav>
     </div>
   </div>
@@ -158,7 +174,7 @@ ${h.top_level_init()}
       <ul class="subnav subnav-data active" py:with="url=c.environ.get('CKAN_CURRENT_URL')">
         <li><a class="${if_(url.startswith('/data/search') or url.startswith('/dataset/'),'active')}" href="${h.url_for(controller='package', action='search')}">Datasets</a></li>
         <li><a class="${if_(url.startswith('/data/map-based-search'),'active')}" href="/data/map-based-search">Map Search</a></li>
-        <li><a class="" href="/odug">Data Requests</a></li>
+        <li><a class="" href="/data-request">Data Requests</a></li>
         <li><a class="${if_(url.startswith('/publisher'),'active')}" href="/publisher">Publishers</a></li>
         <li><a class="" href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
         <li><a class="${if_(url.startswith('/data/openspending-browse'),'active')}" href="/data/openspending-browse">OpenSpending</a></li>
@@ -178,10 +194,6 @@ ${h.top_level_init()}
           <li><a class="${if_(url.startswith('/data/feedback/moderation'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </py:if>
       </ul>
-      <ul class="subnav subnav-apps">
-        <li><a href="/apps">Browse Apps</a></li>
-        <li><a href="/search/everything/?f%5B0%5D=bundle%3Aapp">Search Apps</a></li>
-      </ul>
 
       <ul class="subnav subnav-interact">
         <li><a class="" href="/location">Location</a></li>
@@ -189,6 +201,8 @@ ${h.top_level_init()}
         <li><a href="/blog">All Blogs</a></li>
         <li><a href="/forum">All Forums</a></li>
         <li><a href="/library">Library</a></li>
+        <li><a href="/glossary">Open data glossary</a></li>
+        <li><a href="/search/everything">Search content</a></li>
       </ul>
     </div>
   </div>

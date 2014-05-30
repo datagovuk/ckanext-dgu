@@ -462,22 +462,35 @@ table.tablesorter {
 }
 
 
-@color_crime: #778DAE;
-@color_defence: #447A6A;
-@color_economy: #8954FC; // <-- From Sam
-@color_education: #8CC65C; // <-- From Sam
-@color_geography: #549DF9; // <-- From Sam
-@color_government: #9D5CC6;
-@color_health: #F8524E; // <-- From Sam
-@color_society: #B1455A;
-@color_spending: #F95AB6; //<-- From Sam
-@color_transport: #FAA657; //<-- From Sam
+// @color_crime: #778DAE;
+// @color_defence: #447A6A;
+// @color_economy: #8954FC; // <-- From Sam
+// @color_education: #8CC65C; // <-- From Sam
+// @color_geography: #549DF9; // <-- From Sam
+// @color_government: #9D5CC6;
+// @color_health: #F8524E; // <-- From Sam
+// @color_society: #B1455A;
+// @color_spending: #F95AB6; //<-- From Sam
+// @color_transport: #FAA657; //<-- From Sam
+// @color_towns: ; //<-- From Sam
+@color_crime: #9a1433;
+@color_defence: #9e6a2c;
+@color_economy: #dc6440;
+@color_education: #ef325a;
+@color_mapping: #c53696;
+@color_government: #f4be16;
+@color_health: #922254;
+@color_society: #ceb385;
+@color_spending: #bb8885;
+@color_transport: #cea395;
+@color_towns: #ef424a;
 
 /* These themes SHOULD NOT EXIST */
 @color_administration: @color_government;
 @color_finance: @color_spending;
 @color_environment: @color_geography;
 @color_business: @color_economy;
+@color_geography: @color_mapping;
 
 .dataset-summary {
   border-left: 6px solid #e0e0e0;
@@ -554,6 +567,8 @@ table.tablesorter {
   &.theme-Finance        { .theme-name { color: @color_finance;        } .dataset-header { border-color: @color_finance;        }  }
   &.theme-Environment    { .theme-name { color: @color_environment;    } .dataset-header { border-color: @color_environment;    }  }
   &.theme-Business       { .theme-name { color: @color_business;       } .dataset-header { border-color: @color_business;       }  }
+  &.theme-Mapping        { .theme-name { color: @color_mapping;        } .dataset-header { border-color: @color_mapping;        }  }
+  &.theme-Towns          { .theme-name { color: @color_towns;          } .dataset-header { border-color: @color_towns;          }  }
 }
 .dataset-summary.mini {
   border-left: none;
@@ -1127,6 +1142,8 @@ body.controller-package.action-search {
   &.theme-Finance        { background-color: @color_finance;        }
   &.theme-Environment    { background-color: @color_environment;    }
   &.theme-Business       { background-color: @color_business;       }
+  &.theme-Mapping        { background-color: @color_mapping;        }
+  &.theme-Towns          { background-color: @color_towns;          }
 }
 body.controller-feedback,
 body.controller-package {
@@ -1800,70 +1817,4 @@ body.controller-widgets.action-index {
     .list-item {
         padding-bottom: 20px;
     }
-}
-
-/* Comments */
-.replies-header {
-  margin-top: 10px;
-}
-.replies-wrapper {
-  .reply {
-    padding: 10px;
-    padding-bottom: 2px;
-    margin-bottom: 9px;
-    position: relative;
-    border-color: #ccc;
-    &.push-1 {margin-left: 30px;}
-    &.push-2 {margin-left: 60px;}
-    &.push-3 {margin-left: 90px;}
-    &.push-4 {margin-left: 120px;}
-    &.push-5 {margin-left: 140px;}
-    &.push-6 {margin-left: 160px;}
-    &.push-7 {margin-left: 180px;}
-    &.push-8 {margin-left: 190px;}
-    &.push-9 {margin-left: 200px;}
-    &.push-10 {margin-left: 210px;}
-    h3 {
-      padding-left: 60px;
-      padding-top: 0;
-      margin-left: 0px;
-      margin-bottom: 3px;
-    }
-    .submitted {
-      border-bottom: 1px solid #ccc;
-      display: block;
-      padding-left: 60px;
-      padding-bottom: 3px;
-      margin-bottom: 10px;
-      color: #999;
-      height: 20px;
-    }
-    > a { 
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    .field-name-field-reply-subject {
-      .field-label {
-        display: none;
-      }
-      .field-items {
-        font-size: 19px;
-        line-height: 23px;
-      }
-    }
-    .field-name-field-reply-comment {
-      .field-label {
-        display: none;
-      }
-      .field-items {
-        padding-bottom: 0;
-      }
-    }
-  }
-  @media(max-width:767px) {
-    h3 {
-      border-top: none;
-    }
-  }
 }
