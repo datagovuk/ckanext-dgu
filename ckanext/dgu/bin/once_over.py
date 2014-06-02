@@ -17,7 +17,6 @@ urls = [
     "/dataset/uk-tariff-codes-2009-2010",
     "/dataset/mot-active-vts/resource/2ac8abba-4a71-4f12-af1b-57ad0e36b6a4",
     "/data/preview/9f4c0f50-984d-49a6-b81e-6e7ad0cd14e8",
-    "/data/openspending-browse",
     "/data/openspending-report/index",
     "/data/openspending-report/publisher-cabinet-office.html",
     "/data/site-usage",
