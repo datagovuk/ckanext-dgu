@@ -37,23 +37,6 @@ module.exports = function(grunt) {
           'public/scripts/vendor/d3.sankey.min.js'            : 'src/scripts/vendor/d3.sankey.js',
         },
       },
-      openspending: {
-        src: [
-          'src/scripts/openspending_pack/base64.js',
-          'src/scripts/openspending_pack/accounting-0.3.2.min.js',
-          'src/scripts/openspending_pack/underscore-1.2.0.js',
-          'src/scripts/openspending_pack/handlebars-1.0.js',
-          'src/scripts/openspending_pack/openspending.boot.js',
-          'src/scripts/openspending_pack/openspending.utils.js',
-          'src/scripts/openspending_pack/jquery.datatables-1.9.0.min.js',
-          'src/scripts/openspending_pack/datatables.bootstrap.js',
-          'src/scripts/openspending_pack/openspending.data_table.js',
-          'src/scripts/openspending_pack/openspending.faceter.js',
-          'src/scripts/openspending_pack/openspending.browser.js',
-          'src/scripts/openspending_pack/dgu-openspending-integration.js',
-        ],
-        dest: 'public/scripts/dgu-openspending-pack.min.js'
-      },
       recline: {
         src: [
           'src/scripts/recline_pack/underscore-1.1.6.js',

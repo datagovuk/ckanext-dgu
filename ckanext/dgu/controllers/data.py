@@ -137,9 +137,6 @@ class DataController(BaseController):
             abort(401, 'User must be a sysadmin to view this page.')
         return render('data/system_dashboard.html')
 
-    def openspending_browse(self):
-        return render('data/openspending_browse.html')
-
     def _set_openspending_reports_dir(self):
         c.openspending_report_dir = os.path.expanduser(pylons.config.get(
             'dgu.openspending_reports_dir',
