@@ -136,6 +136,7 @@ class ThemePlugin(p.SingletonPlugin):
     # isopen method
     from ckan import model
     from lib import helpers as dgu_helpers
+    model.Package._isopen = model.Package.isopen
     model.Package.isopen = dgu_helpers.isopen
 
     def update_config(self, config):

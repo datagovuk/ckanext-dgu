@@ -859,7 +859,9 @@ def isopen(pkg):
     # Normal datasets (created in the form) store the licence in the
     # pkg.license value as a License.id value.
     if pkg.license:
-        return bool(pkg.license.isopen())
+        # _isopen is the original one (before this method was monkey-patched in
+        # its place)
+        return pkg._isopen()
     elif pkg.license_id:
         # However if the user selects 'free text' in the form, that is stored
         # in the same pkg.license field.
