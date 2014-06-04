@@ -8,8 +8,8 @@ The CSV should have three columns with header:
 import csv
 from optparse import OptionParser
 
-import common
-from running_stats import StatsList
+from ckanext.dgu.bin import common
+from ckanext.dgu.bin.running_stats import StatsList
 
 
 def fix_links(csv_filepath, write=False):
@@ -41,7 +41,7 @@ def fix_links(csv_filepath, write=False):
                 continue
             pkg = pkgs[0]
             for res_ in pkg.resources:
-                if res_.description[:len(res_title)] == res_title:
+                if res_.description[:len(res_title)] == res_title and 'hub-id' in res_.extras:
                     res = res_
                     break
             else:
