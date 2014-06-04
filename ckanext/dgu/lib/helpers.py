@@ -904,13 +904,15 @@ def get_contact_details(pkg, pkg_extras):
     email = pkg_extras.get('contact-email')
     phone = pkg_extras.get('contact-phone')
     web_url = web_name = None
+
+    # If package has no contact details then inherit from the publisher
     if not (name or email or phone) and publisher:
-             extras = publisher.extras
-             name = extras.get('contact-name')
-             email = extras.get('contact-email')
-             phone = extras.get('contact-phone')
-             web_url = extras.get('website-url')
-             web_name = extras.get('website-name')
+        extras = publisher.extras
+        name = extras.get('contact-name')
+        email = extras.get('contact-email')
+        phone = extras.get('contact-phone')
+        web_url = extras.get('website-url')
+        web_name = extras.get('website-name')
 
     return (name, email, phone, web_url, web_name,)
 
@@ -939,12 +941,15 @@ def get_foi_contact_details(pkg, pkg_extras):
     foi_email = pkg_extras.get('foi-email')
     foi_phone = pkg_extras.get('foi-phone')
     foi_web = pkg_extras.get('foi-web')
+
+    # If package has no FOI contact details then inherit from the publisher
     if not (foi_phone or foi_email or foi_phone or foi_web) and publisher:
-             extras = publisher.extras
-             foi_name = extras.get('foi-name')
-             foi_email = extras.get('foi-email')
-             foi_phone = extras.get('foi-phone')
-             foi_web = extras.get('foi-web')
+        extras = publisher.extras
+        foi_name = extras.get('foi-name')
+        foi_email = extras.get('foi-email')
+        foi_phone = extras.get('foi-phone')
+        foi_web = extras.get('foi-web')
+
     return (foi_name, foi_email, foi_phone, foi_web, None,)
 
 def coupled_pkg_tuples(pkg):
