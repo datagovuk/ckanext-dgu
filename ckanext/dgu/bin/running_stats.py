@@ -1,34 +1,19 @@
 '''Tool for a script to keep track changes performed on a large number
 of objects.
 
-StatsCount - when you are counting incidences of a small set of outcomes
-StatsList - when you also want to remember an ID associated with each incidence
+Example:
 
-Examples:
-
-from running_stats import StatsCount
-package_stats = StatsCount()
+from running_stats import Stats
+stats = Stats()
 for package in packages:
     if package.enabled:
         package.delete()
-        package_stats.increment('deleted')
+        stats.add('deleted', package.name)
     else:
-        package_stats.increment('not deleted')    
-print package_stats.report()
-> deleted: 30
-> not deleted: 70
-    
-from running_stats import StatsList
-package_stats = StatsList()
-for package in packages:
-    if package.enabled:
-        package.delete()
-        package_stats.add('deleted', package.name)
-    else:
-        package_stats.add('not deleted' package.name)
-print package_stats.report()
+        stats.add('not deleted' package.name)
+print stats
 > deleted: 30 pollution-uk, flood-regions, river-quality, ...
-> not deleted: 70 spending-bristol, ... 
+> not deleted: 70 spending-bristol, ...
 
 '''
 
@@ -83,14 +68,17 @@ class StatsCount(dict):
             lines.append(indent_str + 'Time taken (h:m:s): %s' % time_taken)
         return '\n'.join(lines)
 
-class StatsList(StatsCount):
+    def __repr__(self):
+        return self.report()
+
+class Stats(StatsCount):
     # {category:[values]}
     _init_value = []
 
     def add(self, category, value):
         self._init_category(category)
         self[category].append(value)
-        return '%s: %s' % (category, value) # so you can log it too
+        return ('%s: %s' % (category, value)).encode('ascii', 'ignore') # so you can log it too
 
     def report_value(self, category):
         value = self[category]
@@ -100,13 +88,16 @@ class StatsList(StatsCount):
             value_str = value_str[:self.report_value_limit] + '...'
         return (value_str, number_of_values)
 
+# deprecated name - kept for backward compatibility
+class StatsList(Stats):
+    pass
+
+
 if __name__ == '__main__':
-    package_stats = StatsList()
+    package_stats = Stats()
     package_stats.add('Success', 'good1')
     package_stats.add('Success', 'good2')
     package_stats.add('Success', 'good3')
     package_stats.add('Success', 'good4')
     package_stats.add('Failure', 'bad1')
-    print package_stats.report()
-
-    print StatsList().report()
+    print package_stats
