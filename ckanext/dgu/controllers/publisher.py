@@ -127,7 +127,7 @@ class PublisherController(OrganizationController):
             return self.apply(group.id, errors=errors,
                               error_summary=error_summary(errors))
 
-            h.flash_success('Your application has been submitted to administrator for: %s. If you do not hear back in a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>' % recipient_publisher, allow_html=True)
+        h.flash_success('Your application has been submitted to administrator for: %s. If you do not hear back in a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>' % recipient_publisher, allow_html=True)
         h.redirect_to('publisher_read', id=group.name)
 
     def apply(self, id=None, data=None, errors=None, error_summary=None):
