@@ -177,7 +177,6 @@ ${h.top_level_init()}
         <li><a class="" href="/data-request">Data Requests</a></li>
         <li><a class="${if_(url.startswith('/publisher'),'active')}" href="/publisher">Publishers</a></li>
         <li><a class="" href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
-        <li><a class="${if_(url.startswith('/data/openspending-browse'),'active')}" href="/data/openspending-browse">OpenSpending</a></li>
         <py:if test="config.get('dgu.openspending_reports_enabled')">
           <li><a class="${if_(url.startswith('/data/openspending-report'),'active')}" href="/data/openspending-report/index">Spend Reports</a></li>
         </py:if>
@@ -201,6 +200,8 @@ ${h.top_level_init()}
         <li><a href="/blog">All Blogs</a></li>
         <li><a href="/forum">All Forums</a></li>
         <li><a href="/library">Library</a></li>
+        <li><a href="/glossary">Open data glossary</a></li>
+        <li><a href="/search/everything">Search content</a></li>
       </ul>
     </div>
   </div>

@@ -265,9 +265,8 @@ def user_properties(user):
     # Check if this is the site_user
     site_user_name = config.get('ckan.site_id', 'ckan_site_user')
     if user and user.name == site_user_name:
-        return "System Process"
-
-    this_is_me = user and (c.user in (user.name, user.fullname))
+        user_name = 'Site user'
+        is_system = True
 
     if not user:
         # Up til Jun 2012, CKAN saved Drupal users in this format:
@@ -1834,13 +1833,14 @@ def is_core_dataset(package):
     return False
 
 def report_generated_at(reportname, object_id='__all__', withsub=False):
-    import ckan.model as model
+    from ckan import model
+    from ckanext.report.model import DataCache
     nm = reportname
     if withsub:
         nm = nm + '-withsub'
-    cache_data = model.Session.query(model.DataCache.created)\
-        .filter(model.DataCache.object_id == object_id)\
-        .filter(model.DataCache.key == nm).first()
+    cache_data = model.Session.query(DataCache.created)\
+        .filter(DataCache.object_id == object_id)\
+        .filter(DataCache.key == nm).first()
     log.debug("Generation date for {0} using {1} - found? {2}"\
         .format(nm, object_id, cache_data is not None))
     return cache_data[0] if cache_data else datetime.datetime.now()

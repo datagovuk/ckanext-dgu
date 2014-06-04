@@ -31,7 +31,7 @@ setup(
         pylons = pylons.test:PylonsPlugin
 
         [ckan.plugins]
-        dgu_reports = ckanext.dgu.plugin:ReportsPlugin
+        dgu_report = ckanext.dgu.plugin:DguReportPlugin
         dgu_form = ckanext.dgu.plugin:DguForm
         dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
         dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin

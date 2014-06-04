@@ -462,22 +462,35 @@ table.tablesorter {
 }
 
 
-@color_crime: #778DAE;
-@color_defence: #447A6A;
-@color_economy: #8954FC; // <-- From Sam
-@color_education: #8CC65C; // <-- From Sam
-@color_geography: #549DF9; // <-- From Sam
-@color_government: #9D5CC6;
-@color_health: #F8524E; // <-- From Sam
-@color_society: #B1455A;
-@color_spending: #F95AB6; //<-- From Sam
-@color_transport: #FAA657; //<-- From Sam
+// @color_crime: #778DAE;
+// @color_defence: #447A6A;
+// @color_economy: #8954FC; // <-- From Sam
+// @color_education: #8CC65C; // <-- From Sam
+// @color_geography: #549DF9; // <-- From Sam
+// @color_government: #9D5CC6;
+// @color_health: #F8524E; // <-- From Sam
+// @color_society: #B1455A;
+// @color_spending: #F95AB6; //<-- From Sam
+// @color_transport: #FAA657; //<-- From Sam
+// @color_towns: ; //<-- From Sam
+@color_crime: #9a1433;
+@color_defence: #9e6a2c;
+@color_economy: #dc6440;
+@color_education: #ef325a;
+@color_mapping: #c53696;
+@color_government: #f4be16;
+@color_health: #922254;
+@color_society: #ceb385;
+@color_spending: #bb8885;
+@color_transport: #cea395;
+@color_towns: #ef424a;
 
 /* These themes SHOULD NOT EXIST */
 @color_administration: @color_government;
 @color_finance: @color_spending;
 @color_environment: @color_geography;
 @color_business: @color_economy;
+@color_geography: @color_mapping;
 
 .dataset-summary {
   border-left: 6px solid #e0e0e0;
@@ -554,6 +567,8 @@ table.tablesorter {
   &.theme-Finance        { .theme-name { color: @color_finance;        } .dataset-header { border-color: @color_finance;        }  }
   &.theme-Environment    { .theme-name { color: @color_environment;    } .dataset-header { border-color: @color_environment;    }  }
   &.theme-Business       { .theme-name { color: @color_business;       } .dataset-header { border-color: @color_business;       }  }
+  &.theme-Mapping        { .theme-name { color: @color_mapping;        } .dataset-header { border-color: @color_mapping;        }  }
+  &.theme-Towns          { .theme-name { color: @color_towns;          } .dataset-header { border-color: @color_towns;          }  }
 }
 .dataset-summary.mini {
   border-left: none;
@@ -1127,6 +1142,8 @@ body.controller-package.action-search {
   &.theme-Finance        { background-color: @color_finance;        }
   &.theme-Environment    { background-color: @color_environment;    }
   &.theme-Business       { background-color: @color_business;       }
+  &.theme-Mapping        { background-color: @color_mapping;        }
+  &.theme-Towns          { background-color: @color_towns;          }
 }
 body.controller-feedback,
 body.controller-package {
@@ -1538,57 +1555,7 @@ body.openspending_report {
         color: #C09853;
     }
 }
-body.openspending_browse {
-  .sidebar table td {
-    background: inherit;
-    border-color: #ccc !important;
-  }
-    table.table thead {
-        .sorting,
-        .sorting_asc,
-        .sorting_desc {
-            background-color: #eee;
-            cursor: pointer;
-            font-weight: bold;
-            background-repeat: no-repeat;
-            background-position: center right;
-            padding-right: 20px;
-            border-right: 1px solid #dad9c7;
-            margin-left: -1px;
-        }
-        .sorting {
-            background-image: url('/images/icons/sort.gif');
-            background-color: inherit;
-        }
-        .sorting_desc {
-            background-image: url('/images/icons/sort-desc.gif');
-          }
-        .sorting_asc {
-            background-image: url('/images/icons/sort-asc.gif');
-        }
-    }
-    table.trimmed {
-      margin-bottom: 0;
-    }
-    .openspending-more-button {
-      .facet-box-unboxed .facet-expand-collapse;
-      margin-bottom: 10px;
-    }
-    .dataTables_processing {
-        position: absolute;
-        top: 60%;
-        left: 50%;
-        width: 250px;
-        height: 30px;
-        margin-left: -125px;
-        margin-top: -15px;
-        padding: 14px 0 2px 0;
-        border: 1px solid #ddd;
-        text-align: center;
-        font-size: 14px;
-        background-color: white;
-    }
-}
+
 /* Feedback pages */
 body.controller-feedback.action-add {
   .add-feedback-icon {

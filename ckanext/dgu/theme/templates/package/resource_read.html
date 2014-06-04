@@ -30,14 +30,14 @@
   </py:def>
 
   <div py:def="package_content">
-    <div py:if="c.resource.get('state') == 'deleted'" class="panel panel-warning">
+    <hr/>
+    <div py:if="c.resource.get('state') == 'deleted'" class="panel panel-danger">
       <div class="panel-heading">Deleted resource</div>
       <py:with vars="deleted=if_(h.dataset_type(c.pkg_extras)=='uklp','withdrawn','deleted')">
-        <div class="panel-body">This resource is ${deleted}.</div>
+        <div class="panel-body">This resource is <strong>${deleted}</strong>.</div>
       </py:with>
     </div>
 
-    <hr/>
     <div class="pull-right">
       <a py:if="c.resource.get('url')" class="btn btn-danger resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${c.resource.get('url')}" onclick="${h.ga_download_tracking(c.resource)}">
         <py:choose test="c.resource.get('resource_type')">
@@ -117,7 +117,7 @@
         <td class="value">${h.render_resource_stars(c.resource['id'])}</td>
       </tr>
       <tr>
-        <td class="key">Link Check:<a name="linkcheck"></a></td>
+        <td class="key">Quality Check:<a name="qualitycheck"></a></td>
         <td class="value">${h.render_qa_info_for_resource(c.resource)}</td>
       </tr>
       <tr py:for="field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource,dict(c.pkg_extras))">
