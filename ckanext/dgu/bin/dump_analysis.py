@@ -1,4 +1,3 @@
-from optparse import OptionParser
 import zipfile
 import gzip
 import json
@@ -14,7 +13,7 @@ from sqlalchemy.util import OrderedDict
 
 from ckanext.importlib import command
 
-log = logging.getLogger('dump_analysis')
+log = logging.getLogger('ckanext.dgu.bin.dump_analysis')
 
 total_label = 'Total datasets'
 manual_creation = 'Manual creation using web form'
@@ -34,12 +33,10 @@ OLD_THEMES = {
     'Economy': 'Business & Economy',
     'Crime': 'Crime & Justice',
     'Administration': 'Government',
-    'Environment': 'Geography',
-    'Location': 'Geography',
+    'Location': 'Environment',
+    'Geography': 'Environment',
     }
-THEMES = ('Society', 'Government Spending', 'Education', 'Crime & Justice',
-          'Geography', 'Health', 'Government', 'Defence', 'Business & Economy',
-          'Transport')
+THEMES = ('Society', 'Government Spending', 'Education', 'Crime & Justice', 'Environment', 'Towns & Cities', 'Mapping', 'Health', 'Government', 'Defence', 'Business & Economy', 'Transport')
 
 
 date_converters = (
@@ -78,7 +75,7 @@ def get_run_info():
     run_info  = 'This analysis is produced by a script\n'
     run_info += 'Date last updated: %r\n' % format_date(datetime.date.today())
     run_info += 'Script filename: %r\n' % os.path.basename(__file__)
-    run_info += 'Script repository: http://github.com/okfn/ckanext-dgu\n'
+    run_info += 'Script repository: http://github.com/datagovuk/ckanext-dgu\n'
     run_info += 'Dump files for analysis: http://data.gov.uk/data/dumps\n'
     return run_info
 
@@ -220,6 +217,10 @@ class TxtAnalysisFile(AnalysisFile):
         
 
 class DumpAnalysis(object):
+    '''
+    Reads a JSON dump file and runs analysis according to the options, and
+    saves it in self.analysis_dict
+    '''
     def __init__(self, dump_filepath, options):
         log.info('Analysing %s' % dump_filepath)
         self.dump_filepath = dump_filepath
@@ -259,6 +260,7 @@ class DumpAnalysis(object):
         log.info('Date of dumpfile: %r', datestr)
 
     def get_packages(self):
+        '''Returns the packages listed in the JSON dump file'''
         if zipfile.is_zipfile(self.dump_filepath):
             log.info('Unzipping...')
             zf = zipfile.ZipFile(self.dump_filepath)
