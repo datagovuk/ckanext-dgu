@@ -412,16 +412,24 @@
     <hr/>
   <h3>Contact details</h3>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
-    <py:with vars="group=h.edit_publisher_group(data)">
+    <py:with vars="group=h.edit_publisher_group(data);
+                   initial_contact_name=data.get('contact-name', '') or group.get('contact-name', '');
+                   initial_contact_email=data.get('contact-email', '') or group.get('contact-email', '');
+                   initial_contact_phone=data.get('contact-phone', '') or group.get('contact-phone', ''); 
+
+                   initial_foi_name=data.get('foi-name', '') or group.get('foi-name', ''); 
+                   initial_foi_email=data.get('foi-email', '') or group.get('foi-email', ''); 
+                   initial_foi_web=data.get('foi-web', '') or group.get('foi-web', ''); 
+                   initial_foi_phone=data.get('foi-phone', '') or group.get('foi-phone', ''); ">
       <fieldset id="publisher-information-field" class="well" >
         <h3>Publisher Contact Details</h3>
-        <p><b>Name: </b> <span id="contact-name-label">${group.get('contact-name', '')}</span></p>
-        <p><b>Email: </b><span id="contact-email-label">${group.get('contact-email', '')}</span></p>
-        <p><b>Phone: </b><span id="contact-phone-label">${group.get('contact-phone', '')}</span></p>
+        <p><b>Name: </b> <span id="contact-name-label">${initial_contact_name}</span></p>
+        <p><b>Email: </b><span id="contact-email-label">${initial_contact_email}</span></p>
+        <p><b>Phone: </b><span id="contact-phone-label">${initial_contact_phone}</span></p>
 
-        <input id="contact-name" name="contact-name" type="hidden" value="${group.get('contact-name', '')}"/>
-        <input id="contact-email" name="contact-email" type="hidden" value="${group.get('contact-email', '')}"/>
-        <input id="contact-phone" name="contact-phone" type="hidden" value="${group.get('contact-phone', '')}"/>
+        <input id="contact-name" name="contact-name" type="hidden" value="${initial_contact_name}"/>
+        <input id="contact-email" name="contact-email" type="hidden" value="${initial_contact_email}"/>
+        <input id="contact-phone" name="contact-phone" type="hidden" value="${initial_contact_phone}"/>
 
         <a class="btn btn-primary" data-toggle="modal" href="#edit-contact">Edit</a>
         <div style="display: none;" class="modal dgu-editor" id="edit-contact">
@@ -436,15 +444,15 @@
             <p>Edit any of the contact details below.</p>
             <div class="form-group">
               <label class="control-label" for="contact-name-editor">Name:</label>
-              <input class="form-control" type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" />
+              <input class="form-control" type="text" name="contact-name-dialog"  data-label="#contact-name-label"  data-input="#contact-name" value="${initial_contact_name}" />
             </div>
             <div class="form-group">
               <label class="control-label" for="contact-email-editor">Email:</label>
-              <input class="form-control" type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" />
+              <input class="form-control" type="text" name="contact-email-dialog" data-label="#contact-email-label" data-input="#contact-email" value="${initial_contact_email}" />
             </div>
             <div class="form-group">
               <label class="control-label" for="contact-phone-editor">Phone:</label>
-              <input class="form-control" type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" />
+              <input class="form-control" type="text" name="contact-phone-dialog" data-label="#contact-phone-label" data-input="#contact-phone" value="${initial_contact_phone}" />
             </div>
           </div>
           <div class="modal-footer">
@@ -459,15 +467,15 @@
       <fieldset class="well">
         <h3>FOI Request Contact Details</h3>
 
-        <p><b>Name: </b> <span id="foi-name-label">${group.get('foi-name', '')}</span></p>
-        <p><b>Email: </b><span id="foi-email-label">${group.get('foi-email', '')}</span></p>
-        <p><b>Web: </b><span id="foi-web-label">${group.get('foi-web', '')}</span></p>
-        <p><b>Phone: </b><span id="foi-phone-label">${group.get('foi-phone', '')}</span></p>
+        <p><b>Name: </b> <span id="foi-name-label">${initial_foi_name}</span></p>
+        <p><b>Email: </b><span id="foi-email-label">${initial_foi_email}</span></p>
+        <p><b>Web: </b><span id="foi-web-label">${initial_foi_web}</span></p>
+        <p><b>Phone: </b><span id="foi-phone-label">${initial_foi_phone}</span></p>
 
-        <input id="foi-name" name="foi-name" type="hidden" value="${group.get('foi-name', '')}"/>
-        <input id="foi-email" name="foi-email" type="hidden" value="${group.get('foi-email', '')}"/>
-        <input id="foi-web" name="foi-web" type="hidden" value="${group.get('foi-web', '')}"/>
-        <input id="foi-phone" name="foi-phone" type="hidden" value="${group.get('foi-phone', '')}"/>
+        <input id="foi-name" name="foi-name" type="hidden" value="${initial_foi_name}"/>
+        <input id="foi-email" name="foi-email" type="hidden" value="${initial_foi_email}"/>
+        <input id="foi-web" name="foi-web" type="hidden" value="${initial_foi_web}"/>
+        <input id="foi-phone" name="foi-phone" type="hidden" value="${initial_foi_phone}"/>
 
         <a class="btn btn-primary" data-toggle="modal" href="#edit-foi">Edit</a>
         <div style="display: none;" class="modal dgu-editor" id="edit-foi">
@@ -481,19 +489,19 @@
             <p>Edit any of the FOI details below.</p>
             <div class="form-group">
               <label for="foi-name-editor">Name:</label>
-              <input class="form-control" type="text" name="foi-name-dialog"  data-label="#foi-name-label"  data-input="#foi-name" />
+              <input class="form-control" type="text" name="foi-name-dialog"  data-label="#foi-name-label"  data-input="#foi-name" value="${initial_foi_name}" />
             </div>
             <div class="form-group">
               <label for="foi-email-editor">Email:</label>
-              <input class="form-control" type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" />
+              <input class="form-control" type="text" name="foi-email-dialog" data-label="#foi-email-label" data-input="#foi-email" value="${initial_foi_email}" />
             </div>
             <div class="form-group">
               <label for="foi-web-editor">Web:</label>
-              <input class="form-control" type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" />
+              <input class="form-control" type="text" name="foi-web-dialog" data-label="#foi-web-label" data-input="#foi-web" value="${initial_foi_web}" />
             </div>
             <div class="form-group">
               <label for="foi-phone-editor">Phone:</label>
-              <input class="form-control" type="text" name="foi-phone-dialog" data-label="#foi-phone-label" data-input="#foi-phone" />
+              <input class="form-control" type="text" name="foi-phone-dialog" data-label="#foi-phone-label" data-input="#foi-phone" value="${initial_foi_phone}" />
             </div>
           </div>
           <div class="modal-footer">
