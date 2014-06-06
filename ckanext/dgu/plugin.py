@@ -380,6 +380,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.feedback_report_info,
                 reports.publisher_activity_report_info,
                 reports.publisher_resources_info,
+                reports.unpublished_report_info,
                 ]
 
 

@@ -398,3 +398,40 @@ publisher_activity_report_info = {
     'generate': publisher_activity,
     'template': 'report/publisher_activity.html',
     }
+
+
+def unpublished():
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')\
+                .join(model.PackageExtra)\
+                .filter_by(key='unpublished')\
+                .filter_by(value='true')\
+                .filter_by(state='active')\
+                .all()
+    pkg_dicts = []
+    for pkg in pkgs:
+        org = pkg.get_organization()
+        pkg_dict = {
+                'name': pkg.name,
+                'title': pkg.title,
+                'organization title': org.title,
+                'organization name': org.name,
+                'notes': pkg.notes,
+                'publish date': pkg.extras.get('publish-date'),
+                'will not be released': pkg.extras.get('publish-restricted'),
+                'release notes': pkg.extras.get('release-notes'),
+                }
+        pkg_dicts.append(pkg_dict)
+    return {'table': pkg_dicts}
+
+unpublished_report_info = {
+    'name': 'unpublished',
+    'title': 'Unpublished datasets',
+    'description': 'Unpublished dataset properties provided by publishers.',
+    'option_defaults': OrderedDict(),
+    'option_combinations': None,
+    'generate': unpublished,
+    'template': 'report/unpublished.html',
+    }
+
+
