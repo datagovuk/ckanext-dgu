@@ -10,6 +10,7 @@ import glob
 
 from datautil.tabular import TabularData, CsvReader, CsvWriter
 from sqlalchemy.util import OrderedDict
+from paste.deploy.converters import asbool
 
 from ckanext.importlib import command
 
@@ -322,7 +323,7 @@ class DumpAnalysis(object):
                 import_source = import_source_prefixes['COSPREAD']
                 pkg_bins[import_source].append(pkg['name'])
                 continue
-            if pkg['extras'].get('unpublished') == True:
+            if asbool(pkg['extras'].get('unpublished')):
                 import_source = unpublished
                 pkg_bins[import_source].append(pkg['name'])
                 continue
