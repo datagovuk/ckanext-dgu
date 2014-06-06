@@ -428,7 +428,7 @@ unpublished_report_info = {
     'name': 'unpublished',
     'title': 'Unpublished datasets',
     'description': 'Unpublished dataset properties provided by publishers.',
-    'option_defaults': OrderedDict(),
+    'option_defaults': None,
     'option_combinations': None,
     'generate': unpublished,
     'template': 'report/unpublished.html',
