@@ -871,8 +871,8 @@ def isopen(pkg):
         # values, so are in the 'licence' extra.
         license_text_list = json_list(pkg.extras.get('licence') or '')
         # UKLP might also have a URL to go with its licence
-        license_text_list.extend([pkg.extras.get('licence_url', ''),
-                                  pkg.extras.get('licence_url_title')])
+        license_text_list.extend([pkg.extras.get('licence_url', '') or '',
+                                  pkg.extras.get('licence_url_title') or ''])
         license_text = ';'.join(license_text_list)
     open_licenses = [
         'Open Government Licen',
