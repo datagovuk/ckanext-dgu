@@ -882,6 +882,9 @@ def isopen(pkg):
         'OS Open Data Licence',
         'Ordnance Survey OpenData Licence',
         'http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf',
+        'Open Data Commons Open Database License',
+        'ODC Open Database License',
+        '(ODbL)',
     ]
     for open_license in open_licenses:
         if open_license in license_text:
