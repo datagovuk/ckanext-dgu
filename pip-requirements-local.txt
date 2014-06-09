@@ -18,3 +18,5 @@ pastescript
 
 # Beautiful Soup for gov_daily.py
 beautifulsoup4
+
+nltk
