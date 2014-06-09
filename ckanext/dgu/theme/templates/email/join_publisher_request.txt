@@ -1,14 +1,17 @@
 Dear administrator,
 
-A request has been made for membership of the data.gov.uk publisher $group.title by $requester.name {% if requester.fullname %}( $requester.fullname ){% end %}
+A request has been made for membership of the data.gov.uk publisher $group.title by:
+
+Name: $requester.fullname ($requester.name) 
+Email: $requester.email
 
 The reason given for the request was:
 
 "$reason"
 
-Please contact the user to verify and then if you would like to add this user you can do so by visiting $accept_url and adding this user: $requester.fullname
+Please contact the user to verify and then if you would like to add this user you can do so by visiting $accept_url and adding this user: $requester.fullname ($requester.name)
 
-If you do not wish to add this user you can safely disregard this email.
+If you do not wish to add this user you can safely disregard this email. If you have any questions about this process, contact team@data.gov.uk.
 
 
 The data.gov.uk administrators

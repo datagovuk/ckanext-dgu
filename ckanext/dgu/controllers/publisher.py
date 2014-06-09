@@ -95,7 +95,7 @@ class PublisherController(OrganizationController):
                                   error_summary=error_summary(errors))
             recipients = [(config.get('dgu.admin.name', "DGU Admin"),
                            config['dgu.admin.email'])]
-            recipient_publisher = 'data.gov.uk admin'
+            recipient_publisher = 'data.gov.uk admin team'
 
 
         url = urljoin(g.site_url,
@@ -117,18 +117,18 @@ class PublisherController(OrganizationController):
             for (name,recipient) in recipients:
                 mail_recipient(name,
                                recipient,
-                               "Publisher request",
-                               email_msg)
+                               subject='DGUKPublisherRequest: Please add me as a data.gov.uk publisher',
+                               body=email_msg)
         except Exception, e:
-            h.flash_error(_("There is a problem with the system configuration"))
+            h.flash_error('There is a problem with the system configuration. Please instead <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True)
             errors = {"reason": ["data.gov.uk error"]}
             log.error('User "%s" prevented from applying for publisher access for "%s" because of mail configuration error: %s',
                       c.user, group.name, e)
             return self.apply(group.id, errors=errors,
                               error_summary=error_summary(errors))
 
-        h.flash_success("Your application has been submitted to administrator for: %s" % recipient_publisher)
-        h.redirect_to( 'publisher_read', id=group.name)
+        h.flash_success('Your application has been submitted to administrator for: %s. If you do not hear back in a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>' % recipient_publisher, allow_html=True)
+        h.redirect_to('publisher_read', id=group.name)
 
     def apply(self, id=None, data=None, errors=None, error_summary=None):
         """
