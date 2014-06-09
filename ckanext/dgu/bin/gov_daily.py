@@ -5,7 +5,6 @@ import os
 import logging
 import sys
 import zipfile
-import traceback
 import datetime
 import re
 import urllib2
@@ -81,8 +80,8 @@ def command(config_file):
     from ckanext.dgu.lib.inventory import inventory_dumper
 
     # Check database looks right
-    num_packages_before = model.Session.query(model.Package).count()
-    log.info('Number of existing packages: %i' % num_packages_before)
+    num_packages_before = model.Session.query(model.Package).filter_by(state='active').count()
+    log.info('Number of existing active packages: %i' % num_packages_before)
     if num_packages_before < 2:
         log.error('Expected more packages.')
         sys.exit(1)
@@ -176,8 +175,8 @@ def command(config_file):
                             f.close()
                         log.info('Wrote openspending report %s', filepath)
 
-    # Create dumps for users
-    if run_task('dump_csv'):
+    # Create dump for users
+    if run_task('dump'):
         log.info('Creating database dump')
         if not os.path.exists(dump_dir):
             log.info('Creating dump dir: %s' % dump_dir)
@@ -213,24 +212,26 @@ def command(config_file):
 
         report_time_taken(log)
 
-        # Dump analysis
-        log.info('Creating dump analysis')
-        if not os.path.exists(analysis_dir):
-            log.info('Creating dump analysis dir: %s' % analysis_dir)
-            os.makedirs(analysis_dir)
+    # Dump analysis
+    if run_task('dump_analysis'):
+        log.info('Doing dump analysis')
+        dump_file_base = start_time.strftime(dump_filebase)
         json_dump_filepath = os.path.join(dump_dir, '%s.json.zip' % dump_file_base)
         txt_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.txt')
         csv_filepath = os.path.join(analysis_dir, dump_analysis_filebase + '.csv')
+        log.info('Input: %s', json_dump_filepath)
+        log.info('Output: %s & %s', txt_filepath, csv_filepath)
+        if not os.path.exists(analysis_dir):
+            log.info('Creating dump analysis dir: %s' % analysis_dir)
+            os.makedirs(analysis_dir)
         run_info = get_run_info()
         options = DumpAnalysisOptions(analyse_by_source=True)
         analysis = DumpAnalysis(json_dump_filepath, options)
-        log.info('Saving dump analysis')
         output_types = (
             # (output_filepath, analysis_file_class)
             (txt_filepath, TxtAnalysisFile),
             (csv_filepath, CsvAnalysisFile),
             )
-        analysis_files = {} # analysis_file_class, analysis_file
         for output_filepath, analysis_file_class in output_types:
             log.info('Saving dump analysis to: %s' % output_filepath)
             analysis_file = analysis_file_class(output_filepath, run_info)
@@ -277,16 +278,16 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump_csv','backup']
+TASKS_TO_RUN = ['analytics','openspending','dump','dump_analysis','backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
     Usage: python %s [config.ini]
 
     You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from analytics,openspending,dump_csv,backup or run multiple by
+    and you can choose from %s or run multiple by
     separating by a comma.
-    ''' % sys.argv[0]
+    ''' % (sys.argv[0], ','.join(TASKS_TO_RUN))
 
     if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
         err = 'Error: Please specify config file.'
