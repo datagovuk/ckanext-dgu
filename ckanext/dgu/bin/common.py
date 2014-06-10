@@ -31,8 +31,18 @@ def register_translator():
     registry=Registry()
     registry.prepare()
     global translator_obj
-    translator_obj=MockTranslator() 
-    registry.register(translator, translator_obj) 
+    translator_obj=MockTranslator()
+    registry.register(translator, translator_obj)
+
+
+def get_resources_using_options(options, state='active'):
+    '''
+    Returns resources, filtered by commandline options 'dataset' and
+    'resource'.
+    '''
+    return get_resources(state=state, resource_id=options.resource,
+                         dataset_name=options.dataset)
+
 
 def get_resources(state='active', resource_id=None, dataset_name=None):
     ''' Returns all active resources, or filtered by the given criteria. '''
@@ -43,12 +53,15 @@ def get_resources(state='active', resource_id=None, dataset_name=None):
                 .join(model.Package) \
                 .filter_by(state='active')
     criteria = [state]
-    if dataset_name:
-        resources = resources.filter(model.Package.name==dataset_name)
-        criteria.append('Dataset:%s' % dataset_name)
     if resource_id:
         resources = resources.filter(model.Resource.id==resource_id)
         criteria.append('Resource:%s' % resource_id)
+    elif dataset_name:
+        resources = resources.filter(model.Package.name==dataset_name)\
+                             .order_by(model.Resource.position)
+        criteria.append('Dataset:%s' % dataset_name)
+    else:
+        resources = resources.order_by(model.Package.name)
     resources = resources.all()
     print '%i resources (%s)' % (len(resources), ' '.join(criteria))
     return resources
