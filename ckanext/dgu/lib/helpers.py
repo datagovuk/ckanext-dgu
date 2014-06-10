@@ -11,6 +11,7 @@ import re
 import urllib
 from urlparse import urljoin
 from itertools import dropwhile
+import itertools
 import datetime
 import random
 
@@ -27,6 +28,9 @@ import ckan.lib.helpers
 from ckanext.dgu.lib import formats
 
 log = logging.getLogger(__name__)
+
+def groupby(*args, **kwargs):
+    return itertools.groupby(*args, **kwargs)
 
 def resource_as_json(resource):
     return json.dumps(resource)
