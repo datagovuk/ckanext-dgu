@@ -1705,7 +1705,7 @@ body.controller-theme {
   background: #fff;
   position: relative;
   padding: 0 0 0 0;
-  min-height: 120px;
+  min-height: 150px;
   margin-bottom: 30px;
   @media(min-width:1200px) { min-height: 310px; }
   @media(max-width:767px) { min-height: 0px; }
@@ -1715,20 +1715,21 @@ body.controller-theme {
     border-right-width: 0px;
     background: #fff;
     padding: 10px 14px;
-    .underlined {
-      font-size: 17px;
-      line-height: 22px;
-    }
+    font-size: 17px;
+    line-height: 22px;
+    color: #393939;
   }
   .report-body {
     background: #fff;
     border-right: none;
     .dataset-publisher { display: none; }
-    padding: 10px 14px;
-    padding-top: 0;
+    padding: 0 14px 10px;
     font-size: 13px;
     line-height: 18px;
     color: #999;
+  }
+  .report-description {
+    margin-bottom: 25px;
   }
   .view-report-link {
     display: block;
