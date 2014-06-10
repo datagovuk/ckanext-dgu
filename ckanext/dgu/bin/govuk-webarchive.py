@@ -53,7 +53,11 @@ def fix_redirects(options):
             return stats.add(msg, ('%s/%s %s' % (pkg.name, res.id, res.url)).encode('latin7', 'ignore'))
         if archival.reason.endswith('410 Gone'):
             # Find out the redirect - it is in the html
-            page = requests.get(res.url)
+            try:
+                page = requests.get(res.url)
+            except requests.exceptions.ConnectionError:
+                print stats_add('410 Gone but connection error')
+                continue
             if '<a href="https://www.gov.uk">' not in page.text:
                 print stats_add('410 Gone but not gov.uk')
                 continue
