@@ -1156,7 +1156,7 @@ def available_license_ids():
     return zip(*c.licenses)[1]
 
 def license_choices(data):
-    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
+    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl', 'odc-odbl'])
 
 def edit_publisher_group_name(data):
     if not data.get('organization'):
