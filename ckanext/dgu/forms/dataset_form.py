@@ -410,7 +410,7 @@ class DatasetForm(p.SingletonPlugin):
             'foi-name': g.extras.get('foi-name', ''),
             'foi-email': g.extras.get('foi-email', ''),
             'foi-phone': g.extras.get('foi-phone', ''),
-            'foi-web': g.extras.get('foi-name', ''),
+            'foi-web': g.extras.get('foi-web', ''),
         } for g in groups]
 
         return dict((g['name'], g) for g in groups)
