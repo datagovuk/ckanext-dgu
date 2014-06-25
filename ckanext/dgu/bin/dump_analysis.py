@@ -7,6 +7,7 @@ import os
 import logging
 import re
 import glob
+import requests
 
 from datautil.tabular import TabularData, CsvReader, CsvWriter
 from sqlalchemy.util import OrderedDict
@@ -122,7 +123,7 @@ class TabularAnalysisFile(AnalysisFile):
             try:
                 date_column = table.header.index('date')
             except ValueError:
-                raise ValueError('Data does not have a date: %r' % table.header)            
+                raise ValueError('Data does not have a date: %r' % table.header) 
             for row in table.data:
                 row_data = dict(zip(table.header, row))
                 date = parse_date(row_data['date'])
@@ -209,8 +210,13 @@ class TxtAnalysisFile(AnalysisFile):
         try:
             fileobj.write(self.run_info + '\n')
             for date, analysis in self.get_data_by_date_sorted():
-                analysis_str = analysis if isinstance(analysis, basestring) \
-                               else repr(analysis)
+                if isinstance(analysis, basestring):
+                    analysis_str = analysis
+                elif isinstance(analysis, dict):
+                    # use json.dumps instead of repr to keep ordering
+                    analysis_str = json.dumps(analysis)
+                else:
+                    analysis_str = repr(analysis)
                 line = '%s : %s\n' % (format_date(date), analysis_str)
                 fileobj.write(line)
         finally:
@@ -222,10 +228,10 @@ class DumpAnalysis(object):
     Reads a JSON dump file and runs analysis according to the options, and
     saves it in self.analysis_dict
     '''
-    def __init__(self, dump_filepath, options):
+    def __init__(self, dump_filepath, analysis_type):
         log.info('Analysing %s' % dump_filepath)
         self.dump_filepath = dump_filepath
-        self.options = options
+        self.analysis_type = analysis_type
         self.run()
         
     def run(self):
@@ -233,22 +239,23 @@ class DumpAnalysis(object):
         self.analysis_dict = OrderedDict()
         packages = self.get_packages()
         packages = self.filter_out_deleted_packages(packages)
-        self.analysis_dict[total_label] = len(packages)
 
-        if self.options.analyse_by_source:
+        if self.analysis_type == 'source':
             pkg_bins = self.analyse_by_source(packages)
-            for bin, pkgs in pkg_bins.items():
-                self.analysis_dict['Datasets by source: %s' % bin] = len(pkgs)
-        if self.options.analyse_ons_by_published_by:
+        elif self.analysis_type == 'publisher-category':
+            pkg_bins = self.analyse_by_publisher_category(packages)
+        elif self.analysis_type == 'ons-publisher':
             ons_packages = self.filter_by_ons_packages(packages)
-            pkg_bins = self.analyse_by_published_by(ons_packages)
-            for bin, pkgs in pkg_bins.items():
-                self.analysis_dict['National Statistics Pub Hub by published_by: %s' % bin] = len(pkgs)
-        if self.options.analyse_by_theme:
+            pkg_bins = self.analyse_by_publisher(ons_packages)
+        elif self.analysis_type == 'theme':
             pkg_bins = self.analyse_by_theme(packages)
-            for bin, pkgs in pkg_bins.items():
-                self.analysis_dict['Datasets by theme: %s' % bin] = len(pkgs)
-                
+        else:
+            raise NotImplementedError(self.analysis_type)
+            
+        for bin, pkgs in pkg_bins.items():
+            self.analysis_dict[bin] = len(pkgs)
+        
+        self.analysis_dict[total_label] = len(packages)
         self.print_analysis(pkg_bins)
 
     def save_date(self):
@@ -267,7 +274,7 @@ class DumpAnalysis(object):
             zf = zipfile.ZipFile(self.dump_filepath)
             assert len(zf.infolist()) == 1, 'Archive must contain one file: %r' % zf.infolist()
             f = zf.open(zf.namelist()[0])
-        elif self.dump_filepath.endswith('gz'):            
+        elif self.dump_filepath.endswith('gz'):
             f = gzip.open(self.dump_filepath, 'rb')
         else:
             f = open(self.dump_filepath, 'rb')
@@ -302,7 +309,18 @@ class DumpAnalysis(object):
         return filtered_pkgs
 
     def analyse_by_source(self, packages):
-        pkg_bins = defaultdict(list)
+        # Setup the bins in correct order
+        pkg_bins = OrderedDict()
+        for bin in ('Manual creation using web form',
+                    'Data for Neighbourhoods and Regeneration import',
+                    'Spreadsheet upload',
+                    'National Statistics Publication Hub feed',
+                    'UK Location Programme',
+                    'Spreadsheet upload for unpublished datasets',
+                    ):
+            pkg_bins[bin] = []
+
+        # Allocate packages to bins
         for pkg in packages:
             import_source = pkg['extras'].get('import_source')
             if import_source:
@@ -312,8 +330,8 @@ class DumpAnalysis(object):
                         break
                 pkg_bins[import_source].append(pkg['name'])
                 continue
-            if pkg['extras'].get('UKLP') == 'True':
-                pkg_bins['UKLP'].append(pkg['name'])
+            if (pkg['extras'].get('UKLP') or pkg['extras'].get('INSPIRE')) == 'True':
+                pkg_bins['UK Location Programme'].append(pkg['name'])
                 continue
             if (pkg.get('url') or '').startswith('http://www.data4nr.net/resources/'):
                 import_source = import_source_prefixes['DATA4NR']
@@ -330,16 +348,84 @@ class DumpAnalysis(object):
             pkg_bins[manual_creation].append(pkg['name'])
         return pkg_bins
 
-    def analyse_by_published_by(self, packages):
+    @classmethod
+    def _get_publisher(cls, pkg):
+        # e.g. 'owner_org': u'e53c6d81-b763-4eff-909f-3ffaa8327490'
+        # used 2013-11-01 - 2014-06-01
+        if 'owner_org' in pkg:
+            org_id = pkg.get('owner_org')
+            return cls._get_org_by_id(org_id)['name']
+
+        # e.g. 'groups': [u'isd-scotland']
+        # used 2012-07-01 - 2013-10-01
+        groups = set(pkg['groups']) - set(('ukgov',))
+        if groups:
+            return cls._get_org_by_name(groups.pop())
+
+        # e.g. Police Service of Northern Ireland [16348]
+        # used 2011-03-01 - 2012-06-01
+        publisher = pkg['extras'].get('published_by')
+        if publisher:
+            if not hasattr(cls, '_remove_id_regex'):
+                cls._remove_id_regex = re.compile(' \[\d+\]')
+            publisher = cls._remove_id_regex.sub('', publisher)
+            return cls._get_org_by_name(publisher)
+
+        # e.g. pkg['extras'].get('agency') = u'Police Service of Northern Ireland (PSNI)'
+        # pkg[u'author']: u'Communities and Local Government (CLG)'
+        # (Publisher names are in Drupal)
+        # used 2010-01-21 - 2011-02-01
+        title = pkg['extras'].get('agency') or pkg['extras'].get('department') or pkg['author']
+        if not hasattr(cls, '_remove_abbrev_regex'):
+            cls._remove_abbrev_regex = re.compile(' \([^\)]+\)')
+            cls._org_map = {
+                'Information Centre - Clinical and Health Outcomes Knowledge Base': 'NHS Information Centre for Health and Social Care',
+                'Information Centre for Health and Social Care': 'NHS Information Centre for Health and Social Care',
+                'NHS Information Centre for health and social care': 'NHS Information Centre for Health and Social Care',
+                'DCLG Floor Targets Interactive': 'Department for Communities and Local Government',
+                'Neighbourhood Statistics': 'Office for National Statistics',
+                'Business Registers Unit': 'Office for National Statistics',
+                'Nomis': 'Office for National Statistics',
+                'Business Registers Unit / Neighbourhood Statistics': 'Office for National Statistics',
+                'Welsh Assembly Government': 'Welsh Government',
+                'Health & Social Care Information Centre': 'NHS Information Centre for Health and Social Care ',
+                'Communities and Local Government': 'Department for Communities and Local Government',
+                'National Health Service in Scotland': 'NHS Scotland',
+                'UK Hydrographic Office': 'United Kingdom Hydrographic Office',
+                'FERA': 'The Food and Environment Research Agency',
+                'HM Customs and Revenue': 'Her Majesty\'s Revenue and Customs'
+                }
+
+        title = cls._remove_abbrev_regex.sub('', title)
+        if title in cls._org_map:
+            title = cls._org_map[title]
+        org = cls._get_org_by_title(title)
+        if org:
+            return org
+        else:
+            print 'WARN not recognized: "%s"' % title
+            return None
+
+    def analyse_by_publisher(self, packages):
         pkg_bins = defaultdict(list)
-        remove_id_regex = re.compile(' \[\d+\]')
         for pkg in packages:
-            published_by = pkg['extras'].get('published_by')
-            published_by = remove_id_regex.sub('', published_by)
-            if published_by:
-                pkg_bins[published_by].append(pkg['name'])
+            org = self._get_publisher(pkg)
+            if org:
+                pkg_bins[org['title']].append(pkg['name'])
                 continue
             pkg_bins['No value'].append(pkg['name'])
+        return pkg_bins
+
+    def analyse_by_publisher_category(self, packages):
+        pkg_bins = defaultdict(list)
+        for pkg in packages:
+            org = self._get_publisher(pkg)
+            if org:
+                import pdb; pdb.set_trace()
+                category = org.get('category') or 'No value'
+            else:
+                category = 'Publisher not identified'
+            pkg_bins[category].append(pkg['name'])
         return pkg_bins
 
     def analyse_by_theme(self, packages):
@@ -360,12 +446,47 @@ class DumpAnalysis(object):
     def print_analysis(self, pkg_bins):
         log.info('* Analysis by source *')
         for pkg_bin, pkgs in sorted(pkg_bins.items(), key=lambda (pkg_bin, pkgs): -len(pkgs)):
-            log.info('  %s: %i (e.g. %r)', pkg_bin, len(pkgs), pkgs[:int(self.options.examples)])
+            log.info('  %s: %i (e.g. %r)', pkg_bin, len(pkgs), pkgs[:2])
+
+    @classmethod
+    def _load_orgs_if_needed(cls):
+        if not hasattr(cls, '_orgs_by_id'):
+            res = requests.get('http://data.gov.uk/api/action/organization_list?all_fields=1')
+            assert res.ok
+            org_dicts = res.json()['result']
+            cls._orgs_by_id = {}
+            cls._orgs_by_name = {}
+            cls._orgs_by_title = {}
+            for org_dict in org_dicts:
+                cls._orgs_by_id[org_dict['id']] = org_dict
+                cls._orgs_by_name[org_dict['name']] = org_dict
+                cls._orgs_by_title[org_dict['title']] = org_dict
+
+    @classmethod
+    def _get_org_by_id(cls, org_id):
+        cls._load_orgs_if_needed()
+        return cls._orgs_by_id[org_id]
+
+    @classmethod
+    def _get_org_by_name(cls, org_name):
+        cls._load_orgs_if_needed()
+        return cls._orgs_by_name[org_name]
+
+    @classmethod
+    def _get_org_by_title(cls, org_title):
+        cls._load_orgs_if_needed()
+        org = cls._orgs_by_title.get(org_title)
+        # Else try nomenklatura?
+        return org
+
+
+ANALYSIS_TYPES = ('source', 'ons-publisher', 'publisher-category', 'theme')
 
 class Command(command.Command):
-    usage = 'usage: %prog [options] dumpfile.json.zip'
-    usage += '\nNB: dumpfile can be gzipped, zipped or json'
-    usage += '\n    can be list of files and can be a wildcard.'
+    usage = 'usage: %prog [options] <analysis_type> dumpfile.json.zip'
+    usage += '\n  where:'
+    usage += '\n  * analysis_type is one of: %s' % ' '.join(ANALYSIS_TYPES)
+    usage += '\n  * dumpfile can be gzipped, zipped or json and can use wildcards.'
 
     def add_options(self):
         self.parser.add_option('--csv', dest='csv_filepath',
@@ -378,25 +499,15 @@ class Command(command.Command):
                                default='1',
                                help='show NUMBER of examples for each category',
                                metavar='NUMBER')
-        self.parser.add_option('--analyse-by-source', dest='analyse_by_source',
-                               action="store_true")
-        self.parser.add_option('--analyse-ons-by-published-by', dest='analyse_ons_by_published_by',
-                               action="store_true")
-        self.parser.add_option('--analyse-by-theme', dest='analyse_by_theme',
-                               action="store_true")
 
     def parse_args(self):
         super(Command, self).parse_args()
-        if not (self.options.analyse_by_source or
-                self.options.analyse_ons_by_published_by or
-                self.options.analyse_by_theme):
-            self.parser.error('Need to specify one or more analysese.')
+        if not self.args[0] in ANALYSIS_TYPES:
+            self.parser.error('Analysis type not recognised')
  
     def command(self):
-        input_file_descriptors = self.args
-        input_filepaths = []
-        for input_file_descriptor in input_file_descriptors:
-            input_filepaths.extend(glob.glob(os.path.expanduser(input_file_descriptor)))
+        analysis_type, input_file_descriptor = self.args
+        input_filepaths = glob.glob(os.path.expanduser(input_file_descriptor))
 
         # Open output files
         output_types = (
@@ -412,7 +523,7 @@ class Command(command.Command):
 
         for input_filepath in input_filepaths:
             # Run analysis
-            analysis = DumpAnalysis(input_filepath, self.options)
+            analysis = DumpAnalysis(input_filepath, analysis_type)
 
             if analysis_files:
                 assert analysis.date, 'The results are requested to be saved to '
