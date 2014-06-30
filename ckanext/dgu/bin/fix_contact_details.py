@@ -8,6 +8,7 @@ from sqlalchemy import engine_from_config
 from pylons import config
 import common
 from optparse import OptionParser
+from ckan import model
 
 from running_stats import StatsList
 
@@ -33,24 +34,10 @@ def package_is_effected(package, group):
 
 class FixContactDetails(object):
     @classmethod
-    def load_config(cls, path):
-        import paste.deploy
-        conf = paste.deploy.appconfig('config:' + path)
-        import ckan
-        ckan.config.environment.load_environment(conf.global_conf,
-                conf.local_conf)
-
-    @classmethod
     def command(cls, config_ini, write):
-
-        config_ini_filepath = os.path.abspath(config_ini)
-        cls.load_config(config_ini_filepath)
+        common.load_config(config_ini)
         common.register_translator()
-        engine = engine_from_config(config, 'sqlalchemy.')
 
-        from ckan import model
-        
-        model.init_model(engine)    
         rev = model.repo.new_revision()
         rev.author = 'fix_contact_details.py'
 
