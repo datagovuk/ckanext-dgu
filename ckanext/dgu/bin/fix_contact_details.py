@@ -11,8 +11,18 @@ from optparse import OptionParser
 
 from running_stats import StatsList
 
+stats = StatsList()
 
 def package_is_effected(package, group):
+    if not (package.extras.get('contact-name') or
+            package.extras.get('contact-email') or
+            package.extras.get('contact-phone') or
+            package.extras.get('foi-name') or
+            package.extras.get('foi-email') or
+            package.extras.get('foi-web') or
+            package.extras.get('foi-phone')):
+        stats.add('No contact details', package.name)
+        return False
     return ((package.extras.get('contact-name') == group.extras.get('contact-name')) and
             (package.extras.get('contact-email') == group.extras.get('contact-email')) and
             (package.extras.get('contact-phone') == group.extras.get('contact-phone')) and
@@ -32,7 +42,6 @@ class FixContactDetails(object):
 
     @classmethod
     def command(cls, config_ini, write):
-        stats = StatsList()
 
         config_ini_filepath = os.path.abspath(config_ini)
         cls.load_config(config_ini_filepath)
@@ -45,12 +54,10 @@ class FixContactDetails(object):
         rev = model.repo.new_revision()
         rev.author = 'fix_contact_details.py'
 
-        for package in model.Session.query(model.Package):
-            try:
-                group = package.get_groups()[0]
-                if not group.extras.get('foi-name'):
-                    continue
-            except:
+        for package in model.Session.query(model.Package).filter_by(state='active'):
+            group = package.get_organization()
+            if not group:
+                stats.add('was not in a group', package.name)
                 continue
 
             if package.extras.get('contact-name') == group.extras.get('contact-name'):
