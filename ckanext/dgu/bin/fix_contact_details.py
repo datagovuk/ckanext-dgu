@@ -42,7 +42,8 @@ class FixContactDetails(object):
         from ckan import model
         
         model.init_model(engine)    
-        model.repo.new_revision()
+        rev = model.repo.new_revision()
+        rev.author = 'fix_contact_details.py'
 
         for package in model.Session.query(model.Package):
             try:
