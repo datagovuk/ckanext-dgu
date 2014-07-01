@@ -542,6 +542,7 @@ CKAN.Dgu = function($, my) {
         },
         timeout: 10000
       });
+      return false;
     });
   };
 
