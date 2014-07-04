@@ -89,7 +89,7 @@
         <h2>Data Resources (${len(h.timeseries_resources())} in a time series)</h2>
 	<py:for each="year, items in h.groupby(reversed(h.timeseries_resources()), lambda x: x.get('date').split('/')[2])">
 	  <div class="year">
-            <h3>${year} <a class="showyear" href="#">(show)</a><a class="hideyear">(hide)</a></h3>
+            <h3>${year} <span class="showyear"></span><span class="hideyear"></span></h3>
             <div class="year_items">
             ${resource_table(items)}
             </div>
@@ -102,13 +102,16 @@
           $(".year .showyear").first().hide();
           $(".year .year_items").first().show();
 
-          $(".year h3 a.showyear").on('click', function(){
+          $(".year h3 span.showyear").addClass("icon-chevron-right");
+          $(".year h3 span.hideyear").addClass("icon-chevron-down");
+
+          $(".year h3 span.showyear").on('click', function(){
             $(this).parent().next('.year_items').fadeIn();
             $(this).siblings('.hideyear').show();
             $(this).hide();
             return false;
           });
-          $(".year h3 a.hideyear").on('click', function(){
+          $(".year h3 span.hideyear").on('click', function(){
             $(this).parent().next('.year_items').fadeOut();
             $(this).siblings('.showyear').show();
             $(this).hide();
