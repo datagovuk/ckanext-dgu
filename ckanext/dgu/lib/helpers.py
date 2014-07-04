@@ -1905,3 +1905,8 @@ def relative_url_for(**kwargs):
         if not v:
             del args[k]
     return h.url_for(**args)
+
+def parse_date(date_string):
+    from ckan.lib.field_types import DateType
+
+    return DateType.parse_timedate(date_string, 'form')
