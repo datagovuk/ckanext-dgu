@@ -679,7 +679,7 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
-def get_package_fields(package, pkg_extras, dataset_type):
+def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
@@ -690,11 +690,10 @@ def get_package_fields(package, pkg_extras, dataset_type):
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if c.is_an_official:
         field_names_display_only_if_value.append('external_reference')
-    # work out the dataset_type
     pkg_extras = dict(pkg_extras)
     harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
-    if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
+    if dataset_was_harvested:
+        field_names.add(['harvest-url', 'harvest-date', 'metadata-date', 'metadata-language'])
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
@@ -720,10 +719,14 @@ def get_package_fields(package, pkg_extras, dataset_type):
                 harvest_source_reference = pkg_extras.get('harvest_source_reference')
                 if harvest_source_reference and harvest_source_reference != harvest_guid:
                     field_names.add(['harvest_source_reference'])
-        if pkg_extras.get('resource-type') == 'service':
-            field_names.add(['spatial-data-service-type'])
-        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
-                       for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
+        if dataset_type == 'uklp':
+            field_names.add(('bbox', 'spatial-reference-system', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'resource-type', 'harvest-guid'))
+            if pkg_extras.get('resource-type') == 'service':
+                field_names.add(['spatial-data-service-type'])
+            dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+                        for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
+        elif dataset_type == 'lga':
+            field_names.add(('lga-functions', 'lga-services'))
     elif dataset_type == 'ons':
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
@@ -784,6 +787,8 @@ def get_package_fields(package, pkg_extras, dataset_type):
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
+        'lga-functions': {'label': 'Local Government Functions', 'value': pkg_extras.get('lga_functions')},
+        'lga-services': {'label': 'Local Government Services', 'value': pkg_extras.get('lga_services')},
         '': {'label': '', 'value': ''},
     }
 
@@ -1310,16 +1315,23 @@ def init_resources_for_nav():
             c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
                 additional_resources() + gemini_resources()
 
+def was_dataset_harvested(pkg_extras):
+    extras = dict(pkg_extras)
+    # NB hopefully all harvested resources will soon use import_source=harvest
+    # and we can simplify this.
+    return extras.get('import_source') == 'harvest' or extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True'
 
 def dataset_type(pkg_extras):
     dataset_type = 'form' # default - entered via the form
-    resource_type = 'dataset'
     extras = dict(pkg_extras)
     if extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True':
         dataset_type = 'uklp'
-        resource_type = extras.get('resource-type') + ' record' # dataset/service
+    elif extras.get('lga_identifier'):
+        dataset_type = 'lga'
     elif extras.get('external_reference') == 'ONSHUB':
         dataset_type = 'ons'
+    else:
+        dataset_type = 'form' # default - entered via the form
     return dataset_type
 
 def has_bounding_box(extras):

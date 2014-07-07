@@ -125,7 +125,7 @@
             </tr>
           -->
           </py:with>
-          <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras))">
+          <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras),h.was_dataset_harvested(c.pkg_extras))">
             <td class="key" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
             <td class="value" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
           </tr>
