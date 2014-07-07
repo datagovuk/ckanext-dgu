@@ -1901,10 +1901,13 @@ def relative_url_for(**kwargs):
         if not v:
             del args[k]
     return h.url_for(**args)
- 
+
 def get_related_apps(pid):
     from ckan import model
     pkg = model.Package.get(pid)
     for rel in pkg.related:
         if rel.type == 'App':
             yield rel
+
+def has_related_apps(pid):
+    return len(list(get_related_apps(pid))) > 0
