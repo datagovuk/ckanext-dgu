@@ -5,4 +5,10 @@ Occasionally ONS add new source publishers, and their names often do not corresp
 
   (pyenv) $ python ../ckanext-dgu/ckanext/dgu/bin/ons_test_publishers.py http://data.gov.uk/api
 
-If any are missing then add the new publisher to data.gov.uk or a mapping to their name (organisation_name_mapping in schema.py), and rerun until there are no errors.
+If any are missing then either:
+
+    1. add the new publisher to data.gov.uk
+  or
+    2. add a mapping to their name (organisation_name_mapping in schema.py),
+
+Rerun until there are no errors.
