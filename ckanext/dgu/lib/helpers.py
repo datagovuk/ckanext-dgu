@@ -1907,6 +1907,11 @@ def relative_url_for(**kwargs):
     return h.url_for(**args)
 
 def parse_date(date_string):
-    from ckan.lib.field_types import DateType
+    from ckan.lib.field_types import DateType, DateConvertError
 
-    return DateType.parse_timedate(date_string, 'form')
+    try:
+        return DateType.parse_timedate(date_string, 'form')
+    except DateConvertError:
+        class FakeDate:
+            year = ''
+        return FakeDate()
