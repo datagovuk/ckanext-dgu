@@ -59,11 +59,12 @@ def fix_links(options):
         if is_broken_api(res.url, archival):
             stats_add('It is an API error - ignore')
             continue
-        if datetime.datetime.now() - archival.last_success < datetime.timedelta(day=3):
-            stats_add('Not broken for at least a month yet - ignore')
+        if archival.last_success and \
+           datetime.datetime.now() - archival.last_success < datetime.timedelta(days=3):
+            print stats_add('Not broken for at least a month yet - ignore')
             continue
         if archival.failure_count < 3:
-            stats_add('Not broken for at least 3 occasions yet - ignore')
+            print stats_add('Not broken for at least 3 occasions yet - ignore')
             continue
 
         # see if it is on the webarchive
@@ -73,10 +74,13 @@ def fix_links(options):
         try:
             req = requests.head(url, headers=USER_AGENT, verify=False)
         except Exception, e:
+            if 'ukgwacnf.html?url=' in str(e):
+                print stats_add('Not in the webarchive, %s' % get_cache_status(archival))
+                continue
             print stats_add('!! Problem with request %s' % e)
             continue
         if req.status_code == 200:
-            print stats_add('On webarchive - repoint')
+            print stats_add('On webarchive - fixed')
             if write:
                 res.url = url
                 needs_commit = True
@@ -84,12 +88,16 @@ def fix_links(options):
         elif not is_webarchive(req.url):
             if res.url.startswith('http://www.dft.gov.uk/'):
                 result_str, good_url = try_earlier_webarchivals(url)
-                stats_add('Trying earlier webarchivals - %s' % result_str)
+                print stats_add('Trying earlier webarchivals - %s' % result_str)
                 if good_url and write:
                     res.url = good_url
                     needs_commit = True
                 continue
-            stats_add('Redirected off webarchive to an error - check manually')
+            if 'ukgwacnf.html?url=' in (req.url + ''.join((resp.url for resp in req.history))):
+                # webarchive seems to add this to the url!
+                print stats_add('Not in the webarchive, %s' % get_cache_status(archival))
+                continue
+            print stats_add('Redirected off webarchive to an error - check manually')
             continue
         print stats_add('Not on webarchive, %s' % get_cache_status(archival))
         time.sleep(random.randint(1, 3))
@@ -180,7 +188,8 @@ def is_broken_api(url, archival):
     if archival.reason.startswith('Server content contained an API error message'):
         return True
     if url.startswith('https://www.spatialni.gov.uk/wss/service') or \
-        url.startswith('http://webservices.spatialni.gov.uk/arcgis/services'):
+        url.startswith('http://webservices.spatialni.gov.uk/arcgis/services') or \
+        url.startswith('http://wlwin5.nerc-wallingford.ac.uk/arcgis/services'):
         # special case for where it now returns 404 but webarchive only has
         # an XML response from the service.
         # e.g. doe-marine-division-winter-nutrient-monitoring-inspire-view-service/0a4ca96f-4fec-4ee8-9492-a42c1e68c971 https://www.spatialni.gov.uk/wss/service/DOE_Marine_Division_Winter_Nutrient_Monitoring-WMS-INC-LIC/WSS?request=GetCapabilities&service=WMS&version=1.3.0
