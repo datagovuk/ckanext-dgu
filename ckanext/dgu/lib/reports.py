@@ -295,7 +295,10 @@ def publisher_activity(organization, include_sub_organizations=False):
     # * Fix national indicators
     system_authors = ('autotheme', 'co-prod3.dh.bytemark.co.uk',
                       'Date format tidier', 'current_revision_fixer',
-                      'current_revision_fixer2', 'fix_contact_details.py')
+                      'current_revision_fixer2', 'fix_contact_details.py',
+                      'Repoint 410 Gone to webarchive url',
+                      'Fix duplicate resources',
+                      )
 
     created = {'this': [], 'last': []}
     modified = {'this': [], 'last': []}

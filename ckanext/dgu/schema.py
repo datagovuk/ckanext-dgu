@@ -111,8 +111,8 @@ organisation_name_mapping = {
     'Environment, Food and Rural Affairs':'Department for Environment, Food and Rural Affairs',
     'Health':'Department of Health',
     'ISD Scotland (part of NHS National Services Scotland)':'ISD Scotland',
-    'Information Centre for Health and Social Care':'NHS Information Centre for Health and Social Care',
-    'Health and Social Care Information Centre':'NHS Information Centre for Health and Social Care',
+    'Information Centre for Health and Social Care':'Health and Social Care Information Centre',
+    'Health and Social Care Information Centre':'Health and Social Care Information Centre',
     'International Development':'Department for International Development',
     'Justice':'Ministry of Justice',
     'National Treatment Agency':'National Treatment Agency for Substance Misuse',
@@ -135,6 +135,7 @@ organisation_name_mapping = {
     'Police Service of Northern Ireland (PSNI)':'Police Service of Northern Ireland',
     'Office for Rail Regulation':'Office of Rail Regulation',
     'Welsh Assembly Government':'Welsh Government',
+    'Cancer Registry (Northern Ireland)':'Northern Ireland Cancer Registry',
     'Cancer Registry Northern Ireland':'Northern Ireland Cancer Registry',
     }
 

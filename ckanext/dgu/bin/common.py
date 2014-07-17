@@ -53,3 +53,21 @@ def get_resources(state='active', resource_id=None, dataset_name=None):
     print '%i resources (%s)' % (len(resources), ' '.join(criteria))
     return resources
 
+def get_datasets(state='active', dataset_name=None, organization_ref=None):
+    ''' Returns all active datasets, or filtered by the given criteria. '''
+    from ckan import model
+    datasets = model.Session.query(model.Package) \
+                    .filter_by(state=state)
+    criteria = [state]
+    if dataset_name:
+        datasets = datasets.filter_by(name=dataset_name)
+        criteria.append('Dataset:%s' % dataset_name)
+    if organization_ref:
+        org = model.Group.get(organization_ref)
+        assert org
+        datasets = datasets.filter_by(owner_org=org.id)
+        criteria.append('Organization:%s' % org.name)
+    datasets = datasets.all()
+    print '%i datasets (%s)' % (len(datasets), ' '.join(criteria))
+    return datasets
+

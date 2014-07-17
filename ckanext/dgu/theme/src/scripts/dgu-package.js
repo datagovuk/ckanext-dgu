@@ -61,5 +61,27 @@ $(function() {
           }
         });
 
+  // Year segmentation
+  $(".year .year_items").hide();
+  $(".year .hideyear").hide();
+  $(".year .hideyear").first().show();
+  $(".year .showyear").first().hide();
+  $(".year .year_items").first().show();
+
+  $(".year h3 span.showyear").addClass("icon-chevron-right");
+  $(".year h3 span.hideyear").addClass("icon-chevron-down");
+
+  $(".year h3 span.showyear").on('click', function(){
+    $(this).parent().next('.year_items').fadeIn();
+    $(this).siblings('.hideyear').show();
+    $(this).hide();
+    return false;
+  });
+  $(".year h3 span.hideyear").on('click', function(){
+    $(this).parent().next('.year_items').fadeOut();
+    $(this).siblings('.showyear').show();
+    $(this).hide();
+    return false;
+  });
 
 });

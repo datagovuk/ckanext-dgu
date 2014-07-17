@@ -87,7 +87,14 @@
       </py:if>
       <py:if test="h.timeseries_resources()">
         <h2>Data Resources (${len(h.timeseries_resources())} in a time series)</h2>
-        ${resource_table(h.timeseries_resources())}
+	<py:for each="year, items in h.groupby(reversed(h.timeseries_resources()), lambda x: h.parse_date(x.get('date')).year)">
+	  <div class="year">
+            <h3>${year} <span class="showyear"></span><span class="hideyear"></span></h3>
+            <div class="year_items">
+            ${resource_table(items)}
+            </div>
+          </div>
+	</py:for>
       </py:if>
     </div>
     <div class="dataset-resources-additional" py:if="not h.is_unpublished_item(c.pkg_dict)">

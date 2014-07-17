@@ -11,6 +11,7 @@ import re
 import urllib
 from urlparse import urljoin
 from itertools import dropwhile
+import itertools
 import datetime
 import random
 
@@ -27,6 +28,9 @@ import ckan.lib.helpers
 from ckanext.dgu.lib import formats
 
 log = logging.getLogger(__name__)
+
+def groupby(*args, **kwargs):
+    return itertools.groupby(*args, **kwargs)
 
 def resource_as_json(resource):
     return json.dumps(resource)
@@ -1911,3 +1915,13 @@ def get_related_apps(pid):
 
 def has_related_apps(pid):
     return len(list(get_related_apps(pid))) > 0
+
+def parse_date(date_string):
+    from ckan.lib.field_types import DateType, DateConvertError
+
+    try:
+        return DateType.parse_timedate(date_string, 'form')
+    except DateConvertError:
+        class FakeDate:
+            year = ''
+        return FakeDate()
