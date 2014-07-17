@@ -39,7 +39,7 @@ def dump_groups(date, options):
             continue
 
         # get the group extras
-        group_extra_rev_table = model.group_extra_revision_table
+        group_extra_rev_table = model.group_extra.group_extra_revision_table
         q = select([group_extra_rev_table]) \
             .where(group_extra_rev_table.c.group_id == group['id'])
         result = model_dictize._execute_with_revision(q, group_extra_rev_table,
