@@ -25,6 +25,8 @@ def dump_groups(date, options):
     # get the groups
     group_rev_table = model.group_revision_table
     q = select([group_rev_table])
+    if options.organization:
+        q = q.where(group_rev_table.c.name==options.organization)
     context = {'model': model, 'session': model.Session,
                'revision_date': date}
     result = model_dictize._execute_with_revision(q, group_rev_table, context)
@@ -35,9 +37,6 @@ def dump_groups(date, options):
     print '%i groups' % len(groups)
 
     for group in groups:
-        if options.organization and group['name'] != options.organization:
-            continue
-
         # get the group extras
         group_extra_rev_table = model.group_extra.group_extra_revision_table
         q = select([group_extra_rev_table]) \
