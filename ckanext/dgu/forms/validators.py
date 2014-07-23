@@ -108,10 +108,13 @@ def validate_license(key, data, errors, context):
 
     if not (license_id ^ license_id_other):
         if license_id:
+            # i.e. both license_id and access_constraints filled in
             errors[('license_id',)] = ['Leave the "Access Constraints" box empty if '
                                        'selecting a license from the list']
         else:
+            # i.e. neither license_id nor access_constraints filled in
             errors[('license_id',)] = ['Please enter the access constraints.']
+        #return
 
     if not license_id:
         data[('license_id',)] = data[('access_constraints',)]
@@ -290,14 +293,32 @@ def remove_blank_resources(key, data, errors, context):
                 if triple in errors:
                     del errors[triple]
 
-categories = (('core-department', 'UK Government Core Department'),
-              ('non-core-department', 'UK Government Non-Core Department'),
-              ('devolved', 'Devolved Government Body'),
-              ('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
-              ('local-council', 'Local Council'),
-              ('gov-corporation', 'Government Corporation'),
+categories = (
+              #('core-department', 'UK Government Core Department'),
+              #('non-core-department', 'UK Government Non-Core Department'),
+              ('ministerial-department', 'Ministerial department'),
+              ('non-ministerial-department', 'Non-ministerial department'),
+              #('devolved', 'Devolved Government Body'),
+              ('devolved', 'Devolved administration'),
+              #('alb', 'Arm\'s Length Body (includes Executive Agencies, Non-Departmental Public Bodies, Trading Funds and NHS bodies)'),
+              ('executive-ndpb', 'Executive non-departmental public body'),
+              ('advisory-ndpb', 'Advisory non-departmental public body'),
+              ('tribunal-ndpb', 'Tribunal non-departmental public body'),
+              ('executive-agency', 'Executive agency'),
+              ('executive-office', 'Executive office'),
+              # gov.uk has no Local Council, so added it
+              ('local-council', 'Local authority'),
+              # gov.uk has no NHS, and CCGs are Statutory Bodies, but there are
+              # still trusts which aren't
+              ('nhs', 'NHS body'),
+              ('gov-corporation', 'Public corporation'),
+              # gov.uk has no NGOs, so add this here. e.g. Canal and River Trusts
+              ('charity-ngo', 'Charity or Non-Governmental Organisation'),
               ('private', 'Private Sector'),
               ('grouping', 'A notional grouping of organisations'),
+              ('sub-organisation', 'Sub-organisation'),
+              # other: enquiries, public-private-partnerships
+              ('other', 'Other'),
               )
 
 def validate_publisher_category(key, data, errors, context):
