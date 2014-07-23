@@ -1393,7 +1393,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
     }
 
 def publisher_has_spend_data(publisher):
-    return publisher.extras.get('category','') == 'core-department'
+    return publisher.extras.get('category','') == 'ministerial-department'
 
 def search_facets_unselected(facet_keys,sort_by='count'):
     unselected_raw = []
