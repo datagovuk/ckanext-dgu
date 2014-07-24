@@ -17,6 +17,8 @@ GDS, data.gov.uk and opennames.org.
 
 import json
 import sys
+import time
+
 import nomenklatura
 from nomenklatura import NoMatch
 from running_stats import Stats
@@ -258,8 +260,13 @@ def dgu_update(apikey):
             # convert the extras back into a list of dicts
             org['extras'] = [{'key': key, 'value': value}
                              for key, value in org['extras'].items()]
-            import pdb; pdb.set_trace()
-            org = dgu.action.organization_update(**org)
+            try:
+                org = dgu.action.organization_update(**org)
+            except ckanapi.errors.CKANAPIError, e:
+                if '504 Gateway Time-out' in str(e):
+                    print stats_category.add('Time-out writing', org_name)
+                else:
+                    raise
 
     stats_category.report_value_limit = 500
     print 'Category:\n', stats_category.report()
