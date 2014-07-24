@@ -329,6 +329,4 @@ def validate_publisher_category(key, data, errors, context):
     if category not in dict(categories).keys():
         if category:
             errors[('category',)] = ['Category is not valid.']
-        else:
-            errors[('category',)] = ['Please supply a value for the Category.']
 
