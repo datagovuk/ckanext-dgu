@@ -13,7 +13,7 @@
     <py:with vars="
       page=pageobj.page;
       numpages=pageobj.page_count;
-      url_for_page=lambda x:pageobj._url_generator(x)
+      url_for_page=lambda x:pageobj._url_generator(page=x)
     ">
     <div class="dgu-pagination" py:if="numpages>1">
       <ul class="pagination">
