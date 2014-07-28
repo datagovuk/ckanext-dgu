@@ -119,13 +119,13 @@ def command(config_file):
             log.info('Creating dump dir: %s' % openspending_reports_dir)
             os.makedirs(openspending_reports_dir)
         try:
-            publisher_response = urllib2.urlopen('http://data.gov.uk/api/rest/group').read()
+            publisher_response = urllib2.urlopen('http://data.gov.uk/api/action/organization_list').read()
         except urllib2.HTTPError, e:
             log.error('Could not get list of publishers for OpenSpending reports: %s',
                       e)
         else:
             try:
-                publishers = json.loads(publisher_response)
+                publishers = json.loads(publisher_response)['result']
                 assert isinstance(publishers, list), publishers
                 assert len(publishers) > 500, len(publishers)
                 log.info('Got list of %i publishers starting: %r',
