@@ -1,6 +1,8 @@
 import json
 import logging
+import lxml.html
 from urlparse import urljoin
+from collections import defaultdict
 
 import requests
 from pylons import config
@@ -30,6 +32,11 @@ class AppSync(CkanCommand):
         super(AppSync, self).__init__(name)
         self.log = logging.getLogger("ckanext")
 
+        self.parser.add_option("-s", "--scrape",
+                  dest="scrape", action="store_true",
+                  help="Scrape web interface rather than using the API")
+
+
     def command(self):
         self._load_config()
 
@@ -44,6 +51,61 @@ class AppSync(CkanCommand):
             root_url = "http://data.gov.uk"
             self.log.debug("Overriding root_url in DEBUG ")
 
+        if self.options.scrape:
+            self._scrape(root_url)
+        else:
+            self._use_api(root_url)
+
+        print stats.report()
+
+
+    def _scrape(self, root_url):
+        try:
+            import requests_cache
+            requests_cache.install_cache('scrape_apps')
+        except ImportError:
+            pass
+
+        apps = defaultdict(list)
+
+        #response = requests.get('http://data.gov.uk/apps')
+        response = requests.get('http://data.gov.uk/search/everything/?f[0]=bundle%3Aapp')
+        
+        while True:
+            doc = lxml.html.fromstring(response.content)
+
+            #for app_link in doc.xpath('//div[@class="field-content"]/a/@href'):
+            for app_link in doc.xpath('//li[@class="search-result boxed node-type-app"]/a/@href'):
+                related_url = urljoin(root_url, app_link)
+
+                try:
+                    response = requests.get(urljoin('http://data.gov.uk/apps', app_link))
+                except requests.exceptions.TooManyRedirects:
+                    stats.add("Error getting URL:", app_link)
+                    continue
+        
+                app_doc = lxml.html.fromstring(response.content)
+                app_title = app_doc.xpath("//h1[@property='dc:title']/text()")[0]
+        
+                related = app_doc.xpath('//div[contains(text(), "Uses dataset")]/following-sibling::div/div/a/@href')
+                for dataset in related:
+                    apps[(related_url, app_title)].append(dataset[9:])
+        
+            try:
+                next_link = doc.xpath('//li[@class="next last"]/a/@href')[0]
+                response = requests.get(urljoin('http://data.gov.uk', next_link))
+            except IndexError:
+                break
+        
+        for (app_url, app_title), package_names in apps.items():
+            for package_name in package_names:
+                package = model.Session.query(model.Package).filter(model.Package.name==package_name).first()
+                if self._is_alread_related(package, app_url):
+                    stats.add("Skipping existing related", "[%s] -> [%s]" % (package.name, app_title))
+                else:
+                    self._add_related(package, app_title, app_url)
+
+    def _use_api(self, root_url):
         data = self._make_request()
         for d in data:
             # Eventually we might handle other types.
@@ -63,18 +125,17 @@ class AppSync(CkanCommand):
                 stats.add("Missing Package", d['ckan_id'])
                 continue
 
-            found = False
+            if self._is_alread_related(package, related_url):
+                stats.add("Skipping existing related", "[%s] -> [%s]" % (package.name, d['title']))
+            else:
+                self._add_related(package, d['title'], related_url, thumb_url)
+
+    def _is_alread_related(self, package, related_url):
             current_related = model.Related.get_for_dataset(package)
             for current in current_related:
                 if current.related.url == related_url:
-                    stats.add("Skipping existing related", "[%s] -> [%s]" % (package.name, d['title']))
-                    found = True
-
-            if not found:
-                self._add_related(package, d['title'], related_url, thumb_url)
-
-        print stats.report()
-
+                    return True
+            return False
 
     def _add_related(self, package, app_title, app_url, image_url=''):
         stats.add("Adding related item", "[%s] -> [%s]" % (package.name, app_title))
@@ -103,7 +164,8 @@ class AppSync(CkanCommand):
                          auth=(uname, passwd))
         if r.status_code != 200:
             self.log.error("Request to Drupal API failed")
-            print r.status_code
             return None
 
         return json.loads(r.content)
+
+
