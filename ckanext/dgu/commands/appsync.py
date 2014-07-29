@@ -7,7 +7,11 @@ from pylons import config
 
 from ckan.plugins import toolkit
 from ckan.lib.cli import CkanCommand
+import ckan.model as model
 
+from ckanext.dgu.bin.running_stats import StatsList
+
+stats = StatsList()
 
 class AppSync(CkanCommand):
     """
@@ -29,7 +33,6 @@ class AppSync(CkanCommand):
     def command(self):
         self._load_config()
 
-        import ckan.model as model
         model.Session.remove()
         model.Session.configure(bind=model.meta.engine)
         model.repo.new_revision()
@@ -48,41 +51,49 @@ class AppSync(CkanCommand):
                 continue
 
             related_url = urljoin(root_url, d['path'])
+            thumb = d.get('thumbnail', '').replace("://", "/")
+            if thumb:
+                thumb_url = urljoin(root_url, "/sites/default/files/styles/medium/")
+                thumb_url = urljoin(thumb_url, thumb)
+            else:
+                thumb_url = ''
 
             package = model.Package.get(d['ckan_id'])
             if not package:
+                stats.add("Missing Package", d['ckan_id'])
                 continue
 
             found = False
             current_related = model.Related.get_for_dataset(package)
             for current in current_related:
                 if current.related.url == related_url:
-                    self.log.info("Skipping existing related")
+                    stats.add("Skipping existing related", "[%s] -> [%s]" % (package.name, d['title']))
                     found = True
 
             if not found:
-                self.log.info("Adding related item [%s] to dataset [%s]" % (d['title'], package.name))
+                self._add_related(package, d['title'], related_url, thumb_url)
 
-                related = model.Related()
-                related.type = 'App'
-                related.title = d['title']
-                related.description = ""
-                related.url = related_url
+        print stats.report()
 
-                thumb = d.get('thumbnail', '').replace("://", "/")
-                if thumb:
-                    thumb_url = urljoin(root_url, "/sites/default/files/styles/medium/")
-                    thumb_url = urljoin(thumb_url, thumb)
-                else:
-                    thumb_url = ''
-                related.image_url = thumb_url
 
-                model.Session.add(related)
-                model.Session.commit()
+    def _add_related(self, package, app_title, app_url, image_url=''):
+        stats.add("Adding related item", "[%s] -> [%s]" % (package.name, app_title))
 
-                related_item = model.RelatedDataset(dataset_id=package.id, related_id=related.id)
-                model.Session.add(related_item)
-                model.Session.commit()
+        related = model.Related()
+        related.type = 'App'
+        related.title = app_title
+        related.description = ""
+        related.url = app_url
+
+        related.image_url = image_url
+
+        model.Session.add(related)
+        model.Session.commit()
+
+        related_item = model.RelatedDataset(dataset_id=package.id, related_id=related.id)
+        model.Session.add(related_item)
+        model.Session.commit()
+
 
     def _make_request(self):
         uname = config.get('dgu.xmlrpc_username')
