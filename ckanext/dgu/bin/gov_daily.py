@@ -114,7 +114,7 @@ def command(config_file):
 
     # Copy openspending reports
     if run_task('openspending'):
-        log.info('Copying in OpenSpending reports')
+        log.info('OpenSpending reports')
         if not os.path.exists(openspending_reports_dir):
             log.info('Creating dump dir: %s' % openspending_reports_dir)
             os.makedirs(openspending_reports_dir)
@@ -135,6 +135,7 @@ def command(config_file):
                           e)
             else:
                 urls = [openspending_reports_url]
+                log.info('Getting reports, starting with: %s', urls[0])
                 for publisher in publishers:
                     urls.append('%spublisher-%s.html' % (openspending_reports_url, publisher))
 
