@@ -11,6 +11,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
 
         initdb - Initialize the database tables for the gov.uk publication data
 
+        dropdb - Delete the database tables containing the gov.uk publication data
+
         list - Lists the data
 
         scrape - Scrape gov.uk
@@ -44,6 +46,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             cmd = self.args[0]
             if cmd == 'initdb':
                 self._initdb()
+            elif cmd == 'dropdb':
+                self._dropdb()
             elif cmd == 'list':
                 self._list()
             elif cmd == 'scrape':
@@ -54,6 +58,16 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
         govuk_pubs_model.init_tables()
         self.log.info('Gov.uk Publications tables are setup')
 
+    def _dropdb(self):
+        from ckan import model
+        for table in ('collection', 'publication', 'attachment',
+                      'govuk_organization', 'publink',
+                      'collection_publication',
+                      'publication_publink'):
+            print 'dropping %s' % table
+            model.Session.execute('drop table %s cascade;' % table)
+        model.Session.remove()
+        self.log.info('Gov.uk Publications tables are deleted')
 
     def _list(self):
         from ckanext.report.report_registry import ReportRegistry

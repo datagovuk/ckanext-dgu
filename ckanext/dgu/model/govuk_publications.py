@@ -14,7 +14,6 @@ __all__ = ['Collection', 'Publication', 'Attachment', 'init_tables']
 # create table collections (id integer primary key, url text, title text);
 # create table collection_publication (pub_id integer references publications(id), coll_id integer references collections(id), primary key (pub_id, coll_id))
 
-metadata = MetaData()
 Base = declarative_base()
 
 class SimpleDomainObject(object):
@@ -57,7 +56,7 @@ collection_publication_table = Table(
     )
 
 publication_publink_table = Table(
-    'publication_publink', metadata,
+    'publication_publink', Base.metadata,
     Column('id', types.UnicodeText, primary_key=True,
            default=model.types.make_uuid),
     Column('publication_id', types.UnicodeText, ForeignKey('publication.id')),
@@ -110,18 +109,17 @@ class Publication(Base, SimpleDomainObject):
                                    ForeignKey('govuk_organization.id'))
     govuk_organization = orm.relationship(
         'GovukOrganization',
-        primaryjoin='Publication.c.govuk_organization_id==GovukOrganization.c.id',
+        primaryjoin='Publication.govuk_organization_id==GovukOrganization.id',
         backref=orm.backref(
-            'collections',
-            primaryjoin='Publication.c.govuk_organization_id==GovukOrganization.c.id',
-            secondaryjoin='Publication.c.extra_govuk_organization_id==GovukOrganization.c.id',
+            'publications',
+            primaryjoin='Publication.govuk_organization_id==GovukOrganization.id'
             )
         )
     extra_govuk_organization_id = Column(types.UnicodeText,
                                          ForeignKey('govuk_organization.id'))
     extra_govuk_organization = orm.relationship(
         'GovukOrganization',
-        primaryjoin='Publication.c.govuk_organization_id==GovukOrganization.c.id',
+        primaryjoin='Publication.govuk_organization_id==GovukOrganization.id',
         )
     published = Column(types.DateTime)
     last_updated = Column(types.DateTime)
@@ -163,33 +161,6 @@ class Attachment(Base, SimpleDomainObject):
     created = Column(types.DateTime, default=datetime.datetime.now)
 
 
-#orm.mapper(GovukOrganization, govuk_organization_table)
-#orm.mapper(Collection, collection_table, properties={
-#    'govuk_organization': orm.relation(
-#        GovukOrganization,
-#        backref=orm.backref('collection_all',
-#                            cascade='all, delete-orphan')),
-#    'publication': orm.relation(
-#        Publication,
-#        secondary=collection_publication_table),
-#    })
-#orm.mapper(Publication, publication_table, properties={
-#    'govuk_organization': orm.relation(
-#        GovukOrganization,
-#        primaryjoin=Publication.c.govuk_organization_id==GovukOrganization.c.id,
-#        backref=orm.backref(
-#            'publication_all',
-#            primaryjoin=Publication.c.govuk_organization_id==GovukOrganization.c.id,
-#            secondaryjoin=Publication.c.extra_govuk_organization_id==GovukOrganization.c.id,
-#            cascade='all, delete-orphan')),
-#    })
-#orm.mapper(Attachment, attachment_table, properties={
-#    'publication': orm.relation(
-#        Publication,
-#        backref=orm.backref('attachment_all',
-#                            cascade='all, delete-orphan')),
-#    })
-
 def init_tables():
-    metadata.create_all(model.meta.engine)
+    Base.metadata.create_all(model.meta.engine)
 
