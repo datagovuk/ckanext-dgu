@@ -6,7 +6,6 @@ import re
 import sqlalchemy
 import urlparse
 import datetime
-import tempfile
 
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h
@@ -55,6 +54,14 @@ class DataController(BaseController):
             if not os.path.exists(source_repo_path):
                 c.error = "Repo path %s does not exist" % source_repo_path
             return render('data/ukgovld.html')
+
+        if not os.path.exists(source_repo_path) and source_repo_path.startswith('/tmp/'):
+            # Directories in /tmp won't survive a reboot
+            os.makedirs(source_repo_path)
+
+        if not os.path.exists(build_path) and build_path.startswith('/tmp/'):
+            # Directories in /tmp won't survive a reboot
+            os.makedirs(build_path)
 
         # Ensure repo exists locally
         try:
