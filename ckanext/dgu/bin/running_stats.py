@@ -8,9 +8,9 @@ stats = Stats()
 for package in packages:
     if package.enabled:
         package.delete()
-        stats.add('deleted', package.name)
+        print stats.add('deleted', package.name)
     else:
-        stats.add('not deleted' package.name)
+        print stats.add('not deleted' package.name)
 print stats
 > deleted: 30 pollution-uk, flood-regions, river-quality, ...
 > not deleted: 70 spending-bristol, ...

@@ -20,3 +20,6 @@ pastescript
 beautifulsoup4
 
 nltk
+
+# Requests cache for govuk_publications.py
+requests_cache
