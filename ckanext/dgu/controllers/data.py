@@ -73,6 +73,7 @@ class DataController(BaseController):
         # Get updates from the repo
         repo.git.fetch()
         repo.git.checkout(c.repo_branch)
+        repo.git.rebase()
         repo.git.branch("--set-upstream", "gh-pages", "origin/gh-pages")
 
         # Get the repo's current commit (we call it: repo_status)
