@@ -20,29 +20,31 @@ print stats
 import copy
 import datetime
 
-class StatsCount(dict):
-    # {category:count}
-    _init_value = 0
+class Stats(dict):
+    # {category:[values]}
+    _init_value = []
     report_value_limit = 150
 
     def __init__(self, *args, **kwargs):
         self._start_time = datetime.datetime.now()
-        super(StatsCount, self).__init__(*args, **kwargs)
+        super(Stats, self).__init__(*args, **kwargs)
 
     def _init_category(self, category):
-        if not self.has_key(category):
+        if not category in self:
             self[category] = copy.deepcopy(self._init_value)
-        
-    def increment(self, category):
+
+    def add(self, category, value):
         self._init_category(category)
-        self[category] += 1
+        self[category].append(value)
+        return ('%s: %s' % (category, value)).encode('ascii', 'ignore') # so you can log it too
 
     def report_value(self, category):
-        '''Returns the value for a category and value to sort categories by.'''
-        value = repr(self[category])
-        if len(value) > self.report_value_limit:
-            value = value[:self.report_value_limit] + '...'
-        return (value, self[category])
+        value = self[category]
+        number_of_values = len(value)
+        value_str = '%i %r' % (number_of_values, value)
+        if len(value_str) > self.report_value_limit:
+            value_str = value_str[:self.report_value_limit] + '...'
+        return (value_str, number_of_values)
 
     def report(self, indent=1, order_by_title=False, show_time_taken=True):
         lines = []
@@ -64,29 +66,13 @@ class StatsCount(dict):
             lines = [indent_str + 'None']
 
         if show_time_taken:
-            time_taken = datetime.datetime.now() - self._start_time
+            time_taken = str(datetime.datetime.now() - self._start_time).split('.')[0]
             lines.append(indent_str + 'Time taken (h:m:s): %s' % time_taken)
         return '\n'.join(lines)
 
     def __repr__(self):
         return self.report()
 
-class Stats(StatsCount):
-    # {category:[values]}
-    _init_value = []
-
-    def add(self, category, value):
-        self._init_category(category)
-        self[category].append(value)
-        return ('%s: %s' % (category, value)).encode('ascii', 'ignore') # so you can log it too
-
-    def report_value(self, category):
-        value = self[category]
-        number_of_values = len(value)
-        value_str = '%i %r' % (number_of_values, value)
-        if len(value_str) > self.report_value_limit:
-            value_str = value_str[:self.report_value_limit] + '...'
-        return (value_str, number_of_values)
 
 # deprecated name - kept for backward compatibility
 class StatsList(Stats):

@@ -1,7 +1,7 @@
 import logging
 import datetime
 
-from sqlalchemy import types, Table, Column, MetaData, ForeignKey, orm
+from sqlalchemy import types, Table, Column, ForeignKey, orm
 from sqlalchemy.ext.declarative import declarative_base
 from ckan import model
 
@@ -9,10 +9,14 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Collection', 'Publication', 'Attachment', 'init_tables']
 
+# c.f. morty's model:
 # create table publications (id integer primary key, url text, title text);
 # create table attachments (id integer primary key, url text, pub_id integer references publications(id), filename text);
 # create table collections (id integer primary key, url text, title text);
 # create table collection_publication (pub_id integer references publications(id), coll_id integer references collections(id), primary key (pub_id, coll_id))
+
+# to clear out:
+# psql ckan -c 'drop table collection, publication, govuk_organization, attachment, publink, collection_publication, publication_publink;'
 
 Base = declarative_base()
 
@@ -69,7 +73,9 @@ class GovukOrganization(Base, SimpleDomainObject):
     __tablename__ = 'govuk_organization'
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
+    govuk_id = Column(types.Integer, index=True)
     name = Column(types.UnicodeText, index=True)
+    url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
 
 
@@ -121,9 +127,10 @@ class Publication(Base, SimpleDomainObject):
         'GovukOrganization',
         primaryjoin='Publication.govuk_organization_id==GovukOrganization.id',
         )
-    published = Column(types.DateTime)
-    last_updated = Column(types.DateTime)
-    created = Column(types.DateTime, default=datetime.datetime.now)
+    # TODO policies and other things 'Part of'
+    published = Column(types.DateTime)  # When first published on gov.uk
+    last_updated = Column(types.DateTime)  # None until the 2nd revision
+    created = Column(types.DateTime, default=datetime.datetime.now)  # in CKAN
 
 
 # e.g. https://www.gov.uk/government/publications/new-school-proposals has
