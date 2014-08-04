@@ -54,7 +54,7 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             elif cmd == 'scrape':
                 from ckanext.dgu.lib.govuk_publications import GovukPublicationScraper
                 page = None if self.options.page == 'all' else (int(self.options.page) or 1)
-                GovukPublicationScraper.scrape_publications(page=page)
+                GovukPublicationScraper.scrape_and_save_publications(page=page)
 
     def _initdb(self):
         from ckanext.dgu.model import govuk_publications as govuk_pubs_model

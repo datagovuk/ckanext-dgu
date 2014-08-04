@@ -13,6 +13,11 @@ from ckan import model
 
 log = __import__('logging').getLogger(__name__)
 
+# Note:
+# * "scrape_*" methods contain all the code that actually scrapes HTML.
+# These don't touch the database, so that they are easily testable, and fixed
+# when the HTML changes.
+# * "scrape_and_save" methods call out to the scraper methods and save to the db.
 
 class GovukPublicationScraper(object):
     @classmethod
@@ -27,7 +32,7 @@ class GovukPublicationScraper(object):
             cls.field_stats = Stats()
 
     @classmethod
-    def scrape_publications(cls, page=None):
+    def scrape_and_save_publications(cls, page=None):
         cls.init()
 
         pages = itertools.count(start=1) if page is None else [page]
@@ -74,7 +79,8 @@ class GovukPublicationScraper(object):
         pub['url'] = cls.add_gov_uk_domain(row.xpath('./h3/a/@href')[0])
         pub['name'] = pub['url'].split('/')[-1]
         pub['govuk_id'] = cls.extract_number_from_full_govuk_id(row.xpath('./@id')[0]) # e.g. publication_370126
-        pub['last_updated'] = cls.parse_date(row.xpath('./ul/li/abbr[@class="public_timestamp"]/@title')[0]) or None # e.g. '2014-08-01T11:24:11+01:00'
+        # public_timestamp is either created or last_updated - it doesn't say,
+        # so ignore it
         return pub
 
     @classmethod
@@ -111,18 +117,20 @@ class GovukPublicationScraper(object):
         # Scrape the publication page itself
         pub_scraped = cls.scrape_publication_page(cls.requests.get(pub_basic['url']).content, pub_basic['url'], pub_name)
 
-        for field in set(pub_scraped) - set(('organization', 'collections', 'attachments')):
-            print 'UPDATE', field, pub_scraped[field]
+        for field in set(pub_scraped) - set(('attachments', 'organization', 'collections')):
             update_pub(field, pub_scraped[field])
+
+        # Attachments
+        cls.update_publication_attachments(pub, pub_scraped['attachments'], changes)
 
         # Organization
         org = model.Session.query(govuk_pubs_model.GovukOrganization) \
-                   .filter_by(url=pub_scraped['org_url']) \
+                   .filter_by(url=pub_scraped['organization']) \
                    .first()
         if not org:
             # create it
             try:
-                org = cls.scrape_organization(pub_scraped['org_url'])
+                org = cls.scrape_and_save_organization(pub_scraped['organization'])
             except GotRedirectedError:
                 print cls.field_stats.add('Organization page redirected - error',
                                         '%s %s' % (pub_name, pub_scraped['org_url']))
@@ -138,7 +146,7 @@ class GovukPublicationScraper(object):
             if not collection:
                 # create it
                 try:
-                    collection = cls.scrape_collection(collection_url)
+                    collection = cls.scrape_and_save_collection(collection_url)
                 except GotRedirectedError:
                     print cls.field_stats.add('Collection page redirected - error',
                                         '%s %s' % (pub_name, collection_url))
@@ -147,7 +155,10 @@ class GovukPublicationScraper(object):
             collections.append(collection)
         update_pub('collections', collections)
 
-        # TODO Attachments!!
+        print 'PUB %s scraped with changes: %r' % (pub_name, changes)
+        if changes:
+            model.Session.commit()
+            model.Session.remove()
 
     @classmethod
     def scrape_publication_page(cls, publication_page_content, pub_url, pub_name):
@@ -158,11 +169,11 @@ class GovukPublicationScraper(object):
             # was: pub_doc.xpath('//span[@class="organisation lead"]/a/@href')[0]
 
             # e.g. https://www.gov.uk/government/publications/individualised-learner-record-ilr-check-that-data-is-accurate
-            pub['org_url'] = cls.add_gov_uk_domain(pub_doc.xpath('//dt[text()="From:"]/following-sibling::dd/a/@href')[0])
+            pub['organization'] = cls.add_gov_uk_domain(pub_doc.xpath('//dt[text()="From:"]/following-sibling::dd/a/@href')[0])
             cls.field_stats.add('Organization found', pub_name)
         except IndexError:
             cls.field_stats.add('Organization not found - ok', pub_name)
-            pub['org_url'] = None
+            pub['organization'] = None
 
         try:
             pub['type'] = pub_doc.xpath('//div[@class="inner-heading"]/p[@class="type"]/text()')[0]
@@ -175,8 +186,12 @@ class GovukPublicationScraper(object):
             pub['summary'] = pub_doc.xpath('//div[@class="summary"]/p/text()')[0]
             cls.field_stats.add('Summary found', pub_name)
         except IndexError:
-            cls.field_stats.add('Summary not found - check', pub_name)
-            pub['summary'] = ''
+            try:
+                pub['summary'] = pub_doc.xpath('//div[@class="consultation-summary"]//p/text()')[0]
+                cls.field_stats.add('Summary found (method 2)', pub_name)
+            except IndexError:
+                cls.field_stats.add('Summary not found - check', pub_name)
+                pub['summary'] = ''
 
         try:
             pub['published'] = pub_doc.xpath('//dt[text()="Published:"]/following-sibling::dd/abbr/@title')[0]
@@ -203,9 +218,21 @@ class GovukPublicationScraper(object):
         embedded_attachments = []
         for attachment in pub_doc.xpath('//section[@class = "attachment embedded"]'):
             attach = {}
+            attach['govuk_id'] = cls.extract_number_from_full_govuk_id(attachment.xpath('@id')[0])
             attach['title'] = attachment.xpath('.//h2[@class="title"]/text()|.//h2[@class="title"]/a/text()')[0]
             attach['url'] = cls.add_gov_uk_domain(attachment.xpath('.//h2[@class="title"]/a/@href|.//span[@class="download"]/a/@href')[0])
             attach['filename'] = attach['url'].split('/')[-1]
+            try:
+                attach['format'] = attachment.xpath('.//*[@class="metadata"]//*[@class="type"]//text()')[0]
+                cls.field_stats.add('Format found (method 1)', pub_name)
+            except IndexError:
+                try:
+                    attach['format'] = attachment.xpath('.//*[@class="metadata"]/span[@class="download"]//strong/text()')[0].split('Download ')[-1]
+                    cls.field_stats.add('Format found (method 2)', pub_name)
+                except IndexError:
+                    cls.field_stats.add('Format not found - check', pub_name)
+                    pub['last_updated'] = None
+
             embedded_attachments.append(attach)
         if embedded_attachments:
             cls.field_stats.add('Attachments (embedded) found', pub_name)
@@ -220,11 +247,14 @@ class GovukPublicationScraper(object):
             inline_attachments.append(attach)
         if inline_attachments:
             cls.field_stats.add('Attachments (inline) found', pub_name)
-        pub['attachments'].append(embedded_attachments + inline_attachments)
+        pub['attachments'].extend(embedded_attachments + inline_attachments)
         if not pub['attachments']:
-            cls.field_stats.add('Attachments not found', pub_name)
+            external = bool(attachment.xpath('//a[rel="external"]'))
+            if external:
+                cls.field_stats.add('Publication external so no attachments', pub_name)
+            else:
+                cls.field_stats.add('Attachments not found - check', pub_name)
 
-        # Deal with external? Maybe not?
         # Deal with multi lingual pages
         if len(pub['attachments']) == 0:
             pass #print pub['title'], pub['url']
@@ -235,7 +265,7 @@ class GovukPublicationScraper(object):
         # Scrape the publications' collections
 
         pub['collections'] = set()
-        for collection_url in pub_doc.xpath('//dt[text()="Part of:"]/following-sibling::dd/a/@href'):
+        for collection_url in pub_doc.xpath('//div[@class="links"]//dt[text()="Part of:"]/following-sibling::dd/a/@href'):
             if not collection_url.startswith('/government/collections'):
                 print cls.field_stats.add('Ignoring "Part of" type %s' % os.path.dirname(collection_url),
                                           '%s %s' % (pub_name, collection_url))
@@ -245,7 +275,70 @@ class GovukPublicationScraper(object):
         return pub
 
     @classmethod
-    def scrape_collection(cls, collection_url, pub_doc):
+    def update_publication_attachments(cls, pub, attachments, changes):
+        '''Makes pub.attachments equal to the attachments listed in
+        `attachments` which is a list of dicts. Records any changes in
+        `changes['attachments']`.
+        '''
+        atts_before = pub.attachments
+        atts_after = {}
+        for i, att in enumerate(attachments):
+            att['position'] = i
+            att['publication'] = pub
+            atts_after[att['govuk_id']] = att
+
+        # Simple cases
+        if not atts_before:
+            if not atts_after:
+                # nothing to do
+                return
+            # first add of attachments
+            pub.attachments = [govuk_pubs_model.Attachment(**att) for att in atts_after.values()]
+            model.Session.add_all(pub.attachments)
+            changes['attachments'] = 'Add first %i attachments' % len(atts_after)
+            return
+        if not atts_after:
+            # delete all attachments
+            for att in atts_before:
+                model.Session.delete(att)
+            changes['attachments'] = 'Delete all %i attachments' % len(atts_before)
+            return
+
+        # Complicated case
+        change_list = []
+        keys = set(atts_after.itervalues().next().keys()) - set(['publication']) # includes position but not publication
+        def attribute_differences(attribute_obj, attribute_dict):
+            differences = []
+            for key in keys:
+                value_obj, value_dict = getattr(attribute_obj, key), attribute_dict[key]
+                if value_obj != value_dict:
+                     differences.append((key, value_obj, value_dict))
+            return differences
+        for att in atts_before:
+            att_after = atts_after.get(att.govuk_id)
+            if att_after:
+                # attachment is kept - check for changes
+                diffs = attribute_differences(att, att_after)
+                if diffs:
+                    diffs_str = ','.join(diff['0'] for diff in diffs)
+                    change_list.append('%s:%s' % (atts_before['govuk_id'], diffs_str))
+                    for key, value_before, value_after in diffs:
+                        setattr(att, key, value_after)
+            else:
+                # attachment is no more
+                model.Session.delete(att)
+        # new attachments
+        att_keys_to_add = set(atts_after.keys()) - set([att.govuk_id for att in atts_before])
+        if att_keys_to_add:
+            new_atts = [govuk_pubs_model.Attachment(**atts_after[att_key])
+                        for att_key in att_keys_to_add]
+            model.Session.add_all(new_atts)
+            change_list.append('Add %i attachments' % len(att_keys_to_add))
+        if change_list:
+            changes['attachments'] = '; '.join(change_list)
+
+    @classmethod
+    def scrape_and_save_collection(cls, collection_url):
         collection = {}
         r = cls.requests.get(collection_url)
         if not r.url.startswith('https://www.gov.uk/government/collections/'):
@@ -286,7 +379,7 @@ class GovukPublicationScraper(object):
             collection_scraped_excluding_org = \
                 dict((k, v) for k, v in collection_scraped.items()
                      if k != 'organization')
-            collection = govuk_pubs_model.GovukOrganization(**collection_scraped_excluding_org)
+            collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
             model.Session.add(collection)
             model.Session.flush()  # to get an collection.id. It will get committed with the publication
             def update_collection(field, value):
@@ -301,10 +394,10 @@ class GovukPublicationScraper(object):
             if not org:
                 # create it
                 try:
-                    org = cls.scrape_organization(collection_scraped['org_url'])
+                    org = cls.scrape_and_save_organization(collection_scraped['organization'])
                 except GotRedirectedError:
                     print cls.field_stats.add('Organization page redirected - error',
-                                            '%s %s' % (collection_scraped['name'], collection_scraped['org_url']))
+                                            '%s %s' % (collection_scraped['name'], collection_scraped['organization']))
                     return
             update_collection('govuk_organization', org)
 
@@ -316,6 +409,7 @@ class GovukPublicationScraper(object):
         collection = {}
         collection['url'] = collection_url
         collection_name = collection_url.split('/')[-1]
+        collection['name'] = collection_name
         #collection['title'] = doc.xpath("//div[@class='inner-heading']/h1/text()")[0]
         try:
             collection['title'] = doc.xpath('//header//h1/text()')[0]
@@ -338,7 +432,7 @@ class GovukPublicationScraper(object):
         return collection
 
     @classmethod
-    def scrape_organization(cls, org_url):
+    def scrape_and_save_organization(cls, org_url):
         # e.g. https://www.gov.uk/government/organisations/skills-funding-agency
         if org_url.startswith('/government/organisations'):
             org_url = cls.add_gov_uk_domain(org_url)
@@ -396,16 +490,24 @@ class GovukPublicationScraper(object):
         org_dict['govuk_id'] = cls.extract_number_from_full_govuk_id(full_govuk_id)
         try:
             org_dict['title'] = doc.xpath('//title/text()')[0].split(' - ')[0]
-            cls.field_stats.add('Collection title found', org_name)
+            cls.field_stats.add('Organization title found', org_name)
         except IndexError:
-            cls.field_stats.add('Collection title not found - error', org_name)
+            cls.field_stats.add('Organization title not found - error', org_name)
+        try:
+            org_dict['description'] = doc.xpath('//section[@id="what-we-do"]//div[@class="overview"]//p[@class="description"]//text()')[0].strip()
+            cls.field_stats.add('Organization description found', org_name)
+        except IndexError:
+            cls.field_stats.add('Organization description not found - error', org_name)
         return org_dict
 
     @classmethod
     def parse_date(cls, date_string):
         # e.g. '2014-08-01T11:24:11+01:00'
         assert isinstance(date_string, basestring)
-        return dateutil.parser.parse(date_string)
+        date = dateutil.parser.parse(date_string)
+        # postgres can only store in utc.
+        date_utc = date.replace(tzinfo=None) - date.utcoffset()
+        return date_utc
 
     @classmethod
     def extract_number_from_full_govuk_id(cls, full_govuk_id):

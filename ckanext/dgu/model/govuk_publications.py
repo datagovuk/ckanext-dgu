@@ -3,6 +3,7 @@ import datetime
 
 from sqlalchemy import types, Table, Column, ForeignKey, orm
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.orderinglist import ordering_list
 from ckan import model
 
 log = logging.getLogger(__name__)
@@ -77,6 +78,7 @@ class GovukOrganization(Base, SimpleDomainObject):
     name = Column(types.UnicodeText, index=True)
     url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
+    description = Column(types.UnicodeText)
 
 
 class Collection(Base, SimpleDomainObject):
@@ -107,7 +109,7 @@ class Publication(Base, SimpleDomainObject):
     govuk_id = Column(types.Integer, index=True)
     name = Column(types.UnicodeText, index=True)
     url = Column(types.UnicodeText)
-    category = Column(types.UnicodeText)
+    type = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
     summary = Column(types.UnicodeText)
     detail = Column(types.UnicodeText)
@@ -152,22 +154,21 @@ class Attachment(Base, SimpleDomainObject):
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
     govuk_id = Column(types.Integer, index=True)
-    name = Column(types.UnicodeText, index=True)
     publication_id = Column('publication_id', types.UnicodeText,
                             ForeignKey('publication.id'))
-    # TODO: put in a particular ordering
     publication = orm.relationship('Publication',
-            backref=orm.backref('attachments'))
+            backref=orm.backref(
+                'attachments',
+                cascade='all, delete-orphan',
+                order_by='Attachment.position',
+                collection_class=ordering_list('position')))
+    position = Column(types.Integer)
     url = Column(types.UnicodeText)
-    category = Column(types.UnicodeText)
+    filename = Column(types.UnicodeText)
+    format = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
-    summary = Column(types.UnicodeText)
-    detail = Column(types.UnicodeText)
-    published = Column(types.DateTime)
-    last_updated = Column(types.DateTime)
     created = Column(types.DateTime, default=datetime.datetime.now)
 
 
 def init_tables():
     Base.metadata.create_all(model.meta.engine)
-
