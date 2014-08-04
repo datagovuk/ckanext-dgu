@@ -81,8 +81,9 @@ class DataController(BaseController):
         c.repo_status = '"%s" %s (%s)' % (latest_remote_commit.message,
                                           latest_when, str(latest_remote_commit)[:8])
 
-        index_html_filepath = os.path.join(build_path, 'index.html')
+        index_html_filepath = os.path.join(deploy_path, 'index.html')
         repo_status_filepath = os.path.join(build_path, 'repo_status.txt')
+        status_filepath = os.path.join(deploy_path, 'repo_status.txt')
 
         if request.method == "POST":
             def get_exitcode_stdout_stderr(cmd):
@@ -113,14 +114,6 @@ class DataController(BaseController):
                     # e.g. permission error, when running in paster
                     log.exception(e)
 
-        c.last_deploy = 'Never'
-        if os.path.exists(index_html_filepath):
-            s = os.stat(index_html_filepath)
-            c.last_deploy = datetime.datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
-            if os.path.exists(repo_status_filepath):
-                with open(repo_status_filepath, 'r') as f:
-                    c.deploy_status = f.read()
-
         if c.exitcode == 0 and deploy_path and os.path.exists(deploy_path):
             # Use distutils to copy the entire tree, shutil will likely complain
             import distutils.core
@@ -129,6 +122,14 @@ class DataController(BaseController):
             except Exception, e:
                 log.exception(e)
                 c.deploy_error = 'Site not deployed - error with deployment: %r' % e.args
+
+        c.last_deploy = 'Never'
+        if os.path.exists(index_html_filepath):
+            s = os.stat(index_html_filepath)
+            c.last_deploy = datetime.datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
+            if os.path.exists(status_filepath):
+                with open(status_filepath, 'r') as f:
+                    c.deploy_status = f.read()
 
         if c.exitcode == 1:
             c.deploy_error = "Site not deployed, Jekyll did not complete successfully."
