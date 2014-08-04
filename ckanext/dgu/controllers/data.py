@@ -38,7 +38,7 @@ class DataController(BaseController):
         import git
 
         if not dgu_helpers.is_sysadmin() and not c.user in ['user_d24373', 'user_d102361']:
-            abort(403)
+            abort(401)
 
         prefix = 'dgu.jekyll.ukgovld.'
         c.repo_url = pylons.config.get(prefix + "repo.url", None)
