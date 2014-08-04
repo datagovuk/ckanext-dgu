@@ -20,3 +20,6 @@ pastescript
 beautifulsoup4
 
 nltk
+
+# Git Python for UK Gov Linked Data
+GitPython==0.3.2.RC1
