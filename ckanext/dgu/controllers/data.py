@@ -33,12 +33,25 @@ class DataController(BaseController):
 
     def linked_data_admin(self):
         """
+        Instructions for installing Ruby via RVM:
+
+            \curl -sSL https://get.rvm.io | bash -s stable
+            # Comment out lines in .bashrc and .bash_profile
+            source "$HOME/.rvm/scripts/rvm"
+            rvm autolibs distable
+            rvm install 1.9.3
+            rvm use 1.9.3
+            rvm gemset create ukgovld
+            rvm alias create ukgovldwg 1.9.3@ukgovld
+            cd /vagrant/src/ckanext-dgu/
+            ~/.rvm/wrappers/ukgovldwg/bundle
+            rvm wrapper ukgovldwg jekyll
 
         """
         import git
 
         if not dgu_helpers.is_sysadmin() and not c.user in ['user_d24373', 'user_d102361']:
-            abort(403)
+            abort(401)
 
         prefix = 'dgu.jekyll.ukgovld.'
         c.repo_url = pylons.config.get(prefix + "repo.url", None)
@@ -46,6 +59,14 @@ class DataController(BaseController):
         source_repo_path = pylons.config.get(prefix + "local.source", None)
         build_path = pylons.config.get(prefix + "local.build", None)
         deploy_path = pylons.config.get(prefix + "local.deploy", None)
+
+        if not os.path.exists(source_repo_path) and source_repo_path.startswith('/tmp/'):
+            # Directories in /tmp won't survive a reboot
+            os.makedirs(source_repo_path)
+
+        if not os.path.exists(build_path) and build_path.startswith('/tmp/'):
+            # Directories in /tmp won't survive a reboot
+            os.makedirs(build_path)
 
         if not all([c.repo_url, c.repo_branch, source_repo_path, build_path,
                     deploy_path]) or \
@@ -65,6 +86,7 @@ class DataController(BaseController):
         # Get updates from the repo
         repo.git.fetch()
         repo.git.checkout(c.repo_branch)
+        repo.git.rebase()
         repo.git.branch("--set-upstream", "gh-pages", "origin/gh-pages")
 
         # Get the repo's current commit (we call it: repo_status)
@@ -73,8 +95,9 @@ class DataController(BaseController):
         c.repo_status = '"%s" %s (%s)' % (latest_remote_commit.message,
                                           latest_when, str(latest_remote_commit)[:8])
 
-        index_html_filepath = os.path.join(build_path, 'index.html')
+        index_html_filepath = os.path.join(deploy_path, 'index.html')
         repo_status_filepath = os.path.join(build_path, 'repo_status.txt')
+        status_filepath = os.path.join(deploy_path, 'repo_status.txt')
 
         if request.method == "POST":
             def get_exitcode_stdout_stderr(cmd):
@@ -90,10 +113,8 @@ class DataController(BaseController):
                 out, err = proc.communicate()
                 exitcode = proc.returncode
                 return exitcode, out, err
-            config_paths = ','.join((os.path.join(source_repo_path, '_config.yml'),
-                                    os.path.join(source_repo_path, '_config_dgu.yml')))
-            cmd_line = 'bundle exec jekyll build --config "%s" --source "%s" --destination "%s"'\
-                       % (config_paths, source_repo_path, build_path)
+            cmd_line = '/home/co/.rvm/wrappers/ukgovldwg/jekyll build --source "%s" --destination "%s"'\
+                       % (source_repo_path, build_path)
             c.exitcode, out, err = get_exitcode_stdout_stderr(cmd_line)
             c.stdout = cmd_line + '<br/><br/>' + out.replace('\n','<br/>')
             c.stderr = err.replace('\n','<br/>')
@@ -107,14 +128,6 @@ class DataController(BaseController):
                     # e.g. permission error, when running in paster
                     log.exception(e)
 
-        c.last_deploy = 'Never'
-        if os.path.exists(index_html_filepath):
-            s = os.stat(index_html_filepath)
-            c.last_deploy = datetime.datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
-            if os.path.exists(repo_status_filepath):
-                with open(repo_status_filepath, 'r') as f:
-                    c.deploy_status = f.read()
-
         if c.exitcode == 0 and deploy_path and os.path.exists(deploy_path):
             # Use distutils to copy the entire tree, shutil will likely complain
             import distutils.core
@@ -123,6 +136,14 @@ class DataController(BaseController):
             except Exception, e:
                 log.exception(e)
                 c.deploy_error = 'Site not deployed - error with deployment: %r' % e.args
+
+        c.last_deploy = 'Never'
+        if os.path.exists(index_html_filepath):
+            s = os.stat(index_html_filepath)
+            c.last_deploy = datetime.datetime.fromtimestamp(int(s.st_mtime)).strftime('%H:%M %d-%m-%Y')
+            if os.path.exists(status_filepath):
+                with open(status_filepath, 'r') as f:
+                    c.deploy_status = f.read()
 
         if c.exitcode == 1:
             c.deploy_error = "Site not deployed, Jekyll did not complete successfully."
