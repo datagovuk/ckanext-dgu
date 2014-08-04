@@ -33,6 +33,19 @@ class DataController(BaseController):
 
     def linked_data_admin(self):
         """
+        Instructions for installing Ruby via RVM:
+
+            \curl -sSL https://get.rvm.io | bash -s stable
+            # Comment out lines in .bashrc and .bash_profile
+            source "$HOME/.rvm/scripts/rvm"
+            rvm autolibs distable
+            rvm install 1.9.3
+            rvm use 1.9.3
+            rvm gemset create ukgovld
+            rvm alias create ukgovldwg 1.9.3@ukgovld
+            cd /vagrant/src/ckanext-dgu/
+            ~/.rvm/wrappers/ukgovldwg/bundle
+            rvm wrapper ukgovldwg jekyll
 
         """
         import git
