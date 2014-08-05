@@ -32,8 +32,12 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
     def __init__(self, name):
         super(GovukPublicationsCommand, self).__init__(name)
 
-        self.parser.add_option('-p', '--page', dest='page',
+        self.parser.add_option('--page', dest='page',
             default='all', help='Page number to scrape, from the publication list (first is 1)')
+        self.parser.add_option('--publication', dest='publication',
+            help='Publication URL to scrape')
+        self.parser.add_option('--organization', dest='organization',
+            help='Organization name or URL to scrape')
 
     def command(self):
         import logging
@@ -53,8 +57,22 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                 self._list()
             elif cmd == 'scrape':
                 from ckanext.dgu.lib.govuk_publications import GovukPublicationScraper
-                page = None if self.options.page == 'all' else (int(self.options.page) or 1)
-                GovukPublicationScraper.scrape_and_save_publications(page=page)
+                GovukPublicationScraper.init()
+                if self.options.page != 'all':
+                    page = int(self.options.page)
+                    GovukPublicationScraper.scrape_and_save_publications(page=page)
+                elif self.options.publication:
+                    if 'http' not in self.options.publication:
+                        sys.stderr.write('Publication needs to be a URL')
+                        return
+                    GovukPublicationScraper.scrape_and_save_publication(self.options.publication)
+                elif self.options.organization:
+                    if 'http' not in self.options.organization:
+                        self.options.organization = 'https://www.gov.uk/government/organisations/' + self.options.organization
+                    GovukPublicationScraper.scrape_and_save_organization(self.options.organization)
+                else:
+                    GovukPublicationScraper.scrape_and_save_publications()
+
 
     def _initdb(self):
         from ckanext.dgu.model import govuk_publications as govuk_pubs_model

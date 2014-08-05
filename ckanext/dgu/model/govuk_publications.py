@@ -89,13 +89,11 @@ class Collection(Base, SimpleDomainObject):
     url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
     summary = Column(types.UnicodeText)
-    detail = Column(types.UnicodeText)
+    # some but not all collections have more text - ignore it.
     govuk_organization_id = Column(types.UnicodeText,
                                    ForeignKey('govuk_organization.id'))
     govuk_organization = orm.relationship('GovukOrganization',
                                           backref='collections')
-    published = Column(types.DateTime)
-    last_updated = Column(types.DateTime)
     created = Column(types.DateTime, default=datetime.datetime.now)
     publications = orm.relationship('Publication',
                                     secondary=collection_publication_table,
@@ -127,7 +125,7 @@ class Publication(Base, SimpleDomainObject):
                                          ForeignKey('govuk_organization.id'))
     extra_govuk_organization = orm.relationship(
         'GovukOrganization',
-        primaryjoin='Publication.govuk_organization_id==GovukOrganization.id',
+        primaryjoin='Publication.extra_govuk_organization_id==GovukOrganization.id',
         )
     # TODO policies and other things 'Part of'
     published = Column(types.DateTime)  # When first published on gov.uk

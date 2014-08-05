@@ -18,6 +18,10 @@ class TestScrapeRealPages:
     curl https://www.gov.uk/government/organisations/skills-funding-agency -o ckanext/dgu/tests/lib/govuk_html/organization_page.html
     curl https://www.gov.uk/government/statistics/community-interest-companies-new-cics-registered-in-october-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_csv.html
     curl https://www.gov.uk/government/consultations/pet-travel-planned-changes-to-the-eu-scheme -o ckanext/dgu/tests/lib/govuk_html/publication_external.html
+    curl https://www.gov.uk/government/publications/environmental-performance-of-the-water-and-sewerage-companies-in-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_type.html
+    curl https://www.gov.uk/government/statistical-data-sets/commodity-prices -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_inline.html
+    curl https://www.gov.uk/government/publications/uk-guarantees-scheme-prequalified-projects -o ckanext/dgu/tests/lib/govuk_html/publication_two_organizations.html
+    curl https://www.gov.uk/government/organisations/the-scottish-government -o ckanext/dgu/tests/lib/govuk_html/organization_external.html
     '''
     @classmethod
     def setup_class(cls):
@@ -116,11 +120,15 @@ class TestScrapeRealPages:
                   'title': 'Technical specification of the calculation for further education funding by the Education Funding Agency (EFA) in 2013 to 2014: version 1.2 (April 2014)',
                   'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/301088/EFA_2013_14_Funding_Calculation_Specification_V1_2_13_03_2014.pdf'}],
  'collections': set(['https://www.gov.uk/government/collections/individualised-learner-record-ilr']),
+ 'detail': 'Funding Information System (FIS)\nFIS is one of a number of software packages freely available to further education providers, to assist with preparing ILR data files prior to submission. It can be used by colleges, training organisations, local authorities and employers (FE providers) to:\nvalidate Individualised Learner Record (ILR) data\ncalculate funding and derived variables\ncreate a range of reports based on a set of ILR data\namalgamate data sets\nIt also replaces Provider Online (POL) and allows providers, with a small number of learners, to submit individual learner records by hand.\nDownload FIS from the Hub\nMore information on validation\nYou can find out more about how to check your ILR data in the following publications:\nProvider Support Manual\nILR validation rules for 2013 to 2014\nClick on the Individualised Learner Record (ILR) collections link below for more ILR topics.',
+ 'govuk_id': 370367,
  'last_updated': datetime.datetime(2014, 8, 1, 10, 24, 11),
  'name': 'pub_name',
- 'organization': 'https://www.gov.uk/government/organisations/skills-funding-agency',
+ 'govuk_organization': 'https://www.gov.uk/government/organisations/skills-funding-agency',
+ 'extra_govuk_organization': None,
  'published': datetime.datetime(2014, 2, 25, 13, 50),
  'summary': 'Information about the Funding Information System (FIS), to help further education (FE) providers validate ILR data.',
+ 'title': 'Individualised Learner Record (ILR): check that data is accurate',
  'type': 'Guidance',
  'url': '/pub_url'
             })
@@ -133,7 +141,7 @@ class TestScrapeRealPages:
         pprint(collection, indent=12)
         assert_equal(collection, {
             'name': 'collection_url',
-            'organization': 'https://www.gov.uk/government/organisations/skills-funding-agency',
+            'govuk_organization': 'https://www.gov.uk/government/organisations/skills-funding-agency',
             'summary': 'Information to help further education (FE) providers collect, return and check the quality of Individualised Learner Record (ILR) and other learner data.',
             'title': 'Individualised Learner Record (ILR)',
             'url': '/collection_url'
@@ -168,9 +176,99 @@ class TestScrapeRealPages:
         reset_stats()
         html = get_html_content('publication_external.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
-        pprint(pub, indent=12)
-        assert_equal(pub['summary'], '')
+        pprint(pub)
+        assert_equal(pub['summary'], 'Seeking views on planned changes to the EU pet travel scheme.')
         assert_equal(pub['attachments'], [])
+        assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
+
+    def test_publication_type(self):
+        reset_stats()
+        html = get_html_content('publication_type.html')
+        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        pprint(pub)
+        assert_equal(pub['type'], 'Corporate report')
+        assert_equal(fields_not_found(), ['Updated not found - check: 1 [\'pub_name\']'])
+
+    def test_publication_attachments_inline(self):
+        reset_stats()
+        html = get_html_content('publication_attachments_inline.html')
+        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        pprint(pub['attachments'])
+        assert_equal(pub['attachments'],
+[{'filename': 'commodityprices-straights-08may14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663276,
+  'title': 'Animal feed (straights) - monthly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/308848/commodityprices-straights-08may14.xls'},
+ {'filename': 'commodityprices-bananas-01aug14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663277,
+  'title': 'Bananas (wholesale prices) - weekly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/339879/commodityprices-bananas-01aug14.xls'},
+ {'filename': 'commodityprices-tbcomp-30jun14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663278,
+  'title': 'Cattle compensation prices - monthly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/325412/commodityprices-tbcomp-30jun14.xls'},
+ {'filename': 'commodityprices-poultryeggs-31jul14.ods',
+  'format': 'ODS',
+  'govuk_id': 663279,
+  'title': 'Eggs and poultry (wholesale prices) - weekly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/338690/commodityprices-poultryeggs-31jul14.ods'},
+ {'filename': 'commodityprices-hay-03jul14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663280,
+  'title': 'Hay and straw - monthly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/326380/commodityprices-hay-03jul14.xls'},
+ {'filename': 'commodityprices-livestckmth-08jul14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663281,
+  'title': 'Livestock (store stock, England & Wales) - monthly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/328333/commodityprices-livestckmth-08jul14.xls'},
+ {'filename': 'commodityprices-feed-03jul14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663286,
+  'title': 'Other animal feedingstuffs - monthly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/326385/commodityprices-feed-03jul14.xls'},
+ {'filename': 'commodityprices-wpcereal-31jul14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663282,
+  'title': 'Price series for cereals - weekly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/339181/commodityprices-wpcereal-31jul14.xls'},
+ {'filename': 'commodityprices-wpother-31jul14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663283,
+  'title': 'Price series for poultry, eggs, butter, cheese, potatoes and sugar - weekly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/339182/commodityprices-wpother-31jul14.xls'},
+ {'filename': 'commodityprices-wplivest-31jul14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663284,
+  'title': 'Price series for finished cattle, sheep and pigs - weekly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/339183/commodityprices-wplivest-31jul14.xls'},
+ {'filename': 'commodityprices-cereals-04aug14.xls',
+  'format': 'MS Excel Spreadsheet',
+  'govuk_id': 663285,
+  'title': 'Quantities sold and price of cereals (England & Wales) - weekly',
+  'url': '/government/uploads/system/uploads/attachment_data/file/340921/commodityprices-cereals-04aug14.xls'}]
+            )
+        assert_equal(pub['detail'], 'Prices for selected agricultural and horticultural produce are published on a weekly or monthly basis in the following spreadsheets. The data source depends on the item but includes prices taken from trade journals or other organisations in addition to prices collected by the Department for Environment, Food and Rural Affairs (Defra).\nChanges to the Eggs and Poultry (wholesale) prices from April 2014.  Minor amendments have been made to the categories of data collected. Most noticeable is that frozen chicken now reports imported prices rather than home-grown.\nFor further information please contact:\nDefra Helpline: 03459 33 55 77 (Monday to Friday: 8am to 6pm)')
+        assert_equal(fields_not_found(), [])
+
+    def test_publication_two_organizations(self):
+        reset_stats()
+        html = get_html_content('publication_two_organizations.html')
+        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        pprint(pub)
+        assert_equal(pub['govuk_organization'], 'https://www.gov.uk/government/organisations/infrastructure-uk')
+        assert_equal(pub['extra_govuk_organization'], 'https://www.gov.uk/government/organisations/hm-treasury')
+        assert_equal(fields_not_found(), [])
+
+    def test_organization_external(self):
+        reset_stats()
+        html = get_html_content('organization_external.html')
+        org = GovukPublicationScraper.scrape_organization_page(html, '/pub_url')
+        pprint(org)
+        assert_equal(org['description'], 'The devolved government for Scotland is responsible for most of the issues of day-to-day concern to the people of Scotland, including health, education, justice, rural affairs, and transport.')
         assert_equal(fields_not_found(), [])
 
     # Utilities
@@ -187,6 +285,10 @@ class TestScrapeRealPages:
         assert_equal(GovukPublicationScraper.extract_number_from_full_govuk_id('publication_370126'),
                      370126)
 
+    def test_sanitize_unicode(self):
+        assert_equal(GovukPublicationScraper.sanitize_unicode(u'\u2018single\u2019 \u201cdouble\u201d'), u'\'single\' "double"')
+        assert_equal(GovukPublicationScraper.sanitize_unicode(u'Land Registry description en-dash: \u2013'), u'Land Registry description en-dash: -')
+
 def get_html_content(test_filename):
     test_filepath = os.path.join(os.path.dirname(__file__), 'govuk_html', test_filename)
     with open(test_filepath) as f:
@@ -200,5 +302,5 @@ def fields_not_found():
     not_found = []
     for category in GovukPublicationScraper.field_stats:
         if 'not found' in category:
-            not_found.append(GovukPublicationScraper.field_stats.report_value(category))
+            not_found.append('%s: %s' % (category, GovukPublicationScraper.field_stats.report_value(category)[0]))
     return not_found

@@ -54,14 +54,20 @@ class GovukPublicationScraper(object):
                 # scrape
                 pub_basic = cls.scrape_publication_basics(publication_basics_element)
                 try:
-                    cls.scrape_and_save_publication(pub_basic)
-                    cls.publication_stats.add('Scraped ok', pub_basic['name'])
+                    changes = cls.scrape_and_save_publication(pub_basic['url'], pub_basic['name'])
                 except DuplicateNameError, e:
                     cls.publication_stats.add('Duplicate name for %s %s' %
                                               (e.object_type, e.field),
                                               '%s %s' % (e.message, pub_basic['name']))
-        print 'Publications:\n', cls.publication_stats
-        print 'Fields:\n', cls.field_stats
+                else:
+                    if changes.get('publication') == 'Created':
+                        cls.publication_stats.add('Creation', pub_basic['name'])
+                    elif changes:
+                        cls.publication_stats.add('Updated', pub_basic['name'])
+                    else:
+                        cls.publication_stats.add('Unchanged', pub_basic['name'])
+        print '\nPublications:\n', cls.publication_stats
+        print '\nFields:\n', cls.field_stats
 
     @classmethod
     def scrape_publication_index_page(cls, pub_index_content):
@@ -77,65 +83,71 @@ class GovukPublicationScraper(object):
         pub = {}
         pub['title'] = row.xpath('./h3/a/text()')[0]
         pub['url'] = cls.add_gov_uk_domain(row.xpath('./h3/a/@href')[0])
-        pub['name'] = pub['url'].split('/')[-1]
+        pub['name'] = cls.extract_name_from_url(pub['url'])
         pub['govuk_id'] = cls.extract_number_from_full_govuk_id(row.xpath('./@id')[0]) # e.g. publication_370126
         # public_timestamp is either created or last_updated - it doesn't say,
         # so ignore it
         return pub
 
     @classmethod
-    def scrape_and_save_publication(cls, pub_basic):
-        pub_name = pub_basic['name']
+    def scrape_and_save_publication(cls, pub_url, pub_name=None):
+        print pub_url
+        if pub_name is None:
+            pub_name = cls.extract_name_from_url(pub_url)
 
-        # See if the publication is in the database already
+        # Scrape the publication page itself
+        pub_scraped = cls.scrape_publication_page(cls.requests.get(pub_url).content, pub_url, pub_name)
+
+        # Write the core fields to new or existing object
+        core_fields = set(pub_scraped) - set(('attachments', 'govuk_organization', 'extra_govuk_organization', 'collections'))
         changes = {}
         pub = model.Session.query(govuk_pubs_model.Publication) \
-                   .filter_by(govuk_id=pub_basic['govuk_id']) \
+                   .filter_by(govuk_id=pub_scraped['govuk_id']) \
                    .first()
         if pub:
-            # update it
+            # Update it
             def update_pub(field, value):
                 existing_value = getattr(pub, field)
                 if existing_value != value:
                     changes[field] = '%r->%r' % (existing_value, value)
                     setattr(pub, field, value)
-            for field in pub_basic:
-                update_pub(field, pub_basic[field])
+            for field in core_fields:
+                update_pub(field, pub_scraped[field])
         else:
             # just check there's not one called the same
             pub_same_name = model.Session.query(govuk_pubs_model.Publication) \
-                                 .filter_by(name=pub_basic['name']) \
+                                 .filter_by(name=pub_scraped['name']) \
                                  .first()
             if pub_same_name:
-                raise DuplicateNameError('publication', 'name', 'Conflicting name with existing %r and scraped %r' % (pub_same_name, pub_basic))
+                raise DuplicateNameError('publication', 'name', 'Conflicting name with existing %r and scraped %r' % (pub_same_name, pub_scraped))
             # create it
-            pub = govuk_pubs_model.Publication(**pub_basic)
+            pub = govuk_pubs_model.Publication(**dict((field, pub_scraped[field])
+                                                      for field in core_fields))
             model.Session.add(pub)
+            changes['publication'] = 'Created'
             def update_pub(field, value):
                 setattr(pub, field, value)
-
-        # Scrape the publication page itself
-        pub_scraped = cls.scrape_publication_page(cls.requests.get(pub_basic['url']).content, pub_basic['url'], pub_name)
-
-        for field in set(pub_scraped) - set(('attachments', 'organization', 'collections')):
-            update_pub(field, pub_scraped[field])
 
         # Attachments
         cls.update_publication_attachments(pub, pub_scraped['attachments'], changes)
 
         # Organization
-        org = model.Session.query(govuk_pubs_model.GovukOrganization) \
-                   .filter_by(url=pub_scraped['organization']) \
-                   .first()
-        if not org:
-            # create it
-            try:
-                org = cls.scrape_and_save_organization(pub_scraped['organization'])
-            except GotRedirectedError:
-                print cls.field_stats.add('Organization page redirected - error',
-                                        '%s %s' % (pub_name, pub_scraped['org_url']))
-                return
-        update_pub('govuk_organization', org)
+        for org_field in ('govuk_organization', 'extra_govuk_organization'):
+            if pub_scraped[org_field]:
+                org = model.Session.query(govuk_pubs_model.GovukOrganization) \
+                           .filter_by(url=pub_scraped[org_field]) \
+                           .first()
+                if not org:
+                    # create it
+                    try:
+                        org = cls.scrape_and_save_organization(pub_scraped[org_field])
+                    except GotRedirectedError:
+                        print cls.field_stats.add('Organization page redirected - error',
+                                           '%s %s' % (pub_name, pub_scraped[org_field]))
+                        return
+            else:
+                org = None
+            update_pub(org_field, org)
 
         # Collections
         collections = []
@@ -155,25 +167,52 @@ class GovukPublicationScraper(object):
             collections.append(collection)
         update_pub('collections', collections)
 
-        print 'PUB %s scraped with changes: %r' % (pub_name, changes)
+        if changes:
+            print 'PUB %s scraped with changes: %r' % (pub_name, changes)
+        else:
+            print 'PUB %s scraped with no change' % pub_name
         if changes:
             model.Session.commit()
             model.Session.remove()
+        return changes
 
     @classmethod
     def scrape_publication_page(cls, publication_page_content, pub_url, pub_name):
         pub_doc = lxml.html.fromstring(publication_page_content)
         pub = {'url': pub_url,
                'name': pub_name}
-        try:
-            # was: pub_doc.xpath('//span[@class="organisation lead"]/a/@href')[0]
+        is_external = bool(pub_doc.xpath('//a[@rel="external"]'))
 
-            # e.g. https://www.gov.uk/government/publications/individualised-learner-record-ilr-check-that-data-is-accurate
-            pub['organization'] = cls.add_gov_uk_domain(pub_doc.xpath('//dt[text()="From:"]/following-sibling::dd/a/@href')[0])
-            cls.field_stats.add('Organization found', pub_name)
+        try:
+            pub['title'] = pub_doc.xpath('//main//article//h1/text()')[0]
+            cls.field_stats.add('Title found', pub_name)
         except IndexError:
-            cls.field_stats.add('Organization not found - ok', pub_name)
-            pub['organization'] = None
+            cls.field_stats.add('Title not found - error', pub_name)
+            pub['title'] = None
+
+        try:
+            pub['govuk_id'] = cls.extract_number_from_full_govuk_id(pub_doc.xpath('//main//article/@id')[0])
+            cls.field_stats.add('Gov.uk ID found', pub_name)
+        except IndexError:
+            cls.field_stats.add('Gov.uk ID not found - error', pub_name)
+            pub['govuk_id'] = None
+
+        orgs = pub_doc.xpath('//dt[text()="From:"]/following-sibling::dd[@class="from"]/a/@href')
+        if len(orgs) == 1:
+            pub['govuk_organization'] = cls.add_gov_uk_domain(orgs[0])
+            pub['extra_govuk_organization'] = None
+            cls.field_stats.add('Organization found', pub_name)
+        elif len(orgs) > 1:
+            pub['govuk_organization'] = cls.add_gov_uk_domain(orgs[0])
+            pub['extra_govuk_organization'] = cls.add_gov_uk_domain(orgs[1])
+            if len(orgs) == 2:
+                cls.field_stats.add('Organizations (2) found', pub_name)
+            else:
+                cls.field_stats.add('Organizations more than 2 found (%s) - error', '%s %s' % (pub_name, len(orgs)))
+        else:
+            cls.field_stats.add('Organization not found - error', pub_name)
+            pub['govuk_organization'] = None
+            pub['extra_govuk_organization'] = None
 
         try:
             pub['type'] = pub_doc.xpath('//div[@class="inner-heading"]/p[@class="type"]/text()')[0]
@@ -181,23 +220,36 @@ class GovukPublicationScraper(object):
         except IndexError:
             cls.field_stats.add('Type not found - check', pub_name)
             pub['type'] = ''
+        else:
+            if pub['type'].startswith(' - '):
+                pub['type'] = re.sub('^ \- ', '', pub['type']).capitalize()
 
         try:
-            pub['summary'] = pub_doc.xpath('//div[@class="summary"]/p/text()')[0]
+            pub['summary'] = cls.sanitize_unicode(pub_doc.xpath('//div[@class="summary"]/p/text()')[0].strip())
             cls.field_stats.add('Summary found', pub_name)
         except IndexError:
             try:
-                pub['summary'] = pub_doc.xpath('//div[@class="consultation-summary"]//p/text()')[0]
+                pub['summary'] = cls.sanitize_unicode(pub_doc.xpath('//div[@class="consultation-summary"]//p/text()')[0].strip())
                 cls.field_stats.add('Summary found (method 2)', pub_name)
             except IndexError:
                 cls.field_stats.add('Summary not found - check', pub_name)
                 pub['summary'] = ''
 
+        detail_paras = pub_doc.xpath('//section[@id="details"]//div[@class="body"]//text()') \
+            or pub_doc.xpath('//section[//text()="Consultation description"]//div[@class="content"]//text()') \
+            or pub_doc.xpath('//div[@class="govspeak"]//p/text()')
+        if detail_paras:
+            cls.field_stats.add('Details found', pub_name)
+            pub['detail'] = cls.sanitize_unicode('\n'.join(detail_para.strip() for detail_para in detail_paras if detail_para.strip()))
+        else:
+            cls.field_stats.add('Detail not found - check', pub_name)
+            pub['detail'] = ''
+
         try:
             pub['published'] = pub_doc.xpath('//dt[text()="Published:"]/following-sibling::dd/abbr/@title')[0]
             cls.field_stats.add('Publish date found', pub_name)
         except IndexError:
-            cls.field_stats.add('Publish date not found - check', pub_name)
+            cls.field_stats.add('Publish date not found - error', pub_name)
             pub['published'] = ''
         else:
             pub['published'] = cls.parse_date(pub['published'])
@@ -231,26 +283,27 @@ class GovukPublicationScraper(object):
                     cls.field_stats.add('Format found (method 2)', pub_name)
                 except IndexError:
                     cls.field_stats.add('Format not found - check', pub_name)
-                    pub['last_updated'] = None
+                    pub['format'] = None
 
             embedded_attachments.append(attach)
         if embedded_attachments:
             cls.field_stats.add('Attachments (embedded) found', pub_name)
         # Inline attachment
-        # e.g.
+        # e.g. https://www.gov.uk/government/statistical-data-sets/commodity-prices
         inline_attachments = []
         for attachment in pub_doc.xpath('//span[@class = "attachment inline"]'):
             attach = {}
+            attach['govuk_id'] = cls.extract_number_from_full_govuk_id(attachment.xpath('./@id')[0])
             attach['title'] = attachment.xpath('./a/text()')[0]
             attach['url'] = attachment.xpath('./a/@href')[0]
             attach['filename'] = attach['url'].split('/')[-1]
+            attach['format'] = attachment.xpath('./span[@class="type"]//text()')[0]
             inline_attachments.append(attach)
         if inline_attachments:
             cls.field_stats.add('Attachments (inline) found', pub_name)
         pub['attachments'].extend(embedded_attachments + inline_attachments)
         if not pub['attachments']:
-            external = bool(attachment.xpath('//a[rel="external"]'))
-            if external:
+            if is_external:
                 cls.field_stats.add('Publication external so no attachments', pub_name)
             else:
                 cls.field_stats.add('Attachments not found - check', pub_name)
@@ -378,7 +431,7 @@ class GovukPublicationScraper(object):
             # create it (without the organization for now)
             collection_scraped_excluding_org = \
                 dict((k, v) for k, v in collection_scraped.items()
-                     if k != 'organization')
+                     if k != 'govuk_organization')
             collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
             model.Session.add(collection)
             model.Session.flush()  # to get an collection.id. It will get committed with the publication
@@ -387,17 +440,17 @@ class GovukPublicationScraper(object):
 
         # Organization
         if not collection.govuk_organization or \
-                collection.govuk_organization.url != collection_scraped['organization']:
+                collection.govuk_organization.url != collection_scraped['govuk_organization']:
             org = model.Session.query(govuk_pubs_model.GovukOrganization) \
-                       .filter_by(url=collection_scraped['organization']) \
+                       .filter_by(url=collection_scraped['govuk_organization']) \
                        .first()
             if not org:
                 # create it
                 try:
-                    org = cls.scrape_and_save_organization(collection_scraped['organization'])
+                    org = cls.scrape_and_save_organization(collection_scraped['govuk_organization'])
                 except GotRedirectedError:
                     print cls.field_stats.add('Organization page redirected - error',
-                                            '%s %s' % (collection_scraped['name'], collection_scraped['organization']))
+                                            '%s %s' % (collection_scraped['name'], collection_scraped['govuk_organization']))
                     return
             update_collection('govuk_organization', org)
 
@@ -408,7 +461,7 @@ class GovukPublicationScraper(object):
         doc = lxml.html.fromstring(collection_page_content)
         collection = {}
         collection['url'] = collection_url
-        collection_name = collection_url.split('/')[-1]
+        collection_name = cls.extract_name_from_url(collection_url)
         collection['name'] = collection_name
         #collection['title'] = doc.xpath("//div[@class='inner-heading']/h1/text()")[0]
         try:
@@ -416,19 +469,21 @@ class GovukPublicationScraper(object):
             cls.field_stats.add('Collection title found', collection_name)
         except IndexError:
             cls.field_stats.add('Collection title not found - error', collection_name)
+
         try:
-            collection['summary'] = doc.xpath("//div[@class='block summary']//p/text()")[0]
+            collection['summary'] = cls.sanitize_unicode(doc.xpath("//div[@class='block summary']//p/text()")[0])
             cls.field_stats.add('Collection summary found', collection_name)
         except IndexError:
             cls.field_stats.add('Collection summary not found - check', collection_name)
             collection['summary'] = None
+
         try:
             # URL
-            collection['organization'] = cls.add_gov_uk_domain(doc.xpath('//dt[text()="From:"]/following-sibling::dd/a/@href')[0])
+            collection['govuk_organization'] = cls.add_gov_uk_domain(doc.xpath('//dt[text()="From:"]/following-sibling::dd/a/@href')[0])
             cls.field_stats.add('Collection organization found', collection_name)
         except IndexError:
             cls.field_stats.add('Collection organization not found - check', collection_name)
-            collection['organization'] = None
+            collection['govuk_organization'] = None
         return collection
 
     @classmethod
@@ -492,12 +547,18 @@ class GovukPublicationScraper(object):
             org_dict['title'] = doc.xpath('//title/text()')[0].split(' - ')[0]
             cls.field_stats.add('Organization title found', org_name)
         except IndexError:
+            org_dict['title'] = None
             cls.field_stats.add('Organization title not found - error', org_name)
         try:
-            org_dict['description'] = doc.xpath('//section[@id="what-we-do"]//div[@class="overview"]//p[@class="description"]//text()')[0].strip()
+            org_dict['description'] = cls.sanitize_unicode(doc.xpath('//section[@id="what-we-do"]//div[@class="overview"]//p[@class="description"]//text()')[0].strip())
             cls.field_stats.add('Organization description found', org_name)
         except IndexError:
-            cls.field_stats.add('Organization description not found - error', org_name)
+            try:
+                org_dict['description'] = cls.sanitize_unicode(doc.xpath('//div[@class="description"]//div[@class="govspeak"]//p/text()')[0].strip())
+                cls.field_stats.add('Organization description found (external org)', org_name)
+            except IndexError:
+                org_dict['description'] = None
+                cls.field_stats.add('Organization description not found - error', org_name)
         return org_dict
 
     @classmethod
@@ -522,6 +583,31 @@ class GovukPublicationScraper(object):
     def add_gov_uk_domain(cls, path):
         return urljoin('https://www.gov.uk', path)
 
+    @classmethod
+    def extract_name_from_url(cls, url):
+        '''Works for publication, organisation, collection etc.  but
+        publications might have overlapping namespaces, so it is not
+        reversible.
+
+        publication url prefixes:
+        https://www.gov.uk/government/publications/
+        https://www.gov.uk/government/statistics/
+        https://www.gov.uk/government/consultations/
+        '''
+        return url.split('/')[-1]
+
+    @classmethod
+    def sanitize_unicode(cls, unicode_text):
+        '''Gets rid of unnecessary unicode, like curly quotes. It is a pain
+        printing to the console etc.'''
+        if '_single_quote_re' not in dir(cls):
+            cls._single_quote_re = re.compile(u'[\u2018\u2019]')
+            cls._double_quote_re = re.compile(u'[\u201c\u201d]')
+            cls._dash_re = re.compile(u'\u2013')
+        unicode_text = cls._single_quote_re.sub('\'', unicode_text)
+        unicode_text = cls._double_quote_re.sub('"', unicode_text)
+        unicode_text = cls._dash_re.sub('-', unicode_text)
+        return unicode_text
 
 class GotRedirectedError(Exception):
     pass
