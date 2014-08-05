@@ -36,21 +36,22 @@ class GovukPublicationScraper(object):
         cls.init()
 
         pages = itertools.count(start=1) if page is None else [page]
+        num_pages = '?'
         for page_index in pages:
             # Scrape the index of publications
             url = 'https://www.gov.uk/government/publications?page=%s' % page_index
-            print url
-            num_results_on_this_page_str, publication_basics_elements = \
-                cls.scrape_publication_index_page(cls.requests.get(url).content)
+            print 'Page %s/%s: %s' % (page_index, num_pages, url)
+            index_scraped = cls.scrape_publication_index_page(cls.requests.get(url).content)
+            num_pages = index_scraped['num_pages']
 
             # check to see if we have done all the pages
-            if num_results_on_this_page_str == '0':
+            if index_scraped['num_results_on_this_page_str'] == '0':
                 if page_index < 3:
                     log.error('Not enough pages of publications found - %s', page_index)
                 break
 
             # This webpage has the 'basic' fields for each publication
-            for publication_basics_element in publication_basics_elements:
+            for publication_basics_element in index_scraped['publication_basics_elements']:
                 # scrape
                 pub_basic = cls.scrape_publication_basics(publication_basics_element)
                 try:
@@ -66,15 +67,20 @@ class GovukPublicationScraper(object):
                         cls.publication_stats.add('Updated', pub_basic['name'])
                     else:
                         cls.publication_stats.add('Unchanged', pub_basic['name'])
+            print '\nAfter %s/%s pages:' % (page_index, num_pages)
+            print '\nPublications:\n', cls.publication_stats
+            print '\nFields:\n', cls.field_stats
         print '\nPublications:\n', cls.publication_stats
         print '\nFields:\n', cls.field_stats
 
     @classmethod
     def scrape_publication_index_page(cls, pub_index_content):
         doc = lxml.html.fromstring(pub_index_content)
-        num_results_on_this_page_str = doc.xpath('//span[@class="count"]/text()')[0]
-        publication_basics_elements = doc.xpath('//li[@class="document-row"]')
-        return num_results_on_this_page_str, publication_basics_elements
+        result = {}
+        result['num_results_on_this_page_str'] = doc.xpath('//span[@class="count"]/text()')[0]
+        result['publication_basics_elements'] = doc.xpath('//li[@class="document-row"]')
+        result['num_pages'] = doc.xpath('//span[@class="page-numbers"]/text()')[0].split(' of ')[-1]
+        return result
 
     @classmethod
     def scrape_publication_basics(cls, publication_basics_element):
@@ -91,7 +97,7 @@ class GovukPublicationScraper(object):
 
     @classmethod
     def scrape_and_save_publication(cls, pub_url, pub_name=None):
-        print pub_url
+        print 'PUB', pub_url
         if pub_name is None:
             pub_name = cls.extract_name_from_url(pub_url)
 
@@ -99,7 +105,7 @@ class GovukPublicationScraper(object):
         pub_scraped = cls.scrape_publication_page(cls.requests.get(pub_url).content, pub_url, pub_name)
 
         # Write the core fields to new or existing object
-        core_fields = set(pub_scraped) - set(('attachments', 'govuk_organization', 'extra_govuk_organization', 'collections'))
+        core_fields = set(pub_scraped) - set(('attachments', 'govuk_organizations', 'collections'))
         changes = {}
         pub = model.Session.query(govuk_pubs_model.Publication) \
                    .filter_by(govuk_id=pub_scraped['govuk_id']) \
@@ -132,22 +138,20 @@ class GovukPublicationScraper(object):
         cls.update_publication_attachments(pub, pub_scraped['attachments'], changes)
 
         # Organization
-        for org_field in ('govuk_organization', 'extra_govuk_organization'):
-            if pub_scraped[org_field]:
-                org = model.Session.query(govuk_pubs_model.GovukOrganization) \
-                           .filter_by(url=pub_scraped[org_field]) \
-                           .first()
-                if not org:
-                    # create it
-                    try:
-                        org = cls.scrape_and_save_organization(pub_scraped[org_field])
-                    except GotRedirectedError:
-                        print cls.field_stats.add('Organization page redirected - error',
-                                           '%s %s' % (pub_name, pub_scraped[org_field]))
-                        return
-            else:
-                org = None
-            update_pub(org_field, org)
+        orgs = []
+        for org_scraped in pub_scraped['govuk_organizations']:
+            org = model.Session.query(govuk_pubs_model.GovukOrganization) \
+                       .filter_by(url=org_scraped) \
+                       .first()
+            if not org:
+                # create it
+                try:
+                    org = cls.scrape_and_save_organization(org_scraped)
+                except GotRedirectedError:
+                    print cls.field_stats.add('Organization page redirected - error',
+                                        '%s %s' % (pub_name, org_scraped))
+                    return
+        update_pub('govuk_organizations', orgs)
 
         # Collections
         collections = []
@@ -167,10 +171,10 @@ class GovukPublicationScraper(object):
             collections.append(collection)
         update_pub('collections', collections)
 
-        if changes:
-            print 'PUB %s scraped with changes: %r' % (pub_name, changes)
-        else:
-            print 'PUB %s scraped with no change' % pub_name
+        #if changes:
+        #    print 'PUB %s scraped with changes' % pub_name
+        #else:
+        #    print 'PUB %s scraped with no change' % pub_name
         if changes:
             model.Session.commit()
             model.Session.remove()
@@ -197,22 +201,13 @@ class GovukPublicationScraper(object):
             cls.field_stats.add('Gov.uk ID not found - error', pub_name)
             pub['govuk_id'] = None
 
-        orgs = pub_doc.xpath('//dt[text()="From:"]/following-sibling::dd[@class="from"]/a/@href')
-        if len(orgs) == 1:
-            pub['govuk_organization'] = cls.add_gov_uk_domain(orgs[0])
-            pub['extra_govuk_organization'] = None
+        orgs = pub_doc.xpath('//dt[text()="From:"]/following-sibling::dd[@class="from"]/a[@class="organisation-link"]/@href')
+        if len(orgs) > 0:
+            pub['govuk_organizations'] = [cls.add_gov_uk_domain(org) for org in orgs]
             cls.field_stats.add('Organization found', pub_name)
-        elif len(orgs) > 1:
-            pub['govuk_organization'] = cls.add_gov_uk_domain(orgs[0])
-            pub['extra_govuk_organization'] = cls.add_gov_uk_domain(orgs[1])
-            if len(orgs) == 2:
-                cls.field_stats.add('Organizations (2) found', pub_name)
-            else:
-                cls.field_stats.add('Organizations more than 2 found (%s) - error', '%s %s' % (pub_name, len(orgs)))
         else:
             cls.field_stats.add('Organization not found - error', pub_name)
-            pub['govuk_organization'] = None
-            pub['extra_govuk_organization'] = None
+            pub['govuk_organizations'] = []
 
         try:
             pub['type'] = pub_doc.xpath('//div[@class="inner-heading"]/p[@class="type"]/text()')[0]
@@ -320,7 +315,7 @@ class GovukPublicationScraper(object):
         pub['collections'] = set()
         for collection_url in pub_doc.xpath('//div[@class="links"]//dt[text()="Part of:"]/following-sibling::dd/a/@href'):
             if not collection_url.startswith('/government/collections'):
-                print cls.field_stats.add('Ignoring "Part of" type %s' % os.path.dirname(collection_url),
+                cls.field_stats.add('Ignoring "Part of" type %s' % os.path.dirname(collection_url),
                                           '%s %s' % (pub_name, collection_url))
                 continue
             collection_url = cls.add_gov_uk_domain(collection_url)
@@ -489,6 +484,7 @@ class GovukPublicationScraper(object):
     @classmethod
     def scrape_and_save_organization(cls, org_url):
         # e.g. https://www.gov.uk/government/organisations/skills-funding-agency
+        print 'ORG %s' % org_url
         if org_url.startswith('/government/organisations'):
             org_url = cls.add_gov_uk_domain(org_url)
         r = cls.requests.get(org_url)
@@ -498,7 +494,7 @@ class GovukPublicationScraper(object):
             raise GotRedirectedError()
 
         org_scraped = cls.scrape_organization_page(r.content, org_url)
-        print 'ORG scraped %r' % org_scraped
+        #print 'ORG scraped %r' % org_scraped['name']
 
         changes = {}
         org = model.Session.query(govuk_pubs_model.GovukOrganization) \

@@ -21,7 +21,9 @@ class TestScrapeRealPages:
     curl https://www.gov.uk/government/publications/environmental-performance-of-the-water-and-sewerage-companies-in-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_type.html
     curl https://www.gov.uk/government/statistical-data-sets/commodity-prices -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_inline.html
     curl https://www.gov.uk/government/publications/uk-guarantees-scheme-prequalified-projects -o ckanext/dgu/tests/lib/govuk_html/publication_two_organizations.html
+    curl https://www.gov.uk/government/publications/nhs-trusts-and-foundation-trusts-in-special-measures-1-year-on -o ckanext/dgu/tests/lib/govuk_html/publication_three_organizations.html
     curl https://www.gov.uk/government/organisations/the-scottish-government -o ckanext/dgu/tests/lib/govuk_html/organization_external.html
+    curl https://www.gov.uk/government/publications/controlled-drugs-list -o ckanext/dgu/tests/lib/govuk_html/publication_from_minister.html
     '''
     @classmethod
     def setup_class(cls):
@@ -31,15 +33,15 @@ class TestScrapeRealPages:
     def test_scrape_publication_index_page(self):
         html = get_html_content('publication_index.html')
         index = GovukPublicationScraper.scrape_publication_index_page(html)
-        assert_equal(index[0], '56,250')
-        assert isinstance(index[1], list)
-        assert_equal(len(index[1]), 40)
-        assert_equal(index[1][0].tag, 'li')
+        assert_equal(index['num_results_on_this_page_str'], '56,250')
+        assert isinstance(index['publication_basics_elements'], list)
+        assert_equal(len(index['publication_basics_elements']), 40)
+        assert_equal(index['publication_basics_elements'][0].tag, 'li')
 
     def test_scrape_publication_basics(self):
         html = get_html_content('publication_index.html')
         index = GovukPublicationScraper.scrape_publication_index_page(html)
-        element = index[1][0]
+        element = index['publication_basics_elements'][0]
         pub = GovukPublicationScraper.scrape_publication_basics(element)
         assert_equal(pub, {
             'govuk_id': 369795,
@@ -124,8 +126,7 @@ class TestScrapeRealPages:
  'govuk_id': 370367,
  'last_updated': datetime.datetime(2014, 8, 1, 10, 24, 11),
  'name': 'pub_name',
- 'govuk_organization': 'https://www.gov.uk/government/organisations/skills-funding-agency',
- 'extra_govuk_organization': None,
+ 'govuk_organizations': ['https://www.gov.uk/government/organisations/skills-funding-agency'],
  'published': datetime.datetime(2014, 2, 25, 13, 50),
  'summary': 'Information about the Funding Information System (FIS), to help further education (FE) providers validate ILR data.',
  'title': 'Individualised Learner Record (ILR): check that data is accurate',
@@ -259,8 +260,29 @@ class TestScrapeRealPages:
         html = get_html_content('publication_two_organizations.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
-        assert_equal(pub['govuk_organization'], 'https://www.gov.uk/government/organisations/infrastructure-uk')
-        assert_equal(pub['extra_govuk_organization'], 'https://www.gov.uk/government/organisations/hm-treasury')
+        assert_equal(pub['govuk_organizations'],
+                     ['https://www.gov.uk/government/organisations/infrastructure-uk',
+                      'https://www.gov.uk/government/organisations/hm-treasury'])
+        assert_equal(fields_not_found(), [])
+
+    def test_publication_three_organizations(self):
+        reset_stats()
+        html = get_html_content('publication_three_organizations.html')
+        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        pprint(pub)
+        assert_equal(pub['govuk_organizations'], [
+            'https://www.gov.uk/government/organisations/monitor',
+            'https://www.gov.uk/government/organisations/nhs-trust-development-authority',
+            'https://www.gov.uk/government/organisations/care-quality-commission'
+            ])
+        assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
+
+    def test_publication_from_minister(self):
+        reset_stats()
+        html = get_html_content('publication_from_minister.html')
+        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        pprint(pub)
+        assert_equal(pub['govuk_organizations'], ['https://www.gov.uk/government/organisations/home-office'])
         assert_equal(fields_not_found(), [])
 
     def test_organization_external(self):

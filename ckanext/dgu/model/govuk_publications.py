@@ -17,7 +17,7 @@ __all__ = ['Collection', 'Publication', 'Attachment', 'init_tables']
 # create table collection_publication (pub_id integer references publications(id), coll_id integer references collections(id), primary key (pub_id, coll_id))
 
 # to clear out:
-# psql ckan -c 'drop table collection, publication, govuk_organization, attachment, publink, collection_publication, publication_publink;'
+# psql ckan -c 'drop table collection, publication, govuk_organization, attachment, publink, collection_publication, organization_publication_table, publication_publink;'
 
 Base = declarative_base()
 
@@ -60,6 +60,17 @@ collection_publication_table = Table(
     Column('created', types.DateTime, default=datetime.datetime.now),
     )
 
+# A Publication can be from many Organizations
+# e.g. https://www.gov.uk/government/publications/nhs-trusts-and-foundation-trusts-in-special-measures-1-year-on
+organization_publication_table = Table(
+    'organization_publication', Base.metadata,
+    Column('id', types.UnicodeText, primary_key=True,
+           default=model.types.make_uuid),
+    Column('govuk_organization_id', types.UnicodeText, ForeignKey('govuk_organization.id')),
+    Column('publication_id', types.UnicodeText, ForeignKey('publication.id')),
+    Column('created', types.DateTime, default=datetime.datetime.now),
+    )
+
 publication_publink_table = Table(
     'publication_publink', Base.metadata,
     Column('id', types.UnicodeText, primary_key=True,
@@ -79,6 +90,9 @@ class GovukOrganization(Base, SimpleDomainObject):
     url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
     description = Column(types.UnicodeText)
+    publications = orm.relationship('Publication',
+            secondary=organization_publication_table,
+            backref='govuk_organizations')
 
 
 class Collection(Base, SimpleDomainObject):
@@ -111,22 +125,6 @@ class Publication(Base, SimpleDomainObject):
     title = Column(types.UnicodeText, nullable=False)
     summary = Column(types.UnicodeText)
     detail = Column(types.UnicodeText)
-    govuk_organization_id = Column(types.UnicodeText,
-                                   ForeignKey('govuk_organization.id'))
-    govuk_organization = orm.relationship(
-        'GovukOrganization',
-        primaryjoin='Publication.govuk_organization_id==GovukOrganization.id',
-        backref=orm.backref(
-            'publications',
-            primaryjoin='Publication.govuk_organization_id==GovukOrganization.id'
-            )
-        )
-    extra_govuk_organization_id = Column(types.UnicodeText,
-                                         ForeignKey('govuk_organization.id'))
-    extra_govuk_organization = orm.relationship(
-        'GovukOrganization',
-        primaryjoin='Publication.extra_govuk_organization_id==GovukOrganization.id',
-        )
     # TODO policies and other things 'Part of'
     published = Column(types.DateTime)  # When first published on gov.uk
     last_updated = Column(types.DateTime)  # None until the 2nd revision
