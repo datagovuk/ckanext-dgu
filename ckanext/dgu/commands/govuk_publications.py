@@ -13,9 +13,9 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
 
         dropdb - Delete the database tables containing the gov.uk publication data
 
-        list - Lists the data
-
         scrape - Scrape gov.uk
+
+        autolink - Find clear links between gov.uk and DGU
 
     e.g.
 
@@ -38,6 +38,10 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             help='Publication URL to scrape')
         self.parser.add_option('--organization', dest='organization',
             help='Organization name or URL to scrape')
+        self.parser.add_option('-r', '--resource', dest='resource',
+            help='Resource ID to autolink')
+        self.parser.add_option('-d', '--dataset', dest='dataset',
+            help='Dataset name to autolink')
 
     def command(self):
         import logging
@@ -56,7 +60,7 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             elif cmd == 'list':
                 self._list()
             elif cmd == 'scrape':
-                from ckanext.dgu.lib.govuk_publications import GovukPublicationScraper
+                from ckanext.dgu.lib.govuk_scraper import GovukPublicationScraper
                 GovukPublicationScraper.init()
                 if self.options.page != 'all':
                     page = int(self.options.page)
@@ -72,6 +76,10 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                     GovukPublicationScraper.scrape_and_save_organization(self.options.organization)
                 else:
                     GovukPublicationScraper.scrape_and_save_publications()
+            elif cmd == 'autolink':
+                from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
+                GovukPublicationLinks.autolink(resource_id=self.options.resource,
+                                               dataset_name=self.options.dataset)
 
 
     def _initdb(self):

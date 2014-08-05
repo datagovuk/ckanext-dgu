@@ -5,7 +5,7 @@ from pprint import pprint
 from nose.tools import assert_equal
 
 from ckanext.dgu.bin.running_stats import Stats
-from ckanext.dgu.lib.govuk_publications import GovukPublicationScraper
+from ckanext.dgu.lib.govuk_scraper import GovukPublicationScraper
 
 
 class TestScrapeRealPages:
