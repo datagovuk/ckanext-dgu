@@ -106,8 +106,10 @@ class GovukPublicationScraper(object):
         # Scrape the publication page itself
         r = cls.requests.get(pub_url)
         if r.url != pub_url:
-            if r.url.startswith('https://www.gov.uk/government/collections'):
+            if r.url.startswith('https://www.gov.uk/government/collections') or \
+                    r.url == 'https://www.gov.uk/government/statistics/announcements':
                 # e.g. https://www.gov.uk/government/publications/taking-part-englands-survey-of-culture-leisure-and-sport-april-2013-to-march-2014-rolling-annual-estimates-for-adults--2
+                # e.g. Redirect from https://www.gov.uk/government/publications/sport-satellite-account-2006-to-2010-results
                 print cls.field_stats.add('Publication page redirected - error',
                                         pub_name)
                 raise GotRedirectedError()
