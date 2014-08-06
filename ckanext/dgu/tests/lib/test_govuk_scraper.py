@@ -311,6 +311,12 @@ class TestScrapeRealPages:
         assert_equal(GovukPublicationScraper.sanitize_unicode(u'\u2018single\u2019 \u201cdouble\u201d'), u'\'single\' "double"')
         assert_equal(GovukPublicationScraper.sanitize_unicode(u'Land Registry description en-dash: \u2013'), u'Land Registry description en-dash: -')
 
+    def test_extract_url_object_type(self):
+        assert_equal(GovukPublicationScraper.extract_url_object_type(
+            'https://www.gov.uk/government/publications/xyz'),
+            'publications')
+
+
 def get_html_content(test_filename):
     test_filepath = os.path.join(os.path.dirname(__file__), 'govuk_html', test_filename)
     with open(test_filepath) as f:

@@ -60,6 +60,8 @@ class GovukPublicationScraper(object):
                     cls.publication_stats.add('Duplicate name for %s %s' %
                                               (e.object_type, e.field),
                                               '%s %s' % (e.message, pub_basic['name']))
+                except GotRedirectedError, e:
+                    cls.publication_stats.add('Publication redirect', e.message)
                 else:
                     if changes.get('publication') == 'Created':
                         cls.publication_stats.add('Creation', pub_basic['name'])
@@ -102,7 +104,21 @@ class GovukPublicationScraper(object):
             pub_name = cls.extract_name_from_url(pub_url)
 
         # Scrape the publication page itself
-        pub_scraped = cls.scrape_publication_page(cls.requests.get(pub_url).content, pub_url, pub_name)
+        r = cls.requests.get(pub_url)
+        if r.url != pub_url:
+            if r.url.startswith('https://www.gov.uk/government/collections'):
+                # e.g. https://www.gov.uk/government/publications/taking-part-englands-survey-of-culture-leisure-and-sport-april-2013-to-march-2014-rolling-annual-estimates-for-adults--2
+                print cls.field_stats.add('Publication page redirected - error',
+                                        pub_name)
+                raise GotRedirectedError()
+            url_obj_type = cls.extract_url_object_type(r.url)
+            publication_types = set(('publications', 'consultations', 'statistical-data-sets', 'statistics'))
+            if url_obj_type in publication_types:
+                print cls.field_stats.add('Publication page redirected to known publication type', pub_name)
+            else:
+                print cls.field_stats.add('Publication page redirected to %s - check' % pub_name, pub_name)
+
+        pub_scraped = cls.scrape_publication_page(r.content, pub_url, pub_name)
 
         # Write the core fields to new or existing object
         core_fields = set(pub_scraped) - set(('attachments', 'govuk_organizations', 'collections'))
@@ -188,7 +204,7 @@ class GovukPublicationScraper(object):
         is_external = bool(pub_doc.xpath('//a[@rel="external"]'))
 
         try:
-            pub['title'] = pub_doc.xpath('//main//article//h1/text()')[0]
+            pub['title'] = cls.sanitize_unicode(pub_doc.xpath('//main//article//h1/text()')[0])
             cls.field_stats.add('Title found', pub_name)
         except IndexError:
             cls.field_stats.add('Title not found - error', pub_name)
@@ -245,7 +261,7 @@ class GovukPublicationScraper(object):
             cls.field_stats.add('Publish date found', pub_name)
         except IndexError:
             cls.field_stats.add('Publish date not found - error', pub_name)
-            pub['published'] = ''
+            pub['published'] = None
         else:
             pub['published'] = cls.parse_date(pub['published'])
 
@@ -266,7 +282,7 @@ class GovukPublicationScraper(object):
         for attachment in pub_doc.xpath('//section[@class = "attachment embedded"]'):
             attach = {}
             attach['govuk_id'] = cls.extract_number_from_full_govuk_id(attachment.xpath('@id')[0])
-            attach['title'] = attachment.xpath('.//h2[@class="title"]/text()|.//h2[@class="title"]/a/text()')[0]
+            attach['title'] = cls.sanitize_unicode(attachment.xpath('.//h2[@class="title"]/text()|.//h2[@class="title"]/a/text()')[0])
             attach['url'] = cls.add_gov_uk_domain(attachment.xpath('.//h2[@class="title"]/a/@href|.//span[@class="download"]/a/@href')[0])
             attach['filename'] = attach['url'].split('/')[-1]
             try:
@@ -368,8 +384,8 @@ class GovukPublicationScraper(object):
                 # attachment is kept - check for changes
                 diffs = attribute_differences(att, att_after)
                 if diffs:
-                    diffs_str = ','.join(diff['0'] for diff in diffs)
-                    change_list.append('%s:%s' % (atts_before['govuk_id'], diffs_str))
+                    diffs_str = ','.join(diff[0] for diff in diffs)
+                    change_list.append('%s:%s' % (att.govuk_id, diffs_str))
                     for key, value_before, value_after in diffs:
                         setattr(att, key, value_after)
             else:
@@ -604,6 +620,18 @@ class GovukPublicationScraper(object):
         unicode_text = cls._double_quote_re.sub('"', unicode_text)
         unicode_text = cls._dash_re.sub('-', unicode_text)
         return unicode_text
+
+    @classmethod
+    def extract_url_object_type(cls, url):
+        '''e.g. for https://www.gov.uk/government/publications/xyz
+        it returns 'publications'
+        '''
+        if '_url_obj_re' not in dir(cls):
+            cls._url_obj_re = re.compile(r'^https://www.gov.uk/government/([^/]+)/')
+        res = cls._url_obj_re.search(url)
+        if res.groups():
+            return res.groups()[0]
+
 
 class GotRedirectedError(Exception):
     pass

@@ -36,7 +36,7 @@ class Stats(dict):
     def add(self, category, value):
         self._init_category(category)
         self[category].append(value)
-        return ('%s: %s' % (category, value)).encode('ascii', 'ignore') # so you can log it too
+        return unicode('%s: %s' % (category, value), errors='ignore').encode('ascii', 'ignore') # so you can log it too
 
     def report_value(self, category):
         value = self[category]
