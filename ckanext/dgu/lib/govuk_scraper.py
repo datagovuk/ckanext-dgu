@@ -296,7 +296,7 @@ class GovukPublicationScraper(object):
                     cls.field_stats.add('Format found (method 2)', pub_name)
                 except IndexError:
                     cls.field_stats.add('Format not found - check', pub_name)
-                    pub['format'] = None
+                    attach['format'] = None
 
             embedded_attachments.append(attach)
         if embedded_attachments:
