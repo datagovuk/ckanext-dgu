@@ -168,7 +168,7 @@ class GovukPublicationScraper(object):
                 except GotRedirectedError:
                     print cls.field_stats.add('Organization page redirected - error',
                                         '%s %s' % (pub_name, org_scraped))
-                    return
+                    continue
         update_pub('govuk_organizations', orgs)
 
         # Collections
