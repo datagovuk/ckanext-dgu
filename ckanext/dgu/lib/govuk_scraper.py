@@ -155,7 +155,7 @@ class GovukPublicationScraper(object):
                                  .filter_by(name=pub_scraped['name']) \
                                  .first()
             if pub_same_name:
-                raise DuplicateNameError('publication', 'name', 'Conflicting name with existing %r and scraped %r' % (pub_same_name, pub_scraped))
+                raise DuplicateNameError('publication', 'name', 'Existing %r Scraped %r' % (pub_same_name.url, pub_scraped['url']))
             # create it
             pub = govuk_pubs_model.Publication(**dict((field, pub_scraped[field])
                                                       for field in core_fields))
@@ -453,12 +453,12 @@ class GovukPublicationScraper(object):
                                         .filter_by(name=collection_scraped['name']) \
                                         .first()
             if collection_same_name:
-                raise DuplicateNameError('collection', 'name', 'Conflicting name with existing %r and scraped %r' % (collection_same_name, collection_scraped))
+                raise DuplicateNameError('collection', 'name', 'Existing %r scraped %r' % (collection_same_name.url, collection_scraped['url']))
             collection_same_title = model.Session.query(govuk_pubs_model.Collection) \
                                          .filter_by(title=collection_scraped['title']) \
                                          .first()
             if collection_same_title:
-                raise DuplicateNameError('collection', 'title', 'Conflicting title with existing %r and scraped %r' % (collection_same_title, collection_scraped))
+                raise DuplicateNameError('collection', 'title', 'Existing %r Scraped %r' % (collection_same_title.url, collection_scraped['url']))
 
             # create it (without the organization for now)
             collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
@@ -559,12 +559,12 @@ class GovukPublicationScraper(object):
                                  .filter_by(name=org_scraped['name']) \
                                  .first()
             if org_same_name:
-                raise DuplicateNameError('organization', 'name', 'Conflicting name with existing %r and scraped %r' % (org_same_name, org_scraped))
+                raise DuplicateNameError('organization', 'name', 'Existing %r Scraped %r' % (org_same_name.url, org_scraped['url']))
             org_same_title = model.Session.query(govuk_pubs_model.GovukOrganization) \
                                   .filter_by(title=org_scraped['title']) \
                                   .first()
             if org_same_title:
-                raise DuplicateNameError('organization', 'title', 'Conflicting title with existing %r and scraped %r' % (org_same_title, org_scraped))
+                raise DuplicateNameError('organization', 'title', 'Existing %r Scraped %r' % (org_same_title.url, org_scraped.url))
 
             # create it
             org = govuk_pubs_model.GovukOrganization(**org_scraped)
