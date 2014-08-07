@@ -166,5 +166,24 @@ class Attachment(Base, SimpleDomainObject):
     created = Column(types.DateTime, default=datetime.datetime.now)
 
 
+class Link(Base, SimpleDomainObject):
+    __tablename__ = 'link'
+    id = Column('id', types.UnicodeText, primary_key=True,
+                default=model.types.make_uuid)
+    govuk_table = Column(types.UnicodeText, nullable=False)
+    govuk_id = Column(types.UnicodeText, nullable=False)
+    ckan_table = Column(types.UnicodeText, nullable=False)
+    ckan_id = Column(types.UnicodeText, nullable=False)
+    created = Column(types.DateTime, default=datetime.datetime.now)
+
+
 def init_tables():
     Base.metadata.create_all(model.meta.engine)
+
+def rebuild():
+    # needed, since model.repo.rebuild_all doesn't touch these tables
+    model.Session.remove()
+    tables = reversed(Base.metadata.sorted_tables)
+    for table in tables:
+        model.Session.execute('delete from "%s"' % table.name)
+    model.Session.commit()

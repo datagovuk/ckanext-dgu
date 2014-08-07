@@ -20,6 +20,7 @@ print stats
 import copy
 import datetime
 
+
 class Stats(dict):
     # {category:[values]}
     _init_value = []
@@ -36,7 +37,9 @@ class Stats(dict):
     def add(self, category, value):
         self._init_category(category)
         self[category].append(value)
-        return unicode('%s: %s' % (category, value), errors='ignore').encode('ascii', 'ignore') # so you can log it too
+        # return the thing too, so that it is easily printed
+        printable = '%s: %s' % (category, value)
+        return printable.encode('ascii', 'ignore')
 
     def report_value(self, category):
         value = self[category]
@@ -66,7 +69,8 @@ class Stats(dict):
             lines = [indent_str + 'None']
 
         if show_time_taken:
-            time_taken = str(datetime.datetime.now() - self._start_time).split('.')[0]
+            time_taken = str(datetime.datetime.now() -
+                             self._start_time).split('.')[0]
             lines.append(indent_str + 'Time taken (h:m:s): %s' % time_taken)
         return '\n'.join(lines)
 
@@ -85,5 +89,7 @@ if __name__ == '__main__':
     package_stats.add('Success', 'good2')
     package_stats.add('Success', 'good3')
     package_stats.add('Success', 'good4')
-    package_stats.add('Failure', 'bad1')
+    print package_stats.add('Failure', 'bad1')
+    print package_stats.add('Failure', 'unicode in a str string \u2018')
+    print package_stats.add('Failure', u'unicode in a unicode string \u2018')
     print package_stats

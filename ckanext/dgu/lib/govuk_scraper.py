@@ -24,22 +24,32 @@ class GovukPublicationScraper(object):
     def init(cls):
         if 'requests' not in dir(cls):
             cls.requests = requests_cache.CachedSession(
-                'govuk_pubs', expire_after=60*60*24)  # 1 day
-            # keep track of each publication found
+                'govuk_pubs', expire_after=60*60*24*7)  # 7 days
+            cls.reset_stats()
+
+    @classmethod
+    def reset_stats(cls):
+            # keep track of each publication etc found
             cls.publication_stats = Stats()
+            cls.organization_stats = Stats()
+            cls.collection_stats = Stats()
 
             # keep track of fields found, to help spot if the scraping of it breaks
             cls.field_stats = Stats()
 
     @classmethod
-    def scrape_and_save_publications(cls, page=None):
+    def scrape_and_save_publications(cls, page=None, search_filter=None,
+                                     publication_limit=None):
         cls.init()
 
         pages = itertools.count(start=1) if page is None else [page]
         num_pages = '?'
+        publications_scraped = 0
         for page_index in pages:
             # Scrape the index of publications
             url = 'https://www.gov.uk/government/publications?page=%s' % page_index
+            if search_filter:
+                url += '&%s' % search_filter
             print 'Page %s/%s: %s' % (page_index, num_pages, url)
             index_scraped = cls.scrape_publication_index_page(cls.requests.get(url).content)
             num_pages = index_scraped['num_pages']
@@ -55,25 +65,19 @@ class GovukPublicationScraper(object):
                 # scrape
                 pub_basic = cls.scrape_publication_basics(publication_basics_element)
                 try:
-                    changes = cls.scrape_and_save_publication(pub_basic['url'], pub_basic['name'])
+                    cls.scrape_and_save_publication(pub_basic['url'], pub_basic['name'])
                 except DuplicateNameError, e:
-                    cls.publication_stats.add('Duplicate name for %s %s' %
+                    cls.publication_stats.add('Error - duplicate name for %s %s' %
                                               (e.object_type, e.field),
                                               '%s %s' % (e.message, pub_basic['name']))
                 except GotRedirectedError, e:
-                    cls.publication_stats.add('Publication redirect', e.message)
-                else:
-                    if changes.get('publication') == 'Created':
-                        cls.publication_stats.add('Creation', pub_basic['name'])
-                    elif changes:
-                        cls.publication_stats.add('Updated', pub_basic['name'])
-                    else:
-                        cls.publication_stats.add('Unchanged', pub_basic['name'])
+                    cls.publication_stats.add('Error - Publication redirect', e.message)
+                publications_scraped += 1
+                if publications_scraped == publication_limit:
+                    return
             print '\nAfter %s/%s pages:' % (page_index, num_pages)
             print '\nPublications:\n', cls.publication_stats
             print '\nFields:\n', cls.field_stats
-        print '\nPublications:\n', cls.publication_stats
-        print '\nFields:\n', cls.field_stats
 
     @classmethod
     def scrape_publication_index_page(cls, pub_index_content):
@@ -81,7 +85,11 @@ class GovukPublicationScraper(object):
         result = {}
         result['num_results_on_this_page_str'] = doc.xpath('//span[@class="count"]/text()')[0]
         result['publication_basics_elements'] = doc.xpath('//li[@class="document-row"]')
-        result['num_pages'] = doc.xpath('//span[@class="page-numbers"]/text()')[0].split(' of ')[-1]
+        try:
+            result['num_pages'] = doc.xpath('//span[@class="page-numbers"]/text()')[0].split(' of ')[-1]
+        except:
+            # e.g. the page after the last page
+            result['num_pages'] = '?'
         return result
 
     @classmethod
@@ -125,6 +133,7 @@ class GovukPublicationScraper(object):
         # Write the core fields to new or existing object
         core_fields = set(pub_scraped) - set(('attachments', 'govuk_organizations', 'collections'))
         changes = {}
+        outcome = None
         pub = model.Session.query(govuk_pubs_model.Publication) \
                    .filter_by(govuk_id=pub_scraped['govuk_id']) \
                    .first()
@@ -132,11 +141,14 @@ class GovukPublicationScraper(object):
             # Update it
             def update_pub(field, value):
                 existing_value = getattr(pub, field)
-                if existing_value != value:
+                is_changed = existing_value != value
+                if is_changed:
                     changes[field] = '%r->%r' % (existing_value, value)
                     setattr(pub, field, value)
+                return is_changed
             for field in core_fields:
                 update_pub(field, pub_scraped[field])
+            outcome = 'Updated' if changes else 'Unchanged'
         else:
             # just check there's not one called the same
             pub_same_name = model.Session.query(govuk_pubs_model.Publication) \
@@ -149,8 +161,11 @@ class GovukPublicationScraper(object):
                                                       for field in core_fields))
             model.Session.add(pub)
             changes['publication'] = 'Created'
+            outcome = 'Created'
             def update_pub(field, value):
+                is_changed = getattr(pub, field) != value
                 setattr(pub, field, value)
+                return is_changed
 
         # Attachments
         cls.update_publication_attachments(pub, pub_scraped['attachments'], changes)
@@ -169,7 +184,10 @@ class GovukPublicationScraper(object):
                     print cls.field_stats.add('Organization page redirected - error',
                                         '%s %s' % (pub_name, org_scraped))
                     continue
-        update_pub('govuk_organizations', orgs)
+            orgs.append(org)
+        is_changed = update_pub('govuk_organizations', orgs)
+        if is_changed and outcome == 'Unchanged':
+            outcome = 'Updated its organizations'
 
         # Collections
         collections = []
@@ -187,12 +205,11 @@ class GovukPublicationScraper(object):
                     continue
             # TODO at some point, update collections too?
             collections.append(collection)
-        update_pub('collections', collections)
+        is_changed = update_pub('collections', collections)
+        if is_changed and outcome == 'Unchanged':
+            outcome = 'Updated its collections'
 
-        #if changes:
-        #    print 'PUB %s scraped with changes' % pub_name
-        #else:
-        #    print 'PUB %s scraped with no change' % pub_name
+        cls.publication_stats.add(outcome, pub_name)
         if changes:
             model.Session.commit()
             model.Session.remove()
@@ -412,6 +429,9 @@ class GovukPublicationScraper(object):
         if r.url != collection_url:
             raise GotRedirectedError()
         collection_scraped = cls.scrape_collection_page(r.content, collection_url)
+        collection_scraped_excluding_org = \
+            dict((k, v) for k, v in collection_scraped.items()
+                 if k != 'govuk_organization')
 
         changes = {}
         collection = model.Session.query(govuk_pubs_model.Collection) \
@@ -424,10 +444,9 @@ class GovukPublicationScraper(object):
                 if existing_value != value:
                     changes[field] = '%r->%r' % (existing_value, value)
                     setattr(collection, field, value)
-            for field in collection_scraped:
+            for field in collection_scraped_excluding_org:
                 update_collection(field, collection_scraped[field])
-            if changes:
-                model.Session.commit()
+            outcome = 'Updated' if changes else 'Unchanged'
         else:
             # just check there's not one called the same
             collection_same_name = model.Session.query(govuk_pubs_model.Collection) \
@@ -442,12 +461,10 @@ class GovukPublicationScraper(object):
                 raise DuplicateNameError('collection', 'title', 'Conflicting title with existing %r and scraped %r' % (collection_same_title, collection_scraped))
 
             # create it (without the organization for now)
-            collection_scraped_excluding_org = \
-                dict((k, v) for k, v in collection_scraped.items()
-                     if k != 'govuk_organization')
             collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
             model.Session.add(collection)
             model.Session.flush()  # to get an collection.id. It will get committed with the publication
+            outcome = 'Created'
             def update_collection(field, value):
                 setattr(collection, field, value)
 
@@ -466,7 +483,10 @@ class GovukPublicationScraper(object):
                                             '%s %s' % (collection_scraped['name'], collection_scraped['govuk_organization']))
                     return
             update_collection('govuk_organization', org)
+            if outcome == 'Unchanged':
+                outcome = 'Updated its organization'
 
+        cls.collection_stats.add(outcome, collection_scraped['name'])
         return collection
 
     @classmethod
@@ -507,8 +527,10 @@ class GovukPublicationScraper(object):
             org_url = cls.add_gov_uk_domain(org_url)
         r = cls.requests.get(org_url)
         if not r.url.startswith('https://www.gov.uk/government/organisations/'):
+            cls.organization_stats('Error - wrong URL base for an organisation', org_url)
             raise GotRedirectedError()
         if r.url != org_url:
+            cls.organization_stats('Error - got redirected', org_url)
             raise GotRedirectedError()
 
         org_scraped = cls.scrape_organization_page(r.content, org_url)
@@ -528,7 +550,9 @@ class GovukPublicationScraper(object):
             for field in org_scraped:
                 update_org(field, org_scraped[field])
             if changes:
-                model.Session.commit()
+                cls.organization_stats.add('Updated', org_scraped['name'])
+            else:
+                cls.organization_stats.add('Unchanged', org_scraped['name'])
         else:
             # just check there's not one called the same
             org_same_name = model.Session.query(govuk_pubs_model.GovukOrganization) \
@@ -546,6 +570,7 @@ class GovukPublicationScraper(object):
             org = govuk_pubs_model.GovukOrganization(**org_scraped)
             model.Session.add(org)
             model.Session.flush()  # to get an org.id. It will get committed with the publication
+            cls.organization_stats.add('Created', org_scraped['name'])
         return org
 
     @classmethod

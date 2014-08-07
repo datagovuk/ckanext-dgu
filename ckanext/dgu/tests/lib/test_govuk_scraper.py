@@ -3,13 +3,20 @@ import datetime
 from pprint import pprint
 
 from nose.tools import assert_equal
+import requests_cache
 
+from ckan import model
+from ckan.tests import assert_in
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.dgu.lib.govuk_scraper import GovukPublicationScraper
+from ckanext.dgu.model import govuk_publications as govuk_pubs_model
 
 
-class TestScrapeRealPages:
-    '''This is a test that the scrapers work on HTML that is real and current. The HTML is saved to the repo so it is repeatable, and changes to real HTML can be tracked over time.
+class TestScrapeOnly:
+    '''This is a test only of the scraping code (not the processing of the
+    scraped data or update of the db), using HTML that is real and current. The
+    HTML is saved to the repo so it is repeatable, and changes to real HTML can
+    be tracked over time.
     To ensure the scrapers are up-to-date with the site, update the HTML in the repo:
 
     curl https://www.gov.uk/government/publications -o ckanext/dgu/tests/lib/govuk_html/publication_index.html
@@ -29,6 +36,9 @@ class TestScrapeRealPages:
     def setup_class(cls):
         GovukPublicationScraper.init()
         #assert_equal.__self__.maxDiff = None
+
+    def setup(self):
+        GovukPublicationScraper.reset_stats()
 
     def test_scrape_publication_index_page(self):
         html = get_html_content('publication_index.html')
@@ -51,7 +61,6 @@ class TestScrapeRealPages:
             })
 
     def test_scrape_publication_page(self):
-        reset_stats()
         html = get_html_content('publication_page.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
@@ -136,7 +145,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), [])
 
     def test_scrape_collection_page(self):
-        reset_stats()
         html = get_html_content('collection_page.html')
         collection = GovukPublicationScraper.scrape_collection_page(html, '/collection_url')
         pprint(collection, indent=12)
@@ -150,7 +158,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), [])
 
     def test_scrape_organization_page(self):
-        reset_stats()
         html = get_html_content('organization_page.html')
         org = GovukPublicationScraper.scrape_organization_page(html, '/org_url')
         pprint(org, indent=12)
@@ -166,7 +173,6 @@ class TestScrapeRealPages:
     # Special cases
 
     def test_publication_with_csv(self):
-        reset_stats()
         html = get_html_content('publication_csv.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub['attachments'], indent=12)
@@ -174,7 +180,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), [])
 
     def test_publication_external(self):
-        reset_stats()
         html = get_html_content('publication_external.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
@@ -183,7 +188,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
 
     def test_publication_type(self):
-        reset_stats()
         html = get_html_content('publication_type.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
@@ -191,7 +195,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), ['Updated not found - check: 1 [\'pub_name\']'])
 
     def test_publication_attachments_inline(self):
-        reset_stats()
         html = get_html_content('publication_attachments_inline.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub['attachments'])
@@ -256,7 +259,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), [])
 
     def test_publication_two_organizations(self):
-        reset_stats()
         html = get_html_content('publication_two_organizations.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
@@ -266,7 +268,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), [])
 
     def test_publication_three_organizations(self):
-        reset_stats()
         html = get_html_content('publication_three_organizations.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
@@ -278,7 +279,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
 
     def test_publication_from_minister(self):
-        reset_stats()
         html = get_html_content('publication_from_minister.html')
         pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
         pprint(pub)
@@ -286,7 +286,6 @@ class TestScrapeRealPages:
         assert_equal(fields_not_found(), [])
 
     def test_organization_external(self):
-        reset_stats()
         html = get_html_content('organization_external.html')
         org = GovukPublicationScraper.scrape_organization_page(html, '/pub_url')
         pprint(org)
@@ -316,15 +315,172 @@ class TestScrapeRealPages:
             'https://www.gov.uk/government/publications/xyz'),
             'publications')
 
+class TestScrapeAndSave:
+    '''Tests the logic of processing the dict it returns and saving it. Assumes
+    the scraper itself works.
+
+    Uses a checked-in requests_cache so that it can be run quickly and
+    off-line. However it could usefully be updated regularly, by deleting the
+    file:
+
+        rm ckanext/dgu/tests/lib/govuk_html/html_cache.TestScrapeAndSave.sqlite
+
+    Try to use test URLs which don't change over time.
+    '''
+    @classmethod
+    def setup_class(cls):
+        govuk_pubs_model.init_tables()
+        GovukPublicationScraper.init()
+        cache_filepath = os.path.join(os.path.dirname(__file__), 'govuk_html',
+                                      'html_cache.' + cls.__name__)
+        GovukPublicationScraper.requests = requests_cache.CachedSession(
+                cache_filepath) # doesn't expire
+
+    def setup(self):
+        GovukPublicationScraper.reset_stats()
+
+    def teardown(self):
+        govuk_pubs_model.rebuild()
+        model.repo.rebuild_db()
+
+    @classmethod
+    def teardown_class(cls):
+        model.Session.rollback()
+
+    def test_scrape_and_save_collection__create(self):
+        # scrape and save
+        url = 'https://www.gov.uk/government/collections/spend-over-25000-2013'
+        collection = GovukPublicationScraper.scrape_and_save_collection(url)
+
+        # check
+        assert_equal(collection.name, 'spend-over-25000-2013')
+        assert_equal(collection.url, url)
+        assert_equal(collection.title, u'Spend over \xa325,000 - 2013')
+        assert_equal(collection.summary, u'Guidance on Ministry of Justice and its associated arms length bodies spending over \xa325,000 data 2013.')
+        assert_equal(collection.govuk_organization.name, 'ministry-of-justice')
+        # check stats for creation
+        assert_equal(GovukPublicationScraper.collection_stats,
+                {'Created': ['spend-over-25000-2013']})
+        assert_equal(GovukPublicationScraper.organization_stats,
+                {'Created': ['ministry-of-justice']})
+        # check they were created
+        model.Session.commit()
+        assert govuk_pubs_model.Collection.by_name('spend-over-25000-2013')
+        assert govuk_pubs_model.GovukOrganization.by_name('ministry-of-justice')
+
+    def test_scrape_and_save_collection__update(self):
+        # create collection and org to start with
+        url = 'https://www.gov.uk/government/collections/spend-over-25000-2013'
+        GovukPublicationScraper.scrape_and_save_collection(url)
+        GovukPublicationScraper.reset_stats()
+
+        # scrape and save
+        GovukPublicationScraper.scrape_and_save_collection(url)
+
+        # collection left unchanged
+        assert_equal(GovukPublicationScraper.collection_stats,
+                {'Unchanged': ['spend-over-25000-2013']})
+        # didn't scrape the org at all - already in the db
+        assert_equal(GovukPublicationScraper.organization_stats,
+                {})
+
+    def test_scrape_and_save_organization__create(self):
+        url = 'https://www.gov.uk/government/organisations/cabinet-office'
+        org = GovukPublicationScraper.scrape_and_save_organization(url)
+        assert_equal(org.govuk_id, 2)
+        assert_equal(org.name, 'cabinet-office')
+        assert_equal(org.url, url)
+        assert_equal(org.title, 'Cabinet Office')
+        assert org.description.startswith('We support the Prime Minister and Deputy Prime Minister'), org.description
+        # check they were created
+        assert_equal(dict(GovukPublicationScraper.organization_stats),
+                     {'Created': ['cabinet-office']})
+        # now commit
+        model.Session.commit()
+        assert govuk_pubs_model.GovukOrganization.by_name('cabinet-office')
+
+    def test_scrape_and_save_organization__update(self):
+        # create org to start with
+        url = 'https://www.gov.uk/government/organisations/cabinet-office'
+        GovukPublicationScraper.scrape_and_save_organization(url)
+        GovukPublicationScraper.reset_stats()
+
+        # scrape and save
+        GovukPublicationScraper.scrape_and_save_organization(url)
+
+        # organization left unchanged
+        assert_equal(dict(GovukPublicationScraper.organization_stats),
+                     {'Unchanged': ['cabinet-office']})
+
+    def test_scrape_and_save_publication__create(self):
+        # scrape and save
+        url = 'https://www.gov.uk/government/publications/hmcts-spend-over-25000-2013'
+        changes = GovukPublicationScraper.scrape_and_save_publication(url)
+
+        # check
+        assert_equal(changes, {'attachments': 'Add first 4 attachments',
+                               'publication': 'Created'})
+        pub = govuk_pubs_model.Publication.by_name('hmcts-spend-over-25000-2013')
+        assert_equal(pub.govuk_id, 327733)
+        assert_equal(pub.name, 'hmcts-spend-over-25000-2013')
+        assert_equal(pub.url, url)
+        assert_equal(pub.type, 'Transparency data')
+        assert_equal(pub.title, u'HMCTS spend over \xa325,000 - 2013')
+        assert_equal(pub.summary, u'Details of HMCTS spend over \xa325,000 from Sept to Dec 2013.')
+        assert_equal(pub.detail, u'These documents contain details of HMCTS spend over \xa325,000 from Sept to Dec 2013. Previous months\' data are contained within Ministry of Justice data files.')
+        assert_equal([o.name for o in pub.govuk_organizations], ['ministry-of-justice'])
+        assert_equal([c.name for c in pub.collections], ['spend-over-25000-2013'])
+        # check stats for creation
+        assert_equal(dict(GovukPublicationScraper.publication_stats),
+                {'Created': ['hmcts-spend-over-25000-2013']})
+        assert_equal(dict(GovukPublicationScraper.collection_stats),
+                {'Created': ['spend-over-25000-2013']})
+        assert_equal(dict(GovukPublicationScraper.organization_stats),
+                {'Created': ['ministry-of-justice']})
+        assert govuk_pubs_model.Collection.by_name('spend-over-25000-2013')
+        assert govuk_pubs_model.GovukOrganization.by_name('ministry-of-justice')
+
+    def test_scrape_and_save_publication__update(self):
+        # create publication, collection and org to start with
+        url = 'https://www.gov.uk/government/publications/hmcts-spend-over-25000-2013'
+        GovukPublicationScraper.scrape_and_save_publication(url)
+        GovukPublicationScraper.reset_stats()
+
+        # scrape and save
+        changes = GovukPublicationScraper.scrape_and_save_publication(url)
+
+        # check
+        assert_equal(changes, {})
+
+        # check stats for update
+        assert_equal(dict(GovukPublicationScraper.publication_stats),
+                {'Unchanged': ['hmcts-spend-over-25000-2013']})
+        assert_equal(dict(GovukPublicationScraper.collection_stats),
+                {})
+        assert_equal(dict(GovukPublicationScraper.organization_stats),
+                {})
+
+    def test_scrape_and_save_publications(self):
+        # scrape and save
+        GovukPublicationScraper.scrape_and_save_publications(
+                search_filter='keywords=hmcts-spend-over-25000-2013&from_date=1%2F5%2F14&to_date=2%2F5%2F14', publication_limit=3)
+
+        # check stats for creation
+        assert_in('hmcts-spend-over-25000-2013',
+                  dict(GovukPublicationScraper.publication_stats)['Created'])
+        assert_in('spend-over-25000-2013',
+                dict(GovukPublicationScraper.collection_stats)['Created'])
+        assert_in('ministry-of-justice',
+                dict(GovukPublicationScraper.organization_stats)['Created'])
+        pub = govuk_pubs_model.Publication.by_name('hmcts-spend-over-25000-2013')
+        assert_equal(pub.govuk_id, 327733)
+        assert govuk_pubs_model.Collection.by_name('spend-over-25000-2013')
+        assert govuk_pubs_model.GovukOrganization.by_name('ministry-of-justice')
 
 def get_html_content(test_filename):
     test_filepath = os.path.join(os.path.dirname(__file__), 'govuk_html', test_filename)
     with open(test_filepath) as f:
         return f.read()
-
-def reset_stats():
-    GovukPublicationScraper.field_stats = Stats()
-    GovukPublicationScraper.publication_stats = Stats()
 
 def fields_not_found():
     not_found = []
