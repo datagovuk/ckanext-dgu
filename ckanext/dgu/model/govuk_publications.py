@@ -119,6 +119,10 @@ class Publication(Base, SimpleDomainObject):
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
     govuk_id = Column(types.Integer, index=True)
+    # name is like "publications/jobseekers-allowance-sanctions-independent-review"
+    # because of clashes like:
+    # https://www.gov.uk/government/publications/jobseekers-allowance-sanctions-independent-review
+    # https://www.gov.uk/government/consultations/jobseekers-allowance-sanctions-independent-review
     name = Column(types.UnicodeText, index=True)
     url = Column(types.UnicodeText)
     type = Column(types.UnicodeText)

@@ -55,7 +55,7 @@ class TestScrapeOnly:
         pub = GovukPublicationScraper.scrape_publication_basics(element)
         assert_equal(pub, {
             'govuk_id': 369795,
-            'name': 'reduced-rate-certificate-for-metal-packaging',
+            'name': 'publications/reduced-rate-certificate-for-metal-packaging',
             'title': 'Reduced rate certificate for metal packaging',
             'url': 'https://www.gov.uk/government/publications/reduced-rate-certificate-for-metal-packaging'
             })
@@ -146,14 +146,14 @@ class TestScrapeOnly:
 
     def test_scrape_collection_page(self):
         html = get_html_content('collection_page.html')
-        collection = GovukPublicationScraper.scrape_collection_page(html, '/collection_url')
+        collection = GovukPublicationScraper.scrape_collection_page(html, 'https://www.gov.uk/government/collections/collection_url')
         pprint(collection, indent=12)
         assert_equal(collection, {
             'name': 'collection_url',
             'govuk_organization': 'https://www.gov.uk/government/organisations/skills-funding-agency',
             'summary': 'Information to help further education (FE) providers collect, return and check the quality of Individualised Learner Record (ILR) and other learner data.',
             'title': 'Individualised Learner Record (ILR)',
-            'url': '/collection_url'
+            'url': 'https://www.gov.uk/government/collections/collection_url'
             })
         assert_equal(fields_not_found(), [])
 
@@ -302,6 +302,18 @@ class TestScrapeOnly:
         assert_equal(GovukPublicationScraper.parse_date('2014-02-25T13:50:00+00:00'),
                 datetime.datetime(2014, 2, 25, 13, 50))
 
+    def test_extract_name_from_url(self):
+        assert_equal(GovukPublicationScraper.extract_name_from_url(
+            'https://www.gov.uk/government/publications/jobseekers-allowance-sanctions-independent-review-government-response'),
+            'publications/jobseekers-allowance-sanctions-independent-review-government-response')
+        assert_equal(GovukPublicationScraper.extract_name_from_url(
+            'https://www.gov.uk/government/organisations/department-for-work-pensions'),
+            'department-for-work-pensions')
+        assert_equal(GovukPublicationScraper.extract_name_from_url(
+            'https://www.gov.uk/government/collections/farm-business-survey'),
+            'farm-business-survey')
+
+
     def test_extract_number_from_full_govuk_id(self):
         assert_equal(GovukPublicationScraper.extract_number_from_full_govuk_id('publication_370126'),
                      370126)
@@ -420,9 +432,9 @@ class TestScrapeAndSave:
         # check
         assert_equal(changes, {'attachments': 'Add first 4 attachments',
                                'publication': 'Created'})
-        pub = govuk_pubs_model.Publication.by_name('hmcts-spend-over-25000-2013')
+        pub = govuk_pubs_model.Publication.by_name('publications/hmcts-spend-over-25000-2013')
         assert_equal(pub.govuk_id, 327733)
-        assert_equal(pub.name, 'hmcts-spend-over-25000-2013')
+        assert_equal(pub.name, 'publications/hmcts-spend-over-25000-2013')
         assert_equal(pub.url, url)
         assert_equal(pub.type, 'Transparency data')
         assert_equal(pub.title, u'HMCTS spend over \xa325,000 - 2013')
@@ -432,7 +444,7 @@ class TestScrapeAndSave:
         assert_equal([c.name for c in pub.collections], ['spend-over-25000-2013'])
         # check stats for creation
         assert_equal(dict(GovukPublicationScraper.publication_stats),
-                {'Created': ['hmcts-spend-over-25000-2013']})
+                {'Created': ['publications/hmcts-spend-over-25000-2013']})
         assert_equal(dict(GovukPublicationScraper.collection_stats),
                 {'Created': ['spend-over-25000-2013']})
         assert_equal(dict(GovukPublicationScraper.organization_stats),
@@ -454,7 +466,7 @@ class TestScrapeAndSave:
 
         # check stats for update
         assert_equal(dict(GovukPublicationScraper.publication_stats),
-                {'Unchanged': ['hmcts-spend-over-25000-2013']})
+                {'Unchanged': ['publications/hmcts-spend-over-25000-2013']})
         assert_equal(dict(GovukPublicationScraper.collection_stats),
                 {})
         assert_equal(dict(GovukPublicationScraper.organization_stats),
@@ -466,13 +478,13 @@ class TestScrapeAndSave:
                 search_filter='keywords=hmcts-spend-over-25000-2013&from_date=1%2F5%2F14&to_date=2%2F5%2F14', publication_limit=3)
 
         # check stats for creation
-        assert_in('hmcts-spend-over-25000-2013',
+        assert_in('publications/hmcts-spend-over-25000-2013',
                   dict(GovukPublicationScraper.publication_stats)['Created'])
         assert_in('spend-over-25000-2013',
                 dict(GovukPublicationScraper.collection_stats)['Created'])
         assert_in('ministry-of-justice',
                 dict(GovukPublicationScraper.organization_stats)['Created'])
-        pub = govuk_pubs_model.Publication.by_name('hmcts-spend-over-25000-2013')
+        pub = govuk_pubs_model.Publication.by_name('publications/hmcts-spend-over-25000-2013')
         assert_equal(pub.govuk_id, 327733)
         assert govuk_pubs_model.Collection.by_name('spend-over-25000-2013')
         assert govuk_pubs_model.GovukOrganization.by_name('ministry-of-justice')

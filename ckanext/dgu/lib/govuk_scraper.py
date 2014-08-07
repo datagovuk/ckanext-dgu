@@ -633,7 +633,11 @@ class GovukPublicationScraper(object):
         https://www.gov.uk/government/statistics/
         https://www.gov.uk/government/consultations/
         '''
-        return url.split('/')[-1]
+        if url.startswith('https://www.gov.uk/government/organisations') or \
+           url.startswith('https://www.gov.uk/government/collections'):
+            return url.split('/')[-1]
+        else:
+            return '/'.join(url.split('/')[-2:])
 
     @classmethod
     def sanitize_unicode(cls, unicode_text):
