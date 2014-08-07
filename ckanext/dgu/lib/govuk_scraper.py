@@ -71,7 +71,7 @@ class GovukPublicationScraper(object):
                                               (e.object_type, e.field),
                                               '%s %s' % (e.message, pub_basic['name']))
                 except GotRedirectedError, e:
-                    cls.publication_stats.add('Error - Publication redirect', e.message)
+                    cls.publication_stats.add('Error - Publication redirect', pub_basic['name'])
                 publications_scraped += 1
                 if publications_scraped == publication_limit:
                     return
