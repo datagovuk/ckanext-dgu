@@ -424,12 +424,6 @@ class InventoryPlugin(p.SingletonPlugin):
         map.connect('/dataset/:id/feedback/add',
                     controller=fb_ctlr, action='add')
 
-        # As users have been sent out a direct link to /inventory/publisher-name/edit
-        # we will (at least for a short while) allow /inventory to redirect to
-        # /unpublished
-        map.redirect('/unpublished', '/data/search?unpublished=true')
-        map.redirect('/inventory/{url:.*}', '/unpublished/{url}')
-
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')

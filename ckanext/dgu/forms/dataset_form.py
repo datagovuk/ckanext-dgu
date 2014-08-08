@@ -168,19 +168,10 @@ class DatasetForm(p.SingletonPlugin):
             # harvesters specify the default schema) then we don't want to
             # override that.
             if not context.get('schema'):
+                schema = self.form_to_db_schema_options(context)
                 if 'api_version' in context:
-                    # When accessed by the API, just use the default schemas.
-                    # It's only the forms that are customized to make it easier
-                    # for humans.
-                    if action == 'package_create':
-                        schema = default_schema.default_create_package_schema()
-                    else:
-                        schema = default_schema.default_update_package_schema()
                     # Tag validation is looser than CKAN default
                     schema['tags'] = tags_schema()
-                else:
-                    # Customized schema for DGU form
-                    schema = self.form_to_db_schema_options(context)
         return toolkit.navl_validate(data_dict, schema, context)
 
     def form_to_db_schema_options(self, context):
