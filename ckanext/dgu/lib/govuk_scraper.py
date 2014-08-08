@@ -457,8 +457,6 @@ class GovukPublicationScraper(object):
             collection_same_title = model.Session.query(govuk_pubs_model.Collection) \
                                          .filter_by(title=collection_scraped['title']) \
                                          .first()
-            if collection_same_title:
-                raise DuplicateNameError('collection', 'title', 'Existing %r Scraped %r' % (collection_same_title.url, collection_scraped['url']))
 
             # create it (without the organization for now)
             collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
