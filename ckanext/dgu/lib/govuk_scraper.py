@@ -342,7 +342,7 @@ class GovukPublicationScraper(object):
                 cls.field_stats.add('Publication external (method 1) so no attachments', pub_name)
             elif pub_doc.xpath('//article//p[@class="online"]'):
                 cls.field_stats.add('Publication external (method 2) so no attachments', pub_name)
-            elif pub['type'] == 'Consultation outcome':
+            elif pub['type'] in ('Consultation outcome', 'Closed consultation'):
                 cls.field_stats.add('Publication is a consultation outcome so no attachments', pub_name)
             else:
                 cls.field_stats.add('Attachments not found - check', pub_name)
