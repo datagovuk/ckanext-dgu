@@ -527,10 +527,10 @@ class GovukPublicationScraper(object):
             org_url = cls.add_gov_uk_domain(org_url)
         r = cls.requests.get(org_url)
         if not r.url.startswith('https://www.gov.uk/government/organisations/'):
-            cls.organization_stats('Error - wrong URL base for an organisation', org_url)
+            cls.organization_stats.add('Error - wrong URL base for an organisation', org_url)
             raise GotRedirectedError()
         if r.url != org_url:
-            cls.organization_stats('Error - got redirected', org_url)
+            cls.organization_stats.add('Error - got redirected', org_url)
             raise GotRedirectedError()
 
         org_scraped = cls.scrape_organization_page(r.content, org_url)
@@ -628,10 +628,7 @@ class GovukPublicationScraper(object):
         publications might have overlapping namespaces, so it is not
         reversible.
 
-        publication url prefixes:
-        https://www.gov.uk/government/publications/
-        https://www.gov.uk/government/statistics/
-        https://www.gov.uk/government/consultations/
+        publication url prefixes - see publication_types above.
         '''
         if url.startswith('https://www.gov.uk/government/organisations') or \
            url.startswith('https://www.gov.uk/government/collections'):
