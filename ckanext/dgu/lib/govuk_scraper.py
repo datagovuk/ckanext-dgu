@@ -36,6 +36,7 @@ class GovukPublicationScraper(object):
 
             # keep track of fields found, to help spot if the scraping of it breaks
             cls.field_stats = Stats()
+            cls.field_stats.report_value_limit = 300
 
     @classmethod
     def scrape_and_save_publications(cls, page=None, search_filter=None,
@@ -76,8 +77,12 @@ class GovukPublicationScraper(object):
                 if publications_scraped == publication_limit:
                     return
             print '\nAfter %s/%s pages:' % (page_index, num_pages)
-            print '\nPublications:\n', cls.publication_stats
-            print '\nFields:\n', cls.field_stats
+            cls.print_stats()
+
+    @classmethod
+    def print_stats(cls):
+        print '\nPublications:\n', cls.publication_stats
+        print '\nFields:\n', cls.field_stats
 
     @classmethod
     def scrape_publication_index_page(cls, pub_index_content):
@@ -334,7 +339,11 @@ class GovukPublicationScraper(object):
         pub['attachments'].extend(embedded_attachments + inline_attachments)
         if not pub['attachments']:
             if is_external:
-                cls.field_stats.add('Publication external so no attachments', pub_name)
+                cls.field_stats.add('Publication external (method 1) so no attachments', pub_name)
+            elif pub_doc.xpath('//article//p[@class="online"]'):
+                cls.field_stats.add('Publication external (method 2) so no attachments', pub_name)
+            elif pub['type'] == 'Consultation outcome':
+                cls.field_stats.add('Publication is a consultation outcome so no attachments', pub_name)
             else:
                 cls.field_stats.add('Attachments not found - check', pub_name)
 

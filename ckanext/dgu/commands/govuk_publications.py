@@ -70,10 +70,12 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                         sys.stderr.write('Publication needs to be a URL')
                         return
                     GovukPublicationScraper.scrape_and_save_publication(self.options.publication)
+                    GovukPublicationScraper.print_stats()
                 elif self.options.organization:
                     if 'http' not in self.options.organization:
                         self.options.organization = 'https://www.gov.uk/government/organisations/' + self.options.organization
                     GovukPublicationScraper.scrape_and_save_organization(self.options.organization)
+                    print '\nFields:\n', GovukPublicationScraper.field_stats
                 else:
                     GovukPublicationScraper.scrape_and_save_publications()
             elif cmd == 'autolink':
