@@ -336,7 +336,18 @@ class GovukPublicationScraper(object):
             inline_attachments.append(attach)
         if inline_attachments:
             cls.field_stats.add('Attachments (inline) found', pub_name)
-        pub['attachments'].extend(embedded_attachments + inline_attachments)
+        unmarked_attachments = []
+        for attachment in pub_doc.xpath('//div[@class="govspeak"]//a[contains(@href,"https://www.gov.uk/government/uploads/system/uploads/attachment_data")]'):
+            attach = {}
+            attach['govuk_id'] = None  # not in the html
+            attach['title'] = attachment.xpath('ancestor::p/preceding-sibling::*/text()')[0]
+            attach['url'] = attachment.xpath('./@href')[0]
+            attach['filename'] = attach['url'].split('/')[-1]
+            attach['format'] = None
+            unmarked_attachments.append(attach)
+        if unmarked_attachments:
+            cls.field_stats.add('Attachments (unmarked) found', pub_name)
+        pub['attachments'].extend(embedded_attachments + inline_attachments + unmarked_attachments)
         if not pub['attachments']:
             if is_external:
                 cls.field_stats.add('Publication external (method 1) so no attachments', pub_name)

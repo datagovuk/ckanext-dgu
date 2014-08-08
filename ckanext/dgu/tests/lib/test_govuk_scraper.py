@@ -27,6 +27,7 @@ class TestScrapeOnly:
     curl https://www.gov.uk/government/consultations/pet-travel-planned-changes-to-the-eu-scheme -o ckanext/dgu/tests/lib/govuk_html/publication_external.html
     curl https://www.gov.uk/government/publications/environmental-performance-of-the-water-and-sewerage-companies-in-2013 -o ckanext/dgu/tests/lib/govuk_html/publication_type.html
     curl https://www.gov.uk/government/statistical-data-sets/commodity-prices -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_inline.html
+    curl https://www.gov.uk/government/statistical-data-sets/transport-and-disability-tsgb12 -o ckanext/dgu/tests/lib/govuk_html/publication_attachments_unmarked.html
     curl https://www.gov.uk/government/publications/uk-guarantees-scheme-prequalified-projects -o ckanext/dgu/tests/lib/govuk_html/publication_two_organizations.html
     curl https://www.gov.uk/government/publications/nhs-trusts-and-foundation-trusts-in-special-measures-1-year-on -o ckanext/dgu/tests/lib/govuk_html/publication_three_organizations.html
     curl https://www.gov.uk/government/organisations/the-scottish-government -o ckanext/dgu/tests/lib/govuk_html/organization_external.html
@@ -257,6 +258,24 @@ class TestScrapeOnly:
             )
         assert_equal(pub['detail'], 'Prices for selected agricultural and horticultural produce are published on a weekly or monthly basis in the following spreadsheets. The data source depends on the item but includes prices taken from trade journals or other organisations in addition to prices collected by the Department for Environment, Food and Rural Affairs (Defra).\nChanges to the Eggs and Poultry (wholesale) prices from April 2014.  Minor amendments have been made to the categories of data collected. Most noticeable is that frozen chicken now reports imported prices rather than home-grown.\nFor further information please contact:\nDefra Helpline: 03459 33 55 77 (Monday to Friday: 8am to 6pm)')
         assert_equal(fields_not_found(), [])
+
+    def test_publication_attachments_unmarked(self):
+        html = get_html_content('publication_attachments_unmarked.html')
+        pub = GovukPublicationScraper.scrape_publication_page(html, '/pub_url', 'pub_name')
+        pprint(pub['attachments'])
+        assert_equal(pub['attachments'][:2], [
+{'filename': 'nts0622.xls',
+  'format': None,
+  'govuk_id': None,
+  'title': 'Table TSGB1201 (NTS0622)',
+  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/9962/nts0622.xls'},
+ {'filename': 'nts0709.xls',
+  'format': None,
+  'govuk_id': None,
+  'title': 'Table TSGB1201 (NTS0622)',
+  'url': 'https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/259015/nts0709.xls'},
+            ])
+        assert_equal(fields_not_found(), ["Updated not found - check: 1 ['pub_name']"])
 
     def test_publication_two_organizations(self):
         html = get_html_content('publication_two_organizations.html')
