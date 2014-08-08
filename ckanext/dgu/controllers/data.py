@@ -109,7 +109,9 @@ class DataController(BaseController):
 
                 args = shlex.split(cmd)
                 log.debug('Running command: %r', args)
-                proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd)
+                my_env = os.environ.copy()
+                my_env['LANG'] = 'en_GB.UTF-8'
+                proc = Popen(args, stdout=PIPE, stderr=PIPE, cwd=cwd, env=my_env)
                 out, err = proc.communicate()
                 exitcode = proc.returncode
                 return exitcode, out, err
