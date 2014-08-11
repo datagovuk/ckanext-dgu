@@ -345,7 +345,7 @@ class GovukPublicationScraper(object):
                     attach['title'] = attachment.xpath('ancestor::p/preceding-sibling::h2/text()')[0]
                 except IndexError:
                     cls.field_stats.add('Attachment title (unmarked) not found', pub_name)
-                    attach['title'] = None
+                    attach['title'] = ''
                 attach['url'] = attachment.xpath('./@href')[0]
                 attach['filename'] = attach['url'].split('/')[-1]
                 attach['format'] = None

@@ -166,7 +166,7 @@ class Attachment(Base, SimpleDomainObject):
     url = Column(types.UnicodeText)
     filename = Column(types.UnicodeText)
     format = Column(types.UnicodeText)
-    title = Column(types.UnicodeText, nullable=False)
+    title = Column(types.UnicodeText)
     created = Column(types.DateTime, default=datetime.datetime.now)
 
 
