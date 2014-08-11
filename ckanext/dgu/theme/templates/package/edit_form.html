@@ -360,17 +360,7 @@
             * license_extra implies an edition form with a license in the
               extra fields.  ie - a harvested license.
      -->
-
-      <py:if test="not h.is_package_edit_form(data)">
-        <!-- If this is a new dataset, then we only offer OGL in the dropdown -->
-        <py:for each="license_desc, license_id in filter(lambda (desc,id): id == 'uk-ogl', c.licenses)">
-          <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
-        </py:for>
-      </py:if>
-
-      <py:if test="not h.get_license_extra(c.pkg) and h.is_package_edit_form(data)">
-        <!-- If this is an edit form, then we want to offer the current license
-             in the dropdown, unless it's a free-text license -->
+      <py:if test="not h.get_license_extra(c.pkg)">
         <py:for each="license_desc, license_id in filter(lambda (desc,id): id in h.license_choices(data), c.licenses)">
           <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
         </py:for>
