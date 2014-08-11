@@ -1162,10 +1162,11 @@ def get_ckan_licenses():
 def license_choices(data):
     license_ids = ['uk-ogl', 'odc-odbl', 'odc-by', 'cc-zero', 'cc-by', 'cc-by-sa']
     selected_license = data.get('license_id')
-    if selected_license and selected_license not in license_ids:
-        license_ids += selected_license
     ckan_licenses = get_ckan_licenses()
-    return [(id, ckan_licenses.get(id, id)) for id in license_ids]
+    if selected_license not in license_ids and \
+            selected_license in ckan_licenses:
+        license_ids.append(selected_license)
+    return [(id, ckan_licenses[id]) for id in license_ids]
 
 def edit_publisher_group_name(data):
     if not data.get('organization'):
