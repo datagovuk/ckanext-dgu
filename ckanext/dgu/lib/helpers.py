@@ -1152,11 +1152,20 @@ def get_license_extra(pkg):
         license_extra = None
     return license_extra
 
-def available_license_ids():
-    return zip(*c.licenses)[1]
+ckan_licenses = None
+def get_ckan_licenses():
+    global ckan_licenses
+    if ckan_licenses is None:
+        ckan_licenses = dict([(k, v) for v, k in c.licenses])
+    return ckan_licenses
 
 def license_choices(data):
-    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl', 'odc-odbl', 'odc-by', 'cc-zero', 'cc-by', 'cc-by-sa'])
+    license_ids = ['uk-ogl', 'odc-odbl', 'odc-by', 'cc-zero', 'cc-by', 'cc-by-sa']
+    selected_license = data.get('license_id')
+    if selected_license and selected_license not in license_ids:
+        license_ids += selected_license
+    ckan_licenses = get_ckan_licenses()
+    return [(id, ckan_licenses.get(id, id)) for id in license_ids]
 
 def edit_publisher_group_name(data):
     if not data.get('organization'):

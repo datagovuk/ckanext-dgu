@@ -343,41 +343,33 @@
       <!--! An explanation of what's going on here...
            There are a few cases to handle here:
 
-            1. A new (creation) form: the options available to the user are
-               an OGL license or a free-text non-OGL license.  ie - OGL and
-               "Specify other" should be in the dropdown, and the
-               access_constraints field should contain the freetext (when it
-               applies).
-
-            2. An edition form with a license_id:  the options available to the
+            1. An new/edit form with a license_id:  the options available to the
                user are an OGL license; a free-text non-OGL license; and the
-               dataset's current license.
+               dataset's current license (edit form only).
 
-            3. An edition form with a license in the extra fields: this is a
-               harvested dataset.  As such, the license should not be editable,
-               but we do want to display its value.
+            2. An edit form with a license in the extra fields: this is a
+               harvested dataset.
 
             * license_extra implies an edition form with a license in the
               extra fields.  ie - a harvested license.
      -->
-      <py:if test="not h.get_license_extra(c.pkg)">
-        <py:for each="license_desc, license_id in filter(lambda (desc,id): id in h.license_choices(data), c.licenses)">
-          <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
-        </py:for>
-      </py:if>
+${data.get('license_id')}
+      <py:for each="license_id, license_desc in h.license_choices(data)">
+        <option value="${license_id}" py:attrs="{'selected': 'selected' if data.get('license_id', 'uk-ogl') == license_id else None}">${license_desc}</option>
+      </py:for>
 
       <option py:if="h.get_license_extra(c.pkg)" value="__extra__" selected="selected">Harvested license...</option>
-      <option py:if="not h.get_license_extra(c.pkg)" value="" py:attrs="{'selected': 'selected' if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else None}">Specify other...</option>
+      <option py:if="not h.get_license_extra(c.pkg)" value="" py:attrs="{'selected': 'selected' if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) else None}">Specify other...</option>
 
     </select>
   </div>
   <p class="instructions basic">The licence under which the dataset is released.</p>
-  <p class="instructions further">For most situations of central Departments' and Local Authority data, this should be the 'Open Government Licence'. If you wish to release the data under a different licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
+  <br/>
+  <p>The 'Open Government Licence' is the default licence for all publications in the UK public sector, for greater transparency and reuse. Central Departments and Agencies are <a href="http://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/re-use-and-licensing/ukglf/">mandated</a> to use the OGL by the HMSO. Local Authorities are recommended to use the OGL by the <a href="http://www.local.gov.uk/practitioners-guides-to-publishing-data">LGA</a> and <a href="https://www.gov.uk/government/policies/making-local-councils-more-transparent-and-accountable-to-local-people">DCLG</a>. Other public bodies are <a href="http://data.gov.uk/blog/new-open-government-license">invited</a> to use it, such as universities, police forces or hospitals. Other licenses are also lists which are open and are suitable for data. For any other licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
 
     <div class="form-group choose-other-licence">
-      <hr/>
       <label for="license_extra">Licence (other):</label>
-      <textarea class="form-control" py:if="not h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="access_constraints">${data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.available_license_ids()) else '')}</textarea>
+      <textarea class="form-control" py:if="not h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="access_constraints">${data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) else '')}</textarea>
       <textarea class="form-control" py:if="h.get_license_extra(c.pkg)" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">${h.get_license_extra(c.pkg)}</textarea>
       <input class="form-control" py:if="h.get_license_extra(c.pkg)" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="${c.pkg.extras.get('access_constraints','')}"/>
     </div>
