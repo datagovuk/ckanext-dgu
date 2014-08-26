@@ -14,8 +14,6 @@ def dgu_package_update(context, data_dict):
     #   Note: the harvest user *is* a sysadmin
     #   Note: if changing this, check the code and comments in
     #         ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
-    # Sysadmins can edit ONS packages.
-    #   Note: the dgu user *is* a sysadmin
     if user_obj.sysadmin:
         return {'success': True}
 
