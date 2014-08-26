@@ -778,9 +778,9 @@
     </div>
   </div>
 
-  <div py:if="h.is_package_edit_form(data) and h.is_sysadmin()">
+  <div py:if="h.is_package_edit_form(data)">
     <fieldset>
-    <h4>Extra Fields not in the Schema (sysadmin only)</h4>
+    <h4>Extra Fields not in the Schema</h4>
       <py:for each="num, extra in enumerate(h.hidden_extra_fields(data))">
         <py:with vars="key = extra.get('key'); value = extra.get('value')">
           <div class="control-group">
