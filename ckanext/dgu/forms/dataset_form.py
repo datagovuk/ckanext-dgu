@@ -187,9 +187,8 @@ class DatasetForm(p.SingletonPlugin):
         if dgu_helpers.is_sysadmin_by_context(context) and \
            pkg and pkg.extras.get('UKLP') == 'True':
             self._uklp_sysadmin_schema_updates(schema)
-        if dgu_helpers.is_sysadmin_by_context(context) and \
-           pkg and pkg.extras.get('external_reference') == 'ONSHUB':
-            self._ons_sysadmin_schema_updates(schema)
+        if pkg and pkg.extras.get('external_reference') == 'ONSHUB':
+            self._ons_schema_updates(schema)
         return schema
 
     def _uklp_sysadmin_schema_updates(self, schema):
@@ -210,11 +209,11 @@ class DatasetForm(p.SingletonPlugin):
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
 
-    def _ons_sysadmin_schema_updates(self, schema):
+    def _ons_schema_updates(self, schema):
         schema.update(
             {
                 'theme-primary': [ignore_missing, unicode, convert_to_extras],
-                })
+            })
         for resources in ('additional_resources',
                           'timeseries_resources',
                           'individual_resources'):

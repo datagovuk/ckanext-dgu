@@ -27,11 +27,6 @@ def dgu_package_update(context, data_dict):
     if package.extras.get('UKLP', '') == 'True':
         return fail
 
-    # ONSHUB datasets cannot be edited by the average admin/editor because they
-    # are automatically updated
-    if package.extras.get('external_reference') == 'ONSHUB':
-        return fail
-
     # Leave the core CKAN auth to work out the hierarchy stuff
     return ckan.logic.auth.update.package_update(context, data_dict)
 
