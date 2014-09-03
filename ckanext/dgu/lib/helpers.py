@@ -693,7 +693,7 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
     pkg_extras = dict(pkg_extras)
     harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
     if dataset_was_harvested:
-        field_names.add(['harvest-url', 'harvest-date', 'metadata-date', 'metadata-language'])
+        field_names.add(['harvest-url', 'harvest-date', 'metadata-date', 'harvest-guid'])
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
@@ -715,12 +715,12 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
                     harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
                 else:
                     harvest_date = 'Metadata not available'
-                harvest_guid = pkg_extras.get('guid')
-                harvest_source_reference = pkg_extras.get('harvest_source_reference')
-                if harvest_source_reference and harvest_source_reference != harvest_guid:
-                    field_names.add(['harvest_source_reference'])
+        harvest_guid = pkg_extras.get('guid')
+        harvest_source_reference = pkg_extras.get('harvest_source_reference')
+        if harvest_source_reference and harvest_source_reference != harvest_guid:
+            field_names.add(['harvest_source_reference'])
         if dataset_type == 'uklp':
-            field_names.add(('bbox', 'spatial-reference-system', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'resource-type', 'harvest-guid'))
+            field_names.add(('bbox', 'spatial-reference-system', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'resource-type', 'metadata-language'))
             if pkg_extras.get('resource-type') == 'service':
                 field_names.add(['spatial-data-service-type'])
             dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
@@ -733,9 +733,11 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
     elif dataset_type == 'form':
-        field_names.add_at_start('theme')
-        if pkg_extras.get('theme-secondary'):
-            field_names.add_after('theme', 'theme-secondary')
+        pass
+
+    field_names.add_at_start('theme')
+    if pkg_extras.get('theme-secondary'):
+        field_names.add_after('theme', 'theme-secondary')
 
     temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
     temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
@@ -770,10 +772,10 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
         # field_name : {display info}
         'state': {'label': 'State', 'value': c.pkg.state},
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
-        'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
+        'harvest-date': {'label': 'Harvest date', 'value': harvest_date},
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
         'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
-        'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
+        'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
@@ -783,7 +785,7 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
         'access_constraints': {'label': 'Access constraints', 'value': render_json(pkg_extras.get('access_constraints'))},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
-        'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
+        'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
