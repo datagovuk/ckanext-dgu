@@ -490,20 +490,28 @@ def scraper_icon(res, alt=None):
               "Powered by scraperwiki.com.".format(url=res.get('scraper_source'), date=res.get('scraped').format("%d/%m/%Y"))
     return icon('scraperwiki_small', alt=alt)
 
-def ga_download_tracking(resource, action='download'):
-    '''Google Analytics event tracking for downloading a resource.
+def get_organization_from_resource(res_dict):
+    from ckan import model
+    res_id = res_dict.get('id')
+    res = model.Resource.get(res_id)
+    if not res:
+        return None
+    return res.resource_group.package.get_organization()
+
+def ga_download_tracking(resource, publisher_name, action='download'):
+    '''Google Analytics event tracking for downloading a resource. (Universal
+    Analytics syntax)
 
     Values for action: download, download-cache
 
-    c.f. Google example:
-    <a href="#" onClick="_gaq.push(['_trackEvent', 'Videos', 'Play', 'Baby\'s First Birthday']);">Play</a>
+    e.g. ga('send', 'event', 'button', 'click', 'nav buttons', 4);
 
     The call here is wrapped in a timeout to give the push call time to complete as some browsers
-    will complete the new http call without allowing _gaq time to complete.  This *could* be resolved
+    will complete the new http call without allowing ga() time to complete.  This *could* be resolved
     by setting a target of _blank but this forces the download (many of them remote urls) into a new
     tab/window.
     '''
-    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s',0,true]);"\
+    return "var that=this;ga('send','event','resource','%s','%s');"\
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
 
