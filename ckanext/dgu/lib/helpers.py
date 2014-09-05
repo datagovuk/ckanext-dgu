@@ -61,6 +61,8 @@ def _is_individual_resource(resource):
     return not _is_additional_resource(resource) and \
            not _is_timeseries_resource(resource)
 
+# NB these 3 functions are overwritten by the other function of the same name,
+# but we should probably use these ones in preference
 def additional_resources(package):
     """Extract the additional resources from a package"""
     return filter(_is_additional_resource, package.get('resources'))
@@ -662,9 +664,6 @@ def get_resource_fields(resource, pkg_extras):
         'scraper_source': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraper_source')},
-        'release_date': {'label': 'ONS Release',
-            'label_title':'The ONS release',
-            'value': res_dict.get('release_date')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
@@ -1271,55 +1270,6 @@ def individual_resources():
     if not r and not timeseries_resources() and not additional_resources():
         r = dict(c.pkg_dict).get('resources', [])
     return r
-
-def has_group_ons_resources():
-    resources = individual_resources()
-    if not resources:
-        return False
-
-    return any(r.get('release_date', False) for r in resources)
-
-def get_ons_releases():
-    import collections
-    resources = individual_resources()
-    groupings = collections.defaultdict(list)
-    for r in resources:
-        groupings[r['release_date']].append(r)
-    return sorted(groupings.keys(), reverse=True)
-
-def ons_release_count():
-    return len(get_ons_releases())
-
-def get_limited_ons_releases():
-    gps = get_ons_releases()
-    return [gps[0]]
-
-def get_resources_for_ons_release(release, count=None):
-    import collections
-    resources = individual_resources()
-    groupings = collections.defaultdict(list)
-    for r in resources:
-        groupings[r['release_date']].append(r)
-    if count:
-        return groupings[release][:count]
-    return groupings[release]
-
-def get_resources_for_ons():
-    import collections
-    resources = individual_resources()
-    groupings = collections.defaultdict(list)
-    for r in resources:
-        groupings[r['release_date']].append(r)
-    return groupings
-
-
-def init_resources_for_nav():
-    # Core CKAN expects a resource dict to render in the navigation
-    if c.pkg_dict:
-        if not 'resources' in dict(c.pkg_dict):
-            c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
-                additional_resources() + gemini_resources()
-
 
 def dataset_type(pkg_extras):
     dataset_type = 'form' # default - entered via the form

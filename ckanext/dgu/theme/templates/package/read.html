@@ -75,15 +75,7 @@
       <!-- Resources -->
       <py:if test="h.individual_resources()">
         <h2>Data Resources (${len(h.individual_resources())})</h2>
-        <py:if test="not h.has_group_ons_resources()">
-          ${resource_table(h.individual_resources())}
-        </py:if>
-        <py:if test="h.has_group_ons_resources() and c.all_resources">
-          ${ons_grouped_table(h.get_ons_releases())}
-        </py:if>
-        <py:if test="h.has_group_ons_resources() and not c.all_resources">
-          ${ons_grouped_table(h.get_limited_ons_releases(), 10)}
-        </py:if>
+        ${resource_table(h.individual_resources())}
       </py:if>
       <py:if test="h.timeseries_resources()">
         <h2>Data Resources (${len(h.timeseries_resources())} in a time series)</h2>

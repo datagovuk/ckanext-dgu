@@ -208,10 +208,6 @@ class ThemePlugin(p.SingletonPlugin):
         with SubMapper(map, controller=user_controller) as m:
             m.connect('/data/user/me', action='me')
 
-        with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
-            m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
-            m.connect('/dataset/{id:.*}/release', action='release')
-
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
             m.connect('/data/user/edit', action='edit')
