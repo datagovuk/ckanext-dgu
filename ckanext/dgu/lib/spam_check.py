@@ -1,14 +1,23 @@
-from Mollom import MollomAPI
 from pylons import config
+
+import requests
+from requests_oauthlib import OAuth1
 
 import logging
 
 MOLLOM_HAM = 1
-MOLLOM_SPAM =  2
+MOLLOM_SPAM = 2
 MOLLOM_UNSURE = 3
 
 
 log = logging.getLogger(__name__)
+
+def classify(spam_text):
+    classifications = [None, 'ham', 'spam', 'unsure']
+    try:
+        return classifications.indx(spam_text)
+    except ValueError:
+        return MOLLOM_UNSURE
 
 def is_spam(content, author=None):
     """
@@ -24,20 +33,21 @@ def is_spam(content, author=None):
     private_key = config.get('mollom.private.key')
 
     try:
-        mollom_api = MollomAPI(
-            publicKey=public_key,
-            privateKey=private_key)
-
         params = { 'postBody': content}
         if author:
             params['authorName'] = author.fullname or ''
             params['authorMail'] = author.email
 
-        cc = mollom_api.checkContent(**params)
+        auth = OAuth1(publicKey, privateKey)
+
+        headers = {'Accept': 'application/json;q=0.8, */*;q=0.5'}
+
+        response = requests.post(mollom_content_url, params, auth=auth, headers=headers)
+        cc = response.json()['content']
     except Exception, e:
         log.warning("Failed to perform a spam check with mollom")
         log.exception(e)
         return False, MOLLOM_UNSURE
 
     log.info("Mollom says: {0}".format(cc))
-    return True, cc['spam']
+    return True, classify(cc['spamClassification'])
