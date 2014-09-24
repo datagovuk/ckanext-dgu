@@ -208,10 +208,6 @@ class ThemePlugin(p.SingletonPlugin):
         with SubMapper(map, controller=user_controller) as m:
             m.connect('/data/user/me', action='me')
 
-        with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
-            m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
-            m.connect('/dataset/{id:.*}/release', action='release')
-
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
             m.connect('/data/user/edit', action='edit')
@@ -387,6 +383,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.publisher_activity_report_info,
                 reports.publisher_resources_info,
                 reports.unpublished_report_info,
+                reports.datasets_without_resources_info,
                 ]
 
 
@@ -423,12 +420,6 @@ class InventoryPlugin(p.SingletonPlugin):
                     controller=fb_ctlr, action='view')
         map.connect('/dataset/:id/feedback/add',
                     controller=fb_ctlr, action='add')
-
-        # As users have been sent out a direct link to /inventory/publisher-name/edit
-        # we will (at least for a short while) allow /inventory to redirect to
-        # /unpublished
-        map.redirect('/unpublished', '/data/search?unpublished=true')
-        map.redirect('/inventory/{url:.*}', '/unpublished/{url}')
 
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',

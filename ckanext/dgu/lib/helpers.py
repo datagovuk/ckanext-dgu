@@ -61,6 +61,8 @@ def _is_individual_resource(resource):
     return not _is_additional_resource(resource) and \
            not _is_timeseries_resource(resource)
 
+# NB these 3 functions are overwritten by the other function of the same name,
+# but we should probably use these ones in preference
 def additional_resources(package):
     """Extract the additional resources from a package"""
     return filter(_is_additional_resource, package.get('resources'))
@@ -662,9 +664,6 @@ def get_resource_fields(resource, pkg_extras):
         'scraper_source': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraper_source')},
-        'release_date': {'label': 'ONS Release',
-            'label_title':'The ONS release',
-            'value': res_dict.get('release_date')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
@@ -1163,11 +1162,21 @@ def get_license_extra(pkg):
         license_extra = None
     return license_extra
 
-def available_license_ids():
-    return zip(*c.licenses)[1]
+ckan_licenses = None
+def get_ckan_licenses():
+    global ckan_licenses
+    if ckan_licenses is None:
+        ckan_licenses = dict([(k, v) for v, k in c.licenses])
+    return ckan_licenses
 
 def license_choices(data):
-    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
+    license_ids = ['uk-ogl', 'odc-odbl', 'odc-by', 'cc-zero', 'cc-by', 'cc-by-sa']
+    selected_license = data.get('license_id')
+    ckan_licenses = get_ckan_licenses()
+    if selected_license not in license_ids and \
+            selected_license in ckan_licenses:
+        license_ids.append(selected_license)
+    return [(id, ckan_licenses[id]) for id in license_ids]
 
 def edit_publisher_group_name(data):
     if not data.get('organization'):
@@ -1455,7 +1464,7 @@ def publisher_performance_data(publisher, include_sub_publishers):
     }
 
 def publisher_has_spend_data(publisher):
-    return publisher.extras.get('category','') == 'core-department'
+    return publisher.extras.get('category','') == 'ministerial-department'
 
 def search_facets_unselected(facet_keys,sort_by='count'):
     unselected_raw = []
@@ -1920,7 +1929,22 @@ def relative_url_for(**kwargs):
             del args[k]
     return h.url_for(**args)
 
-def parse_date(date_string):
-    from ckan.lib.field_types import DateType
+def get_related_apps(pid):
+    from ckan import model
+    pkg = model.Package.get(pid)
+    for rel in pkg.related:
+        if rel.type == 'App':
+            yield rel
 
-    return DateType.parse_timedate(date_string, 'form')
+def has_related_apps(pid):
+    return len(list(get_related_apps(pid))) > 0
+
+def parse_date(date_string):
+    from ckan.lib.field_types import DateType, DateConvertError
+
+    try:
+        return DateType.parse_timedate(date_string, 'form')
+    except DateConvertError:
+        class FakeDate:
+            year = ''
+        return FakeDate()

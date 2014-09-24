@@ -168,19 +168,10 @@ class DatasetForm(p.SingletonPlugin):
             # harvesters specify the default schema) then we don't want to
             # override that.
             if not context.get('schema'):
+                schema = self.form_to_db_schema_options(context)
                 if 'api_version' in context:
-                    # When accessed by the API, just use the default schemas.
-                    # It's only the forms that are customized to make it easier
-                    # for humans.
-                    if action == 'package_create':
-                        schema = default_schema.default_create_package_schema()
-                    else:
-                        schema = default_schema.default_update_package_schema()
                     # Tag validation is looser than CKAN default
                     schema['tags'] = tags_schema()
-                else:
-                    # Customized schema for DGU form
-                    schema = self.form_to_db_schema_options(context)
         return toolkit.navl_validate(data_dict, schema, context)
 
     def form_to_db_schema_options(self, context):
@@ -196,9 +187,8 @@ class DatasetForm(p.SingletonPlugin):
         if dgu_helpers.is_sysadmin_by_context(context) and \
            pkg and pkg.extras.get('UKLP') == 'True':
             self._uklp_sysadmin_schema_updates(schema)
-        if dgu_helpers.is_sysadmin_by_context(context) and \
-           pkg and pkg.extras.get('external_reference') == 'ONSHUB':
-            self._ons_sysadmin_schema_updates(schema)
+        if pkg and pkg.extras.get('external_reference') == 'ONSHUB':
+            self._ons_schema_updates(schema)
         return schema
 
     def _uklp_sysadmin_schema_updates(self, schema):
@@ -219,11 +209,11 @@ class DatasetForm(p.SingletonPlugin):
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
 
-    def _ons_sysadmin_schema_updates(self, schema):
+    def _ons_schema_updates(self, schema):
         schema.update(
             {
                 'theme-primary': [ignore_missing, unicode, convert_to_extras],
-                })
+            })
         for resources in ('additional_resources',
                           'timeseries_resources',
                           'individual_resources'):

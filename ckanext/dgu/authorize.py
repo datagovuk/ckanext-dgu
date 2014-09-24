@@ -14,8 +14,6 @@ def dgu_package_update(context, data_dict):
     #   Note: the harvest user *is* a sysadmin
     #   Note: if changing this, check the code and comments in
     #         ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
-    # Sysadmins can edit ONS packages.
-    #   Note: the dgu user *is* a sysadmin
     if user_obj.sysadmin:
         return {'success': True}
 
@@ -25,11 +23,6 @@ def dgu_package_update(context, data_dict):
     # UKLP datasets cannot be edited by the average admin/editor because they
     # are harvested
     if package.extras.get('UKLP', '') == 'True':
-        return fail
-
-    # ONSHUB datasets cannot be edited by the average admin/editor because they
-    # are automatically updated
-    if package.extras.get('external_reference') == 'ONSHUB':
         return fail
 
     # Leave the core CKAN auth to work out the hierarchy stuff

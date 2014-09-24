@@ -135,11 +135,12 @@
     /* Hide/Show the access constraints box when selecting the license_id */
     $('#license_id').change(function(){
       var selectedLicense = $(this).val();
-      if(selectedLicense == "uk-ogl"){
+        console.log('LICENSE "' + selectedLicense + '"')
+      if(selectedLicense == "" || selectedLicense == "__extra__"){
+        $('.choose-other-licence').show();
+      } else {
         $('#access_constraints').val('');
         $('.choose-other-licence').hide();
-      } else {
-        $('.choose-other-licence').show();
       }
     });
     $('#license_id').change();

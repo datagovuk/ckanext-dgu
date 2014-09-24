@@ -75,15 +75,7 @@
       <!-- Resources -->
       <py:if test="h.individual_resources()">
         <h2>Data Resources (${len(h.individual_resources())})</h2>
-        <py:if test="not h.has_group_ons_resources()">
-          ${resource_table(h.individual_resources())}
-        </py:if>
-        <py:if test="h.has_group_ons_resources() and c.all_resources">
-          ${ons_grouped_table(h.get_ons_releases())}
-        </py:if>
-        <py:if test="h.has_group_ons_resources() and not c.all_resources">
-          ${ons_grouped_table(h.get_limited_ons_releases(), 10)}
-        </py:if>
+        ${resource_table(h.individual_resources())}
       </py:if>
       <py:if test="h.timeseries_resources()">
         <h2>Data Resources (${len(h.timeseries_resources())} in a time series)</h2>
@@ -150,6 +142,16 @@
       <py:if test="c.user">Add Feedback &raquo;</py:if>
       <py:if test="not c.user">Login to Add Feedback &raquo;</py:if>
     </a>
+
+    <py:if test="h.has_related_apps(c.pkg_dict.get('id'))">
+    <h2>Related Applications</h2>
+    <ul>
+      <li py:for="rel in h.get_related_apps(c.pkg_dict.get('id'))">
+        <a href="${rel.url}">${rel.title}</a>
+      </li>
+    </ul>
+    </py:if>
+
     <h2>Dataset Feedback</h2>
     <div class="dataset-feedback-container">
       ${feedback_summary(c.pkg_dict,render_title=False,large=True)}

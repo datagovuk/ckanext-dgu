@@ -45,6 +45,6 @@ argparse
 # Selenium driver for Python
 selenium==2.28.0
 fabric==1.5.3
-pymollom
+oauthlib==0.6.3
 # ONS loader needs datautildate
 -e git+https://github.com/okfn/datautildate.git@#egg=datautildate

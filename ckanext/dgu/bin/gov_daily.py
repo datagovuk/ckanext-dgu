@@ -114,18 +114,18 @@ def command(config_file):
 
     # Copy openspending reports
     if run_task('openspending'):
-        log.info('Copying in OpenSpending reports')
+        log.info('OpenSpending reports')
         if not os.path.exists(openspending_reports_dir):
             log.info('Creating dump dir: %s' % openspending_reports_dir)
             os.makedirs(openspending_reports_dir)
         try:
-            publisher_response = urllib2.urlopen('http://data.gov.uk/api/rest/group').read()
+            publisher_response = urllib2.urlopen('http://data.gov.uk/api/action/organization_list').read()
         except urllib2.HTTPError, e:
             log.error('Could not get list of publishers for OpenSpending reports: %s',
                       e)
         else:
             try:
-                publishers = json.loads(publisher_response)
+                publishers = json.loads(publisher_response)['result']
                 assert isinstance(publishers, list), publishers
                 assert len(publishers) > 500, len(publishers)
                 log.info('Got list of %i publishers starting: %r',
@@ -135,6 +135,7 @@ def command(config_file):
                           e)
             else:
                 urls = [openspending_reports_url]
+                log.info('Getting reports, starting with: %s', urls[0])
                 for publisher in publishers:
                     urls.append('%spublisher-%s.html' % (openspending_reports_url, publisher))
 

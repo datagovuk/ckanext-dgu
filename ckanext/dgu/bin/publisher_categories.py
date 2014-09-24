@@ -13,6 +13,7 @@ from nose.tools import assert_equal
 import common
 from ckanext.dgu.lib import publisher
 from ckanext.dgu.forms.validators import categories
+from running_stats import Stats
 
 categories_dict = dict(categories)
 
@@ -67,29 +68,43 @@ class PublisherCategories(object):
         log = global_log
 
         from ckan import model
+        stats_category = Stats()
 
         pub_categories = csv.reader(open(csv_filepath, 'rb'))
         header = pub_categories.next()
         assert_equal('"%s"\n' % '","'.join(header), cls.header)
         for id, title, parent, category, spending_published_by in pub_categories:
             pub = model.Session.query(model.Group).get(id)
+            if not pub:
+                print stats_category.add('Publisher ID not known', '%s %s' % (id, title))
+                continue
+            category = category.strip()
 
             # set category
             existing_category = pub.extras.get('category')
-            if not category:
-                log.info('No categories for %r', title)
+            if not category and not existing_category:
+                print stats_category.add('No category info - ignored', title)
+                continue
+            if not category and existing_category:
+                print stats_category.add('Category deleted', '%s %s' % (existing_category, title))
+                rev = model.repo.new_revision()
+                rev.author = 'script_' + __file__
+                pub.extras['category'] = None
+                model.Session.commit()
                 continue
             if category not in categories_dict.keys():
-                warn('Category not known %s - skipping %s %s',
-                     category, id, title)
+                print stats_category.add('Category %s not known - ignored' % category, title)
                 continue
             if existing_category != category:
-                log.info('Changing category %r %s -> %s',
-                         title, existing_category or '(none)', category)
-                model.repo.new_revision()
+                print stats_category.add('Changing category',
+                    '%s->%s %s' % (existing_category or '(none)', category, title))
+                rev = model.repo.new_revision()
+                rev.author = 'script_' + __file__
                 pub.extras['category'] = category
                 model.Session.commit()
             else:
+                print stats_category.add('No change',
+                        '%s %s' % (existing_category or '(none)', title))
                 log.info('Leaving category for %r as %s', title, category)
 
             # set spending_published_by
@@ -101,9 +116,9 @@ class PublisherCategories(object):
             if not spb_publisher:
                 spb_publisher = model.Group.search_by_name_or_title(spending_published_by)
                 if not spb_publisher:
-                    import pdb; pdb.set_trace()
                     warn('Spending_published_by not known %s - skipping %s %s',
                          spending_published_by, id, title)
+                    import pdb; pdb.set_trace()
                     continue
             spending_published_by = spb_publisher.name
             if existing_spb != spending_published_by:
@@ -117,6 +132,7 @@ class PublisherCategories(object):
 
         model.Session.remove()
 
+        print stats_category
         log.info('Warnings: %r', warnings)
 
     @classmethod

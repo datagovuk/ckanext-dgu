@@ -65,7 +65,7 @@ Social Development (Northern Ireland)
 Transport
 Welsh Government
 Work and Pensions
-Other statistics producers
+Cancer Registry (Northern Ireland)
 Civil Aviation Authority
 Child Maintenance and Enforcement Commission
 Health and Social Care Information Centre
@@ -73,7 +73,7 @@ Higher Education Statistics Agency
 Independent Police Complaints Commission
 NHS England
 Scottish Consortium for Learning Disability
-International statistics organisations
+Student Loans Company
 Eurostat
 '''
         # These are extra sources seen in the past ONS data, picked up from

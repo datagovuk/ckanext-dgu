@@ -10,17 +10,6 @@ from ckanext.report import lib
 log = logging.getLogger(__name__)
 
 
-def get_source(package):
-    '''Returns the source of package object if it is not entered by the form.
-    Of particular interest are those from the NS Pub Hub (StatsHub) and
-    UK Location.'''
-    if p.toolkit.asbool(package.extras.get('INSPIRE')):
-        return 'UK Location'
-    if p.toolkit.asbool(package.extras.get('external_reference') == 'ONSHUB'):
-        return 'StatsHub'
-    return ''
-
-
 def nii_report():
     '''A list of the NII datasets, grouped by publisher, with details of broken
     links and source.'''
@@ -65,7 +54,6 @@ def nii_report():
                 'unpublished': p.toolkit.asbool(dataset_object.extras.get('unpublished')),
                 'num_broken_resources': len(broken_resources),
                 'broken_resources': broken_resources,
-                'source': get_source(dataset_object)
                 }
         nii_dataset_details.append(dataset_details)
         if broken_resources:
@@ -295,7 +283,10 @@ def publisher_activity(organization, include_sub_organizations=False):
     # * Fix national indicators
     system_authors = ('autotheme', 'co-prod3.dh.bytemark.co.uk',
                       'Date format tidier', 'current_revision_fixer',
-                      'current_revision_fixer2', 'fix_contact_details.py')
+                      'current_revision_fixer2', 'fix_contact_details.py',
+                      'Repoint 410 Gone to webarchive url',
+                      'Fix duplicate resources',
+                      )
 
     created = {'this': [], 'last': []}
     modified = {'this': [], 'last': []}
@@ -434,4 +425,57 @@ unpublished_report_info = {
     'template': 'report/unpublished.html',
     }
 
+def last_resource_deleted(pkg):
+    
+    resource_revisions = model.Session.query(model.ResourceRevision) \
+                              .join(model.ResourceGroup) \
+                              .join(model.Package) \
+                              .filter_by(id=pkg.id) \
+                              .order_by(model.ResourceRevision.revision_timestamp) \
+                              .all()
+    previous_rr = None
+    # go through the RRs in reverse chronological order and when an active
+    # revision is found, return the rr in the previous loop.
+    for rr in resource_revisions[::-1]:
+        if rr.state == 'active':
+            return previous_rr.revision_timestamp, previous_rr.url
+        previous_rr = rr
+    return None, ''
+
+def datasets_without_resources():
+    pkg_dicts = []
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')\
+                .order_by(model.Package.title)\
+                .all()
+    for pkg in pkgs:
+        if len(pkg.resources) != 0 or \
+          pkg.extras.get('unpublished', '').lower() == 'true':
+            continue
+        org = pkg.get_organization()
+        deleted, url = last_resource_deleted(pkg)
+        pkg_dict = OrderedDict((
+                ('name', pkg.name),
+                ('title', pkg.title),
+                ('organization title', org.title),
+                ('organization name', org.name),
+                ('metadata created', pkg.metadata_created.isoformat()),
+                ('metadata modified', pkg.metadata_modified.isoformat()),
+                ('last resource deleted', deleted.isoformat() if deleted else None),
+                ('last resource url', url),
+                ('dataset_notes', lib.dataset_notes(pkg)),
+                ))
+        pkg_dicts.append(pkg_dict)
+    return {'table': pkg_dicts}
+
+
+datasets_without_resources_info = {
+    'name': 'datasets-without-resources',
+    'title': 'Datasets without resources',
+    'description': 'Datasets that have no resources (data URLs). Excludes unpublisher ones.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': datasets_without_resources,
+    'template': 'report/datasets_without_resources.html',
+    }
 
