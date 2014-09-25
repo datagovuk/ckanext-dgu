@@ -34,7 +34,7 @@
       <div class="panel-heading">Feedback (related to NII/inventory)</div>
       <div class="panel-body">
         <ul>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='view', report_name='feedback')}">Feedback report</a></li>
+          <li><a href="${h.url_for('report', report_name='feedback')}">Feedback report</a></li>
           <li><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </ul>
       </div>
