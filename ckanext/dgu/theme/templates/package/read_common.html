@@ -197,7 +197,8 @@
         can_update=h.check_access('package_update',{'id':c.pkg.id});
         can_delete=h.check_access('package_delete', {'id':c.pkg.id}) and not h.is_package_deleted(c.pkg);
         update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name);
-        is_uklp=h.dataset_type(c.pkg_extras)=='uklp';
+        is_location_data = h.is_location_data(c.pkg_dict);
+        dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict);
         admin_mode = can_update or can_delete
     ">
       <div class="${if_(admin_mode,'col-md-8','col-md-12')}">
@@ -205,7 +206,7 @@
         <p class="pre-notes" py:if="dict(c.pkg_extras).get('provider')">
           <b>Provider:</b> ${dict(c.pkg_extras).get('provider')}
         </p>
-        <p class="pre-notes" py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('responsible-party')">
+        <p class="pre-notes" py:if="is_location_data and dict(c.pkg_extras).get('responsible-party')">
           <b>Responsible Party:</b> ${dict(c.pkg_extras).get('responsible-party')}
         </p>
         <p class="pre-notes" py:if="h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('publish-date') and not c.pkg.extras.get('publish-restricted', False)">
@@ -222,14 +223,14 @@
           <a
             class="dataset-optional-logo"
             href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html"
-            py:if="h.dataset_type(c.pkg_extras) == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'"
+            py:if="dataset_is_from_ns_pubhub == 'ons' and dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes'"
           >
             <img class="dataset-logo" src="/images/national_statistics.gif" />
           </a>
           <a
             class="dataset-optional-logo"
             href="/location"
-            py:if="h.dataset_type(c.pkg_extras) == 'uklp'"
+            py:if="is_location_data"
           >
             <img src="/images/uk_location.gif" />
           </a>
@@ -256,7 +257,7 @@
               <li py:if="can_delete">
                 <span class="wrap-icon"><i class="icon-trash"></i></span>
                 <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">
-                  ${if_(is_uklp,'Withdraw this dataset','Delete this dataset')} &raquo;
+                  ${if_(is_location_data,'Withdraw this dataset','Delete this dataset')} &raquo;
                 </a>
               </li>
               <li py:if="can_update and h.is_unpublished_item(c.pkg_dict)">
@@ -280,10 +281,10 @@
     </div>
     <!-- Warn if deleted -->
     <div py:if="c.pkg_dict.get('state') == 'deleted'" class="panel panel-warning">
-      <py:with vars="deleted=if_(h.dataset_type(c.pkg_extras)=='uklp','Withdrawn','Deleted')">
+      <py:with vars="deleted=if_(is_location_data,'Withdrawn','Deleted')">
         <div class="panel-heading">${deleted} Dataset</div>
       </py:with>
-      <py:with vars="deleted=if_(h.dataset_type(c.pkg_extras)=='uklp','withdrawn','deleted')">
+      <py:with vars="deleted=if_(is_location_data,'withdrawn','deleted')">
         <div class="panel-body">This dataset is ${deleted}. Only administrators can view it in this state.</div>
       </py:with>
     </div>

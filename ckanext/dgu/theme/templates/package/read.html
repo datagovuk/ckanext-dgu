@@ -20,7 +20,11 @@
     <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
   </py:match>
 
-  <py:def function="package_content">
+  <py:def function="package_content" py:with="
+        is_location_data = h.is_location_data(c.pkg_dict);
+        dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict);
+        is_local_government_data = h.is_local_government_data(c.pkg_dict);        
+        ">
     <!-- Warn if reading old revision -->
     <div py:if="c.pkg_revision_id" class="panel panel-warning">
       <div class="panel-heading">Viewing Dataset Revision</div>
@@ -95,7 +99,7 @@
         ${resource_table(h.additional_resources() + h.gemini_resources())}
       </py:if>
 
-      <py:if test="not (h.dataset_type(c.pkg_extras) == 'uklp' or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
+      <py:if test="not (is_location_data or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
         <em>(none)</em>
       </py:if>
     </div>
@@ -117,11 +121,11 @@
             </tr>
           -->
           </py:with>
-          <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras),h.dataset_type(c.pkg_extras),h.was_dataset_harvested(c.pkg_extras))">
+          <tr py:for="field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data)">
             <td class="key" py:attrs="label_attributes">${field_dict.get('label') or field_dict['name']}</td>
             <td class="value" py:attrs="value_attributes">${field_dict.get('value') or 'No value'}</td>
           </tr>
-          <tr py:if="h.dataset_type(c.pkg_extras) == 'uklp' and dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service')">
+          <tr py:if="is_location_data and dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service')">
             <py:with vars="is_service=dict(c.pkg_extras).get('resource-type')=='service'">
             <td class="key">Coupled ${if_(is_service,'Datasets','Services')}</td>
             <td class="value">
@@ -235,8 +239,8 @@
           <li py:if="not gemini">
             <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
               <i class="icon-download-alt"></i>&nbsp;
-              <py:if test="h.dataset_type(c.pkg_extras)!='uklp'">Download</py:if>
-              <py:if test="h.dataset_type(c.pkg_extras)=='uklp'">Direct Link</py:if>
+              <py:if test="not is_location_data">Download</py:if>
+              <py:if test="is_location_data">Direct Link</py:if>
             </a>
           </li>
           <py:with vars="cache_url, cache_timestamp = h.get_cache(res)">

@@ -21,7 +21,8 @@ from webhelpers.text import truncate
 from pylons import config
 from pylons import request
 
-from ckan.lib.helpers import icon, icon_html, json, unselected_facet_items
+from ckan.lib.helpers import (icon, icon_html, json, unselected_facet_items,
+                              get_pkg_dict_extra)
 import ckan.lib.helpers
 
 # not importing ckan.controllers here, since we need to monkey patch it in plugin.py
@@ -678,7 +679,8 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
-def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested):
+def get_package_fields(package, pkg_extras, dataset_was_harvested,
+                       is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
@@ -718,21 +720,19 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
         harvest_source_reference = pkg_extras.get('harvest_source_reference')
         if harvest_source_reference and harvest_source_reference != harvest_guid:
             field_names.add(['harvest_source_reference'])
-        if dataset_type == 'uklp':
+        if is_location_data:
             field_names.add(('bbox', 'spatial-reference-system', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'resource-type', 'metadata-language'))
             if pkg_extras.get('resource-type') == 'service':
                 field_names.add(['spatial-data-service-type'])
             dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
-        elif dataset_type == 'lga':
-            field_names.add(('lga-functions', 'lga-services'))
-    elif dataset_type == 'ons':
+    elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
         field_names.remove(['mandate'])
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
-    elif dataset_type == 'form':
-        pass
+    if is_local_government_data:
+        field_names.add(('lga-functions', 'lga-services'))
 
     field_names.add_at_start('theme')
     if pkg_extras.get('theme-secondary'):
@@ -788,8 +788,8 @@ def get_package_fields(package, pkg_extras, dataset_type, dataset_was_harvested)
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
-        'lga-functions': {'label': 'Local Government Functions', 'value': pkg_extras.get('lga_functions')},
-        'lga-services': {'label': 'Local Government Services', 'value': pkg_extras.get('lga_services')},
+        'lga-functions': {'label': 'Local Government Function', 'value': pkg_extras.get('lga_functions')},
+        'lga-services': {'label': 'Local Government Service', 'value': pkg_extras.get('lga_services')},
         '': {'label': '', 'value': ''},
     }
 
@@ -1251,10 +1251,9 @@ def additional_resources():
     return c.pkg_dict.get('additional_resources', [])
 
 def gemini_resources():
-    extras = dict(c.pkg_extras)
-    if not dataset_type(extras)  == 'uklp':
+    if not is_location_data(c.pkg_dict):
         return []
-    harvest_object_id = extras.get('harvest_object_id')
+    harvest_object_id = get_pkg_dict_extra(c.pkg_dict, 'harvest_object_id')
     gemini_resources = [
         {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
          'title': 'Source GEMINI2 record',
@@ -1332,18 +1331,29 @@ def was_dataset_harvested(pkg_extras):
     # and we can simplify this.
     return extras.get('import_source') == 'harvest' or extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True'
 
-def dataset_type(pkg_extras):
-    dataset_type = 'form' # default - entered via the form
-    extras = dict(pkg_extras)
-    if extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True':
-        dataset_type = 'uklp'
-    elif extras.get('lga_identifier'):
-        dataset_type = 'lga'
-    elif extras.get('external_reference') == 'ONSHUB':
-        dataset_type = 'ons'
-    else:
-        dataset_type = 'form' # default - entered via the form
-    return dataset_type
+
+# 'Type'/'Source' of dataset determined by these functions
+# (replaces dataset_type() as there were overlaps like local&location)
+
+def is_location_data(pkg_dict):
+    if get_pkg_dict_extra(pkg_dict, 'UKLP') == 'True' or \
+       get_pkg_dict_extra(pkg_dict, 'INSPIRE') == 'True':
+        return True
+
+def dataset_is_from_ns_pubhub(pkg_dict):
+    if get_pkg_dict_extra(pkg_dict, 'external_reference') == 'ONSHUB':
+        return True
+
+def is_local_government_data(pkg_dict):
+    if pkg_dict['organization']:
+        from ckan import model
+        org = model.Group.get(pkg_dict['organization']['id'])
+        if org:
+            if org.extras.get('category') == 'local-council':
+                return True
+
+# end of 'Type'/'Source' of dataset functions
+
 
 def has_bounding_box(extras):
     pkg_extras = dict(extras)

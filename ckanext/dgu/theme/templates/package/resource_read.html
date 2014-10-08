@@ -33,7 +33,7 @@
     <hr/>
     <div py:if="c.resource.get('state') == 'deleted'" class="panel panel-danger">
       <div class="panel-heading">Deleted resource</div>
-      <py:with vars="deleted=if_(h.dataset_type(c.pkg_extras)=='uklp','withdrawn','deleted')">
+      <py:with vars="deleted=if_(h.is_location_data(c.pkg_dict),'withdrawn','deleted')">
         <div class="panel-body">This resource is <strong>${deleted}</strong>.</div>
       </py:with>
     </div>
