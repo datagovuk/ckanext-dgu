@@ -14,6 +14,12 @@
 
   <div py:match="content">
 
+      <form>
+        <select class="chzn-select" name="org_name" onchange="this.form.submit()">
+          <option py:for="item in c.all_groups" value="${item.name}">${item.title}</option>
+        </select>
+      </form>
+
       ${paginator(c.page)}
 
       <table py:if="c.count" width="100%" class="table table-bordered">
@@ -24,6 +30,7 @@
           <th>Administrators</th>
           <th>Editors</th>
           <th>Created</th>
+          <th>Parent</th>
         </tr>
         <py:for each="g in c.page.items">
           <tr>
@@ -36,6 +43,14 @@
               </py:for>
             </td>
             <td>${h.render_datetime(g.created, date_format="%d-%m-%Y")}</td>
+            <py:if test="g.get_parent_groups('organization')">
+              <py:with vars="parent=g.get_parent_groups('organization')[0]">
+                <td><a href="?org_name=${parent.name}">${parent.title}</a></td>
+              </py:with>
+            </py:if>
+            <py:if test="not g.get_parent_groups('organization')">
+              <td></td>
+            </py:if>
           </tr>
         </py:for>
       </table>
@@ -43,6 +58,11 @@
       ${paginator(c.page)}
 
   </div>
+
+  <script>
+    $(".chzn-select").chosen();
+  </script>
+
 
   <xi:include href="../layout.html" />
 

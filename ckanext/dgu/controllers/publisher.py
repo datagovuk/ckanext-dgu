@@ -409,6 +409,11 @@ class PublisherController(OrganizationController):
 
         q = model.Group.all('organization')
 
+        c.all_groups = q
+
+        if request.params.get('org_name'):
+            q = q.filter_by(name=request.params.get('org_name'))
+
         c.count = q.count()
 
         c.page = h.Page(
