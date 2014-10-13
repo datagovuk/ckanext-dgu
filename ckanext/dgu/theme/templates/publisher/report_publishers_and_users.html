@@ -27,7 +27,6 @@
         <tr>
           <th>Title</th>
           <th>Number of datasets</th>
-          <th>Approval status</th>
           <th>Administrators</th>
           <th>Editors</th>
           <th>Created</th>
@@ -37,7 +36,6 @@
           <tr>
             <td><a href="/publisher/${g.name}">${g.title}</a></td>
             <td>${len(g.packages())}</td>
-            <td>${g.approval_status}</td>
             <td py:for="capacity in ('admin', 'editor')">
               <py:for each="user in h.group_get_users(g, capacity=capacity)">
                 ${h.link_to("%s (%s)" % (user.display_name, user.email), h.url_for(controller='user', action='read', id=user.name))}<br/>
