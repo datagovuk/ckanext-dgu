@@ -41,10 +41,12 @@ class Themes(object):
         self.ons = {}  # ons_keyword:theme_name
         self.lga_functions = {} # LGA functions extra
         self.lga_services = {}  # LGA services extra
+        self.odc = {}  # OpenDataCommunities.org theme extra
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
 
-            for key in ('topics', 'gemet', 'nscl', 'ons', 'lga_functions', 'lga_services'):
+            for key in ('topics', 'gemet', 'nscl', 'ons', 'lga_functions', 'lga_services',
+                        'odc'):
                 if key in theme_dict:
                     assert isinstance(theme_dict[key], list), (name, key)
 
@@ -67,6 +69,8 @@ class Themes(object):
                 self.lga_functions[function_id] = name
             for service_id in theme_dict.get('lga_services', []):
                 self.lga_services[service_id] = name
+            for keyword in theme_dict.get('odc', []):
+                self.odc[keyword] = name
             self.data[name] = theme_dict
         self.topic_words_set = self.topic_words.viewkeys() # can do set-like operations on it
         self.topic_bigrams_set = self.topic_bigrams.viewkeys()
@@ -143,6 +147,7 @@ def categorize_package(pkg, stats=None):
     score_by_gemet(pkg, scores)
     score_by_ons_theme(pkg, scores)
     score_by_lga_function(pkg, scores)
+    score_by_odc_theme(pkg, scores)
 
     # add up scores
     theme_scores = defaultdict(int)  # theme:total_score
@@ -274,6 +279,30 @@ def score_by_lga_service(pkg, scores):
             log.debug("%s %s %s", theme, score, reason)
         else:
             log.debug("A non-LGA service identifier was found")
+
+def score_by_odc_theme(pkg, scores):
+    ''' Grants a score based on the presence of an OpenDataCommunities theme
+    extra. This is set by the DCAT harvester and will be a list of
+    URLS like:
+    http://opendatacommunities.org/def/concept/themes/energy
+    '''
+    subjects = pkg['extras'].get('dcat_subject', '').split(' ')
+    if not subjects:
+        return
+
+    themes = Themes.instance()
+    for subject_url in subjects:
+        # subject keyword is the last part of the URL
+        subject = subject_url.split('/')[-1]
+        if subject in themes.odc:
+            theme = themes.odc[subject]
+            reason = 'ODC subject matched'
+            score = 40
+            scores[theme].append((score, reason))
+            log.debug('%s %s %s', theme, score, reason)
+        else:
+            log.warning('An unrecognized subject was found: %s', subject)
+
 
 def normalize_keyword(keyword):
     name = keyword.lower()
