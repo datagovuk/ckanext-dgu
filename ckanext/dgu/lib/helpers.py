@@ -687,7 +687,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
     from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames()
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if c.is_an_official:
         field_names_display_only_if_value.append('external_reference')
@@ -734,7 +734,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     if is_local_government_data:
         field_names.add(('lga-functions', 'lga-services'))
 
-    field_names.add_at_start('theme')
+    field_names.add_after('date_added_to_dgu', 'theme')
     if pkg_extras.get('theme-secondary'):
         field_names.add_after('theme', 'theme-secondary')
 
@@ -769,6 +769,8 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
                                           secondary_themes)
     field_value_map = {
         # field_name : {display info}
+        'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
+        'date_updated_on_dgu': {'label': 'Updated on data.gov.uk', 'value': package.metadata_modified.strftime('%d/%m/%Y')},
         'state': {'label': 'State', 'value': c.pkg.state},
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
         'harvest-date': {'label': 'Harvest date', 'value': harvest_date},
@@ -1369,12 +1371,6 @@ def facet_values(facet_tuples, facet_key):
     values = [ v for (k,v) in facet_tuples if k==facet_key ]
     values = sorted(values)
     return values
-
-def get_package_mini_metadata(pkg):
-    return {
-        'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
-        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y")
-    }
 
 def get_extent():
     return  c.pkg.extras.get('spatial', False)

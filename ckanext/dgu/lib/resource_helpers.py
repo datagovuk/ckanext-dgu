@@ -17,11 +17,9 @@ class FieldNames:
 
 class DatasetFieldNames(FieldNames):
     # For building a list of the fields to display and their order
-    def __init__(self):
+    def __init__(self, fields):
         # core fields
-        self._field_names = ['mandate', 'temporal_coverage', 'geographic_coverage', 'date-added-computed', 'date-updated-computed']
-        # Never display: 'name', 'version', 'maintainer', 'maintainer_email', 'url', 'author', 'author_email', 'published_by', 'published_via'
-        # Displayed elsewhere in templates: 'title', 'license', 'contact', 'foi_contact', 'notes', 'tags', 'groups'
+        self._field_names = fields
 
 class ResourceFieldNames(FieldNames):
     # For building a list of the fields to display and their order
