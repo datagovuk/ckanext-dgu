@@ -16,6 +16,7 @@
 
       <form>
         <select class="chzn-select" name="org_name" onchange="this.form.submit()">
+          <option value="" selected="selected">Select a department or organisation</option>
           <option py:for="item in c.all_groups" value="${item.name}">${item.title}</option>
         </select>
       </form>
