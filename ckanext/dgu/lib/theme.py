@@ -292,6 +292,8 @@ def score_by_odc_theme(pkg, scores):
 
     themes = Themes.instance()
     for subject_url in subjects:
+        if not subject_url:
+            continue
         # subject keyword is the last part of the URL
         subject = subject_url.split('/')[-1]
         if subject in themes.odc:
@@ -301,7 +303,7 @@ def score_by_odc_theme(pkg, scores):
             scores[theme].append((score, reason))
             log.debug('%s %s %s', theme, score, reason)
         else:
-            log.warning('An unrecognized subject was found: %s', subject)
+            log.warning('An unrecognized subject was found: %s (from %s)', subject, subject_url)
 
 
 def normalize_keyword(keyword):
