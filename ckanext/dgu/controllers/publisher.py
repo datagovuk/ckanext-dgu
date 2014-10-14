@@ -411,8 +411,14 @@ class PublisherController(OrganizationController):
 
         c.all_groups = q
 
+        c.top_groups = model.Group.get_top_level_groups(type='organization')
+
         if request.params.get('org_name'):
             q = q.filter_by(name=request.params.get('org_name'))
+        elif request.params.get('parent_name'):
+            parent = model.Session.query(model.Group).filter_by(name=request.params.get('parent_name')).one()
+            child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
+            q = q.filter(model.Group.id.in_([parent.id] + child_ids))
 
         c.count = q.count()
 
