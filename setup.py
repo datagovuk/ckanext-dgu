@@ -48,6 +48,7 @@ setup(
         ons_loader = ckanext.dgu.ons.command:load
         cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
+        bulk_delete = ckanext.dgu.bin.bulk_delete_cmd:command
         transfer_url = ckanext.dgu.bin.transfer_url_cmd:command
         ons_analysis = ckanext.dgu.bin.ons_analysis_cmd:command
         ofsted_fix = ckanext.dgu.bin.ofsted_fix_cmd:command
