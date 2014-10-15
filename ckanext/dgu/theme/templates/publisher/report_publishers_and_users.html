@@ -27,6 +27,8 @@
         </select>
       </form>
 
+      <h1 py:if="c.search_term">You selected: ${c.search_term}</h1>
+
       ${paginator(c.page)}
 
       <table py:if="c.count" width="100%" class="table table-bordered">
