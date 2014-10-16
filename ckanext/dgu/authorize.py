@@ -17,13 +17,11 @@ def dgu_package_update(context, data_dict):
     if user_obj.sysadmin:
         return {'success': True}
 
-    fail = {'success': False,
-            'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
-
-    # UKLP datasets cannot be edited by the average admin/editor because they
-    # are harvested
-    if package.extras.get('UKLP', '') == 'True':
-        return fail
+    # UKLP datasets and other harvested datasets cannot be edited by the
+    # average admin/editor because changes will be overwritten on next harvest.
+    if dgu_helpers.was_dataset_harvested(package.extras):
+        return {'success': False,
+                'msg': _('User %s not authorized to edit harvested datasets') % str(user)}
 
     # Leave the core CKAN auth to work out the hierarchy stuff
     return ckan.logic.auth.update.package_update(context, data_dict)
@@ -45,8 +43,10 @@ def dgu_dataset_delete(context, data_dict):
     if user_obj.sysadmin:
         return {'success': True}
 
-    # Don't allow admin/editor to delete (apart from UKLP datasets which CAN be
-    # withdrawn by the appropriate admin/editor)
+    # Don't allow admin/editor to delete
+    # * apart from UKLP datasets which CAN be withdrawn by the appropriate
+    # admin/editor because they are all live services, so can't be cached to
+    # preserve them without the service provider's help
     if package.extras.get('UKLP', '') != 'True':
         return {'success': False}
 

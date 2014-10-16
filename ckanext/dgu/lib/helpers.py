@@ -1333,6 +1333,16 @@ def was_dataset_harvested(pkg_extras):
     # and we can simplify this.
     return extras.get('import_source') == 'harvest' or extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True'
 
+def get_harvest_object(pkg):
+    import ckan.model as model
+    from ckanext.harvest.model import HarvestObject
+    harvest_object_id = pkg.extras.get('harvest_object_id')
+    if harvest_object_id:
+        return HarvestObject.get(harvest_object_id)
+    return model.Session.query(HarvestObject) \
+            .filter(HarvestObject.package_id==pkg.id) \
+            .filter(HarvestObject.current==True) \
+            .first()
 
 # 'Type'/'Source' of dataset determined by these functions
 # (replaces dataset_type() as there were overlaps like local&location)

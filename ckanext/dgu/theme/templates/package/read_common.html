@@ -196,9 +196,11 @@
       py:with="
         can_update=h.check_access('package_update',{'id':c.pkg.id});
         can_delete=h.check_access('package_delete', {'id':c.pkg.id}) and not h.is_package_deleted(c.pkg);
+        harvest_object=h.get_harvest_object(c.pkg);
+        can_harvest=harvest_object and h.check_access('harvest_source_update',{'id':harvest_object.source.id});
         update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name);
         dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict);
-        admin_mode = can_update or can_delete
+        admin_mode = can_update or can_delete or can_harvest
     ">
       <div class="${if_(admin_mode,'col-md-8','col-md-12')}">
         <!-- Description -->
@@ -253,11 +255,9 @@
                 <span class="wrap-icon"><i class="icon-edit"></i></span>
                 <a href="${update_link}">Edit dataset properties &raquo;</a>
               </li>
-              <li py:if="can_delete">
-                <span class="wrap-icon"><i class="icon-trash"></i></span>
-                <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">
-                  ${if_(is_location_data,'Withdraw this dataset','Delete this dataset')} &raquo;
-                </a>
+              <li py:if="not can_update and harvest_object">
+                <span class="wrap-icon"><i class="icon-edit"></i></span>
+                <a href="#" style="pointer-events:none;">Edit not allowed (future harvests will overwrite manual changes)</a>
               </li>
               <li py:if="can_update and h.is_unpublished_item(c.pkg_dict)">
                 <py:with vars="will_be_published,when=h.will_be_published(c.pkg_dict)">
@@ -266,6 +266,16 @@
                     Convert to published dataset
                   </a>
                 </py:with>
+              </li>
+              <li py:if="can_harvest">
+                <span class="wrap-icon"><i class="icon-link"></i></span>
+                <a href="${h.url_for('harvest_source', id=harvest_object.source.id)}">Harvester for this dataset &raquo;</a>
+              </li>
+              <li py:if="can_delete">
+                <span class="wrap-icon"><i class="icon-trash"></i></span>
+                <a href="${h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}">
+                  ${if_(is_location_data,'Withdraw this dataset','Delete this dataset')} &raquo;
+                </a>
               </li>
             </ul>
           </div>
