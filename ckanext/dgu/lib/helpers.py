@@ -688,7 +688,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.schema import THEMES
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if c.is_an_official:
         field_names_display_only_if_value.append('external_reference')
     pkg_extras = dict(pkg_extras)
@@ -777,6 +777,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
         'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
         'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
+        'data_modified': {'label': 'Data last modified', 'value': render_datestamp(pkg_extras.get('data_modified', ''))},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
@@ -1236,6 +1237,8 @@ def are_timeseries_resources(data):
     return are_timeseries_resources
 
 def are_legacy_extras(data):
+    # These are not displayed on a package, but show on the edit form if they
+    # have values, so that they are not lost.
     are_legacy_extras = False
     for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
         if data[key]:
