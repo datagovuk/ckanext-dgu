@@ -88,11 +88,14 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def organization_list():
+def organization_list(top=False):
     from ckan import model
-    organizations = model.Session.query(model.Group).\
-        filter(model.Group.type=='organization').\
-        filter(model.Group.state=='active').order_by('title')
+    if top:
+        organizations = model.Group.get_top_level_groups(type='organization')
+    else:
+        organizations = model.Session.query(model.Group).\
+            filter(model.Group.type=='organization').\
+            filter(model.Group.state=='active').order_by('title')
     for organization in organizations:
         yield (organization.name, organization.title)
 

@@ -1,0 +1,13 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+  <form>
+    <select class="inline js-auto-submit" name="top_org">
+      <option value="" selected="selected">Select a top level department</option>
+      <option py:for="org_name, org_title in h.organization_list(top=True)" value="${org_name}">
+        ${org_title}
+      </option>
+    </select>
+  </form>
+</html>
