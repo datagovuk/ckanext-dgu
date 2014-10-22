@@ -17,8 +17,8 @@
                 <py:for each="dataset in c.data['table']">
                     <tr>
                         <td>${dataset['name']}</td>
-                        <td><py:for each="admin in dataset['admins']">${admin}<br/></py:for></td>
-                        <td><py:for each="editor in dataset['editors']">${editor}<br/></py:for></td>
+                        <td><py:for each="admin in dataset['admins'].split('\n')">${admin}<br/></py:for></td>
+                        <td><py:for each="editor in dataset['editors'].split('\n')">${editor}<br/></py:for></td>
                     </tr>
                 </py:for>
               </tbody>
