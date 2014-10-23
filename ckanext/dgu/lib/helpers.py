@@ -879,7 +879,7 @@ def isopen(pkg):
         license_text = ';'.join(license_text_list)
     open_licenses = [
         'Open Government Licen',
-        'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/',
+        'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
         'http://reference.data.gov.uk/id/open-government-licence',
         'OS OpenData Licence',
         'OS Open Data Licence',
