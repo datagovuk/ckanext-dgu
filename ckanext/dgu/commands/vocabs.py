@@ -9,7 +9,7 @@ import ckan.plugins as p
 # No other CKAN imports allowed until _load_config is run,
 # or logging is disabled
 
-VOCABS = ['lga_services']
+VOCABS = ['la_service']
 
 class VocabsCmd(CkanCommand):
     '''
@@ -61,7 +61,7 @@ class VocabsCmd(CkanCommand):
         if not vocab_names:
             vocab_names = VOCABS
         for vocab_name in vocab_names:
-            if vocab_name == 'lga_services':
+            if vocab_name == 'la_service':
                 # Get all the services in CSV (UTF8), as described at:
                 # http://standards.esd.org.uk/?uri=list%2Fservices&tab=downloads
                 import csv

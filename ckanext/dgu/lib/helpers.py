@@ -732,7 +732,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
     if is_local_government_data:
-        field_names.add(('lga-functions', 'lga-services'))
+        field_names.add(('la-function', 'la-service'))
 
     field_names.add_after('date_added_to_dgu', 'theme')
     if pkg_extras.get('theme-secondary'):
@@ -791,8 +791,8 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
-        'lga-functions': {'label': 'Local Government Function', 'value': pkg_extras.get('lga_functions')},
-        'lga-services': {'label': 'Local Government Service', 'value': pkg_extras.get('lga_services')},
+        'la-function': {'label': 'Local Authority Function', 'value': pkg_extras.get('la_function')},
+        'la-service': {'label': 'Local Authority Service', 'value': pkg_extras.get('la_service')},
         '': {'label': '', 'value': ''},
     }
 

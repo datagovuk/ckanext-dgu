@@ -39,13 +39,13 @@ class Themes(object):
         self.topic_trigrams = {} # (topicword1, topicword2, topicword3):theme_name
         self.gemet = {}  # gemet_keyword:theme_name
         self.ons = {}  # ons_keyword:theme_name
-        self.lga_functions = {} # LGA functions extra
-        self.lga_services = {}  # LGA services extra
+        self.la_function = {} # LA functions extra
+        self.la_service = {}  # LA services extra
         self.odc = {}  # OpenDataCommunities.org theme extra
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
 
-            for key in ('topics', 'gemet', 'nscl', 'ons', 'lga_functions', 'lga_services',
+            for key in ('topics', 'gemet', 'nscl', 'ons', 'la_function', 'la_service',
                         'odc'):
                 if key in theme_dict:
                     assert isinstance(theme_dict[key], list), (name, key)
@@ -65,10 +65,10 @@ class Themes(object):
                 self.gemet[normalize_keyword(gemet_keyword)] = name
             for ons_keyword in theme_dict.get('nscl', []) + theme_dict.get('ons', []):
                 self.ons[tag_munge(ons_keyword)] = name
-            for function_id in theme_dict.get('lga_functions', []):
-                self.lga_functions[function_id] = name
-            for service_id in theme_dict.get('lga_services', []):
-                self.lga_services[service_id] = name
+            for function_id in theme_dict.get('la_functions', []):
+                self.la_function[function_id] = name
+            for service_id in theme_dict.get('la_service', []):
+                self.la_service[service_id] = name
             for keyword in theme_dict.get('odc', []):
                 self.odc[keyword] = name
             self.data[name] = theme_dict
@@ -146,7 +146,8 @@ def categorize_package(pkg, stats=None):
     score_by_topic(pkg, scores)
     score_by_gemet(pkg, scores)
     score_by_ons_theme(pkg, scores)
-    score_by_lga_function(pkg, scores)
+    score_by_la_service(pkg, scores)
+    score_by_la_function(pkg, scores)
     score_by_odc_theme(pkg, scores)
 
     # add up scores
@@ -236,49 +237,57 @@ def score_by_ons_theme(pkg, scores):
             scores[theme].append((score, reason))
             log.debug(' %s %s %s' % (theme, score, reason))
 
-def score_by_lga_function(pkg, scores):
-    ''' Grants a score based on the presence of an LGA function
-    extra. This is set by the LGA harvester and will be a list of
-    URLS to the fixed function list at
-    http://standards.esd.org.uk/?uri=list%2Ffunctions of the form
-    http://id.esd.org.uk/function/1 '''
-    if not pkg['extras'].get('functions', False):
+def score_by_la_function(pkg, scores):
+    '''
+    Grants a score based on the presence of a Local Authority function extra.
+    This is set by the Inventory harvester and will be a list of URLs to the
+    fixed function list at:
+    http://standards.esd.org.uk/?uri=list%2Ffunctions
+    of the form:
+    http://id.esd.org.uk/function/1
+    '''
+    la_functions = pkg['extras'].get('functions', '').split(' ')
+    if not la_functions:
         return
 
     themes = Themes.instance()
-    for furl in pkg['extras'].get('functions'):
+    for furl in la_functions:
         # function id is the last part of the URL
         fid = furl.split('/')[-1]
-        if fid in themes.lga_functions:
-            theme = themes.lga_functions[fid]
-            reason = "Function ID was matched"
+        if fid in themes.la_function:
+            theme = themes.la_function[fid]
+            reason = 'Function ID %s matched' % fid
             score = 100
-            scores[theme].append((score,reason,))
-            log.debug("%s %s %s", theme, score, reason)
+            scores[theme].append((score, reason))
+            log.debug(' %s %s %s', theme, score, reason)
         else:
-            log.debug("A non-LGA function identifier was found")
+            log.debug('A non-LA function identifier was found %s', furl)
 
-def score_by_lga_service(pkg, scores):
-    ''' Grants a score based on the presence of an LGA services
-    extra. This is set by the LGA harvester and will be a list of
-    URLS to the fixed services list at
-    http://standards.esd.org.uk/?uri=list%2Fservices of the form
-    http://id.esd.org.uk/service/1 '''
-    if not pkg['extras'].get('services', False):
+def score_by_la_service(pkg, scores):
+    '''
+    Grants a score based on the presence of a Local Authority services extra.
+    This is set by the Inventory harvester and will be a list of URLs to the
+    fixed services list at:
+    http://standards.esd.org.uk/?uri=list%2Fservices
+    of the form:
+    http://id.esd.org.uk/service/1
+    '''
+    la_services = pkg['extras'].get('la_service', '').split(' ')
+    if not la_services:
         return
 
     themes = Themes.instance()
-    for surl in pkg['extras'].get('services'):
+    for surl in la_services:
         # service id is the last part of the URL
         sid = surl.split('/')[-1]
-        if sid in themes.lga_services:
-            theme = themes.lga_services[fid]
-            reason = "Service ID was matched"
-            score = 10
-            scores[theme].append((score,reason,))
-            log.debug("%s %s %s", theme, score, reason)
+        if sid in themes.la_service:
+            theme = themes.la_service[sid]
+            reason = 'Service ID %s matched' % sid
+            score = 40
+            scores[theme].append((score, reason))
+            log.debug(' %s %s %s', theme, score, reason)
         else:
-            log.debug("A non-LGA service identifier was found")
+            log.debug('A non-LA service identifier was found %s', surl)
 
 def score_by_odc_theme(pkg, scores):
     ''' Grants a score based on the presence of an OpenDataCommunities theme
