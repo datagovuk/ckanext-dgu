@@ -1,0 +1,39 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Publisher Requests</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/publisher_requests">Publisher Requests</a></li>
+  </py:match>
+
+
+  <py:match path="content">
+    <h1>Publisher Request</h1>
+    <p>A request has been made for membership of the data.gov.uk publisher <strong>${c.req_group.title}</strong> by:</p>
+    <p>Name: <strong>${c.req_user.fullname}</strong> (${c.req_user.name})</p>
+    <p>Email: <strong>${c.req_user.email}</strong></p>
+    <p>The reason given for the request was:</p>
+    <p>&ldquo;<em>${c.req.reason}</em>&rdquo;</p>
+    <py:choose test="c.req.decision">
+      <py:when test="">
+        <p>Please contact the user to verify and then select one of the options below.</p>
+        <ul>
+          <li><a href="${h.url_for('publisher_request_decision', token=c.req.login_token, decision='accept')}">Yes, make them an editor</a></li>
+          <li><a href="${h.url_for('publisher_request_decision', token=c.req.login_token, decision='reject')}">No, do not make them an editor</a></li>
+        </ul>
+      </py:when>
+      <py:when test="True">
+       <h2>This user has been added to this publisher</h2>
+      </py:when>
+      <py:when test="False">
+       <h2>This user has been rejected from this publisher</h2>
+      </py:when>
+    </py:choose>
+  </py:match>
+
+  <xi:include href="../layout.html" />
+</html>
+

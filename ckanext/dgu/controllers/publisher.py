@@ -25,6 +25,7 @@ from ckanext.dgu.drupalclient import DrupalClient
 from ckan.plugins import PluginImplementations, IMiddleware
 from ckanext.dgu.plugin import DrupalAuthPlugin
 from ckanext.dgu.forms.validators import categories
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 log = logging.getLogger(__name__)
 
@@ -84,6 +85,7 @@ class PublisherController(OrganizationController):
                 recipients = [(u.fullname,u.email) for u in admins]
                 recipient_publisher = publisher.title
                 break
+
         if not recipients:
             if not config.get('dgu.admin.email'):
                 log.error('User "%s" prevented from applying for publisher access for "%s" '
@@ -147,7 +149,20 @@ class PublisherController(OrganizationController):
                 log.warning('Could not find publisher for name %s', id)
                 abort(404, _('Publisher not found'))
             if 'save' in request.params and not errors:
-                return self._send_application(c.group, request.params.get('reason', None))
+                from ckanext.dgu.model.publisher_request import PublisherRequest
+
+                reason = request.params.get('reason', None)
+
+                if model.Session.query(PublisherRequest).filter_by(user_name=c.user, group_name=id).all():
+                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True) 
+                    h.redirect_to('publisher_apply', id=id)
+                    return
+                else:
+                    req = PublisherRequest(user_name=c.user, group_name=id, reason=reason)
+                    model.Session.add(req)
+                    model.Session.commit()
+
+                    return self._send_application(c.group, reason)
         else:
             c.possible_parents = model.Session.query(model.Group)\
                 .filter(model.Group.state=='active').order_by(model.Group.title).all()
@@ -445,7 +460,63 @@ class PublisherController(OrganizationController):
 
         return super(PublisherController, self).new(data, errors, error_summary)
 
+    def publisher_request(self, token, decision=None):
+        from ckan import model
+        from ckanext.dgu.model.publisher_request import PublisherRequest
 
+        try:
+            c.req = model.Session.query(PublisherRequest).filter_by(login_token=token).one()
+            c.req_user = model.Session.query(model.User).filter_by(name=c.req.user_name).one()
+            c.req_group = model.Session.query(model.Group).filter_by(name=c.req.group_name).one()
+            c.in_group = c.req_user.is_in_group(c.req_group.id)
+        except Exception, ex:
+            abort(404, 'Request not found')
+ 
+        if decision:
+            if decision not in ['reject', 'accept']:
+                abort(400, 'Invalid Request')
+            elif decision == 'reject':
+                c.req.decision = False
+                msg = 'The application of <strong>%s</strong> to the publisher <strong>%s</strong> was marked as rejected' % (c.req_user.fullname, c.req_group.title)
+                # Should we remove the user from the group if
+                # they have already been added?
+            else:
+                c.req.decision = True
+                if not c.in_group:
+                    model.repo.new_revision()
+                    member = model.Member(group=c.req_group,
+                                          table_id=c.req_user.id,
+                                          table_name='user',
+                                          capacity='editor')
+                    model.Session.add(member)
+                msg = '<strong>%s</strong> was added to the publisher <strong>%s</strong>' % (c.req_user.fullname, c.req_group.title)
+            model.Session.commit()
+
+            h.flash_success(msg, allow_html=True)
+            h.redirect_to('publisher_request', token=token)
+        else:
+            return render('data/publisher_request.html')
+
+    def publisher_requests(self):
+        if not dgu_helpers.is_sysadmin():
+            abort(401, 'User must be a sysadmin to view this page.')
+
+        from ckan import model
+        from ckanext.dgu.model.publisher_request import PublisherRequest
+
+        publisher_requests = []
+        for req in model.Session.query(PublisherRequest).order_by(PublisherRequest.date_of_request.desc()).all():
+            item = {}
+            item['user'] = model.Session.query(model.User).filter(model.User.name==req.user_name).one()
+            item['group'] = model.Session.query(model.Group).filter(model.Group.name==req.group_name).one()
+            item['decision'] = req.decision
+            item['date_of_request'] = req.date_of_request
+            item['date_of_decision'] = req.date_of_decision
+            item['login_token'] = req.login_token
+            publisher_requests.append(item)
+
+        c.publisher_requests = publisher_requests
+        return render('data/publisher_requests.html')
 
     def _group_form(self, group_type=None):
         return 'publisher/edit_form.html'

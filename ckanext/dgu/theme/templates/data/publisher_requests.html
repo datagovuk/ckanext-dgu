@@ -1,0 +1,44 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Publisher Requests</py:def>
+
+  <py:match path="breadcrumbs">
+    <li><a href="/data/publisher_requests">Publisher Requests</a></li>
+  </py:match>
+
+
+  <py:match path="content">
+    <h1>Publisher Requests</h1>
+    <p>This page shows all requests for publisher membership and if they have been granted.</p>
+    <table>
+      <py:for each="a in c.publisher_requests">
+        <tr>
+          <td>${a.date_of_request.strftime('%d/%m/%y %H:%M:%S')}</td>
+          <td><strong>${a.user.fullname}</strong> (${a.user.name})</td>
+          <td>${a.group.name}</td>
+          <py:choose> 
+            <py:when test="a.decision == True">
+              <td><i class="icon-check"></i></td>
+              <td></td><td></td>
+            </py:when>
+            <py:when test="a.decision == False">
+              <td><i class="icon-ban-circle"></i></td>
+              <td></td><td></td>
+            </py:when>
+            <py:otherwise>
+              <td><i class="icon-check-empty"></i></td>
+              <td><a href="${h.url_for('publisher_request_decision', token=a.login_token, decision='accept')}">Accept</a></td>
+              <td><a href="${h.url_for('publisher_request_decision', token=a.login_token, decision='reject')}">Reject</a></td>
+            </py:otherwise>
+          </py:choose> 
+        </tr>
+      </py:for>
+    </table>
+  </py:match>
+
+  <xi:include href="../layout.html" />
+</html>
+
