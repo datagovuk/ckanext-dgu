@@ -7,6 +7,7 @@ from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
 import ckan.plugins.toolkit as toolkit
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
+from ckanext.dgu.lib.site_down_middleware import SiteDownMiddleware
 from ckanext.dgu.authorize import (
                              dgu_package_update,
                              dgu_extra_fields_editable,
@@ -581,6 +582,13 @@ class ApiPlugin(p.SingletonPlugin):
             'publisher_show': publisher_show,
             }
 
+class SiteIsDownPlugin(p.SingletonPlugin):
+    '''"Site is down for maintenance" message shown for all requests - better
+    than an error while there is maintenance.'''
+    p.implements(p.IMiddleware, inherit=True)
+
+    def make_middleware(self, app, config):
+        return SiteDownMiddleware(app, config)
 
 def is_plugin_enabled(plugin_name):
     return plugin_name in config.get('ckan.plugins', '').split()
