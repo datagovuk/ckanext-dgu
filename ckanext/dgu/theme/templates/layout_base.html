@@ -89,9 +89,9 @@
 ${h.top_level_init()}
 
 <body class="action-${request.environ.get('pylons.routes_dict', {}).get('action')}
-             controller-${request.environ.get('pylons.routes_dict', {}).get('controller','').split(':')[0].split('.')[-1]}
+             controller-${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[0].split('.')[-1]}
              ${request.environ.get('pylons.routes_dict', {}).get('action')}
-             ${request.environ.get('pylons.routes_dict', {}).get('controller','').split(':')[-1]}
+             ${request.environ.get('pylons.routes_dict', {}).get('controller').split(':')[-1]}
              ${if_(defined('sidebar'),'with-sidebar','no-sidebar')}
              "
       id="${(defined('body_id') and body_id()) or ''}"
@@ -161,7 +161,7 @@ ${h.top_level_init()}
 
               <li role="presentation" class="dropdown-header">My publishers</li>
               <py:for each="group in h.groups_for_current_user()">
-                  <li><a class="${'active' if request.environ.get('CKAN_CURRENT_URL','').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
+                  <li><a class="${'active' if c.environ.get('CKAN_CURRENT_URL').startswith('/data/%s' % group.name) else ''}" href="/publisher/${group.name}">${group.title}</a></li>
               </py:for>
             </ul>
           </span>
@@ -171,7 +171,7 @@ ${h.top_level_init()}
   </div>
   <div id="greenbar">
     <div class="container">
-      <ul class="subnav subnav-data active" py:with="url=request.environ.get('CKAN_CURRENT_URL')">
+      <ul class="subnav subnav-data active" py:with="url=c.environ.get('CKAN_CURRENT_URL')">
         <li><a class="${if_(url.startswith('/data/search') or url.startswith('/dataset/'),'active')}" href="${h.url_for(controller='package', action='search')}">Datasets</a></li>
         <li><a class="${if_(url.startswith('/data/map-based-search'),'active')}" href="/data/map-based-search">Map Search</a></li>
         <li><a class="" href="/data-request">Data Requests</a></li>
@@ -265,7 +265,7 @@ ${h.top_level_init()}
             </div>
           </a>
         </div>
-        <div class="credit" py:if="request.environ.get('pylons.routes_dict', {}).get('controller', '').startswith('ckanext.os.')">
+        <div class="credit" py:if="c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.')">
           <strong>Map tool by:</strong><br/>
           <a href="/location" title="UK Location Programme">
             <img src="/images/uk_location.gif" />
