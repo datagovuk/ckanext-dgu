@@ -1,0 +1,18 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip="">
+
+  <py:def function="page_title">Site Maintenance</py:def>
+  <py:def function="page_heading">Site Maintenance</py:def>
+
+  <div py:match="content">
+    <h1>Site Maintenance</h1>
+    <p>The data.gov.uk data catalogue is currently down for maintenance. Please try again soon.</p>
+  </div>
+  <xi:include href="../layout.html" />
+
+</html>
+
