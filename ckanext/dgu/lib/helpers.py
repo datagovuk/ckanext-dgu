@@ -1967,3 +1967,16 @@ def parse_date(date_string):
         class FakeDate:
             year = ''
         return FakeDate()
+
+def user_page_url():
+    url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
+                  else h.url_for(controller='user', action='me')
+    if not c.user:
+        url += '?destination=%s' % request.path[1:]
+    return url
+
+def is_plugin_enabled(plugin_name):
+    return plugin_name in config.get('ckan.plugins', '').split()
+
+def config_get(key, default=None):
+    return config.get(key, default)

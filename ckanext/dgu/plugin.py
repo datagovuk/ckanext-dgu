@@ -1,8 +1,5 @@
 ﻿from logging import getLogger
 
-from pylons import config
-import sqlalchemy.orm
-
 from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
 import ckan.plugins.toolkit as toolkit
@@ -18,7 +15,7 @@ from ckanext.dgu.authorize import (
                              )
 from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
-from ckanext.dgu.lib.helpers import dgu_linked_user
+from ckanext.dgu.lib.helpers import dgu_linked_user, is_plugin_enabled
 from ckanext.dgu.lib.search import solr_escape
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
@@ -142,7 +139,9 @@ class ThemePlugin(p.SingletonPlugin):
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'theme/templates')
+        toolkit.add_template_directory(config, 'theme/new_templates')
         toolkit.add_public_directory(config, 'theme/public')
+        toolkit.add_public_directory(config, 'theme/new_src')
 
         # Shared assets may be configured to be elsewhere on disk,
         # so in that case let the user configure apache/nginx to serve
@@ -590,5 +589,3 @@ class SiteIsDownPlugin(p.SingletonPlugin):
     def make_middleware(self, app, config):
         return SiteDownMiddleware(app, config)
 
-def is_plugin_enabled(plugin_name):
-    return plugin_name in config.get('ckan.plugins', '').split()
