@@ -185,7 +185,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('/data/search', controller='package', action='search')
         map.connect('/data/api', controller=data_controller, action='api')
-        map.connect('/data/system_dashboard', controller=data_controller, action='system_dashboard')
+        map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
         map.connect('/data/openspending-report/index', controller=data_controller, action='openspending_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')

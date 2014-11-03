@@ -5,7 +5,7 @@
 {% block title %}System Dashboard - {{ super() }}{% endblock %}
 
 {% block breadcrumb_content %}
-  <li><a href="/data/system_dashboard">System Dashboard</a></li>
+  {{ h.build_nav('system_dashboard', _('System Dashboard')) }}
 {% endblock %}
 
 {% block primary_content_inner %}
