@@ -18,11 +18,15 @@ Plugins
 
 This extension contains a number of elements, principally:
 
- * dgu_form - DGU's package form (??) - includes a number of custom fields such as temporal_coverage and geographic_coverage.
- * Harvest Object inserted into the CKAN package view page.
+ * DGU-specific templates
+   * Custom dataset edit form - includes a number of custom fields such as temporal_coverage and geographic_coverage.
+   * Harvest Object inserted into the CKAN package view page.
+ * DGU-customized search - different facets etc
+ * Reports (integrated from ckanext-report)
+ * Drupal integration - Drupal login, user details copied into CKAN, comments below datasets, provide APIs to Drupal for displaying recent datasets
+ * Authorization customizations - display of users is tightened up
+ * Feedback form (below datasets)
  * gov_daily - a script (for running daily) that save the database dumps for end-users (JSON/CSV) and backups (SQL).
- * ons_loader - an import script for data from the Office of National Statistics.
- * cospread - an import script for packages listed in a standardised spreadsheet format.
  * various other command-line utilities
 
 dgu_form
@@ -136,8 +140,6 @@ ckanext/dgu/schema.py - mostly not used now
 ckanext/dgu/drupalclient.py - for getting user info from Drupal
 dgu/ckanext/dgu/bin/ - scripts used at one time or another
 dgu/ckanext/dgu/commands/ - scripts used at one time or another
-dgu/ckanext/dgu/cospread/ - v old scripts for importing spreadsheets of metadata
-dgu/ckanext/dgu/ons/ - scripts for importing ONS data
 
 Install
 =======
@@ -210,10 +212,22 @@ e.g.::
 Scripts
 =======
 
-There are a number of command-line scripts for processing data. To run one of these, you should activate the environment first. For example to load in some ONS data you might start like this::
+There are a number of command-line scripts for processing data. Over the years they have been created in three different ways, but more recently we've been focussing on just creating stand-alone python scripts.
+
+To run a *python script* (in the ckanext/dgu/bin directory) you activate the environment and then call it with python::
 
     . pyenv/bin/activate
-    ons_loader --help
+    python ckanext/dgu/bin/dataset_change_publisher.py --help
+
+To run a *console script* (listed in setup.py) you should activate the environment first. For example::
+
+    . pyenv/bin/activate
+    bulk_delete --help
+
+To run a *paster command* (listed in setup.py) you activate the environment and if your CWD is not ckanext-dgu, specify it as the plugin::
+
+    . pyenv/bin/activate
+    paster --plugin=ckanext-dgu prod --help
 
 
 Assets

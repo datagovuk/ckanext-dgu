@@ -46,21 +46,13 @@ setup(
         dgu_site_down = ckanext.dgu.plugin:SiteIsDownPlugin
 
         [console_scripts]
-        ons_loader = ckanext.dgu.ons.command:load
-        cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
         bulk_delete = ckanext.dgu.bin.bulk_delete_cmd:command
         transfer_url = ckanext.dgu.bin.transfer_url_cmd:command
-        ons_analysis = ckanext.dgu.bin.ons_analysis_cmd:command
         ofsted_fix = ckanext.dgu.bin.ofsted_fix_cmd:command
         publisher_migration = ckanext.dgu.bin.publisher_migration:command
         metadata_v3_migration = ckanext.dgu.bin.metadata_v3_migration:command
         generate_test_organisations = ckanext.dgu.testtools.organisations:command
-        ons_remove_resources = ckanext.dgu.bin.ons_remove_resources:command
-        ons_remove_packages = ckanext.dgu.bin.ons_remove_packages:command
-        ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
-        ons_uksa_data4nr = ckanext.dgu.bin.ons_uksa_data4nr:command
-        ons_merge_duplicates = ckanext.dgu.bin.ons_merge_duplicates:command
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
