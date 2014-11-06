@@ -278,7 +278,7 @@ def command(config_file):
             log.info('Zipping up backup')
             pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
             # -f to overwrite any existing file, instead of prompt Yes/No
-            cmd = 'gzip -f %s %s' % pg_dump_filepath
+            cmd = 'gzip -f %s' % pg_dump_filepath
             log.info('Zip command: %s' % cmd)
             ret = os.system(cmd)
             if ret == 0:
