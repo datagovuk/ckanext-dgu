@@ -250,6 +250,8 @@ def command(config_file):
         db_details = get_db_config(config)
         pg_dump_filename = start_time.strftime(backup_filebase)
         pg_dump_filepath = os.path.join(backup_dir, pg_dump_filename)
+        pg_anon_dump_filepath = os.path.join(
+            backup_dir, pg_dump_filename.replace('.pg_dump', '.anon_pg_dump.gz'))
         cmd = 'export PGPASSWORD=%(db_pass)s&&pg_dump ' % db_details
         for pg_dump_option, db_details_key in (('U', 'db_user'),
                                                ('h', 'db_host'),
@@ -261,16 +263,37 @@ def command(config_file):
         ret = os.system(cmd)
         if ret == 0:
             log.info('Backup successful: %s' % pg_dump_filepath)
+            from anonymize_sql import anonymize_files
+            log.info('Anonymizing to: %s' % pg_anon_dump_filepath)
+            num_users = anonymize_files(pg_dump_filepath,
+                                        pg_anon_dump_filepath)
+            if num_users < 500:
+                log.error('Not enough users anonymized in backup - %i users. '
+                          'Not anonymized successfully so deleting the file',
+                          num_users)
+                os.remove(pg_anon_dump_filepath)
+            else:
+                log.info('Created anonymous backup: %s (%i users)',
+                        pg_anon_dump_filepath, num_users)
             log.info('Zipping up backup')
             pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
             # -f to overwrite any existing file, instead of prompt Yes/No
-            cmd = 'gzip -f %s' % pg_dump_filepath
+            cmd = 'gzip -f %s %s' % pg_dump_filepath
             log.info('Zip command: %s' % cmd)
             ret = os.system(cmd)
             if ret == 0:
                 log.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
             else:
                 log.error('Backup gzip error: %s' % ret)
+            # Only give read permission to backup unless root, to encourage use of the
+            # anonymous versions
+            cmd = 'chmod a-r %s' % pg_dump_zipped_filepath
+            log.info('Chmod command: %s' % cmd)
+            ret = os.system(cmd)
+            if ret == 0:
+                log.info('Backup chmod successful: %s' % pg_dump_zipped_filepath)
+            else:
+                log.error('Backup chmod error: %s' % ret)
         else:
             log.error('Backup error: %s' % ret)
 
