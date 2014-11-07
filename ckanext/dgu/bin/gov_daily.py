@@ -285,9 +285,9 @@ def command(config_file):
                 log.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
             else:
                 log.error('Backup gzip error: %s' % ret)
-            # Only give read permission to backup unless root, to encourage use of the
-            # anonymous versions
-            cmd = 'chmod a-r %s' % pg_dump_zipped_filepath
+            # Only give read permission to anon backup, unless root, to
+            # encourage use of the anonymous versions
+            cmd = 'chmod 640 %s' % pg_dump_zipped_filepath
             log.info('Chmod command: %s' % cmd)
             ret = os.system(cmd)
             if ret == 0:
