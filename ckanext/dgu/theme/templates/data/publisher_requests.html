@@ -30,6 +30,7 @@
             </py:when>
             <py:otherwise>
               <td><i class="icon-check-empty"></i></td>
+              <td><a href="${h.url_for('publisher_request', token=a.login_token)}">View</a></td>
               <td><a href="${h.url_for('publisher_request_decision', token=a.login_token, decision='accept')}">Accept</a></td>
               <td><a href="${h.url_for('publisher_request_decision', token=a.login_token, decision='reject')}">Reject</a></td>
             </py:otherwise>
