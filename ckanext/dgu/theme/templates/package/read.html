@@ -147,7 +147,7 @@
     <h2>Related Applications</h2>
     <ul>
       <li py:for="rel in h.get_related_apps(c.pkg_dict.get('id'))">
-        <a href="${rel.url}">${h.literal(rel.title)}</a>
+        <a href="${rel.url}">${rel.title}</a>
       </li>
     </ul>
     </py:if>

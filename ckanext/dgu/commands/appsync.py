@@ -2,6 +2,7 @@ import json
 import logging
 import lxml.html
 from urlparse import urljoin
+from HTMLParser import HTMLParser
 from collections import defaultdict
 
 import requests
@@ -140,9 +141,11 @@ class AppSync(CkanCommand):
     def _add_related(self, package, app_title, app_url, image_url=''):
         stats.add("Adding related item", "[%s] -> [%s]" % (package.name, app_title))
 
+        html_parser = HTMLParser()
+
         related = model.Related()
         related.type = 'App'
-        related.title = app_title
+        related.title = html_parser.unescape(app_title)
         related.description = ""
         related.url = app_url
 
