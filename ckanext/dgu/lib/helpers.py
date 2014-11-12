@@ -1969,6 +1969,7 @@ def parse_date(date_string):
         return FakeDate()
 
 def user_page_url():
+    from ckan.lib.base import h
     url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
                   else h.url_for(controller='user', action='me')
     if not c.user:
