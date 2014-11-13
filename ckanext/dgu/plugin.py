@@ -181,7 +181,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/linked-data-admin', controller=data_controller, action='linked_data_admin')
         map.connect('/data/tag', controller=tag_controller, action='index')
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
-        map.connect('/data/search', controller='package', action='search')
+        map.connect('dgu_search', '/data/search', controller='package', action='search')
         map.connect('/data/api', controller=data_controller, action='api')
         map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
         map.connect('/data/openspending-report/index', controller=data_controller, action='openspending_report')

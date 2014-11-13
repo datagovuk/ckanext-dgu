@@ -3,7 +3,8 @@
 {% block title %}Not Authorized - {{ super() }}{% endblock %}
 
 {% block breadcrumb_content %}
-    <li><i>Not Authorized</i></li>
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  <li><i>Not Authorized</i></li>
 {% endblock %}
 
 {% block primary_content_inner %}
