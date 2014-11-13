@@ -44,7 +44,7 @@
                 </div>
               {% endblock %}
               {% block flash %}
-                    <div class="flash-messages">
+                    <div class="flash-messages container">
                     {% block flash_inner %}
                         {% for message in h.flash.pop_messages() | list %}
                             <div class="panel {{ message.category.replace('alert','panel').replace('error','danger') }}">

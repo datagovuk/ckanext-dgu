@@ -1,31 +1,20 @@
-﻿<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+﻿{% extends "page.html" %}
 
-  <py:def function="page_title">Not Authorized</py:def>
+{% block title %}Not Authorized - {{ super() }}{% endblock %}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
+{% block breadcrumb_content %}
     <li><i>Not Authorized</i></li>
-  </py:match>
+{% endblock %}
 
-  <div py:match="content">
+{% block primary_content_inner %}
     <div class="panel panel-danger">
       <div class="panel-heading">This action is not authorized</div>
       <div class="panel-body">
-        <div py:if="not c.user">
-          <p>You may <a href="${'/user' if 'dgu_drupal_auth' in config['ckan.plugins'] else h.url_for(controller='user',action='me')}?destination=${request.path[1:]}">log-in</a> and try again.</p>
-        </div>
-        <div py:if="c.user">
-          <p>You are logged in as: ${h.dgu_linked_user(c.user, maxlength=100)}</p>
-        </div>
+        {% if not c.user %}
+          <p>You may <a href="{{ '/user' if h.is_plugin_enabled('dgu_drupal_auth') else h.url_for(controller='user',action='me') }}?destination={{ request.path[1:] }}">log-in</a> and try again.</p>
+        {% else %}
+          <p>You are logged in as: {{ h.dgu_linked_user(c.user, maxlength=100) }}</p>
+        {% endif %}
       </div>
     </div>
-  </div>
-
-  <xi:include href="layout_base.html" />
-
-</html>
+{% endblock %}

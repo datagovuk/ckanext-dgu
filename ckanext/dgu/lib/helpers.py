@@ -285,7 +285,8 @@ def user_properties(user):
 
     this_is_me = user and (c.user in (user.name, user.fullname))
 
-    is_official = not user or (user.get_groups('organization') or user.sysadmin)
+    is_official = (user_name and not user) or \
+                  (user and (user.get_groups('organization') or user.sysadmin))
     if user and user.name.startswith('user_d'):
         user_drupal_id = user.name.split('user_d')[-1]
     else:
