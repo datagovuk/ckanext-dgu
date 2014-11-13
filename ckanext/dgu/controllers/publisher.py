@@ -19,7 +19,7 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       ignore,
                                       keep_extras,
                                      )
-from ckanext.dgu.lib.publisher import go_up_tree
+from ckanext.dgu.lib.publisher import find_group_admins
 from ckanext.dgu.authentication.drupal_auth import DrupalUserMapping
 from ckanext.dgu.drupalclient import DrupalClient
 from ckan.plugins import PluginImplementations, IMiddleware
@@ -76,15 +76,8 @@ class PublisherController(OrganizationController):
             return self.apply(group.id, errors=errors,
                               error_summary=error_summary(errors))
 
-        # look for publisher admins up the tree
-        recipients = []
-        recipient_publisher = None
-        for publisher in go_up_tree(group):
-            admins = publisher.members_of_type(model.User, 'admin').all()
-            if admins:
-                recipients = [(u.fullname,u.email) for u in admins]
-                recipient_publisher = publisher.title
-                break
+
+        recipients, recipient_publisher = find_group_admins(group)
 
         if not recipients:
             if not config.get('dgu.admin.email'):
@@ -509,6 +502,7 @@ class PublisherController(OrganizationController):
             item = {}
             item['user'] = model.Session.query(model.User).filter(model.User.name==req.user_name).one()
             item['group'] = model.Session.query(model.Group).filter(model.Group.name==req.group_name).one()
+            item['emailed_to'] = find_group_admins(item['group'])[0]
             item['decision'] = req.decision
             item['date_of_request'] = req.date_of_request
             item['date_of_decision'] = req.date_of_decision

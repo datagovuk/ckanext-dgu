@@ -12,21 +12,22 @@
 
   <py:match path="content">
     <h1>Publisher Requests</h1>
-    <p>This page shows all requests for publisher membership and if they have been granted.</p>
+    <p>This page shows all requests for publisher editorship and if they have been granted.</p>
     <table>
       <py:for each="a in c.publisher_requests">
         <tr>
           <td>${a.date_of_request.strftime('%d/%m/%y %H:%M:%S')}</td>
           <td><strong>${a.user.fullname}</strong> (${a.user.name})</td>
-          <td>${a.group.name}</td>
+          <td><a href="${h.url_for('publisher_read', id=a.group.name)}">${a.group.title}</a></td>
+          <td><p py:for="admin_name, admin_email in a.emailed_to">${admin_name} &lt;${admin_email}&gt;</p></td>
           <py:choose> 
             <py:when test="a.decision == True">
               <td><i class="icon-check"></i></td>
-              <td></td><td></td>
+              <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
             </py:when>
             <py:when test="a.decision == False">
               <td><i class="icon-ban-circle"></i></td>
-              <td></td><td></td>
+              <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
             </py:when>
             <py:otherwise>
               <td><i class="icon-check-empty"></i></td>
