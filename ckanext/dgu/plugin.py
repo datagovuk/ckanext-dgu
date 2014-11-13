@@ -139,9 +139,7 @@ class ThemePlugin(p.SingletonPlugin):
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'theme/templates')
-        toolkit.add_template_directory(config, 'theme/new_templates')
         toolkit.add_public_directory(config, 'theme/public')
-        toolkit.add_public_directory(config, 'theme/new_src')
 
         # Shared assets may be configured to be elsewhere on disk,
         # so in that case let the user configure apache/nginx to serve
