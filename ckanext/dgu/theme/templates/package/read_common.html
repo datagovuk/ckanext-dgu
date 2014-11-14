@@ -302,7 +302,7 @@
 
 
   <py:def function="optional_head">
-    <link rel="alternate" type="application/rdf+xml" href="${h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf',qualified=True)}"/>
+    <link rel="alternate" type="application/rdf+xml" href="${h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}"/>
     <script type="text/javascript" src="${h.url_for_static('/scripts/dgu-package.min.js')}"></script>
     <script type="text/javascript">
       window.DATASET_ID = '${c.pkg_dict.get('id')}';
