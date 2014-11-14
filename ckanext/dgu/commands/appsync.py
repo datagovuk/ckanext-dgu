@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import lxml.html
 from urlparse import urljoin
 from HTMLParser import HTMLParser
@@ -147,7 +148,7 @@ class AppSync(CkanCommand):
         related.type = 'App'
         related.title = html_parser.unescape(app_title)
         related.description = ""
-        related.url = app_url
+        related.url = re.sub('^https*:', '', app_url)
 
         related.image_url = image_url
 
