@@ -190,7 +190,6 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/openspending-report/index', controller=data_controller, action='openspending_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
-        map.connect('/data/carparks', controller=data_controller, action='carparks')
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
