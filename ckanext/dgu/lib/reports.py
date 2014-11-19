@@ -520,42 +520,52 @@ dataset_app_report_info = {
     'template': 'report/dataset_app_report.html',
     }
 
-def admin_editor(top_org=None, org=None):
+def admin_editor(org=None):
     from ckanext.dgu.lib.helpers import group_get_users
 
-    q = model.Group.all('organization')
+    table = []
 
     if org:
-        q = q.filter_by(name=org)
-    elif top_org:
-        parent = model.Session.query(model.Group).filter_by(name=top_org).one()
+        q = model.Group.all('organization')
+        parent = model.Session.query(model.Group).filter_by(name=org).one()
         child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
         q = q.filter(model.Group.id.in_([parent.id] + child_ids))
 
-    table = []
-    for g in q.all():
-        record = {}
-        record['name'] = g.name
-        record['admins'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in group_get_users(g, capacity='admin')])
-        record['editors'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in group_get_users(g, capacity='editor')])
-        table.append(record)
+        for g in q.all():
+            record = {}
+            record['name'] = g.name
+            record['admins'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in group_get_users(g, capacity='admin')])
+            record['editors'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in group_get_users(g, capacity='editor')])
+            table.append(record)
+    else:
+        table.append({})
+
     return {'table': table}
 
 def admin_editor_combinations():
     from ckanext.dgu.lib.helpers import organization_list
 
-    for top_org, _ in organization_list(top=True):
-        yield {'top_org': top_org, 'org': ''}
-
     for org, _ in organization_list(top=False):
-        yield {'top_org': '', 'org': org}
+        yield {'org': org}
+
+def admin_editor_authorize(user, options):
+    import ckan.lib.helpers as helpers
+
+    if options.get('org', False):
+        org = options["org"]
+        organization = model.Session.query(model.Group).filter_by(name=org).one()
+        if not helpers.check_access('organization_update', {'id': organization.id}):
+            return False
+
+    return True
 
 admin_editor_info = {
     'name': 'admin_editor',
     'title': 'Publisher administrators and editors',
     'description': 'Filterable list of publishers which shows who has administrator and editor rights.',
-    'option_defaults': OrderedDict((('top_org', ''), ('org', ''),)),
+    'option_defaults': OrderedDict((('org', ''),)),
     'option_combinations': admin_editor_combinations,
     'generate': admin_editor,
     'template': 'report/admin_editor.html',
+    'authorize' : admin_editor_authorize
     }

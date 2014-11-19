@@ -1,29 +1,32 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
-
-
-    <div class="widget-container">
-        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
-              <thead>
-                <tr>
-                  <th style="width: 80px">Name</th>
-                  <th style="width: 80px">Administrators</th>
-                  <th style="width: 80px">Editors</th>
-                </tr>
-              </thead>
-              <tbody>
-                <py:for each="dataset in c.data['table']">
-                    <tr>
-                        <td>${dataset['name']}</td>
-                        <td><py:for each="admin in dataset['admins'].split('\n')">${admin}<br/></py:for></td>
-                        <td><py:for each="editor in dataset['editors'].split('\n')">${editor}<br/></py:for></td>
-                    </tr>
-                </py:for>
-              </tbody>
-        </table>
-
-    </div>
-
-</html>
+<div class="widget-container">
+  {% if data.table.0 == {} %}
+    <h2>Please select a department or organisation</h2>
+  {% else %}
+    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+          <thead>
+            <tr>
+              <th style="width: 80px">Name</th>
+              <th style="width: 80px">Administrators</th>
+              <th style="width: 80px">Editors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dataset in data.table %}
+                 <tr>
+                     <td>{{ dataset.name }}</td>
+                     <td>
+                     {% for admin in dataset.admins.split('\n') %}
+                       {{admin}}<br/>
+                     {% endfor %}
+                     </td>
+                     <td>
+                     {% for editor in dataset.editors.split('\n') %}
+                       {{editor}}<br/>
+                     {% endfor %}
+                     </td>
+                 </tr>
+            {% endfor %}
+          </tbody>
+    </table>
+  {% endif %}
+</div>

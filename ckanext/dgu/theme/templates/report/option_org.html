@@ -1,13 +1,8 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
-  <form>
-    <select class="inline js-auto-submit" name="org">
-      <option value="" selected="selected">Select a department or organisation</option>
-      <option py:for="org_name, org_title in h.organization_list()" value="${org_name}">
-        ${org_title}
-      </option>
-    </select>
-  </form>
-</html>
+<select class="inline js-auto-submit" name="org">
+  <option value="" selected="selected">Select a department or organisation</option>
+  {% for org in h.organizations_available(permission='admin') %}
+  <option value="{{org.name}}">
+    {{org.title}}
+  </option>
+  {% endfor %}
+</select>
