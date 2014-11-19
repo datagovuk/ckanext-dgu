@@ -285,7 +285,8 @@ def user_properties(user):
 
     this_is_me = user and (c.user in (user.name, user.fullname))
 
-    is_official = not user or (user.get_groups('organization') or user.sysadmin)
+    is_official = (user_name and not user) or \
+                  (user and (user.get_groups('organization') or user.sysadmin))
     if user and user.name.startswith('user_d'):
         user_drupal_id = user.name.split('user_d')[-1]
     else:
@@ -1967,3 +1968,17 @@ def parse_date(date_string):
         class FakeDate:
             year = ''
         return FakeDate()
+
+def user_page_url():
+    from ckan.lib.base import h
+    url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
+                  else h.url_for(controller='user', action='me')
+    if not c.user:
+        url += '?destination=%s' % request.path[1:]
+    return url
+
+def is_plugin_enabled(plugin_name):
+    return plugin_name in config.get('ckan.plugins', '').split()
+
+def config_get(key, default=None):
+    return config.get(key, default)

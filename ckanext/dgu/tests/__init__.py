@@ -1,12 +1,10 @@
-import os
 import re
-import signal
 from paste.script.appinstall import SetupCommand
 from pylons import config
 
 from ckan import model
 from ckan.lib.create_test_data import CreateTestData
-from ckan.tests import WsgiAppCase, BaseCase
+from ckan.tests import BaseCase
 from ckanext.dgu.testtools.mock_drupal import MOCK_DRUPAL_URL
 from ckanext.harvest.model import HarvestSource, HarvestJob, HarvestObject
 from ckanext.harvest.model import setup as harvest_setup
