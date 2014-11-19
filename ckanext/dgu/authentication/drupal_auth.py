@@ -3,11 +3,10 @@ import logging
 import datetime
 import hashlib
 
-from ckanext.dgu.drupalclient import DrupalClient, DrupalXmlRpcSetupError, \
-     DrupalRequestError
-from xmlrpclib import ServerProxy
+from ckanext.dgu.drupalclient import DrupalClient, DrupalRequestError
 
 log = logging.getLogger(__name__)
+
 
 class DrupalAuthMiddleware(object):
     '''Allows CKAN user to login via Drupal. It looks for the Drupal cookie
@@ -24,16 +23,19 @@ class DrupalAuthMiddleware(object):
         # if that int() raises a ValueError then the app will not start
 
     def _parse_cookies(self, environ):
-        is_ckan_cookie = [False]
-        drupal_session_id = [False]
-        server_name = environ['SERVER_NAME']
-        for k, v in environ.items():
-            key = k.lower()
-            if key  == 'http_cookie':
-                is_ckan_cookie[0] = self._is_this_a_ckan_cookie(v)
-                drupal_session_id[0] = self._drupal_cookie_parse(v, server_name)
-        is_ckan_cookie = is_ckan_cookie[0]
-        drupal_session_id = drupal_session_id[0]
+        # When accessing CKAN running in a VM from the host via a private
+        # network, the environ['SERVER_NAME'] is 0.0.0.0, but the HTTP_HOST is
+        # correct (e.g. 192.168.11.11:5000) and we need to strip off the port
+        # number.
+        server_name = environ['HTTP_HOST'].split(':')[0]
+        cookie_string = environ.get('HTTP_COOKIE')
+        if cookie_string:
+            is_ckan_cookie = self._is_this_a_ckan_cookie(cookie_string)
+            drupal_session_id = self._drupal_cookie_parse(cookie_string,
+                                                          server_name)
+        else:
+            is_ckan_cookie = False
+            drupal_session_id = False
         return is_ckan_cookie, drupal_session_id
 
     @staticmethod
@@ -44,7 +46,7 @@ class DrupalAuthMiddleware(object):
             cookies.load(str(cookie_string))
         except Cookie.CookieError:
             log.error("Received invalid cookie: %s" % cookie_string)
-            return False       
+            return False
         similar_cookies = []
         for cookie in cookies:
             if cookie.startswith('SESS'):
@@ -109,7 +111,6 @@ class DrupalAuthMiddleware(object):
 
         self.do_drupal_login_logout(environ, new_headers)
 
-	#log.debug('New headers: %r', new_headers)
         def cookie_setting_start_response(status, headers, exc_info=None):
             if headers:
                 headers.extend(new_headers)
@@ -264,27 +265,24 @@ class DrupalAuthMiddleware(object):
                    'publishing user' - anyone who has registered - includes spammers
         '''
         from ckan import model
-        from ckan import new_authz
+        from ckan.model.meta import Session
         needs_commit = False
-        user = model.User.by_name(user_name)
+        user = Session.query(model.User).filter_by(name=user_name).first()
 
         # Sysadmin or not
         log.debug('User roles in Drupal: %r', drupal_roles)
-        should_be_sysadmin = bool(set(('administrator', 'package admin', 'publisher admin', 'ckan administrator')) & set(drupal_roles))
+        should_be_sysadmin = bool(set(('administrator', 'package admin', 'publisher admin', 'ckan adminstrator', 'CKAN sysadmin', 'site manager')) & set(drupal_roles))
         if should_be_sysadmin and not user.sysadmin:
             # Make user a sysadmin
-            user.syadmin = True
             log.info('User made a sysadmin: %s', user_name)
             needs_commit = True
         elif not should_be_sysadmin and user.sysadmin:
-            # Stop user being a sysadmin - disabled for time being which 'ckan
-            # administrator' is populated
-            #user.sysadmin = False
-            #log.info('User now not a sysadmin: %s', user_name)
-            #needs_commit = True
-            pass
+            log.info('User now not a sysadmin: %s', user_name)
+            needs_commit = True
         if needs_commit:
-            model.repo.commit_and_remove()
+            user.sysadmin = should_be_sysadmin
+            Session.commit()
+            Session.remove()
 
     def is_authtkt_cookie_too_old(self, authtkt_identity):
         authtkt_time = datetime.datetime.fromtimestamp(authtkt_identity['timestamp'])
