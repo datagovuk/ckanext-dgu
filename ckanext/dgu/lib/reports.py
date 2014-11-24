@@ -479,3 +479,33 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
+
+def dataset_app_report():
+    table = []
+
+    datasets = collections.defaultdict(lambda: {'apps': []})
+    for related in model.Session.query(model.RelatedDataset).filter(model.Related.type=='App').all():
+        dataset_name = related.dataset.name
+        dataset_title = related.dataset.title
+
+        app = {
+          'title': related.related.title,
+          'url': related.related.url 
+        }
+
+        datasets[dataset_name]['apps'].append(app)
+
+    for dataset_name, dataset in datasets.items():
+        table.append({'name': dataset_name, 'apps': dataset['apps']})
+
+    return {'table': table}
+
+dataset_app_report_info = {
+    'name': 'dataset-app-report',
+    'title': 'Datasets used in apps',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': dataset_app_report,
+    'template': 'report/dataset_app_report.html',
+    }

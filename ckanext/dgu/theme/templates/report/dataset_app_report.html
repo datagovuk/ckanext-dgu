@@ -1,0 +1,22 @@
+<div class="widget-container">
+    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+        <thead>
+          <tr>
+            <th style="width: 80px">Dataset</th>
+            <th style="width: 80px">App</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dataset in data.table %}
+            <tr>
+                <td>{{ dataset.name }}</td>
+                <td>
+                  {% for app in dataset.apps %}
+                    <a href="{{app.url}}">{{app.title}}</a><br/>
+                  {% endfor %}
+                </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+</div>
