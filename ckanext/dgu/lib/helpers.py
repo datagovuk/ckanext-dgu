@@ -729,7 +729,6 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-        field_names.remove(['mandate'])
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
     if is_local_government_data:
