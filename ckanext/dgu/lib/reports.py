@@ -480,32 +480,52 @@ datasets_without_resources_info = {
     }
 
 
-def dataset_app_report():
+def dataset_app_report(reverse=False):
     table = []
 
-    datasets = collections.defaultdict(lambda: {'apps': []})
+    data = collections.defaultdict(lambda: {'related': []})
+
     for related in model.Session.query(model.RelatedDataset).filter(model.Related.type=='App').all():
-        dataset_name = related.dataset.name
-        dataset_title = related.dataset.title
+        if reverse:
+            key = related.related.url
+            data[key]['title'] = related.related.title
+            data[key]['url'] = related.related.url
 
-        app = {
-          'title': related.related.title,
-          'url': related.related.url 
-        }
+            if related.related.title == 'EnviroFIND':
+                print "EnviroFIND", related.related.id
 
-        datasets[dataset_name]['apps'].append(app)
+            dataset = {
+                'title': related.dataset.title,
+                'url': ''
+            }
 
-    for dataset_name, dataset in datasets.items():
-        table.append({'name': dataset_name, 'apps': dataset['apps']})
+            data[key]['related'].append(dataset)
 
-    return {'table': table}
+        else:
+            key = related.dataset.id
+            data[key]['title'] = related.dataset.title
+            data[key]['url'] = ''
+
+            app = {
+                'title': related.related.title,
+                'url': related.related.url 
+            }
+
+            data[key]['related'].append(app)
+
+    for info in data.values():
+        table.append({'title': info['title'],
+                      'url': info['url'], 
+                      'related': info['related']})
+
+    return {'table': table, 'reverse': reverse}
 
 dataset_app_report_info = {
     'name': 'dataset-app-report',
-    'title': 'Datasets used in apps',
+    'title': 'Apps & Datasets',
     'description': 'Datasets that have been used by apps.',
-    'option_defaults': None,
-    'option_combinations': None,
+    'option_defaults': OrderedDict([('reverse', False)]),
+    'option_combinations': lambda: [{'reverse': True}, {'reverse': False}],
     'generate': dataset_app_report,
     'template': 'report/dataset_app_report.html',
     }

@@ -1,18 +1,30 @@
 <div class="widget-container">
+    {% if data.reverse == True %}
+      <h2>This report shows apps with their associated datasets</h2>
+      <p>To see datasets with their associated apps please click <a href="?reverse=False">here</a></p>
+    {% else %}
+      <h2>This report shows datasets with their associated apps</h2>
+      <p>To see apps with their associated datasets please click <a href="?reverse=True">here</a></p>
+    {% endif %}
     <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
         <thead>
           <tr>
-            <th style="width: 80px">Dataset</th>
+            {% if data.reverse == True %}
             <th style="width: 80px">App</th>
+            <th style="width: 80px">Datasets</th>
+            {% else %}
+            <th style="width: 80px">Dataset</th>
+            <th style="width: 80px">Apps</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody>
-          {% for dataset in data.table %}
+          {% for item in data.table %}
             <tr>
-                <td>{{ dataset.name }}</td>
+                <td><a href="{{item.url}}">{{ item.title }}</a></td>
                 <td>
-                  {% for app in dataset.apps %}
-                    <a href="{{app.url}}">{{app.title}}</a><br/>
+                  {% for rel in item.related %}
+                    <a href="{{rel.url}}">{{rel.title}}</a><br/>
                   {% endfor %}
                 </td>
             </tr>
