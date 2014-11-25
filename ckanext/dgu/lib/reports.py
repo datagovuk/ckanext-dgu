@@ -481,6 +481,8 @@ datasets_without_resources_info = {
 
 
 def dataset_app_report(reverse=False):
+    from ckan.lib.helpers import url_for
+
     table = []
 
     data = collections.defaultdict(lambda: {'related': []})
@@ -491,12 +493,9 @@ def dataset_app_report(reverse=False):
             data[key]['title'] = related.related.title
             data[key]['url'] = related.related.url
 
-            if related.related.title == 'EnviroFIND':
-                print "EnviroFIND", related.related.id
-
             dataset = {
                 'title': related.dataset.title,
-                'url': ''
+                'url': url_for(controller='package', action='read', id=related.dataset.name)
             }
 
             data[key]['related'].append(dataset)
@@ -504,7 +503,7 @@ def dataset_app_report(reverse=False):
         else:
             key = related.dataset.id
             data[key]['title'] = related.dataset.title
-            data[key]['url'] = ''
+            data[key]['url'] = url_for(controller='package', action='read', id=related.dataset.name)
 
             app = {
                 'title': related.related.title,
