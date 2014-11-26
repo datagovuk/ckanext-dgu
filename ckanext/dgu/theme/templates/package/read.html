@@ -75,11 +75,12 @@
       <!--! id=dataset for ckanext-spatial -->
     </div>
 
+    <py:with vars="publisher_name = c.pkg.get_organization().name">
     <div class="dataset-resources" py:if="not h.is_unpublished_item(c.pkg_dict)">
       <!-- Resources -->
       <py:if test="h.individual_resources()">
         <h2>Data Resources (${len(h.individual_resources())})</h2>
-        ${resource_table(h.individual_resources())}
+        ${resource_table(h.individual_resources(), publisher_name)}
       </py:if>
       <py:if test="h.timeseries_resources()">
         <h2>Data Resources (${len(h.timeseries_resources())} in a time series)</h2>
@@ -87,7 +88,7 @@
 	  <div class="year">
             <h3>${year} <span class="showyear"></span><span class="hideyear"></span></h3>
             <div class="year_items">
-            ${resource_table(items)}
+            ${resource_table(items, publisher_name)}
             </div>
           </div>
 	</py:for>
@@ -96,13 +97,14 @@
     <div class="dataset-resources-additional" py:if="not h.is_unpublished_item(c.pkg_dict)">
       <py:if test="h.additional_resources() or h.gemini_resources()">
         <h2>Additional Links (${len(h.additional_resources()) + len(h.gemini_resources())})</h2>
-        ${resource_table(h.additional_resources() + h.gemini_resources())}
+        ${resource_table(h.additional_resources() + h.gemini_resources(), publisher_name)}
       </py:if>
 
       <py:if test="not (is_location_data or h.individual_resources() or h.timeseries_resources() or h.additional_resources())">
         <em>(none)</em>
       </py:if>
     </div>
+    </py:with>
 
     <div class="dataset-additional-information" py:if="not h.is_unpublished_item(c.pkg_dict)">
       <!-- Dataset Information Section -->
@@ -178,7 +180,7 @@
   </py:def>
 
 
-  <div py:def="resource_table(resources)" class="row">
+  <div py:def="resource_table(resources, publisher_name)" class="row">
     <div class="col-sm-6" py:for="res in resources">
     <div class="dataset-resource">
       <div class="dataset-resource-format">
@@ -215,7 +217,7 @@
         </a>
         <ul class="dropdown-menu" role="menu" style="pointer-events:auto;" py:with="gemini = res.get('gemini',False); is_download = not is_location_data and res.get('resource_type') == 'file'">
           <li py:if="gemini">
-            <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res)}">
+            <a href="${res.get('url', '')}" rel="dcat: distribution" target="_blank" onclick="${h.ga_download_tracking(res, publisher_name)}">
               <i class="icon-search"></i>&nbsp; ${res['action']}
             </a>
           </li>
@@ -225,7 +227,7 @@
             </a>
           </li>
           <li py:if="not gemini">
-            <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res)}">
+            <a href="${res.get('url', '')}" onclick="${h.ga_download_tracking(res, publisher_name)}">
               <i class="icon-download-alt"></i>&nbsp;
               <py:if test="is_download">Download</py:if>
               <py:if test="not is_download">Direct Link</py:if>
@@ -233,7 +235,7 @@
           </li>
           <py:with vars="cache_url, cache_timestamp = h.get_cache(res)">
             <li py:if="not gemini and cache_url">
-              <a href="${cache_url}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on ${cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown date'}" onclick="${h.ga_download_tracking(res, 'download-cache')}">
+              <a href="${cache_url}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on ${cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown date'}" onclick="${h.ga_download_tracking(res, publisher_name, 'download-cache')}">
                 <i class="icon-save"></i>&nbsp;
                 Cached
               </a>
