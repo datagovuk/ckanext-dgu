@@ -1,5 +1,5 @@
 <div class="widget-container">
-    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+    <table class="table table-bordered table-condensed" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
         <thead>
           <tr>
             <th style="width: 80px">Dataset</th>
@@ -7,9 +7,11 @@
           </tr>
         </thead>
         <tbody>
-          {% for dataset in data.table %}
+        {% for theme in data.table|groupby('theme') %}
+          <tr><th colspan="2">{{theme.grouper}} ({{theme.list|length}})</th></tr>
+          {% for dataset in theme.list %}
             <tr>
-                <td>{{ dataset.name }}</td>
+                <td><a href="{{h.url_for(controller='package', action='read', id=dataset.name)}}">{{dataset.title}}</a></td>
                 <td>
                   {% for app in dataset.apps %}
                     <a href="{{app.url}}">{{app.title}}</a><br/>
@@ -17,6 +19,7 @@
                 </td>
             </tr>
           {% endfor %}
+        {% endfor %}
         </tbody>
     </table>
 </div>

@@ -486,17 +486,21 @@ def dataset_app_report():
     datasets = collections.defaultdict(lambda: {'apps': []})
     for related in model.Session.query(model.RelatedDataset).filter(model.Related.type=='App').all():
         dataset_name = related.dataset.name
-        dataset_title = related.dataset.title
 
         app = {
           'title': related.related.title,
           'url': related.related.url 
         }
 
+        datasets[dataset_name]['title'] = related.dataset.title
+        datasets[dataset_name]['theme'] = related.dataset.extras.get('theme-primary', '')
         datasets[dataset_name]['apps'].append(app)
 
     for dataset_name, dataset in datasets.items():
-        table.append({'name': dataset_name, 'apps': dataset['apps']})
+        table.append({'title': dataset['title'],
+                      'name': dataset_name,
+                      'theme': dataset['theme'],
+                      'apps': dataset['apps']})
 
     return {'table': table}
 
