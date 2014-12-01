@@ -357,7 +357,7 @@ class DatasetForm(p.SingletonPlugin):
             'mandate': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
-            'theme-secondary': [convert_from_extras, json.loads, ignore_missing],
+            'theme-secondary': [convert_from_extras, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],
