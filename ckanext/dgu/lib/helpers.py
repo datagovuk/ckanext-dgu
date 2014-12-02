@@ -1989,3 +1989,23 @@ def is_plugin_enabled(plugin_name):
 
 def config_get(key, default=None):
     return config.get(key, default)
+
+def paginator_page_url(pageobj):
+    # Return a function that can be queried to get the url for a specific
+    # page.
+    return lambda x: pageobj._url_generator(page=x)
+
+def is_dict(d):
+    return type(d) is dict and bool(d)
+
+def is_list(d):
+    return type(d) is list and bool(d)
+
+def is_string(d):
+    return type(d) in [str, unicode] and bool(d)
+
+def list_enumerate(l):
+    return enumerate(l)
+
+def sorted_list(l):
+    return sorted(l)

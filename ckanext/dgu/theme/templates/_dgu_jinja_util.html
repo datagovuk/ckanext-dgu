@@ -1,0 +1,461 @@
+
+
+  <!--! Herein can be found generic macros for re-use in the jinjified templates -->
+
+
+<!-- recursive function turns errors into hierarchical lists -->
+
+{% macro dump(o) %}
+  {% if h.is_dict(o) %}
+  <ul>
+    {% for k,v in h.iterate_error_dict(o) %}
+    <li>
+      {% if h.is_string(v) %}
+        <b>{{k}}:</b> {{v}}
+      {% else %}
+        <b>{{k}}: </b> {{dump(v)}}
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if h.is_list(o) %}
+  <ul>
+    {% for v in o %}
+      {{ dump(v) }}
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% if h.is_string(o) %}
+  <li>
+    {{o}}
+  </li>
+  {% endif %}
+{% endmacro %}
+
+{% macro paginator(pageobj) %}
+
+    {% set page     = pageobj.page %}
+    {% set numpages = pageobj.page_count %}
+    {% set url_for  = h.paginator_page_url(paginator_page_url) %}
+    {% if numpages > 1 %}
+    <div class="dgu-pagination">
+      <ul class="pagination">
+        <li>
+          {% if page > 1 %}
+            <a href="{{url_for_page(page-1)}}">&laquo;</a>
+          {% endif %}
+          {% if page == 1 %}
+            <span >&laquo;</span>
+          {% endif %}
+        </li>
+        {% for text,url in h.pagination_links(page,numpages,url_for_page) %}
+        <li>
+          {% if url %}
+            <a href="{{ url }}">{{ text }}</a>
+          {% endif %}
+          {% if not url %}
+            <span>{{ text }}</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+        <li>
+          {% if numpages-page > 0 %}
+            <a href="{{url_for_page(page+1)}}">&raquo;</a>
+          {% endif %}
+          {% if page == numpages %}
+            <span >&raquo;</span>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+    {% endif %}
+    <div class="clearfix clearfix-ie7"></div>
+
+{% endmacro %}
+
+{% macro breadcrumbs(kvlist) %}
+  <div class="col-md-12">
+    <ul id="breadcrumbs">
+      <li><a href="/"><i class="icon-home"></i></a></li>
+      {% for k,v in kvlist %}
+        <li class="spacer">&nbsp;/&nbsp;</li>
+        <li><a href="{{v}}">{{k}}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endmacro %}
+
+<!-- pure one-liner to avoid whitespace glitches -->
+{% macro if_(testValue,stringIfTrue,stringIfFalse='') %}{% if testValue %}{{stringIfTrue}}{% else %}{{stringIfFalse}}{% endif%}{% endmacro %}
+
+
+{% macro search_form(mini=False, placeholder='Search for data...', set_fields=None, extra_options=None) %}
+  <div class="search-area">
+    <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+      <div class="{{if_(mini,'mini','left')}}">
+        <div class="left-inner auto-height">
+        <form class="form-search" action="{{h.url_for(controller='package', action='search')}}" method="GET">
+          <div class="input-group">
+            <input class="form-control" type="text" name="q" value="{{c.q}}" results="0" placeholder="{{placeholder}}" />
+            <span class="input-group-btn">
+              <button type="submit" class="btn btn-default">
+                <i class="icon-search"></i>
+              </button>
+            </span>
+          </div>
+          {% if c.fields %}
+            {% for k,v in c.fields %}
+              {% if k != 'unpublished' or k != 'core-dataset' %}
+              <input type="hidden" name="{{k}}" value="{{v}}"/>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% if set_fields %}
+            {% for k,v in set_fields.items() %}
+              <input type="hidden" name="{{k}}" value="{{v}}" />
+            {% endfor %}
+          {% endif %}
+          {% if request.params.get('ext_bbox','') %}
+            <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox','')}}" />
+          {% endif %}
+        </form>
+        {% if extra_options %}
+          {{extra_options()}}
+        {% endif %}
+        </div>
+      </div>
+      {% if not mini %}
+      <div class="right">
+        <div class="right-inner auto-height">
+        <div class="chevron"></div>
+        {% if not c.query_error %}
+          {% set count = c.page.item_count if c.page  else c.package_count or 0 %}
+          <div class="result-count">{{count}}</div>
+          <div class="result-count-footer">Dataset{{if_(count!=1,'s')}}</div>
+        {% else %}
+          <div class="result-count-footer">Search Error</div>
+        {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro map_preview_button_direct(pkg_dict,small=True) %}
+    <a href="/data/map-preview?{{h.get_wms_info_urls(pkg_dict)}}{{'&amp;n=%s&amp;w=%s&amp;e=%s&amp;s=%s' % h.get_wms_info_extent(pkg_dict) if h.get_wms_info_extent(pkg_dict) else ''}}" class="btn btn-default {{if_(small,'btn-xs','')}} btn-info btn-preview preview-now"><i class="icon-map-marker"></i>&nbsp; Preview on Map</a>
+{% endmacro %}
+
+{% macro package_list_from_dict(packages,mini=False) %}
+  <div class="common-dataset-list">
+    <div class="{{if_(mini,'row')}}">
+      {% for i in range(len(packages)) %}
+        {% if i%4==0 %}
+        <div class="clearfix visible-lg"></div>
+        {% endif %}
+        {% if i%3==0 %}
+        <div class="clearfix visible-md clearfix-ie7"></div>
+        {% endif %}
+        {% if i%2==0 %}
+        <div class="clearfix visible-sm"></div>
+        {% endif %}
+
+        {% with %}
+        {% set package       = packages[i] %}
+        {% set unpublished   = h.is_unpublished_item(packages[i]) %}
+        {% set title         = packages[i].get('title') or packages[i].get('name') %}
+        {% set primary_theme = h.get_primary_theme(packages[i]) %}
+
+          <div class="{{if_(mini,'col-lg-3 col-md-4 col-sm-6')}}">
+          <div class="dataset dataset-summary theme-{{primary_theme or 'none'}} {{if_(mini,'mini', '')}} {{if_(unpublished,'unpublished', '')}}">
+           <a class="dataset-header" href="{{h.url_for(controller='package', action='read', id=package.get('name'))}}">
+             <div class="theme-name">{{primary_theme or '(Uncategorised)'}}</div>
+             <div class="underlined">{{title}} {% if unpublished %}<span class="text-unpublished">(unpublished)</span>{% endif %}</div>
+           </a>
+           <div class="dataset-body">
+             <div class="left">
+               <a class="dataset-publisher" href="{{h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=h.package_publisher_dict(package).get('name', ''))}}">
+                 {{h.package_publisher_dict(package).get('title', '')}}
+               </a>
+               <div class="dataset-description">
+                 {{h.markdown_extract(package.notes)}}
+               </div>
+             </div>
+             <div class="right">
+                {% if h.is_core_dataset(package) %}
+                  <div title="This dataset is part of the National Information Infrastructure" class="js-tooltip format-box" style='background-color: #8BC658;'>NII</div>
+                {% endif %}
+
+               {% for format in h.formats_for_package(package) %}
+                 {{format_box(format.lower())}}
+               {% endfor %}
+               {% if not mini and h.get_wms_info_urls(package) %}
+                 <div class="map-buttons">
+                   <span style="display: none;" class="js-data-id">{{package.id}}</span>
+                   <span style="display: none;" class="js-data-title">{{package.get('title')}}</span>
+                   <span style="display: none;" class="js-data-querystring">{{h.get_wms_info_urls(package)}}</span>
+                   <span style="display: none;" class="js-data-extent">{{','.join(h.get_wms_info_extent(package))}}</span>
+                   {{map_preview_button_direct(package)}}
+                   {% set in_basket = package.id in session.get('preview_list',[])%}
+                     <span
+                          class="preview-add js-dataset-{{package.id}}-add"
+                          style="{{if_(in_basket,'display: none;')}}">
+                            <button data-id="{{package.id}}" class="btn btn-default btn-xs btn-info btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Add to Preview List</button>
+                     </span>
+                     <span
+                          class="preview-remove js-dataset-{{package.id}}-remove"
+                          style="{{if_(not in_basket,'display: none;')}}">
+                          <button data-id="{{package.id}}" class="btn btn-danger btn-xs btn-preview btn-basket"><i class="icon-shopping-cart"></i>&nbsp; Remove from List</button>
+                     </span>
+                 </div>
+               {% endif %}
+             </div>
+             <div class="clearfix clearfix-ie7"> &nbsp;</div>
+             <a class="view-data-link" href="{{h.url_for(controller='package', action='read', id=package.get('name'))}}">
+               View Data
+             </a>
+           </div>
+           </div>
+         </div>
+         {% endwith %}
+      {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro feedback_summary(package,render_title=True,large=False) %}
+  {% set comment_dict=h.unpublished_comments_lookup(package) %}
+    <div class="feedback-summary {{if_(large,'large', '')}}">
+      {% if render_title %}
+      <div class="pull-left feedback-summary-title">Feedback:</div>
+      {% endif %}
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Economic growth" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-gbp"></i> {{comment_dict['economic']}}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Social growth" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-group"></i>  {{comment_dict['social']}}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Effective public services" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-road"></i>  {{comment_dict['effective']}}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Potential links to other datasets" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-code-fork"></i>  {{comment_dict['linked']}}</a>
+      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Other key data" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-quote-left"></i> {{comment_dict['other']}}</a>
+      <div class="clearfix"></div>
+    </div>
+    <div class="clearfix"></div>
+{% endmacro %}
+
+{% macro facet_box(title, unselected, selected, if_empty, more_button=None) %}
+    <div class="facet-box-unboxed">
+      <h4 class="facet-title">{{title}}</h4>
+      <div class="facet-options">
+        {% for (link,text,tooltip) in selected %}
+          <div class="facet-option facet-option-selected">
+            <a href="{{link}}">
+              <div class="facet-kill pull-right">
+                <i class="icon-large icon-remove-sign"></i>
+              </div>
+              <span class="{{if_(tooltip,'js-tooltip', '')}}" data-original-title="{{tooltip}}" data-placement="right">
+                {{h.literal(text)}}
+              </span>
+            </a>
+          </div>
+        {% endfor %}
+        {% for i in range(len(unselected)) %}
+          {% with %}
+          {% set (link,text,tooltip) = unselected[i] %}
+          {% set overflow = i>5 and more_button %}
+          <div class="facet-option {{if_(overflow,'more-%s'%more_button)}}" style="{{if_(overflow,'display:none;')}}">
+            <a href="{{link}}">
+              <span class="{{if_(tooltip,'js-tooltip', '')}}" data-original-title="{{tooltip}}" data-placement="right">
+                {{h.literal(text)}}
+              </span>
+            </a>
+          </div>
+          {% endwith %}
+        {% endfor %}
+        {% if more_button and len(unselected)>5 %}
+          <a id="{{more_button}}" class="facet-expand-collapse" href="#">
+            <div class="expander">
+              <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
+            </div>
+            <div class="collapser">
+              <i class="icon-double-angle-up"></i>&nbsp; less &nbsp;<i class="icon-double-angle-up"></i>
+            </div>
+          </a>
+        {% endif %}
+        {% if not len(selected) and not len(unselected) %}
+        <div class="facet-option"><em>{{if_empty}}</em></div>
+        {% endif %}
+      </div>
+    </div>
+{% endmacro %}
+
+{% macro facet_filters() %}
+  <div class="datasets">
+    <div class="facet-filters">
+      <div class="visible-xs visible-sm">
+        <a href="#" class="hide-facets">
+          <i class="icon-remove-circle icon-4x"></i>
+        </a>
+      </div>
+      {{facet_box(
+                'Show only...',
+                h.search_facets_unselected(['unpublished']),
+                h.search_facets_selected(['unpublished']),
+                'No further filters to apply.'
+                )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'NII datasets',
+                h.search_facets_unselected(['core_dataset']),
+                h.search_facets_selected(['core_dataset']),
+                'No further filters to apply.'
+                )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Licence',
+                h.search_facets_unselected(['license_id-is-ogl']),
+                h.search_facets_selected(['license_id-is-ogl']),
+                'No further licence filters to apply.'
+            )}}
+      <div class="facet-divider"></div>
+      <!--
+      <label class="checkbox pull-right search-theme-checkbox">
+        <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
+        Only primary theme
+      </label>
+      <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
+        -->
+      <div class="facets-theme-primary">
+      {{facet_box(
+                'Theme',
+                h.search_facets_unselected(['theme-primary']),
+                h.search_facets_selected(['theme-primary']),
+                'No further theme filters to apply.',
+                more_button='more-prithemes-button'
+            )}}
+      </div>
+      <!--
+      <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
+      ${facet_box(
+          'Themes',
+          h.search_facets_unselected(['all_themes']),
+          h.search_facets_selected(['all_themes']),
+          'No further theme filters to apply.',
+          more_button='more-themes-button'
+      )}
+      </div>
+      -->
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Resource Format',
+                h.search_facets_unselected(['res_format']),
+                h.search_facets_selected(['res_format']),
+                'No further format filters to apply.',
+                more_button='more-formats-button'
+            )}}
+      <div class="facet-divider"></div>
+      {% if request.params.get('parent_publishers','') %}
+        {{facet_box(
+                    'Publisher',
+                    h.search_facets_unselected(['parent_publishers']),
+                    h.search_facets_selected(['parent_publishers']),
+                    'No further publisher filters to apply.',
+                    more_button='more-publishers-button'
+                )}}
+      {% endif %}
+      {% if not request.params.get('parent_publishers','') %}
+        {{facet_box(
+                    'Publisher',
+                    h.search_facets_unselected(['publisher']),
+                    h.search_facets_selected(['publisher']),
+                    'No further publisher filters to apply.',
+                    more_button='more-publishers-button'
+                )}}
+      {% endif %}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Openness Score (beta)',
+                h.search_facets_unselected(['openness_score'],'name'),
+                h.search_facets_selected(['openness_score']),
+                'No further openness filters to apply.',
+            )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Broken links',
+                h.search_facets_unselected(['broken_links']),
+                h.search_facets_selected(['broken_links']),
+                'No further broken link filters to apply.'
+            )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'UK Location Dataset Type',
+                h.search_facets_unselected(['UKLP','resource-type','spatial-data-service-type']),
+                h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),
+                'No further type filters to apply.'
+            )}}
+    </div><!-- /facet-filters -->
+  </div>
+{% endmacro %}
+
+{% macro contact_details(name, email, phone, web_url, web_name) %}
+  <!--! Contact details -->
+      {% if email and '@' in email %}
+        <li>Email:
+          <a href="mailto:{{email}}">{{email}}</a>
+        </li>
+      {% else %}
+        {% if email and 'http' in email %}
+        <li>Web contact form:
+          <a href="{{email}}">{{email}}</a>
+        </li>
+        {% else %}
+          {% if email %}
+            <li>Email:
+              {{email}}
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endif %}
+
+      {% if phone %}
+      <li>Phone:
+        {{phone}}
+      </li>
+      {% endif %}
+      {% if web_url %}
+      <li>Web:
+        <a href="{{web_url}}">{{h.truncate(web_name or web_url, 32)}}</a>
+      </li>
+      {% endif %}
+      {% if not (email or phone or web_url) %}
+        <p><em>No details supplied</em></p>
+      {% endif %}
+{% endmacro %}
+
+{% macro format_box(format_name) %}
+    <div class="format-box">
+      {% if format_name %}
+      <span property="dc:format">{{h.dgu_format_name(format_name)}}</span>
+      {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro primary_theme_input(data, errors) %}
+  <!--! Form input for primary/secondary themes -->
+  {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
+      <label class="radio js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
+        <input type="radio" name="theme-primary" value="{{theme}}" {% if data.get('theme-primary', '') == theme %}checked="checked"{% endif %} />
+          {{theme_dict['title']}}
+      </label>
+  {% endfor %}
+  {% if errors.get('theme-primary', '') %}
+    <p class="field_error">{{errors.get('theme-primary', '')}}</p>
+  {% endif %}
+{% endmacro %}
+
+{% macro secondary_theme_input(data, errors) %}
+  {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
+    <label class="checkbox js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
+      <input type="checkbox" name="theme-secondary" value="{{theme}}" {% if theme in h.secondary_themes(data) %}checked="checked"{% endif %}/>
+        {{theme_dict['title']}}
+    </label>
+  {% endfor %}
+  {% if errors.get('themes-secondary', '') %}
+    <p class="field_error">{{errors.get('themes-secondary', '')}}</p>
+  {% endif %}
+{% endmacro %}
