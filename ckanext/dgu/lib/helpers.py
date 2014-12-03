@@ -763,7 +763,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
             secondary_themes =  json.loads(secondary_themes)
 
             if isinstance(secondary_themes, types.StringTypes):
-                secondary_themes = THEMES.get(secondary_themes,
+                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
             else:
                 secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
         except ValueError:
