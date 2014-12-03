@@ -1,0 +1,329 @@
+{% extends "page.html" %}
+
+
+{% import "_dgu_jinja_util.html" as m with context %}
+
+
+{% block primary_content_inner %}
+  <div class="package">
+  {% with is_location_data = h.is_location_data(c.pkg_dict) %}
+    <div class="dropdown-buttons">
+        {% set render_enquiries = not h.is_unpublished_item(c.pkg_dict) %}
+        {% set render_foi       = h.have_foi_contact_details(c.pkg, h.as_dict(c.pkg_extras)) %}
+        {% if render_enquiries or render_foi %}
+        <span class="dropdown">
+          <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Contact&nbsp;Details">
+            <i class="icon-envelope icon-2x"></i>
+            <div class="dropdown-chevron"></div>
+          </a>
+          <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <div class="panel-heading">Contacts</div>
+            <div class="panel-body">
+              {% if render_enquiries %}
+                <b>Enquiries:</b>
+                <ul style="margin-bottom: 5px;">
+                  {{h.get_contact_name(c.pkg, h.as_dict(c.pkg_extras))}}
+                  {{m.contact_details(*h.get_contact_details(c.pkg, h.as_dict(c.pkg_extras)))}}
+                </ul>
+              {% endif %}
+              {% if render_foi %}
+                <b class="js-tooltip" title="Use the Freedom of Information Act to request more information from the body holding the data">FOI requests</b>:
+                <ul style="margin-bottom: 0;">
+                  {{h.get_foi_contact_name(c.pkg, h.as_dict(c.pkg_extras))}}
+                  {{m.contact_details(*h.get_foi_contact_details(c.pkg, h.as_dict(c.pkg_extras)))}}
+                </ul>
+              {% endif %}
+            </div>
+          </div>
+        </span>
+        {% endif %}
+      <span class="dropdown">
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="API&nbsp;&amp;&nbsp;Apps">
+          <i class="icon-code icon-2x"></i>
+          <div class="dropdown-chevron"></div>
+        </a>
+        <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
+          <div class="panel-heading">Do More With This Data</div>
+          <div class="panel-body">
+
+
+            <ul>
+              <li><a href="/node/add/app?dataset={{c.pkg_dict.get('name')}}">Share your app &raquo;</a><br/></li>
+              <li><a href="/node/add/data-request?dataset={{c.pkg_dict.get('name')}}">Request new data &raquo;</a></li>
+            </ul>
+
+            The information on this page (the dataset metadata) is also available in JSON format.
+            <ul>
+              <li>
+                <b>API: </b><a href="{{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}">
+                  {{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}
+                </a>
+              </li>
+              <li>
+                <a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
+                  Read more about this site's CKAN API &raquo;
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </span>
+      {% if c.user %} <!-- #1272 Only viewable if you log in -->
+        <a class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="{{h.url_for(controller='package', action='history', id=c.pkg.name)}}">
+          <i class="icon-time icon-2x"></i>
+        </a>
+      {% endif %}
+
+
+    </div>
+    <h1>{{c.pkg_dict.get('title', c.pkg_dict['name'])}} {%if h.is_unpublished_item(c.pkg_dict) %}<span class="unpublished-text">(Unpublished)</span>{% endif %}</h1>
+    <div class="h1-subheading">
+      {% set all_licences = h.get_licenses(c.pkg) %}
+      {% set publisher    = c.pkg_dict.get('organization') %}
+
+      {% if publisher %}
+        Published by
+        <a href="{{h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.pkg_dict.get('organization',{}).get('name',''))}}">
+          {{c.pkg_dict.get('organization',{}).get('title','')}}.
+        </a>
+      {% else %}
+        No publisher specified.
+      {% endif %}
+      &nbsp;
+      <span property="dc:rights">
+        {% if all_licences|length ==0 %}
+          No licence specified.
+        {% else %}
+          Licensed under
+        {% endif %}
+        {% for i in range(all_licences|length) %}
+          {% with %}
+            {% set (license_text, url, isopen, isogl) = all_licences[i] %}
+            {% set separator = m.if_(i==all_licences|length -1,'.',' &amp; ') %}
+            {% if isogl %}
+              <a href="{{url or 'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'}}" rel="dc:rights">
+                <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
+                Open Government Licence{{separator}}
+              </a>
+            {% else %}
+              {% if url %}
+                <a href="{{url}}" rel="dc:rights">{{license_text}}</a>
+              {% else%}
+                <span rel="dc:rights"><em>&ldquo;{{license_text}}&rdquo;</em>{{separator}}</span>
+              {% endif %}
+            {% endif %}
+          {% endwith %}
+
+          <!--
+          &nbsp;
+          {% if isopen %}
+            <a href="http://opendefinition.org/okd/" title="This dataset satisfies the Open Definition.">
+              <img class="open-data" src="/images/open_data.png" alt="[Open Data]" />
+            </a>
+          {% else %}
+            <span class="closed">{{h.icon('lock')}}</span>
+          {% endif %}-->
+        {% endfor %}
+      </span>
+    </div>
+
+    <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;">
+      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg.id) %}
+      Openness rating:
+      <span class="star-rating">
+        <span class="tooltip">
+          {% if reason %}
+          <div class="star-rating-reason">
+            <b>Reason: </b>{{reason}}
+          </div>
+          {% endif %}
+          {% for i in range(5,0,-1) %}
+            <div class="star-rating-entry {{m.if_(i>stars,'fail')}}">{{h.mini_stars_and_caption(i)}}</div>
+          {% endfor %}
+          {% if last_updated %}
+          <div class="star-rating-last-updated">
+            <b>Score updated: </b>{{h.render_datestamp(last_updated)}}
+          </div>
+          {% endif %}
+        </span>
+        <a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">
+          {% for i in range(0,stars or 0) -%}
+            <i class="icon-star"></i>
+          {%- endfor %}
+          {% for i in range((stars or 0)+1,6) -%}
+            <i class="icon-star-empty"></i>
+          {%- endfor %}
+        </a>
+        {% endwith %}
+      </span>
+
+      {% if h.is_certificates_installed() and h.has_certificate(c.pkg) %}
+      <span class="dropdown" style="margin-left: 24px;">
+        {% set certificate = h.get_certificate_data(c.pkg) %}
+          Open Data Certificate:
+          <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="">
+          {{certificate['level'].title()}} Level
+          </a>
+          <div class="panel panel-default dropdown-menu pre-notes" role="menu" aria-labelledby="dLabel">
+              <div class="panel-body col-md-6" style="width:400px;">
+                <img class="pull-right" src="{{certificate.get('badge_url')}}" width="30px" style="margin:-4px;"/>
+                <div>This dataset is awarded an Open Data Certificate</div>
+                <div><b>Level:</b> {{certificate.get('level').title()}} ({{certificate.get('status','').title()}})</div>
+                <div><b>Date:</b> {{h.render_datestamp(certificate['created_at'])}}</div>
+                <div><b>Source:</b> {{certificate.get('source', 'Not specified')}}</div>
+                <a target="_blank" class="xpull-right" href="{{certificate['certificate_url']}}">Full details &rsaquo;</a>
+              </div>
+            </div>
+      </span>
+      {% endif %}
+
+      {% if h.is_core_dataset(c.pkg_dict) %}
+      <div class="js-tooltip format-box pull-right" style='font-weight: bold; padding: 8px; background-color: #8BC658;' title="National Information Infrastructure">
+          <span>NII</span>
+      </div>
+      {% endif %}
+
+    </div>
+
+
+
+    <div class="row">
+
+        {% set can_update=h.check_access('package_update',{'id':c.pkg.id}) %}
+        {% set can_delete=h.check_access('package_delete', {'id':c.pkg.id}) and not h.is_package_deleted(c.pkg) %}
+        {% set harvest_object=h.get_harvest_object(c.pkg) %}
+        {% set can_harvest=harvest_object and h.check_access('harvest_source_update',{'id':harvest_object.source.id}) %}
+        {% set update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name) %}
+        {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
+        {% set admin_mode = can_update or can_delete or can_harvest %}
+
+      <div class="{{m.if_(admin_mode,'col-md-8','col-md-12')}}">
+        <!-- Description -->
+        {% if h.as_dict(c.pkg_extras).get('provider') -%}
+        <p class="pre-notes">
+          <b>Provider:</b> {{h.as_dict(c.pkg_extras).get('provider')}}
+        </p>
+        {% endif %}
+        {% if is_location_data and h.as_dict(c.pkg_extras).get('responsible-party') -%}
+        <p class="pre-notes">
+          <b>Responsible Party:</b> {{h.as_dict(c.pkg_extras).get('responsible-party')}}
+        </p>
+        {%- endif %}
+        {% if h.is_unpublished_item(c.pkg_dict) and c.pkg.extras.get('publish-date') and not c.pkg.extras.get('publish-restricted', False) -%}
+        <p class="pre-notes">
+          <b>Publish date:</b> {{h.render_db_date(c.pkg.extras.get('publish-date'))}}
+        </p>
+        {%- endif %}
+        {% if c.is_an_official and c.pkg_dict['state']!='active' -%}
+        <p class="pre-notes">
+          <b>State:</b> {{c.pkg_dict['state']}}
+        </p>
+        {% endif %}
+        <!-- blank style tag avoids a bug in jquery.dotdotdot -->
+        <div class="notes" style="">
+          <div class="dataset-theme theme-{{h.get_primary_theme(c.pkg_dict) or 'none'}}">
+            <div class="theme-name">{{h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}}</div>
+          </div>
+          {% if dataset_is_from_ns_pubhub == 'ons' and h.as_dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes' -%}
+          <a
+            class="dataset-optional-logo"
+            href="http://www.statistics.gov.uk/hub/what-are-national-statistics-/index.html"
+          >
+            <img class="dataset-logo" src="/images/national_statistics.gif" />
+          </a>
+          {% endif %}
+          {% if is_location_data -%}
+          <a
+            class="dataset-optional-logo"
+            href="/location"
+          >
+            <img src="/images/uk_location.gif" />
+          </a>
+          {%- endif %}
+
+          <div class="notes-inner">
+            {{h.render_markdown(c.pkg_dict.get('notes',''))}}
+            {% if h.is_unpublished_item(c.pkg_dict) %}
+              {% with notes=c.pkg.extras.get('release-notes','').strip() %}
+                {% if notes %}<strong >Release Notes:</strong>{% endif %}
+                {{h.render_markdown(notes)}}
+              {% endwith %}
+            {% endif %}
+            <a href="#" class="notes-read-more"><i class="icon-double-angle-down"></i> Read More <i class="icon-double-angle-down"></i></a>
+          </div>
+        </div>
+      </div>
+      {% if admin_mode %}
+      <div class="col-md-4">
+        <div class="panel panel-info">
+          <div class="panel-heading" style="font-weight: bold;">Administrator Tools</div>
+          <div class="panel-body">
+            <ul class="administrator-tools">
+              {% if can_update %}
+              <li>
+                <span class="wrap-icon"><i class="icon-edit"></i></span>
+                <a href="{{update_link}}">Edit dataset properties &raquo;</a>
+              </li>
+              {% endif %}
+              {% if not can_update and harvest_object %}
+              <li>
+                <span class="wrap-icon"><i class="icon-edit"></i></span>
+                <a href="#" style="pointer-events:none;">Edit not allowed (future harvests will overwrite manual changes)</a>
+              </li>
+              {% endif %}
+              {% if can_update and h.is_unpublished_item(c.pkg_dict) %}
+              <li>
+                {% with will_be_published,when=h.will_be_published(c.pkg_dict) %}
+                  <a href="{{h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='edit', id=c.pkg.name)}}">
+                    <span class="wrap-icon"><i class="icon-flag"></i></span>
+                    Convert to published dataset
+                  </a>
+                {% endwith %}
+              </li>
+              {% endif %}
+              {% if can_harvest %}
+              <li>
+                <span class="wrap-icon"><i class="icon-link"></i></span>
+                <a href="{{h.url_for('harvest_source', id=harvest_object.source.id)}}">Harvester for this dataset &raquo;</a>
+              </li>
+              {% endif %}
+              {% if can_delete %}
+              <li>
+                <span class="wrap-icon"><i class="icon-trash"></i></span>
+                <a href="{{h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='delete', id=c.pkg.name)}}">
+                  {{m.if_(is_location_data,'Withdraw this dataset','Delete this dataset')}} &raquo;
+                </a>
+              </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Warn if unpublished -->
+    {% if h.is_unpublished_item(c.pkg_dict) %}
+    <div class="panel panel-warning">
+      <div class="panel-heading">Unpublished Dataset</div>
+      <div class="panel-body">This is a record for data which is not published.</div>
+    </div>
+    {% endif %}
+    <!-- Warn if deleted -->
+    {% if c.pkg_dict.get('state') == 'deleted' %}
+    <div class="panel panel-warning">
+      {% with deleted=m.if_(is_location_data,'Withdrawn','Deleted') %}
+        <div class="panel-heading">{{deleted}} Dataset</div>
+      {% endwith %}
+      {% with deleted=m.if_(is_location_data,'withdrawn','deleted') %}
+        <div class="panel-body">This dataset is {{deleted}}. Only administrators can view it in this state.</div>
+      {% endwith %}
+    </div>
+    {% endif %}
+
+    {{package_content()}}
+
+    {% endwith %}
+  </div>
+{% endblock %}
+

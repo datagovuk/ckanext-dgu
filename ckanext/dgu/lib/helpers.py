@@ -2009,3 +2009,9 @@ def list_enumerate(l):
 
 def sorted_list(l):
     return sorted(l)
+
+def as_dict(d):
+    return dict(d)
+
+def get_date_lambda():
+    return lambda x: parse_date(x.get('date')).year

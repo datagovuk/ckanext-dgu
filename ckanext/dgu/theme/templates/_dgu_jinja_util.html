@@ -222,6 +222,11 @@
     </div>
 {% endmacro %}
 
+
+{% macro dict_to_attributes(d) -%}
+  {% for k, v in d.iteritems() -%}{{k}}="{{v}}"{%- endfor %}
+{%- endmacro %}
+
 {% macro feedback_summary(package,render_title=True,large=False) %}
   {% set comment_dict=h.unpublished_comments_lookup(package) %}
     <div class="feedback-summary {{if_(large,'large', '')}}">
@@ -313,13 +318,6 @@
                 'No further licence filters to apply.'
             )}}
       <div class="facet-divider"></div>
-      <!--
-      <label class="checkbox pull-right search-theme-checkbox">
-        <input type="checkbox" id="search-theme-mode" py:attrs="h.search_theme_mode_attrs()"></input>
-        Only primary theme
-      </label>
-      <div class="facets-theme-primary ${if_(not h.search_theme_mode_secondary(),'enabled','disabled')}">
-        -->
       <div class="facets-theme-primary">
       {{facet_box(
                 'Theme',
@@ -329,17 +327,6 @@
                 more_button='more-prithemes-button'
             )}}
       </div>
-      <!--
-      <div class="facets-theme-all ${if_(h.search_theme_mode_secondary(),'enabled','disabled')}">
-      ${facet_box(
-          'Themes',
-          h.search_facets_unselected(['all_themes']),
-          h.search_facets_selected(['all_themes']),
-          'No further theme filters to apply.',
-          more_button='more-themes-button'
-      )}
-      </div>
-      -->
       <div class="facet-divider"></div>
       {{facet_box(
                 'Resource Format',
