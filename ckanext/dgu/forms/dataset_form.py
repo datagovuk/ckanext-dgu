@@ -293,7 +293,7 @@ class DatasetForm(p.SingletonPlugin):
             'publish-restricted': [ignore_missing, bool, convert_to_extras],
 
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
-            'theme-secondary': [ignore_missing, json.dumps, convert_to_extras],
+            'theme-secondary': [ignore_missing, to_json, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
             # This is needed by the core CKAN update_resource, but isn't found by it because
@@ -438,6 +438,13 @@ def convert_from_extras(key, data, errors, context):
             and data_key[-1] == 'key'
             and data_value == key[-1]):
             data[key] = data[('extras', data_key[1], 'value')]
+
+def to_json(key, data, errors, context):
+    try:
+        encoded = json.dumps(data[key])
+        data[key] = encoded
+    except:
+        pass
 
 
 def use_other(key, data, errors, context):
