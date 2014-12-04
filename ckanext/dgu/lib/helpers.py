@@ -14,6 +14,7 @@ from itertools import dropwhile
 import itertools
 import datetime
 import random
+import types
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -766,15 +767,18 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(
-                [THEMES.get(theme, theme) \
-                 for theme in json.loads(secondary_themes)])
+            secondary_themes =  json.loads(secondary_themes)
+
+            if isinstance(secondary_themes, types.StringTypes):
+                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
+            else:
+                secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
         except ValueError:
             # string for single value
             secondary_themes = str(secondary_themes)
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
