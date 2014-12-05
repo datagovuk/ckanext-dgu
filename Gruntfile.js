@@ -15,7 +15,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: pkg,
     uglify: {
-      //options: { beautify: true, mangle: false, compress: false, }, //  <-- DEBUG MODE
+      //options: { beautify: true, mangle: false, compress: false, preserveComments: true}, //  <-- DEBUG MODE
       app: {
         files:  {
           'public/scripts/dgu-ckan-application.min.js' : [ 'src/scripts/dgu.js', 'src/scripts/dgu-basket.js', 'src/scripts/dgu-autocomplete.js' ],
@@ -26,6 +26,7 @@ module.exports = function(grunt) {
           'public/scripts/dgu-publisher-forms.min.js'      : 'src/scripts/dgu-publisher-forms.js',
           'public/scripts/dgu-publisher-index.min.js'      : 'src/scripts/dgu-publisher-index.js',
           'public/scripts/dgu-publisher-read.min.js'       : 'src/scripts/dgu-publisher-read.js',
+          'public/scripts/dgu-spatial-edit.min.js'         : 'src/scripts/dgu-spatial-edit.js'
         },
       },
       vendor: {
@@ -35,6 +36,8 @@ module.exports = function(grunt) {
           'public/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js'        : 'src/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.js',
           'public/scripts/vendor/d3.v3.min.js'                : 'src/scripts/vendor/d3.v3.js',
           'public/scripts/vendor/d3.sankey.min.js'            : 'src/scripts/vendor/d3.sankey.js',
+          'public/scripts/vendor/ol3.min.js'                  : 'src/scripts/bower/ol3/ol-debug.js',
+          'public/scripts/vendor/proj4.min.js'                : 'src/scripts/bower/proj4/dist/proj4.js'
         },
       },
       recline: {
@@ -61,6 +64,10 @@ module.exports = function(grunt) {
       viz: {
         src: 'src/css/dgu-viz.less',
         dest: 'public/css/dgu-viz.min.css',
+      },
+      ol3: {
+        src: 'src/scripts/bower/ol3/ol.css',
+        dest: 'public/scripts/vendor/ol3.min.css',
       },
       datepicker: {
         src: 'src/css/jquery-ui-1.9.2.custom.datepicker.css',
