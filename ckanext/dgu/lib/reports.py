@@ -548,13 +548,33 @@ def admin_editor_combinations():
     for org, _ in organization_list(top=False):
         yield {'org': org}
 
-def admin_editor_authorize(user, options):
+def user_is_admin(org):
     import ckan.lib.helpers as helpers
+    return helpers.check_access('organization_update', {'id': org.id})
 
+def user_is_rm(user, org):
+    from pylons import config
+    from ast import literal_eval
+    from ckanext.dgu.lib.publisher import go_up_tree
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
+    allowed_orgs = relationship_managers.get(user.name, [])
+
+    for o in go_up_tree(org):
+        if o.name in allowed_orgs:
+            return True
+
+    return False
+
+def admin_editor_authorize(user, options):
     if options.get('org', False):
-        org = options["org"]
-        organization = model.Session.query(model.Group).filter_by(name=org).one()
-        if not helpers.check_access('organization_update', {'id': organization.id}):
+        org_name = options["org"]
+        org = model.Session.query(model.Group).filter_by(name=org_name).one()
+
+        if user.sysadmin or user_is_admin(org) or user_is_rm(user, org):
+            return True
+        else:
             return False
 
     return True

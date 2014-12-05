@@ -1,7 +1,9 @@
 <select class="inline js-auto-submit" name="org">
-  <option value="" selected="selected">Select a department or organisation</option>
-  {% for org in h.organizations_available(permission='admin') %}
-  <option value="{{org.name}}">
+  {% if not value %}
+  <option value="" selected="selected">Select a publisher</option>
+  {% endif %}
+  {% for org in h.orgs_for_admin_report() %}
+  <option value="{{org.name}}" {% if value == org.name %}selected{% endif %}>
     {{org.title}}
   </option>
   {% endfor %}

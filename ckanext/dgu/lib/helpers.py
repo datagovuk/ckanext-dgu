@@ -24,7 +24,7 @@ from pylons import config
 from pylons import request
 
 from ckan.lib.helpers import (icon, icon_html, json, unselected_facet_items,
-                              get_pkg_dict_extra)
+                              get_pkg_dict_extra, organizations_available)
 import ckan.lib.helpers
 
 # not importing ckan.controllers here, since we need to monkey patch it in plugin.py
@@ -2048,3 +2048,24 @@ def report_timestamps_split(timestamps):
 
 def report_users_split(users, organization):
     return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
+
+def orgs_for_admin_report():
+    from ast import literal_eval
+    from ckan.logic import get_action
+    from ckan import model
+    context = {'model': model, 'session': model.Session}
+
+    admin_orgs = organizations_available(permission='admin')
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+    allowed_orgs = relationship_managers.get(c.user, [])
+    rm_orgs = []
+    for org_name in allowed_orgs:
+        org = get_action('organization_show')(context, {'id': org_name})
+        rm_orgs.append(org)
+
+    all_orgs = {}
+    for org in (admin_orgs + rm_orgs):
+       all_orgs[org['name']] = org
+
+    return all_orgs.values()
