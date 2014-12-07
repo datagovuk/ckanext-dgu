@@ -36,7 +36,7 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
   //
   // Returns nothing.
   my.loadPreviewDialog = function(resourceData) {
-    my.$dialog().html('<h4>Loading ... <img src="http://assets.okfn.org/images/icons/ajaxload-circle.gif" class="loading-spinner" /></h4>');
+    my.$dialog().html('<h4>Loading ... <img src="//assets.okfn.org/images/icons/ajaxload-circle.gif" class="loading-spinner" /></h4>');
 
     function initializeDataExplorer(dataset) {
       var views = [

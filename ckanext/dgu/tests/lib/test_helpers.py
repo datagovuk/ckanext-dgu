@@ -1,12 +1,13 @@
 from nose.tools import assert_equal
-from pylons import config
 
 from ckan.tests.pylons_controller import PylonsTestCase
+import ckan.new_tests.factories as factories
 from ckan import model
 
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
-from ckanext.dgu.lib.helpers import dgu_linked_user
+from ckanext.dgu.lib.helpers import dgu_linked_user, user_properties
 from ckanext.dgu.plugins_toolkit import c, get_action
+
 
 class TestLinkedUser(PylonsTestCase):
     @classmethod
@@ -98,3 +99,52 @@ class TestLinkedUser(PylonsTestCase):
         assert_equal(str(dgu_linked_user(user, maxlength=100)),
                 '<a href="/data/user/test.ckan.net">System Process (Site user)</a>')
 
+
+class TestUserProperties(PylonsTestCase):
+    @classmethod
+    def setup_class(cls):
+        PylonsTestCase.setup_class()
+
+    def test_name(self):
+        user = factories.User()
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert_equal(name, user['name'])
+
+    def test_obj(self):
+        user = factories.User()
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert isinstance(obj, model.User)
+        assert_equal(obj.name, user['name'])
+
+    def test_this_is_not_me(self):
+        user = factories.User()
+        c.user = 'someone else'
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert_equal(this_is_me, False)
+
+    def test_this_is_me(self):
+        user = factories.User()
+        c.user = user['name']
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert_equal(this_is_me, True)
+
+    def test_blank_user_has_no_type(self):
+        name, obj, drupal_id, type_, this_is_me = user_properties('')
+        assert_equal(type_, None)
+
+    def test_random_user_has_no_type(self):
+        user = factories.User()
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert_equal(type_, None)
+
+    def test_sysadmin_is_official(self):
+        user = factories.User(sysadmin=True)
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert_equal(type_, 'official')
+
+    def test_publisher_is_official(self):
+        user = factories.User()
+        org_users = [{'name': user['name'], 'capacity': 'editor'}]
+        factories.Organization(users=org_users, category='ministerial-department')
+        name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
+        assert_equal(type_, 'official')

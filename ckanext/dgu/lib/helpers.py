@@ -14,6 +14,7 @@ from itertools import dropwhile
 import itertools
 import datetime
 import random
+import types
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -285,7 +286,8 @@ def user_properties(user):
 
     this_is_me = user and (c.user in (user.name, user.fullname))
 
-    is_official = not user or (user.get_groups('organization') or user.sysadmin)
+    is_official = (user_name and not user) or \
+                  (user and (user.get_groups('organization') or user.sysadmin))
     if user and user.name.startswith('user_d'):
         user_drupal_id = user.name.split('user_d')[-1]
     else:
@@ -491,20 +493,28 @@ def scraper_icon(res, alt=None):
               "Powered by scraperwiki.com.".format(url=res.get('scraper_source'), date=res.get('scraped').format("%d/%m/%Y"))
     return icon('scraperwiki_small', alt=alt)
 
-def ga_download_tracking(resource, action='download'):
-    '''Google Analytics event tracking for downloading a resource.
+def get_organization_from_resource(res_dict):
+    from ckan import model
+    res_id = res_dict.get('id')
+    res = model.Resource.get(res_id)
+    if not res:
+        return None
+    return res.resource_group.package.get_organization()
+
+def ga_download_tracking(resource, publisher_name, action='download'):
+    '''Google Analytics event tracking for downloading a resource. (Universal
+    Analytics syntax)
 
     Values for action: download, download-cache
 
-    c.f. Google example:
-    <a href="#" onClick="_gaq.push(['_trackEvent', 'Videos', 'Play', 'Baby\'s First Birthday']);">Play</a>
+    e.g. ga('send', 'event', 'button', 'click', 'nav buttons', 4);
 
     The call here is wrapped in a timeout to give the push call time to complete as some browsers
-    will complete the new http call without allowing _gaq time to complete.  This *could* be resolved
+    will complete the new http call without allowing ga() time to complete.  This *could* be resolved
     by setting a target of _blank but this forces the download (many of them remote urls) into a new
     tab/window.
     '''
-    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s',0,true]);"\
+    return "var that=this;ga('send','event','resource','%s','%s');"\
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
 
@@ -728,7 +738,6 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-        field_names.remove(['mandate'])
         if c.is_an_official:
             field_names.add(['external_reference', 'import_source'])
     if is_local_government_data:
@@ -758,15 +767,18 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(
-                [THEMES.get(theme, theme) \
-                 for theme in json.loads(secondary_themes)])
+            secondary_themes =  json.loads(secondary_themes)
+
+            if isinstance(secondary_themes, types.StringTypes):
+                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
+            else:
+                secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
         except ValueError:
             # string for single value
             secondary_themes = str(secondary_themes)
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -889,7 +901,7 @@ def isopen(pkg):
         license_text = ';'.join(license_text_list)
     open_licenses = [
         'Open Government Licen',
-        'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/',
+        'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
         'http://reference.data.gov.uk/id/open-government-licence',
         'OS OpenData Licence',
         'OS Open Data Licence',
@@ -1967,3 +1979,17 @@ def parse_date(date_string):
         class FakeDate:
             year = ''
         return FakeDate()
+
+def user_page_url():
+    from ckan.lib.base import h
+    url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
+                  else h.url_for(controller='user', action='me')
+    if not c.user:
+        url += '?destination=%s' % request.path[1:]
+    return url
+
+def is_plugin_enabled(plugin_name):
+    return plugin_name in config.get('ckan.plugins', '').split()
+
+def config_get(key, default=None):
+    return config.get(key, default)

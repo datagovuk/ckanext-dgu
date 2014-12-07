@@ -71,7 +71,7 @@
 
   <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
   <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
   <!-- font-awesome ie7 shim -->
@@ -196,7 +196,7 @@ ${h.top_level_init()}
 
       <ul class="subnav subnav-interact">
         <li><a class="" href="/location">Location</a></li>
-        <li><a class="" href="http://co-prod3.dh.bytemark.co.uk/linked-data">Linked Data</a></li>
+        <li><a class="" href="/linked-data">Linked Data</a></li>
         <li><a href="/blog">All Blogs</a></li>
         <li><a href="/forum">All Forums</a></li>
         <li><a href="/library">Library</a></li>
@@ -273,7 +273,7 @@ ${h.top_level_init()}
         </div>
       </div>
     </footer>
-  </div> <!-- /footer -->
+  </div> <!-- /footer genshi -->
 
   <py:if test="h.asbool(config.get('ckan.tracking_enabled', 'false'))">
   <script type="text/javascript">

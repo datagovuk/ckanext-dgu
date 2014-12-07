@@ -184,9 +184,6 @@ class DataController(BaseController):
         else:
             abort(404)
 
-    def carparks(self):
-        return render('data/carparks.html')
-
     def viz_social_investment_and_foundations(self):
         return render('viz/social_investment_and_foundations.html')
     def viz_investment_readiness_programme(self):
