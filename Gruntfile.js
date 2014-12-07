@@ -36,7 +36,7 @@ module.exports = function(grunt) {
           'public/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js'        : 'src/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.js',
           'public/scripts/vendor/d3.v3.min.js'                : 'src/scripts/vendor/d3.v3.js',
           'public/scripts/vendor/d3.sankey.min.js'            : 'src/scripts/vendor/d3.sankey.js',
-          'public/scripts/vendor/ol3.min.js'                  : 'src/scripts/bower/ol3/ol-debug.js',
+          'public/scripts/vendor/ol3.min.js'                  : 'src/scripts/bower/ol3/ol.js',
           'public/scripts/vendor/proj4.min.js'                : 'src/scripts/bower/proj4/dist/proj4.js',
           'public/scripts/vendor/jquery.autocomplete.min.js'  : 'src/scripts/bower/devbridge-autocomplete/dist/jquery.autocomplete.js'
         },
@@ -69,6 +69,10 @@ module.exports = function(grunt) {
       ol3: {
         src: 'src/scripts/bower/ol3/ol.css',
         dest: 'public/scripts/vendor/ol3.min.css',
+      },
+      autocomplete: {
+        src: 'src/css/jquery-autocomplete-dgu.css',
+        dest: 'public/css/jquery-autocomplete.min.css',
       },
       datepicker: {
         src: 'src/css/jquery-ui-1.9.2.custom.datepicker.css',

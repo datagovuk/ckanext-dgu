@@ -114,6 +114,8 @@ CKAN.DguSpatialEditor = function($) {
 
 
     $('#location').autocomplete({
+        triggerSelectOnValidInput : false,
+        minChars: 3,
         serviceUrl: function(token) {
             return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
         //paramName: 'name',
@@ -129,7 +131,9 @@ CKAN.DguSpatialEditor = function($) {
             $("#location").val(suggestion.value)
             var bbox = suggestion.data.bbox
             var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
-            var geom = ol.extent.getArea(e) == 0 ?
+            var size = ol.extent.getSize(e)
+            // either a point or a box
+            var geom = size[0]*size[1] == 0 ?
                 new ol.geom.Point(ol.extent.getCenter(e)) :
                 new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
             CKAN.DguSpatialEditor.setBBox(geom)
@@ -147,8 +151,14 @@ CKAN.DguSpatialEditor = function($) {
         setBBox: function(geom) {
             selectBoxSource.clear()
             selectBoxSource.addFeature(new ol.Feature(geom ))
-            var area = ol.extent.getArea(selectBoxSource.getExtent())
-            map.getView().fitExtent(ol.extent.buffer(selectBoxSource.getExtent(), area == 0 ? 1 : Math.sqrt(area)/10), map.getSize())
+            var size = ol.extent.getSize(selectBoxSource.getExtent())
+            var bufferedExtent = ol.extent.buffer(
+                selectBoxSource.getExtent(),
+                size[0]*size[1] == 0 ?
+                    0.1 :                     // for a Point : arbitrary 0.1deg buffer
+                    (size[0]+size[1])/20      // Polygon : 10% of mean size
+                )
+            map.getView().fitExtent(bufferedExtent, map.getSize())
         },
 
         onBBox: function(listener) {
