@@ -37,7 +37,8 @@ module.exports = function(grunt) {
           'public/scripts/vendor/d3.v3.min.js'                : 'src/scripts/vendor/d3.v3.js',
           'public/scripts/vendor/d3.sankey.min.js'            : 'src/scripts/vendor/d3.sankey.js',
           'public/scripts/vendor/ol3.min.js'                  : 'src/scripts/bower/ol3/ol-debug.js',
-          'public/scripts/vendor/proj4.min.js'                : 'src/scripts/bower/proj4/dist/proj4.js'
+          'public/scripts/vendor/proj4.min.js'                : 'src/scripts/bower/proj4/dist/proj4.js',
+          'public/scripts/vendor/jquery.autocomplete.min.js'  : 'src/scripts/bower/devbridge-autocomplete/dist/jquery.autocomplete.js'
         },
       },
       recline: {

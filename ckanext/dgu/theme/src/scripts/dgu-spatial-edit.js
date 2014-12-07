@@ -28,15 +28,23 @@ CKAN.DguSpatialEditor = function($) {
         tileSize: 250
     });
 
+    var fill = new ol.style.Fill({color: 'rgba(0, 0, 255, 0.2)'})
+    var stroke = new ol.style.Stroke({
+        color: 'rgba(0, 0, 255, 0.6)',
+        width: 2
+    })
+
     // Create layer to hold the dataset bbox
     var selectBoxSource = new ol.source.Vector();
     var selectionLayer = new ol.layer.Vector({
         source: selectBoxSource,
         style: new ol.style.Style({
-            fill: new ol.style.Fill({color: 'rgba(0, 0, 255, 0.2)'}),
-            stroke: new ol.style.Stroke({
-                color: 'rgba(0, 0, 255, 0.6)',
-                width: 3
+            fill: fill,
+            stroke: stroke,
+            image: new ol.style.Circle({
+                fill: fill,
+                stroke: stroke,
+                radius: 5
             })
         })
     });
@@ -105,11 +113,42 @@ CKAN.DguSpatialEditor = function($) {
     })
 
 
+    $('#location').autocomplete({
+        serviceUrl: function(token) {
+            return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
+        //paramName: 'name',
+        dataType: 'jsonp',
+        transformResult: function(response) {
+            return {
+                suggestions: $.map(response.features, function(feature) {
+                    return { value: feature.properties.name, data: feature };
+                })
+            };
+        },
+        onSelect: function (suggestion) {
+            $("#location").val(suggestion.value)
+            var bbox = suggestion.data.bbox
+            var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
+            var geom = ol.extent.getArea(e) == 0 ?
+                new ol.geom.Point(ol.extent.getCenter(e)) :
+                new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
+            CKAN.DguSpatialEditor.setBBox(geom)
+            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+        }
+    });
+
     return {
-        setBBox: function(jsonGeom) {
-            var geom = geojsonFormat.readGeometry(jsonGeom)
-            selectBoxSource.addFeature(new ol.Feature(geom))
-            map.getView().fitExtent(selectBoxSource.getExtent(), map.getSize())
+        geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
+
+        suggestLocation: function(suggestions) {
+
+        },
+
+        setBBox: function(geom) {
+            selectBoxSource.clear()
+            selectBoxSource.addFeature(new ol.Feature(geom ))
+            var area = ol.extent.getArea(selectBoxSource.getExtent())
+            map.getView().fitExtent(ol.extent.buffer(selectBoxSource.getExtent(), area == 0 ? 1 : Math.sqrt(area)/10), map.getSize())
         },
 
         onBBox: function(listener) {
@@ -118,7 +157,7 @@ CKAN.DguSpatialEditor = function($) {
 
         bindInput: function(el) {
             var $el = $(el)
-            CKAN.DguSpatialEditor.setBBox($el.val())
+            CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()))
             CKAN.DguSpatialEditor.onBBox(function(bbox) {
                 $el.val(bbox)
             })
