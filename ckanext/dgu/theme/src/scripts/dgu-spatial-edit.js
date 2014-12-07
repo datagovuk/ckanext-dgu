@@ -116,6 +116,7 @@ CKAN.DguSpatialEditor = function($) {
     $('#location').autocomplete({
         triggerSelectOnValidInput : false,
         minChars: 3,
+        preserveInput: true,
         serviceUrl: function(token) {
             return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
         //paramName: 'name',
