@@ -61,6 +61,7 @@
                 serviceUrl: null,
                 lookup: null,
                 onSelect: null,
+                onActivate: null,
                 width: 'auto',
                 minChars: 1,
                 maxHeight: 300,
@@ -812,6 +813,7 @@
                 activeItem,
                 selected = that.classes.selected,
                 container = $(that.suggestionsContainer),
+                onActivateCallback = that.options.onActivate,
                 children = container.find('.' + that.classes.suggestion);
 
             container.find('.' + selected).removeClass(selected);
@@ -821,6 +823,11 @@
             if (that.selectedIndex !== -1 && children.length > that.selectedIndex) {
                 activeItem = children.get(that.selectedIndex);
                 $(activeItem).addClass(selected);
+
+                if ($.isFunction(onActivateCallback)) {
+                    onActivateCallback.call(activeItem, that.suggestions[that.selectedIndex]);
+                }
+
                 return activeItem;
             }
 

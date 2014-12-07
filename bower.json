@@ -3,7 +3,7 @@
   "dependencies": {
     "ol3": "nd0ut/ol3-bower#~3.0.3",
     "proj4": "~2.3.3",
-    "devbridge-autocomplete": "~1.2.16"
+    "devbridge-autocomplete": "pduchesne/jQuery-Autocomplete#master"
   },
   "devDependencies": {}
 }

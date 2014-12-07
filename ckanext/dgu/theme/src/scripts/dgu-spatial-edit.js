@@ -28,26 +28,47 @@ CKAN.DguSpatialEditor = function($) {
         tileSize: 250
     });
 
-    var fill = new ol.style.Fill({color: 'rgba(0, 0, 255, 0.2)'})
-    var stroke = new ol.style.Stroke({
+    var selectionFill = new ol.style.Fill({color: 'rgba(0, 0, 255, 0.2)'})
+    var selectionStroke = new ol.style.Stroke({
         color: 'rgba(0, 0, 255, 0.6)',
-        width: 2
+        width: 1
     })
 
-    // Create layer to hold the dataset bbox
+    var activatedFill = new ol.style.Fill({color: 'rgba(200, 200, 0, 0.2)'})
+    var activatedStroke = new ol.style.Stroke({
+        color: 'rgba(255, 50, 0, 0.6)',
+        width: 1
+    })
+
+    // Create layer to hold the selected bbox
     var selectBoxSource = new ol.source.Vector();
     var selectionLayer = new ol.layer.Vector({
         source: selectBoxSource,
         style: new ol.style.Style({
-            fill: fill,
-            stroke: stroke,
+            fill: selectionFill,
+            stroke: selectionStroke,
             image: new ol.style.Circle({
-                fill: fill,
-                stroke: stroke,
+                fill: selectionFill,
+                stroke: selectionStroke,
                 radius: 5
             })
         })
-    });
+    })
+
+    // Create layer to hold the highlighted bbox
+    var activateBoxSource = new ol.source.Vector();
+    var activateLayer = new ol.layer.Vector({
+        source: activateBoxSource,
+        style: new ol.style.Style({
+            fill: activatedFill,
+            stroke: activatedStroke,
+            image: new ol.style.Circle({
+                fill: activatedFill,
+                stroke: activatedStroke,
+                radius: 5
+            })
+        })
+    })
 
 
     var map = new ol.Map({
@@ -68,7 +89,8 @@ CKAN.DguSpatialEditor = function($) {
                 })
             }),
             //vector,
-            selectionLayer
+            selectionLayer,
+            activateLayer
         ],
         view: new ol.View({
             projection: bng,
@@ -112,35 +134,45 @@ CKAN.DguSpatialEditor = function($) {
 
     })
 
+    function bbox2geom(bbox) {
+        var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
+        var size = ol.extent.getSize(e)
+        // either a point or a box
+        return geom = size[0]*size[1] == 0 ?
+            new ol.geom.Point(ol.extent.getCenter(e)) :
+            new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
+    }
 
-    $('#location').autocomplete({
-        triggerSelectOnValidInput : false,
-        minChars: 3,
-        preserveInput: true,
-        serviceUrl: function(token) {
-            return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
-        //paramName: 'name',
-        dataType: 'jsonp',
-        transformResult: function(response) {
-            return {
-                suggestions: $.map(response.features, function(feature) {
-                    return { value: feature.properties.name, data: feature };
-                })
-            };
-        },
-        onSelect: function (suggestion) {
-            $("#location").val(suggestion.value)
-            var bbox = suggestion.data.bbox
-            var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
-            var size = ol.extent.getSize(e)
-            // either a point or a box
-            var geom = size[0]*size[1] == 0 ?
-                new ol.geom.Point(ol.extent.getCenter(e)) :
-                new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
-            CKAN.DguSpatialEditor.setBBox(geom)
-            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
-        }
-    });
+    $('#location')
+        .autocomplete({
+            triggerSelectOnValidInput : false,
+            minChars: 3,
+            preserveInput: true,
+            serviceUrl: function(token) {
+                return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
+            //paramName: 'name',
+            dataType: 'jsonp',
+            transformResult: function(response) {
+                return {
+                    suggestions: $.map(response.features, function(feature) {
+                        return { value: feature.properties.name, data: feature };
+                    })
+                };
+            },
+            onSelect: function (suggestion) {
+                $("#location").val(suggestion.value)
+
+                var geom = bbox2geom(suggestion.data.bbox)
+                CKAN.DguSpatialEditor.setBBox(geom)
+                selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+            },
+            onActivate: function(item) {
+                CKAN.DguSpatialEditor.activateBBox(bbox2geom(item.data.bbox))
+            }
+        })
+        .blur(function(e) {
+            activateBoxSource.clear()
+        })
 
     return {
         geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
@@ -160,6 +192,11 @@ CKAN.DguSpatialEditor = function($) {
                     (size[0]+size[1])/20      // Polygon : 10% of mean size
                 )
             map.getView().fitExtent(bufferedExtent, map.getSize())
+        },
+
+        activateBBox: function(geom) {
+            activateBoxSource.clear()
+            activateBoxSource.addFeature(new ol.Feature(geom ))
         },
 
         onBBox: function(listener) {
