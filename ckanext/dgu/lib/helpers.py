@@ -2053,16 +2053,19 @@ def orgs_for_admin_report():
     from ast import literal_eval
     from ckan.logic import get_action
     from ckan import model
+
     context = {'model': model, 'session': model.Session}
 
     admin_orgs = organizations_available(permission='admin')
 
     relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
     allowed_orgs = relationship_managers.get(c.user, [])
-    rm_orgs = []
-    for org_name in allowed_orgs:
-        org = get_action('organization_show')(context, {'id': org_name})
-        rm_orgs.append(org)
+    data_dict = {
+        'organizations': allowed_orgs,
+        'all_fields': True,
+    }
+    rm_orgs = get_action('organization_list')(context, data_dict)
 
     all_orgs = {}
     for org in (admin_orgs + rm_orgs):
