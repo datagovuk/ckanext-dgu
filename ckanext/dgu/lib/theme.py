@@ -169,6 +169,7 @@ def categorize_package(pkg, stats=None):
             log.debug(stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg['name'], primary_theme, theme_scores[0][1])))
     else:
         log.debug(stats.add('No match', pkg['name']))
+
     return [theme for theme, score in theme_scores[:2]]
 
 def score_by_topic(pkg, scores):

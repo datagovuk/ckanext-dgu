@@ -176,3 +176,38 @@
     /* Apply a datepicker to all date rows */
     $('.needs-datepicker').datepicker({dateFormat:'dd/mm/yy'});
   });
+
+  function update_themes() {
+      $('#check-themes').attr('disabled', 'disabled');
+
+      var name = $('#name').val();
+      var title = $('#title').val();
+      var notes = $('#notes').val();
+
+      $.ajax({
+        url: "/api/3/action/suggest_themes",
+        data: { name: name, title: title, notes: notes },
+        dataType: "json",
+        success: function(obj) {
+            var nm = obj.result['primary-theme'].name || "";
+            $('#theme-primary-label').html(nm);
+            $('#theme-primary').val(nm);
+
+            nm = '';
+
+            var secondaries = obj.result['secondary-theme'];
+            console.log(secondaries);
+            for (var i = 0; i < secondaries.length; i++ ) {
+                var th = secondaries[i].name;
+                nm = nm + th;
+                if ( i != secondaries.length-1 ) {
+                  nm = nm + ", "
+                }
+            }
+            $('#theme-secondary-label').html(nm);
+            $('#theme-secondary').val(nm);
+
+            $('#check-themes').removeAttr('disabled');
+        }
+      });
+  }

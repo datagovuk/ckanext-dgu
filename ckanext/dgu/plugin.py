@@ -573,9 +573,10 @@ class ApiPlugin(p.SingletonPlugin):
         return map
 
     def get_actions(self):
-        from ckanext.dgu.logic.action.get import publisher_show
+        from ckanext.dgu.logic.action.get import publisher_show, suggest_themes
         return {
             'publisher_show': publisher_show,
+            'suggest_themes': suggest_themes,
             }
 
 class SiteIsDownPlugin(p.SingletonPlugin):
