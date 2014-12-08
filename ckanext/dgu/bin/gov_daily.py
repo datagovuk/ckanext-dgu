@@ -95,22 +95,27 @@ def command(config_file):
                 log.info('Getting analytics for this month')
                 from ckanext.ga_report.download_analytics import DownloadAnalytics
                 from ckanext.ga_report.ga_auth import (init_service, get_profile_id)
-                try:
-                    token, svc = init_service(ga_token_filepath, None)
-                except TypeError:
-                    log.error('Could not complete authorization for Google Analytics.'
-                              'Have you correctly run the getauthtoken task and '
-                              'specified the correct token file?')
-                    sys.exit(0)
-                downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
-                                               delete_first=False,
-                                               skip_url_stats=False)
-                downloader.latest()
+                if not os.path.exists(ga_token_filepath):
+                    log.error('GA Token does not exist: %s - not downloading '
+                              'analytics' % ga_token_filepath)
+                else:
+                    try:
+                        token, svc = init_service(ga_token_filepath, None)
+                    except TypeError, e:
+                        log.error('Could not complete authorization for Google '
+                                'Analytics. Have you correctly run the '
+                                'getauthtoken task and specified the correct '
+                                'token file?\nError: %s', e)
+                        sys.exit(1)
+                    downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
+                                                delete_first=False,
+                                                skip_url_stats=False)
+                    downloader.latest()
         else:
             log.info('No token specified, so not downloading Google Analytics data')
     except Exception, exc_analytics:
-        log.error("Failed to process Google Analytics data")
         log.exception(exc_analytics)
+        log.error("Failed to process Google Analytics data (see exception in previous log message)")
 
     # Copy openspending reports
     if run_task('openspending'):
