@@ -569,6 +569,9 @@ def user_is_rm(user, org):
 
 def admin_editor_authorize(user, options):
     if options.get('org', False):
+        if not user:
+            return False
+
         org_name = options["org"]
         org = model.Session.query(model.Group).filter_by(name=org_name).one()
 

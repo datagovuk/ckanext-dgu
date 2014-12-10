@@ -2061,14 +2061,17 @@ def orgs_for_admin_report():
     relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
 
     allowed_orgs = relationship_managers.get(c.user, [])
-    data_dict = {
-        'organizations': allowed_orgs,
-        'all_fields': True,
-    }
-    rm_orgs = get_action('organization_list')(context, data_dict)
+    if allowed_orgs:
+        data_dict = {
+            'organizations': allowed_orgs,
+            'all_fields': True,
+        }
+        rm_orgs = get_action('organization_list')(context, data_dict)
+    else:
+        rm_orgs = []
 
     all_orgs = {}
     for org in (admin_orgs + rm_orgs):
        all_orgs[org['name']] = org
 
-    return all_orgs.values()
+    return sorted(all_orgs.values(), key=lambda x: x['title'])
