@@ -138,7 +138,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for num, res in h.enumerate(data.get('timeseries_resources', []) + [{}]) %}
+        {% for num, res in h.list_enumerate(data.get('timeseries_resources', []) + [{}]) %}
         <tr class="timeseries_resources__{{num}} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
