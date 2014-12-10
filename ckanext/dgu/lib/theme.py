@@ -134,6 +134,17 @@ def categorize_package(pkg, stats=None):
     its estimate for primary-theme and secondary-theme.
 
     package - object or dict
+
+    This method is for backwards compatability
+    '''
+    theme_scores = categorize_package2(pkg, stats)
+    return [theme['name'] for theme in theme_scores[:2]]
+
+def categorize_package2(pkg, stats=None):
+    '''Given a package it does various searching for topic keywords and returns
+    its estimate for primary-theme and secondary-theme(s).
+
+    package - object or dict
     '''
     if stats is None:
         class MockStats:

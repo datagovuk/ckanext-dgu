@@ -41,7 +41,7 @@ def suggest_themes(context, data_dict):
     to the categorisation, otherwise it will be formatted as per the required
     dictionary.
     '''
-    from ckanext.dgu.lib.theme import categorize_package
+    from ckanext.dgu.lib.theme import categorize_package2
     themes = []
 
     # TODO: Make this only available to logged in publishers
@@ -51,7 +51,7 @@ def suggest_themes(context, data_dict):
     id = data_dict.get('id')
     if id:
         pkg = model.Package.get(id)
-        themes = categorize_package(pkg)
+        themes = categorize_package2(pkg)
     else:
         pkg_dict = {'name': data_dict.get('name'),
                     'title': data_dict.get('title'),
@@ -59,7 +59,7 @@ def suggest_themes(context, data_dict):
                     'tags': [t for t in data_dict.get('tags', '').split(' ')],
                     'extras': [{'key': '', 'value': ''}]
                     }
-        themes = categorize_package(pkg_dict)
+        themes = categorize_package2(pkg_dict)
 
     results = {'primary-theme': {}, 'secondary-theme': []}
     if len(themes) >= 1:

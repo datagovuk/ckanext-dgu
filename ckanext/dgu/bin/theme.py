@@ -74,7 +74,7 @@ def get_freq_dist(package_options, level):
 
 
 def categorize(options, test=False):
-    from ckanext.dgu.lib.theme import categorize_package, PRIMARY_THEME
+    from ckanext.dgu.lib.theme import categorize_package2, PRIMARY_THEME
 
     stats = StatsList()
     stats.report_value_limit = 1000
@@ -97,7 +97,7 @@ def categorize(options, test=False):
 
     for pkg in packages:
         print 'Dataset: %s' % pkg.name
-        themes = categorize_package(pkg, stats)
+        themes = categorize_package2(pkg, stats)
         if options.write and not pkg.extras.get(PRIMARY_THEME) and themes:
             themes_to_write[pkg.name] = themes
 
@@ -122,7 +122,7 @@ def write_themes(themes_to_write):
     model.repo.commit_and_remove()
 
 def recategorize(options):
-    from ckanext.dgu.lib.theme import (categorize_package, PRIMARY_THEME,
+    from ckanext.dgu.lib.theme import (categorize_package2, PRIMARY_THEME,
             SECONDARY_THEMES, Themes)
 
     stats = StatsList()
@@ -151,7 +151,7 @@ def recategorize(options):
 
     for pkg in packages:
         print 'Dataset: %s' % pkg.name
-        themes = categorize_package(pkg)
+        themes = categorize_package2(pkg)
         existing_theme = pkg.extras.get(PRIMARY_THEME)
         pkg_identity = '%s (%s)' % (pkg.name, existing_theme)
         if not themes:
