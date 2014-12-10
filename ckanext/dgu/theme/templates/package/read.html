@@ -98,7 +98,7 @@
         {% endif %}
         {% if h.timeseries_resources() %}
           <h2>Data Resources ({{h.timeseries_resources()|length}} in a time series)</h2>
-  	       {% for year, items in h.groupby(reversed(h.timeseries_resources()), h.get_date_lambda()) %}
+  	       {% for year, items in h.groupby(h.sort_by_date(h.timeseries_resources()), h.get_date_lambda()) %}
   	       <div class="year">
               <h3>{{year}} <span class="showyear"></span><span class="hideyear"></span></h3>
               <div class="year_items">
