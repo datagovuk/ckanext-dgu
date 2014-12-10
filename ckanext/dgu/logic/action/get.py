@@ -63,18 +63,8 @@ def suggest_themes(context, data_dict):
 
     results = {'primary-theme': {}, 'secondary-theme': []}
     if len(themes) >= 1:
-        results['primary-theme'] = {
-            'name': themes[0],
-            'reason': '',
-            'score': '',
-        }
+        results['primary-theme'] = themes[0]
 
-    for theme in themes[1:]:
-        results['secondary-theme'].append({
-            'name': theme,
-            'reason': '',
-            'score': '',
-        })
-
+    results['secondary-theme'] = themes[1:]
 
     return results

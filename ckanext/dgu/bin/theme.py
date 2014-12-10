@@ -116,9 +116,9 @@ def write_themes(themes_to_write):
     for pkg_name, themes in themes_to_write.items():
             #print 'WRITE %s %r' % (pkg_name, themes)
             pkg = model.Package.get(pkg_name)
-            pkg.extras[PRIMARY_THEME] = themes[0]
+            pkg.extras[PRIMARY_THEME] = themes[0]['name']
             if len(themes) > 1:
-                pkg.extras[SECONDARY_THEMES] = '["%s"]' % themes[1]
+                pkg.extras[SECONDARY_THEMES] = '["%s"]' % themes[1]['name']
     model.repo.commit_and_remove()
 
 def recategorize(options):
@@ -157,13 +157,13 @@ def recategorize(options):
         if not themes:
             print stats.add('Cannot decide theme', pkg_identity)
             continue
-        if themes[0] not in theme_filter:
+        if themes[0]['name'] not in theme_filter:
             print stats.add('Not interested in theme', pkg_identity)
             continue
-        if existing_theme == themes[0]:
-            print stats.add('Theme unchanged %s' % themes[0], pkg_identity)
+        if existing_theme == themes[0]['name']:
+            print stats.add('Theme unchanged %s' % themes[0]['name'], pkg_identity)
             continue
-        print stats.add('Recategorized to %s' % themes[0], pkg_identity)
+        print stats.add('Recategorized to %s' % themes[0]['name'], pkg_identity)
         if options.write:
             themes_to_write[pkg.name] = themes
 
