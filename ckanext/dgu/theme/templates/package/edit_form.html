@@ -686,7 +686,7 @@
   <div class="control-group">
     <label class="control-label" for="url">URL</label>
     <div class="controls">
-      <input id="url" name="url" type="text" value="{{data.get('url', '')}}"/>
+      <input id="url" name="url" class="form-control" type="text" value="{{data.get('url', '')}}"/>
       <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
       <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
       {% if errors.get('url', '') %}
@@ -694,13 +694,14 @@
       {% endif %}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('taxonomy_url','') %}
   <div class="control-group">
     <label class="control-label" for="taxonomy_url">Taxonomy URL</label>
     <div class="controls">
-      <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="{{data.get('taxonomy_url', '')}}"/>
+      <input id="taxonomy_url" name="taxonomy_url" class="form-control" size="40" type="text" value="{{data.get('taxonomy_url', '')}}"/>
       <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
       <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
       {% if errors.get('taxonomy_url', '') %}
@@ -708,6 +709,7 @@
       {% endif %}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('national_statistic', '') %}
@@ -715,20 +717,21 @@
     <label class="control-label" for="national_statistic">National Statistic</label>
     <div class="controls">
       <div class="checkbox">
-      <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
+      <input id="national_statistic" class="form-control"  name="national_statistic" size="40" type="checkbox" value="yes"
            {% if data.get('national_statistic', '').lower() == 'yes' %} checked="checked"{% endif %} />
         This dataset is a National Statistic.
       </div>
       <p class="instructions further">This is so that it can be highlighted.</p>
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('date_released', '') %}
   <div class="control-group">
     <label class="control-label" for="date_released">Date released</label>
     <div class="controls">
-      <input id="date_released" name="date_released" size="40" type="text" value="{{data.get('date_released', '')}}" />
+      <input id="date_released" class="form-control" name="date_released" size="40" type="text" value="{{data.get('date_released', '')}}" />
       <p class="hints">Format: DD/MM/YYYY</p>
       <p class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
       {% if errors.get('date_released', '') %}
@@ -736,13 +739,14 @@
       {% endif %}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('date_updated', '') %}
   <div class="control-group">
     <label class="control-label" for="date_updated">Date updated</label>
     <div class="controls">
-      <input id="date_updated" name="date_updated" size="40" type="text" value="{{data.get('date_updated', '')}}"/>
+      <input id="date_updated" class="form-control"  name="date_updated" size="40" type="text" value="{{data.get('date_updated', '')}}"/>
       <p class="hints">Format: DD/MM/YYYY</p>
       <p class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
       {% if errors.get('date_updated', '') %}
@@ -750,29 +754,32 @@
       {% endif %}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('date_update_future', '') %}
   <div class="control-group">
     <label class="control-label" for="date_update_future">Date to be published</label>
     <div class="controls">
-      <input id="date_update_future" name="date_update_future" size="40" type="text" value="{{data.get('date_update_future', '')}}"/>
+      <input id="date_update_future" class="form-control" name="date_update_future" size="40" type="text" value="{{data.get('date_update_future', '')}}"/>
       <p class="hints">Format: DD/MM/YYYY</p>
       {% if errors.get('date_update_future', '') %}
       <p class="field_error">{{errors.get('date_update_future', '')}}</p>
       {% endif %}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('precision', '') %}
   <div class="control-group">
     <label class="control-label" for="precision">Precision</label>
     <div class="controls">
-      <input id="precision" name="precision" size="40" type="text" value="{{data.get('precision', '')}}"/>
+      <input id="precision" class="form-control" name="precision" size="40" type="text" value="{{data.get('precision', '')}}"/>
       <p class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</p>
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('temporal_granularity', '') %}
@@ -789,11 +796,12 @@
           {% endfor %}
         </select>
         <label class="inline" for="temporal_granularity-other">Other:</label>
-        <input class="input-medium" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="{{data.get('temporal_granularity-other', '')}}"/>
+        <input class="input-medium" class="form-control"  id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="{{data.get('temporal_granularity-other', '')}}"/>
       </div>
       <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('geographic_granularity', '') %}
@@ -819,6 +827,7 @@
       {% endif %}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if h.is_package_edit_form(data) %}
