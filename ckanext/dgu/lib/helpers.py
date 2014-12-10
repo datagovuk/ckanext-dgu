@@ -1996,13 +1996,13 @@ def paginator_page_url(pageobj):
     return lambda x: pageobj._url_generator(page=x)
 
 def is_dict(d):
-    return type(d) is dict and bool(d)
+    return type(d) == dict and bool(d)
 
 def is_list(d):
-    return type(d) is list and bool(d)
+    return type(d) == list and bool(d)
 
 def is_string(d):
-    return type(d) in [str, unicode] and bool(d)
+    return (type(d) in [str, unicode]) and bool(d)
 
 def list_enumerate(l):
     return enumerate(l)
