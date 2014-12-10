@@ -13,9 +13,6 @@ class TestCategorizePackage:
     def test_basic(self):
         themes = categorize_package(fish_pkg)
 
-        assert_equal(type(themes), list)
-        theme = themes[0]
-        assert_equal(type(theme), str)
         assert_equal(themes, ['Environment'])
 
 

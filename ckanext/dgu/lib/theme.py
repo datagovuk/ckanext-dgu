@@ -168,7 +168,7 @@ def categorize_package2(pkg, stats=None):
             theme_scores[theme]['name'] = theme
             theme_scores[theme]['score'] += score
             theme_scores[theme]['reasons'] += [reason]
-    theme_scores = sorted(theme_scores.items(), key=lambda y: -y['score'])
+    theme_scores = sorted(theme_scores.values(), key=lambda y: -y['score'])
 
     primary_theme = theme_scores[0]['name'] if scores else None
 
