@@ -260,7 +260,7 @@ def score_by_la_function(pkg, scores):
     of the form:
     http://id.esd.org.uk/function/1
     '''
-    la_functions = pkg['extras'].get('functions', '').split(' ')
+    la_functions = pkg['extras'].get('la_function', '').split()
     if not la_functions:
         return
 
@@ -286,7 +286,7 @@ def score_by_la_service(pkg, scores):
     of the form:
     http://id.esd.org.uk/service/1
     '''
-    la_services = pkg['extras'].get('la_service', '').split(' ')
+    la_services = pkg['extras'].get('la_service', '').split()
     if not la_services:
         return
 
