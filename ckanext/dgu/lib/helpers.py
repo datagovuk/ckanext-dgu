@@ -2016,5 +2016,3 @@ def as_dict(d):
 def get_date_lambda():
     return lambda x: parse_date(x.get('date'))['year']
 
-def sort_by_date(l):
-    return sorted(l, key=lambda x: x['created'])
