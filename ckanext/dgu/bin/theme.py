@@ -74,7 +74,7 @@ def get_freq_dist(package_options, level):
 
 
 def categorize(options, test=False):
-    from ckanext.dgu.lib.theme import categorize_package, PRIMARY_THEME
+    from ckanext.dgu.lib.theme import categorize_package2, PRIMARY_THEME
 
     stats = StatsList()
     stats.report_value_limit = 1000
@@ -97,7 +97,7 @@ def categorize(options, test=False):
 
     for pkg in packages:
         print 'Dataset: %s' % pkg.name
-        themes = categorize_package(pkg, stats)
+        themes = categorize_package2(pkg, stats)
         if options.write and not pkg.extras.get(PRIMARY_THEME) and themes:
             themes_to_write[pkg.name] = themes
 
@@ -116,13 +116,13 @@ def write_themes(themes_to_write):
     for pkg_name, themes in themes_to_write.items():
             #print 'WRITE %s %r' % (pkg_name, themes)
             pkg = model.Package.get(pkg_name)
-            pkg.extras[PRIMARY_THEME] = themes[0]
+            pkg.extras[PRIMARY_THEME] = themes[0]['name']
             if len(themes) > 1:
-                pkg.extras[SECONDARY_THEMES] = '["%s"]' % themes[1]
+                pkg.extras[SECONDARY_THEMES] = '["%s"]' % themes[1]['name']
     model.repo.commit_and_remove()
 
 def recategorize(options):
-    from ckanext.dgu.lib.theme import (categorize_package, PRIMARY_THEME,
+    from ckanext.dgu.lib.theme import (categorize_package2, PRIMARY_THEME,
             SECONDARY_THEMES, Themes)
 
     stats = StatsList()
@@ -151,19 +151,19 @@ def recategorize(options):
 
     for pkg in packages:
         print 'Dataset: %s' % pkg.name
-        themes = categorize_package(pkg)
+        themes = categorize_package2(pkg)
         existing_theme = pkg.extras.get(PRIMARY_THEME)
         pkg_identity = '%s (%s)' % (pkg.name, existing_theme)
         if not themes:
             print stats.add('Cannot decide theme', pkg_identity)
             continue
-        if themes[0] not in theme_filter:
+        if themes[0]['name'] not in theme_filter:
             print stats.add('Not interested in theme', pkg_identity)
             continue
-        if existing_theme == themes[0]:
-            print stats.add('Theme unchanged %s' % themes[0], pkg_identity)
+        if existing_theme == themes[0]['name']:
+            print stats.add('Theme unchanged %s' % themes[0]['name'], pkg_identity)
             continue
-        print stats.add('Recategorized to %s' % themes[0], pkg_identity)
+        print stats.add('Recategorized to %s' % themes[0]['name'], pkg_identity)
         if options.write:
             themes_to_write[pkg.name] = themes
 

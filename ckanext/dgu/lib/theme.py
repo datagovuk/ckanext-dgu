@@ -134,6 +134,17 @@ def categorize_package(pkg, stats=None):
     its estimate for primary-theme and secondary-theme.
 
     package - object or dict
+
+    This method is for backwards compatability
+    '''
+    theme_scores = categorize_package2(pkg, stats)
+    return [theme['name'] for theme in theme_scores[:2]]
+
+def categorize_package2(pkg, stats=None):
+    '''Given a package it does various searching for topic keywords and returns
+    its estimate for primary-theme and secondary-theme(s).
+
+    package - object or dict
     '''
     if stats is None:
         class MockStats:
@@ -150,27 +161,29 @@ def categorize_package(pkg, stats=None):
     score_by_la_function(pkg, scores)
     score_by_odc_theme(pkg, scores)
 
-    # add up scores
-    theme_scores = defaultdict(int)  # theme:total_score
+    # add up scores and reasons
+    theme_scores = defaultdict(lambda: {'name': '', 'score': 0, 'reasons': []})
     for theme, theme_scores_ in scores.items():
         for score, reason in theme_scores_:
-            theme_scores[theme] += score
-    theme_scores = sorted(theme_scores.items(), key=lambda y: -y[1])
+            theme_scores[theme]['name'] = theme
+            theme_scores[theme]['score'] += score
+            theme_scores[theme]['reasons'] += [reason]
+    theme_scores = sorted(theme_scores.values(), key=lambda y: -y['score'])
 
-    primary_theme = theme_scores[0][0] if scores else None
+    primary_theme = theme_scores[0]['name'] if scores else None
 
     current_primary_theme = pkg['extras'].get(PRIMARY_THEME)
     if scores:
         if primary_theme == current_primary_theme:
-            log.debug(stats.add('Theme matches', '%s %s %s' % (pkg['name'], primary_theme, theme_scores[0][1])))
+            log.debug(stats.add('Theme matches', '%s %s %s' % (pkg['name'], primary_theme, theme_scores[0]['score'])))
         elif current_primary_theme:
-            log.debug(stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg['name'], primary_theme, current_primary_theme, theme_scores[0][1])))
+            log.debug(stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg['name'], primary_theme, current_primary_theme, theme_scores[0]['score'])))
         else:
-            log.debug(stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg['name'], primary_theme, theme_scores[0][1])))
+            log.debug(stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg['name'], primary_theme, theme_scores[0]['score'])))
     else:
         log.debug(stats.add('No match', pkg['name']))
 
-    return [theme for theme, score in theme_scores[:2]]
+    return theme_scores
 
 def score_by_topic(pkg, scores):
     '''Examines the pkg and adds scores according to topics in it.'''
@@ -247,7 +260,7 @@ def score_by_la_function(pkg, scores):
     of the form:
     http://id.esd.org.uk/function/1
     '''
-    la_functions = pkg['extras'].get('functions', '').split(' ')
+    la_functions = pkg['extras'].get('la_function', '').split()
     if not la_functions:
         return
 
@@ -273,7 +286,7 @@ def score_by_la_service(pkg, scores):
     of the form:
     http://id.esd.org.uk/service/1
     '''
-    la_services = pkg['extras'].get('la_service', '').split(' ')
+    la_services = pkg['extras'].get('la_service', '').split()
     if not la_services:
         return
 
