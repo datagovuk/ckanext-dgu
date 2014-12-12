@@ -3,6 +3,12 @@ var CKAN = CKAN || {};
 
 CKAN.DguSpatialEditor = function($) {
 
+    var COPYRIGHT_STATEMENTS =
+        "Contains Ordnance Survey data &copy; Crown copyright and database right  [2012].<br/>" +
+        "Contains Royal Mail data &copy; Royal Mail copyright and database right [2012].<br/>" +
+        "Contains bathymetry data by GEBCO &copy; Copyright [2012].<br/>" +
+        "Contains data by Land & Property Services (Northern Ireland) &copy; Crown copyright [2012]."
+
     var geojsonFormat = new ol.format.GeoJSON()
     var selectionListener //
 
@@ -74,13 +80,18 @@ CKAN.DguSpatialEditor = function($) {
         })
     })
 
+    var OS_Attribution = new ol.Attribution({html: COPYRIGHT_STATEMENTS})
 
     var map = new ol.Map({
         target: 'map',
         size: [400,300],
+        controls: ol.control.defaults( {attributionOptions: ({collapsible: false}) }),
         layers: [
             new ol.layer.Tile({
                 source: new ol.source.TileWMS({
+                    attributions: [
+                        OS_Attribution
+                    ],
                     //TODO : should the OS key stay here?
                     url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
                     params: {
