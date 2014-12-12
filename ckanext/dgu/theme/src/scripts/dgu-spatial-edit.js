@@ -17,8 +17,12 @@ CKAN.DguSpatialEditor = function($) {
     //proj4.defs("EPSG:27700","+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs");
     proj4.defs("EPSG:4258", "+title=ETRS89 +proj=longlat +ellps=GRS80 +no_defs");
 
-    var bng = ol.proj.get('EPSG:4258');
-    bng.setExtent(extent);
+    var EPSG_4326 = ol.proj.get('EPSG:4326');
+    var EPSG_4258 = ol.proj.get('EPSG:4258');
+
+    var GAZETEER_PROJ = EPSG_4326
+
+    EPSG_4258.setExtent(extent);
 
     // Define a TileGrid to ensure that WMS requests are made for
     // tiles at the correct resolutions and tile boundaries
@@ -93,7 +97,7 @@ CKAN.DguSpatialEditor = function($) {
             activateLayer
         ],
         view: new ol.View({
-            projection: bng,
+            projection: EPSG_4258,
             resolutions: resolutions,
             center: [-0.6680291327536106, 51.33129296535873],
             zoom: 3
@@ -136,6 +140,8 @@ CKAN.DguSpatialEditor = function($) {
 
     function bbox2geom(bbox) {
         var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
+        // make sure the gazetteer extents are transformed into the system SRS
+        e = ol.proj.transformExtent(e, GAZETEER_PROJ, EPSG_4258)
         var size = ol.extent.getSize(e)
         // either a point or a box
         return geom = size[0]*size[1] == 0 ?
@@ -155,6 +161,7 @@ CKAN.DguSpatialEditor = function($) {
             transformResult: function(response) {
                 return {
                     suggestions: $.map(response.features, function(feature) {
+                        feature.bbox_geom = bbox2geom(feature.bbox)
                         return { value: feature.properties.name, data: feature };
                     })
                 };
@@ -162,12 +169,11 @@ CKAN.DguSpatialEditor = function($) {
             onSelect: function (suggestion) {
                 $("#location").val(suggestion.value)
 
-                var geom = bbox2geom(suggestion.data.bbox)
-                CKAN.DguSpatialEditor.setBBox(geom)
-                selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+                CKAN.DguSpatialEditor.setBBox(suggestion.data.bbox_geom)
+                selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(suggestion.data.bbox_geom)))
             },
             onActivate: function(item) {
-                CKAN.DguSpatialEditor.activateBBox(bbox2geom(item.data.bbox))
+                CKAN.DguSpatialEditor.activateBBox(item.data.bbox_geom)
             }
         })
         .blur(function(e) {
