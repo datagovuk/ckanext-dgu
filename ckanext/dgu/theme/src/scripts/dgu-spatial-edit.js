@@ -133,7 +133,7 @@ CKAN.DguSpatialEditor = function($) {
         selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(newBox)))
     })
 
-    var selectButton = $("<div class='selectButton ol-unselectable ol-control ol-collapsed' style='top: 4em; left: .5em;'><button class='ol-has-tooltip' type='button'><span>[]</span><span role='tooltip'>Draw Selection</span></button></div>")
+    var selectButton = $("<div class='selectButton ol-unselectable ol-control ol-collapsed' style='top: 4em; left: .5em;'><button class='ol-has-tooltip' type='button'><span class='glyphicon icon-crop' aria-hidden='true'></span><span role='tooltip'>Draw Selection</span></button></div>")
     $(".ol-viewport").append(selectButton)
     selectButton.click(function (e) {
         selectBoxSource.clear()
