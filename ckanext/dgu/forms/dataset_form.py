@@ -250,7 +250,8 @@ class DatasetForm(p.SingletonPlugin):
             'update_frequency-other': [ignore_missing],
             'precision': [ignore_missing, unicode, convert_to_extras],
             'geographic_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
-            'spatial': [ignore_missing, convert_spatial_to_bbox, convert_to_extras], #TODO set bbox-* extra fields
+            'spatial_name': [ignore_missing, convert_to_extras],
+            'spatial': [ignore_missing, convert_to_extras],
             'geographic_granularity-other': [ignore_missing],
             'geographic_coverage': [ignore_missing, convert_geographic_to_db, convert_to_extras],
             'temporal_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
@@ -320,6 +321,7 @@ class DatasetForm(p.SingletonPlugin):
             'geographic_granularity': [convert_from_extras, ignore_missing, extract_other(geographic_granularity)],
             'geographic_coverage': [convert_from_extras, ignore_missing, convert_geographic_to_form],
             'spatial': [convert_from_extras, ignore_missing],
+            'spatial_name': [convert_from_extras, ignore_missing],
             'temporal_granularity': [convert_from_extras, ignore_missing, extract_other(temporal_granularity)],
             'temporal_coverage-from': [convert_from_extras, ignore_missing, date_to_form],
             'temporal_coverage-to': [convert_from_extras, ignore_missing, date_to_form],
@@ -507,15 +509,6 @@ def convert_geographic_to_db(value, context):
         regions = []
 
     return GeoCoverageType.get_instance().form_to_db(regions)
-
-
-def convert_spatial_to_bbox(key, data, errors, context):
-
-    current_index = max([int(k[1]) for k in data.keys()
-                         if len(k) == 3 and k[0] == 'extras'] + [-1])
-
-    data[('extras', current_index+1, 'key')] = key[-1]
-    data[('extras', current_index+1, 'value')] = data[key]
 
 
 def convert_geographic_to_form(value, context):

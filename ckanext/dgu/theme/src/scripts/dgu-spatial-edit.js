@@ -149,7 +149,7 @@ CKAN.DguSpatialEditor = function($) {
             new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
     }
 
-    $('#location')
+    $('#spatial_name')
         .autocomplete({
             triggerSelectOnValidInput : false,
             minChars: 3,
@@ -167,7 +167,7 @@ CKAN.DguSpatialEditor = function($) {
                 };
             },
             onSelect: function (suggestion) {
-                $("#location").val(suggestion.value)
+                $("#spatial_name").val(suggestion.value)
 
                 CKAN.DguSpatialEditor.setBBox(suggestion.data.bbox_geom)
                 selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(suggestion.data.bbox_geom)))

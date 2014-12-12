@@ -670,7 +670,7 @@
     <div class="well">
         <label class="control-label" for="spatial">Spatial Extent</label>
         <div class="controls">
-            <input id="location" name="location" size="40" type="text" value="${data.get('location', '')}" />
+            <input id="spatial_name" name="spatial_name" size="40" type="text" value="${data.get('spatial_name', '')}" />
             <input id="spatial" name="spatial" size="40" type="hidden" value="${data.get('spatial', '')}" />
             <p class="field_error" py:if="errors.get('spatial_extent', '')">${errors.get('date_released', '')}</p>
         </div>
