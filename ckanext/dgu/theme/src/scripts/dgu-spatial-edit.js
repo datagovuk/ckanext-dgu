@@ -167,10 +167,7 @@ CKAN.DguSpatialEditor = function($) {
                 };
             },
             onSelect: function (suggestion) {
-                $("#spatial_name").val(suggestion.value)
-
-                CKAN.DguSpatialEditor.setBBox(suggestion.data.bbox_geom)
-                selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(suggestion.data.bbox_geom)))
+                CKAN.DguSpatialEditor.selectSuggestion(suggestion)
             },
             onActivate: function(item) {
                 CKAN.DguSpatialEditor.activateBBox(item.data.bbox_geom)
@@ -180,11 +177,49 @@ CKAN.DguSpatialEditor = function($) {
             activateBoxSource.clear()
         })
 
+    $('#use_exact_geom').change(function() {
+        CKAN.DguSpatialEditor.setUseExactGeometry($(this).prop('checked'))
+    })
+
     return {
         geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
+        currentSuggestion: null,
+        useExactGeometry: false,
 
-        suggestLocation: function(suggestions) {
+        setUseExactGeometry: function(bool) {
+            if (this.useExactGeometry != bool) {
+                this.useExactGeometry = bool
+                this.selectSuggestion() // force geom refresh
+            }
+        },
 
+        selectSuggestion: function(suggestion) {
+
+            if (suggestion) {
+                this.currentSuggestion = suggestion
+
+                $("#spatial_name").val(this.currentSuggestion.value)
+            }
+
+            if (this.currentSuggestion) {
+                if (this.currentSuggestion.data.properties.footprint && this.useExactGeometry) {
+                    var _this = this
+                    $.ajax(
+                        {   dataType:"jsonp",
+                            url:this.currentSuggestion.data.properties.footprint})
+                    .done(
+                        function (data) {
+                            var geojson = data.footprints[0].geometry
+                            var geom = _this.currentSuggestion.data.exactFootprint = geojsonFormat.readGeometry(geojson)
+                            geom.transform(GAZETEER_PROJ, EPSG_4258)
+                            _this.setBBox(geom)
+                            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+                        })
+                } else {
+                    this.setBBox(this.currentSuggestion.data.bbox_geom)
+                    selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(this.currentSuggestion.data.bbox_geom)))
+                }
+            }
         },
 
         setBBox: function(geom) {
