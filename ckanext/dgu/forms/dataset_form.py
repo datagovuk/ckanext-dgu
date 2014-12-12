@@ -1,5 +1,6 @@
 ﻿import re
 import json
+import shapely
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
@@ -107,6 +108,7 @@ def timeseries_resource_schema():
 class DatasetForm(p.SingletonPlugin):
 
     p.implements(p.IDatasetForm, inherit=True)
+    p.implements(p.IPackageController, inherit=True)
 
     # We don't customize the schema here - instead it is done in the validate
     # function, because there it has the context.
@@ -248,7 +250,7 @@ class DatasetForm(p.SingletonPlugin):
             'update_frequency-other': [ignore_missing],
             'precision': [ignore_missing, unicode, convert_to_extras],
             'geographic_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
-            'spatial': [ignore_missing, use_other, convert_to_extras],
+            'spatial': [ignore_missing, convert_spatial_to_bbox, convert_to_extras], #TODO set bbox-* extra fields
             'geographic_granularity-other': [ignore_missing],
             'geographic_coverage': [ignore_missing, convert_geographic_to_db, convert_to_extras],
             'temporal_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
@@ -408,6 +410,28 @@ class DatasetForm(p.SingletonPlugin):
         return dict((g['name'], g) for g in groups)
 
 
+    def create(self, package):
+        self.check_spatial_extra(package)
+
+    def edit(self, package):
+        self.check_spatial_extra(package)
+
+    def check_spatial_extra(self,package):
+        '''
+        If a spatial extent is provided, make sure the corresponding bbox-* fields are set accordingly
+        '''
+
+        spatial_extra = package.extras.get('spatial')
+        if spatial_extra:
+            geometry = json.loads(spatial_extra)
+            bounds = shapely.geometry.shape(geometry).bounds
+
+            package.extras['bbox-west-long'] = bounds[0]
+            package.extras['bbox-south-lat'] = bounds[1]
+            package.extras['bbox-east-long'] = bounds[2]
+            package.extras['bbox-north-lat'] = bounds[3]
+
+
 def date_to_db(value, context):
     try:
         value = DateType.form_to_db(value)
@@ -483,6 +507,15 @@ def convert_geographic_to_db(value, context):
         regions = []
 
     return GeoCoverageType.get_instance().form_to_db(regions)
+
+
+def convert_spatial_to_bbox(key, data, errors, context):
+
+    current_index = max([int(k[1]) for k in data.keys()
+                         if len(k) == 3 and k[0] == 'extras'] + [-1])
+
+    data[('extras', current_index+1, 'key')] = key[-1]
+    data[('extras', current_index+1, 'value')] = data[key]
 
 
 def convert_geographic_to_form(value, context):

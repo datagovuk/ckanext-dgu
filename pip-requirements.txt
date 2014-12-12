@@ -37,6 +37,7 @@
 ## Related extension dependencies
 
 # Copied from ckanext-spatial's pip-requirements.txt:
+# Shapely dependency is also required for DGU dataset_form
 GeoAlchemy>=0.6
 Shapely>=1.2.13
 owslib
