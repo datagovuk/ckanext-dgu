@@ -158,6 +158,9 @@ CKAN.DguSpatialEditor = function($) {
                 return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
             //paramName: 'name',
             dataType: 'jsonp',
+            onSearchStart: function() {$("#spatial_spinner").show()},
+            onSearchComplete: function() {$("#spatial_spinner").hide()},
+            onSearchError: function() {$("#spatial_spinner").hide()},
             transformResult: function(response) {
                 return {
                     suggestions: $.map(response.features, function(feature) {
