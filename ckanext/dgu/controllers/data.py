@@ -180,6 +180,9 @@ class DataController(BaseController):
             else:
                 abort(404, 'Publisher not found')
             self._set_openspending_reports_dir()
+
+            path = c.openspending_report_dir + "/" + c.report_name + ".html"
+            c.content = open(path).read()
             return render('data/openspending_publisher_report.html')
         else:
             abort(404)

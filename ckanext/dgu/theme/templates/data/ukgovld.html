@@ -1,12 +1,14 @@
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
 
-  <py:def function="page_title">Linked-Data pages admin</py:def>
-  <py:def function="page_heading">Linked-Data pages admin</py:def>
+
+{% block title %}Linked-Data pages admin{% endblock %}
+
+
+  <h1>Linked-Data pages admin</h1>
+
+
+{% block breadcrumb_content %}
+
+{% endblock %}
 
   <py:match path="breadcrumbs">
     <li><a href="/linked-data">Linked Data</a></li>
@@ -15,7 +17,7 @@
 
   <div py:match="content">
     <h1>Linked-Data pages admin</h1>
-    
+
     <p>This is a tool to update the Linked-Data pages at <a href="/linked-data">http://data.gov.uk/linked-data</a> according to the latest markdown in GitHub.</p>
 
     <py:if test="c.error">
