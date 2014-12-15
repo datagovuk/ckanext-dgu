@@ -19,7 +19,7 @@
                        {% set admins = dataset.admins.split('\n') %}
                        {% set admins_ids = dataset.admins_ids.split('\n') %}
                        {% for admin in admins %}
-                         <a href="/data/user/{{admins_ids[loop.index0]}}">{{admin}}</a><br/>
+                         <a href="{{h.user_link_info(admins_ids[loop.index0]).0}}">{{admin}}</a><br/>
                        {% endfor %}
                      {% endwith %}
                      </td>
@@ -28,7 +28,7 @@
                        {% set editors = dataset.editors.split('\n') %}
                        {% set editors_ids = dataset.editors_ids.split('\n') %}
                        {% for editor in editors %}
-                         <a href="/data/user/{{editors_ids[loop.index0]}}">{{editor}}</a><br/>
+                         <a href="{{h.user_link_info(editors_ids[loop.index0]).0}}">{{editor}}</a><br/>
                        {% endfor %}
                      {% endwith %}
                      </td>
