@@ -60,11 +60,12 @@ class DataController(BaseController):
         build_path = pylons.config.get(prefix + "local.build", None)
         deploy_path = pylons.config.get(prefix + "local.deploy", None)
 
-        if not os.path.exists(source_repo_path) and source_repo_path.startswith('/tmp/'):
+        if source_repo_path and (not os.path.exists(source_repo_path) and
+                source_repo_path.startswith('/tmp/')):
             # Directories in /tmp won't survive a reboot
             os.makedirs(source_repo_path)
 
-        if not os.path.exists(build_path) and build_path.startswith('/tmp/'):
+        if build_path and (not os.path.exists(build_path) and build_path.startswith('/tmp/')):
             # Directories in /tmp won't survive a reboot
             os.makedirs(build_path)
 
@@ -72,7 +73,7 @@ class DataController(BaseController):
                     deploy_path]) or \
                 not os.path.exists(source_repo_path):
             c.error = "System not configured, please setup ckan.ini"
-            if not os.path.exists(source_repo_path):
+            if source_repo_path and not os.path.exists(source_repo_path):
                 c.error = "Repo path %s does not exist" % source_repo_path
             return render('data/ukgovld.html')
 
