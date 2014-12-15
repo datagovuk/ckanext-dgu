@@ -123,7 +123,6 @@ class CommitmentController(BaseController):
         if request.method == "POST":
             from ckan.logic import clean_dict, tuplize_dict, parse_params
             from ckan.lib.navl.dictization_functions import unflatten
-            print request.params
             data_dict = clean_dict(unflatten(tuplize_dict(parse_params(request.params))))
             self._save(context, data_dict, c.publisher)
 
