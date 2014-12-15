@@ -420,7 +420,7 @@ class InventoryPlugin(p.SingletonPlugin):
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
-        map.connect('/unpublished/:id/edit',
+        map.connect('unpublished_edit', '/unpublished/:id/edit',
                     controller=inv_ctlr, action='edit')
         map.connect('/unpublished/:id/edit/download',
                     controller=inv_ctlr, action='download')
