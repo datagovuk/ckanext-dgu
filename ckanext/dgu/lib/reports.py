@@ -533,9 +533,14 @@ def admin_editor(org=None):
 
         for g in q.all():
             record = {}
-            record['name'] = g.name
-            record['admins'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in group_get_users(g, capacity='admin')])
-            record['editors'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in group_get_users(g, capacity='editor')])
+            record['publisher'] = g.name
+            admin_users = group_get_users(g, capacity='admin')
+            record['admins'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in admin_users])
+            record['admins_ids'] = "\n".join([u.name for u in admin_users])
+
+            editor_users = group_get_users(g, capacity='editor')
+            record['editors'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in editor_users])
+            record['editors_ids'] = "\n".join([u.name for u in editor_users])
             table.append(record)
     else:
         table.append({})

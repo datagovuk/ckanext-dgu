@@ -13,16 +13,24 @@
           <tbody>
             {% for dataset in data.table %}
                  <tr>
-                     <td>{{ dataset.name }}</td>
+                     <td>{{ dataset.publisher }}</td>
                      <td>
-                     {% for admin in dataset.admins.split('\n') %}
-                       {{admin}}<br/>
-                     {% endfor %}
+                     {% with %}
+                       {% set admins = dataset.admins.split('\n') %}
+                       {% set admins_ids = dataset.admins_ids.split('\n') %}
+                       {% for admin in admins %}
+                         <a href="/data/user/{{admins_ids[loop.index0]}}">{{admin}}</a><br/>
+                       {% endfor %}
+                     {% endwith %}
                      </td>
                      <td>
-                     {% for editor in dataset.editors.split('\n') %}
-                       {{editor}}<br/>
-                     {% endfor %}
+                     {% with %}
+                       {% set editors = dataset.editors.split('\n') %}
+                       {% set editors_ids = dataset.editors_ids.split('\n') %}
+                       {% for editor in editors %}
+                         <a href="/data/user/{{editors_ids[loop.index0]}}">{{editor}}</a><br/>
+                       {% endfor %}
+                     {% endwith %}
                      </td>
                  </tr>
             {% endfor %}
