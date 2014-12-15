@@ -1,35 +1,37 @@
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:i18n="http://genshi.edgewall.org/i18n"
+  xmlns:py="http://genshi.edgewall.org/"
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  py:strip=""
+  >
 
 
-{% macro editable_commitment_row(commitment=None, src=None,idx=0) %}
-
-{% with %}
-  {% set dataset = commitment.dataset if commitment else '' %}
-  {% set dataset_url = dataset.url if dataset.startswith('http') else '' %}
-
-<tr>
+<tr py:def="editable_commitment_row(commitment=None, src=None,idx=0)">
     <td>
-        <input type="hidden" name="{{src}}__{{idx}}__id" value="{{commitment.id if commitment else ''}}"/>
-        <input type="hidden" name="{{src}}__{{idx}}__source" value="{{src}}"/>
+        <input type="hidden" name="${src}__${idx}__id" value="${commitment.id if commitment else ''}"/>
+        <input type="hidden" name="${src}__${idx}__source" value="${src}"/>
 
-        Dataset name <input class="form-control" type="text" name="{{src}}__{{idx}}__dataset_name" value="{{commitment.dataset_name if commitment else ''}}"></input>
+        Dataset name <input class="form-control" type="text" name="${src}__${idx}__dataset_name" value="${commitment.dataset_name if commitment else ''}"></input>
 
-        Actual text <textarea class="form-control" name="{{src}}__{{idx}}__commitment_text" rows='8'>{{(commitment.commitment_text or commitment.dataset_name) if commitment else ''}}</textarea>
+        Actual text <textarea class="form-control" name="${src}__${idx}__commitment_text" rows='8'>${(commitment.commitment_text or commitment.dataset_name) if commitment else ''}</textarea>
     </td>
     <td>
-        <textarea name="{{src}}__{{idx}}__notes" class="form-control" rows='12'>{{commitment.notes if commitment else ''}}</textarea>
+        <textarea name="${src}__${idx}__notes" class="form-control" rows='12'>${commitment.notes  if commitment else ''}</textarea>
     </td>
     <td style="width:20%">
-        <select class="chzn-select" style="width:200px;" name="{{src}}__{{idx}}__dataset">
+        <select class="chzn-select" style="width:200px;" name="${src}__${idx}__dataset">
           <option value="">Please select</option>
-          {% for name,title in c.packages %}
-            <option value="{{name}}" {% if name == dataset %}selected="selected"{% endif %}>{{title}}</option>
-          {% endfor %}
+          <py:for each="name,title in c.packages">
+            <option value="${name}" py:attrs="{'selected':'selected'} if name == (commitment.dataset if commitment else '') else None">${title}</option>
+          </py:for>
         </select>
 
         <span style="width:100%; text-align:center;">or non-data.gov.uk URL</span>
 
-        <input class="form-control" type="text" name="{{src}}__{{idx}}__url" value="{{dataset_url}}"></input>
+        <input class="form-control" type="text" name="${src}__${idx}__url" value="${commitment.dataset if (commitment and commitment.dataset.lower().startswith('http')) else ''}"></input>
     </td>
 </tr>
-{% endwith %}
-{% endmacro %}
+
+
+</html>
