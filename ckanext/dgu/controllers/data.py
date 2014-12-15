@@ -168,6 +168,7 @@ class DataController(BaseController):
 
     def openspending_report(self):
         self._set_openspending_reports_dir()
+        c.content = open (c.openspending_report_dir + "/index.html").read()
         return render('data/openspending_report.html')
 
     def openspending_publisher_report(self, id):
