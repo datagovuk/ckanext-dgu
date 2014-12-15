@@ -1,42 +1,34 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
 
 
-    <div class="widget-container">
+<div class="widget-container">
 
-        <p>
-          Number of unpublished datasets: ${len(c.data['table'])}
-        </p>
+  <p>
+    Number of unpublished datasets: {{data['table']|length }}
+  </p>
 
-        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
-              <thead>
-                <tr>
-                  <th style="width: 80px">Dataset</th>
-                  <th style="width: 80px">Organization</th>
-                  <th style="width: 200px">Description</th>
-                  <th style="width: 80px">Publish date</th>
-                  <th style="width: 50px">Will not be released</th>
-                  <th style="width: 150px">Release notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <py:for each="dataset in c.data['table']">
-                    <tr>
-                        <td><a href="/dataset/${dataset['name']}">${dataset['title']}</a></td>
-                        <td><a href="/publisher/${dataset['organization name']}">${dataset['organization title']}</a></td>
-                        <td>${dataset['notes']}</td>
-                        <td>${dataset['publish date']}</td>
-                        <td>${dataset['will not be released']}</td>
-                        <td>${dataset['release notes']}</td>
-                    </tr>
-                </py:for>
-              </tbody>
-        </table>
+  <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+        <thead>
+          <tr>
+            <th style="width: 80px">Dataset</th>
+            <th style="width: 80px">Organization</th>
+            <th style="width: 200px">Description</th>
+            <th style="width: 80px">Publish date</th>
+            <th style="width: 50px">Will not be released</th>
+            <th style="width: 150px">Release notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dataset in data['table'] %}
+              <tr>
+                  <td><a href="/dataset/{{dataset['name']}}">{{dataset['title']}}</a></td>
+                  <td><a href="/publisher/{{dataset['organization name']}}">{{dataset['organization title']}}</a></td>
+                  <td>{{dataset['notes']}}</td>
+                  <td>{{dataset['publish date']}}</td>
+                  <td>{{dataset['will not be released']}}</td>
+                  <td>{{dataset['release notes']}}</td>
+              </tr>
+          {% endfor %}
+        </tbody>
+  </table>
 
-    </div>
-
-</html>
-
-
+</div>
