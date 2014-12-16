@@ -698,8 +698,9 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
-    if c.is_an_official:
+    if is_an_official():
         field_names_display_only_if_value.append('external_reference')
+        field_names_display_only_if_value.append('import_source')
     pkg_extras = dict(pkg_extras)
     harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
     if dataset_was_harvested:
@@ -737,8 +738,6 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-        if c.is_an_official:
-            field_names.add(['external_reference', 'import_source'])
     if is_local_government_data:
         field_names.add(('la-function', 'la-service'))
 
@@ -1092,6 +1091,9 @@ def top_level_init():
     # or into our own BaseController. Perhaps. TODO.
     c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
+
+def is_an_official():
+    return bool(c.groups or is_sysadmin())
 
 def groups_for_current_user():
     return c.userobj.get_groups(group_type='organization') if c.userobj else []
