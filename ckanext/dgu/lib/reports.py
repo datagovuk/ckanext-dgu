@@ -497,8 +497,8 @@ def dataset_app_report():
         datasets[dataset_name]['apps'].append(app)
 
     for dataset_name, dataset in datasets.items():
-        table.append({'title': dataset['title'],
-                      'name': dataset_name,
+        table.append({'dataset_title': dataset['title'],
+                      'dataset_name': dataset_name,
                       'theme': dataset['theme'],
                       'apps': dataset['apps']})
 
@@ -507,7 +507,7 @@ def dataset_app_report():
 dataset_app_report_info = {
     'name': 'dataset-app-report',
     'title': 'Datasets used in apps',
-    'description': 'Datasets that have been used by apps.',
+    'description': 'Datasets that have been used by apps, grouped by theme.',
     'option_defaults': None,
     'option_combinations': None,
     'generate': dataset_app_report,

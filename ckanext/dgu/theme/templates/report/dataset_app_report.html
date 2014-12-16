@@ -9,11 +9,11 @@
         <tbody>
         {% for theme in data.table|groupby('theme') %}
           <tr><th colspan="2">{{theme.grouper}} ({{theme.list|length}})</th></tr>
-          {% for dataset in theme.list %}
+          {% for dataset in theme.list|sort(attribute='dataset_title') %}
             <tr>
-                <td><a href="{{h.url_for(controller='package', action='read', id=dataset.name)}}">{{dataset.title}}</a></td>
+                <td><a href="{{h.url_for(controller='package', action='read', id=dataset.dataset_name)}}">{{dataset.dataset_title}}</a></td>
                 <td>
-                  {% for app in dataset.apps %}
+                  {% for app in dataset.apps|sort(attribute='title') %}
                     <a href="{{app.url}}">{{app.title}}</a><br/>
                   {% endfor %}
                 </td>
