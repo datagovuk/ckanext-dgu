@@ -1,56 +1,52 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
 
 
-    <div class="widget-container">
+  <div class="widget-container">
 
-        <p>
-          NII totals: ${c.data['num_resources']} resources in ${c.data['num_datasets']} datasets across ${c.data['num_organizations']} organizations
-        </p>
-        <p>
-          Broken: ${c.data['num_broken_resources']} broken resources in ${c.data['num_broken_datasets']} broken datasets across ${c.data['num_broken_organizations']} organizations
-        </p>
-        <ul>
-        <py:for each="publisher_name, publisher_title in c.data['organizations']">
-          <li><a href="#${publisher_name}">${publisher_title}</a></li>
-        </py:for>
-        </ul>
+      <p>
+        NII totals: {{data['num_resources']}} resources in {{data['num_datasets']}} datasets across {{data['num_organizations']}} organizations
+      </p>
+      <p>
+        Broken: {{data['num_broken_resources']}} broken resources in {{data['num_broken_datasets']}} broken datasets across {{data['num_broken_organizations']}} organizations
+      </p>
+      <ul>
+      {% for publisher_name, publisher_title in data['organizations'] %}
+        <li><a href="{${publisher_name}}">{{publisher_title}}</a></li>
+      {% endfor %}
+      </ul>
 
-        <py:for each="publisher_name, publisher_title in c.data['organizations']">
-          <h2><a name="${publisher_name}" href="/publisher/${publisher_name}">${publisher_title}</a></h2>
-          <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Dataset</th>
-                  <th>Notes</th>
-                  <th>Broken resource count</th>
-                  <th>Broken resources</th>
-                </tr>
-              </thead>
-              <tbody>
-                <py:for each="dataset in __import__('itertools').ifilter(lambda d: d['organization_name'] == publisher_name, c.data['table'])">
-                    <tr py:attrs="{'class':'warning' if dataset['num_broken_resources'] > 0 else None}">
-                        <td><a href="/dataset/${dataset['name']}">${dataset['title']}</a></td>
-                        <td>${dataset['dataset_notes']}</td>
-                        <td>${dataset['num_broken_resources']}</td>
-                        <td>
-                            <ul py:if="dataset['broken_resources']">
-                              <py:for each="rdesc,rid in dataset['broken_resources']">
-                                <li>
-                                    <a href="/dataset/${dataset['name']}/resource/${rid}">${rdesc or "Unnamed"}</a>
-                                </li>
-                              </py:for>
-                            </ul>
-                        </td>
-                    </tr>
-                </py:for>
-              </tbody>
-          </table>
+      {% for publisher_name, publisher_title in data['organizations'] %}
+        <h2><a name="{{publisher_name}}" href="/publisher/{{publisher_name}}">{{publisher_title}}</a></h2>
+        <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Notes</th>
+                <th>Broken resource count</th>
+                <th>Broken resources</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dataset in h.report_match_organization_name(publisher_name, data['table']) %}
+                  <tr {% if dataset['num_broken_resources'] > 0 %}class="warning"{% endif %}>
+                      <td><a href="/dataset/{{dataset['name']}}">{{dataset['title']}}</a></td>
+                      <td>{{dataset['dataset_notes']}}</td>
+                      <td>{{dataset['num_broken_resources']}}</td>
+                      <td>
+                          {% if dataset['broken_resources'] %}
+                          <ul>
+                            {% for rdesc,rid in dataset['broken_resources'] %}
+                              <li>
+                                  <a href="/dataset/{{dataset['name']}}/resource/{{rid}}">{{rdesc or "Unnamed"}}</a>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                          {% endif %}
+                      </td>
+                  </tr>
+              {% endfor %}
+            </tbody>
+        </table>
 
-        </py:for>
-    </div>
-
-</html>
+      {% endfor %}
+  </div>
 

@@ -1,43 +1,47 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
 
+{% for quarter in data['quarters'] %}
+    <div style="margin-top: 10px; margin-bottom:10px;">
+      <h3>
+          {{quarter.capitalize()}} Quarter
+          ({{h.render_datetime(data['quarters'][quarter][0])}} -
+           {{h.render_datetime(data['quarters'][quarter][1])}})
+      </h3>
+      {% for type in ('created', 'modified') %}
+      <div style="margin-top: 10px; margin-bottom:10px;">
+        {% with %}
+        {% set rows = h.match_rows(rows, typ, quarter) %}
+        <p>{{type.capitalize()}} ({{rows|length}}):</p>
 
-      <div py:for="quarter in c.data['quarters']" style="margin-top: 10px; margin-bottom:10px;">
-        <h3>
-            ${quarter.capitalize()} Quarter
-            (${h.render_datetime(c.data['quarters'][quarter][0])} -
-             ${h.render_datetime(c.data['quarters'][quarter][1])})
-        </h3>
-        <div py:for="type in ('created', 'modified')" style="margin-top: 10px; margin-bottom:10px;">
-          <py:with vars="rows = [row for row in c.data['table'] if (row[3]==type and row[4]==quarter)]">
-          <p>${type.capitalize()} (${len(rows)}):</p>
-            <table py:if="rows" class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
-                <tr>
-                <th style="width: 500px">Dataset</th>
-                <th style="width: 100px">Notes</th>
-                <th style="width: 100px">${type.capitalize()}</th>
-                <th style="width: 150px">By</th>
-                <th style="width: 100px">Published data</th>
-                </tr>
-                <py:for each="name,title,notes,created_or_modified,quarter_,timestamps,users,pub in rows">
-                <tr>
-                    <td><a href="${h.url_for(controller='package',action='read',id=name)}">${ title }</a></td>
-                    <td>${notes}</td>
-                    <td>${ h.literal(', '.join((h.render_datetime(timestamp) for timestamp in timestamps.split(' ')))) }</td>
-                    <td>${ h.literal(', '.join((h.linked_user(user) for user in users.split(' ')))) }</td>
-                    <td><span py:if="pub">Yes</span>
-                        <span py:if="not pub">No</span>
-                    </td>
-                </tr>
-                </py:for>
-            </table>
-            <p py:if="not rows" style="font-style: italic; margin-left:20px">None</p>
-          </py:with>
-        </div>
+          {% if rows %}
+          <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; margin-top: 8px;">
+              <tr>
+              <th style="width: 500px">Dataset</th>
+              <th style="width: 100px">Notes</th>
+              <th style="width: 100px">{{type.capitalize()}}</th>
+              <th style="width: 150px">By</th>
+              <th style="width: 100px">Published data</th>
+              </tr>
+              {% for name,title,notes,created_or_modified,quarter_,timestamps,users,pub in rows %}
+              <tr>
+                  <td><a href="{{h.url_for(controller='package',action='read',id=name)}}">{{ title }}</a></td>
+                  <td>{{notes}}</td>
+                  <td>{{ h.literal(', '.join(h.report_timestamp_split(timestamps))) }}</td>
+                  <td>{{ h.literal(', '.join(h,report_users_split(users))) }}</td>
+                  <td>
+                      {% if pub %}
+                        <span >Yes</span>
+                      {% else %}
+                        <span >No</span>
+                      {% endif %}
+                  </td>
+              </tr>
+              {% endfor %}
+          </table>
+          {% else %}
+          <p style="font-style: italic; margin-left:20px">None</p>
+          {% endif %}
+        {% endwith %}
       </div>
-
-</html>
-
-
+      {% endfor %}
+    </div>
+{% endfor %}

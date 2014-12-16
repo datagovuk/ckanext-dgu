@@ -1,58 +1,59 @@
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Linked-Data pages admin</py:def>
-  <py:def function="page_heading">Linked-Data pages admin</py:def>
 
-  <py:match path="breadcrumbs">
+{% block title %}Linked-Data pages admin{% endblock %}
+
+
+  <h1>Linked-Data pages admin</h1>
+
+
+{% block breadcrumb_content %}
     <li><a href="/linked-data">Linked Data</a></li>
     <li><a href="/linked-data-admin">Admin</a></li>
-  </py:match>
+{% endblock %}
 
-  <div py:match="content">
+{% block primary_content_inner %}
+
     <h1>Linked-Data pages admin</h1>
-    
+
     <p>This is a tool to update the Linked-Data pages at <a href="/linked-data">http://data.gov.uk/linked-data</a> according to the latest markdown in GitHub.</p>
 
-    <py:if test="c.error">
+    {% if c.error %}
       <div class="alert alert-danger">
-      ${c.error}
+      {{c.error}}
       </div>
-    </py:if>
+    {% endif %}
 
-    <py:if test="c.deploy_error">
+    {% if c.deploy_error %}
       <div class="alert alert-warning">
-      ${c.deploy_error}
+      {{c.deploy_error}}
       </div>
-    </py:if>
+    {% endif %}
 
-    <py:if test="not c.error">
+    {% if not c.error %}
       <h2>GitHub status</h2>
       <table class="table table-bordered table-condensed">
       <tr>
         <th>GitHub repository</th>
-        <td py:with="repo_url_with_branch = '%s/tree/%s' % (c.repo_url.replace('.git', ''), c.repo_branch)">
-          <a href="${repo_url_with_branch}" target="None">${repo_url_with_branch}</a>
+        {% set repo_url_with_branch = '%s/tree/%s' % (c.repo_url.replace('.git', ''), c.repo_branch) %}
+        <td>
+          <a href="{{repo_url_with_branch}}" target="None">{{repo_url_with_branch}}</a>
         </td>
       </tr>
       <tr>
         <th>Version</th>
-        <td>${c.repo_status}</td>
+        <td>{{c.repo_status}}</td>
       </tr>
       </table>
       <h2>data.gov.uk publish status</h2>
       <table class="table table-bordered table-condensed">
       <tr>
         <th>Last deployed</th>
-        <td>${c.last_deploy} <!--"${c.latest_remote_commit.message}" ${c.latest_remote_commit}--></td>
+        <td>{{c.last_deploy}} <!--"{{c.latest_remote_commit.message}}" {{c.latest_remote_commit}}--></td>
       </tr>
       <tr>
         <th>Version</th>
-        <td>${c.deploy_status}</td>
+        <td>{{c.deploy_status}}</td>
       </tr>
       </table>
       <p>
@@ -61,17 +62,15 @@
         </form>
       </p>
 
-      <py:if test="c.stdout or c.stderr">
+      {% if c.stdout or c.stderr %}
+      <py:if test="">
         <h2>Publish results (Jekyll output)</h2>
         <div style="border: solid 2px #e5e5e5; border-radius: 8px; margin: 20px; padding:20px; ">
-            ${Markup(c.stdout)}
+            {{c.stdout|safe}}
             <hr/>
-            ${Markup(c.stderr)}
+            {{c.stderr|safe}}
         </div>
-      </py:if>
-    </py:if>
+      {% endif %}
+    {% endif %}
 
-  </div>
-  <xi:include href="../layout.html" />
-
-</html>
+{% endblock %}
