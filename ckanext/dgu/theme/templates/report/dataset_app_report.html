@@ -13,9 +13,14 @@
             <tr>
                 <td><a href="{{h.url_for(controller='package', action='read', id=dataset.dataset_name)}}">{{dataset.dataset_title}}</a></td>
                 <td>
-                  {% for app in dataset.apps|sort(attribute='title') %}
-                    <a href="{{app.url}}">{{app.title}}</a><br/>
-                  {% endfor %}
+                  {% with %}
+                    {% set app_titles = dataset.app_titles.split('\n') %}
+                    {% set app_urls = dataset.app_urls.split('\n') %}
+
+                    {% for app_title in app_titles %}
+                    <a href="{{app_urls[loop.index0]}}">{{app_title}}YYY</a><br/>
+                    {% endfor %}
+                  {% endwith %}
                 </td>
             </tr>
           {% endfor %}

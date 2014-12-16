@@ -497,10 +497,12 @@ def dataset_app_report():
         datasets[dataset_name]['apps'].append(app)
 
     for dataset_name, dataset in datasets.items():
+        sorted_apps = sorted(dataset['apps'], key=lambda x: x['title'])
         table.append({'dataset_title': dataset['title'],
                       'dataset_name': dataset_name,
                       'theme': dataset['theme'],
-                      'apps': dataset['apps']})
+                      'app_titles': "\n".join(a['title'] for a in sorted_apps),
+                      'app_urls': "\n".join(a['url'] for a in sorted_apps)})
 
     return {'table': table}
 
