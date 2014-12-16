@@ -135,10 +135,10 @@
             <td class="value" {{util.dict_to_attributes(value_attributes)}}>{{field_dict.get('value') or 'No value'}}</td>
           </tr>
           {% endfor %}
-          {% if is_location_data and dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service') %}
+          {% if is_location_data and h.as_dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service') %}
           <tr>
-            {% set is_service=dict(c.pkg_extras).get('resource-type')=='service' %}
-            <td class="key">Coupled {{m.if_(is_service,'Datasets','Services')}}</td>
+            {% set is_service=h.as_dict(c.pkg_extras).get('resource-type')=='service' %}
+            <td class="key">Coupled {{util.if_(is_service,'Datasets','Services')}}</td>
             <td class="value">
               {% if h.coupled_pkg_tuples(c.pkg)%}
                 <ul>
@@ -238,7 +238,7 @@
             {% endif %}
 
             {% if res.get('scraped') or res.get('scraper_url') %}
-              {{h.scraper_icon(res, alt=if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
+              {{h.scraper_icon(res, alt=util.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
             {% endif %}
             {{res.get('date','')}}
             {{h.resource_display_name(res)}}
