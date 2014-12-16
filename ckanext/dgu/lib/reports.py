@@ -479,3 +479,52 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
+
+def dataset_app_report(reverse=False):
+    from ckan.lib.helpers import url_for
+
+    table = []
+
+    data = collections.defaultdict(lambda: {'related': []})
+
+    for related in model.Session.query(model.RelatedDataset).filter(model.Related.type=='App').all():
+        if reverse:
+            key = related.related.url
+            data[key]['title'] = related.related.title
+            data[key]['url'] = related.related.url
+
+            dataset = {
+                'title': related.dataset.title,
+                'url': url_for(controller='package', action='read', id=related.dataset.name)
+            }
+
+            data[key]['related'].append(dataset)
+
+        else:
+            key = related.dataset.id
+            data[key]['title'] = related.dataset.title
+            data[key]['url'] = url_for(controller='package', action='read', id=related.dataset.name)
+
+            app = {
+                'title': related.related.title,
+                'url': related.related.url 
+            }
+
+            data[key]['related'].append(app)
+
+    for info in data.values():
+        table.append({'title': info['title'],
+                      'url': info['url'], 
+                      'related': info['related']})
+
+    return {'table': table, 'reverse': reverse}
+
+dataset_app_report_info = {
+    'name': 'dataset-app-report',
+    'title': 'Apps & Datasets',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': OrderedDict([('reverse', False)]),
+    'option_combinations': lambda: [{'reverse': True}, {'reverse': False}],
+    'generate': dataset_app_report,
+    'template': 'report/dataset_app_report.html',
+    }
