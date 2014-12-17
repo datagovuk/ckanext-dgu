@@ -1,7 +1,7 @@
 {% extends "package/read_common_jinja.html" %}
 
-{% import "inventory/inventory_util_jinja.html" as m with context %}
-{% import "_dgu_jinja_util.html" as util with context %}
+{% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
+{% import "_dgu_jinja_util.html" as m with context %}
 
 {% block optional_head %}
     <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
@@ -77,7 +77,7 @@
         <div class="dataset-map-info">
           {% if h.get_wms_info_urls(c.pkg_dict) %}
           <div style="margin-bottom:10px;">
-            {{map_preview_button_direct(c.pkg_dict, small=False)}}
+            {{m.map_preview_button_direct(c.pkg_dict, small=False)}}
           </div>
           {% endif %}
           {% if h.has_bounding_box(c.pkg_extras) and h.has_extent(c.pkg) %}
@@ -148,14 +148,14 @@
           {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
           <tr>
             <!-- TODO: label_attributes and value_attributes are dicts, we need to decouple them -->
-            <td class="key" {{util.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>
-            <td class="value" {{util.dict_to_attributes(value_attributes)}}>{{field_dict.get('value') or 'No value'}}</td>
+            <td class="key" {{m.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>
+            <td class="value" {{m.dict_to_attributes(value_attributes)}}>{{field_dict.get('value') or 'No value'}}</td>
           </tr>
           {% endfor %}
           {% if is_location_data and h.as_dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service') %}
           <tr>
             {% set is_service=h.as_dict(c.pkg_extras).get('resource-type')=='service' %}
-            <td class="key">Coupled {{util.if_(is_service,'Datasets','Services')}}</td>
+            <td class="key">Coupled {{m.if_(is_service,'Datasets','Services')}}</td>
             <td class="value">
               {% if h.coupled_pkg_tuples(c.pkg)%}
                 <ul>
@@ -198,7 +198,7 @@
 
     <h2>Dataset Feedback</h2>
     <div class="dataset-feedback-container">
-      {{util.feedback_summary(c.pkg_dict,render_title=False,large=True)}}
+      {{m.feedback_summary(c.pkg_dict,render_title=False,large=True)}}
       <a class="view-feedback-link" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}}">View all feedback &raquo;</a>
     </div>
 
@@ -235,7 +235,7 @@
             {% endif %}
 
             {% if res.get('scraped') or res.get('scraper_url') %}
-              {{h.scraper_icon(res, alt=util.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
+              {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
             {% endif %}
             {{res.get('date','')}}
             {{h.resource_display_name(res)}}
