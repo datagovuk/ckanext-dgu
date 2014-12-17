@@ -1,5 +1,5 @@
 <div class="widget-container">
-    <table class="table table-bordered table-condensed" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+    <table class="table table-bordered table-condensed" style="width: 100%;table-layout:fixed; margin-top: 8px;">
         <thead>
           <tr>
             <th style="width: 80px">Dataset</th>
@@ -18,7 +18,7 @@
                     {% set app_urls = dataset.app_urls.split('\n') %}
 
                     {% for app_title in app_titles %}
-                    <a href="{{app_urls[loop.index0]}}">{{app_title}}YYY</a><br/>
+                    <a href="{{app_urls[loop.index0]}}">{{app_title}}</a><br/>
                     {% endfor %}
                   {% endwith %}
                 </td>
