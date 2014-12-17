@@ -479,3 +479,39 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
+
+def dataset_app_report():
+    table = []
+
+    datasets = collections.defaultdict(lambda: {'apps': []})
+    for related in model.Session.query(model.RelatedDataset).filter(model.Related.type=='App').all():
+        dataset_name = related.dataset.name
+
+        app = {
+          'title': related.related.title,
+          'url': related.related.url 
+        }
+
+        datasets[dataset_name]['title'] = related.dataset.title
+        datasets[dataset_name]['theme'] = related.dataset.extras.get('theme-primary', '')
+        datasets[dataset_name]['apps'].append(app)
+
+    for dataset_name, dataset in datasets.items():
+        sorted_apps = sorted(dataset['apps'], key=lambda x: x['title'])
+        table.append({'dataset_title': dataset['title'],
+                      'dataset_name': dataset_name,
+                      'theme': dataset['theme'],
+                      'app_titles': "\n".join(a['title'] for a in sorted_apps),
+                      'app_urls': "\n".join(a['url'] for a in sorted_apps)})
+
+    return {'table': table}
+
+dataset_app_report_info = {
+    'name': 'dataset-app-report',
+    'title': 'Datasets used in apps',
+    'description': 'Datasets that have been used by apps, grouped by theme.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': dataset_app_report,
+    'template': 'report/dataset_app_report.html',
+    }
