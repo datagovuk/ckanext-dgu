@@ -115,6 +115,8 @@ class AppSync(CkanCommand):
                 continue
 
             related_url = urljoin(root_url, d['path'])
+            related_url = re.sub('^https*:', '', related_url)
+
             thumb = d.get('thumbnail', '').replace("://", "/")
             if thumb:
                 thumb_url = urljoin(root_url, "/sites/default/files/styles/medium/")
@@ -148,7 +150,6 @@ class AppSync(CkanCommand):
         related.type = 'App'
         related.title = html_parser.unescape(app_title)
         related.description = ""
-        related.url = re.sub('^https*:', '', app_url)
 
         related.image_url = image_url
 
