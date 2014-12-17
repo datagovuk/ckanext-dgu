@@ -10,14 +10,14 @@
       window.DATASET_ID = "{{c.pkg_dict.get('id')}}";
     </script>
 
-    {% if h.get_extent() and not h.is_unpublished_item(c.pkg_dict) %}
+    {% if h.has_extent(c.pkg) and not h.is_unpublished_item(c.pkg_dict) %}
       <script src="//osinspiremappingprod.ordnancesurvey.co.uk/libraries/openlayers-openlayers-56e25fc/OpenLayers.js" type="text/javascript"></script>
       <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-dataset-map.min.js')}}"></script>
       <script type="text/javascript">
         $(document).ready(function(){
           CKAN.DguDatasetMap.tiles_url = "{{h.get_tiles_url()}}";
           CKAN.DguDatasetMap.map_type = 'os';
-          CKAN.DguDatasetMap.extent = '{{h.get_extent()|safe}}';
+          CKAN.DguDatasetMap.extent = '{{h.get_extent(c.pkg)|safe}}';
           CKAN.DguDatasetMap.setup();
         })
       </script>
@@ -67,7 +67,7 @@
         {% if not h.is_unpublished_item(c.pkg_dict) %}
         <div class="dataset-map">
           <!-- Dataset Extent Map (only if present) -->
-          {% if h.get_extent() %}
+          {% if h.has_extent(c.pkg) %}
             <div id="dataset-map-container"></div>
           {% endif %}
         </div>
@@ -80,7 +80,7 @@
             {{map_preview_button_direct(c.pkg_dict, small=False)}}
           </div>
           {% endif %}
-          {% if h.has_bounding_box(c.pkg_extras) and h.get_extent() %}
+          {% if h.has_bounding_box(c.pkg_extras) and h.has_extent(c.pkg) %}
           <h3>Dataset Extent</h3>
           <table class="table">
             <tr>
@@ -93,7 +93,7 @@
             </tr>
           </table>
           {% endif %}
-          {% if h.get_extent() %}
+          {% if h.has_extent(c.pkg) %}
             <div id="dataset-map-attribution"></div>
           {% endif %}
         </div>

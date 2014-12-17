@@ -1395,8 +1395,14 @@ def facet_values(facet_tuples, facet_key):
     values = sorted(values)
     return values
 
-def get_extent():
-    return  c.pkg.extras.get('spatial', False)
+def has_extent(pkg):
+    return bool(pkg.extras.get('spatial'))
+
+def get_extent(pkg):
+    extent_json_str = pkg.extras.get('spatial', False)
+    # ensure it is JSON for security purposes, since the template will put it
+    # in Javascipt unescaped using |safe
+    return json.dumps(json.loads(extent_json_str))
 
 def get_tiles_url():
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
