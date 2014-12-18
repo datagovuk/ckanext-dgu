@@ -60,6 +60,10 @@
     <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
     <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{c.pkg.extras.get('core-dataset',False)}}" />
   {% endif %}
+  {% if 'odi-certificate' in c.pkg.extras %}
+    <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
+    <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{c.pkg.extras['odi-certificate']}}" />
+  {% endif %}
 
   <div class="form-group">
     <label for="name">
