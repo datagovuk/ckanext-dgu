@@ -630,6 +630,7 @@
 <fieldset class="tab-pane boxed whitebox fade" id="section-geographic-field">
   <h3>Geographic coverage</h3>
 
+    <!--
     <div class="well">
       <py:with vars="geographic_coverage=data.get('geographic_coverage', [])">
         <div class="checkbox">
@@ -665,10 +666,10 @@
       </py:with>
       <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
     </div>
+    -->
 
 
     <div class="well">
-        <label class="control-label" for="spatial">Spatial Extent</label>
         <div class="controls">
             <span style="position: relative">
                 <input id="spatial_name" name="spatial_name" size="40" type="text" value="${data.get('spatial_name', '')}" />
