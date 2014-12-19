@@ -474,7 +474,7 @@ def datasets_without_resources():
 datasets_without_resources_info = {
     'name': 'datasets-without-resources',
     'title': 'Datasets without resources',
-    'description': 'Datasets that have no resources (data URLs). Excludes unpublisher ones.',
+    'description': 'Datasets that have no resources (data URLs). Excludes unpublished ones.',
     'option_defaults': None,
     'option_combinations': None,
     'generate': datasets_without_resources,
