@@ -1984,9 +1984,9 @@ def parse_date(date_string):
     try:
         return DateType.parse_timedate(date_string, 'form')
     except DateConvertError:
-        class FakeDate:
-            year = ''
-        return FakeDate()
+        class FakeDate(dict):
+            pass
+        return FakeDate(year='')
 
 def user_page_url():
     from ckan.lib.base import h
@@ -2025,8 +2025,8 @@ def sorted_list(l):
 def as_dict(d):
     return dict(d)
 
-def get_date_lambda():
-    return lambda x: parse_date(x.get('date'))['year']
+def extract_year(resource_dict):
+    return parse_date(resource_dict.get('date'))['year']
 
 def report_match_organization_name(name, dct):
     return filter(lambda d: d['organization_name'] == name, dct)
