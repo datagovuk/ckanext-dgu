@@ -10,7 +10,7 @@
       </p>
       <ul>
       {% for publisher_name, publisher_title in data['organizations'] %}
-        <li><a href="{${publisher_name}}">{{publisher_title}}</a></li>
+        <li><a href="#{{ publisher_name }}">{{ publisher_title }}</a></li>
       {% endfor %}
       </ul>
 
@@ -19,14 +19,14 @@
         <table class="table table-bordered">
             <thead>
               <tr>
-                <th>Dataset</th>
-                <th>Notes</th>
-                <th>Broken resource count</th>
+                <th style="width: 400px">Dataset</th>
+                <th style="width: 100px">Notes</th>
+                <th style="width: 100px">Broken resource count</th>
                 <th>Broken resources</th>
               </tr>
             </thead>
             <tbody>
-              {% for dataset in h.report_match_organization_name(publisher_name, data['table']) %}
+              {% for dataset in h.report_match_organization_name(publisher_name, table) %}
                   <tr {% if dataset['num_broken_resources'] > 0 %}class="warning"{% endif %}>
                       <td><a href="/dataset/{{dataset['name']}}">{{dataset['title']}}</a></td>
                       <td>{{dataset['dataset_notes']}}</td>
