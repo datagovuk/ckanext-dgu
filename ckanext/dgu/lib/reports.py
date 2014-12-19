@@ -286,6 +286,9 @@ def publisher_activity(organization, include_sub_organizations=False):
                       'current_revision_fixer2', 'fix_contact_details.py',
                       'Repoint 410 Gone to webarchive url',
                       'Fix duplicate resources',
+                      'fix_secondary_theme.py',
+                      'script-fix-links-tna',
+                      'dgu',
                       )
 
     created = {'this': [], 'last': []}

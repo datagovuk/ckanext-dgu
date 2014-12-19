@@ -1998,11 +1998,11 @@ def config_get(key, default=None):
 def report_match_organization_name(name, dct):
     return filter(lambda d: d['organization_name'] == name, dct)
 
-def report_match_rows(rows, typ, quarter):
-    return [row for row in rows if (row[3]==typ and row[4]==quarter)]
+def report_match_rows(rows, type_, quarter):
+    return [row for row in rows if (row[3]==type_ and row[4]==quarter)]
 
 def report_timestamps_split(timestamps):
     return [render_datetime(timestamp) for timestamp in timestamps.split(' ')]
 
 def report_users_split(users):
-    return [linked_user(user) for user in users.split(' ')]
+    return [dgu_linked_user(user) for user in users.split(' ')]
