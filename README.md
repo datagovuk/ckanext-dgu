@@ -1,4 +1,3 @@
-===================================
 ckanext-dgu - data.gov.uk extension
 ===================================
 
@@ -32,23 +31,23 @@ This extension contains a number of elements, principally:
 dgu_form
 --------
 
-ckanext.dgu.plugin:DguForm
-ckanext.dgu.controllers.package:PackageController
+    ckanext.dgu.plugin:DguForm
+    ckanext.dgu.controllers.package:PackageController
 Based on PackageController but at /dataset/* rather than /package/* and adds the delete function. Proxy for getting Drupal comments (only for running in paster). NO FORM HERE
 
 dgu_drupal_auth
 ---------------
 
-ckanext.dgu.plugin:DrupalAuthPlugin
-ckanext.dgu.authentication.drupal_auth:DrupalAuthMiddleware
+    ckanext.dgu.plugin:DrupalAuthPlugin
+    ckanext.dgu.authentication.drupal_auth:DrupalAuthMiddleware
 
 Middleware to log-in the user based on Drupal cookies and requests to Drupal.
 
 dgu_auth_api
 ------------
 
-ckanext.dgu.plugin:AuthApiPlugin
-ckanext.dgu.authorize
+    ckanext.dgu.plugin:AuthApiPlugin
+    ckanext.dgu.authorize
 Changes permissions:
 * hierarchy structure - edit package/group if is an editor for the group or an admin for the group or its parents.
 * All package creations/edits need an API key - no anonymous ones
@@ -61,8 +60,8 @@ Changes permissions:
 dgu_publishers
 --------------
 
-ckanext.dgu.plugin:PublisherPlugin
-ckanext.dgu.controllers.publisher:PublisherController
+    ckanext.dgu.plugin:PublisherPlugin
+    ckanext.dgu.controllers.publisher:PublisherController
 
 Sets 'ckan.auth.profile' to 'publisher' (and same for harvesting: 'ckan.harvest.auth.profile' = 'publisher').
 Publisher controller, based on Group:
@@ -77,13 +76,13 @@ When user is created, flashes "You can now <a>apply for publisher access</a>"
 dgu_theme
 --------
 
-ckanext.dgu.plugin:ThemePlugin
-ckanext.dgu.controllers.data:DataController
-ckanext.dgu.controllers.tag:TagController
-ckanext.dgu.controllers.reports:ReportsController
-from ckanext.dgu.lib import helpers
-ckanext/dgu/theme/templates
-ckanext/dgu/theme/public
+    ckanext.dgu.plugin:ThemePlugin
+    ckanext.dgu.controllers.data:DataController
+    ckanext.dgu.controllers.tag:TagController
+    ckanext.dgu.controllers.reports:ReportsController
+    from ckanext.dgu.lib import helpers
+    ckanext/dgu/theme/templates
+    ckanext/dgu/theme/public
 
 Data, Tag and Reports Controllers. Templates, helper functions. 
 Random extras:
@@ -93,34 +92,34 @@ Random extras:
 dgu_search
 ----------
 
-ckanext.dgu.plugin:SearchPlugin
-from ckanext.dgu.search_indexing import SearchIndexing
+    ckanext.dgu.plugin:SearchPlugin
+    from ckanext.dgu.search_indexing import SearchIndexing
 
 Add fields to search index. Default sort-by. Escape SOLR characters. Search field weighting adjusted.
 
 dgu_publisher_form
 ------------------
 
-ckanext.dgu.forms.publisher_form:PublisherForm
+    ckanext.dgu.forms.publisher_form:PublisherForm
 
 New group form, type 'publisher' with schema. Added fields: contact, foi contacts, category, abbreviation.
 
 dgu_dataset_form
 ----------------
 
-ckanext.dgu.forms.dataset_form:DatasetForm
-ckanext.dgu.forms.validators
-ckanext.dgu.schema:GeoCoverageType
+    ckanext.dgu.forms.dataset_form:DatasetForm
+    ckanext.dgu.forms.validators
+    ckanext.dgu.schema:GeoCoverageType
 
 New dataset form. Lots of schema and validation customisation.
 
 dgu_api
 -------
 
-ckanext.dgu.plugin:ApiPlugin
-ckanext.dgu.controllers.api:DguApiController
-ckanext.dgu.controllers.api:DguReportsController
-ckanext.dgu.lib.reports
+    ckanext.dgu.plugin:ApiPlugin
+    ckanext.dgu.controllers.api:DguApiController
+    ckanext.dgu.controllers.api:DguReportsController
+    ckanext.dgu.lib.reports
 
 Util API for Drupal - latest-datasets (front page), dataset-count (front page), revisions (unused). 
 Reports, starting with organisation_resources.
@@ -128,18 +127,18 @@ Reports, starting with organisation_resources.
 dgu_resource_updates/dgu_resource_url_updates
 ---------------------------------------------
 
-ckanext.dgu.plugin:ResourceModificationPlugin
-ckanext.dgu.plugin:ResourceURLModificationPlugin
+  ckanext.dgu.plugin:ResourceModificationPlugin
+  ckanext.dgu.plugin:ResourceURLModificationPlugin
 
 When a resource is created/deleted/URL-changed, this updates the last_major_modification date of its package.
 
 Non-plugin code
 ===============
 
-ckanext/dgu/schema.py - mostly not used now
-ckanext/dgu/drupalclient.py - for getting user info from Drupal
-dgu/ckanext/dgu/bin/ - scripts used at one time or another
-dgu/ckanext/dgu/commands/ - scripts used at one time or another
+`ckanext/dgu/schema.py` - mostly not used now
+`ckanext/dgu/drupalclient.py` - for getting user info from Drupal
+`dgu/ckanext/dgu/bin/` - scripts used at one time or another
+`dgu/ckanext/dgu/commands/` - scripts used at one time or another
 
 Install
 =======
@@ -264,8 +263,8 @@ The shared assets need to be served at /assets. On a deployment server, setup ng
 Tests
 =====
 
-Unit and functional tests
--------------------------
+#####Unit and functional tests
+
 
 To test the DGU extension you need the setup with CKAN (see above) and creation of a configured pyenv/src/ckan/development.ini (see http://docs.ckan.org/en/latest/install-from-source.html ).
 
@@ -281,16 +280,17 @@ or run them from another directory by specifying the test.ini::
 
 You can either run the 'quick and dirty' tests with SQLite or more comprehensively with PostgreSQL. Set ``--with-pylons`` to point to the relevant configuration - either ``test.ini`` or ``test-core.ini`` (both from the ckanext-dgu repo, not the ckan one). For more information, see http://docs.ckan.org/en/latest/install-from-source.html . 
 
-Browser tests
--------------
+#####Browser tests
 
 Selenium is used to test a site is operating to a basic minimum standard, and specific checks on javascript elements.
 
 To run the Selenium tests, TODO
 
+Troubleshooting
+==============
 
-Address and Connection errors
-+++++++++++++++++++++++++++++
+#####Address and Connection errors
+
 
 * ``socket.error: [Errno 98] Address already in use``
 * ``error: [Errno 111] Connection refused``
@@ -304,8 +304,8 @@ Now kill it before running the tests again::
 
     $ kill 4748
 
-Config errors
-+++++++++++++
+#####Config errors
+
 
 * ``DrupalXmlRpcSetupError: Drupal XMLRPC not configured.``
 
