@@ -95,22 +95,27 @@ def command(config_file):
                 log.info('Getting analytics for this month')
                 from ckanext.ga_report.download_analytics import DownloadAnalytics
                 from ckanext.ga_report.ga_auth import (init_service, get_profile_id)
-                try:
-                    token, svc = init_service(ga_token_filepath, None)
-                except TypeError:
-                    log.error('Could not complete authorization for Google Analytics.'
-                              'Have you correctly run the getauthtoken task and '
-                              'specified the correct token file?')
-                    sys.exit(0)
-                downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
-                                               delete_first=False,
-                                               skip_url_stats=False)
-                downloader.latest()
+                if not os.path.exists(ga_token_filepath):
+                    log.error('GA Token does not exist: %s - not downloading '
+                              'analytics' % ga_token_filepath)
+                else:
+                    try:
+                        token, svc = init_service(ga_token_filepath, None)
+                    except TypeError, e:
+                        log.error('Could not complete authorization for Google '
+                                'Analytics. Have you correctly run the '
+                                'getauthtoken task and specified the correct '
+                                'token file?\nError: %s', e)
+                        sys.exit(1)
+                    downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
+                                                delete_first=False,
+                                                skip_url_stats=False)
+                    downloader.latest()
         else:
             log.info('No token specified, so not downloading Google Analytics data')
     except Exception, exc_analytics:
-        log.error("Failed to process Google Analytics data")
         log.exception(exc_analytics)
+        log.error("Failed to process Google Analytics data (see exception in previous log message)")
 
     # Copy openspending reports
     if run_task('openspending'):
@@ -143,7 +148,9 @@ def command(config_file):
                     try:
                         report_response = urllib2.urlopen(url).read()
                     except urllib2.HTTPError, e:
-                        if e.code == 404:
+                        if e.code == 404 and url == openspending_reports_url:
+                            log.error('Got 404 for openspending report index! %s' % url)
+                        elif e.code == 404:
                             log.info('Got 404 for openspending report %s' % url)
                         else:
                             log.error('Could not download openspending report %r: %s',
@@ -163,9 +170,9 @@ def command(config_file):
                         # Sort out non-encoded symbols
                         report_html = re.sub(u' & ', ' &amp; ', report_html)
                         report_html = re.sub('\xc2\xa3', '&pound;', report_html)
-                        report_html = re.sub(u'\u2714', '&#x2714;', report_html)
-                        report_html = re.sub(u'\u2718', '&#x2718;', report_html)
-                        report_html = re.sub(u'\u0141', '&#x0141;', report_html)
+                        report_html = re.sub(u'\u2714', '&#x2714;', report_html) # tick
+                        report_html = re.sub(u'\u2718', '&#x2718;', report_html) # cross
+                        report_html = re.sub(u'\u0141', '&#x0141;', report_html) # pound
                         # save it
                         filename = url[url.rfind('/')+1:] or 'index.html'
                         filepath = os.path.join(openspending_reports_dir, filename)

@@ -1,26 +1,17 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
+{% import "feedback/_feedback_util_jinja.html" as m with context %}
 
+{% block title %}Moderate feedback{% endblock %}
 
-<xi:include href="_feedback_util.html" />
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  <li><a href="/data/system_dashboard">System Dashboard</a></li>
+  <li><a href="/data/feedback/moderation">Feedback Moderation</a></li>
+{% endblock %}
 
-  <py:def function="page_title">Moderate feedback</py:def>
-
- <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="/data/system_dashboard">System Dashboard</a></li>
-    <li><a href="/data/feedback/moderation">Feedback Moderation</a></li>
-  </py:match>
-
-
-  <div py:match="content" class="dataset">
+{% block primary_content_inner %}
+  <div class="dataset">
     <h1>Feedback Moderation</h1>
-    <!--
-          <h4>Reports</h4>
-                <a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='feedback')}">Dataset feedback</a>
-                -->
 
       <p>This is the moderation queue.  Items here have been reported as abusive/spam by
       users and require attention.</p>
@@ -35,13 +26,12 @@
         </ul>
       </p>
 
-        <h3 py:if="c.items.count() == 0">Nothing to moderate yet.</h3>
+        {% if c.items.count() == 0 %}
+          <h3>Nothing to moderate yet.</h3>
+        {% endif %}
 
-        <py:for each="pos, item in enumerate(c.items)">
-          ${feedback_item_moderation(item, h.get_package_from_id(item.package_id))}
-        </py:for>
+        {% for item in c.items %}
+          {{m.feedback_item_moderation(item, h.get_package_from_id(item.package_id))}}
+        {% endfor %}
   </div>
-
-  <xi:include href="../layout_base.html" />
-</html>
-
+{% endblock %}

@@ -14,6 +14,7 @@ from itertools import dropwhile
 import itertools
 import datetime
 import random
+import types
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -294,7 +295,7 @@ def user_properties(user):
     type_ = 'system' if is_system else ('official' if is_official else None)
     return user_name, user, user_drupal_id, type_, this_is_me
 
-def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
+def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the display name and link to their profile page.
     '''
     from ckan.lib.base import h
@@ -335,12 +336,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
                 return ('System Administrator', None)
             elif groups:
                 # We don't want to show all of the groups that the user belongs to.
-                # We will try and match the organisation name if provided and use that
+                # We will try and match the organization name if provided and use that
                 # instead.  If none is provided, or we can't match one then we will use
                 # the highest level org.
                 matched_group = None
                 for group in groups:
-                    if group.title == organisation:
+                    if group.title == organization or group.name == organization:
                         matched_group = group
                         break
                 if not matched_group:
@@ -355,12 +356,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
         else:
             return ('System process' if type_ == 'system' else 'Staff', None)
 
-def dgu_linked_user(user_name, maxlength=24, organisation=None):  # Overwrite h.linked_user
+def dgu_linked_user(user_name, maxlength=24, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the HTML Anchor to their user profile page, making
     sure officials are kept anonymous to the public.
     '''
     from ckan.lib.base import h
-    display_name, href = user_link_info(user_name, organisation=organisation)
+    display_name, href = user_link_info(user_name, organization=organization)
     display_name = truncate(display_name, length=maxlength)
     if href:
         return h.link_to(display_name, urllib.quote(href))
@@ -765,15 +766,18 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(
-                [THEMES.get(theme, theme) \
-                 for theme in json.loads(secondary_themes)])
+            secondary_themes =  json.loads(secondary_themes)
+
+            if isinstance(secondary_themes, types.StringTypes):
+                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
+            else:
+                secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
         except ValueError:
             # string for single value
             secondary_themes = str(secondary_themes)
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -2024,3 +2028,14 @@ def as_dict(d):
 def get_date_lambda():
     return lambda x: parse_date(x.get('date'))['year']
 
+def report_match_organization_name(name, dct):
+    return filter(lambda d: d['organization_name'] == name, dct)
+
+def report_match_rows(rows, type_, quarter):
+    return [row for row in rows if (row[3]==type_ and row[4]==quarter)]
+
+def report_timestamps_split(timestamps):
+    return [render_datetime(timestamp) for timestamp in timestamps.split(' ')]
+
+def report_users_split(users, organization):
+    return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
