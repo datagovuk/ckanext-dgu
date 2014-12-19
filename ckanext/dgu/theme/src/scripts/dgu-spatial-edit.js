@@ -125,11 +125,11 @@ CKAN.DguSpatialEditor = function($) {
         })
     })
 
-
     boundingBoxInteraction.on('boxend', function (e) {
         var newBox = boundingBoxInteraction.getGeometry()
         selectBoxSource.addFeature(new ol.Feature(newBox))
         map.removeInteraction(boundingBoxInteraction);
+        $(map.viewport_).toggleClass('drawing', false)
         selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(newBox)))
     })
 
@@ -138,6 +138,7 @@ CKAN.DguSpatialEditor = function($) {
     selectButton.click(function (e) {
         selectBoxSource.clear()
         map.addInteraction(boundingBoxInteraction)
+        $(map.viewport_).toggleClass('drawing', true)
     })
 
     // important : this forces the refresh of the map when the tab is displayed. Short of that, the map is not displayed because the original offsetSize is null.
