@@ -668,7 +668,7 @@
     <div class="well">
         <div class="controls">
             <span style="position: relative">
-                <input id="spatial_name" name="spatial_name" size="40" type="text" value="${data.get('spatial_name', '')}" />
+                <input id="spatial_name" name="spatial_name" size="40" type="text" value="{{data.get('spatial_name', '')}}" />
                 <div id="spatial_spinner" class="spinner" style="position: absolute;right: 1em;top: 0.5em; display: none">
                     <div class="rect1"></div>
                     <div class="rect2"></div>
@@ -676,8 +676,8 @@
                 </div>
             </span>
             <span><input id="use_exact_geom" type="checkbox"/> Use exact geometry</span>
-            <input id="spatial" name="spatial" size="40" type="hidden" value="${data.get('spatial', '')}" />
-            <p class="field_error" py:if="errors.get('spatial_extent', '')">${errors.get('date_released', '')}</p>
+            <input id="spatial" name="spatial" size="40" type="hidden" value="{{data.get('spatial', '')}}" />
+            {{ m.display_error(errors, 'spatial_extent', True) }}
         </div>
         <div id="map" style="width:100%; height:300px; margin: 0.5em 0;"></div>
     </div>
