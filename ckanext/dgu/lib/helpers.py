@@ -295,7 +295,7 @@ def user_properties(user):
     type_ = 'system' if is_system else ('official' if is_official else None)
     return user_name, user, user_drupal_id, type_, this_is_me
 
-def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
+def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the display name and link to their profile page.
     '''
     from ckan.lib.base import h
@@ -336,12 +336,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
                 return ('System Administrator', None)
             elif groups:
                 # We don't want to show all of the groups that the user belongs to.
-                # We will try and match the organisation name if provided and use that
+                # We will try and match the organization name if provided and use that
                 # instead.  If none is provided, or we can't match one then we will use
                 # the highest level org.
                 matched_group = None
                 for group in groups:
-                    if group.title == organisation:
+                    if group.title == organization or group.name == organization:
                         matched_group = group
                         break
                 if not matched_group:
@@ -356,12 +356,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
         else:
             return ('System process' if type_ == 'system' else 'Staff', None)
 
-def dgu_linked_user(user_name, maxlength=24, organisation=None):  # Overwrite h.linked_user
+def dgu_linked_user(user_name, maxlength=24, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the HTML Anchor to their user profile page, making
     sure officials are kept anonymous to the public.
     '''
     from ckan.lib.base import h
-    display_name, href = user_link_info(user_name, organisation=organisation)
+    display_name, href = user_link_info(user_name, organization=organization)
     display_name = truncate(display_name, length=maxlength)
     if href:
         return h.link_to(display_name, urllib.quote(href))
@@ -2004,5 +2004,5 @@ def report_match_rows(rows, type_, quarter):
 def report_timestamps_split(timestamps):
     return [render_datetime(timestamp) for timestamp in timestamps.split(' ')]
 
-def report_users_split(users):
-    return [dgu_linked_user(user) for user in users.split(' ')]
+def report_users_split(users, organization):
+    return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]

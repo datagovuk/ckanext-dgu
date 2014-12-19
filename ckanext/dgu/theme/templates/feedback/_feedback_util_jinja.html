@@ -26,7 +26,7 @@
         {% endif %}
       </div>
       <p>
-        <strong>Submitted by:</strong> {{h.dgu_linked_user(item.user_id,maxlength=32,organisation=item.organisation_name)}} on {{h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}}
+        <strong>Submitted by:</strong> {{h.dgu_linked_user(item.user_id,maxlength=32,organization=item.organisation_name)}} on {{h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}}
         <br/>
         <strong>Responding as:</strong>
         {% if item.responding_as=='individual' %}

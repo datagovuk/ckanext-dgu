@@ -9,7 +9,7 @@
       {% for type_ in ('created', 'modified') %}
       <div style="margin-top: 10px; margin-bottom:10px;">
         {% with %}
-        {% set rows = h.report_match_rows(data['table'], type_, quarter) %}
+        {% set rows = h.report_match_rows(table, type_, quarter) %}
         <p>{{type_.capitalize()}} ({{rows|length}}):</p>
 
           {% if rows %}
@@ -25,8 +25,8 @@
               <tr>
                   <td><a href="{{h.url_for(controller='package',action='read',id=name)}}">{{ title }}</a></td>
                   <td>{{notes}}</td>
-                  <td>{{ h.literal(', '.join(h.report_timestamp_split(timestamps))) }}</td>
-                  <td>{{ h.literal(', '.join(h.report_users_split(users))) }}</td>
+                  <td>{{ h.literal(', '.join(h.report_timestamps_split(timestamps))) }}</td>
+                  <td>{{ h.literal(', '.join(h.report_users_split(users, organization=options['organization']))) }}</td>
                   <td>
                       {% if pub %}
                         <span >Yes</span>
