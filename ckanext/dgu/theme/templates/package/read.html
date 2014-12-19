@@ -83,6 +83,11 @@
           {% if h.has_bounding_box(c.pkg_extras) and h.has_extent(c.pkg) %}
           <h3>Dataset Extent</h3>
           <table class="table">
+              {% if h.as_dict(c.pkg_extras).get('spatial_name') %}
+              <tr>
+                  <td class="key">Location:</td>
+                  <td class="value">{{h.as_dict(c.pkg_extras).get('spatial_name')}}</td>
+              {% endif %}
             <tr>
               <td class="key">Latitude:</td>
               <td class="value">{{h.as_dict(c.pkg_extras).get('bbox-north-lat')[:7]}}&deg; to {{h.as_dict(c.pkg_extras).get('bbox-south-lat')[:7]}}&deg;</td>
