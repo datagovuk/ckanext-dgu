@@ -288,7 +288,6 @@ def publisher_activity(organization, include_sub_organizations=False):
                       'Fix duplicate resources',
                       'fix_secondary_theme.py',
                       'script-fix-links-tna',
-                      'dgu',
                       )
 
     created = {'this': [], 'last': []}
