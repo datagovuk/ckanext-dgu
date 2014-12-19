@@ -1,29 +1,22 @@
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Open Spending Report</py:def>
+{% block title %}Open Spending Report - {{super()}}{% endblock %}
 
-   <py:match path="breadcrumbs">
-      <li><a href="/data/search">Datasets</a></li>
-      <li><a href="/data/openspending-report/index">Spend Reports</a></li>
-      <li><a href="${request.url}">Publisher Report</a></li>
-    </py:match>
 
-  <div py:match="content">
-    <xi:include href="${c.openspending_report_dir}/${c.report_name}.html" />
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('openspending_index', _('Spend Reports'))}}
+  <li><a href="{{request.url}}">Publisher Report</a></li>
+{% endblock %}
 
-          <p>Created by:
-              <a href="http://okfn.org">
-                <img alt="Open Knowledge Foundation" src="/images/okf_logo.png" />
-              </a>
-          </p>
+{% block primary_content_inner %}
 
-  </div>
+  {{ c.content|safe }}
 
-  <xi:include href="../layout.html" />
+  <p>Created by:
+      <a href="http://okfn.org">
+        <img alt="Open Knowledge Foundation" src="/images/okf_logo.png" />
+      </a>
+  </p>
 
-</html>
+{% endblock %}

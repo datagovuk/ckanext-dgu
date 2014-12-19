@@ -1,19 +1,17 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Administration Dashboard</py:def>
-  <py:def function="page_heading">Administration Dashboard</py:def>
+{% block title %}Administration Dashboard - {{super()}} {% endblock %}
+
+<h1>Administration Dashboard</h1>
 
 
-  <py:match path="breadcrumbs">
+{% block breadcrumb_content %}
     <li><a href="/data/system_dashboard">System Dashboard</a></li>
     <li><a href="/ckan-admin">Sysadmins</a></li>
-  </py:match>
+{% endblock %}
 
 
-  <div py:match="content">
+{% block primary_content_inner %}
 
     <h1>System administrators</h1>
 
@@ -25,20 +23,28 @@
             <th>Registered since</th>
         </tr>
 
-        <py:for each="user in c.sysadmins">
-            <tr py:with="u = h.userobj_from_username(user)">
+        {% for user in c.sysadmins %}
+          {% with %}
+            {% set u = h.userobj_from_username(user) %}
+            <tr>
                 <!--! <td><img src="" style="display:none"/></td> -->
-                <td>${h.linked_user(user)}</td>
-                <td><a py:if="u" href="mailto:${u.email}">${u.email}</a>
-                <py:if test="not u or not u.email">System account</py:if></td>
-                <td>${h.render_datetime(u.created)}</td>
+                <td>{{h.linked_user(user)}}</td>
+                <td>
+                  {% if u and u.email %}
+                    <a href="mailto:{{u.email}}">{{u.email}}</a>
+                  {% endif %}
+                  {% if not u or not u.email %}
+                    System account
+                  {% endif %}
+                </td>
+                <td>{{h.render_datetime(u.created)}}</td>
             </tr>
-        </py:for>
+          {% endwith %}
+        {% endfor %}
 
     </table>
 
     <span class="insert-comment-recent"></span>
-  </div>
 
-  <xi:include href="../layout_base.html" />
-</html>
+{% endblock %}
+

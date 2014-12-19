@@ -60,11 +60,12 @@ class DataController(BaseController):
         build_path = pylons.config.get(prefix + "local.build", None)
         deploy_path = pylons.config.get(prefix + "local.deploy", None)
 
-        if not os.path.exists(source_repo_path) and source_repo_path.startswith('/tmp/'):
+        if source_repo_path and (not os.path.exists(source_repo_path) and
+                source_repo_path.startswith('/tmp/')):
             # Directories in /tmp won't survive a reboot
             os.makedirs(source_repo_path)
 
-        if not os.path.exists(build_path) and build_path.startswith('/tmp/'):
+        if build_path and (not os.path.exists(build_path) and build_path.startswith('/tmp/')):
             # Directories in /tmp won't survive a reboot
             os.makedirs(build_path)
 
@@ -72,7 +73,7 @@ class DataController(BaseController):
                     deploy_path]) or \
                 not os.path.exists(source_repo_path):
             c.error = "System not configured, please setup ckan.ini"
-            if not os.path.exists(source_repo_path):
+            if source_repo_path and not os.path.exists(source_repo_path):
                 c.error = "Repo path %s does not exist" % source_repo_path
             return render('data/ukgovld.html')
 
@@ -167,6 +168,7 @@ class DataController(BaseController):
 
     def openspending_report(self):
         self._set_openspending_reports_dir()
+        c.content = open (c.openspending_report_dir + "/index.html").read()
         return render('data/openspending_report.html')
 
     def openspending_publisher_report(self, id):
@@ -180,6 +182,11 @@ class DataController(BaseController):
             else:
                 abort(404, 'Publisher not found')
             self._set_openspending_reports_dir()
+
+            path = c.openspending_report_dir + "/" + c.report_name + ".html"
+            c.content = open(path).read()
+            # Jinja needs it as unicode
+            c.content = c.content.decode('utf8')
             return render('data/openspending_publisher_report.html')
         else:
             abort(404)

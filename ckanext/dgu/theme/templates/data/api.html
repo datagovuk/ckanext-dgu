@@ -1,25 +1,22 @@
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Data API</py:def>
-  <py:def function="page_heading">Data Catalogue API</py:def>
+{% block title %}Data API{% endblock %}
 
-<py:match path="breadcrumbs">
-    <li><a href="/data/api">CKAN API</a></li>
-  </py:match>
+{% block breadcrumb_content %}
+  {{ h.build_nav('api_page', _('CKAN API')) }}
+{% endblock %}
 
-  <div py:match="content">
+<h1>Data Catalogue API</h1>
+
+{% block primary_content_inner %}
+
     <h1>CKAN API Notes</h1>
     <p>Developers can access the data catalogue with an API, as an alternative to the data.gov.uk web interface. The API provides both RESTful and functional interfaces, all in JSON format, making it suitable for a wide range of clients.</p>
 
-    <p py:with="url=g.site_url+('/' if g.site_url[-1]!='/' else '')+'api'">The base URL for the API is: <a href="${url}">${url}</a></p>
+    {% set url = g.site_url+('/' if g.site_url[-1]!='/' else '')+'api' %}
+    <p>The base URL for the API is: <a href="{{url}}">{{url}}</a></p>
 
     <p>The API is provided by the CKAN software and full instructions are provided here: <a href="http://docs.ckan.org/en/ckan-2.0.2/api.html">http://docs.ckan.org/en/ckan-2.0.2/api.html</a>.</p>
   </div>
-  <xi:include href="../layout.html" />
 
-</html>
+{% endblock %}

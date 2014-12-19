@@ -1,25 +1,22 @@
-﻿<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+﻿{% extends "page.html" %}
 
-  <py:def function="page_title">${c.pkg.title or c.pkg.name} - Edit</py:def>
+{% block title %}{{c.pkg.title or c.pkg.name}} - Edit{% endblock %}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
-    <li><a href="${h.url_for(controller='package',action='edit',id=c.pkg_dict['name'])}">Edit</a></li>
-  </py:match>
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('dataset_read', c.pkg_dict.get('title', c.pkg_dict['name']), id=c.pkg_dict['name']) }}
+  {{ h.build_nav('dataset_edit', _('Edit'), id=c.pkg_dict['name']) }}
+{% endblock %}
 
-  <py:def function="optional_head">
-    <script type="text/javascript">
-      var form_errors = ${c.errors_json};
-      var publishers = ${c.publishers_json};
-      window.DGU_RESOURCE_FORMATS = ${h.get_resource_formats()};
-    </script>
-    <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.9.2.custom.datepicker.min.css" />
-    <script type="text/javascript" src="/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js"></script>
+{% block optional_head %}
+  <script type="text/javascript">
+    var form_errors = {{ c.errors_json|safe }};
+    var publishers = {{ c.publishers_json|safe }};
+    window.DGU_RESOURCE_FORMATS = {{h.get_resource_formats()|safe}};
+  </script>
+  <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.9.2.custom.datepicker.min.css" />
+  <script type="text/javascript" src="/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js"></script>
 
     <!-- scripts and styles for bbox selection map-->
     <link rel="stylesheet" type="text/css" href="/scripts/vendor/ol3.min.css" />
@@ -27,13 +24,11 @@
     <script type="text/javascript" src="/scripts/vendor/proj4.min.js"></script>
     <script type="text/javascript" src="/scripts/vendor/ol3.min.js"></script>
     <script type="text/javascript" src="/scripts/vendor/jquery.autocomplete.min.js"></script>
-  </py:def>
+{% endblock %}
 
-  <div py:match="content" class="dataset-edit-form">
-    <h1>Dataset Editor</h1>
-    ${c.form}
-  </div>
+{% block primary_content_inner %}
+  <h1>Dataset Editor</h1>
+  {{ c.form|safe }}
+{% endblock %}
 
-  <xi:include href="../layout_base.html" />
-</html>
 
