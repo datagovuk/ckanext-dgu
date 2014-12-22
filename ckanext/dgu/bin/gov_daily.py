@@ -148,7 +148,9 @@ def command(config_file):
                     try:
                         report_response = urllib2.urlopen(url).read()
                     except urllib2.HTTPError, e:
-                        if e.code == 404:
+                        if e.code == 404 and url == openspending_reports_url:
+                            log.error('Got 404 for openspending report index! %s' % url)
+                        elif e.code == 404:
                             log.info('Got 404 for openspending report %s' % url)
                         else:
                             log.error('Could not download openspending report %r: %s',
@@ -168,9 +170,9 @@ def command(config_file):
                         # Sort out non-encoded symbols
                         report_html = re.sub(u' & ', ' &amp; ', report_html)
                         report_html = re.sub('\xc2\xa3', '&pound;', report_html)
-                        report_html = re.sub(u'\u2714', '&#x2714;', report_html)
-                        report_html = re.sub(u'\u2718', '&#x2718;', report_html)
-                        report_html = re.sub(u'\u0141', '&#x0141;', report_html)
+                        report_html = re.sub(u'\u2714', '&#x2714;', report_html) # tick
+                        report_html = re.sub(u'\u2718', '&#x2718;', report_html) # cross
+                        report_html = re.sub(u'\u0141', '&#x0141;', report_html) # pound
                         # save it
                         filename = url[url.rfind('/')+1:] or 'index.html'
                         filepath = os.path.join(openspending_reports_dir, filename)

@@ -185,6 +185,8 @@ class DataController(BaseController):
 
             path = c.openspending_report_dir + "/" + c.report_name + ".html"
             c.content = open(path).read()
+            # Jinja needs it as unicode
+            c.content = c.content.decode('utf8')
             return render('data/openspending_publisher_report.html')
         else:
             abort(404)

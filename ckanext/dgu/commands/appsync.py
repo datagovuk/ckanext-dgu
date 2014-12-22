@@ -150,6 +150,7 @@ class AppSync(CkanCommand):
         related.type = 'App'
         related.title = html_parser.unescape(app_title)
         related.description = ""
+        related.url = app_url
 
         related.image_url = image_url
 
