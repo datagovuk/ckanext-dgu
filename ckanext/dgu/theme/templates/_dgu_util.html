@@ -170,7 +170,7 @@
   </div>
 
   <py:def function="feedback_summary(package,render_title=True,large=False)">
-    <div class="feedback-summary ${if_(large,'large')}" py:with="comment_dict=h.unpublished_comments_lookup(package)">
+    <div class="feedback-summary ${if_(large,'large')}" py:with="comment_dict=h.feedback_comment_counts(package)">
       <div py:if="render_title" class="pull-left feedback-summary-title">Feedback:</div>
       <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Economic growth" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-gbp"></i>  ${comment_dict['economic']}</a>
       <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Social growth" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}"><i class="icon-group"></i>  ${comment_dict['social']}</a>
