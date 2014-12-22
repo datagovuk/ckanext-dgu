@@ -286,7 +286,9 @@ def publisher_activity(organization, include_sub_organizations=False):
                       'current_revision_fixer2', 'fix_contact_details.py',
                       'Repoint 410 Gone to webarchive url',
                       'Fix duplicate resources',
+                      'fix_secondary_theme.py',
                       )
+    system_author_template = 'script-%'  # "%" is a wildcard
 
     created = {'this': [], 'last': []}
     modified = {'this': [], 'last': []}
@@ -316,7 +318,8 @@ def publisher_activity(organization, include_sub_organizations=False):
             .filter(model.PackageRevision.id == pkg.id)\
             .filter_by(state='active')\
             .join(model.Revision)\
-            .filter(~model.Revision.author.in_(system_authors))
+            .filter(~model.Revision.author.in_(system_authors)) \
+            .filter(~model.Revision.author.like(system_author_template))
         rr_q = model.Session.query(model.Package, model.ResourceRevision, model.Revision)\
             .filter(model.Package.id == pkg.id)\
             .filter_by(state='active')\
@@ -324,14 +327,16 @@ def publisher_activity(organization, include_sub_organizations=False):
             .join(model.ResourceRevision,
                   model.ResourceGroup.id == model.ResourceRevision.resource_group_id)\
             .join(model.Revision)\
-            .filter(~model.Revision.author.in_(system_authors))
+            .filter(~model.Revision.author.in_(system_authors))\
+            .filter(~model.Revision.author.like(system_author_template))
         pe_q = model.Session.query(model.Package, model.PackageExtraRevision, model.Revision)\
             .filter(model.Package.id == pkg.id)\
             .filter_by(state='active')\
             .join(model.PackageExtraRevision,
                   model.Package.id == model.PackageExtraRevision.package_id)\
             .join(model.Revision)\
-            .filter(~model.Revision.author.in_(system_authors))
+            .filter(~model.Revision.author.in_(system_authors))\
+            .filter(~model.Revision.author.like(system_author_template))
 
         for quarter_name in quarters:
             quarter = quarters[quarter_name]
@@ -489,7 +494,7 @@ def dataset_app_report():
 
         app = {
           'title': related.related.title,
-          'url': related.related.url 
+          'url': related.related.url
         }
 
         datasets[dataset_name]['title'] = related.dataset.title
