@@ -1407,7 +1407,10 @@ def get_extent(pkg):
     extent_json_str = pkg.extras.get('spatial', False)
     # ensure it is JSON for security purposes, since the template will put it
     # in Javascipt unescaped using |safe
-    return json.dumps(json.loads(extent_json_str))
+    try:
+        return json.dumps(json.loads(extent_json_str))
+    except ValueError:  # includes JSONDecodeError
+        return ''
 
 def get_tiles_url():
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
