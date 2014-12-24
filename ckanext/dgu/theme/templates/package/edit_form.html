@@ -675,7 +675,8 @@
                     <div class="rect3"></div>
                 </div>
             </span>
-            <span><input id="use_exact_geom" type="checkbox"/> Use exact geometry</span>
+            <!-- <span><input id="use_exact_geom" type="checkbox"/> Use exact geometry</span> -->
+            <span style="float:right">[<input id="bbox_minx">,<input id="bbox_miny">] : [<input id="bbox_maxx">,<input id="bbox_maxy">]</span>
             <input id="spatial" name="spatial" size="40" type="hidden" value="{{data.get('spatial', '')}}" />
             {{ m.display_error(errors, 'spatial_extent', True) }}
         </div>
@@ -684,6 +685,7 @@
 
     <script type="text/javascript" src="/scripts/dgu-spatial-edit.min.js"></script>
     <script>
+        CKAN.DguSpatialEditor.bindCoordinateInputs("#bbox_minx","#bbox_miny","#bbox_maxx","#bbox_maxy")
         CKAN.DguSpatialEditor.bindInput("#spatial")
     </script>
 </fieldset>

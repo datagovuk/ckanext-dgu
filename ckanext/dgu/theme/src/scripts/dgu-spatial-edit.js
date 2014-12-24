@@ -127,10 +127,11 @@ CKAN.DguSpatialEditor = function($) {
 
     boundingBoxInteraction.on('boxend', function (e) {
         var newBox = boundingBoxInteraction.getGeometry()
-        selectBoxSource.addFeature(new ol.Feature(newBox))
+
+        CKAN.DguSpatialEditor.setBBox(newBox, false)
+
         map.removeInteraction(boundingBoxInteraction);
         $(map.viewport_).toggleClass('drawing', false)
-        selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(newBox)))
     })
 
     var selectButton = $("<div class='selectButton ol-unselectable ol-control ol-collapsed' style='top: 4em; left: .5em;'><button class='ol-has-tooltip' type='button'><span class='glyphicon icon-crop' aria-hidden='true'></span><span role='tooltip'>Draw Selection</span></button></div>")
@@ -150,10 +151,10 @@ CKAN.DguSpatialEditor = function($) {
 
     })
 
-    function bbox2geom(bbox) {
+    function bbox2geom(bbox, bboxProjection) {
         var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
         // make sure the gazetteer extents are transformed into the system SRS
-        e = ol.proj.transformExtent(e, GAZETEER_PROJ, EPSG_4258)
+        if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, EPSG_4258)
         var size = ol.extent.getSize(e)
         // either a point or a box
         return geom = size[0]*size[1] == 0 ?
@@ -170,13 +171,19 @@ CKAN.DguSpatialEditor = function($) {
                 return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
             //paramName: 'name',
             dataType: 'jsonp',
-            onSearchStart: function() {$("#spatial_spinner").show()},
-            onSearchComplete: function() {$("#spatial_spinner").hide()},
-            onSearchError: function() {$("#spatial_spinner").hide()},
+            onSearchStart: function() {
+                $("#spatial_spinner").show()
+            },
+            onSearchComplete: function() {
+                $("#spatial_spinner").hide()
+            },
+            onSearchError: function() {
+                $("#spatial_spinner").hide()
+            },
             transformResult: function(response) {
                 return {
                     suggestions: $.map(response.features, function(feature) {
-                        feature.bbox_geom = bbox2geom(feature.bbox)
+                        feature.bbox_geom = bbox2geom(feature.bbox, GAZETEER_PROJ)
                         return { value: feature.properties.name, data: feature };
                     })
                 };
@@ -196,10 +203,12 @@ CKAN.DguSpatialEditor = function($) {
         CKAN.DguSpatialEditor.setUseExactGeometry($(this).prop('checked'))
     })
 
+
     return {
         geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
         currentSuggestion: null,
         useExactGeometry: false,
+        coordinateInputs: null,
 
         setUseExactGeometry: function(bool) {
             if (this.useExactGeometry != bool) {
@@ -227,27 +236,36 @@ CKAN.DguSpatialEditor = function($) {
                             var geojson = data.footprints[0].geometry
                             var geom = _this.currentSuggestion.data.exactFootprint = geojsonFormat.readGeometry(geojson)
                             geom.transform(GAZETEER_PROJ, EPSG_4258)
-                            _this.setBBox(geom)
-                            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+                            _this.setBBox(geom, true)
                         })
                 } else {
-                    this.setBBox(this.currentSuggestion.data.bbox_geom)
-                    selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(this.currentSuggestion.data.bbox_geom)))
+                    this.setBBox(this.currentSuggestion.data.bbox_geom, true)
                 }
             }
         },
 
-        setBBox: function(geom) {
+        setBBox: function(geom, updateExtent) {
             selectBoxSource.clear()
             selectBoxSource.addFeature(new ol.Feature(geom ))
-            var size = ol.extent.getSize(selectBoxSource.getExtent())
-            var bufferedExtent = ol.extent.buffer(
-                selectBoxSource.getExtent(),
-                size[0]*size[1] == 0 ?
-                    0.1 :                     // for a Point : arbitrary 0.1deg buffer
-                    (size[0]+size[1])/20      // Polygon : 10% of mean size
+
+            var selectedExtent = selectBoxSource.getExtent()
+
+            if (updateExtent) {
+                var size = ol.extent.getSize(selectedExtent)
+                var bufferedExtent = ol.extent.buffer(
+                    selectedExtent,
+                        size[0]*size[1] == 0 ?
+                        0.1 :                     // for a Point : arbitrary 0.1deg buffer
+                        (size[0]+size[1])/20      // Polygon : 10% of mean size
                 )
-            map.getView().fitExtent(bufferedExtent, map.getSize())
+                map.getView().fitExtent(bufferedExtent, map.getSize())
+            }
+
+            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+
+            if (this.coordinateInputs) {
+                for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val(selectedExtent[idx].toFixed(5))
+            }
         },
 
         activateBBox: function(geom) {
@@ -259,9 +277,27 @@ CKAN.DguSpatialEditor = function($) {
             selectionListener = listener
         },
 
+        bindCoordinateInputs: function(minxInput, minyInput, maxxInput, maxyInput) {
+            this.coordinateInputs = [
+                $(minxInput),
+                $(minyInput),
+                $(maxxInput),
+                $(maxyInput)
+            ]
+             var _this = this
+            this.coordinateInputs.forEach(function(input) {
+                input.change(function() {
+                    _this.syncWithInputCoordinates()
+                })})
+        },
+
+        syncWithInputCoordinates: function() {
+            this.setBBox(bbox2geom(this.coordinateInputs.map(function(input) {return input.val()})))
+        },
+
         bindInput: function(el) {
             var $el = $(el)
-            CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()))
+            CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()), true)
             CKAN.DguSpatialEditor.onBBox(function(bbox) {
                 $el.val(bbox)
             })
