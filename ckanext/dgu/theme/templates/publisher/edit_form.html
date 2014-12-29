@@ -106,7 +106,8 @@
       <div class="controls parent-field">
         {% if editable %}
         <select id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
-            <option py:attrs="{'selected': 'selected'} if not selected_parent else {}" value="">No parent (top level)</option>
+
+            <option {% if not selected_parent %}selected="selected"{% endif %} value="">No parent (top level)</option>
             {% for pg in c.allowable_parent_groups %}
               <option {% if selected_parent == pg.name %}selected="selected"{% endif%} value="{{pg.name}}">{{pg.title}}</option>
             {% endfor %}
@@ -114,7 +115,7 @@
         {% else %}
           <input id="dummy" type="text" disabled="disabled" value="{{h.group_name_to_title(selected_parent) or 'No parent (top level)'}}"/>
           <input id="groups__0__name" name="groups__0__name" type="hidden" value="{{selected_parent}}" />
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher">{% if c.editing %}<img py:if="not c.editing == ''" src="/images/information-grey.png"/>{% endif%}</span>
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher">{% if c.editing %}<img src="/images/information-grey.png"/>{% endif%}</span>
         {% endif %}
       </div>
       {% endwith %}
@@ -280,9 +281,9 @@
 
 <div class="form-actions">
   <input id="save" class="btn btn-primary" name="save" type="submit" value="{{_('Save Changes')}}" />
-  <py:if test="c.group">
+  {% if c.group %}
     <input id="cancel" class="btn href-action" name="cancel" type="reset" value="{{_('Cancel')}}" action="{{h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}}" />
-  </py:if>
+  {% endif %}
 </div>
 
 <script>
