@@ -7,7 +7,7 @@ from itertools import chain, groupby
 from pylons.i18n import _
 
 from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
-                                                StopOnError, missing
+                                                StopOnError, missing, Missing
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
@@ -330,3 +330,18 @@ def validate_publisher_category(key, data, errors, context):
         if category:
             errors[('category',)] = ['Category is not valid.']
 
+def dgu_boolean_validator(value, context):
+    """
+    This validators the data coming in and out of the form in such
+    a way that if it is not positive (true, yes, etc) then False
+    is returned.  This enables checkboxes to be used for booleans
+    whereas before the browser didn't send a value (when field
+    unchecked) which resulted in a validation error.
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, Missing):
+        return False
+    if value.lower() in ['true', 'yes', 't', 'y', '1']:
+        return True
+    return False
