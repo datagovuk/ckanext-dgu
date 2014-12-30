@@ -108,8 +108,7 @@ def command(config_file):
                                 'token file?\nError: %s', e)
                         sys.exit(1)
                     downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
-                                                delete_first=False,
-                                                skip_url_stats=False)
+                                                delete_first=False)
                     downloader.latest()
         else:
             log.info('No token specified, so not downloading Google Analytics data')
