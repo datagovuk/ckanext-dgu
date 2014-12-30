@@ -111,9 +111,10 @@ def _publisher_hierarchy_recur(node):
     name  = node['name']
     children = [ _publisher_hierarchy_recur(child) for child in (node['children'] or []) ]
     return {
+            'id': node['id'],
             'title':title,
             'name':name,
-            'children':children
+            'children':children,
             }
 
 def publisher_hierarchy_mini(group_name_or_id):
@@ -2045,3 +2046,14 @@ def report_timestamps_split(timestamps):
 
 def report_users_split(users, organization):
     return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
+
+def closed_publisher_list():
+    """
+    Returns the IDs of all of the closed publishers for use in publisher_index.
+    """
+    import ckan.model as model
+    extras = model.Session.query(model.GroupExtra.group_id)\
+        .filter(model.GroupExtra.key == 'closed')\
+        .filter(model.GroupExtra.value == 'true')\
+        .filter(model.GroupExtra.state == 'active')
+    return [e[0] for e in extras.all()]

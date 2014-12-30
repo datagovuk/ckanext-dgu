@@ -9,7 +9,7 @@
     <li><a href="/publisher">Publishers</a></li>
   </py:match>
 
-  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
+  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy(); closed = h.closed_publisher_list();">
     <h1>Publishers</h1>
     <p>Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
     <div py:if="c.userobj" class="panel panel-info">
@@ -78,6 +78,9 @@
           <div class="publisher-row">
             <a href="/publisher/${pub['name']}">
               ${pub['title']}
+              <py:if test="pub['id'] in closed">
+              (Closed)
+              </py:if>
             </a>
           </div>
           <py:for each="child in pub['children']">
