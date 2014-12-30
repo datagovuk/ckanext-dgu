@@ -26,7 +26,18 @@
 <input type="hidden" id="type" name="type" value="organization" />
 <input type="hidden" id="approval_status" name="approval_status" value="pending" />
 
-{{h.prep_group_edit_data(data)}}
+<div style="display:none">
+{{ h.prep_group_edit_data(data)}}
+</div>
+
+{% with %}
+  {% set extras = data.get('extras', []) %}
+  {% if c.group.extras.get('closed', False) == 'true' %}
+    <div class="alert alert-info">
+    This publisher is closed and no longer exists.
+    </div>
+  {% endif %}
+{% endwith %}
 
 <div class="row dgu-equal-height" data-selector=".panel-default">
 <fieldset id="basic-information">
