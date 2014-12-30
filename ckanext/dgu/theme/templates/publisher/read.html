@@ -192,6 +192,14 @@
           <b>Category: </b> {{h.group_category(c.group_extras)}}
         </p>
         {% endif %}
+
+        {% if c.group_extras.get('closed', False) -%}
+        <div class="alert alert-info">
+        This publisher is closed and no longer exists.
+        </div>
+        {%- endif %}
+
+
         {% if h.spending_published_by(c.group_extras) %}
         <p class="pre-notes">
           <b>Spending data published by: </b> <a href="/publisher/{{h.spending_published_by(c.group_extras).name}}">{{h.spending_published_by(c.group_extras).title}}</a>
