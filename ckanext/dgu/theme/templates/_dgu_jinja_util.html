@@ -52,7 +52,7 @@
 
     {% set page     = pageobj.page %}
     {% set numpages = pageobj.page_count %}
-    {% set url_for  = h.paginator_page_url(paginator_page_url) %}
+    {% set url_for_page  = h.paginator_page_url(pageobj) %}
     {% if numpages > 1 %}
     <div class="dgu-pagination">
       <ul class="pagination">
@@ -145,7 +145,7 @@
         <div class="right-inner auto-height">
         <div class="chevron"></div>
         {% if not c.query_error %}
-          {% set count = c.page.item_count if c.page  else c.package_count or 0 %}
+          {% set count = c.page.item_count if c.page != '' else (c.package_count or 0) %}
           <div class="result-count">{{count}}</div>
           <div class="result-count-footer">Dataset{{if_(count!=1,'s')}}</div>
         {% else %}
@@ -164,7 +164,7 @@
 {% macro package_list_from_dict(packages,mini=False) %}
   <div class="common-dataset-list">
     <div class="{{if_(mini,'row')}}">
-      {% for i in range(len(packages)) %}
+      {% for i in range(packages|length) %}
         {% if i%4==0 %}
         <div class="clearfix visible-lg"></div>
         {% endif %}
@@ -274,7 +274,7 @@
             </a>
           </div>
         {% endfor %}
-        {% for i in range(len(unselected)) %}
+        {% for i in range(unselected|length) %}
           {% with %}
           {% set (link,text,tooltip) = unselected[i] %}
           {% set overflow = i>5 and more_button %}
@@ -297,7 +297,7 @@
             </div>
           </a>
         {% endif %}
-        {% if not len(selected) and not len(unselected) %}
+        {% if not selected|length and not unselected|length %}
         <div class="facet-option"><em>{{if_empty}}</em></div>
         {% endif %}
       </div>
