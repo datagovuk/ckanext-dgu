@@ -1,86 +1,79 @@
-﻿<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+﻿{% ckan_extends %}
 
-  <xi:include href="../facets.html" />
+{% import "_dgu_jinja_util.html" as m with context %}
 
-  <py:def function="page_title">Data Search</py:def>
+{% block title %}Datasets{% endblock %}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-  </py:match>
 
-  <py:def function="sidebar">
-    <div class="sidebar-search">
-      ${search_form(mini=True)}
-      <div class="map-search-link">
+{% block breadcrumb_content %}
+{{ h.build_nav('dgu_search', _('Datasets')) }}
+{% endblock %}
+
+
+{% block primary_content %}
+<section class="module">
+    <div class="module-content">
+        <a href="#" class="visible-sm visible-xs btn btn-primary btn-sm show-facets">Show Search Facets &raquo;</a>
+        {% block form %}
+        <form class="form-inline pull-right" id="search-sort-by">
+            {% macro sort_option(text, value, selected, disabled=False) %}
+            <option value="{{value}}" {{m.dict_to_attributes({'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None})}}>{{text}}</option>
+            {% endmacro %}
+            <label>Sort by:</label>
+            <select name="dataset-results-sort" class="form-control" style="display:inline-block;">
+                <!-- Can optimise this bit of the template, particularly results_sort_by -->
+                {{sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
+                {{sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}}
+                {{sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}}
+                {{sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in h.results_sort_by())}}
+                {{sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}}
+            </select>
+            <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+                <i class="icon-rss-sign"></i>
+            </a>
+        </form>
+        {% endblock %}
+
+        {% if not c.query_error %}
+        <h1>{{c.page.item_count if c.page not in (None, '') else c.package_count or 0}} Results</h1>
+        {% else %}
+        <h1>Search Error</h1>
+        {% endif %}
+
+        {% block package_search_results_list %}
+        {{ m.package_list_from_dict(c.page.items) }}
+        {% endblock %}
+    </div>
+
+    {% block page_pagination %}
+    {{m.paginator(c.page)}}
+    {% endblock %}
+</section>
+{% endblock %}
+
+
+
+{% block secondary_content %}
+<div class="sidebar-search">
+    {{ m.search_form(mini=true) }}
+    <div class="map-search-link">
         <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
-      </div>
     </div>
-    <div id="shopping-basket-container" class="facet-box-unboxed">
-      <a id="shopping-basket-reset" href="#" class="facet-kill pull-right">
+</div>
+
+
+{% snippet "spatial/snippets/spatial_query.html", default_extent="[[50.3, 3.3], [51.0, 6.0]]" %}
+
+
+<div id="shopping-basket-container" class="facet-box-unboxed">
+    <a id="shopping-basket-reset" href="#" class="facet-kill pull-right">
         <i class="icon-large icon-remove-sign"></i>
-      </a>
-      <h4 class="facet-title">Map Preview List</h4>
-      <div class="facet-options" id="shopping-basket"></div>
-      <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-info btn-basket"><span><i class="icon-map-marker"></i>&nbsp; Preview</span></a>
-    </div>
+    </a>
+    <h4 class="facet-title">Map Preview List</h4>
+    <div class="facet-options" id="shopping-basket"></div>
+    <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-info btn-basket"><span><i class="icon-map-marker"></i>&nbsp; Preview</span></a>
+</div>
 
-    <py:if test="c.page.item_count">
-      ${facet_filters()}
-    </py:if>
-  </py:def>
+{{m.facet_filters()}}
 
-  <div py:match="content">
-    <a href="#" class="visible-sm visible-xs btn btn-primary btn-sm show-facets">Show Search Facets &raquo;</a>
-
-    <py:if test="c.query_error">
-      <div class="panel panel-danger">
-        <div class="panel-heading"><strong>There was an error while searching.</strong></div>
-        <div class="panel-body">Please try again.</div>
-      </div>
-    </py:if>
-
-    <form class="form-inline pull-right" id="search-sort-by">
-      <py:def function="sort_option(text, value, selected, disabled=False)">
-        <option value="${value}" py:attrs="{'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None}">${text}</option>
-      </py:def>
-      <label>Sort by:</label>
-      <select name="dataset-results-sort" class="form-control" style="display:inline-block;">
-        <!-- Can optimise this bit of the template, particularly results_sort_by -->
-        ${sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}
-        ${sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}
-        ${sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}
-        ${sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in h.results_sort_by())}
-        ${sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}
-      </select>
-      <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
-        <i class="icon-rss-sign"></i>
-      </a>
-    </form>
-
-    <py:if test="not c.query_error">
-      <h1>${c.page.item_count if c.page not in (None, '') else c.package_count or 0} Results</h1>
-    </py:if>
-    <py:if test="c.query_error">
-      <h1>Search Error</h1>
-    </py:if>
-
-    ${package_list_from_dict(c.page.items)}
-    <div py:if="c.page.items">
-      ${paginator(c.page)}
-    </div>
-  </div>
-
-  <py:def function="optional_feed">
-  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets found with custom search: '${c.search_url_params}'"
-    href="${h.url(controller='feed', action='custom')}?${c.search_url_params}" />
-  </py:def>
-
-  <xi:include href="layout.html" />
-</html>
-
-
+{% endblock %}

@@ -15,18 +15,16 @@
 #}
 {%- block content %}
     {% block maintag %}<div role="main">{% endblock %}
-      <div id="content">
-        {% block main_content %}
-          {% block toolbar %}
-            <div class="toolbar">
-              {% block breadcrumb %}
-                <div id="pre-content">
-                    <div class="container">
-                    <div class="row">
-                        <div class="col-md-12">
+    {% block toolbar %}
+    <div class="toolbar">
+        {% block breadcrumb %}
+        <div id="pre-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
                         {#
                         Add breadcrumbs to the page by extending this breadcrumb_content.
-         
+
                         Example:
 
                           {% block breadcrumb_content %}
@@ -38,24 +36,26 @@
                             <li><a href="/"><i class="icon-home"></i></a></li>
                             {% block breadcrumb_content %}{% endblock %}
                         </ul>
-                        </div>
-                    </div>
                     </div>
                 </div>
-              {% endblock %}
-              {% block flash %}
-                    <div class="flash-messages container">
-                    {% block flash_inner %}
-                        {% for message in h.flash.pop_messages() | list %}
-                            <div class="panel {{ message.category.replace('alert','panel').replace('error','danger') }}">
-                            <div class="panel-heading">{{ h.literal(message) }}</div>
-                            </div>
-                        {% endfor %}
-                    {% endblock %}
-                    </div>
-              {% endblock %}
             </div>
-          {% endblock %}
+        </div>
+        {% endblock %}
+        {% block flash %}
+        <div class="flash-messages container">
+            {% block flash_inner %}
+            {% for message in h.flash.pop_messages() | list %}
+            <div class="panel {{ message.category.replace('alert','panel').replace('error','danger') }}">
+                <div class="panel-heading">{{ h.literal(message) }}</div>
+            </div>
+            {% endfor %}
+            {% endblock %}
+        </div>
+        {% endblock %}
+    </div>
+    {% endblock %}
+      <div id="content">
+        {% block main_content %}
 
           <div class="container wrapper{% block wrapper_class %}{% endblock %}{% if self.secondary()|trim == '' %} no-nav{% endif %}">
 
@@ -67,7 +67,7 @@
             {% endblock %}
 
             {% block primary %}
-              <div class="primary">
+              <div class="primary content">
                 {#
                 The primary_content block can be used to add content to the page.
                 This is the main block that is likely to be used within a template.
@@ -105,7 +105,7 @@
             {% endblock %}
 
             {% block secondary %}
-              <aside class="secondary">
+              <aside class="secondary sidebar">
                 {#
                 The secondary_content block can be used to add content to the
                 sidebar of the page. This is the main block that is likely to be
