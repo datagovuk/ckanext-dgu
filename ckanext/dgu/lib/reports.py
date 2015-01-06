@@ -520,6 +520,37 @@ dataset_app_report_info = {
     'template': 'report/dataset_app_report.html',
     }
 
+def get_user_realname(user):
+    from ckanext.dgu.drupalclient import DrupalClient
+
+    if user.name.startswith('user_d'):
+        user_id = user.name[len('user_d'):]
+
+        try:
+            dc = DrupalClient()
+            properties = dc.get_user_properties(user_id)
+        except Exception, ex:
+            return user.fullname
+
+        try:
+            first_name = properties['field_first_name']['und'][0]['safe_value']
+        except:
+            first_name = ''
+
+        try:
+            surname = properties['field_surname']['und'][0]['safe_value']
+        except:
+            surname = ''
+    else:
+        first_name = ''
+        surname = ''
+
+    name = '%s %s' % (first_name, surname)
+    if name.strip() == '':
+        name = user.fullname
+
+    return name
+
 def admin_editor(org=None):
     from ckanext.dgu.lib.helpers import group_get_users
 
@@ -534,13 +565,28 @@ def admin_editor(org=None):
         for g in q.all():
             record = {}
             record['publisher'] = g.name
+
             admin_users = group_get_users(g, capacity='admin')
-            record['admins'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in admin_users])
-            record['admins_ids'] = "\n".join([u.name for u in admin_users])
+            admins = []
+            admins_ids = []
+            for u in admin_users:
+                name = get_user_realname(u)
+                admins.append('%s <%s>' % (name, u.email))
+                admins_ids.append(u.name)
+
+            record['admins'] = "\n".join(admins)
+            record['admins_ids'] = "\n".join(admins_ids)
 
             editor_users = group_get_users(g, capacity='editor')
-            record['editors'] = "\n".join(["%s <%s>" % (u.fullname, u.email) for u in editor_users])
-            record['editors_ids'] = "\n".join([u.name for u in editor_users])
+            editors = []
+            editors_ids = []
+            for u in editor_users:
+                name = get_user_realname(u)
+                editors.append('%s <%s>' % (name, u.email))
+                editors_ids.append(u.name)
+
+            record['editors'] = "\n".join(editors)
+            record['editors_ids'] = "\n".join(editors_ids)
             table.append(record)
     else:
         table.append({})
