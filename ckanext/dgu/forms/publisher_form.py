@@ -22,9 +22,14 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,
                                       empty,
                                       ignore,
-                                      keep_extras,
+                                      keep_extras
                                      )
-from ckanext.dgu.forms.validators import validate_publisher_category, categories, dgu_boolean_validator
+from ckanext.dgu.forms.validators import (validate_publisher_category,
+                                          categories,
+                                          dgu_boolean_validator,
+                                          to_json,
+                                          from_json,
+                                          value_if_missing)
 
 log = logging.getLogger(__name__)
 
@@ -120,6 +125,7 @@ class PublisherForm(SingletonPlugin):
             'category': [validate_publisher_category, convert_to_extras],
             'abbreviation': [ignore_missing, unicode, convert_to_extras],
             'closed': [dgu_boolean_validator, convert_to_extras],
+            'replaced_by': [value_if_missing([]), to_json, convert_to_extras],
         }
         schema.update( group_form_schema() )
         return schema
@@ -137,6 +143,7 @@ class PublisherForm(SingletonPlugin):
             'category': [convert_from_extras, ignore_missing],
             'abbreviation': [convert_from_extras, ignore_missing, unicode],
             'closed': [convert_from_extras, ignore_missing, dgu_boolean_validator],
+            'replaced_by': [convert_from_extras, value_if_missing([]), from_json],
         }
         schema.update( default_group_schema() )
         return schema

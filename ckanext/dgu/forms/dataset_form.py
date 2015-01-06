@@ -29,7 +29,8 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
      remove_blank_resources, \
-     allow_empty_if_inventory
+     allow_empty_if_inventory, \
+     to_json
 
 geographic_granularity = [('', ''),
                           ('national', 'national'),
@@ -438,13 +439,6 @@ def convert_from_extras(key, data, errors, context):
             and data_key[-1] == 'key'
             and data_value == key[-1]):
             data[key] = data[('extras', data_key[1], 'value')]
-
-def to_json(key, data, errors, context):
-    try:
-        encoded = json.dumps(data[key])
-        data[key] = encoded
-    except:
-        pass
 
 
 def use_other(key, data, errors, context):

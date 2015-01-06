@@ -1,7 +1,7 @@
 """
 navl validators for the DGU package schema.
 """
-
+import json
 from itertools import chain, groupby
 
 from pylons.i18n import _
@@ -11,6 +11,26 @@ from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
+def to_json(key, data, errors, context):
+    try:
+        encoded = json.dumps(data[key])
+        data[key] = encoded
+    except:
+        pass
+
+def from_json(key, data, errors, context):
+    try:
+        encoded = json.loads(data[key])
+        data[key] = encoded
+    except:
+        pass
+
+def value_if_missing(new_value):
+    def f(value, context):
+        if value is missing or not value:
+            return new_value
+        return value
+    return f
 
 def allow_empty_if_inventory(key, data, errors, context):
     """ Allow a specific field to not be required if unpublished=true """

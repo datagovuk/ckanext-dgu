@@ -15,6 +15,7 @@ import itertools
 import datetime
 import random
 import types
+import json
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -2057,3 +2058,39 @@ def closed_publisher_list():
         .filter(model.GroupExtra.value == 'true')\
         .filter(model.GroupExtra.state == 'active')
     return [e[0] for e in extras.all()]
+
+def all_publishers(exclude=None):
+    import ckan.model as model
+    pubs = model.Session.query(model.Group.name, model.Group.title)\
+        .filter(model.Group.state=='active')\
+        .filter(model.Group.type=='organization')
+
+    return pubs.order_by(model.Group.title)
+
+def get_closed_publisher_message(pub):
+    """ For publishers that are closed, this function will return a message to
+        display one the publisher_read/publisher_edit pages """
+    import ckan.model as model
+
+    closed = pub.get('closed')
+    replaced_by = pub.get('replaced_by')
+
+    if not closed:
+        return None
+
+    extra_msg = None
+    if replaced_by:
+        if isinstance(replaced_by, basestring):
+            g = model.Group.get(replaced_by)
+            extra_msg = "Please see <a href='/publisher/%s'>%s</a>." % (g.name, g.title,)
+        else:
+            publisher_urls = []
+            for p in replaced_by:
+                g = model.Group.get(p)
+                publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
+            extra_msg = ' or '.join(publisher_urls)
+            extra_msg = 'Please see %s' % extra_msg
+
+    return "This publisher is no longer active. %s " % (extra_msg or '')
+
+

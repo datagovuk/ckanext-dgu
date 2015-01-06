@@ -187,11 +187,15 @@
       {% set adminmode = (packagecreate or organizationupdate) %}
     <div class="row">
       <div class="{{m.if_(adminmode,'col-md-8','col-md-12')}}">
-        {% if c.group_extras.get('closed', False) == 'true' -%}
-        <div class="alert alert-info">
-        This publisher is closed and no longer exists.
-        </div>
-        {%- endif %}
+
+      {% with %}
+        {% set message = h.get_closed_publisher_message(c.group_dict) %}
+        {% if message %}
+          <div class="alert alert-info">
+          {{message|safe}}
+          </div>
+        {% endif %}
+      {% endwith %}
 
         {% if h.group_category(c.group_extras) %}
         <p class="pre-notes">

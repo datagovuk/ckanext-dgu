@@ -31,10 +31,10 @@
 </div>
 
 {% with %}
-  {% set extras = data.get('extras', []) %}
-  {% if c.group.extras.get('closed', False) == 'true' %}
+  {% set message = h. get_closed_publisher_message(data) %}
+  {% if message %}
     <div class="alert alert-info">
-    This publisher is closed and no longer exists.
+    {{message|safe}}
     </div>
   {% endif %}
 {% endwith %}
@@ -95,9 +95,45 @@
         {% endif %}
       </div>
     </div>
+
+
+    <hr  style="margin-top: 30px;"/>
+    <div class="control-group">
+      <div class="controls">
+        <label class="checkbox">
+          Closed <small style="color: #aaa;">Please check this box only if the publisher is considered closed</small>
+          <input id="closed" name="closed" type="checkbox" value="True" {% if data.get('closed', '') %}checked="checked"{% endif %}/>
+        </label>
+
+
+        {% if errors.get('closed', '') %}
+        <span class="field_error">{{errors.get('closed', '')}}</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="control-group" style="margin-top: 10px;">
+      <div class="controls">
+        <label>Replaced by
+        <small style="color: #aaa;">Select which, if any, publishers should be considered alternatives</small>
+
+        <select name="replaced_by" class="chzn-select" multiple="multiple" data-placeholder=" ">
+          {% for name, title in h.all_publishers() %}
+            <option value="{{name}}" {% if name in data.get('replaced_by') %}selected="selected"{% endif %}>{{title}}</option>
+          {% endfor %}
+        </select>
+        </label>
+      </div>
+
+      {% if errors.get('replaced_by', '') %}
+        <p class="field_error">{{errors.get('replaced_by', '')}}</p>
+      {% endif %}
+
+    </div>
+
   </div>
 </div>
 </div>
+
 <div class="col-md-6">
 <div class="panel panel-default">
   <div class="panel-heading"><strong>Further Information</strong></div>
@@ -169,22 +205,6 @@
         {% endif %}
       </div>
     </div>
-
-    <br/>
-    <div class="control-group">
-      <div class="controls">
-        <label class="checkbox">
-          Closed
-          <input id="closed" name="closed" type="checkbox" value="True" {% if data.get('closed', '') %}checked="checked"{% endif %}/>
-        </label>
-
-        {% if errors.get('closed', '') %}
-        <span class="field_error">{{errors.get('closed', '')}}</span>
-        {% endif %}
-      </div>
-    </div>
-
-
   </div>
 </div>
 </div>
