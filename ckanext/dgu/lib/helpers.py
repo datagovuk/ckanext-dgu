@@ -767,7 +767,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            secondary_themes =  json.loads(secondary_themes)
+            secondary_themes = json.loads(secondary_themes) or ''
 
             if isinstance(secondary_themes, types.StringTypes):
                 secondary_themes = THEMES.get(secondary_themes, secondary_themes)
