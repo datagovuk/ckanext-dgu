@@ -111,7 +111,7 @@
         {% endif %}
       </div>
     </div>
-    <div class="control-group" style="margin-top: 10px;">
+    <div class="control-group" style="margin-top: 10px;"  id="replacement-div" >
       <div class="controls">
         <label>Replaced by
         <small style="color: #aaa;">Select which, if any, publishers should be considered alternatives</small>
@@ -319,5 +319,15 @@
 
 <script>
 	$(".chzn-select").chosen();
+
+  $(document).ready(function(){
+    if (! $('#closed').is(':checked')) {
+      $('#replacement-div').hide();
+    }
+
+    $('#closed').click(function(){
+      $("#replacement-div").toggle(this.checked);
+    });
+  });
 </script>
 </form>
