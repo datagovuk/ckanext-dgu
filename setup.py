@@ -83,6 +83,7 @@ setup(
         clean_resource_dates = ckanext.dgu.commands.clean_resource_dates:CleanResourceDates
         sync_apps = ckanext.dgu.commands.appsync:AppSync
         vocabs = ckanext.dgu.commands.vocabs:VocabsCmd
+ 	sync_closed = ckanext.dgu.commands.sync_closed:SyncClosedPublishers
     """,
     test_suite = 'nose.collector',
 )
