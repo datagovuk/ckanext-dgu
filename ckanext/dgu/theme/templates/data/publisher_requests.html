@@ -9,7 +9,17 @@
 {% block primary_content_inner %}
     <h1>Publisher Requests</h1>
     <p>This page shows all requests for publisher editorship and if they have been granted.</p>
-    <table>
+    <table class="table table-condensed traffic-lights">
+        <tr>
+          <th>Date</th>
+          <th>User</th>
+          <th>Department</th>
+          <th>Department Admins</th>
+          <th>Accepted?</th>
+          <th>&nbsp;</th>
+          <th>&nbsp;</th>
+          <th>&nbsp;</th>
+        </tr>
       {% for a in c.publisher_requests %}
         <tr>
           <td>{{a.date_of_request.strftime('%d/%m/%y %H:%M:%S')}}</td>
