@@ -2082,11 +2082,17 @@ def get_closed_publisher_message(pub):
     if replaced_by:
         if isinstance(replaced_by, basestring):
             g = model.Group.get(replaced_by)
-            extra_msg = "Please see <a href='/publisher/%s'>%s</a>." % (g.name, g.title,)
+            if not g:
+                print "Could not find {}".format(replaced_by)
+            else:
+                extra_msg = "Please see <a href='/publisher/%s'>%s</a>." % (g.name, g.title,)
         else:
             publisher_urls = []
             for p in replaced_by:
                 g = model.Group.get(p)
+                if not g:
+                    print "Could not find {}".format(p)
+                    continue
                 publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
             extra_msg = ' or '.join(publisher_urls)
             extra_msg = 'Please see %s' % extra_msg

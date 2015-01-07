@@ -38,6 +38,8 @@ class SyncClosedPublishers(CkanCommand):
         requests_cache.install_cache('opennames_cache', expire_after=86400)
 
         rev = model.repo.new_revision()
+
+        print "Processing Organisations"
         for entities in self.opennames_entity_generator():
             for entity in self.closed_generator(entities):
                 group = model.Group.get(entity)
@@ -49,7 +51,28 @@ class SyncClosedPublishers(CkanCommand):
                 group.extras['closed'] = True
                 model.Session.add(group)
                 model.Session.commit()
+
+        print "Processing PCTs"
+        for trust in self.pcts():
+            print "Updating {}".format(trust.name)
+            trust.extras['closed'] = True
+            trust.extras['replaced_by'] = "national-health-service"
+            model.Session.add(trust)
+            model.Session.commit()
+
         model.repo.commit_and_remove()
+
+    def pcts(self):
+        import ckan.model as model
+
+        trusts = []
+
+        publishers = model.Session.query(model.Group).filter(model.Group.state=='active')
+        for publisher in publishers:
+            if 'primary-care-trust' in publisher.name:
+                trusts.append(publisher)
+
+        return trusts
 
     def closed_generator(self, items):
         for item in items:
