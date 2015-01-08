@@ -7,6 +7,8 @@ from sqlalchemy.orm import mapper, relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
 from pylons import config
 
+import datetime
+
 from ckanext.dgu.model.publisher_request import PublisherRequest
 
 class CheckRequests(CkanCommand):
@@ -26,4 +28,5 @@ class CheckRequests(CkanCommand):
             group = model.Session.query(model.Group).filter(model.Group.name==req.group_name).one()
             if user.is_in_group(group.id):
                 req.decision = True
+                req.date_of_decision = datetime.datetime.utcnow()
             model.Session.commit()
