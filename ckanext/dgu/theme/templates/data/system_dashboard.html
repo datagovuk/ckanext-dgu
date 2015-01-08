@@ -51,6 +51,7 @@
           <li><a href="{{ h.url_for('commitments') }}">Data publication commitments</a></li>
           <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_publishers_and_users') }}">Publisher Editors/Admins</a></li>
           <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins') }}">Publishers without Editors/Admins</a></li>
+          <li><a href="{{ h.url_for('publisher_requests') }}">Publisher (Editor) Requests</a></li>
         </ul>
       </div>
     </div>
@@ -88,6 +89,7 @@
           <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins') }}">Report - Users who are admins/editors for publishers</a></li>
           <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users_not_assigned_to_groups') }}">Report - Users not assigned to a publisher</a></li>
           <li><a href="{{ h.url_for('ckanadmin_index') }}">Sysadmins</a></li>
+          <li><a href="{{ h.url_for('publisher_requests') }}">Report - Publisher (Editor) Requests</a></li>
         </ul>
       </div>
     </div>
