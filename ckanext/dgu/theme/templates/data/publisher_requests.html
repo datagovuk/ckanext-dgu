@@ -14,7 +14,7 @@
           <th>Date</th>
           <th>User</th>
           <th>Publisher</th>
-          <th>Emailed Admins &dagger;</th>
+          <th>Users who were sent the request email &dagger;</th>
           <th>Accepted?</th>
           <th>&nbsp;</th>
           <th>&nbsp;</th>
@@ -23,7 +23,7 @@
       {% for a in c.publisher_requests %}
         <tr>
           <td>{{a.date_of_request.strftime('%d/%m/%y %H:%M:%S')}}</td>
-          <td><strong>{{a.user.fullname}}</strong> ({{a.user.name}})</td>
+          <td><strong>{{a.user.fullname}}</strong> ({{a.user.name}}) &lt;{{a.user.email}}&gt;</td>
           <td><a href="{{h.url_for('publisher_read', id=a.group.name)}}">{{a.group.title}}</a></td>
           <td>
             {% if a.emailed_to %}
