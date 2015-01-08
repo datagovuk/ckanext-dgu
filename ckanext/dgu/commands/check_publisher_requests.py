@@ -22,8 +22,7 @@ class CheckRequests(CkanCommand):
         self._load_config()
         engine = engine_from_config(config, 'sqlalchemy.')
 
-        for req in model.Session.query(PublisherRequest).all():
-            print req.decision
+        for req in model.Session.query(PublisherRequest).filter(PublisherRequest.decision == None):
             user = model.Session.query(model.User).filter(model.User.name==req.user_name).one()
             group = model.Session.query(model.Group).filter(model.Group.name==req.group_name).one()
             if user.is_in_group(group.id):
