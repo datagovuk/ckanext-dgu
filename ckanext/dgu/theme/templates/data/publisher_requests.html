@@ -13,8 +13,8 @@
         <tr>
           <th>Date</th>
           <th>User</th>
-          <th>Department</th>
-          <th>Department Admins</th>
+          <th>Publisher</th>
+          <th>Emailed Admins &dagger;</th>
           <th>Accepted?</th>
           <th>&nbsp;</th>
           <th>&nbsp;</th>
@@ -26,9 +26,13 @@
           <td><strong>{{a.user.fullname}}</strong> ({{a.user.name}})</td>
           <td><a href="{{h.url_for('publisher_read', id=a.group.name)}}">{{a.group.title}}</a></td>
           <td>
-            {% for admin_name, admin_email in a.emailed_to %}
-            <p>{{admin_name}} &lt;{{admin_email}}&gt;</p>
-            {% endfor %}
+            {% if a.emailed_to %}
+              {% for admin_name, admin_email in a.emailed_to %}
+              <p>{{admin_name}} &lt;{{admin_email}}&gt;</p>
+              {% endfor %}
+            {% else %}
+              data.gov.uk admin team
+            {% endif %}
           </td>
           {% if a.decision == True %}
             <td><i class="icon-check"></i></td>
@@ -45,4 +49,5 @@
         </tr>
       {% endfor %}
     </table>
+    <p>&dagger; An email is sent to administrators of the publisher requested. If that publisher has no administrators then the parent, grandparent etc groups are examined in turn to find administrators who are then emailed. If there are no administrators found this way then the data.gov.uk admin team are emailed.</p>
 {% endblock %}
