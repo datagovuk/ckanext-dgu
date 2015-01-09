@@ -600,11 +600,15 @@ def admin_editor_combinations():
             yield {'org': org,
                     'include_sub_organizations': include_sub_organizations}
 
-def user_is_admin(org):
+def user_is_admin(user, org=None):
     import ckan.lib.helpers as helpers
-    return helpers.check_access('organization_update', {'id': org.id})
+    if org:
+        return helpers.check_access('organization_update', {'id': org.id})
+    else:
+        # Are they admin of any org?
+        return len(user.get_groups('organization', capacity='admin')) > 0
 
-def user_is_rm(user, org):
+def user_is_rm(user, org=None):
     from pylons import config
     from ast import literal_eval
     from ckanext.dgu.lib.publisher import go_up_tree
@@ -613,26 +617,37 @@ def user_is_rm(user, org):
 
     allowed_orgs = relationship_managers.get(user.name, [])
 
-    for o in go_up_tree(org):
-        if o.name in allowed_orgs:
-            return True
+    if org:
+        for o in go_up_tree(org):
+            if o.name in allowed_orgs:
+                return True
 
-    return False
+        return False
+    else:
+        # Are they RM of any org?
+        return len(allowed_orgs) > 0
 
 def admin_editor_authorize(user, options):
-    if options.get('org', False):
-        if not user:
-            return False
+    if not user:
+        return False
 
+    if user.sysadmin:
+        return True
+
+    if options.get('org', False):
         org_name = options["org"]
         org = model.Session.query(model.Group).filter_by(name=org_name).one()
 
-        if user.sysadmin or user_is_admin(org) or user_is_rm(user, org):
+        if user_is_admin(user, org) or user_is_rm(user, org):
             return True
         else:
             return False
+    else:
+        # Allow them to see front page / see report on report index
+        if user_is_admin(user) or user_is_rm(user):
+            return True
 
-    return True
+    return False
 
 admin_editor_info = {
     'name': 'admin_editor',
