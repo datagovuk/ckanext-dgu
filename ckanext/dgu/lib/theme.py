@@ -142,9 +142,17 @@ def categorize_package(pkg, stats=None):
 
 def categorize_package2(pkg, stats=None):
     '''Given a package it does various searching for topic keywords and returns
-    its estimate for primary-theme and secondary-theme(s).
+    its estimate for primary-theme and secondary-theme(s) with some reasons.
 
     package - object or dict
+
+    :returns example:
+        [{'name': 'Spending',
+          'score': 3,
+          'reasons': [u'"transact" matched description',
+                      u'"spend" matched description'],
+         }]
+
     '''
     if stats is None:
         class MockStats:
@@ -169,6 +177,13 @@ def categorize_package2(pkg, stats=None):
             theme_scores[theme]['score'] += score
             theme_scores[theme]['reasons'] += [reason]
     theme_scores = sorted(theme_scores.values(), key=lambda y: -y['score'])
+
+    # discard secondary themes if there is a good score for the primary theme -
+    # assume they are noise.
+    max_score = max(theme['score'] for theme in theme_scores)
+    if max_score > 5:
+        score_threshold = max_score / 3
+    theme_scores = filter(lambda y: y['score'] > score_threshold, theme_scores)
 
     primary_theme = theme_scores[0]['name'] if scores else None
 
