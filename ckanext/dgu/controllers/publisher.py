@@ -1,4 +1,5 @@
 import logging
+import datetime
 from urllib import urlencode
 from urlparse import urljoin
 from sqlalchemy.orm import eagerload_all
@@ -470,11 +471,13 @@ class PublisherController(OrganizationController):
                 abort(400, 'Invalid Request')
             elif decision == 'reject':
                 c.req.decision = False
+                c.req.date_of_decision = datetime.datetime.utcnow()
                 msg = 'The application of <strong>%s</strong> to the publisher <strong>%s</strong> was marked as rejected' % (c.req_user.fullname, c.req_group.title)
                 # Should we remove the user from the group if
                 # they have already been added?
             else:
                 c.req.decision = True
+                c.req.date_of_decision = datetime.datetime.utcnow()
                 if not c.in_group:
                     model.repo.new_revision()
                     member = model.Member(group=c.req_group,
