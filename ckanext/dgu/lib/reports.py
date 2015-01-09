@@ -484,7 +484,6 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
-
 def dataset_app_report():
     table = []
 
@@ -519,4 +518,144 @@ dataset_app_report_info = {
     'option_combinations': None,
     'generate': dataset_app_report,
     'template': 'report/dataset_app_report.html',
+    }
+
+def get_user_realname(user):
+    from ckanext.dgu.drupalclient import DrupalClient
+
+    if user.name.startswith('user_d'):
+        user_id = user.name[len('user_d'):]
+
+        try:
+            dc = DrupalClient()
+            properties = dc.get_user_properties(user_id)
+        except Exception, ex:
+            return user.fullname
+
+        try:
+            first_name = properties['field_first_name']['und'][0]['safe_value']
+        except:
+            first_name = ''
+
+        try:
+            surname = properties['field_surname']['und'][0]['safe_value']
+        except:
+            surname = ''
+    else:
+        first_name = ''
+        surname = ''
+
+    name = '%s %s' % (first_name, surname)
+    if name.strip() == '':
+        name = user.fullname
+
+    return name
+
+def admin_editor(org=None, include_sub_organizations=False):
+    from ckanext.dgu.lib.helpers import group_get_users
+
+    table = []
+
+    if org:
+        q = model.Group.all('organization')
+        parent = model.Session.query(model.Group).filter_by(name=org).one()
+
+        if include_sub_organizations:
+            child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
+        else:
+            child_ids = []
+
+        q = q.filter(model.Group.id.in_([parent.id] + child_ids))
+
+        for g in q.all():
+            record = {}
+            record['publisher'] = g.name
+
+            admin_users = group_get_users(g, capacity='admin')
+            admins = []
+            for u in admin_users:
+                name = get_user_realname(u)
+                admins.append('%s <%s>' % (name, u.email))
+
+            record['admins'] = "\n".join(admins)
+
+            editor_users = group_get_users(g, capacity='editor')
+            editors = []
+            for u in editor_users:
+                name = get_user_realname(u)
+                editors.append('%s <%s>' % (name, u.email))
+
+            record['editors'] = "\n".join(editors)
+            table.append(record)
+    else:
+        table.append({})
+
+    return {'table': table}
+
+def admin_editor_combinations():
+    from ckanext.dgu.lib.helpers import organization_list
+
+    for org, _ in organization_list(top=False):
+        for include_sub_organizations in (False, True):
+            yield {'org': org,
+                    'include_sub_organizations': include_sub_organizations}
+
+def user_is_admin(user, org=None):
+    import ckan.lib.helpers as helpers
+    if org:
+        return helpers.check_access('organization_update', {'id': org.id})
+    else:
+        # Are they admin of any org?
+        return len(user.get_groups('organization', capacity='admin')) > 0
+
+def user_is_rm(user, org=None):
+    from pylons import config
+    from ast import literal_eval
+    from ckanext.dgu.lib.publisher import go_up_tree
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
+    allowed_orgs = relationship_managers.get(user.name, [])
+
+    if org:
+        for o in go_up_tree(org):
+            if o.name in allowed_orgs:
+                return True
+
+        return False
+    else:
+        # Are they RM of any org?
+        return len(allowed_orgs) > 0
+
+def admin_editor_authorize(user, options):
+    if not user:
+        return False
+
+    if user.sysadmin:
+        return True
+
+    if options.get('org', False):
+        org_name = options["org"]
+        org = model.Session.query(model.Group).filter_by(name=org_name).one()
+
+        if user_is_admin(user, org) or user_is_rm(user, org):
+            return True
+        else:
+            return False
+    else:
+        # Allow them to see front page / see report on report index
+        if user_is_admin(user) or user_is_rm(user):
+            return True
+
+    return False
+
+admin_editor_info = {
+    'name': 'admin_editor',
+    'title': 'Publisher administrators and editors',
+    'description': 'Filterable list of publishers which shows who has administrator and editor rights.',
+    'option_defaults': OrderedDict((('org', ''), ('include_sub_organizations', False))),
+    'option_combinations': admin_editor_combinations,
+    'generate': admin_editor,
+    'template': 'report/admin_editor.html',
+    'authorize' : admin_editor_authorize
     }
