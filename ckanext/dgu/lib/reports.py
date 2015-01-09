@@ -551,7 +551,7 @@ def get_user_realname(user):
 
     return name
 
-def admin_editor(org=None):
+def admin_editor(org=None, include_sub_organizations=False):
     from ckanext.dgu.lib.helpers import group_get_users
 
     table = []
@@ -559,7 +559,12 @@ def admin_editor(org=None):
     if org:
         q = model.Group.all('organization')
         parent = model.Session.query(model.Group).filter_by(name=org).one()
-        child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
+
+        if include_sub_organizations:
+            child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
+        else:
+            child_ids = []
+
         q = q.filter(model.Group.id.in_([parent.id] + child_ids))
 
         for g in q.all():
@@ -591,7 +596,9 @@ def admin_editor_combinations():
     from ckanext.dgu.lib.helpers import organization_list
 
     for org, _ in organization_list(top=False):
-        yield {'org': org}
+        for include_sub_organizations in (False, True):
+            yield {'org': org,
+                    'include_sub_organizations': include_sub_organizations}
 
 def user_is_admin(org):
     import ckan.lib.helpers as helpers
@@ -631,7 +638,7 @@ admin_editor_info = {
     'name': 'admin_editor',
     'title': 'Publisher administrators and editors',
     'description': 'Filterable list of publishers which shows who has administrator and editor rights.',
-    'option_defaults': OrderedDict((('org', ''),)),
+    'option_defaults': OrderedDict((('org', ''), ('include_sub_organizations', False))),
     'option_combinations': admin_editor_combinations,
     'generate': admin_editor,
     'template': 'report/admin_editor.html',
