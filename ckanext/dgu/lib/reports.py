@@ -568,25 +568,19 @@ def admin_editor(org=None):
 
             admin_users = group_get_users(g, capacity='admin')
             admins = []
-            admins_ids = []
             for u in admin_users:
                 name = get_user_realname(u)
                 admins.append('%s <%s>' % (name, u.email))
-                admins_ids.append(u.name)
 
             record['admins'] = "\n".join(admins)
-            record['admins_ids'] = "\n".join(admins_ids)
 
             editor_users = group_get_users(g, capacity='editor')
             editors = []
-            editors_ids = []
             for u in editor_users:
                 name = get_user_realname(u)
                 editors.append('%s <%s>' % (name, u.email))
-                editors_ids.append(u.name)
 
             record['editors'] = "\n".join(editors)
-            record['editors_ids'] = "\n".join(editors_ids)
             table.append(record)
     else:
         table.append({})
