@@ -4,7 +4,7 @@
 
 {% block breadcrumb_content %}
   {{ h.build_nav('dgu_search', _('Datasets')) }}
-  {{ h.build_nav('search', c.pkg_dict.get('title', c.pkg_dict['name']), id=c.pkg_dict['name']) }}
+  {{ h.build_nav('dataset_read', c.pkg_dict.get('title', c.pkg_dict['name']), id=c.pkg_dict['name']) }}
   {{ h.build_nav('dataset_edit', _('Edit'), id=c.pkg_dict['name']) }}
 {% endblock %}
 

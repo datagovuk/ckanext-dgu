@@ -5,6 +5,21 @@
 
 <!-- recursive function turns errors into hierarchical lists -->
 
+{% macro display_error(errors, name, field_error=False, msg=None) %}
+  {% if errors.get(name ) %}
+    {% set error_msg = msg or errors.get(name) %}
+    {% if h.is_list(error_msg) %}
+      {% set error_msg = errors.get(name)[0] %}
+    {% endif %}
+
+    {% if field_error %}
+      <p style="display: block;" class="field_error">{{error_msg}}</p>
+    {% else %}
+      <div class="alert alert-danger">{{ error_msg }}</div>
+    {% endif %}
+  {% endif %}
+{% endmacro %}
+
 {% macro dump(o) %}
   {% if h.is_dict(o) %}
   <ul>
@@ -228,7 +243,7 @@
 {%- endmacro %}
 
 {% macro feedback_summary(package,render_title=True,large=False) %}
-  {% set comment_dict=h.unpublished_comments_lookup(package) %}
+  {% set comment_dict=h.feedback_comment_counts(package) %}
     <div class="feedback-summary {{if_(large,'large', '')}}">
       {% if render_title %}
       <div class="pull-left feedback-summary-title">Feedback:</div>

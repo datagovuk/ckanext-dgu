@@ -1,20 +1,15 @@
-<html
-  xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Open Spending Report</py:def>
+{% block title %}Open Spending Report{% endblock %}
 
- <py:match path="breadcrumbs">
+{% block breadcrumb_content %}
     <li><a href="/data/search">Datasets</a></li>
     <li><a href="/data/openspending-report/index">Spend Reports</a></li>
-  </py:match>
+{% endblock %}
 
-  <div py:match="content">
+{% block primary_content_inner %}
     <div class="">
-      <xi:include href="${c.openspending_report_dir}/index.html" />
+      {{ c.content|safe }}
     </div>
 
           <p>Created by:
@@ -22,9 +17,9 @@
                 <img alt="Open Knowledge Foundation" src="/images/okf_logo.png" />
               </a>
           </p>
-  </div>
+{% endblock %}
 
-  <py:def function="optional_footer">
+{% block optional_footer  %}
     <script type="text/javascript" src="/scripts/vendor/jquery.tablesorter.min.js"></script>
     <script type="text/javascript">
       //<![CDATA[
@@ -57,8 +52,4 @@
       );
     // ]]>
     </script>
-  </py:def>
-
-  <xi:include href="../layout.html" />
-
-</html>
+{% endblock %}

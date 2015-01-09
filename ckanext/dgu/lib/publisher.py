@@ -28,6 +28,19 @@ def go_down_tree(publisher):
         for grandchild in go_down_tree(child):
             yield grandchild
 
+def find_group_admins(group):
+    '''Look for publisher admins up the tree'''
+    recipients = []
+    recipient_publisher = None
+    for publisher in go_up_tree(group):
+        admins = publisher.members_of_type(model.User, 'admin').all()
+        if admins:
+            recipients = [(u.fullname,u.email) for u in admins]
+            recipient_publisher = publisher.title
+            break
+
+    return recipients, recipient_publisher
+
 def cached_openness_scores(reports_to_run=None):
     """
     This function is called by the ICachedReport plugin which will

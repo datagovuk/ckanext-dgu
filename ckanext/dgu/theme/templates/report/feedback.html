@@ -1,48 +1,39 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+<div class="widget-container">
 
-    <div class="widget-container">
+    <p>
+      {{data['dataset_count']}} {% if not data['include_published'] %}unpublished{% endif %} datasets / {{data['dataset_count_with_feedback']}} with feedback
+    </p>
 
-        <p>
-          ${c.data['dataset_count']} <py:if test="not c.options['include_published']">unpublished</py:if> datasets / ${c.data['dataset_count_with_feedback']} with feedback
-        </p>
+    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>Publish Date</th>
+          <th>Publisher</th>
+          <th>Economic growth</th>
+          <th>Social growth</th>
+          <th>Effective services</th>
+          <th>Linked data</th>
+          <th>Other</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stats in data['table'] %}
+        <tr>
+            <td><a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}}">{{stats['package-title']}}</a></td>
+            <td>{{h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}}</td>
+            <td><a href="{{h.relative_url_for(organization=stats['organization-name'])}}">{{stats.get('organization-title','')}}</a></td>
+            <td>{{stats.get('economic',0)}}</td>
+            <td>{{stats.get('social',0)}}</td>
+            <td>{{stats.get('effective',0)}}</td>
+            <td>{{stats.get('linked',0)}}</td>
+            <td>{{stats.get('other',0)}}</td>
+            <td>{{stats.get('total-comments',0)}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-        <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
-          <thead>
-            <tr>
-              <th>Dataset</th>
-              <th>Publish Date</th>
-              <th>Publisher</th>
-              <th>Economic growth</th>
-              <th>Social growth</th>
-              <th>Effective services</th>
-              <th>Linked data</th>
-              <th>Other</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-          <py:for each="stats in c.data['table']">
-            <tr>
-                <td><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='view', id=stats['package-name'])}">${stats['package-title']}</a></td>
-                <td>${h.render_datetime(stats.get('publish-date',''), date_format='%d/%m/%Y')}</td>
-                <td><a href="${h.relative_url_for(organization=stats['organization-name'])}">${stats.get('organization-title','')}</a></td>
-                <td>${stats.get('economic',0)}</td>
-                <td>${stats.get('social',0)}</td>
-                <td>${stats.get('effective',0)}</td>
-                <td>${stats.get('linked',0)}</td>
-                <td>${stats.get('other',0)}</td>
-                <td>${stats.get('total-comments',0)}</td>
-            </tr>
-          </py:for>
-          </tbody>
-        </table>
-
-        <a class='pull-right' py:if="c.options['organization']" href="${h.relative_url_for(organization=None)}">View all publishers</a>
-
-    </div>
-
-</html>
+</div>
 

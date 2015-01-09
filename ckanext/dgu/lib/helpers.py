@@ -14,10 +14,12 @@ from itertools import dropwhile
 import itertools
 import datetime
 import random
+import types
 
 import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
+from webhelpers.html import escape
 from pylons import config
 from pylons import request
 
@@ -294,7 +296,7 @@ def user_properties(user):
     type_ = 'system' if is_system else ('official' if is_official else None)
     return user_name, user, user_drupal_id, type_, this_is_me
 
-def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
+def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the display name and link to their profile page.
     '''
     from ckan.lib.base import h
@@ -335,12 +337,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
                 return ('System Administrator', None)
             elif groups:
                 # We don't want to show all of the groups that the user belongs to.
-                # We will try and match the organisation name if provided and use that
+                # We will try and match the organization name if provided and use that
                 # instead.  If none is provided, or we can't match one then we will use
                 # the highest level org.
                 matched_group = None
                 for group in groups:
-                    if group.title == organisation:
+                    if group.title == organization or group.name == organization:
                         matched_group = group
                         break
                 if not matched_group:
@@ -355,12 +357,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
         else:
             return ('System process' if type_ == 'system' else 'Staff', None)
 
-def dgu_linked_user(user_name, maxlength=24, organisation=None):  # Overwrite h.linked_user
+def dgu_linked_user(user_name, maxlength=24, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the HTML Anchor to their user profile page, making
     sure officials are kept anonymous to the public.
     '''
     from ckan.lib.base import h
-    display_name, href = user_link_info(user_name, organisation=organisation)
+    display_name, href = user_link_info(user_name, organization=organization)
     display_name = truncate(display_name, length=maxlength)
     if href:
         return h.link_to(display_name, urllib.quote(href))
@@ -475,7 +477,7 @@ def render_stars(stars, reason, last_updated):
     else:
         stars_html = (stars or 0) * '<i class="icon-star"></i>'
 
-    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
+    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % escape(reason)) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > (stars or 0)) else ''
         tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
@@ -698,8 +700,9 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
-    if c.is_an_official:
+    if is_an_official():
         field_names_display_only_if_value.append('external_reference')
+        field_names_display_only_if_value.append('import_source')
     pkg_extras = dict(pkg_extras)
     harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
     if dataset_was_harvested:
@@ -737,8 +740,6 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-        if c.is_an_official:
-            field_names.add(['external_reference', 'import_source'])
     if is_local_government_data:
         field_names.add(('la-function', 'la-service'))
 
@@ -766,15 +767,18 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(
-                [THEMES.get(theme, theme) \
-                 for theme in json.loads(secondary_themes)])
+            secondary_themes = json.loads(secondary_themes) or ''
+
+            if isinstance(secondary_themes, types.StringTypes):
+                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
+            else:
+                secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
         except ValueError:
             # string for single value
             secondary_themes = str(secondary_themes)
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -783,7 +787,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
         'harvest-date': {'label': 'Harvest date', 'value': harvest_date},
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
+        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (escape(pkg_extras.get('bbox-north-lat')), escape(pkg_extras.get('bbox-south-lat')), escape(pkg_extras.get('bbox-west-long')), escape(pkg_extras.get('bbox-east-long')))) },
         'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
         'data_modified': {'label': 'Data last modified', 'value': render_datestamp(pkg_extras.get('data_modified', ''))},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
@@ -1093,6 +1097,9 @@ def top_level_init():
     c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
 
+def is_an_official():
+    return bool(c.groups or is_sysadmin())
+
 def groups_for_current_user():
     return c.userobj.get_groups(group_type='organization') if c.userobj else []
 
@@ -1393,8 +1400,17 @@ def facet_values(facet_tuples, facet_key):
     values = sorted(values)
     return values
 
-def get_extent():
-    return  c.pkg.extras.get('spatial', False)
+def has_extent(pkg):
+    return bool(pkg.extras.get('spatial'))
+
+def get_extent(pkg):
+    extent_json_str = pkg.extras.get('spatial', False)
+    # ensure it is JSON for security purposes, since the template will put it
+    # in Javascipt unescaped using |safe
+    try:
+        return json.dumps(json.loads(extent_json_str))
+    except ValueError:  # includes JSONDecodeError
+        return ''
 
 def get_tiles_url():
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
@@ -1706,7 +1722,7 @@ def feedback_comment_count(pkg):
 def unpublished_release_notes(package):
     return get_from_flat_dict(package['extras'], 'release-notes')
 
-def unpublished_comments_lookup(package):
+def feedback_comment_counts(package):
     import ckan.model as model
     from ckanext.dgu.model.feedback import Feedback
 
@@ -1787,15 +1803,17 @@ def themes():
     return Themes.instance().data
 
 def span_read_more(text, word_limit, classes=""):
-    trimmed = truncate(text,length=word_limit,whole_word=True)
+    trimmed = truncate(text, length=word_limit, whole_word=True)
     if trimmed==text:
-        return t.literal('<span class="%s">%s</span>' % (classes,text))
+        return t.literal('<span class="%s">%s</span>' %
+                         (classes, escape(text)))
     return t.literal('<span class="read-more-parent">\
             <span style="display:none;" class="expanded %s">%s</span>\
             <span class="collapsed %s">%s</span>\
             <a href="#" class="collapsed link-read-more">Read more &raquo;</a>\
             <a href="#" class="expanded link-read-less" style="display:none;">&laquo; Hide</a>\
-            </span>' % (classes,text,classes,trimmed))
+            </span>' % (classes, escape(text),
+                        classes, trimmed))
 
 def render_db_date(db_date_str):
     '''Takes a string as we generally store it in the database and returns it
@@ -1972,9 +1990,9 @@ def parse_date(date_string):
     try:
         return DateType.parse_timedate(date_string, 'form')
     except DateConvertError:
-        class FakeDate:
-            year = ''
-        return FakeDate()
+        class FakeDate(dict):
+            pass
+        return FakeDate(year='')
 
 def user_page_url():
     from ckan.lib.base import h
@@ -1996,13 +2014,13 @@ def paginator_page_url(pageobj):
     return lambda x: pageobj._url_generator(page=x)
 
 def is_dict(d):
-    return type(d) is dict and bool(d)
+    return type(d) == dict and bool(d)
 
 def is_list(d):
-    return type(d) is list and bool(d)
+    return type(d) == list and bool(d)
 
 def is_string(d):
-    return type(d) in [str, unicode] and bool(d)
+    return (type(d) in [str, unicode]) and bool(d)
 
 def list_enumerate(l):
     return enumerate(l)
@@ -2013,5 +2031,17 @@ def sorted_list(l):
 def as_dict(d):
     return dict(d)
 
-def get_date_lambda():
-    return lambda x: parse_date(x.get('date')).year
+def extract_year(resource_dict):
+    return parse_date(resource_dict.get('date'))['year']
+
+def report_match_organization_name(name, dct):
+    return filter(lambda d: d['organization_name'] == name, dct)
+
+def report_match_rows(rows, type_, quarter):
+    return [row for row in rows if (row[3]==type_ and row[4]==quarter)]
+
+def report_timestamps_split(timestamps):
+    return [render_datetime(timestamp) for timestamp in timestamps.split(' ')]
+
+def report_users_split(users, organization):
+    return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]

@@ -147,12 +147,12 @@
           {% endif %}
         </span>
         <a href="http://lab.linkeddata.deri.ie/2010/star-scheme-by-example/" target="_blank">
-          {% for i in range(0,stars or 0) -%}
+          {% for i in range(0,stars or 0) %}
             <i class="icon-star"></i>
-          {%- endfor %}
-          {% for i in range((stars or 0)+1,6) -%}
+          {% endfor %}
+          {% for i in range((stars or 0)+1,6) %}
             <i class="icon-star-empty"></i>
-          {%- endfor %}
+          {% endfor %}
         </a>
         {% endwith %}
       </span>

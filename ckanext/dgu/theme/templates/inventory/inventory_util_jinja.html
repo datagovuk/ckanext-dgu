@@ -1,11 +1,10 @@
 
-
 {% macro unpublished_block(title, pkg_list) %}
     <div class="boxed">
       <div class="title frontpage-search-panel">
         <h2><span class="big">{{title}}</span> unpublished datasets</h2>
         <hr/>
-        {% if not pkg_list -%}
+        {% if not pkg_list %}
           <p>There are no items to show</p>
         {% else %}
         <p>
@@ -19,14 +18,14 @@
                       <strong>Description</strong>: {{h.truncate(pkg.notes, 200)}}..
                     </div>
                     {% if h.unpublished_release_date(pkg) %}
-                      <div>
-                        <strong>Publish date</strong>: {{h.render_datestamp(h.unpublished_release_date(pkg)) or "Not specified"}}
-                      </div>
+                    <div>
+                      <strong>Publish date</strong>: {{h.render_datestamp(h.unpublished_release_date(pkg)) or "Not specified"}}
+                    </div>
                     {% endif %}
-                    {% if h.unpublished_release_notes(pkg) %}
-                      <div>
-                        <strong>Release notes</strong>: {{h.truncate(h.unpublished_release_notes(pkg), 200)}}
-                      </div>
+                    {% if h.unpublished_release_notes(pkg)%}
+                    <div>
+                      <strong>Release notes</strong>: {{h.truncate(h.unpublished_release_notes(pkg), 200)}}
+                    </div>
                     {% endif %}
                     <br/>
                 </div>

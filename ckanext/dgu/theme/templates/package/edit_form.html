@@ -51,16 +51,17 @@
     </label>
     <input class="form-control field_req js-title input-xlarge" id="title" name="title" type="text" value="{{data.get('title', '')}}"/>
   </div>
-  {% if errors.get('title', '') %}
-    <div class="alert alert-danger">{{errors.get('title', '')}}</div>
-  {% endif %}
-
+  {{ m.display_error(errors, 'title') }}
 
   <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
   <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
   {% if c.pkg %}
     <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
     <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{c.pkg.extras.get('core-dataset',False)}}" />
+  {% endif %}
+  {% if 'odi-certificate' in c.pkg.extras %}
+    <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
+    <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{c.pkg.extras['odi-certificate']}}" />
   {% endif %}
 
   <div class="form-group">
@@ -75,9 +76,7 @@
       <span class="input-group-addon">/dataset/</span><input {% if h.is_package_edit_form(data) %}readonly="readonly"{% endif %} class="field_req js-url-input form-control" id="name" maxlength="100" name="name" type="text" value="{{data.get('name', '')}}"/>
     </div>
   </div>
-  {% if errors.get('name', '') %}
-    <div class="alert alert-danger">{{errors.get('name', '')}}</div>
-  {% endif %}
+  {{ m.display_error(errors, 'name') }}
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-data-field">
@@ -122,9 +121,7 @@
         <label style="margin-left: 20px;" class="" for="update_frequency-other">Other:</label>
         <input class="form-control" style="width: 200px;" id="update_frequency-other" name="update_frequency-other" type="text" value="{{data.get('update_frequency-other', '')}}"/>
       </div><!-- /well -->
-      {% if errors.get('update_frequency') %}
-        <div class="alert alert-danger">{{errors.get('update_frequency', '')}}</div>
-      {% endif %}
+      {{ m.display_error(errors, 'update_frequency') }}
 
       <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
       <thead>
@@ -137,7 +134,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for num, res in h.enumerate(data.get('timeseries_resources', []) + [{}]) %}
+        {% for num, res in h.list_enumerate(data.get('timeseries_resources', []) + [{}]) %}
         <tr class="timeseries_resources__{{num}} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
@@ -205,9 +202,8 @@
       </table>
       <a href="javascript:;" id="timeseries_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
 
-      {% if errors.get('timeseries_resources', '') %}
-      <p class="field_error">Row(s) partially filled.</p>
-      {% endif %}
+      {{ m.display_error(errors, 'timeseries_resources', True, 'Row(s) partially filled.') }}
+
       <button class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
@@ -299,9 +295,7 @@
       </table>
       <a href="javascript:;" id="individual_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
 
-      {% if errors.get('individual_resources', '') %}
-        <p class="field_error">Row(s) partially filled.</p>
-      {% endif %}
+      {{ m.display_error(errors, 'individual_resources', True, 'Row(s) partially filled.') }}
       <button class="btn-default validate-resources-button btn" id="validate-timeseries-button">Check all URLs...</button>
       <span class="checking-links-label" style="display: none;">Checking, please wait...</span><br/>
     </fieldset>
@@ -316,10 +310,10 @@
   <h3>Description</h3>
   <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
   <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
+<<<<<<< HEAD
   <textarea class="form-control field_req" cols="260" id="notes" name="notes" rows="10" onblur="update_themes();">{{data.get('notes', '')}}</textarea>
-  {% if errors.get('notes', '') %}
-  <p class="field_error">{{errors.get('notes', '')}}</p>
-  {% endif %}
+
+  {{ m.display_error(errors, 'notes', True) }}
 
   <hr/>
 
@@ -396,9 +390,7 @@
       <input class="form-control" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="{{c.pkg.extras.get('access_constraints','')}}"/>
       {% endif %}
     </div>
-    {% if errors.get('license_id') %}
-    <p class="field_error" style="display: block;">{{errors.get('license_id','')}}</p>
-    {% endif %}
+    {{ m.display_error(errors, 'license_id', True) }}
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-publisher-field">
@@ -416,9 +408,7 @@
         {% endfor %}
       </select>
     </div>
-    {% if errors.get('owner_org', '') %}
-    <p class="field_error">Please select a publisher.</p>
-    {% endif %}
+      {{ m.display_error(errors, 'owner_org', True, 'Please select a publisher') }}
     <hr/>
   <h3>Contact details</h3>
   <p>Here are the contact details that will be displayed for this dataset.  The default Contact and FOI information is taken from the selected publisher, but you may edit it for this dataset.</p>
@@ -602,9 +592,7 @@
     </tbody>
     </table>
     <a href="javascript:;" id="additional_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
-    {% if errors.get('additional_resources', '') %}
-    <p style="display: block;" class="field_error">Row(s) partially filled.</p>
-    {% endif %}
+    {{ m.display_error(errors, 'additional_resources', True, 'Row(s) partially filled.') }}
     <button  class="validate-resources-button btn btn-default" id="validate-timeseries-button">Check all URLs</button>
     <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
     <hr/>
@@ -630,12 +618,9 @@
       <input style="width:300px;" class="form-control" id="temporal_coverage-to" name="temporal_coverage-to" type="text" value="{{data.get('temporal_coverage-to', '')}}" />
     </div>
   </div>
-  {% if errors.get('temporal_coverage-from', '') %}
-  <p style="display: block;" class="field_error">{{errors.get('temporal_coverage-from', '')}}</p>
-  {% endif %}
-  {% if errors.get('temporal_coverage-to', '') %}
-  <p style="display: block;" class="field_error">{{errors.get('temporal_coverage-to', '')}}</p>
-  {% endif %}
+
+  {{ m.display_error(errors, 'temporal_coverage-from', True) }}
+  {{ m.display_error(errors, 'temporal_coverage-to', True) }}
   <p class="hints">e.g. 21/03/2007 - 03/10/2009 or 07:45 31/03/2006</p>
   <p class="instructions further">If available, please indicate the time as well as the date. Where data covers only a single day, the second box can be left blank.</p>
 </fieldset>
@@ -686,28 +671,27 @@
   <div class="control-group">
     <label class="control-label" for="url">URL</label>
     <div class="controls">
-      <input id="url" name="url" type="text" value="{{data.get('url', '')}}"/>
+      <input id="url" name="url" class="form-control" type="text" value="{{data.get('url', '')}}"/>
       <p class="instructions basic">The Internet link to a web page discussing the dataset.</p>
       <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures.html</p>
-      {% if errors.get('url', '') %}
-      <p class="field_error">{{errors.get('url', '')}}</p>
-      {% endif %}
+
+      {{ m.display_error(errors, 'url', True) }}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('taxonomy_url','') %}
   <div class="control-group">
     <label class="control-label" for="taxonomy_url">Taxonomy URL</label>
     <div class="controls">
-      <input id="taxonomy_url" name="taxonomy_url" size="40" type="text" value="{{data.get('taxonomy_url', '')}}"/>
+      <input id="taxonomy_url" name="taxonomy_url" class="form-control" size="40" type="text" value="{{data.get('taxonomy_url', '')}}"/>
       <p class="instructions basic">An Internet link to a web page describing the taxonomies used in the dataset, if any, to ensure they understand any terms used.</p>
       <p class="hints">e.g. http://www.somedept.gov.uk/growth-figures-technical-details.html</p>
-      {% if errors.get('taxonomy_url', '') %}
-      <p class="field_error">{{errors.get('taxonomy_url', '')}}</p>
-      {% endif %}
+      {{ m.display_error(errors, 'taxonomy_url', True) }}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('national_statistic', '') %}
@@ -715,64 +699,63 @@
     <label class="control-label" for="national_statistic">National Statistic</label>
     <div class="controls">
       <div class="checkbox">
-      <input id="national_statistic" name="national_statistic" size="40" type="checkbox" value="yes"
+      <input id="national_statistic" class="form-control"  name="national_statistic" size="40" type="checkbox" value="yes"
            {% if data.get('national_statistic', '').lower() == 'yes' %} checked="checked"{% endif %} />
         This dataset is a National Statistic.
       </div>
       <p class="instructions further">This is so that it can be highlighted.</p>
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('date_released', '') %}
   <div class="control-group">
     <label class="control-label" for="date_released">Date released</label>
     <div class="controls">
-      <input id="date_released" name="date_released" size="40" type="text" value="{{data.get('date_released', '')}}" />
+      <input id="date_released" class="form-control" name="date_released" size="40" type="text" value="{{data.get('date_released', '')}}" />
       <p class="hints">Format: DD/MM/YYYY</p>
       <p class="instructions further">This is probably not the date that it is uploaded to data.gov.uk. Be careful not to confuse a new 'version' of some data with a new dataset covering another time period or geographic area.</p>
-      {% if errors.get('date_released', '') %}
-      <p class="field_error">{{errors.get('date_released', '')}}</p>
-      {% endif %}
+      {{ m.display_error(errors, 'date_released', True) }}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('date_updated', '') %}
   <div class="control-group">
     <label class="control-label" for="date_updated">Date updated</label>
     <div class="controls">
-      <input id="date_updated" name="date_updated" size="40" type="text" value="{{data.get('date_updated', '')}}"/>
+      <input id="date_updated" class="form-control"  name="date_updated" size="40" type="text" value="{{data.get('date_updated', '')}}"/>
       <p class="hints">Format: DD/MM/YYYY</p>
       <p class="instructions further">This is not necessarily the date when it was updated on data.gov.uk. As with 'Date released', this is for updates to a particular dataset, such as corrections or refinements, not for that of a new time period.</p>
-      {% if errors.get('date_updated', '') %}
-      <p class="field_error">{{errors.get('date_updated', '')}}</p>
-      {% endif %}
+      {{ m.display_error(errors, 'date_updated', True) }}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('date_update_future', '') %}
   <div class="control-group">
     <label class="control-label" for="date_update_future">Date to be published</label>
     <div class="controls">
-      <input id="date_update_future" name="date_update_future" size="40" type="text" value="{{data.get('date_update_future', '')}}"/>
+      <input id="date_update_future" class="form-control" name="date_update_future" size="40" type="text" value="{{data.get('date_update_future', '')}}"/>
       <p class="hints">Format: DD/MM/YYYY</p>
-      {% if errors.get('date_update_future', '') %}
-      <p class="field_error">{{errors.get('date_update_future', '')}}</p>
-      {% endif %}
+      {{ m.display_error(errors, 'date_update_future', True) }}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('precision', '') %}
   <div class="control-group">
     <label class="control-label" for="precision">Precision</label>
     <div class="controls">
-      <input id="precision" name="precision" size="40" type="text" value="{{data.get('precision', '')}}"/>
+      <input id="precision" class="form-control" name="precision" size="40" type="text" value="{{data.get('precision', '')}}"/>
       <p class="hints">e.g. 'per cent to two decimal places' or 'as supplied by respondents'</p>
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('temporal_granularity', '') %}
@@ -789,11 +772,12 @@
           {% endfor %}
         </select>
         <label class="inline" for="temporal_granularity-other">Other:</label>
-        <input class="input-medium" id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="{{data.get('temporal_granularity-other', '')}}"/>
+        <input class="input-medium" class="form-control"  id="temporal_granularity-other" name="temporal_granularity-other" type="text" value="{{data.get('temporal_granularity-other', '')}}"/>
       </div>
       <p class="instructions further">This should give the lowest level of temporal detail given in the dataset if it is aggregated, expressed as an interval of time. If the data is not aggregated over time, and so the dataset goes down to the instants that reported events occurred (such as the timings of high and low tides), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if data.get('geographic_granularity', '') %}
@@ -814,11 +798,10 @@
         name="geographic_granularity-other" type="text" value="{{data.get('geographic_granularity-other', '')}}"/>
       </div>
       <p class="instructions further">This should give the lowest level of geographic detail given in the dataset if it is aggregated. If the data is not aggregated, and so the dataset goes down to the level of the entities being reported on (such as school, hospital, or police station), use 'point'. If none of the choices is appropriate or the granularity varies, please specify in the 'other' element.</p>
-      {% if errors.get('geographic_granularity', '') %}
-      <p class="field_error">{{errors.get('geographic_granularity', '')}}</p>
-      {% endif %}
+      {{ m.display_error(errors, 'geographic_granularity', True) }}
     </div>
   </div>
+  <hr/>
   {% endif %}
 
   {% if h.is_package_edit_form(data) %}

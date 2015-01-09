@@ -1,35 +1,29 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-<py:def function="body_class">no-sidebar</py:def>
+{% block title %}Reports - Data publication commitments - {{c.publisher.display_name}}{% endblock %}
 
-  <py:def function="page_title">Reports - Data publication commitments - ${c.publisher.display_name}</py:def>
-
-  <py:def function="page_heading">
-  </py:def>
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('publisher_read', c.publisher.title, id=c.publisher.name )}}
+  {{ h.build_nav('commitments', _('Data Publication Commitments')) }}
+{% endblock %}
 
 
-  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="/publisher/${c.publisher.name}">${c.publisher.title}</a></li>
-    <li><a href="${h.url_for('commitments')}">Data Publication Commitments</a></li>
-  </py:match>
+{% block primary_content_inner %}
+    <h1>Data publication commitments <small>{{c.publisher.title}}</small></h1>
 
-  <py:match path="content">
-    <h1>Data publication commitments <small>${c.publisher.title}</small></h1>
+    <h2>Last generated: {{h.render_datetime(h.report_generated_at('commitments', c.publisher.name), with_hours=True)}}</h2>
 
-    <h2>Last generated: ${h.render_datetime(h.report_generated_at('commitments', c.publisher.name), with_hours=True)}</h2>
-
-    <div class="admin-toolkit pull-right"  py:if="h.check_access('organization_update',{'id':c.publisher.id}) and h.has_commitment(c.publisher)">
+    {% if (h.check_access('organization_update',{ 'id': c.publisher.id }) and h.has_commitment(c.publisher)) %}
+    <div class="admin-toolkit pull-right">
       <div class="panel panel-info">
         <div class="panel-heading"><strong>Administrator tools</strong></div>
         <div class="panel-body">
-          <a href="${h.url_for('commitments_edit',id=c.publisher.name)}"><span class="wrap-icon"><i class="icon-edit"></i> </span>Edit publisher commitments »</a>
+          <a href="{{h.url_for('commitments_edit',id=c.publisher.name)}}"><span class="wrap-icon"><i class="icon-edit"></i> </span>Edit publisher commitments »</a>
         </div>
       </div>
     </div>
+    {% endif %}
 
     <div>
         <p>
@@ -42,13 +36,16 @@
 
     <div>&nbsp;</div>
     <h2><a href="http://www.number10.gov.uk/news/letter-to-government-departments-on-opening-up-data">Prime Minister's Letter May 2010</a></h2>
-    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM1')">
-      <div class="" py:if="len(commitments)  == 0">
-      No data provided
-      </div>
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'PM1') %}
+      {% if commitments|length == 0 %}
+        <div class="">
+        No data provided
+        </div>
+      {% endif %}
 
-      <div class="" py:if="len(commitments) > 0">
-
+      {% if commitments|length > 0 %}
+      <div class="">
           <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
             <thead>
               <tr>
@@ -57,38 +54,45 @@
               </tr>
             </thead>
             <tbody>
-              <py:for each="commitment in commitments">
-                <py:with vars="dataset = h.commitment_dataset(commitment)">
+              {% for commitment in commitments %}
+              {% with %}
+                {% set dataset = h.commitment_dataset(commitment) %}
                   <tr>
                       <td>
-                        <py:if test="commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip())">
-                            <strong>${commitment.dataset_name}</strong>
+                        {% if commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip()) %}
+                            <strong>{{commitment.dataset_name}}</strong>
                             <br/>
-                        </py:if>
-                        ${commitment.commitment_text}
+                        {% endif %}
+                        {{commitment.commitment_text}}
                       </td>
 
-                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
-                      <td py:if="not dataset">
-                         <py:if test="commitment.dataset"><a href="${commitment.dataset}">${commitment.dataset}</a></py:if>
-                      </td>
+                      {% if dataset %}
+                        <td><a href="{{h.url_for(controller='package',action='read',id=dataset.name)}}">{{dataset.title}}</a></td>
+                      {% else %}
+                        <td>
+                           {% if commitment.dataset %}<a href="{{commitment.dataset}}">{{commitment.dataset}}</a>{% endif %}
+                        </td>
+                      {% endif %}
                   </tr>
-                </py:with>
-              </py:for>
+                {% endwith %}
+              {% endfor %}
             </tbody>
           </table>
       </div>
-    </py:with>
+      {% endif %}
+    {% endwith %}
 
     <div>&nbsp;</div>
 
     <h2><a href="http://www.number10.gov.uk/news/letter-to-cabinet-ministers-on-transparency-and-open-data">Prime Minister's Letter July 2011</a></h2>
-<py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM2')">
-      <div class="" py:if="len(commitments)  == 0">
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'PM2') %}
+      {% if commitments|length  == 0 %}
+      <div class="">
       No data provided
       </div>
-
-      <div class="" py:if="len(commitments) > 0">
+      {% else %}
+      <div class="">
 
           <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
             <thead>
@@ -98,41 +102,53 @@
               </tr>
             </thead>
             <tbody>
-              <py:for each="commitment in commitments">
-                <py:with vars="dataset = h.commitment_dataset(commitment)">
+              {% for commitment in commitments %}
+                {% with %}
+                  {% set dataset = h.commitment_dataset(commitment) %}
                   <tr>
                       <td>
-                        <py:if test="commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip())">
-                            <strong>${commitment.dataset_name}</strong>
+                        {% if commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip()) %}
+                            <strong>{{commitment.dataset_name}}</strong>
                             <br/>
-                        </py:if>
-                        ${commitment.commitment_text}
+                        {% endif %}
+                        {{commitment.commitment_text}}
                       </td>
 
-                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
-                      <td py:if="not dataset">
-                         <py:if test="commitment.dataset"><a href="${commitment.dataset}">${commitment.dataset}</a></py:if>
+                      {% if dataset %}
+                        <td><a href="{{h.url_for(controller='package',action='read',id=dataset.name)}}">{{dataset.title}}</a></td>
+                      {% else %}
+                      <td>
+                         {% if commitment.dataset %}<a href="{{commitment.dataset}}">{{commitment.dataset}}</a>{% endif %}
                       </td>
+                      {% endif %}
                   </tr>
-                </py:with>
-              </py:for>
+                {% endwith %}
+              {% endfor %}
             </tbody>
           </table>
       </div>
-    </py:with>
+      {% endif %}
+    {% endwith %}
 
 <div>&nbsp;</div>
 
-    <h2 py:with="url = h.open_data_strategy_link(c.publisher)">
-      <a py:if="url" href="${h.open_data_strategy_link(c.publisher)}">Open data strategy</a>
-      <py:if test="not url">Open data strategy</py:if>
+    {% set url = h.open_data_strategy_link(c.publisher) %}
+    <h2>
+      {% if url %}
+        <a href="{{h.open_data_strategy_link(c.publisher)}}">Open data strategy</a>
+      {% else %}
+        Open data strategy
+      {% endif %}
     </h2>
-    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'ODS')">
-      <div class="" py:if="len(commitments)  == 0">
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'ODS') %}
+
+      {% if commitments|length  == 0 %}
+      <div class="">
       No data provided
       </div>
-
-      <div class="" py:if="len(commitments) > 0">
+      {% else %}
+      <div class="">
           <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%; table-layout: fixed;">
             <thead>
               <tr>
@@ -141,37 +157,37 @@
               </tr>
             </thead>
             <tbody>
-              <py:for each="commitment in commitments">
-                <py:with vars="dataset = h.commitment_dataset(commitment)">
+              {% for commitment in commitments %}
+                {% with %}
+                {% set dataset = h.commitment_dataset(commitment) %}
                   <tr>
                       <td>
-                        <py:if test="commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip())">
-                            <strong>${commitment.dataset_name}</strong>
+                        {% if commitment.dataset_name and not (commitment.commitment_text.strip() == commitment.dataset_name.strip()) %}
+                            <strong>{{commitment.dataset_name}}</strong>
                             <br/>
-                        </py:if>
-                        ${commitment.commitment_text}
+                        {% endif %}
+                        {{commitment.commitment_text}}
                       </td>
 
-                      <td py:if="dataset"><a href="${h.url_for(controller='package',action='read',id=dataset.name)}">${dataset.title}</a></td>
-                      <td py:if="not dataset" style="overflow: hidden;">
-                         <py:if test="commitment.dataset">
-                            <a href="${commitment.dataset}">
-                                ${h.truncate(commitment.dataset,60)}
+                      {% if dataset %}
+                      <td><a href="{{h.url_for(controller='package',action='read',id=dataset.name)}}">{{dataset.title}}</a></td>
+                      {% else %}
+                      <td style="overflow: hidden;">
+                          {% if commitment.dataset %}
+                            <a href="{{commitment.dataset}}">
+                                {{h.truncate(commitment.dataset,60)}}
                             </a>
-                          </py:if>
+                          {% endif %}
                       </td>
+                      {% endif %}
                   </tr>
-                </py:with>
-              </py:for>
+                {% endwith %}
+              {% endfor %}
             </tbody>
           </table>
       </div>
-    </py:with>
+      {% endif %}
+    {% endwith %}
 
-  </py:match>
-
-
-  <xi:include href="../layout_base.html" />
-</html>
-
+{% endblock %}
 

@@ -1,30 +1,31 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <xi:include href="inventory_util.html" />
+{% import "inventory/inventory_util_jinja.html" as m with context %}
 
-  <py:def function="page_title">${c.group.display_name}</py:def>
-  <py:def function="page_heading">
-  <py:if test="h.check_access('group_update', {'id':c.group.id})">
-    <a href="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}" class="btn btn-info edit">Manage Unpublished Datasets</a>
-    <a class="btn btn-info edit" href="${h.url_for('publisher_edit', id=c.group.name)}">Edit</a>
-  </py:if>
-    <a class="feed-icon" href="${h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}">${c.group.display_name}</a>
-    <span class="abbreviation" py:if="c.group_extras.get('abbreviation')">&nbsp;(${c.group_extras.get('abbreviation')})</span>
-    <a class="feed-icon" href="${h.url(controller='feed', action='group', id=c.group['name'])}" title="${g.site_title} - Datasets in group '${c.group['title']}'">
+{% block title %}{{c.group.display_name}}{% endblock %}
+
+
+  <h1>
+    {% if h.check_access('group_update', {'id':c.group.id}) %}
+    <a href="{{h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit',id=c.group.name)}}" class="btn btn-info edit">Manage Unpublished Datasets</a>
+    <a class="btn btn-info edit" href="{{h.url_for('publisher_edit', id=c.group.name)}}">Edit</a>
+    {% endif %}
+    <a class="feed-icon" href="{{h.url(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group['name'])}}">{{c.group.display_name}}</a>
+    {% if c.group_extras.get('abbreviation') %}
+      <span class="abbreviation">&nbsp;({{c.group_extras.get('abbreviation')}})</span>
+    {% endif %}
+    <a class="feed-icon" href="{{h.url(controller='feed', action='group', id=c.group['name'])}}" title="{{g.site_title}} - Datasets in group '{{c.group['title']}}'">
       <img src="/images/rss.png" width="16" height="16"/>
     </a>
-  </py:def>
+  </h1>
 
-  <py:match path="breadcrumbs">
+{% block breadcrumb_content %}
     <li><a href="/publisher">Publishers</a></li>
-    <li><a href="/publisher/${c.group['name']}">${c.group['title']}</a></li>
-    <li><a href="/unpublished/${c.group['name']}/edit">Manage inventory</a></li>
-  </py:match>
+    <li><a href="/publisher/{{c.group['name']}}">{{c.group['title']}}</a></li>
+    <li><a href="/unpublished/{{c.group['name']}}/edit">Manage inventory</a></li>
+{% endblock %}
 
-  <py:match path="content">
+{% block primary_content_inner %}
     <div class="row">
       <div class="col-md-8">
         <h1>Inventory Management</h1>
@@ -32,7 +33,7 @@
         <p>Use this inventory tool to download an inventory of all the datasets and inventory items you have published on data.gov.uk to date. This tool allows you to give us prior knowledge of pending datasets including those that are not currently under Open Government Licence. Read the <a href="http://www.data.gov.uk/library/guidance-to-departments-on-developing-the-uk-national-information-infrastructure-nii">full guidance</a> to find out more about the background to this inventory. Follow the 3 steps below to get started. </p>
       </div>
       <div class="col-md-4">
-        ${inventory_jobs()}
+        {{m.inventory_jobs()}}
       </div>
     </div>
     <hr/>
@@ -46,7 +47,7 @@
           <li>Download templates are in an Excel file that will be readable in Microsoft Excel, or Open Office, and can then be uploaded to update your inventory </li>
           <li>You may wish to store local copies of this download for your own record.</li>
         </ul>
-        <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='download', id=c.group.name)}" method="GET" enctype="multipart/form-data" class="form-inline pull-right" style="margin: 10px;">
+        <form action="{{h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='download', id=c.group.name)}}" method="GET" enctype="multipart/form-data" class="form-inline pull-right" style="margin: 10px;">
           <input type="submit" class="btn btn-primary" value="Download dataset list"/><br/><br/>
           <label for="include_sub">
             <input type="checkbox" name="include_sub" value="true"/> Include sub-departments
@@ -67,7 +68,7 @@
             <li>Save the completed template on your PC or local network once complete ready for upload and always keep a local copy as backup.</li>
             <li>Please include datasets that at present may not be available on Open Licence</li>
         </ul>
-        <a href="/inventory/template/xls_template.php?publisher=${c.group.encoded_title}" class="btn btn-primary pull-right">Download inventory template</a>
+        <a href="/inventory/template/xls_template.php?publisher={{c.group.encoded_title}}" class="btn btn-primary pull-right">Download inventory template</a>
       </div>
     </div>
 
@@ -76,21 +77,18 @@
       <div class="panel-body">
         <p>Upload your saved and completed template, taking care that you have not changed the structure of the template e.g. don't change the styling or location of columns. You will get an on screen acknowledgement if this is successful.</p>
         <p>Contact <a href="mailto:team@data.gov.uk?Subject=Inventory">team@data.gov.uk</a> if  you have any queries about this process.</p>
-        <form action="${h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload', id=c.group.name)}" method="POST" enctype="multipart/form-data" class="form-inline pull-right" style="margin: 10px;" >
+        <form action="{{h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload', id=c.group.name)}}" method="POST" enctype="multipart/form-data" class="form-inline pull-right" style="margin: 10px;" >
           <input type="file" name="upload" style="margin-bottom: 8px;"/>
           <input type="submit" class="btn btn-primary" value="Upload completed template"/>
         </form>
       </div>
     </div>
-  </py:match>
 
-  <py:def function="optional_feed">
-  <link rel="alternate" type="application/atom+xml" title="${g.site_title} - Datasets in group '${c.group['title']}'"
-    href="${h.url(controller='feed', action='group', id=c.group['name'])}" />
-  </py:def>
+{% endblock %}
 
-
-  <xi:include href="../layout.html" />
-</html>
+{% block optional_feed %}
+  <link rel="alternate" type="application/atom+xml" title="{{g.site_title}} - Datasets in group '{{c.group['title']}}'"
+    href="{{h.url(controller='feed', action='group', id=c.group['name'])}}" />
+{% endblock %}
 
 

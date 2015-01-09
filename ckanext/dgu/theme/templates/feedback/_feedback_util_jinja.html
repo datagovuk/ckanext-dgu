@@ -1,0 +1,163 @@
+
+{% macro if_(testValue,stringIfTrue,stringIfFalse='') %}{% if testValue %}{{stringIfTrue}}{% else %}{{stringIfFalse}}{% endif%}{% endmacro %}
+
+
+{% macro feedback_comment(text,title) %}
+
+    <strong>{{title}}</strong>
+    {% if text %}
+      <p class="comment">{{h.span_read_more(text,450)}}</p>
+    {% else %}
+      <p class="comment no-comment">(no comment)</p>
+    {% endif%}
+
+{% endmacro %}
+
+{% macro feedback_item(item, package) %}
+  <div  class="feedback-item" id="{{item.id}}">
+      <div class="pull-right">
+        {% if c.user %}
+        <a class="btn btn-mini" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='report_abuse', id=item.id)}}" rel="nofollow"><i class="icon-exclamation-sign"></i> &nbsp;Flag as offensive</a>
+        {% endif %}
+        {% if h.is_sysadmin() %}
+          <a class="btn btn-danger btn-mini"  href="javascript:0" onclick="return feedback_delete('{{item.id}}',false);">
+            <i class="icon-trash"></i> &nbsp;Delete
+          </a>
+        {% endif %}
+      </div>
+      <p>
+        <strong>Submitted by:</strong> {{h.dgu_linked_user(item.user_id,maxlength=32,organization=item.organisation_name)}} on {{h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}}
+        <br/>
+        <strong>Responding as:</strong>
+        {% if item.responding_as=='individual' %}
+          A Private Individual
+        {% endif %}
+        {% if item.responding_as=='organisation' %}
+          An Organisation
+          {% if item.organisation_name %}
+            <span style="color: #666">("{{item.organisation_name}}")</span>
+          {% else %}
+            <em style="color: #666">(Unnamed)</em>
+          {% endif %}
+        {% endif %}
+      </p>
+
+      {% if item.economic %}
+        <i class="feedback-view-icon icon-2x icon-gbp"></i> {{feedback_comment(item.economic_comment,'Economic Growth')}}
+      {% endif %}
+
+      {% if item.social %}
+        <i class="feedback-view-icon icon-2x icon-group"></i> {{feedback_comment(item.social_comment,'Social Growth')}}
+      {% endif %}
+
+      {% if item.effective %}
+        <i class="feedback-view-icon icon-2x icon-road"></i> {{feedback_comment(item.effective_comment,'Effective Public Services')}}
+      {% endif %}
+
+      {% if item.linked %}
+        <i class="feedback-view-icon icon-2x icon-code-fork"></i> {{feedback_comment(item.linked_comment,'Potential links to other datasets')}}
+      {% endif %}
+
+      {% if item.other %}
+        <i class="feedback-view-icon icon-2x icon-quote-left"></i> {{feedback_comment(item.other_comment,'Other Benefits')}}
+      {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro  feedback_item_moderation(item, package) %}
+<!--! Moderation elements. Prettiness optional. -->
+<div class="feedback-moderate-item" id="{{item.id}}">
+  <div class="panel panel-{{if_(item.visible,'danger','info')}} feedback-panel">
+    <div class="panel-heading">
+      <div class="pull-right">
+        {{feedback_moderation_button(item)}}
+      </div>
+      <strong>Response to </strong><a style="text-decoration: underline;" href="{{h.url_for(controller='package', action='read', id=package.name)}}">{{package.title or package.name}}</a>
+    </div>
+    <div class="panel-body">
+      <p class="status">
+      </p>
+      <ul>
+        <li>
+          {% if item.visible %}
+            This feedback is currently visible - it was flagged as offensive
+          {% else %}
+            This feedback is not currently visible.
+          {% endif %}
+        </li>
+        <li>
+          <strong>Submitted by</strong>: {{h.linked_user(item.user_id, maxlength=40)}} on {{h.render_datetime(item.created, date_format="%d/%m/%Y", with_hours=False)}}
+        </li>
+        {% if item.organisation_name %}
+        <li>
+          <strong>Organisation</strong>: {{item.organisation_name}}
+        </li>
+        {% endif %}
+        <li>
+          <strong>Response type</strong>:
+          {% if item.responding_as=='individual' %}Private individual{% endif %}
+          {% if item.responding_as=='organisation' %}Organisation{% endif %}
+        </li>
+      </ul>
+      <h2 style="border-bottom: solid 1px #999; margin: 8px 0;">Full Responses:</h2>
+      {% if item.economic %}
+        <h5>Economic Growth</h5>
+      {% endif %}
+      {% if item.economic and item.economic_comment %}
+      <div>
+        {{item.economic_comment}}
+      </div>
+      {% endif %}
+
+      {% if item.social%}
+      <h5>Social Growth</h5>
+      {% endif %}
+      {% if item.social and item.social_comment %}
+        <div>
+          {{item.social_comment}}
+        </div>
+      {% endif %}
+      {% if item.effective %}
+        <h5>Effective Public Services</h5>
+      {% endif %}
+      {% if item.effective and item.effective_comment %}
+      <div>
+        {{item.effective_comment}}
+      </div>
+      {% endif %}
+      {% if item.other %}
+      <h5>Other Benefits</h5>
+      {% endif %}
+      {% if item.other and item.other_comment %}
+      <div>
+        {{item.other_comment}}
+      </div>
+      {% endif %}
+      {% if item.linked %}
+        <h4>Potential links to other datasets</h4>
+      {% endif %}
+      {% if item.linked and item.linked_comment %}
+      <div>
+        {{item.linked_comment}}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+
+{% macro feedback_moderation_button(item, show_publish=True) %}
+  {% if h.is_sysadmin() %}
+    <div class="btn-group btn-group-xs">
+      <a class="btn btn-primary" href="javascript:0" onclick="return feedback_publish('{{item.id}}');">Publish</a>
+      <a class="btn btn-warning"  href="javascript:0" onclick="return feedback_delete('{{item.id}}',false);">
+        Delete
+      </a>
+      <a class="btn btn-danger"  href="javascript:0" onclick="return feedback_delete('{{item.id}}',true);">
+        Delete and ban
+      </a>
+    </div>
+  {% endif %}
+{% endmacro %}
+

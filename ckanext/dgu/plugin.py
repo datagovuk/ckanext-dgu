@@ -182,11 +182,10 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/tag', controller=tag_controller, action='index')
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('dgu_search', '/data/search', controller='package', action='search')
-        map.connect('/data/api', controller=data_controller, action='api')
+        map.connect('api_page', '/data/api', controller=data_controller, action='api')
         map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
-        map.connect('/data/openspending-report/index', controller=data_controller, action='openspending_report')
-        map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
-        map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
+        map.connect('openspending_index', '/data/openspending-report/index', controller=data_controller, action='openspending_report')
+        map.connect('openspending_read', '/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
@@ -340,6 +339,15 @@ class PublisherPlugin(p.SingletonPlugin):
         map.connect('publisher_apply_empty',
                     '/publisher/apply',
                     controller=pub_ctlr, action='apply')
+        map.connect('publisher_requests',
+                    '/publisher/users/requests',
+                    controller=pub_ctlr, action='publisher_requests')
+        map.connect('publisher_request',
+                    '/publisher/users/request/:token',
+                    controller=pub_ctlr, action='publisher_request')
+        map.connect('publisher_request_decision',
+                    '/publisher/users/request/:token/:decision',
+                    controller=pub_ctlr, action='publisher_request')
         map.connect('publisher_users',
                     '/publisher/users/:id',
                     controller=pub_ctlr, action='users')
@@ -381,6 +389,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.publisher_resources_info,
                 reports.unpublished_report_info,
                 reports.datasets_without_resources_info,
+                reports.dataset_app_report_info,
                 ]
 
 
@@ -421,7 +430,7 @@ class InventoryPlugin(p.SingletonPlugin):
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
-        map.connect('/unpublished/:id/edit',
+        map.connect('unpublished_edit', '/unpublished/:id/edit',
                     controller=inv_ctlr, action='edit')
         map.connect('/unpublished/:id/edit/download',
                     controller=inv_ctlr, action='download')

@@ -93,7 +93,7 @@
               <li py:if="h.has_commitment(c.group)"><a href="${h.url_for('commitments_publisher', id=c.group.name)}">
               Data publication commitments</a></li>
 
-              <li><a href="/data/site-usage/dataset/${c.group.name}">Dataset analytics</a></li>
+              <li><a href="/data/site-usage/publisher/${c.group.name}">Dataset analytics</a></li>
 
               <!--!  Not ready yet
               <li py:if="h.check_access('package_create', {'owner_org':c.group.name})"><a href="${h.url_for('activity_reports', id=c.group.name)}">Activity report</a></li>
