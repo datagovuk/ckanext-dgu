@@ -19,6 +19,7 @@ import types
 import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
+from webhelpers.html import escape
 from pylons import config
 from pylons import request
 
@@ -476,7 +477,7 @@ def render_stars(stars, reason, last_updated):
     else:
         stars_html = (stars or 0) * '<i class="icon-star"></i>'
 
-    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
+    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % escape(reason)) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > (stars or 0)) else ''
         tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
@@ -786,7 +787,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
         'harvest-date': {'label': 'Harvest date', 'value': harvest_date},
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
+        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (escape(pkg_extras.get('bbox-north-lat')), escape(pkg_extras.get('bbox-south-lat')), escape(pkg_extras.get('bbox-west-long')), escape(pkg_extras.get('bbox-east-long')))) },
         'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
         'data_modified': {'label': 'Data last modified', 'value': render_datestamp(pkg_extras.get('data_modified', ''))},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
@@ -1406,7 +1407,10 @@ def get_extent(pkg):
     extent_json_str = pkg.extras.get('spatial', False)
     # ensure it is JSON for security purposes, since the template will put it
     # in Javascipt unescaped using |safe
-    return json.dumps(json.loads(extent_json_str))
+    try:
+        return json.dumps(json.loads(extent_json_str))
+    except ValueError:  # includes JSONDecodeError
+        return ''
 
 def get_tiles_url():
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
@@ -1718,7 +1722,7 @@ def feedback_comment_count(pkg):
 def unpublished_release_notes(package):
     return get_from_flat_dict(package['extras'], 'release-notes')
 
-def unpublished_comments_lookup(package):
+def feedback_comment_counts(package):
     import ckan.model as model
     from ckanext.dgu.model.feedback import Feedback
 
@@ -1799,15 +1803,17 @@ def themes():
     return Themes.instance().data
 
 def span_read_more(text, word_limit, classes=""):
-    trimmed = truncate(text,length=word_limit,whole_word=True)
+    trimmed = truncate(text, length=word_limit, whole_word=True)
     if trimmed==text:
-        return t.literal('<span class="%s">%s</span>' % (classes,text))
+        return t.literal('<span class="%s">%s</span>' %
+                         (classes, escape(text)))
     return t.literal('<span class="read-more-parent">\
             <span style="display:none;" class="expanded %s">%s</span>\
             <span class="collapsed %s">%s</span>\
             <a href="#" class="collapsed link-read-more">Read more &raquo;</a>\
             <a href="#" class="expanded link-read-less" style="display:none;">&laquo; Hide</a>\
-            </span>' % (classes,text,classes,trimmed))
+            </span>' % (classes, escape(text),
+                        classes, trimmed))
 
 def render_db_date(db_date_str):
     '''Takes a string as we generally store it in the database and returns it
