@@ -18,7 +18,7 @@
                      {% with %}
                        {% set admins = dataset.admins.split('\n') %}
                        {% for admin in admins %}
-                         {{admin}}<br/>
+                       <a href="mailto:{{admin}}">{{admin}}</a><br/>
                        {% endfor %}
                      {% endwith %}
                      </td>
@@ -26,7 +26,7 @@
                      {% with %}
                        {% set editors = dataset.editors.split('\n') %}
                        {% for editor in editors %}
-                         {{editor}}<br/>
+                         <a href="mailto:{{editor}}">{{editor}}</a><br/>
                        {% endfor %}
                      {% endwith %}
                      </td>
