@@ -9,6 +9,8 @@ import json
 import tempfile
 import urlparse
 
+from paste.deploy.converters import asbool
+
 from pylons import config
 import ckan.logic as logic
 import ckan.model as model
@@ -31,6 +33,9 @@ IGNORE_KEYS = [
     u'type',
     u'ckan_url',
     u'url',
+    u'author_email',
+    u'maintainer_email',
+    # emails, license, unpublished
 ]
 
 INTERESTING_EXTRAS = [
@@ -79,7 +84,7 @@ class CSVDumper(object):
             packages = packages.limit(limit)
 
         first = True
-        for pkg in packages.yield_per(200):
+        for pkg in packages.order_by('name').yield_per(200):
             self.write_object(pkg, first)
             first = False
 
@@ -93,11 +98,19 @@ class CSVDumper(object):
         url = config.get('ckan.site_url')
         full_url = urlparse.urljoin(url, '/dataset/%s' % pkg.name)
 
-        organization = self.organization_cache.get(pkg.owner_org)
-        if not organization:
+        if pkg.owner_org in self.organization_cache:
+            organization, top_level_publisher = self.organization_cache.get(pkg.owner_org)
+        else:
             org = model.Group.get(pkg.owner_org)
             organization = org.title
-            self.organization_cache[pkg.owner_org] = organization
+
+            parent_group_hierarchy = org.get_parent_group_hierarchy('organization')
+            if parent_group_hierarchy:
+                top_level_publisher = parent_group_hierarchy[0].title
+            else:
+                top_level_publisher = organization
+
+            self.organization_cache[pkg.owner_org] = (organization, top_level_publisher)
 
         def encode(s):
             if not s:
@@ -106,7 +119,15 @@ class CSVDumper(object):
                 return s.encode('utf-8')
             return unicode(s)
 
-        vals = [pkg.name, pkg.title, full_url, organization] + \
+        license = pkg.license or ''
+        if license:
+            license = pkg.license.title
+
+        # This really should have been published, rather than unpublished.
+        published = not asbool(pkg.extras.get('unpublished', "false"))
+        nii = asbool(pkg.extras.get('core-dataset', "false"))
+
+        vals = [pkg.name, pkg.title, full_url, organization, top_level_publisher, license, published, nii] + \
             [encode(pkg_dict[k]) for k in keys]
 
         self.dataset_csv.writerow(vals)
@@ -115,7 +136,11 @@ class CSVDumper(object):
         resources = sum(resources, [])
 
         for resource in resources:
-            row = [pkg.name, resource['url'], resource['format'], resource.get('description', '') ]
+            # Important to include the date column for timeseries.
+            date = resource.get('date', '')
+
+            row = [pkg.name, resource['url'], resource['format'], resource.get('description', ''),
+                resource['id'], resource['position'], date, organization, top_level_publisher]
             self.resource_csv.writerow(row)
 
     def write_header(self, keys):
@@ -124,14 +149,18 @@ class CSVDumper(object):
         the fixed headers for resources.
         """
         header_row = [
-            'ID', 'Title', 'URL', 'Organization'
+            'Name', 'Title', 'URL', 'Organisation', 'Top level organisation', 'License', 'Published', 'NII'
+        ]
+
+        resource_header_row = [
+            'Dataset Name', 'URL', 'Format', 'Description', 'Resource ID', 'Position', 'Date', 'Organisation', 'Top level organisation'
         ]
 
         for k in keys:
             header_row.append(make_nice_name(k))
 
         self.dataset_csv.writerow(header_row)
-        self.resource_csv.writerow(['Dataset ID', 'URL', 'Format', 'Description'])
+        self.resource_csv.writerow(resource_header_row)
 
     def _flatten(self, pkg):
         """
