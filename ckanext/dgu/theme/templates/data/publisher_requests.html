@@ -19,6 +19,7 @@
           <th>&nbsp;</th>
           <th>&nbsp;</th>
           <th>&nbsp;</th>
+          <th>Date Of Decision</th>
         </tr>
       {% for a in c.publisher_requests %}
         <tr>
@@ -36,15 +37,23 @@
           </td>
           {% if a.decision == True %}
             <td><i class="icon-check"></i></td>
-            <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+            <td><a href="{{h.url_for('publisher_request', token=a.login_token)}}">View</a></td>
+            <td>&nbsp;</td><td>&nbsp;</td>
           {% elif a.decision == False %}
             <td><i class="icon-ban-circle"></i></td>
-            <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+            <td><a href="{{h.url_for('publisher_request', token=a.login_token)}}">View</a></td>
+            <td>&nbsp;</td><td>&nbsp;</td>
           {% else %}
             <td><i class="icon-check-empty"></i></td>
             <td><a href="{{h.url_for('publisher_request', token=a.login_token)}}">View</a></td>
             <td><a href="{{h.url_for('publisher_request_decision', token=a.login_token, decision='accept')}}">Accept</a></td>
             <td><a href="{{h.url_for('publisher_request_decision', token=a.login_token, decision='reject')}}">Reject</a></td>
+          {% endif %}
+          <!-- <td>{{a.date_of_decision|default("", true)}}</td> -->
+          {% if a.date_of_decision %}
+            <td>{{a.date_of_decision.strftime('%d/%m/%y %H:%M:%S')}}</td>
+          {% else %}
+            <td>&nbsp;</td>
           {% endif %}
         </tr>
       {% endfor %}
