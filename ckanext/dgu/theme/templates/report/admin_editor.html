@@ -5,7 +5,7 @@
     <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
           <thead>
             <tr>
-              <th style="width: 80px">Name</th>
+              <th style="width: 80px">Publisher</th>
               <th style="width: 80px">Administrators</th>
               <th style="width: 80px">Editors</th>
             </tr>
@@ -13,7 +13,11 @@
           <tbody>
             {% for dataset in data.table %}
                  <tr>
-                     <td>{{ dataset.publisher }}</td>
+                     <td>
+                       <a href="/publisher/{{dataset.publisher_id}}">
+                         {{ dataset.publisher_title }}
+                       </a>
+                     </td>
                      <td>
                      {% with %}
                        {% set admins = dataset.admins.split('\n') %}

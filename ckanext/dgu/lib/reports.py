@@ -574,7 +574,8 @@ def admin_editor(org=None, include_sub_organizations=False):
 
         for g in q.all():
             record = {}
-            record['publisher'] = g.name
+            record['publisher_id'] = g.name
+            record['publisher_title'] = g.title
 
             admin_users = group_get_users(g, capacity='admin')
             admins = []
