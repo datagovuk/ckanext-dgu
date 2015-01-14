@@ -522,9 +522,12 @@ dataset_app_report_info = {
 
 def get_user_realname(user):
     from ckanext.dgu.drupalclient import DrupalClient
+    from HTMLParser import HTMLParser
 
     if user.name.startswith('user_d'):
         user_id = user.name[len('user_d'):]
+
+        html_parser = HTMLParser()
 
         try:
             dc = DrupalClient()
@@ -534,11 +537,13 @@ def get_user_realname(user):
 
         try:
             first_name = properties['field_first_name']['und'][0]['safe_value']
+            first_name = html_parser.unescape(first_name)
         except:
             first_name = ''
 
         try:
             surname = properties['field_surname']['und'][0]['safe_value']
+            surname = html_parser.unescape(surname)
         except:
             surname = ''
     else:
@@ -569,7 +574,8 @@ def admin_editor(org=None, include_sub_organizations=False):
 
         for g in q.all():
             record = {}
-            record['publisher'] = g.name
+            record['publisher_name'] = g.name
+            record['publisher_title'] = g.title
 
             admin_users = group_get_users(g, capacity='admin')
             admins = []
