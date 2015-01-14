@@ -24,7 +24,7 @@ from pylons import config
 from pylons import request
 
 from ckan.lib.helpers import (icon, icon_html, json, unselected_facet_items,
-                              get_pkg_dict_extra)
+                              get_pkg_dict_extra, organizations_available)
 import ckan.lib.helpers
 
 # not importing ckan.controllers here, since we need to monkey patch it in plugin.py
@@ -88,11 +88,14 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def organization_list():
+def organization_list(top=False):
     from ckan import model
-    organizations = model.Session.query(model.Group).\
-        filter(model.Group.type=='organization').\
-        filter(model.Group.state=='active').order_by('title')
+    if top:
+        organizations = model.Group.get_top_level_groups(type='organization')
+    else:
+        organizations = model.Session.query(model.Group).\
+            filter(model.Group.type=='organization').\
+            filter(model.Group.state=='active').order_by('title')
     for organization in organizations:
         yield (organization.name, organization.title)
 
@@ -779,7 +782,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            secondary_themes =  json.loads(secondary_themes)
+            secondary_themes = json.loads(secondary_themes) or ''
 
             if isinstance(secondary_themes, types.StringTypes):
                 secondary_themes = THEMES.get(secondary_themes, secondary_themes)
@@ -2066,3 +2069,30 @@ def get_dgu_dataset_form_options(field_name):
     '''
     from ckanext.dgu.forms import dataset_form
     return getattr(dataset_form, field_name)
+
+def orgs_for_admin_report():
+    from ast import literal_eval
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+
+    admin_orgs = organizations_available(permission='admin')
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
+    allowed_orgs = relationship_managers.get(c.user, [])
+    if allowed_orgs:
+        data_dict = {
+            'organizations': allowed_orgs,
+            'all_fields': True,
+        }
+        rm_orgs = get_action('organization_list')(context, data_dict)
+    else:
+        rm_orgs = []
+
+    all_orgs = {}
+    for org in (admin_orgs + rm_orgs):
+       all_orgs[org['name']] = org
+
+    return sorted(all_orgs.values(), key=lambda x: x['title'])
