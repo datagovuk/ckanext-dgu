@@ -794,6 +794,24 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
 
+    mandates = pkg_extras.get('mandate')
+    if mandates:
+        from jinja2 import Markup, escape
+
+        def linkify(string):
+            if string.startswith('http://') or string.startswith('https://'):
+                return '<a href="%s">%s</a>' % (string, string)
+            else:
+                return string
+
+        try:
+            mandates = json.loads(mandates)
+            mandates = [escape(m) for m in mandates]
+            mandates = [linkify(m) for m in mandates]
+            mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass # Not JSON for some reason...
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -815,6 +833,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
+        'mandate': {'label': 'Mandate', 'value': mandates},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},

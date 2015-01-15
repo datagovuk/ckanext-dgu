@@ -273,7 +273,7 @@ class DatasetForm(p.SingletonPlugin):
             'foi-web': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
-            'mandate': [ignore_missing, unicode, convert_to_extras],
+            'mandate': [ignore_missing, to_json, convert_to_extras],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -350,7 +350,7 @@ class DatasetForm(p.SingletonPlugin):
             'publish-restricted': [convert_from_extras, ignore_missing],
 
             'published_via': [convert_from_extras, ignore_missing],
-            'mandate': [convert_from_extras, ignore_missing],
+            'mandate': [convert_from_extras, from_json, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
             'theme-secondary': [convert_from_extras, ignore_missing],
@@ -439,6 +439,13 @@ def to_json(key, data, errors, context):
     try:
         encoded = json.dumps(data[key])
         data[key] = encoded
+    except:
+        pass
+
+def from_json(key, data, errors, context):
+    try:
+        decoded = json.loads(data[key])
+        data[key] = decoded
     except:
         pass
 

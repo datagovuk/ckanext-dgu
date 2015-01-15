@@ -603,10 +603,16 @@ Passed in:
     <hr/>
 
     <div class="well form-inline">
-      <h3>Mandate</h3>
+      <h3>Mandates</h3>
       <div class="form-group">
-        <input class="form-control" id="mandate" name="mandate" size="40" type="text" value="{{data.get('mandate', '')}}"/>
+        {%- set mandates = data.get('mandate', ['', '', '']) -%}
+        <ul id="mandates-list">
+        {% for mandate in mandates %}
+          <li><input class="form-control" name="mandate" size="40" type="text" value="{{mandate}}"/></li>
+        {% endfor %}
+        </ul>
       </div>
+      <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
       <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
       <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
       <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
