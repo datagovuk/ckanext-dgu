@@ -1,9 +1,9 @@
 '''
-Fix the secondary theme to be a JSON list (from list of Python unicode strings)
+Fix the mandate to be a JSON list
 
 e.g.
 
-[u'Crime'] -> ['Crime']
+http://example.com/ -> ['http://example.com']
 '''
 
 import sys
@@ -23,15 +23,18 @@ class FixMandate(object):
         common.register_translator()
 
         rev = model.repo.new_revision()
-        rev.author = 'fix_mandate.py'
+        rev.author = 'script-fix_mandate.py'
 
-        for package in model.Session.query(model.Package):
+        for package in model.Session.query(model.Package).filter(model.Package.state=='active'):
             if 'mandate' in package.extras:
                 stats.add('Fixing', package.name)
 
                 mandate = package.extras.get('mandate')
 
-	        package.extras['mandate'] = json.dumps([mandate, "", ""])
+                if mandate:
+                    package.extras['mandate'] = json.dumps([mandate])
+                else:
+                    package.extras['mandate'] = json.dumps([])
         if write:
             model.Session.commit()
 
@@ -57,6 +60,6 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     if len(args) != 1:
         usage()
-        sys.exit(0)
+        sys.exit(1)
     config_ini = args[0]
     FixMandate.command(config_ini, options.write)

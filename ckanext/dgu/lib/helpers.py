@@ -20,6 +20,7 @@ import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
 from webhelpers.html import escape
+from jinja2 import Markup
 from pylons import config
 from pylons import request
 
@@ -796,17 +797,15 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
 
     mandates = pkg_extras.get('mandate')
     if mandates:
-        from jinja2 import Markup, escape
-
         def linkify(string):
             if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s">%s</a>' % (string, string)
+                return '<a href="%s" target="_blank">%s</a>' % (string, string)
             else:
                 return string
 
         try:
             mandates = json.loads(mandates)
-            mandates = [escape(m) for m in mandates]
+            mandates = [Markup.escape(m) for m in mandates]
             mandates = [linkify(m) for m in mandates]
             mandates = Markup("<br>".join(mandates))
         except ValueError:
