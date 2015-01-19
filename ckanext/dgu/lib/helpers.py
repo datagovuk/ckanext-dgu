@@ -200,6 +200,12 @@ def get_from_flat_dict(list_of_dicts, key, default=None):
             return dict_.get('value', default).strip('"')
     return default
 
+def extras_list_to_dict(extras_list):
+    if not extras_list:
+        return {}
+    extras = dict((extra['key'], extra['value']) for extra in extras_list)
+    return extras
+
 def get_uklp_package_type(package):
     return get_from_flat_dict(package.get('extras', []), 'resource-type', '')
 
@@ -415,6 +421,8 @@ def mini_stars_and_caption(num_stars):
 def calculate_dataset_stars(dataset_id):
     from ckan.logic import get_action, NotFound
     from ckan import model
+    if not is_plugin_enabled('qa'):
+        return (0, '', '')
     try:
         context = {'model': model, 'session': model.Session}
         qa = get_action('qa_package_openness_show')(context, {'id': dataset_id})
@@ -430,6 +438,8 @@ def calculate_dataset_stars(dataset_id):
 def render_resource_stars(resource_id):
     from ckan.logic import get_action, NotFound
     from ckan import model
+    if not is_plugin_enabled('qa'):
+        return 'QA not installed'
     try:
         context = {'model': model, 'session': model.Session}
         qa = get_action('qa_resource_show')(context, {'id': resource_id})
@@ -455,6 +465,8 @@ def render_qa_info_for_resource(resource_dict):
     resource_id = resource_dict['id']
     from ckan.logic import get_action, NotFound
     from ckan import model
+    if not is_plugin_enabled('qa'):
+        return 'QA not installed'
     try:
         context = {'model': model, 'session': model.Session}
         qa = get_action('qa_resource_show')(context, {'id': resource_id})
@@ -1114,8 +1126,10 @@ def additional_extra_fields(res):
 
 
 def hidden_extra_fields(data):
+    from ckanext.dgu.forms.dataset_form import DatasetForm
+    schema_fields = set(DatasetForm.form_to_db_schema().keys())
     return [ e for e in data.get('extras', []) \
-                        if e['key'] not in c.schema_fields ]
+                        if e['key'] not in schema_fields ]
 
 def timeseries_extra_fields(res):
     return [r for r in res.keys() if r not in
@@ -1187,7 +1201,9 @@ ckan_licenses = None
 def get_ckan_licenses():
     global ckan_licenses
     if ckan_licenses is None:
-        ckan_licenses = dict([(k, v) for v, k in c.licenses])
+        from ckan import model
+        ckan_license_dicts = model.Package.get_license_options()
+        ckan_licenses = dict([(k, v) for v, k in ckan_license_dicts])
     return ckan_licenses
 
 def license_choices(data):
@@ -1355,15 +1371,10 @@ def was_dataset_harvested(pkg_extras):
     return extras.get('import_source') == 'harvest' or extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True'
 
 def get_harvest_object(pkg):
-    import ckan.model as model
     from ckanext.harvest.model import HarvestObject
     harvest_object_id = pkg.extras.get('harvest_object_id')
     if harvest_object_id:
         return HarvestObject.get(harvest_object_id)
-    return model.Session.query(HarvestObject) \
-            .filter(HarvestObject.package_id==pkg.id) \
-            .filter(HarvestObject.current==True) \
-            .first()
 
 # 'Type'/'Source' of dataset determined by these functions
 # (replaces dataset_type() as there were overlaps like local&location)
@@ -2048,6 +2059,16 @@ def report_timestamps_split(timestamps):
 
 def report_users_split(users, organization):
     return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
+
+def get_dgu_dataset_form_options(field_name):
+    '''
+    Returns a list of option tuples for the given field.
+    Each tuple: (code_as_stored_in_db, displayed_value)
+
+    :param field_name: e.g. "geographic_granularity"
+    '''
+    from ckanext.dgu.forms import dataset_form
+    return getattr(dataset_form, field_name)
 
 def orgs_for_admin_report():
     from ast import literal_eval
