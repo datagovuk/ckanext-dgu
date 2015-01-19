@@ -9,6 +9,26 @@
 {{ h.build_nav('dgu_search', _('Datasets')) }}
 {% endblock %}
 
+{% block secondary_content %}
+<div class="sidebar-search">
+    {{ m.search_form(mini=true) }}
+    <div class="map-search-link">
+        <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
+    </div>
+</div>
+
+<div id="shopping-basket-container" class="facet-box-unboxed">
+    <a id="shopping-basket-reset" href="#" class="facet-kill pull-right">
+        <i class="icon-large icon-remove-sign"></i>
+    </a>
+    <h4 class="facet-title">Map Preview List</h4>
+    <div class="facet-options" id="shopping-basket"></div>
+    <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-info btn-basket"><span><i class="icon-map-marker"></i>&nbsp; Preview</span></a>
+</div>
+
+{{m.facet_filters()}}
+
+{% endblock %}
 
 {% block primary_content %}
 <section class="module">
@@ -49,27 +69,4 @@
     {{m.paginator(c.page)}}
     {% endblock %}
 </section>
-{% endblock %}
-
-
-
-{% block secondary_content %}
-<div class="sidebar-search">
-    {{ m.search_form(mini=true) }}
-    <div class="map-search-link">
-        <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
-    </div>
-</div>
-
-<div id="shopping-basket-container" class="facet-box-unboxed">
-    <a id="shopping-basket-reset" href="#" class="facet-kill pull-right">
-        <i class="icon-large icon-remove-sign"></i>
-    </a>
-    <h4 class="facet-title">Map Preview List</h4>
-    <div class="facet-options" id="shopping-basket"></div>
-    <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-info btn-basket"><span><i class="icon-map-marker"></i>&nbsp; Preview</span></a>
-</div>
-
-{{m.facet_filters()}}
-
 {% endblock %}
