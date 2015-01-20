@@ -20,6 +20,7 @@ import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
 from webhelpers.html import escape
+from jinja2 import Markup
 from pylons import config
 from pylons import request
 
@@ -794,6 +795,22 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
 
+    mandates = pkg_extras.get('mandate')
+    if mandates:
+        def linkify(string):
+            if string.startswith('http://') or string.startswith('https://'):
+                return '<a href="%s" target="_blank">%s</a>' % (string, string)
+            else:
+                return string
+
+        try:
+            mandates = json.loads(mandates)
+            mandates = [Markup.escape(m) for m in mandates]
+            mandates = [linkify(m) for m in mandates]
+            mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass # Not JSON for some reason...
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -815,6 +832,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
+        'mandate': {'label': 'Mandate', 'value': mandates},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
@@ -2096,3 +2114,13 @@ def orgs_for_admin_report():
        all_orgs[org['name']] = org
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
+
+
+def get_mandate_list(data):
+    mandate = data.get('mandate') or []
+    if isinstance(mandate, basestring):
+        # this is the case when only one <input> is on the form
+        return [mandate]
+    if not isinstance(mandate, list):
+        log.error('Mandate should be a list: %r', mandate)
+    return mandate
