@@ -603,19 +603,19 @@ Passed in:
     <hr/>
 
     <div class="well form-inline">
-      <h3>Mandates</h3>
+      <h3>Mandate</h3>
+      <p class="instructions basic">The law (or other public commitment) that caused the data to be collected (if appropriate).</p>
+      <p class="hints">For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
       <div class="form-group">
-        {%- set mandates = data.get('mandate', []) + ['', '', ''] -%}
+        {%- set mandates = data.get('mandate', []) + [''] -%}
         <ul id="mandates-list">
         {% for mandate in mandates %}
           <li><input class="form-control" name="mandate" size="80" type="text" value="{{mandate}}"/></li>
         {% endfor %}
         </ul>
-      <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>
+      <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
       </div>
-      <p class="instructions basic">Internet links to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-      <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
-      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+      <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
     </div>
 
 </fieldset>
