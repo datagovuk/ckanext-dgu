@@ -605,17 +605,17 @@ Passed in:
     <div class="well form-inline">
       <h3>Mandate</h3>
       <p class="instructions basic">The law (or other public commitment) that caused the data to be collected (if appropriate).</p>
-      <p class="hints">For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
+      <p>For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
       <div class="form-group">
-        {%- set mandates = data.get('mandate', []) + [''] -%}
+        {%- set mandates = h.get_mandate_list(data) + [''] -%}
         <ul id="mandates-list">
         {% for mandate in mandates %}
           <li><input class="form-control" name="mandate" size="80" type="text" value="{{mandate}}"/></li>
         {% endfor %}
         </ul>
-      <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+        <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+        <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
       </div>
-      <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
     </div>
 
 </fieldset>
