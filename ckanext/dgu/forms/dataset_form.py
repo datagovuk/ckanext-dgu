@@ -446,7 +446,9 @@ def to_json(key, data, errors, context):
 def use_other(key, data, errors, context):
 
     other_key = key[-1] + '-other'
-    other_value = data.get((other_key,), '').strip()
+    other_value = data.get((other_key,), '')
+    if isinstance(other_value, basestring):
+        other_value = other_value.strip()
     if other_value:
         data[key] = other_value
 
