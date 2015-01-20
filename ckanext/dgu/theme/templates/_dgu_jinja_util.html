@@ -50,7 +50,7 @@
 
     {% set page     = pageobj.page %}
     {% set numpages = pageobj.page_count %}
-    {% set url_for  = h.paginator_page_url(paginator_page_url) %}
+    {% set url_for_page = h.paginator_page_url(pageobj) %}
     {% if numpages > 1 %}
     <div class="dgu-pagination">
       <ul class="pagination">
