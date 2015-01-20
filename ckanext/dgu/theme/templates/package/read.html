@@ -109,6 +109,12 @@
     {% if not h.is_unpublished_item(c.pkg_dict) %}
       <div class="dataset-resources">
         <!-- Resources -->
+        {% set api_resources = h.api_resources() %}
+        {% if api_resources %}
+          <h2>API ({{api_resources|length}})</h2>
+          {{resource_table(api_resources, publisher_name)}}
+        {% endif %}
+
         {% if h.individual_resources() %}
           <h2>Data Resources ({{h.individual_resources()|length}})</h2>
           {{resource_table(h.individual_resources(), publisher_name)}}
