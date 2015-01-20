@@ -37,7 +37,7 @@
         {% block form %}
         <form class="form-inline pull-right" id="search-sort-by">
             {% macro sort_option(text, value, selected, disabled=False) %}
-            <option value="{{value}}" {{m.dict_to_attributes({'selected':'selected' if selected else None, 'disabled': 'disabled' if disabled else None})}}>{{text}}</option>
+            <option value="{{value}}" {% if selected %} selected="selected"{% endif %}{% if disabled %} disabled="disabled"{% endif %}>{{text}}</option>
             {% endmacro %}
             <label>Sort by:</label>
             <select name="dataset-results-sort" class="form-control" style="display:inline-block;">
