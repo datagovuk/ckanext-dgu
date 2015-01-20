@@ -3,6 +3,7 @@
 {% block title  %}Publisher Request - {{ super() }}{% endblock title %}
 
 {% block breadcrumb_content %}
+  {{ h.build_nav('publisher_requests', _('Publisher Requests')) }}
   {{ h.build_nav('publisher_request', _('Publisher Request'), token=c.req.login_token) }}
 {% endblock %}
 
