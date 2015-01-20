@@ -48,7 +48,7 @@
                 {{sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in h.results_sort_by())}}
                 {{sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}}
             </select>
-            <a class="feed-icon" href="${h.url(controller='feed', action='custom')}?${c.search_url_params}">
+            <a class="feed-icon" href="{{ h.url(controller='feed', action='custom') }}?{{ c.search_url_params }}">
                 <i class="icon-rss-sign"></i>
             </a>
         </form>
