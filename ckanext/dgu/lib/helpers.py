@@ -2110,3 +2110,6 @@ def orgs_for_admin_report():
        all_orgs[org['name']] = org
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
+
+def has_api(resource):
+    return resource.get('datastore_active', False)
