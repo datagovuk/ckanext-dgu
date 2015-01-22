@@ -2111,5 +2111,18 @@ def orgs_for_admin_report():
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
+def random_value_from_list(l):
+    import random
+    return random.choice(l)
+
+def humanize_number(num):
+    """ Converts a number into a more human readable form by inserting
+    commas in the right places. """
+    number = str(num)
+    val = re.sub("^(-?\d+)(\d{3})", '\g<1>,\g<2>', number)
+    if number == val:
+        return val
+    return humanize_number(val)
+
 def has_api(resource):
     return resource.get('datastore_active', False)

@@ -580,6 +580,9 @@ class ApiPlugin(p.SingletonPlugin):
         map.connect('/api/util/latest-unpublished', controller=api_controller, action='latest_unpublished')
         map.connect('/api/util/popular-unpublished', controller=api_controller, action='popular_unpublished')
 
+        map.connect('/dataset/:dataset_id/resource/:resource_id/api',
+            controller=api_controller, action='resource_api')
+
         return map
 
     def get_actions(self):
