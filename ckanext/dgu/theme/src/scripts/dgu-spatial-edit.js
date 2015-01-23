@@ -131,7 +131,7 @@ CKAN.DguSpatialEditor = function($) {
         CKAN.DguSpatialEditor.setBBox(newBox, false)
 
         map.removeInteraction(boundingBoxInteraction);
-        $(map.viewport_).toggleClass('drawing', false)
+        $(map.getViewport()).toggleClass('drawing', false)
     })
 
     var selectButton = $("<div class='selectButton ol-unselectable ol-control ol-collapsed' style='top: 4em; left: .5em;'><button class='ol-has-tooltip' type='button'><span class='glyphicon icon-crop' aria-hidden='true'></span><span role='tooltip'>Draw Selection</span></button></div>")
@@ -139,7 +139,7 @@ CKAN.DguSpatialEditor = function($) {
     selectButton.click(function (e) {
         selectBoxSource.clear()
         map.addInteraction(boundingBoxInteraction)
-        $(map.viewport_).toggleClass('drawing', true)
+        $(map.getViewport()).toggleClass('drawing', true)
     })
 
     // important : this forces the refresh of the map when the tab is displayed. Short of that, the map is not displayed because the original offsetSize is null.
