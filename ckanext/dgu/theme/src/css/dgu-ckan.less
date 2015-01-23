@@ -1279,8 +1279,8 @@ body.controller-package {
   }
   .dataset-map {
     #dataset-map-container {
-      width: 350px;
-      height: 280px;
+      //width: 350px;   // size should be set on a per map instance basis
+      //height: 280px;
       background: #ccc;
       margin-bottom: 30px !important;
       div.olControlAttribution {
@@ -1724,6 +1724,70 @@ body.controller-widgets.action-index {
   }
 }
 
+.spatial_query_padder {
+  transition: all 0.5s;
+  height: 0px;
+}
+
+#dataset-map {
+  /*
+  transition: all 0.5s;
+  width: 300px;
+  top: 0px;
+  */
+}
+
+
+.dataset-map-expanded {
+
+  #dataset-map {
+    top: 20px;
+    width: auto;
+    left: 55px;
+    right: 15px;
+    background-color: transparent;
+    border: none;
+
+    #dataset-map-edit-buttons {
+      position: absolute;
+      z-index: 100;
+      display: block;
+      right: 0;
+      margin: 5px;
+      top: 36px;
+      padding: 0;
+
+      .btn {
+        background-color: white;
+        border-color: #8eb06d;
+      }
+
+      .btn-primary {
+        background-color: #8bc658;
+      }
+    }
+
+    .module-heading {
+      margin: 0.5em;
+    }
+
+    #dataset-map-container {
+      margin-bottom: 0px!important;
+      border: 1px solid #CCC;
+    }
+  }
+
+  /* make sure ckanext-spatial map widget container is relative, to allow map absolute positioning */
+  .wrapper {
+    position: relative;
+    margin-top: 0px;
+  }
+
+  .spatial_query_padder {
+    height: 400px;
+    transition: 0.5s;
+  }
+}
 
 /* TODO attach these to a page */
 
@@ -1837,11 +1901,11 @@ body.controller-widgets.action-index {
   background: white;
 }
 
-#map .ol-attribution {
+.ol-viewport .ol-attribution {
   height: inherit;
 }
 
-#map .ol-attribution ul {
+.ol-viewport .ol-attribution ul {
   max-width: none;
 }
 
