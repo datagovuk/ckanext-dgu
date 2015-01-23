@@ -61,7 +61,7 @@ module.exports = function(grunt) {
         yuicompress: true
       },
       build: {
-        src: 'src/css/dgu-ckan.less',
+        src: ['src/css/spatial_query.css', 'src/css/dgu-ckan.less'],
         dest: 'public/css/dgu-ckan.min.css'
       },
       viz: {
