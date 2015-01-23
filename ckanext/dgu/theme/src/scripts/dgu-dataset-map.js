@@ -43,8 +43,8 @@ CKAN.DguDatasetMap = function($){
             if (!this.extent)
                 return false;
 
-            var width = $("#dataset-map-container").width();
-            var height = $("#dataset-map-container").height();
+            var width = 350 //$("#dataset-map-container").width();      styling has been removed from css
+            var height = 280 //$("#dataset-map-container").height();    because it conflicted with search page
             /* It will not render in IE7 until it has a height.
              * OK, it has a height. top=0, bottom=0, therefore height=280
              * because that's the height of my parent container.
