@@ -141,6 +141,8 @@ class ThemePlugin(p.SingletonPlugin):
         toolkit.add_template_directory(config, 'theme/templates')
         toolkit.add_public_directory(config, 'theme/public')
 
+        toolkit.add_resource('theme/public', 'ckanext-dgu')
+
         # Shared assets may be configured to be elsewhere on disk,
         # so in that case let the user configure apache/nginx to serve
         # them manually. But for developers, the shared assets will
