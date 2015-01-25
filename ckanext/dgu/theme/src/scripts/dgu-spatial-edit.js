@@ -297,7 +297,7 @@ CKAN.DguSpatialEditor = function($) {
 
         bindInput: function(el) {
             var $el = $(el)
-            CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()), true)
+            if ($el.val()) try { CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()), true) } catch (err) {}
             CKAN.DguSpatialEditor.onBBox(function(bbox) {
                 $el.val(bbox)
             })
