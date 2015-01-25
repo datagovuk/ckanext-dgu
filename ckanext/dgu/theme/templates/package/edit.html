@@ -1,6 +1,6 @@
-﻿{% extends "page.html" %}
+﻿{% extends "package/new_and_edit.html" %}
 
-{% block title %}{{c.pkg.title or c.pkg.name}} - Edit{% endblock %}
+{% block title %}{{c.pkg.title or c.pkg.name}} - Edit - {{ super() }}{% endblock %}
 
 {% block breadcrumb_content %}
   {{ h.build_nav('dgu_search', _('Datasets')) }}
@@ -8,27 +8,7 @@
   {{ h.build_nav('dataset_edit', _('Edit'), id=c.pkg_dict['name']) }}
 {% endblock %}
 
-{% block optional_head %}
-  <script type="text/javascript">
-    var form_errors = {{ c.errors_json|safe }};
-    var publishers = {{ c.publishers_json|safe }};
-    window.DGU_RESOURCE_FORMATS = {{h.get_resource_formats()|safe}};
-  </script>
-  <script type="text/javascript" src="/scripts/dgu-package-form.min.js"></script>
-  <link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.9.2.custom.datepicker.min.css" />
-  <script type="text/javascript" src="/scripts/vendor/jquery-ui-1.9.2.custom.datepicker.min.js"></script>
-
-    <!-- scripts and styles for bbox selection map-->
-    <link rel="stylesheet" type="text/css" href="/scripts/vendor/ol3.css" />
-    <link rel="stylesheet" type="text/css" href="/css/jquery-autocomplete.css" />
-    <script type="text/javascript" src="/scripts/vendor/proj4.js"></script>
-    <script type="text/javascript" src="/scripts/vendor/ol3.js"></script>
-    <script type="text/javascript" src="/scripts/vendor/jquery.autocomplete.js"></script>
-{% endblock %}
-
 {% block primary_content_inner %}
   <h1>Dataset Editor</h1>
-  {{ c.form|safe }}
+  {{ super() }}
 {% endblock %}
-
-

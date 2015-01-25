@@ -341,6 +341,15 @@ class PublisherPlugin(p.SingletonPlugin):
         map.connect('publisher_apply_empty',
                     '/publisher/apply',
                     controller=pub_ctlr, action='apply')
+        map.connect('publisher_requests',
+                    '/publisher/users/requests',
+                    controller=pub_ctlr, action='publisher_requests')
+        map.connect('publisher_request',
+                    '/publisher/users/request/:token',
+                    controller=pub_ctlr, action='publisher_request')
+        map.connect('publisher_request_decision',
+                    '/publisher/users/request/:token/:decision',
+                    controller=pub_ctlr, action='publisher_request')
         map.connect('publisher_users',
                     '/publisher/users/:id',
                     controller=pub_ctlr, action='users')
@@ -383,6 +392,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.unpublished_report_info,
                 reports.datasets_without_resources_info,
                 reports.dataset_app_report_info,
+                reports.admin_editor_info,
                 ]
 
 

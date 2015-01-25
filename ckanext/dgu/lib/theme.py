@@ -15,7 +15,7 @@ from ckan import model
 log = __import__('logging').getLogger(__name__)
 
 PRIMARY_THEME = 'theme-primary'
-SECONDARY_THEMES = 'themes-secondary'
+SECONDARY_THEMES = 'theme-secondary'
 
 class Themes(object):
     '''Singleton class containing the data from themes.json with a bit of processing.'''

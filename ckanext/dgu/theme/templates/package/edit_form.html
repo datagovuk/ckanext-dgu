@@ -1,12 +1,24 @@
-﻿{% import "/_dgu_jinja_util.html" as m with context %}
+﻿{# Snippet
 
-<form id="package-edit" method="post"
-  {% if errors %}class="has-errors package_create_form ckan"{% else%}class="package_create_form ckan"{% endif%}
-  role="form">
+Passed in:
+* data
+* errors
+* error_summary
+* action - 'new'/'edit'
+* stage
+* dataset_type
+* c - deprecated!
+#}
+
+{% import "/_dgu_jinja_util.html" as m with context %}
+
+{% set extras=h.extras_list_to_dict(data.get('extras')) %}
+{% set resource_columns=('description', 'url', 'format') %}
+<form id="dataset-edit" method="post" class="{% if errors %}has-errors{% endif %} package_create_form ckan" role="form">
 
 
   {% if errors %}
-  <div class="panel panel-danger error-explanation">
+  <div id="errors" class="panel panel-danger error-explanation">
     <div class="panel-heading"><strong>Errors in form</strong></div>
     <div class="panel-body">
       The form contains invalid entries:
@@ -56,13 +68,11 @@
 
   <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
   <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
-  {% if c.pkg %}
-    <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
-    <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{c.pkg.extras.get('core-dataset',False)}}" />
-  {% endif %}
-  {% if 'odi-certificate' in c.pkg.extras %}
+  <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
+  <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{extras.get('core-dataset',False)}}" />
+  {% if 'odi-certificate' in extras %}
     <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
-    <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{c.pkg.extras['odi-certificate']}}" />
+    <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{extras['odi-certificate']}}" />
   {% endif %}
 
   <div class="form-group">
@@ -110,14 +120,11 @@
           Update frequency <i class="icon-info-sign"></i>
         </label>
         <select style="width: 200px;" class="form-control" id="update_frequency" name="update_frequency">
-            {% for freq_name, freq_desc in c.update_frequency %}
+            {% for freq_name, freq_desc in h.get_dgu_dataset_form_options('update_frequency') %}
               <option value="{{freq_name}}" {% if data.get('update_frequency', '') == freq_name %}selected="selected"{% endif %} >
                 {{freq_desc}}
               </option>
             {% endfor %}
-            {% if h.is_package_edit_form(data) %}
-            <option value="discontinued" {% if data.get('update_frequency', '') == 'discontinued' %}selected="selected"{% endif %} >discontinued</option>
-            {% endif %}
         </select>
         <label style="margin-left: 20px;" class="" for="update_frequency-other">Other:</label>
         <input class="form-control" style="width: 200px;" id="update_frequency-other" name="update_frequency-other" type="text" value="{{data.get('update_frequency-other', '')}}"/>
@@ -128,7 +135,7 @@
       <thead>
         <tr>
           <th class="resource-move-cell"></th>
-          <th class="resource-date">  <div class="js-tooltip" title="Format: DD/MM/YYYY">Date: <i class="icon-info-sign"></i></div></th>
+          <th class="resource-date">  <div class="js-tooltip" title="Date the data applies to (rather than when it was published). For a complete month use MM/YYYY, a calendar year use YYYY, or any other period put the last day in the period, format DD/MM/YYYY">Date: <i class="icon-info-sign"></i></div></th>
           <th class="resource-name">  <div class="js-tooltip" title="Text that is displayed next to the link on the dataset record">File Title: <i class="icon-info-sign"></i></div></th>
           <th class="resource-url">   <div class="js-tooltip" title="Where the file is already hosted">URL: <i class="icon-info-sign"></i></div></th>
           <th class="resource-format"><div class="js-tooltip" title="The file format of the linked resource">Format: <i class="icon-info-sign"></i></div></th>
@@ -143,11 +150,11 @@
               <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
             </div>
             <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+              {# Because the resource fields are explicitly set in resource_columns, we need
                     to pull the others from the resource keys, strip the resource_columns and then
                     ignore resource_type, id and resource_group_id.
 
-                    Code is long hand to keep the list comp understandable -->
+                    Code is long hand to keep the list comp understandable #}
               {% for col in h.timeseries_extra_fields(res) %}
                 <input
                        id="timeseries_resources__{{num}}__{{col}}"
@@ -159,7 +166,7 @@
               <span class="resource-type"><input name="timeseries_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
             </div>
           </td>
-          {% for col in ('date',) + c.resource_columns %}
+          {% for col in ('date',) + resource_columns %}
             <td class="resource-{{col}}">
                 {% if col=='description' %}
                   <input id="timeseries_resources__{{num}}__{{col}}"
@@ -231,7 +238,7 @@
               <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
             </div>
             <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
+              <!--! Because the resource fields are explicitly set in resource_columns, we need
                     to pull the others from the resource keys, strip the resource_columns and then
                     ignore resource_type, id and resource_group_id.
 
@@ -247,7 +254,7 @@
               <span class="resource-type"><input name="individual_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
             </div>
           </td>
-          {% for col in c.resource_columns %}
+          {% for col in resource_columns %}
             <td class="resource-{{col}}">
             {% if col=='description' %}
               <input
@@ -317,12 +324,13 @@
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade form-inline" id="section-licence-field">
+  {% set licence_extra = extras.get('licence') %}
   <h3>Licence</h3>
     <div class="form-group">
     <label for="license_id">Licence:</label>
     <select id="license_id" class="form-control" name="license_id">
 
-      <!--! An explanation of what's going on here...
+      {# An explanation of what's going on here...
            There are a few cases to handle here:
 
             1. An new/edit form with a license_id:  the options available to the
@@ -332,36 +340,34 @@
             2. An edit form with a license in the extra fields: this is a
                harvested dataset.
 
-            * license_extra implies an edition form with a license in the
-              extra fields.  ie - a harvested license.
-     -->
+            * license_extra implies an edit form with a license in the
+              extra fields.  i.e. a harvested license.
+     #}
       {% for license_id, license_desc in h.license_choices(data) %}
         <option value="{{license_id}}" {% if data.get('license_id', 'uk-ogl') == license_id %}selected="selected"{% endif %}>{{license_desc}}</option>
       {% endfor %}
 
-      {% if h.get_license_extra(c.pkg) %}
+      {% if licence_extra %}
         <option value="__extra__" selected="selected">Harvested license...</option>
       {% endif %}
 
-      {% if not h.get_license_extra(c.pkg) %}
+      {% if not licence_extra %}
       <option value="" {% if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) %}selected="selected"{% endif %}>Specify other...</option>
       {% endif %}
     </select>
   </div>
   <p class="instructions basic">The licence under which the dataset is released.</p>
   <br/>
-  <p>The 'Open Government Licence' is the default licence for all publications in the UK public sector, for greater transparency and reuse. Central Departments and Agencies are <a href="http://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/re-use-and-licensing/ukglf/">mandated</a> to use the OGL by the HMSO. Local Authorities are recommended to use the OGL by the <a href="http://www.local.gov.uk/practitioners-guides-to-publishing-data">LGA</a> and <a href="https://www.gov.uk/government/policies/making-local-councils-more-transparent-and-accountable-to-local-people">DCLG</a>. Other public bodies are <a href="http://data.gov.uk/blog/new-open-government-license">invited</a> to use it, such as universities, police forces or hospitals. Other licenses are also lists which are open and are suitable for data. For any other licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
+  <p>The 'Open Government Licence' is the default licence for all publications in the UK public sector, for greater transparency and reuse. Central Departments and Agencies are <a href="http://www.nationalarchives.gov.uk/information-management/re-using-public-sector-information/re-use-and-licensing/ukglf/">mandated</a> to use the OGL by the HMSO. Local Authorities are recommended to use the OGL by the <a href="http://www.local.gov.uk/practitioners-guides-to-publishing-data">LGA</a> and <a href="https://www.gov.uk/government/policies/making-local-councils-more-transparent-and-accountable-to-local-people">DCLG</a>. Other public bodies are <a href="http://data.gov.uk/blog/new-open-government-license">invited</a> to use it, such as universities, police forces or hospitals. Other licences in the list are open and are suitable for data. For any other licence, please select "Specify other" and enter the name of the licence in the "Licence (other)" box provided.</p>
 
     <div class="form-group choose-other-licence">
       <label for="license_extra">Licence (other):</label>
-      {% if not h.get_license_extra(c.pkg)%}
+      {% if not licence_extra %}
       <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="access_constraints">{{data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) else '')}}</textarea>
       {% endif %}
-      {% if h.get_license_extra(c.pkg) %}
-      <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">{{h.get_license_extra(c.pkg)}}</textarea>
-      {% endif %}
-      {% if h.get_license_extra(c.pkg)%}
-      <input class="form-control" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="{{c.pkg.extras.get('access_constraints','')}}"/>
+      {% if licence_extra %}
+      <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">{{ licence_extra }}</textarea>
+      <input class="form-control" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="{{extras.get('access_constraints','')}}"/>
       {% endif %}
     </div>
     {{ m.display_error(errors, 'license_id', True) }}
@@ -371,10 +377,10 @@
   <h3>Publisher</h3>
     <div class="form-group">
       <label for="owner_org">Published by: </label>
-      <!--! data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. -->
+      {# data['owner_org'] is a group.id. Either it is the existing value in the database, or the value from this form that was submitted invalid, or from the owner_org={id} URL parameter. #}
       {% set owner_org=data.get('owner_org') %}
       <select class="form-control" id="owner_org" name="owner_org">
-        <option value=" " {% if not owner_org %}selected="selected"{% endif %} >Please select a publisher...</option> <!--! NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. -->
+        <option value=" " {% if not owner_org %}selected="selected"{% endif %} >Please select a publisher...</option> {# NB Value is " " to ensure that validation fails if this is selected, due to it checking 'name' is not_empty. In addition, in logic/auth/create.py this particular value is authorized, so when you submit the form with this value, rather that say 'not authorized', it carries on to validation where it fails and shows the user a better error. #}
         {% for publisher_name, publisher in h.sorted_list(c.publishers.items()) %}
           <option value="{{publisher.id}}" {% if owner_org == publisher.id %}selected="selected"{% endif %} >
             {{publisher['title']}}
@@ -528,11 +534,11 @@
               <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
             </div>
             <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in c.resource_columns, we need
-                    to pull the others from the resource keys, strip the resource_columns and then
-                    ignore resource_type, id and resource_group_id.
+              {# Because the resource fields are explicitly set in resource_columns, we need
+                 to pull the others from the resource keys, strip the resource_columns and then
+                 ignore resource_type, id and resource_group_id.
 
-                    Code is long hand to keep the list comp understandable -->
+                 Code is long hand to keep the list comp understandable #}
               {% for col in h.additional_extra_fields(res) %}
                 <input
                        id="additional_resources__{{num}}__{{col}}"
@@ -598,12 +604,18 @@
 
     <div class="well form-inline">
       <h3>Mandate</h3>
+      <p class="instructions basic">The law (or other public commitment) that caused the data to be collected (if appropriate).</p>
+      <p>For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
       <div class="form-group">
-        <input class="form-control" id="mandate" name="mandate" size="40" type="text" value="{{data.get('mandate', '')}}"/>
+        {%- set mandates = h.get_mandate_list(data) + [''] -%}
+        <ul id="mandates-list">
+        {% for mandate in mandates %}
+          <li><input class="form-control" name="mandate" size="80" type="text" value="{{mandate}}"/></li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+        <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
       </div>
-      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-      <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
-      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
     </div>
 
 </fieldset>
@@ -792,7 +804,7 @@
     <div class="controls">
       <div class="form-inline">
         <select id="temporal_granularity" name="temporal_granularity">
-          {% for  temporal_name, temporal_desc in c.temporal_granularity %}
+          {% for  temporal_name, temporal_desc in h.get_dgu_dataset_form_options('temporal_granularity') %}
 
             <option value="{{temporal_name}}" {% if data.get('temporal_granularity', '') == temporal_name %} selected="selected" {% endif %} >
               {{temporal_name}}
@@ -815,7 +827,7 @@
     <div class="controls">
       <div class="form-inline">
         <select id="geographic_granularity" name="geographic_granularity">
-          {% for geog_name, geog_desc in c.geographic_granularity %}
+          {% for geog_name, geog_desc in h.get_dgu_dataset_form_options('geographic_granularity') %}
             <option value="{{geog_name}}" {% if data.get('geographic_granularity', '') == geog_name %}selected="selected"{% endif %}>
               {{geog_desc}}
             </option>

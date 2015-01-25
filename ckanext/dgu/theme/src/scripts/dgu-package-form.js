@@ -76,6 +76,18 @@
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
 
+    $('#mandates-add').click(function(e) {
+        var list = $('#mandates-list');
+
+        var new_mandate = list.children().first().clone();
+
+        new_mandate.children().first().attr('value', '');
+
+        list.append(new_mandate);
+      
+        return false;
+    });
+
     // Correctly handle disabled nav buttons
     $('a.disabled').click(function(e) {
       e.preventDefault();
@@ -135,7 +147,6 @@
     /* Hide/Show the access constraints box when selecting the license_id */
     $('#license_id').change(function(){
       var selectedLicense = $(this).val();
-        console.log('LICENSE "' + selectedLicense + '"')
       if(selectedLicense == "" || selectedLicense == "__extra__"){
         $('.choose-other-licence').show();
       } else {

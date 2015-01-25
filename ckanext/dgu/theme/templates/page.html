@@ -5,13 +5,16 @@
   {{ super() }}
 {% endblock %}
 
-{# Copied from core-ckan to keep general compatibility, but strip out:
-    * class="container" - adds unwanted padding around breadcrumbs
-    * class="span3" and "span9" - page content itself does its layout
-    * class="page-header" - clash with drupal
-    * <ul class="nav"/> - draws an unwanted horizontal line below breadcrumbs
-   and:
-    * blocks flash & breadcrumb - reordered and replaced with DGU versions
+{# Copied from core-ckan to keep general compatibility, but for these changes:
+   1. Strip out:
+      * class="container" - adds unwanted padding around breadcrumbs
+      * class="span3" and "span9" - page content itself does its layout
+      * class="page-header" - clash with drupal
+      * <ul class="nav"/> - draws an unwanted horizontal line below breadcrumbs
+   2. Blocks 'flash' and 'breadcrumb' - reordered and replaced with DGU versions
+   3. Block 'secondary' goes before the primary because when viewing the search
+      page on a mobile you want the search box and 'show facets' button
+      (secondary block) to display above the search results (primary) block.
 #}
 {%- block content %}
     {% block maintag %}<div role="main">{% endblock %}
@@ -66,8 +69,26 @@
             {% block pre_primary %}
             {% endblock %}
 
+            {% block secondary %}
+              <aside class="secondary">
+                {#
+                The secondary_content block can be used to add content to the
+                sidebar of the page. This is the main block that is likely to be
+                used within a template.
+
+                Example:
+
+                  {% block secondary_content %}
+                    <h2>A sidebar item</h2>
+                    <p>Some content for the item</p>
+                  {% endblock %}
+                #}
+                {% block secondary_content %}{% endblock %}
+              </aside>
+            {% endblock %}
+
             {% block primary %}
-              <div class="primary content">
+              <div class="primary">
                 {#
                 The primary_content block can be used to add content to the page.
                 This is the main block that is likely to be used within a template.
@@ -104,23 +125,6 @@
               </div>
             {% endblock %}
 
-            {% block secondary %}
-              <aside class="secondary sidebar">
-                {#
-                The secondary_content block can be used to add content to the
-                sidebar of the page. This is the main block that is likely to be
-                used within a template.
-
-                Example:
-
-                  {% block secondary_content %}
-                    <h2>A sidebar item</h2>
-                    <p>Some content for the item</p>
-                  {% endblock %}
-                #}
-                {% block secondary_content %}{% endblock %}
-              </aside>
-            {% endblock %}
           </div>
         {% endblock %}
       </div>
