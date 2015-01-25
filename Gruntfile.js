@@ -28,7 +28,8 @@ module.exports = function(grunt) {
           'public/scripts/dgu-publisher-read.min.js'       : 'src/scripts/dgu-publisher-read.js',
             // WARN resources subject to CKAN resource definition must NOT be suffixed with .min
           'public/scripts/dgu-spatial-edit.js'         : 'src/scripts/dgu-spatial-edit.js',
-          'public/scripts/dgu-spatial-lib.js'         : 'src/scripts/dgu-spatial-lib.js'
+          'public/scripts/dgu-spatial-lib.js'         : 'src/scripts/dgu-spatial-lib.js',
+          'public/scripts/dgu-spatial-query.js'         : 'src/scripts/dgu-spatial-query.js'
         },
       },
       vendor: {

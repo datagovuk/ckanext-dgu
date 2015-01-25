@@ -492,6 +492,10 @@ table.tablesorter {
 @color_business: @color_economy;
 @color_geography: @color_mapping;
 
+/* use to highlight spatial results */
+.dataset-summary:hover, .dataset-summary.highlighted {
+  background-color: #f9f9f9;
+}
 .dataset-summary {
   border-left: 6px solid #e0e0e0;
   padding-left: 10px;
@@ -1283,6 +1287,7 @@ body.controller-package {
       //height: 280px;
       background: #ccc;
       margin-bottom: 30px !important;
+      position: relative; // required for map tooltips positioning
       div.olControlAttribution {
         font-size: 9px;
         font-family: helvetica,tahoma,verdana,sans-serif;
