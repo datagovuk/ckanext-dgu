@@ -61,6 +61,13 @@
       {% if c.resource.get('url') %}
 
       {% if h.has_api(c.resource) %}
+
+      {% if h.is_sysadmin() %}
+      <a class="btn btn-success resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="/dataset/{{c.pkg_dict['name']}}/resource_data/{{c.resource.id}}">
+          <i class="icon-exclamation-sign"></i>&nbsp; Status
+      </a>
+      {% endif %}
+
       <a class="btn btn-success resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{h.url_for(controller='ckanext.dgu.controllers.api:DguApiController',action='resource_api',dataset_id=c.pkg_dict['name'],resource_id=c.resource.id)}}">
           <i class="icon-code"></i>&nbsp; API
       </a>
