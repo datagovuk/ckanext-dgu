@@ -520,6 +520,9 @@ dataset_app_report_info = {
     'template': 'report/dataset_app_report.html',
     }
 
+
+# admin_editor report
+
 def get_user_realname(user):
     from ckanext.dgu.drupalclient import DrupalClient
     from HTMLParser import HTMLParser
@@ -664,4 +667,79 @@ admin_editor_info = {
     'generate': admin_editor,
     'template': 'report/admin_editor.html',
     'authorize' : admin_editor_authorize
+    }
+
+
+# Licence report
+
+def licence(organization=None, include_sub_organizations=False):
+    '''
+    Returns a dictionary detailing licences for datasets in the
+    organisation specified, and optionally sub organizations.
+    '''
+    top_org = model.Group.by_name(organization)
+    if not top_org:
+        raise p.toolkit.ObjectNotFound('Publisher not found')
+
+    if include_sub_organizations:
+        orgs = lib.go_down_tree(top_org)
+    else:
+        orgs = [top_org]
+
+    for org in orgs:
+        # Get packages
+        pkgs = model.Session.query(model.Package)\
+                    .filter_by(state='active')
+        pkgs = lib.filter_by_organizations(pkgs, organization,
+                                           include_sub_organizations=False)\
+                  .all()
+
+        # Get their licences
+        packages_by_licence = collections.defaultdict(list)
+        rows = []
+        for pkg in pkgs:
+            licence = None
+            if pkg.license_id:
+                licence = pkg.license or pkg.license_id
+            if not licence and 'licence' in pkg.extras:
+                licence = pkg.extras['licence']
+            licence_url = pkg.extras.get('licence_url')
+            if licence_url:
+                licence.append(' <%s>' % licence_url)
+            packages_by_licence[licence].append((pkg.name, pkg.title))
+
+        for licence in packages_by_licence:
+            dataset_tuples = packages_by_licence[licence]
+            dataset_names, dataset_titles = zip(*dataset_tuples)
+            licence_dict = OrderedDict((
+                ('publisher_title', org.title),
+                ('publisher_name', org.name),
+                ('licence', licence),
+                ('dataset_titles', ' '.join('"%s"' % t for t in dataset_titles)),
+                ('dataset_names', ' '.join(dataset_names)),
+                ))
+            rows.append(licence_dict)
+
+    return {'organization_name': org.name,
+            'organization_title': org.title,
+            'num_datasets': len(pkgs),
+            'num_licences': len(rows),
+            'table': rows,
+            }
+
+def licence_combinations():
+    for organization in lib.all_organizations():
+        for include_sub_organizations in (False, True):
+                yield {'organization': organization,
+                       'include_sub_organizations': include_sub_organizations}
+
+licence_info = {
+    'name': 'licence',
+    'title': 'Licences',
+    'description': 'Licenses for datasets, reported by publisher.',
+    'option_defaults': OrderedDict((('organization', None),
+                                    ('include_sub_organizations', False))),
+    'option_combinations': licence_combinations,
+    'generate': licence,
+    'template': 'report/licence.html',
     }

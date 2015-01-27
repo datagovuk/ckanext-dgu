@@ -306,13 +306,6 @@
 {% endmacro %}
 
 {% macro facet_filters() %}
-  <div class="datasets">
-    <div class="facet-filters">
-      <div class="visible-xs visible-sm">
-        <a href="#" class="hide-facets">
-          <i class="icon-remove-circle icon-4x"></i>
-        </a>
-      </div>
       {{facet_box(
                 'Show only...',
                 h.search_facets_unselected(['unpublished']),
@@ -391,8 +384,6 @@
                 h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),
                 'No further type filters to apply.'
             )}}
-    </div><!-- /facet-filters -->
-  </div>
 {% endmacro %}
 
 {% macro contact_details(name, email, phone, web_url, web_name) %}
