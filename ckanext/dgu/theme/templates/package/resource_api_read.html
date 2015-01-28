@@ -71,11 +71,23 @@
             <td></td>
             <td>Required</td>
           </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;resource_id={{c.resource.id}} </td>
+              <td></td>
+              <td></td>
+          </tr>
           <tr>
             <td>q</td>
             <td>Full text query. If it’s a string, it’ll search on all fields on each row. If it’s a dictionary as {“key1”: “a”, “key2”: “b”}, it’ll search on each specific field</td>
             <td></td>
             <td>Optional</td>
+          </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;q=smith or &amp;q={"name":"smith"}</td>
+              <td></td>
+              <td></td>
           </tr>
           <tr>
             <td>filters</td>
@@ -83,11 +95,23 @@
             <td></td>
             <td>Optional</td>
           </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;filters={"name":"smith"}</td>
+              <td></td>
+              <td></td>
+          </tr>
           <tr>
             <td>distinct</td>
             <td>return only distinct rows</td>
             <td>false</td>
             <td>Optional</td>
+          </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;distinct=true</td>
+              <td></td>
+              <td></td>
           </tr>
           <tr>
             <td>fields</td>
@@ -95,11 +119,23 @@
             <td>all field</td>
             <td>Optional</td>
           </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;fields=location,size</td>
+              <td></td>
+              <td></td>
+          </tr>
           <tr>
             <td>limit</td>
             <td>maximum number of rows to return</td>
             <td>100</td>
             <td>Optional</td>
+          </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;limit=10</td>
+              <td></td>
+              <td></td>
           </tr>
           <tr>
             <td>offset</td>
@@ -107,11 +143,23 @@
             <td></td>
             <td>Optional</td>
           </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;offset=50</td>
+              <td></td>
+              <td></td>
+          </tr>
           <tr>
             <td>sort</td>
             <td>comma separated field names with ordering e.g.: “fieldname1, fieldname2 desc”</td>
             <td></td>
             <td>Optional</td>
+          </tr>
+          <tr style="border-bottom: solid 2px #ddd;">
+              <td></td>
+              <td><strong>Example:</strong> &amp;sort=name</td>
+              <td></td>
+              <td></td>
           </tr>
         </tbody>
       </table>
