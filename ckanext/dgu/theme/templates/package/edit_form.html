@@ -679,17 +679,30 @@ Passed in:
 
     <div class="well">
         <div class="controls">
-            <span style="position: relative">
-                <input id="spatial_name" name="spatial_name" size="40" type="text" value="{{data.get('spatial_name', '')}}" />
-                <div id="spatial_spinner" class="spinner" style="position: absolute;right: 1em;top: 0.5em; display: none">
+            <table>
+                <tr>
+                    <td width="100%">
+                                    <span style="position: relative">
+                <input id="spatial_name" name="spatial_name" type="text" value="{{data.get('spatial_name', '')}}"
+                       style="width: 100%; max-width: 15em"/>
+                <div id="spatial_spinner" class="spinner"
+                     style="position: absolute;right: 1em;top: 0.5em; display: none">
                     <div class="rect1"></div>
                     <div class="rect2"></div>
                     <div class="rect3"></div>
                 </div>
             </span>
-            <!-- <span><input id="use_exact_geom" type="checkbox"/> Use exact geometry</span> -->
-            <span style="float:right">[<input id="bbox_minx">,<input id="bbox_miny">] : [<input id="bbox_maxx">,<input id="bbox_maxy">]</span>
-            <input id="spatial" name="spatial" size="40" type="hidden" value="{{data.get('spatial', '')}}" />
+                    </td>
+                    <td>
+                        <!-- <span><input id="use_exact_geom" type="checkbox"/> Use exact geometry</span> -->
+                        <div style="white-space: nowrap; line-height: 8px; font-size: 90%">[<input
+                                id="bbox_minx">,<input id="bbox_miny">]<br/>
+                            [<input id="bbox_maxx">,<input id="bbox_maxy">]
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <input id="spatial" name="spatial" size="40" type="hidden" value="{{data.get('spatial', '')}}"/>
             {{ m.display_error(errors, 'spatial_extent', True) }}
         </div>
         <div id="map" style="width:100%; height:300px; margin: 0.5em 0;"></div>

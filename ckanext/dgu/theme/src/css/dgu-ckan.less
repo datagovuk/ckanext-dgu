@@ -1282,11 +1282,12 @@ body.controller-package {
     }
   }
   .dataset-map {
+    margin-bottom: 20px !important;
     #dataset-map-container {
       //width: 350px;   // size should be set on a per map instance basis
       //height: 280px;
       background: #ccc;
-      margin-bottom: 20px !important;
+      margin-bottom: 5px !important;
       position: relative; // required for map tooltips positioning
       div.olControlAttribution {
         font-size: 9px;
@@ -1901,6 +1902,10 @@ body.controller-widgets.action-index {
   border: none;
   background: inherit;
   text-align: center;
+}
+
+#section-geographic-field input[id^="bbox_"]:hover {
+  background: white;
 }
 
 #section-geographic-field input[id^="bbox_"]:focus {
