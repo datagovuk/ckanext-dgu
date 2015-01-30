@@ -490,6 +490,27 @@ $(function() {
                     }
                 }
 
+                var isDrawing
+
+                $(map.getViewport()).on('click', function(evt) {
+                    if (!isDrawing) {
+                        var pixel = map.getEventPixel(evt.originalEvent)
+
+                        var feature = map.forEachFeatureAtPixel(
+                            pixel,
+                            function (feature, layer) {
+                                return feature
+                            },
+                            undefined,
+                            function (layer) {
+                                return layer.getSource() === resultsBboxSource
+                            })
+                        if (feature) {
+                            $(".dataset-summary[data-id='" + feature.getId() + "']>a")[0].click()
+                        }
+                    }
+                })
+
                 $(map.getViewport()).on('mousemove', function(evt) {
                     var pixel = map.getEventPixel(evt.originalEvent)
 
@@ -509,8 +530,10 @@ $(function() {
                             .attr('data-original-title', feature.get('name'))
                             .tooltip('fixTitle')
                             .tooltip('show')
+                        !isDrawing && $(map.getViewport()).css("cursor", "pointer");
                     } else {
                         info.tooltip('hide')
+                        $(map.getViewport()).css("cursor", "");
                     }
                 })
 
@@ -556,13 +579,13 @@ $(function() {
                             map.addInteraction(boundingBoxInteraction)
                         }
 
-                        $(map.getViewport()).toggleClass('drawing', true)
+                        $(map.getViewport()).toggleClass('drawing', isDrawing = true)
                         onDrawEnableListener && onDrawEnableListener()
                     },
 
                     disableDraw: function() {
                         map.removeInteraction(boundingBoxInteraction);
-                        $(map.getViewport()).toggleClass('drawing', false)
+                        $(map.getViewport()).toggleClass('drawing', isDrawing = false)
                     },
 
                     /* spatial_lib implementation */
