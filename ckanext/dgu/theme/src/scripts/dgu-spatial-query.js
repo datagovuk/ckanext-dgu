@@ -10,6 +10,7 @@ $(function() {
                 function() {module.map.highlightResult(id)},
                 function() {module.map.highlightResult()}
             )
+            module.map.fitToResults();
         })
 
         module.spatial_lib.createGazetteerInput(

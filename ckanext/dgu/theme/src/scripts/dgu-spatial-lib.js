@@ -126,7 +126,9 @@ $(function() {
             // Handle the cancel expanded action
             $('.cancel', buttons).on('click', function() {
                 $('body').removeClass('dataset-map-expanded');
+                map.disableDraw()
                 map.clearSelection()
+                map.disableDraw && map.disableDraw()
                 setPreviousExtent();
                 setPreviousBBBox();
                 map.reset();
@@ -162,7 +164,7 @@ $(function() {
             var previous_bbox;
             setPreviousBBBox();
             setPreviousExtent();
-
+            map.fitToResults();
 
             // Is there an existing box from a previous search?
             function setPreviousBBBox() {
@@ -180,14 +182,14 @@ $(function() {
                 previous_extent = module._getParameterByName('ext_prev_extent');
                 if (previous_extent) {
                     coords = previous_extent.split(',');
-                    map.fitToExtent(parseFloat(coords[0]), parseFloat(coords[1]), parseFloat(coords[2]), parseFloat(coords[3]));
+                    map.fitToExtent([parseFloat(coords[0]), parseFloat(coords[1]), parseFloat(coords[2]), parseFloat(coords[3])]);
                 } else {
                     if (!previous_bbox){
-                        map.fitToExtent(
+                        map.fitToExtent([
                             module.options.default_extent[0][1],
                             module.options.default_extent[0][0],
                             module.options.default_extent[1][1],
-                            module.options.default_extent[1][0]);
+                            module.options.default_extent[1][0]]);
                     }
                 }
             }
@@ -426,6 +428,35 @@ $(function() {
                     })()
                 });
 
+                // override view function to prevent from panning outside the extent
+                map.getView().constrainCenter = function(center) {
+                    var resolution = this.getResolution()
+                    if (center !== undefined && resolution !== undefined) {
+                        var mapSize = /** @type {ol.Size} */ (map.getSize());
+                        var viewResolution = resolution;
+                        var mapHalfWidth = (mapSize[0] * viewResolution) / 2.0;
+                        var mapHalfHeight = (mapSize[1] * viewResolution) / 2.0;
+                        if (mapHalfWidth >= (extent[2] - extent[0])/2) {
+                            center[0] = extent[0] + (extent[2] - extent[0]) / 2
+                        } else if (center[0] - mapHalfWidth < extent[0]) {
+                            center[0] = extent[0] + mapHalfWidth;
+                        } else if (center[0] + mapHalfWidth > extent[2]) {
+                            center[0] = extent[2] - mapHalfWidth;
+                        }
+
+                        if (mapHalfHeight >= (extent[3] - extent[1])/2) {
+                            center[1] = extent[1] + (extent[3] - extent[1]) / 2
+                        } else if (center[1] - mapHalfHeight < extent[1]) {
+                            center[1] = extent[1] + mapHalfHeight;
+                        } else if (center[1] + mapHalfHeight > extent[3]) {
+                            center[1] = extent[3] - mapHalfHeight;
+                        }
+                        return center;
+                    } else {
+                        return center;
+                    }
+                }
+
                 var info = $("<div id='featureInfo' style='position: absolute'></div>").appendTo($(map.getViewport()).parent())
                 info.tooltip({
                     animation: false,
@@ -486,6 +517,16 @@ $(function() {
                 var selectionListener = null
                 var onDrawEnableListener = null
 
+                // Interaction to draw a bbox
+                var boundingBoxInteraction = new ol.interaction.DragBox({
+                    condition: ol.events.condition.always,
+                    style: new ol.style.Style({
+                        stroke: new ol.style.Stroke({
+                            color: [0, 0, 255, 1]
+                        })
+                    })
+                })
+
                 var mapComponent = {
 
                     highlightResult: function(id) {
@@ -495,6 +536,28 @@ $(function() {
 
                     highlightGeom: function(geom) {
                         highlightGeom(geom)
+                    },
+
+                    fitToResults: function() {
+                        if (resultsBboxSource && resultsBboxSource.getFeatures().length > 0) {
+                            var extent = resultsBboxSource.getExtent()
+                            this.fitToExtent(extent, 0.05, true)
+                        }
+                    },
+
+                    enableDraw: function() {
+                        selectBoxSource.clear()
+                        if (map.getInteractions().getArray().indexOf(boundingBoxInteraction) == -1) {
+                            map.addInteraction(boundingBoxInteraction)
+                        }
+
+                        $(map.getViewport()).toggleClass('drawing', true)
+                        onDrawEnableListener && onDrawEnableListener()
+                    },
+
+                    disableDraw: function() {
+                        map.removeInteraction(boundingBoxInteraction);
+                        $(map.getViewport()).toggleClass('drawing', false)
                     },
 
                     /* spatial_lib implementation */
@@ -519,6 +582,8 @@ $(function() {
                     onDrawEnable: function(callback) {
                         onDrawEnableListener = callback
                     },
+
+
                     onMoveEnd: function(callback) {
                         map.on('moveend', callback);
                     },
@@ -530,14 +595,7 @@ $(function() {
                         var selectedExtent = selectBoxSource.getExtent()
 
                         if (updateExtent) {
-                            var size = ol.extent.getSize(selectedExtent)
-                            var bufferedExtent = ol.extent.buffer(
-                                selectedExtent,
-                                    size[0]*size[1] == 0 ?
-                                    0.1 :                     // for a Point : arbitrary 0.1deg buffer
-                                    (size[0]+size[1])/20      // Polygon : 10% of mean size
-                            )
-                            map.getView().fitExtent(bufferedExtent, map.getSize())
+                            this.fitToExtent(updateExtent, 0.05)
                         }
 
                         selectionListener && selectionListener(geom)
@@ -551,16 +609,28 @@ $(function() {
                     },
                     reset: function() {
                         map.updateSize()
+                        map.getView().setCenter(map.getView().constrainCenter(map.getView().getCenter()))
                     },
                     clearSelection: function() {
                         if (selectBoxSource) selectBoxSource.clear()
                     },
-                    fitToExtent: function(minx, miny, maxx, maxy) {
-                        map.getView().fitExtent([minx, miny, maxx, maxy], map.getSize())
+                    fitToExtent: function(extent, bufferRatio, addOnly) {
+                        if (bufferRatio) {
+                            var size = ol.extent.getSize(extent)
+                            var extent = ol.extent.buffer(
+                                extent,
+                                    size[0] * size[1] == 0 ?
+                                    0.1 :                     // for a Point : arbitrary 0.1deg buffer
+                                    bufferRatio*(size[0] + size[1]) / 2   // Polygon : % of mean size
+                            )
+                        }
+                        if (addOnly) extent = ol.extent.extend(extent, this.getExtent())
+                        map.getView().fitExtent(extent, map.getSize())
+                        map.getView().setCenter(map.getView().constrainCenter(map.getView().getCenter()))
                     },
                     fitToSelection: function() {
                         var extent = selectBoxSource.getExtent()
-                        this.fitToExtent(extent[0], extent[1], extent[2], extent[3])
+                        this.fitToExtent(extent, 0.05)
                     },
                     getSelection: function() {
                         return selectBoxSource.getFeatures()[0].getGeometry()
@@ -570,32 +640,17 @@ $(function() {
                     }
                 }
 
-                // Interaction to draw a bbox
-                var boundingBoxInteraction = new ol.interaction.DragBox({
-                    condition: ol.events.condition.always,
-                    style: new ol.style.Style({
-                        stroke: new ol.style.Stroke({
-                            color: [0, 0, 255, 1]
-                        })
-                    })
-                })
-
                 boundingBoxInteraction.on('boxend', function (e) {
                     var newBox = boundingBoxInteraction.getGeometry()
 
                     mapComponent.setSelectedGeom(newBox, false)
-
-                    map.removeInteraction(boundingBoxInteraction);
-                    $(map.getViewport()).toggleClass('drawing', false)
+                    mapComponent.disableDraw()
                 })
 
                 var selectButton = $("<div class='selectButton ol-unselectable ol-control ol-collapsed' style='top: 4em; left: .5em;'><button class='ol-has-tooltip' type='button'><span class='glyphicon icon-crop' aria-hidden='true'></span><span role='tooltip'>Draw Selection</span></button></div>")
                 $(".ol-viewport").append(selectButton)
                 selectButton.click(function (e) {
-                    selectBoxSource.clear()
-                    map.addInteraction(boundingBoxInteraction)
-                    $(map.getViewport()).toggleClass('drawing', true)
-                    onDrawEnableListener && onDrawEnableListener()
+                    mapComponent.enableDraw()
                 })
 
                 return mapComponent
