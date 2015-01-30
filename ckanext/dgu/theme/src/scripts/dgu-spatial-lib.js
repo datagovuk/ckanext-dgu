@@ -514,6 +514,11 @@ $(function() {
                     }
                 })
 
+                $(map.getViewport()).on('mouseout', function(evt) {
+                    highlightFeature()
+                    info.tooltip('hide')
+                })
+
                 var selectionListener = null
                 var onDrawEnableListener = null
 
