@@ -83,7 +83,7 @@ CKAN.DguSpatialEditor = function($) {
     var OS_Attribution = new ol.Attribution({html: COPYRIGHT_STATEMENTS})
 
     var map = new ol.Map({
-        target: 'map',
+        target: 'dataset-map',
         size: [400,300],
         controls: ol.control.defaults( {attributionOptions: ({collapsible: false}) }),
         layers: [
