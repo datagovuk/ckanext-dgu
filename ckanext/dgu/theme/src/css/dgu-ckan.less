@@ -1759,6 +1759,12 @@ body.controller-widgets.action-index {
     background-color: transparent;
     border: none;
 
+    #gazetteerSearch {
+      top: -40px;
+      left: 10px;
+      max-width: 20em;
+    }
+
     #dataset-map-edit-buttons {
       position: absolute;
       z-index: 100;
@@ -1918,11 +1924,26 @@ body.controller-widgets.action-index {
 
 .ol-viewport .ol-attribution {
   height: inherit;
+
+  ul {
+    max-width: none;
+  }
+
+  li {
+    display: inline-block;
+  }
+
+  .attributionHover {
+    .short { display: block;}
+    .long { display: none;}
+  }
+
+  .attributionHover:hover {
+    .short { display: none;}
+    .long { display: block;}
+  }
 }
 
-.ol-viewport .ol-attribution ul {
-  max-width: none;
-}
 
 .ol-viewport.drawing {
   cursor: crosshair;

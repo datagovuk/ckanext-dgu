@@ -44,8 +44,8 @@
       <div class="dataset-map dataset-map-facet" data-module="spatial-query" data-default_extent="{{ default_extent }}">
         <div class="{% if 'ext_bbox' in request.params %}facet-option facet-option-selected{% endif %}">
           <div id="dataset-map-container"></div>
-          <div>
-            <span class="js-tooltip map-copyright-hover" style="font-size: 0.533em" title="Map contains Ordnance Survey data &copy; Crown copyright and database right [2012], Royal Mail data &copy; Royal Mail copyright and database right [2012], bathymetry data by GEBCO &copy; Copyright [2012], data by Land & Property Services (Northern Ireland) &copy; Crown copyright [2012].">Map copyright</span>
+          <div class="gazetteer" style="position: relative" id="gazetteerSearch">
+            <input class="form-control" placeholder="Search for location"  type="text" style="width: 100%; display: inline"/>
           </div>
           {% if 'ext_bbox' in request.params %}
             <a href="{{ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }}" class="action">

@@ -11,5 +11,16 @@ $(function() {
                 function() {module.map.highlightResult()}
             )
         })
+
+        module.spatial_lib.createGazetteerInput(
+            "#gazetteerSearch>input",
+            function(selection) {
+                module.map.setSelectedGeom(selection.data.bbox_geom);
+                module.submitForm()
+            },
+            function(hovered) {
+                module.map.highlightGeom(hovered);
+            }
+        )
     })
 })

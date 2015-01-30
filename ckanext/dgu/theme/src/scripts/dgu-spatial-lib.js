@@ -72,6 +72,14 @@ $(function() {
             return this.spatial_lib.drawExtentFromGeoJSON(geom);
         },
 
+        // Add the loading class and submit the form
+        submitForm: function() {
+            var _this = this
+            setTimeout(function() {
+                _this.form.submit();
+            }, 800);
+        },
+
         _onReady: function() {
             var module = this;
             var map;
@@ -86,6 +94,8 @@ $(function() {
             if (!form.length) {
                 form = $(".form-search");
             }
+
+            this.form = form
 
             var buttons;
 
@@ -132,7 +142,7 @@ $(function() {
                     // Eugh, hacky hack.
                     setTimeout(function() {
                         map.fitToSelection();
-                        submitForm();
+                        module.submitForm();
                     }, 200);
                 }
             });
@@ -182,13 +192,6 @@ $(function() {
                 }
             }
 
-            // Add the loading class and submit the form
-            function submitForm() {
-                setTimeout(function() {
-                    form.submit();
-                }, 800);
-            }
-
             var thisModule = this
             $.each(initCallbacks, function(idx, callback) {callback(thisModule)})
         }
@@ -202,6 +205,7 @@ $(function() {
 
     ckan.spatial_libs.dgu_ol3 = function() {
 
+        var geocoderServiceUrl = 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name='
         var COPYRIGHT_STATEMENTS =
             "Contains Ordnance Survey data &copy; Crown copyright and database right  [2012].<br/>" +
             "Contains Royal Mail data &copy; Royal Mail copyright and database right [2012].<br/>" +
@@ -245,6 +249,52 @@ $(function() {
                 return geojsonFormat.readGeometry(geojson)
             },
 
+            createGazetteerInput: function(inputEl, selectCallback, hoverCallback) {
+                var spinner = $(
+                    "<div class='spinner' style='position: absolute;right: 1em;top: 0.5em; display: none'>" +
+                        "<div class='rect1'></div>" +
+                        "<div class='rect2'></div>" +
+                        "<div class='rect3'></div></div>")
+                spinner.insertAfter($(inputEl))
+
+                $(inputEl)
+                    .autocomplete({
+                        triggerSelectOnValidInput : false,
+                        minChars: 3,
+                        preserveInput: true,
+                        serviceUrl: function(token) {
+                            return geocoderServiceUrl + token + "*"},
+                        //paramName: 'name',
+                        dataType: 'jsonp',
+                        onSearchStart: function() {
+                            spinner.show()
+                        },
+                        onSearchComplete: function() {
+                            spinner.hide()
+                        },
+                        onSearchError: function() {
+                            spinner.hide()
+                        },
+                        transformResult: function(response) {
+                            return {
+                                suggestions: $.map(response.features, function(feature) {
+                                    feature.bbox_geom = spatial_lib.bbox2geom(feature.bbox[0], feature.bbox[1], feature.bbox[2], feature.bbox[3], GAZETEER_PROJ)
+                                    return { value: feature.properties.name, data: feature };
+                                })
+                            };
+                        },
+                        onSelect: function (suggestion) {
+                            selectCallback && selectCallback(suggestion)
+                        },
+                        onActivate: function(item) {
+                            hoverCallback && hoverCallback(item.data.bbox_geom)
+                        }
+                    })
+                    .blur(function(e) {
+                        hoverCallback && hoverCallback()
+                    })
+            },
+
             /* spatial_lib implementation */
 
             geojson2extent: function(geojson) {
@@ -285,6 +335,26 @@ $(function() {
                     })
                 })
 
+                var suggestionFill = new ol.style.Fill({color: 'rgba(200, 200, 0, 0.2)'})
+                var suggestionStroke = new ol.style.Stroke({
+                    color: 'rgba(255, 50, 0, 0.6)',
+                    width: 1
+                })
+                // Create layer to hold bbox suggestions
+                var suggestedBoxSource = new ol.source.Vector();
+                var suggestionLayer = new ol.layer.Vector({
+                    source: suggestedBoxSource,
+                    style: new ol.style.Style({
+                        fill: suggestionFill,
+                        stroke: suggestionStroke,
+                        image: new ol.style.Circle({
+                            fill: suggestionFill,
+                            stroke: suggestionStroke,
+                            radius: 5
+                        })
+                    })
+                })
+
                 // Create layer to hold the highlighted bbox
                 var resultsBboxSource = new ol.source.Vector();
                 var resultsLayer = new ol.layer.Vector({
@@ -295,7 +365,8 @@ $(function() {
                     })
                 })
 
-                var OS_Attribution = new ol.Attribution({html: COPYRIGHT_STATEMENTS})
+                var attributionHtml = "<span class='attributionHover'><span class='short'>Copyrights</span><span class='long'>"+COPYRIGHT_STATEMENTS+"</span></span>"
+                var OS_Attribution = new ol.Attribution({html: attributionHtml})
 
                 var map = new ol.Map({
                     target: container,
@@ -320,7 +391,8 @@ $(function() {
                         }),
                         //vector,
                         selectionLayer,
-                        resultsLayer
+                        resultsLayer,
+                        suggestionLayer
                     ],
                     view: new ol.View({
                         projection: EPSG_4258,
@@ -363,7 +435,10 @@ $(function() {
                 var highlightFeature = function(feature) {
                     if (feature) {
                         if (feature !== highlightedResult) {
-                            if (highlightedResult) resultsOverlay.removeFeature(highlightedResult)
+                            if (highlightedResult) {
+                                resultsOverlay.removeFeature(highlightedResult)
+                                $(".dataset-summary.highlighted").toggleClass("highlighted", false)
+                            }
                             resultsOverlay.addFeature(highlightedResult = feature)
 
                             $(".dataset-summary[data-id='"+feature.getId()+"']").toggleClass("highlighted", true)
@@ -376,6 +451,14 @@ $(function() {
                         }
                     }
                 }
+
+                var highlightGeom = function(geom) {
+                    suggestedBoxSource.clear()
+                    if (geom) {
+                        suggestedBoxSource.addFeature(new ol.Feature(geom ))
+                    }
+                }
+
                 $(map.getViewport()).on('mousemove', function(evt) {
                     var pixel = map.getEventPixel(evt.originalEvent)
 
@@ -408,6 +491,10 @@ $(function() {
                     highlightResult: function(id) {
                         var feature = id && resultsBboxSource.getFeatureById(id)
                         highlightFeature(feature)
+                    },
+
+                    highlightGeom: function(geom) {
+                        highlightGeom(geom)
                     },
 
                     /* spatial_lib implementation */
@@ -453,6 +540,8 @@ $(function() {
                             map.getView().fitExtent(bufferedExtent, map.getSize())
                         }
 
+                        selectionListener && selectionListener(geom)
+
                         if (this.coordinateInputs) {
                             for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val(selectedExtent[idx].toFixed(5))
                         }
@@ -495,7 +584,6 @@ $(function() {
                     var newBox = boundingBoxInteraction.getGeometry()
 
                     mapComponent.setSelectedGeom(newBox, false)
-                    selectionListener && selectionListener(newBox)
 
                     map.removeInteraction(boundingBoxInteraction);
                     $(map.getViewport()).toggleClass('drawing', false)
