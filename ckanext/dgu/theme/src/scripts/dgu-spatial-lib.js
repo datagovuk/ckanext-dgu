@@ -253,7 +253,7 @@ $(function() {
 
             createGazetteerInput: function(inputEl, selectCallback, hoverCallback) {
                 var spinner = $(
-                    "<div class='spinner' style='position: absolute;right: 1em;top: 0.5em; display: none'>" +
+                    "<div class='spinner' style='position: absolute;right: 1em;top: 9px; display: none'>" +
                         "<div class='rect1'></div>" +
                         "<div class='rect2'></div>" +
                         "<div class='rect3'></div></div>")
