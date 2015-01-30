@@ -15,26 +15,6 @@
     {{ m.search_form(mini=true) }}
 </div>
 
-
-{# override spatial_query to exclude map attribution
-{% snippet "spatial/snippets/spatial_query.html", default_extent="[[50.3, 3.3], [51.0, 6.0]]", abstract_only = true %}
-#}
-<section id="dataset-map" class="module module-narrow module-shallow">
-    <h4 class="module-heading">
-        <i class="icon-medium icon-globe"></i>
-        {{ _('Filter by location') }}
-        <a href="{{ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }}" class="action">{{ _('Clear') }}</a>
-    </h4>
-    <div class="dataset-map" data-module="spatial-query" data-default_extent="{{ default_extent }}">
-        <div id="dataset-map-container"></div>
-    </div>
-</section>
-{# TODO removed until ckanext-spatial/dgu is upgraded to latest version
-   {% resource 'ckanext-spatial/spatial_query_abstract' %}
-#}
-{% resource 'ckanext-dgu/spatial_query_dgu' %}
-
-
 <div id="shopping-basket-container" class="facet-box-unboxed">
     <a id="shopping-basket-reset" href="#" class="facet-kill pull-right">
         <i class="icon-large icon-remove-sign"></i>
@@ -44,7 +24,56 @@
     <a href="/data/map-preview?" id="shopping-basket-submit" class="btn btn-info btn-basket"><span><i class="icon-map-marker"></i>&nbsp; Preview</span></a>
 </div>
 
-{{m.facet_filters()}}
+{# Facet filters #}
+<div class="datasets">
+  <div class="facet-filters">
+    <div class="visible-xs visible-sm">
+      <a href="#" class="hide-facets">
+        <i class="icon-remove-circle icon-4x"></i>
+      </a>
+    </div>
+
+    {# override spatial_query to exclude map attribution
+    {% snippet "spatial/snippets/spatial_query.html", default_extent="[[50.3, 3.3], [51.0, 6.0]]", abstract_only = true %}
+    #}
+    <div class="facet-box-unboxed">
+    <section id="dataset-map" class="module module-narrow module-shallow">
+      <h4 class="module-heading">
+        {{ _('Filter by location') }}
+      </h4>
+      <div class="dataset-map dataset-map-facet" data-module="spatial-query" data-default_extent="{{ default_extent }}">
+        <div class="{% if 'ext_bbox' in request.params %}facet-option facet-option-selected{% endif %}">
+          <div id="dataset-map-container"></div>
+          <div>
+            <span class="js-tooltip map-copyright-hover" style="font-size: 0.533em" title="Map contains Ordnance Survey data &copy; Crown copyright and database right [2012], Royal Mail data &copy; Royal Mail copyright and database right [2012], bathymetry data by GEBCO &copy; Copyright [2012], data by Land & Property Services (Northern Ireland) &copy; Crown copyright [2012].">Map copyright</span>
+          </div>
+          {% if 'ext_bbox' in request.params %}
+            <a href="{{ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }}" class="action">
+              <div class="facet-kill pull-right">
+                <i class="icon-large icon-remove-sign"></i>
+              </div>
+              <span data-placement="right">
+                {% set coords = h.extract_bbox_from_param(request.params['ext_bbox']) %}
+                {% if coords %}
+                  [{{coords[0]|round(2)}}, {{coords[1]|round(2)}}] [{{coords[2]|round(2)}}, {{coords[3]|round(2)}}]
+                {% else %}
+                  error
+                {% endif %}
+              </span>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+    </div>
+    {# spatial_query_dgu contains JS and CSS for OL3 and related stuff. It is DGU's version of ckanext-spatial/spatial_query_abstract #}
+    {% resource 'ckanext-dgu/spatial_query_dgu' %}
+    <div class="facet-divider"></div>
+
+    {{m.facet_filters()}}
+
+  </div><!-- /facet-filters -->
+</div>
 
 {% endblock %}
 

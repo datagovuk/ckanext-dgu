@@ -1653,6 +1653,17 @@ def search_facet_tooltip(key,value):
         return captions[stars]
     return
 
+def extract_bbox_from_param(bbox_param):
+    # e.g. u'-5.86769158095861,52.646473532369015,-2.3147358982386095,54.27176177020902'
+    coords = bbox_param.split(',')
+    if len(coords) != 4:
+        return None
+    try:
+        coords = [float(coord) for coord in coords]
+    except ValueError:
+        return None
+    return coords
+
 def social_url_twitter(url,title):
     import urllib
     twitter_parameters = {
