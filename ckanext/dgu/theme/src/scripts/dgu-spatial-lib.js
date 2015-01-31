@@ -331,10 +331,15 @@ $(function() {
                 var selectBoxSource = new ol.source.Vector();
                 var selectionLayer = new ol.layer.Vector({
                     source: selectBoxSource,
-                    style: new ol.style.Style({
-                        fill: new ol.style.Fill({color: 'rgba(0, 0, 255, 0.2)'}),
-                        stroke: new ol.style.Stroke({color: 'rgba(0, 0, 255, 0.6)', width: 1})
-                    })
+                    style: [
+                        new ol.style.Style({
+                            fill: new ol.style.Fill({color: 'rgba(0, 0, 255, 0.03)'}),
+                            stroke: new ol.style.Stroke({color: 'rgba(0, 0, 255, 0.6)', width: 1.5})
+                        }),
+                        new ol.style.Style({
+                            stroke: new ol.style.Stroke({color: 'white', width: 0.5})
+                        })
+                    ]
                 })
 
                 var suggestionFill = new ol.style.Fill({color: 'rgba(200, 200, 0, 0.2)'})
@@ -358,12 +363,19 @@ $(function() {
                 })
 
                 // Create layer to hold the highlighted bbox
+                var resultsFill = new ol.style.Fill({color: 'rgba(139,198,58, 0.05)'})
+                var resultsStroke = new ol.style.Stroke({color: 'rgba(139,198,58, 0.6)',width: 1})
                 var resultsBboxSource = new ol.source.Vector();
                 var resultsLayer = new ol.layer.Vector({
                     source: resultsBboxSource,
                     style: new ol.style.Style({
-                        fill: new ol.style.Fill({color: 'rgba(139,198,58, 0.1)'}),
-                        stroke: new ol.style.Stroke({color: 'rgba(139,198,58, 0.6)', width: 1})
+                        fill: resultsFill,
+                        stroke: resultsStroke,
+                        image: new ol.style.Circle({
+                            fill: resultsFill,
+                            stroke: resultsStroke,
+                            radius: 5
+                        })
                     })
                 })
 
@@ -407,7 +419,8 @@ $(function() {
                 var resultsOverlay = new ol.FeatureOverlay({
                     map: map,
                     style: (function() {
-                        var stroke = new ol.style.Stroke({color: '#8bc658', width: 2})
+                        var stroke = new ol.style.Stroke({color: '#8bc658', width: 2.5})
+                        var stroke2 = new ol.style.Stroke({color: 'white', width: 1})
                         var fill = new ol.style.Fill({color: 'rgba(139,198,58,0.2)'})
                         var textStroke = new ol.style.Stroke({color: '#fff',width: 2});
                         var textFill = new ol.style.Fill({color: '#000'});
@@ -415,6 +428,11 @@ $(function() {
                             return [new ol.style.Style({
                                 stroke: stroke,
                                 fill: fill,
+                                image: new ol.style.Circle({
+                                    fill: fill,
+                                    stroke: stroke,
+                                    radius: 5
+                                }),
                                 /* this can be used instead of tooltips
                                 text: new ol.style.Text({
                                     font: '12px Calibri,sans-serif',
@@ -423,6 +441,12 @@ $(function() {
                                     stroke: textStroke
                                 })
                                 */
+                            }), new ol.style.Style({
+                                stroke: stroke2,
+                                image: new ol.style.Circle({
+                                    stroke: stroke2,
+                                    radius: 5
+                                })
                             })];
                         };
                     })()
