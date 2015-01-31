@@ -639,59 +639,22 @@ Passed in:
 <fieldset class="tab-pane boxed whitebox fade" id="section-geographic-field">
   <h3>Geographic coverage</h3>
 
-    <!--
-    <div class="well">
-      {% set geographic_coverage = data.get('geographic_coverage', []) %}
-        <div class="checkbox">
-          <label for="england">
-          <input id="england" name="geographic_coverage" size="40" type="checkbox"
-          value="england" {% if 'england' in geographic_coverage %}checked="checked"{% endif %}/> England</label>
-        </div>
-        <div class="checkbox">
-          <label for="scotland">
-          <input id="scotland" name="geographic_coverage" size="40" type="checkbox"
-          value="scotland" {% if 'scotland' in geographic_coverage %}checked="checked"{% endif %}/> Scotland</label>
-        </div>
-        <div class="checkbox">
-          <label for="wales">
-          <input id="wales" name="geographic_coverage" size="40" type="checkbox"
-          value="wales" {% if 'wales' in geographic_coverage %}checked="checked"{% endif %}/> Wales</label>
-        </div>
-        <div class="checkbox">
-          <label for="northern_ireland">
-          <input id="northern_ireland" name="geographic_coverage" size="40" type="checkbox"
-          value="northern_ireland" {% if 'northern_ireland' in geographic_coverage %}checked="checked"{% endif %}/> Northern Ireland</label>
-        </div>
-        <div class="checkbox">
-          <label for="overseas">
-          <input id="overseas" name="geographic_coverage" size="40" type="checkbox"
-          value="overseas" {% if 'overseas' in geographic_coverage %}checked="checked"{% endif %}/> Overseas</label>
-        </div>
-        <div class="checkbox">
-          <label for="global">
-          <input id="global" name="geographic_coverage" size="40" type="checkbox"
-          value="global" {% if 'global' in geographic_coverage %}checked="checked"{% endif %}/> Global</label>
-        </div>
-      <p class="instructions further">Where a dataset covers multiple areas, the system will automatically group these (e.g. 'England', 'Scotland' and 'Wales' all being selected would be shown as 'Great Britain').</p>
-    </div>
-    -->
-
-
     <div class="well">
         <div class="controls">
             <table>
+                <tr><td id="region-select">Region quick picks : </td></tr>
                 <tr>
                     <td width="100%">
-                                    <span style="position: relative">
-                <input id="spatial_name" name="spatial_name" type="text" value="{{data.get('spatial_name', '')}}"
-                       style="width: 100%; max-width: 15em"/>
-                <div id="spatial_spinner" class="spinner"
-                     style="position: absolute;right: 1em;top: 0.5em; display: none">
-                    <div class="rect1"></div>
-                    <div class="rect2"></div>
-                    <div class="rect3"></div>
-                </div>
-            </span>
+                        <span style="position: relative">
+                            <input id="spatial_name" name="spatial_name" type="text" value="{{data.get('spatial_name', '')}}"
+                                   style="width: 100%; max-width: 15em"/>
+                            <div id="spatial_spinner" class="spinner"
+                                 style="position: absolute;right: 1em;top: 0.5em; display: none">
+                                <div class="rect1"></div>
+                                <div class="rect2"></div>
+                                <div class="rect3"></div>
+                            </div>
+                        </span>
                     </td>
                     <td>
                         <!-- <span><input id="use_exact_geom" type="checkbox"/> Use exact geometry</span> -->
@@ -709,12 +672,6 @@ Passed in:
     </div>
 
     <script type="text/javascript" src="/scripts/dgu-spatial-edit.js"></script>
-    <script>
-        $(function() {
-            CKAN.DguSpatialEditor.bindCoordinateInputs("#bbox_minx","#bbox_miny","#bbox_maxx","#bbox_maxy")
-            CKAN.DguSpatialEditor.bindInput("#spatial")
-        })
-    </script>
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-extra-field">

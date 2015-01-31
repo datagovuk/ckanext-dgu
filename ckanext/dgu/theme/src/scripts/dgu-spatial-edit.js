@@ -151,17 +151,6 @@ CKAN.DguSpatialEditor = function($) {
 
     })
 
-    function bbox2geom(bbox, bboxProjection) {
-        var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
-        // make sure the gazetteer extents are transformed into the system SRS
-        if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, EPSG_4258)
-        var size = ol.extent.getSize(e)
-        // either a point or a box
-        return geom = size[0]*size[1] == 0 ?
-            new ol.geom.Point(ol.extent.getCenter(e)) :
-            new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
-    }
-
     $('#spatial_name')
         .autocomplete({
             triggerSelectOnValidInput : false,
@@ -183,7 +172,7 @@ CKAN.DguSpatialEditor = function($) {
             transformResult: function(response) {
                 return {
                     suggestions: $.map(response.features, function(feature) {
-                        feature.bbox_geom = bbox2geom(feature.bbox, GAZETEER_PROJ)
+                        feature.bbox_geom = CKAN.DguSpatialEditor.bbox2geom(feature.bbox, GAZETEER_PROJ)
                         return { value: feature.properties.name, data: feature };
                     })
                 };
@@ -205,6 +194,25 @@ CKAN.DguSpatialEditor = function($) {
 
 
     return {
+        bbox2geom: function(bbox, bboxProjection) {
+            var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
+            // make sure the gazetteer extents are transformed into the system SRS
+            if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, EPSG_4258)
+            var size = ol.extent.getSize(e)
+            // either a point or a box
+            return size[0]*size[1] == 0 ?
+                new ol.geom.Point(ol.extent.getCenter(e)) :
+                new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
+        },
+
+        regions: { //TODO fill coordinates
+            "England" : undefined,
+            "Scotland" : [-9.22987, 54.51334, -0.70514, 60.85988],
+            "Wales" : [-5.81237, 51.32290, -2.64221, 53.45855],
+            "Nothern Ireland" : undefined,
+            "Overseas" : undefined,
+            "Global" : undefined
+        },
         geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
         currentSuggestion: null,
         useExactGeometry: false,
@@ -292,7 +300,7 @@ CKAN.DguSpatialEditor = function($) {
         },
 
         syncWithInputCoordinates: function() {
-            this.setBBox(bbox2geom(this.coordinateInputs.map(function(input) {return input.val()})))
+            this.setBBox(this.bbox2geom(this.coordinateInputs.map(function(input) {return input.val()})))
         },
 
         bindInput: function(el) {
@@ -304,3 +312,28 @@ CKAN.DguSpatialEditor = function($) {
         }
     }
 } (jQuery)
+
+$(function() {
+    CKAN.DguSpatialEditor.bindCoordinateInputs("#bbox_minx","#bbox_miny","#bbox_maxx","#bbox_maxy")
+    CKAN.DguSpatialEditor.bindInput("#spatial")
+
+    $.each(CKAN.DguSpatialEditor.regions, function(name, box) {
+
+        $("#region-select")
+            .append(
+                $("<a>"+name+"</a>")
+                .click(function() {
+                        if (box) CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
+                        $("#spatial_name").val(name)
+                    })
+        )
+        /*
+        $("#region-select")
+            .append($("<option value='"+box+"'>"+name+"</option>"))
+            .change(function(e) {
+                var optionSelected = $("option:selected", this);
+                var valueSelected = this.value;
+            })
+            */
+    })
+})

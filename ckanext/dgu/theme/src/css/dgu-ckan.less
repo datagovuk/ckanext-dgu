@@ -1905,21 +1905,27 @@ body.controller-widgets.action-index {
   }
 }
 
-#section-geographic-field input[id^="bbox_"] {
-  width: 5em;
-  font-size: 80%;
-  border: none;
-  background: inherit;
-  text-align: center;
-}
+#section-geographic-field {
+  #region-select a {
+    padding: 0 1em;
+  }
 
-#section-geographic-field input[id^="bbox_"]:hover {
-  background: white;
-}
+  input[id^="bbox_"] {
+    width: 5em;
+    font-size: 80%;
+    border: none;
+    background: inherit;
+    text-align: center;
+  }
 
-#section-geographic-field input[id^="bbox_"]:focus {
-  border: 1px solid #707070;
-  background: white;
+  input[id^="bbox_"]:hover {
+    background: white;
+  }
+
+  input[id^="bbox_"]:focus {
+    border: 1px solid #707070;
+    background: white;
+  }
 }
 
 #dataset-map .ol-viewport .ol-attribution {
