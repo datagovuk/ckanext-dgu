@@ -1926,6 +1926,25 @@ body.controller-widgets.action-index {
     border: 1px solid #707070;
     background: white;
   }
+
+  #gazetteer .autocomplete-suggestions {
+    /* force auto-width for suggestions to allow for feature code display */
+    width: auto !important;
+
+    .autocomplete-suggestion>div {
+
+      width: 100%;
+      div {
+        white-space: nowrap;
+        display: table-cell;
+        width: 100%;
+      }
+      div:last-child {
+        padding-left: 1em;
+        font-size: 70%;
+      }
+    }
+  }
 }
 
 #dataset-map .ol-viewport .ol-attribution {

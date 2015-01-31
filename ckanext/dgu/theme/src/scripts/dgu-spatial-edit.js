@@ -155,6 +155,7 @@ CKAN.DguSpatialEditor = function($) {
         .autocomplete({
             triggerSelectOnValidInput : false,
             minChars: 3,
+            appendTo: '#gazetteer',
             preserveInput: true,
             serviceUrl: function(token) {
                 return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
@@ -169,6 +170,10 @@ CKAN.DguSpatialEditor = function($) {
             onSearchError: function() {
                 $("#spatial_spinner").hide()
             },
+            formatResult: function(suggestion, currentValue) {
+                return "<div><div>"+suggestion.value+"</div><div>"+suggestion.data.properties.featuretype+"</div></div>"
+            },
+
             transformResult: function(response) {
                 return {
                     suggestions: $.map(response.features, function(feature) {
