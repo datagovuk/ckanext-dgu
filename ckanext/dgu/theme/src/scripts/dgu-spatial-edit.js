@@ -25,10 +25,10 @@ CKAN.DguSpatialEditor = function($) {
 
     var EPSG_4326 = ol.proj.get('EPSG:4326');
     var EPSG_4258 = ol.proj.get('EPSG:4258');
+    EPSG_4258.setExtent(extent);
 
     var GAZETEER_PROJ = EPSG_4326
-
-    EPSG_4258.setExtent(extent);
+    var MAP_PROJ = EPSG_4258
 
     // Define a TileGrid to ensure that WMS requests are made for
     // tiles at the correct resolutions and tile boundaries
@@ -82,36 +82,39 @@ CKAN.DguSpatialEditor = function($) {
 
     var OS_Attribution = new ol.Attribution({html: COPYRIGHT_STATEMENTS})
 
+    var OSLayer = new ol.layer.Tile({
+        source: new ol.source.TileWMS({
+            attributions: [
+                OS_Attribution
+            ],
+            //TODO : should the OS key stay here?
+            url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
+            params: {
+                'LAYERS': 'InspireETRS89',
+                'FORMAT': 'image/png',
+                'TILED': true,
+                'VERSION': '1.1.1'
+            },
+            tileGrid: tileGrid
+        }),
+        extent: extent
+    })
+
     var map = new ol.Map({
         target: 'dataset-map',
         size: [400,300],
         controls: ol.control.defaults( {attributionOptions: ({collapsible: false}) }),
         layers: [
-            new ol.layer.Tile({
-                source: new ol.source.TileWMS({
-                    attributions: [
-                        OS_Attribution
-                    ],
-                    //TODO : should the OS key stay here?
-                    url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
-                    params: {
-                        'LAYERS': 'InspireETRS89',
-                        'FORMAT': 'image/png',
-                        'TILED': true,
-                        'VERSION': '1.1.1'
-                    },
-                    tileGrid: tileGrid
-                })
-            }),
-            //vector,
+            OSLayer,
             selectionLayer,
             activateLayer
         ],
         view: new ol.View({
-            projection: EPSG_4258,
+            projection: MAP_PROJ,
             resolutions: resolutions,
-            center: [-0.6680291327536106, 51.33129296535873],
-            zoom: 3
+            center: [-4.5, 54],
+            //extent: extent,
+            zoom: 0
         })
     });
 
@@ -204,7 +207,7 @@ CKAN.DguSpatialEditor = function($) {
 
             var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
             // make sure the gazetteer extents are transformed into the system SRS
-            if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, EPSG_4258)
+            if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, MAP_PROJ)
             var size = ol.extent.getSize(e)
             // either a point or a box
             return size[0]*size[1] == 0 ?
@@ -251,7 +254,7 @@ CKAN.DguSpatialEditor = function($) {
                         function (data) {
                             var geojson = data.footprints[0].geometry
                             var geom = _this.currentSuggestion.data.exactFootprint = geojsonFormat.readGeometry(geojson)
-                            geom.transform(GAZETEER_PROJ, EPSG_4258)
+                            geom.transform(GAZETEER_PROJ, MAP_PROJ)
                             _this.setBBox(geom, true)
                         })
                 } else {
