@@ -4,10 +4,11 @@ var CKAN = CKAN || {};
 CKAN.DguSpatialEditor = function($) {
 
     var COPYRIGHT_STATEMENTS =
-        "Contains Ordnance Survey data &copy; Crown copyright and database right  [2012].<br/>" +
-        "Contains Royal Mail data &copy; Royal Mail copyright and database right [2012].<br/>" +
-        "Contains bathymetry data by GEBCO &copy; Copyright [2012].<br/>" +
-        "Contains data by Land & Property Services (Northern Ireland) &copy; Crown copyright [2012]."
+        "Map background contains data from:<br/>" +
+        "Ordnance Survey &copy; Crown copyright and database right [2012];<br/>" +
+        "Royal Mail &copy; Royal Mail copyright and database right [2012];<br/>" +
+        "Bathymetry by GEBCO &copy; Copyright [2012];<br/>" +
+        "Land & Property Services (Northern Ireland) &copy; Crown copyright [2012]."
 
     var geojsonFormat = new ol.format.GeoJSON()
     var selectionListener //
@@ -226,13 +227,16 @@ CKAN.DguSpatialEditor = function($) {
                 new ol.geom.Polygon([[ol.extent.getBottomLeft(e), ol.extent.getTopLeft(e), ol.extent.getTopRight(e), ol.extent.getBottomRight(e)]])
         },
 
-        regions: { //TODO fill coordinates
-            "England" : undefined,
+        regions: {
+            "Worldwide": [-180, -90, 180, 90],
+            "United Kingdom": [-13.69136, 49.90961, 1.77171, 60.84755],
+            "Great Britain": [-6.23656, 49.96027, 1.77088, 58.67823],
+            "British Isles": [-11.11705, 49.11890, 2.31459, 61.49506],
+            "England & Wales": [-6.379880, 49.871159, 1.768960, 55.811741],
+            "England": [-6.379880, 49.871159, 1.768960, 55.811741],
             "Scotland" : [-9.22987, 54.51334, -0.70514, 60.85988],
             "Wales" : [-5.81237, 51.32290, -2.64221, 53.45855],
-            "Nothern Ireland" : undefined,
-            "Overseas" : undefined,
-            "Global" : undefined
+            "Northern Ireland" : [-8.17384, 54.03422, -5.43013, 55.31105],
         },
         geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
         currentSuggestion: null,
@@ -357,8 +361,8 @@ $(function() {
     $.each(CKAN.DguSpatialEditor.regions, function(name, box) {
 
         $("#region-select")
-            .append(
-                $("<a class='btn btn-info' role='button'>"+name+"</a>")
+            .append(      
+        $("<a class='btn btn-info' role='button'>"+name.replace(" ", "&nbsp;")+"</a>")
                 .click(function() {
                         CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
                         $("#spatial_name").val(box?name:"")
