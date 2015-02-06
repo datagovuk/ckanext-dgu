@@ -166,24 +166,32 @@ CKAN.DguSpatialEditor = function($) {
 
     })
 
+    var currentQuery
     $('#spatial_name')
         .autocomplete({
             triggerSelectOnValidInput : false,
             minChars: 3,
             appendTo: '#gazetteer',
+            showNoSuggestionNotice: true,
             preserveInput: true,
             serviceUrl: function(token) {
                 return CKAN.DguSpatialEditor.geocoderServiceUrl + token + "*"},
-            //paramName: 'name',
+            paramName: 'query',
             dataType: 'jsonp',
-            onSearchStart: function() {
+            noSuggestionNotice: '<i>No Results</i>',
+            onSearchStart: function(params) {
+                currentQuery = params['query']
                 $("#spatial_spinner").show()
             },
-            onSearchComplete: function() {
+            onSearchComplete: function(q, suggestions) {
+                currentQuery = undefined
                 $("#spatial_spinner").hide()
+                // set min-width instead of width (list must be expandable to the right to allow for feature code display)
+                $("div.autocomplete-suggestions").css({"min-width": $("#gazetteer input").outerWidth()});
             },
-            onSearchError: function() {
-                $("#spatial_spinner").hide()
+            onSearchError: function(q, jqXHR, textStatus, errorThrown) {
+                if (q == currentQuery) // hide spinner only if the error is about the current query
+                    $("#spatial_spinner").hide()
             },
             formatResult: function(suggestion, currentValue) {
                 return "<div><div>"+suggestion.value+"</div><div>"+suggestion.data.properties.featuretype+"</div></div>"
