@@ -44,7 +44,7 @@
       <div class="dataset-map dataset-map-facet" data-module="spatial-query" data-default_extent="{{ default_extent }}">
         <div class="{% if 'ext_bbox' in request.params %}facet-option facet-option-selected{% endif %}">
           <div id="dataset-map-container"></div>
-          <div class="gazetteer" style="position: relative" id="gazetteerSearch">
+          <div style="position: relative" id="gazetteer">
             <input class="form-control" placeholder="Search for location"  type="text" style="width: 100%; display: inline"/>
           </div>
           {% if 'ext_bbox' in request.params %}

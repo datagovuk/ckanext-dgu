@@ -1749,6 +1749,25 @@ body.controller-widgets.action-index {
 }
 
 
+#gazetteer .autocomplete-suggestions {
+  /* force auto-width for suggestions to allow for feature code display */
+  width: auto !important;
+
+  .autocomplete-suggestion>div {
+
+    width: 100%;
+    div {
+      white-space: nowrap;
+      display: table-cell;
+      width: 100%;
+    }
+    div:last-child {
+      padding-left: 1em;
+      font-size: 70%;
+    }
+  }
+}
+
 .dataset-map-expanded {
 
   #dataset-map {
@@ -1759,7 +1778,7 @@ body.controller-widgets.action-index {
     background-color: transparent;
     border: none;
 
-    #gazetteerSearch {
+    #gazetteer {
       top: -40px;
       left: 10px;
       max-width: 20em;
@@ -1909,6 +1928,7 @@ body.controller-widgets.action-index {
   #region-select a {
     padding: 0 1em;
     word-wrap: normal;
+    display: inline-block;
   }
 
   input[id^="bbox_"] {
@@ -1928,24 +1948,6 @@ body.controller-widgets.action-index {
     background: white;
   }
 
-  #gazetteer .autocomplete-suggestions {
-    /* force auto-width for suggestions to allow for feature code display */
-    width: auto !important;
-
-    .autocomplete-suggestion>div {
-
-      width: 100%;
-      div {
-        white-space: nowrap;
-        display: table-cell;
-        width: 100%;
-      }
-      div:last-child {
-        padding-left: 1em;
-        font-size: 70%;
-      }
-    }
-  }
 }
 
 #dataset-map .ol-viewport .ol-attribution {

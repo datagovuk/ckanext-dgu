@@ -26,10 +26,10 @@ CKAN.DguSpatialEditor = function($) {
 
     var EPSG_4326 = ol.proj.get('EPSG:4326');
     var EPSG_4258 = ol.proj.get('EPSG:4258');
+    EPSG_4258.setExtent(extent);
 
     var GAZETEER_PROJ = EPSG_4326
-
-    EPSG_4258.setExtent(extent);
+    var MAP_PROJ = EPSG_4258
 
     // Define a TileGrid to ensure that WMS requests are made for
     // tiles at the correct resolutions and tile boundaries
@@ -83,36 +83,39 @@ CKAN.DguSpatialEditor = function($) {
 
     var OS_Attribution = new ol.Attribution({html: COPYRIGHT_STATEMENTS})
 
+    var OSLayer = new ol.layer.Tile({
+        source: new ol.source.TileWMS({
+            attributions: [
+                OS_Attribution
+            ],
+            //TODO : should the OS key stay here?
+            url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
+            params: {
+                'LAYERS': 'InspireETRS89',
+                'FORMAT': 'image/png',
+                'TILED': true,
+                'VERSION': '1.1.1'
+            },
+            tileGrid: tileGrid
+        }),
+        extent: extent
+    })
+
     var map = new ol.Map({
         target: 'dataset-map',
         size: [400,300],
         controls: ol.control.defaults( {attributionOptions: ({collapsible: false}) }),
         layers: [
-            new ol.layer.Tile({
-                source: new ol.source.TileWMS({
-                    attributions: [
-                        OS_Attribution
-                    ],
-                    //TODO : should the OS key stay here?
-                    url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
-                    params: {
-                        'LAYERS': 'InspireETRS89',
-                        'FORMAT': 'image/png',
-                        'TILED': true,
-                        'VERSION': '1.1.1'
-                    },
-                    tileGrid: tileGrid
-                })
-            }),
-            //vector,
+            OSLayer,
             selectionLayer,
             activateLayer
         ],
         view: new ol.View({
-            projection: EPSG_4258,
+            projection: MAP_PROJ,
             resolutions: resolutions,
-            center: [-0.6680291327536106, 51.33129296535873],
-            zoom: 3
+            center: [-4.5, 54],
+            //extent: extent,
+            zoom: 0
         })
     });
 
@@ -201,9 +204,11 @@ CKAN.DguSpatialEditor = function($) {
 
     return {
         bbox2geom: function(bbox, bboxProjection) {
+            if (!bbox) return undefined
+
             var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
             // make sure the gazetteer extents are transformed into the system SRS
-            if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, EPSG_4258)
+            if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, MAP_PROJ)
             var size = ol.extent.getSize(e)
             // either a point or a box
             return size[0]*size[1] == 0 ?
@@ -212,7 +217,7 @@ CKAN.DguSpatialEditor = function($) {
         },
 
         regions: {
-            "": undefined,
+            "(None)": undefined,
             "Worldwide": [-180, -90, 180, 90],
             "United Kingdom": [-13.69136, 49.90961, 1.77171, 60.84755],
             "Great Britain": [-6.23656, 49.96027, 1.77088, 58.67823],
@@ -253,7 +258,7 @@ CKAN.DguSpatialEditor = function($) {
                         function (data) {
                             var geojson = data.footprints[0].geometry
                             var geom = _this.currentSuggestion.data.exactFootprint = geojsonFormat.readGeometry(geojson)
-                            geom.transform(GAZETEER_PROJ, EPSG_4258)
+                            geom.transform(GAZETEER_PROJ, MAP_PROJ)
                             _this.setBBox(geom, true)
                         })
                 } else {
@@ -264,25 +269,32 @@ CKAN.DguSpatialEditor = function($) {
 
         setBBox: function(geom, updateExtent) {
             selectBoxSource.clear()
-            selectBoxSource.addFeature(new ol.Feature(geom ))
+            if (geom) {
+                selectBoxSource.addFeature(new ol.Feature(geom))
 
-            var selectedExtent = selectBoxSource.getExtent()
+                var selectedExtent = selectBoxSource.getExtent()
 
-            if (updateExtent) {
-                var size = ol.extent.getSize(selectedExtent)
-                var bufferedExtent = ol.extent.buffer(
-                    selectedExtent,
-                        size[0]*size[1] == 0 ?
-                        0.1 :                     // for a Point : arbitrary 0.1deg buffer
-                        (size[0]+size[1])/20      // Polygon : 10% of mean size
-                )
-                map.getView().fitExtent(bufferedExtent, map.getSize())
-            }
+                if (updateExtent) {
+                    var size = ol.extent.getSize(selectedExtent)
+                    var bufferedExtent = ol.extent.buffer(
+                        selectedExtent,
+                            size[0] * size[1] == 0 ?
+                            0.1 :                     // for a Point : arbitrary 0.1deg buffer
+                            (size[0] + size[1]) / 20      // Polygon : 10% of mean size
+                    )
+                    map.getView().fitExtent(bufferedExtent, map.getSize())
+                }
 
-            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+                selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
 
-            if (this.coordinateInputs) {
-                for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val(selectedExtent[idx].toFixed(5))
+                if (this.coordinateInputs) {
+                    for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val(selectedExtent[idx].toFixed(5))
+                }
+            } else {
+                selectionListener && selectionListener()
+                if (this.coordinateInputs) {
+                    for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val("")
+                }
             }
         },
 
@@ -310,14 +322,16 @@ CKAN.DguSpatialEditor = function($) {
         },
 
         syncWithInputCoordinates: function() {
-            this.setBBox(this.bbox2geom(this.coordinateInputs.map(function(input) {return input.val()})))
+            this.setBBox(this.bbox2geom(this.coordinateInputs.map(function(input) {return parseFloat(input.val())})))
         },
 
         bindInput: function(el) {
             var $el = $(el)
             if ($el.val()) try { CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()), true) } catch (err) {}
+            $el.prop('disabled', $el.val() == false)  // disable the input field if no value to avoid server-side validation failure
             CKAN.DguSpatialEditor.onBBox(function(bbox) {
-                $el.val(bbox)
+                $el.prop('disabled', !bbox || bbox === undefined)
+                $el.val(bbox || "")
             })
         }
     }
@@ -333,8 +347,8 @@ $(function() {
             .append(
                 $("<a>"+name.replace(" ", "&nbsp;")+"</a>")
                 .click(function() {
-                        if (box) CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
-                        $("#spatial_name").val(name)
+                        CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
+                        $("#spatial_name").val(box?name:"")
                     })
         )
         /*

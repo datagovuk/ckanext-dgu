@@ -263,6 +263,7 @@ $(function() {
                     .autocomplete({
                         triggerSelectOnValidInput : false,
                         minChars: 3,
+                        appendTo: '#gazetteer',
                         preserveInput: true,
                         serviceUrl: function(token) {
                             return geocoderServiceUrl + token + "*"},
@@ -276,6 +277,9 @@ $(function() {
                         },
                         onSearchError: function() {
                             spinner.hide()
+                        },
+                        formatResult: function(suggestion, currentValue) {
+                            return "<div><div>"+suggestion.value+"</div><div>"+suggestion.data.properties.featuretype+"</div></div>"
                         },
                         transformResult: function(response) {
                             return {
@@ -411,8 +415,8 @@ $(function() {
                     view: new ol.View({
                         projection: EPSG_4258,
                         resolutions: resolutions,
-                        center: [-0.6680291327536106, 51.33129296535873],
-                        zoom: 3
+                        center: [-4.5, 54],
+                        zoom: 0
                     })
                 });
 
