@@ -263,6 +263,7 @@ $(function() {
                     .autocomplete({
                         triggerSelectOnValidInput : false,
                         minChars: 3,
+                        appendTo: '#gazetteer',
                         preserveInput: true,
                         serviceUrl: function(token) {
                             return geocoderServiceUrl + token + "*"},
@@ -276,6 +277,9 @@ $(function() {
                         },
                         onSearchError: function() {
                             spinner.hide()
+                        },
+                        formatResult: function(suggestion, currentValue) {
+                            return "<div><div>"+suggestion.value+"</div><div>"+suggestion.data.properties.featuretype+"</div></div>"
                         },
                         transformResult: function(response) {
                             return {

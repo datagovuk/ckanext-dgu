@@ -14,7 +14,7 @@ $(function() {
         })
 
         module.spatial_lib.createGazetteerInput(
-            "#gazetteerSearch>input",
+            "#gazetteer>input",
             function(selection) {
                 module.map.setSelectedGeom(selection.data.bbox_geom);
                 module.submitForm()
