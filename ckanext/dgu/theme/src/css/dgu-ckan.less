@@ -1749,21 +1749,26 @@ body.controller-widgets.action-index {
 }
 
 
-#gazetteer .autocomplete-suggestions {
-  /* force auto-width for suggestions to allow for feature code display */
-  width: auto !important;
+#gazetteer {
+  .form-control {
+    display: inherit;
+  }
+  .autocomplete-suggestions {
+    /* force auto-width for suggestions to allow for feature code display */
+    width: auto !important;
 
-  .autocomplete-suggestion>div {
+    .autocomplete-suggestion>div {
 
-    width: 100%;
-    div {
-      white-space: nowrap;
-      display: table-cell;
       width: 100%;
-    }
-    div:last-child {
-      padding-left: 1em;
-      font-size: 70%;
+      div {
+        white-space: nowrap;
+        display: table-cell;
+        width: 100%;
+      }
+      div:last-child {
+        padding-left: 1em;
+        font-size: 70%;
+      }
     }
   }
 }
