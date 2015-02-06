@@ -90,7 +90,7 @@ CKAN.DguSpatialEditor = function($) {
             //TODO : should the OS key stay here?
             url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
             params: {
-                'LAYERS': 'InspireETRS89',
+                'LAYERS': 'InspireETRS89', //'InspireWGS84',
                 'FORMAT': 'image/png',
                 'TILED': true,
                 'VERSION': '1.1.1'
@@ -105,6 +105,17 @@ CKAN.DguSpatialEditor = function($) {
         size: [400,300],
         controls: ol.control.defaults( {attributionOptions: ({collapsible: false}) }),
         layers: [
+            /*
+            new ol.layer.Tile({
+                source: new ol.source.TileWMS({
+                    url: 'http://vmap0.tiles.osgeo.org/wms/vmap0',
+                    params: {
+                        'VERSION': '1.1.1',
+                        'LAYERS': 'basic',
+                        'FORMAT': 'image/jpeg'
+                    }
+                })
+            }), */
             OSLayer,
             selectionLayer,
             activateLayer
@@ -216,7 +227,6 @@ CKAN.DguSpatialEditor = function($) {
         },
 
         regions: { //TODO fill coordinates
-            "None" : undefined,
             "England" : undefined,
             "Scotland" : [-9.22987, 54.51334, -0.70514, 60.85988],
             "Wales" : [-5.81237, 51.32290, -2.64221, 53.45855],
@@ -337,11 +347,18 @@ $(function() {
     CKAN.DguSpatialEditor.bindCoordinateInputs("#bbox_minx","#bbox_miny","#bbox_maxx","#bbox_maxy")
     CKAN.DguSpatialEditor.bindInput("#spatial")
 
+    $("#region-select")
+        .append(
+        $("<a class='btn btn-warning' role='button'>None</a>")
+            .click(function() {
+                CKAN.DguSpatialEditor.setBBox()
+                $("#spatial_name").val("")
+            }))
     $.each(CKAN.DguSpatialEditor.regions, function(name, box) {
 
         $("#region-select")
             .append(
-                $("<a>"+name+"</a>")
+                $("<a class='btn btn-info' role='button'>"+name+"</a>")
                 .click(function() {
                         CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
                         $("#spatial_name").val(box?name:"")
