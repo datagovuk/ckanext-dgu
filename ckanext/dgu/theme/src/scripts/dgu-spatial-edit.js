@@ -200,6 +200,8 @@ CKAN.DguSpatialEditor = function($) {
 
     return {
         bbox2geom: function(bbox, bboxProjection) {
+            if (!bbox) return undefined
+
             var e = ol.extent.boundingExtent([bbox.slice(0,2),bbox.slice(2,4)])
             // make sure the gazetteer extents are transformed into the system SRS
             if (bboxProjection) e = ol.proj.transformExtent(e, bboxProjection, EPSG_4258)
@@ -211,6 +213,7 @@ CKAN.DguSpatialEditor = function($) {
         },
 
         regions: { //TODO fill coordinates
+            "None" : undefined,
             "England" : undefined,
             "Scotland" : [-9.22987, 54.51334, -0.70514, 60.85988],
             "Wales" : [-5.81237, 51.32290, -2.64221, 53.45855],
@@ -259,25 +262,32 @@ CKAN.DguSpatialEditor = function($) {
 
         setBBox: function(geom, updateExtent) {
             selectBoxSource.clear()
-            selectBoxSource.addFeature(new ol.Feature(geom ))
+            if (geom) {
+                selectBoxSource.addFeature(new ol.Feature(geom))
 
-            var selectedExtent = selectBoxSource.getExtent()
+                var selectedExtent = selectBoxSource.getExtent()
 
-            if (updateExtent) {
-                var size = ol.extent.getSize(selectedExtent)
-                var bufferedExtent = ol.extent.buffer(
-                    selectedExtent,
-                        size[0]*size[1] == 0 ?
-                        0.1 :                     // for a Point : arbitrary 0.1deg buffer
-                        (size[0]+size[1])/20      // Polygon : 10% of mean size
-                )
-                map.getView().fitExtent(bufferedExtent, map.getSize())
-            }
+                if (updateExtent) {
+                    var size = ol.extent.getSize(selectedExtent)
+                    var bufferedExtent = ol.extent.buffer(
+                        selectedExtent,
+                            size[0] * size[1] == 0 ?
+                            0.1 :                     // for a Point : arbitrary 0.1deg buffer
+                            (size[0] + size[1]) / 20      // Polygon : 10% of mean size
+                    )
+                    map.getView().fitExtent(bufferedExtent, map.getSize())
+                }
 
-            selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
+                selectionListener && selectionListener(JSON.stringify(geojsonFormat.writeGeometry(geom)))
 
-            if (this.coordinateInputs) {
-                for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val(selectedExtent[idx].toFixed(5))
+                if (this.coordinateInputs) {
+                    for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val(selectedExtent[idx].toFixed(5))
+                }
+            } else {
+                selectionListener && selectionListener()
+                if (this.coordinateInputs) {
+                    for (var idx in this.coordinateInputs) this.coordinateInputs[idx].val("")
+                }
             }
         },
 
@@ -305,14 +315,16 @@ CKAN.DguSpatialEditor = function($) {
         },
 
         syncWithInputCoordinates: function() {
-            this.setBBox(this.bbox2geom(this.coordinateInputs.map(function(input) {return input.val()})))
+            this.setBBox(this.bbox2geom(this.coordinateInputs.map(function(input) {return parseFloat(input.val())})))
         },
 
         bindInput: function(el) {
             var $el = $(el)
             if ($el.val()) try { CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry($el.val()), true) } catch (err) {}
+            $el.prop('disabled', $el.val() == false)  // disable the input field if no value to avoid server-side validation failure
             CKAN.DguSpatialEditor.onBBox(function(bbox) {
-                $el.val(bbox)
+                $el.prop('disabled', !bbox || bbox === undefined)
+                $el.val(bbox || "")
             })
         }
     }
@@ -328,8 +340,8 @@ $(function() {
             .append(
                 $("<a>"+name+"</a>")
                 .click(function() {
-                        if (box) CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
-                        $("#spatial_name").val(name)
+                        CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
+                        $("#spatial_name").val(box?name:"")
                     })
         )
         /*
