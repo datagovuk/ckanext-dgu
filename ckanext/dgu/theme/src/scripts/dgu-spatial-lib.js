@@ -12,7 +12,7 @@ $(function() {
     var DguSearch = ckan.DGU.SearchModule = function() {
         this.options = {
             i18n: {},
-            default_extent: [[50.00, -6.5], [60.00, 0.3]]
+            default_extent: [[49.90961, -13.69136], [60.84755, 1.77171]]
         }
     }
 
@@ -405,7 +405,7 @@ $(function() {
 
                 // Create layer to hold the highlighted bbox
                 var resultsFill = new ol.style.Fill({color: 'rgba(139,198,58, 0.05)'})
-                var resultsStroke = new ol.style.Stroke({color: 'rgba(139,198,58, 0.6)',width: 1})
+                var resultsStroke = new ol.style.Stroke({color: 'rgba(0,0,0, 0.8)',width: 1.5})
                 var resultsBboxSource = new ol.source.Vector();
                 var resultsLayer = new ol.layer.Vector({
                     source: resultsBboxSource,
@@ -512,7 +512,7 @@ $(function() {
                 var resultsOverlay = new ol.FeatureOverlay({
                     map: map,
                     style: (function() {
-                        var stroke = new ol.style.Stroke({color: '#8bc658', width: 2.5})
+                        var stroke = new ol.style.Stroke({color: 'black' /* '#8bc658' */, width: 2.5})
                         var stroke2 = new ol.style.Stroke({color: 'white', width: 1})
                         var fill = new ol.style.Fill({color: 'rgba(139,198,58,0.2)'})
                         var textStroke = new ol.style.Stroke({color: '#fff',width: 2});
