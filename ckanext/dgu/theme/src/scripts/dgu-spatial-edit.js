@@ -13,31 +13,61 @@ CKAN.DguSpatialEditor = function($) {
     var geojsonFormat = new ol.format.GeoJSON()
     var selectionListener //
 
-    // Bounding box of our TMS that define our area of interest
-    // Extent of the map in units of the projection
-    var extent = [-30, 48.00, 3.50, 64.00];
-
-    // Fixed resolutions to display the map at (pixels per ground unit)
-    var resolutions = [0.03779740088, 0.02519826725, 0.01259913362, 0.00251982672, 0.00062995668, 0.000188987];
-
     // Define British National Grid Proj4js projection (copied from http://epsg.io/27700.js)
     //proj4.defs("EPSG:27700","+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs");
     proj4.defs("EPSG:4258", "+title=ETRS89 +proj=longlat +ellps=GRS80 +no_defs");
-
     var EPSG_4326 = ol.proj.get('EPSG:4326');
-    var EPSG_4258 = ol.proj.get('EPSG:4258');
-    EPSG_4258.setExtent(extent);
+
+    var OSLayers = {
+        INSPIRE_Vector_4326 : {
+            extent: [-180,-90,180,90],
+            resolutions: [0.703125,0.3515625,0.17578125,0.087890625,0.0439453125,0.02197265625,0.010986328125,0.0054931640625,0.00274658203125,0.001373291015625,6.866455078125E-4,3.4332275390625E-4,1.71661376953125E-4,8.58306884765625E-5,4.291534423828125E-5,2.1457672119140625E-5,1.0728836059570312E-5,5.364418029785156E-6,2.682209014892578E-6,1.341104507446289E-6],
+            tileSize: 256,
+            clippingExtent: [-15, 50.00, 3, 63.00],
+            wmsLayerName: 'InspireVectorStack',
+            projection: 'EPSG:4326'
+        },
+        INSPIRE_Vector_Mercator : {
+            extent: [-2.003750834E7,-2.003750834E7,2.0037508345578495E7,2.0037508345578495E7],
+            resolutions: [156543.033928041,78271.51696402048,39135.75848201023,19567.87924100512,9783.93962050256,4891.96981025128,2445.98490512564,1222.99245256282,611.49622628141,305.7481131407048,152.8740565703525,76.43702828517624,38.21851414258813,19.10925707129406,9.554628535647032,4.777314267823516,2.388657133911758,1.194328566955879,0.5971642834779395],
+            tileSize: 256,
+            //clippingExtent: [-12, 50.00, 3, 60.00],
+            wmsLayerName: 'InspireVectorStack',
+            projection: 'EPSG:900913'
+        },
+        INSPIRE_WGS84 : {
+            extent: [-30, 48.00, 7.79, 64.00],
+            resolutions: [0.037797400884406626,0.025198267256271084,0.012599133628135542,0.0025198267256271085,6.299566814067771E-4,1.889870044220331E-4,1.259913362813554E-4,6.29956681406777E-5,2.5198267256271077E-5,1.2599133628135539E-5,6.299566814067769E-6],
+            tileSize: 250,
+            clippingExtent: [-12, 50.00, 3, 60.00],
+            wmsLayerName: 'InspireWGS84',
+            projection: 'EPSG:4326'
+        },
+        INSPIRE_ETRS89 : {
+            extent: [-30, 48.00, 7.79, 64.00],
+            resolutions: [0.037797400884406626,0.025198267256271084,0.012599133628135542,0.0025198267256271085,6.299566814067771E-4,1.889870044220331E-4,1.259913362813554E-4,6.29956681406777E-5,2.5198267256271077E-5,1.2599133628135539E-5,6.299566814067769E-6],
+            tileSize: 250,
+            clippingExtent: [-12, 50.00, 3, 60.00],
+            wmsLayerName: 'InspireETRS89',
+            projection: 'EPSG:4258'
+        }
+    }
+
+    var activeLayer = OSLayers.INSPIRE_Vector_4326
+
+
+    // Resolutions for the basemap to complement the OS layer
+    var global_resolutions = [1.40625, 0.703125,0.3515625,0.17578125,0.0878906250,0.05]
+
+    // take global resolutions above the OS layer supported resolutions to fill the gap
+    var resolutions = []
+    $.each(global_resolutions, function(idx, res) {
+        if (res > activeLayer.resolutions[0]) resolutions.push(res)
+    })
+    resolutions = resolutions.concat(activeLayer.resolutions)
 
     var GAZETEER_PROJ = EPSG_4326
-    var MAP_PROJ = EPSG_4258
-
-    // Define a TileGrid to ensure that WMS requests are made for
-    // tiles at the correct resolutions and tile boundaries
-    var tileGrid = new ol.tilegrid.TileGrid({
-        origin: extent.slice(0, 2),
-        resolutions: resolutions,
-        tileSize: 250
-    });
+    var MAP_PROJ = ol.proj.get(activeLayer.projection)
 
     var selectionFill = new ol.style.Fill({color: 'rgba(0, 0, 255, 0.2)'})
     var selectionStroke = new ol.style.Stroke({
@@ -83,7 +113,7 @@ CKAN.DguSpatialEditor = function($) {
 
     var OS_Attribution = new ol.Attribution({html: COPYRIGHT_STATEMENTS})
 
-    var OSLayer = new ol.layer.Tile({
+    var OS_Layer = new ol.layer.Tile({
         source: new ol.source.TileWMS({
             attributions: [
                 OS_Attribution
@@ -91,22 +121,59 @@ CKAN.DguSpatialEditor = function($) {
             //TODO : should the OS key stay here?
             url: 'http://osinspiremappingprod.ordnancesurvey.co.uk/geoserver/gwc/service/wms?key=0822e7b98adf11e1a66e183da21c99ac',
             params: {
-                'LAYERS': 'InspireETRS89', //'InspireWGS84',
+                'LAYERS': activeLayer.wmsLayerName,
                 'FORMAT': 'image/png',
                 'TILED': true,
                 'VERSION': '1.1.1'
             },
-            tileGrid: tileGrid
+            tileGrid: new ol.tilegrid.TileGrid({
+                origin: activeLayer.extent.slice(0, 2),
+                resolutions: activeLayer.resolutions,
+                tileSize: activeLayer.tileSize
+            })
         }),
-        extent: extent
+        extent: activeLayer.extent,
+        maxResolution: activeLayer.resolutions[0]
     })
+
+    if (activeLayer.clippingExtent) {
+        // The clipping geometry.
+        var OSClippingGeom = new ol.geom.Polygon([
+            [
+                [activeLayer.clippingExtent[0], activeLayer.clippingExtent[1]],
+                [activeLayer.clippingExtent[0], activeLayer.clippingExtent[3]],
+                [activeLayer.clippingExtent[2], activeLayer.clippingExtent[3]],
+                [activeLayer.clippingExtent[2], activeLayer.clippingExtent[1]]
+            ]
+        ])
+        // A style for the geometry.
+        var fillStyle = new ol.style.Fill({color: [0, 0, 0, 0]});
+
+        OS_Layer.on('precompose', function (event) {
+            var ctx = event.context;
+            var vecCtx = event.vectorContext;
+
+            ctx.save();
+
+            // Using a style is a hack to workaround a limitation in
+            // OpenLayers 3, where a geometry will not be draw if no
+            // style has been provided.
+            vecCtx.setFillStrokeStyle(fillStyle, null);
+            vecCtx.drawPolygonGeometry(OSClippingGeom);
+
+            ctx.clip();
+        });
+
+        OS_Layer.on('postcompose', function (event) {
+            var ctx = event.context;
+            ctx.restore();
+        });
+    }
 
     var map = new ol.Map({
         target: 'dataset-map',
-        size: [400,300],
         controls: ol.control.defaults( {attributionOptions: ({collapsible: false}) }),
         layers: [
-            /*
             new ol.layer.Tile({
                 source: new ol.source.TileWMS({
                     url: 'http://vmap0.tiles.osgeo.org/wms/vmap0',
@@ -116,16 +183,15 @@ CKAN.DguSpatialEditor = function($) {
                         'FORMAT': 'image/jpeg'
                     }
                 })
-            }), */
-            OSLayer,
+            }),
+            OS_Layer,
             selectionLayer,
             activateLayer
         ],
         view: new ol.View({
             projection: MAP_PROJ,
             resolutions: resolutions,
-            center: [-4.5, 54],
-            //extent: extent,
+            center: ol.proj.transform([-4.5, 54], EPSG_4326, MAP_PROJ),
             zoom: 0
         })
     });
