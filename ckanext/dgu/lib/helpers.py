@@ -805,6 +805,8 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
 
         try:
             mandates = json.loads(mandates)
+            if not isinstance(mandates, list):
+                mandates = [mandates]
             mandates = [Markup.escape(m) for m in mandates]
             mandates = [linkify(m) for m in mandates]
             mandates = Markup("<br>".join(mandates))
