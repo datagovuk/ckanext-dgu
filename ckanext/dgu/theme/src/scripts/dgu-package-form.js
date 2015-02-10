@@ -88,6 +88,18 @@
         return false;
     });
 
+    $('#technical-docs-add').click(function(e) {
+        var list = $('#technical-docs-list');
+
+        var new_doc = list.children().first().clone();
+
+        new_doc.children().first().attr('value', '');
+
+        list.append(new_doc);
+      
+        return false;
+    });
+
     // Correctly handle disabled nav buttons
     $('a.disabled').click(function(e) {
       e.preventDefault();

@@ -602,7 +602,7 @@ Passed in:
     <span class="checking-links-label" style="display: none;">Checking, please wait...</span>
     <hr/>
 
-    <div class="well form-inline">
+    <div class="well clearfix">
       <h3>Mandate</h3>
       <p class="instructions basic">The law (or other public commitment) that caused the data to be collected (if appropriate).</p>
       <p>For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
@@ -618,6 +618,19 @@ Passed in:
       </div>
     </div>
 
+    <div class="well clearfix">
+      <h3>Technical Documentation</h3>
+      <p class="instructions basic">Please provide links to where users of this data can find technical documentation to support their use of this data.</p>
+      <div class="form-group">
+        {%- set technical_docs = h.get_technical_docs_list(data) or [''] -%}
+        <ul id="technical-docs-list">
+        {% for technical_doc in technical_docs %}
+          <li><input class="form-control" name="technical_docs" size="80" type="text" value="{{technical_doc}}"/></li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="technical-docs-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+      </div>
+    </div>
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-temporal-field">

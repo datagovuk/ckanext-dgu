@@ -714,7 +714,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
     from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'technical-docs', 'temporal_coverage', 'geographic_coverage'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
@@ -794,20 +794,33 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
             secondary_themes = unicode(secondary_themes)
             secondary_themes = THEMES.get(secondary_themes,
                                           secondary_themes)
+    def linkify(string):
+        if string.startswith('http://') or string.startswith('https://'):
+            return '<a href="%s" target="_blank">%s</a>' % (string, string)
+        else:
+            return string
 
     mandates = pkg_extras.get('mandate')
     if mandates:
-        def linkify(string):
-            if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s" target="_blank">%s</a>' % (string, string)
-            else:
-                return string
-
         try:
             mandates = json.loads(mandates)
+            if not isinstance(mandates, list):
+                mandates = [mandates]
             mandates = [Markup.escape(m) for m in mandates]
             mandates = [linkify(m) for m in mandates]
             mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass # Not JSON for some reason...
+
+    technical_docs = pkg_extras.get('technical_docs')
+    if technical_docs:
+        try:
+            technical_docs = json.loads(technical_docs)
+            if not isinstance(technical_docs, list):
+                technical_docs = [technical_docs]
+            technical_docs = [Markup.escape(m) for m in technical_docs]
+            technical_docs = [linkify(m) for m in technical_docs]
+            technical_docs = Markup("<br>".join(technical_docs))
         except ValueError:
             pass # Not JSON for some reason...
 
@@ -833,6 +846,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
         'mandate': {'label': 'Mandate', 'value': mandates},
+        'technical-docs': {'label': 'Technical Documentation', 'value': technical_docs},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
@@ -2124,3 +2138,12 @@ def get_mandate_list(data):
     if not isinstance(mandate, list):
         log.error('Mandate should be a list: %r', mandate)
     return mandate
+
+def get_technical_docs_list(data):
+    technical_docs = data.get('technical_docs') or []
+    if isinstance(technical_docs, basestring):
+        # this is the case when only one <input> is on the form
+        return [technical_docs]
+    if not isinstance(technical_docs, list):
+        log.error('Technical docs should be a list: %r', technical_docs)
+    return technical_docs
