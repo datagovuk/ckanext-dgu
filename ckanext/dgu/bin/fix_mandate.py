@@ -30,13 +30,22 @@ class FixMandate(object):
             if 'mandate' in package.extras:
 
                 mandate = package.extras.get('mandate')
-
-                if mandate:
-                    print stats.add('Fixing (with value)', package.name)
-                    package.extras['mandate'] = json.dumps([mandate])
-                else:
-                    print stats.add('Fixing (without value)', package.name)
-                    package.extras['mandate'] = json.dumps([])
+                try:
+                    mandate = json.loads(mandate)
+                    if isinstance(mandate, list):
+                        stats.add('Already list', package.name)
+                    elif isinstance(mandate, basestring):
+                        stats.add('Fixing JSON string', package.name)
+                        package.extras['mandate'] = json.dumps([mandate])
+                    else:
+                        stats.add('Problem JSON', package.name)
+                except:
+                    if mandate != '':
+                        stats.add('Fixing string', package.name)
+                        package.extras['mandate'] = json.dumps([mandate])
+                    else:
+                        stats.add('Deleting empty string', package.name)
+                        del package.extras['mandate']
             else:
                 stats.add('No mandate field', package.name)
 

@@ -29,6 +29,7 @@ ignore_missing = tk.get_validator('ignore_missing')
 not_empty = tk.get_validator('not_empty')
 empty = tk.get_validator('empty')
 ignore = tk.get_validator('ignore')
+ignore_empty = tk.get_validator('ignore_empty')
 keep_extras = tk.get_validator('keep_extras')
 not_missing = tk.get_validator('not_missing')
 
@@ -273,7 +274,7 @@ class DatasetForm(p.SingletonPlugin):
             'foi-web': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
-            'mandate': [ignore_missing, remove_blanks, to_json, convert_to_extras],
+            'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -445,6 +446,11 @@ def remove_blanks(key, data, errors, context):
         data[key] = filtered
     except:
         pass
+
+def to_list(key, data, errors, context):
+    item = data[key]
+    if isinstance(item, basestring):
+        data[key] = [item]
 
 def to_json(key, data, errors, context):
     try:
