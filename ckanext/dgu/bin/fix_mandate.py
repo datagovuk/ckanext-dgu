@@ -39,7 +39,7 @@ class FixMandate(object):
                         package.extras['mandate'] = json.dumps([mandate])
                     else:
                         stats.add('Problem JSON', package.name)
-                except:
+                except ValueError:
                     if mandate != '':
                         stats.add('Fixing string', package.name)
                         package.extras['mandate'] = json.dumps([mandate])
