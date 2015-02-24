@@ -48,6 +48,12 @@ update_frequency = [('', ''),
                     ('monthly', 'monthly'),
                     ('other', 'other - please specify')]
 
+publication_delay = [('', ''),
+                    ('minimal', 'Minimal or no delay'),
+                    ('good', 'Less than half the update frequency'),
+                    ('reasonable', 'About the same as the update frequency'),
+                    ('extreme', 'Longer than the update frequency')]
+
 temporal_granularity = [("", ""),
                         ("year", "year"),
                         ("quarter", "quarter"),
@@ -242,6 +248,7 @@ class DatasetForm(p.SingletonPlugin):
             'last_major_modification': [ignore_missing, date_to_db, convert_to_extras],
             'update_frequency': [ignore_missing, use_other, unicode, convert_to_extras],
             'update_frequency-other': [ignore_missing],
+            'publication_delay': [ignore_missing, unicode, convert_to_extras],
             'precision': [ignore_missing, unicode, convert_to_extras],
             'geographic_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
             'geographic_granularity-other': [ignore_missing],
@@ -309,6 +316,7 @@ class DatasetForm(p.SingletonPlugin):
             'last_major_modification': [convert_from_extras, ignore_missing, date_to_form],
             'date_update_future': [convert_from_extras, ignore_missing, date_to_form],
             'update_frequency': [convert_from_extras, ignore_missing, extract_other(update_frequency)],
+            'publication_delay': [convert_from_extras, ignore_missing],
             'precision': [convert_from_extras, ignore_missing],
             'geographic_granularity': [convert_from_extras, ignore_missing, extract_other(geographic_granularity)],
             'geographic_coverage': [convert_from_extras, ignore_missing, convert_geographic_to_form],

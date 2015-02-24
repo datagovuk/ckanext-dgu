@@ -714,7 +714,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
     from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'publication_delay'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
@@ -811,6 +811,14 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         except ValueError:
             pass # Not JSON for some reason...
 
+    publication_delay = pkg_extras.get('publication_delay')
+    if publication_delay:
+        mapping = dict(get_dgu_dataset_form_options('publication_delay'))
+        try:
+            publication_delay = mapping[publication_delay]
+        except KeyError:
+            publication_delay = ''
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -825,6 +833,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
+        'publication_delay': {'label': 'Publication delay', 'value': publication_delay},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
         'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},

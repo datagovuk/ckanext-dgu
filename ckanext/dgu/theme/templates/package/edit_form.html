@@ -115,8 +115,9 @@ Passed in:
 
     <!-- The resource fieldset for a timeseries dataset -->
     <fieldset id="package_type-timeseries">
-      <div class="well form-inline">
-        <label for="update_frequency" class="js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
+    <div class="well">
+      <div class="form-group form-inline">
+        <label for="update_frequency" class="col-xs-3 js-tooltip" title="How frequently new data files are published.  For one-off data, use 'never'. For those once updated but now discontinued, use 'discontinued'.">
           Update frequency <i class="icon-info-sign"></i>
         </label>
         <select style="width: 200px;" class="form-control" id="update_frequency" name="update_frequency">
@@ -128,8 +129,20 @@ Passed in:
         </select>
         <label style="margin-left: 20px;" class="" for="update_frequency-other">Other:</label>
         <input class="form-control" style="width: 200px;" id="update_frequency-other" name="update_frequency-other" type="text" value="{{data.get('update_frequency-other', '')}}"/>
-      </div><!-- /well -->
+      </div>
       {{ m.display_error(errors, 'update_frequency') }}
+      <div class="form-group">
+        <label for="publication_delay" class="col-xs-3 js-tooltip" title="How long is the delay between creating and publishing the data?">Publication delay <i class="icon-info-sign"></i></label>
+        <select style="width: 200px;" class="form-control" id="publication_delay" name="publication_delay">
+            {% for name, desc in h.get_dgu_dataset_form_options('publication_delay') %}
+              <option value="{{name}}" {% if data.get('publication_delay', '') == name %}selected="selected"{% endif %} >
+                {{desc}}
+              </option>
+            {% endfor %}
+        </select>
+       </div>
+      {{ m.display_error(errors, 'publication_delay') }}
+      </div><!-- /well -->
 
       <table class="flexitable table table-bordered table-condensed table-striped" id="timeseries_resources-table">
       <thead>

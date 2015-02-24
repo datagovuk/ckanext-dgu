@@ -141,6 +141,8 @@ organisation_name_mapping = {
 
 update_frequency_options = ['never', 'discontinued', 'annual', 'quarterly', 'monthly']
 
+publication_delay_options = ['minimal', 'good', 'reasonable', 'extreme']
+
 geographic_granularity_options = ['national', 'regional', 'local authority', 'ward', 'point']
 
 temporal_granularity_options = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'point']
