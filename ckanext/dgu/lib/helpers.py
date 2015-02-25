@@ -2114,3 +2114,12 @@ def orgs_for_admin_report():
        all_orgs[org['name']] = org
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
+
+def get_mandate_list(data):
+    mandate = data.get('mandate') or []
+    if isinstance(mandate, basestring):
+        # This shouldn't happen, but maybe a harvester puts in a string
+        return [mandate]
+    if not isinstance(mandate, list):
+        log.error('Mandate should be a list: %r', mandate)
+        return mandate
