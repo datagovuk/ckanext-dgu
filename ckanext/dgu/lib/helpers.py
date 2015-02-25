@@ -2123,3 +2123,4 @@ def get_mandate_list(data):
     if not isinstance(mandate, list):
         log.error('Mandate should be a list: %r', mandate)
         return mandate
+    return mandate
