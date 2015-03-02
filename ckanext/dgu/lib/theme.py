@@ -34,6 +34,7 @@ class Themes(object):
             themes_json = f.read()
         themes_list = json.loads(themes_json)
         self.data = {}
+        self.themes = {}
         self.topic_words = {}  # topic:theme_name
         self.topic_bigrams = {} # (topicword1, topicword2):theme_name
         self.topic_trigrams = {} # (topicword1, topicword2, topicword3):theme_name
@@ -44,6 +45,8 @@ class Themes(object):
         self.odc = {}  # OpenDataCommunities.org theme extra
         for theme_dict in themes_list:
             name = theme_dict.get('stored_as') or theme_dict['title']
+
+            self.themes[name] = theme_dict['title']
 
             for key in ('topics', 'gemet', 'nscl', 'ons', 'la_function', 'la_service',
                         'odc'):
