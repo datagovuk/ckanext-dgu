@@ -192,7 +192,7 @@ def transform_total(df):
 
 def main():
     infile = "data.csv"
-    outfile = "../../src/scripts/json/social-investment-and-foundations.json"
+    outfile = "../../src/scripts/json/social_investment_and_foundations.json"
     assert os.path.exists(infile),"Input file does not exist: "+infile
     assert infile.endswith('.csv'),"Expected input file with extension 'csv'"
     assert outfile.endswith('.json'),"Expected output file with extension 'json'"
