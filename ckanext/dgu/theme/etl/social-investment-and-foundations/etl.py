@@ -191,11 +191,8 @@ def transform_total(df):
 
 
 def main():
-    if len(sys.argv)!=3:
-        print "Usage: "+sys.argv[0]+" input_file output_file"
-        sys.exit(-1)
-    infile = sys.argv[1]
-    outfile = sys.argv[2]
+    infile = "data.csv"
+    outfile = "../../src/scripts/json/social-investment-and-foundations.json"
     assert os.path.exists(infile),"Input file does not exist: "+infile
     assert infile.endswith('.csv'),"Expected input file with extension 'csv'"
     assert outfile.endswith('.json'),"Expected output file with extension 'json'"

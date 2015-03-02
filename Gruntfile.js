@@ -7,7 +7,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-coffee');
-  grunt.loadNpmTasks('grunt-shell');
 
   // Change relative directory
   grunt.file.setBase('ckanext/dgu/theme/');
@@ -15,15 +14,6 @@ module.exports = function(grunt) {
   // Project configuration.
   grunt.initConfig({
     pkg: pkg,
-    shell: {
-      etl1: {
-        command: './etl/social-investment-and-foundations/etl.py ./etl/social-investment-and-foundations/data.csv public/scripts/json/social_investment_and_foundations.json'
-      }/*,
-      etl2: {
-        command: './etl/investment-readiness-programme/etl.py ./etl/investment-readiness-programme/data.csv public/scripts/json/social_investment_and_foundations.json'
-      }
-      */
-    },
     uglify: {
       //options: { beautify: true, mangle: false, compress: false, }, //  <-- DEBUG MODE
       app: {
