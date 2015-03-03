@@ -1,0 +1,523 @@
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+// == ================== ==
+// == General Components ==
+// == ================== ==
+.notebook_link {
+  float: right;
+  min-width: 220px;
+  width: 20%;
+  border: 1px solid #000;
+  padding: 8px;
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+
+h4.viz-header {
+    color: #666;
+}
+ul.legend {
+    font-size: 10px;
+    font-weight: bold;
+    overflow: hidden;
+    color: #555;
+    margin-left: 0;
+    list-style-type: none;
+    width: 230px;
+    border: 1px solid #e0e0e0;
+    padding: 5px;
+    padding-left: 0px;
+    li { 
+        display: block;
+        text-align: right;
+        vertical-align: middle;
+        .swatch {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+        &.hovering {
+            color: #000;
+            background: #e0e0e0;
+        }
+    }
+}
+.moneyline_mouseover {
+    min-height: 10px;
+    width: 230px;
+    max-width: 230px;
+    position: absolute;
+    padding: 10px;
+    top: 100px;
+    left: 10px;
+    z-index: 999;
+    display: none;
+    background: #fff;
+    border: 1px solid #888;
+    &:hover {
+        display: block !important;
+    }
+}
+.moneyline {
+    height: 120px;
+    margin: 20px 0 95px 0;
+    position: relative;
+    border: 2px solid #555;
+    border-top: none;
+    border-bottom: none;
+    .bg {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 2px;
+        background: #555;
+    }
+    .point {
+        position: absolute;
+        width: 5px;
+        height: 60px;
+        border-radius: 3px;
+        top: 50%;
+        margin-top: -30px;
+        opacity: 0.5;
+        &.active {
+            height: 120px;
+            margin-top: -60px;
+        }
+    }
+    .moneyline_hint {
+        @width: 290px;
+        position: absolute;
+        top: 38px;
+        left: 50%;
+        width: @width;
+        margin-left: -@width/2;
+        background: #fff;
+        border: 1px solid #888;
+        text-align: center;
+        padding: 3px;
+        opacity: 1;
+        transition: opacity 300ms;
+        font-weight: bold;
+    }
+    &:hover {
+        .moneyline_hint {
+            opacity: 0;
+        }
+    }
+    .min, 
+    .max {
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-size: 15px;
+        color: #555;
+        padding: 0 3px;
+    }
+    .max {
+        left: auto;
+        right: 0;
+        text-align: right;
+    }
+}
+.headline {
+    white-space: nowrap;
+    width: 200px;
+    text-align: center;
+    padding-top: 9px;
+    .top {
+        color: #555;
+        font-size: 37px;
+        line-height: 32px;
+        .poundsign {
+            display: inline-block;
+            color: #333;
+            padding-right: 7px;
+            font-size: 48px;
+            line-height: 37px;
+            vertical-align: middle;
+            margin-top: -6px;
+        }
+    }
+    .bottom {
+        color: #999;
+    }
+}
+
+// -- ------------------------------ --
+// -- INVESTMENT READINESS PROGRAMME --
+// -- ------------------------------ --
+
+#sib_container {
+    position: relative;
+    width: 940px;
+    margin: 0 auto;
+    .legend {
+        li.hovering {
+            text-decoration: underline;
+            background: none;
+        }
+    }
+    #sib_table .sib_row {
+        cursor: pointer;
+        position: relative;
+        width: 540px;
+        padding: 5px 10px;
+        margin-bottom: 12px;
+        background: #fff;
+        transition: background 100ms;
+        border-left: 8px solid #ccc;
+        .name img {
+            width: 150px;
+            margin: 10px 0;
+            background: #fff;
+            border: 1px solid #888;
+            padding: 8px;
+        }
+        .headline {
+            .top {
+                font-size: 17px;
+                line-height: 17px;
+                .poundsign {
+                    font-size: 13px;
+                    line-height: 17px;
+                    padding-right: 0;
+                }
+            }
+            .bottom {
+                font-size: 12px;
+                line-height: 12px;
+            }
+        }
+        .funding {
+            position: absolute;
+            left: 125px;
+            top: 10px;
+        }
+        .mean {
+            position: absolute;
+            left: 125px;
+            bottom: 20px;
+        }
+        .investments {
+            position: absolute;
+            right: 10px;
+            top: 9px;
+            width: 240px;
+            text-align: right;
+            .prefix {
+                color: #888;
+                font-size: 13px;
+                padding-bottom: 5px;
+            }
+            i {
+                font-size: 15px;
+                padding: 0 4px;
+            }
+        }
+        > * { opacity: 0.5 }
+        &:hover {
+            > * { opacity: 1.0 }
+        }
+        &.active {
+            background: lighten(#9ECAE1,10%);
+            border-color: darken(#9ECAE1,0%);
+            > * { opacity: 1.0 }
+            .headline .top,
+            .headline .bottom ,
+            .prefix { color: #000 !important; }
+        }
+    }
+    #sib_pie1,
+    #sib_pie2 {
+        position: absolute;
+        right:0;
+        top: 10px;
+        width: 380px;
+        .legend {
+            position: absolute;
+            right: 0;
+            top: 18px;
+            border: none;
+        }
+        &:hover {
+            path {
+                opacity: 0.7;
+                &.hovering,
+                &:hover {
+                    opacity: 1.0;
+                }
+            }
+        }
+    }
+    #sib_pie2 {
+        top: 260px;
+    }
+}
+#icrf_container {
+    position: relative;
+    width: 940px;
+    margin: 0 auto;
+    min-height: 200px;
+    #icrf_headline1 {
+        position: absolute;
+        top: 105px;
+        left: 30%;
+    }
+    #icrf_headline2 {
+        position: absolute;
+        top: 105px;
+        right: 30%;
+    }
+    #icrf_cash {
+        margin: 5px 0 20px 0;
+    }
+    #icrf_map {
+        display: none;
+        width: 150px;
+        height: 200px;
+        margin-left: 400px;
+        border: 1px dashed #fcf;
+    }
+}
+
+
+// -- ---------------------------------- --
+// -- SOCIAL INVESTMENTS AND FOUNDATIONS
+// -- ---------------------------------- --
+.foundation-selector {
+    margin: 10px 30px;
+    list-style-type: none;
+    li {
+        background: #fff;
+        display: inline-block;
+        vertical-align: top;
+        .prefix {
+            padding: 20px 20px;
+        }
+        a {
+            display: block;
+            width: 140px;
+            height: 70px;
+            text-align: center;
+            color: #000;
+            font-size: 12px;
+            opacity: 0.4;
+            position: relative;
+            border: 1px solid #ccc;
+            .chevron {
+                display: none;
+                width: 0px;
+                height: 0px;
+                border: 7px solid transparent;
+                border-bottom-color: #000;
+                position: absolute;
+                left: 48%;
+                bottom: 0;
+            }
+            &.active,
+            &:hover {
+                opacity: 1.0;
+            }
+            &.active {
+                border: 1px solid #000;
+                .chevron { display: block; }
+            }
+            img.foundation {
+                width: 120px;
+            }
+        }
+    }
+    li:first-child {
+      background: none;
+    }
+}
+#social_investment_totals {
+    width: 940px;
+    margin: 0 auto;
+    #investment-total,
+    #coinvestment-total {
+        white-space: nowrap;
+        color: #555;
+        font-size: 37px;
+        .poundsign {
+            display: inline-block;
+            color: #333;
+            padding-right: 7px;
+            font-size: 48px;
+            vertical-align: middle;
+            margin-top: -6px;
+        }
+    }
+    #graph_yearonyear {
+        padding: 10px 20px;
+        position: relative;
+        .yearonyear-right {
+            position: absolute;
+            right: 20px;
+            top: 40px;
+            pointer-events: none;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .yearonyear-right2 {
+            position: absolute;
+            display: block;
+            width: 266px;
+            right: 0px;
+            top: 144px;
+            pointer-events: none;
+            padding-right: 10px;
+            text-align: right;
+        }
+        .caption {
+            background: #f0f;
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+        }
+        .legend {
+            position: absolute;
+            top: 329px;
+            right: 20px;
+        }
+        svg { 
+            margin: 0 auto;
+            display:block;
+        }
+        .legend {
+            background: rgba(255,255,255,0.8);
+        }
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+        rect {
+            shape-rendering: crispEdges;
+        }
+        .bar {
+            fill: steelblue;
+        }
+        .x.axis path {
+            display: none;
+        }
+    }
+    #graph_pie1,
+    #graph_pie2 {
+        .caption {
+            pointer-events: none;
+            width: 180px;
+            height: 40px;
+            position: absolute;
+            left: 48px;
+            top: 129px;
+            text-align:center;
+        }
+        position: relative;
+        .legend {
+            position: absolute;
+            top: 40px;
+            right: 20px;
+        }
+    }
+    #graph_pie1 {
+        padding: 10px 10px 10px 20px;
+        .legend { width: 220px; }
+    }
+    #graph_pie2 {
+        padding: 10px 20px 10px 10px;
+        .caption { width: 157px; }
+    }
+}
+#social_investment_sankey {
+    width: 940px;
+    margin: 0 auto;
+    position: relative;
+    .strategy-blurb {
+        position: absolute;
+        font-size: 100%;
+        font-size: 11px;
+        line-height: 14px;
+        right: 0px;
+        top: 2px;
+        width: 480px;
+        text-align: right;
+    }
+    svg { margin-top: 50px; }
+    .node rect {
+        cursor: move;
+        fill-opacity: .9;
+        shape-rendering: crispEdges;
+    }
+    .node text {
+        pointer-events: none;
+        font-size: 11px;
+        //font-family: 'Helvetica Neue';
+    }
+    .link {
+        fill: none;
+        stroke: #038;
+        stroke-opacity: .13;
+    }
+    .link:hover {
+        stroke-opacity: .32;
+    }
+}
+#social_investment_coinvestment {
+    position: relative;
+    width: 940px;
+    margin: 0 auto;
+    .coinvestment-right {
+        position: absolute;
+        right: 0;
+        top: 20px;
+        text-align: right;
+        padding-right: 10px;
+        pointer-events: none;
+        small {
+            margin: 0 0 0 44px;
+            display: block;
+            width: 270px;
+            color: #555;
+        }
+    }
+    svg {
+        margin-left: 90px;
+    }
+    svg:hover {
+        path {
+            opacity: 0.7;
+            &:hover {
+                opacity: 1.0;
+            }
+        }
+    }
+    .caption {
+        width: 277px;
+        top: 250px;
+        left: 201px;
+        position: absolute;
+        text-align: center;
+        p {
+            font-size: 16px;
+            margin-bottom: 0px;
+        }
+        small {
+            font-size: 12px;
+            color: #999;
+        }
+    }
+}
+

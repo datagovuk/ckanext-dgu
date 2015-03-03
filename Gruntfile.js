@@ -58,9 +58,13 @@ module.exports = function(grunt) {
         src: 'src/css/dgu-ckan.less',
         dest: 'public/css/dgu-ckan.min.css'
       },
-      viz: {
-        src: 'src/css/dgu-viz.less',
-        dest: 'public/css/dgu-viz.min.css',
+      etl1: {
+        src: 'src/css/social-investment-and-foundations.less',
+        dest: 'public/css/social-investment-and-foundations.min.css',
+      },
+      etl2: {
+        src: 'src/css/investment-readiness-programme.less',
+        dest: 'public/css/investment-readiness-programme.min.css',
       },
       datepicker: {
         src: 'src/css/jquery-ui-1.9.2.custom.datepicker.css',
@@ -123,12 +127,19 @@ module.exports = function(grunt) {
       },
     },
     coffee: {
-      viz_pack: {
+      etl1: {
         src: [
           'src/scripts/viz_pack/viz_lib/*.coffee',
-          'src/scripts/viz_pack/dgu-viz.coffee',
+          'src/scripts/viz_pack/social-investment-and-foundations.coffee',
         ],
-        dest: 'public/scripts/dgu-viz-pack.min.js'
+        dest: 'public/scripts/social-investment-and-foundations.min.js'
+      },
+      etl2: {
+        src: [
+          'src/scripts/viz_pack/viz_lib/*.coffee',
+          'src/scripts/viz_pack/investment-readiness-programme.coffee',
+        ],
+        dest: 'public/scripts/investment-readiness-programme.min.js'
       }
     },
     timestamp: {
@@ -146,4 +157,5 @@ module.exports = function(grunt) {
   grunt.registerTask('scripts', ['uglify:app','timestamp','coffee']);
   grunt.registerTask('images', ['imagemin','copy:images','timestamp']);
   grunt.registerTask('default', ['uglify','coffee','less','imagemin','copy','timestamp']);
+
 };
