@@ -99,7 +99,7 @@
         {% for i in range(all_licences|length) %}
           {% with %}
             {% set (license_text, url, isopen, isogl) = all_licences[i] %}
-            {% set separator = m.if_(i==all_licences|length -1,'.',' &amp; ') %}
+            {% set separator = m.if_(i==all_licences|length -1,'.',' & ') %}
             {% if isogl %}
               <a href="{{url or 'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'}}" rel="dc:rights">
                 <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
