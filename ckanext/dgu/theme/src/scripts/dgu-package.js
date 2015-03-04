@@ -63,10 +63,18 @@ $(function() {
 
   // Year segmentation
   $(".year .year_items").hide();
-  $(".year .hideyear").hide();
-  $(".year .hideyear").first().show();
-  $(".year .showyear").first().hide();
   $(".year .year_items").first().show();
+
+  // 'View More' and 'View Less' are hidden by default so
+  // that viewers without javascript cannot see them
+
+  // Show the first 'View Less' button
+  $(".year .hideyear").first().show();
+
+
+  // Show all but the first 'View More' button
+  $(".year .showyear").show();
+  $(".year .showyear").first().hide();
 
   $(".year h3 span.showyear").on('click', function(){
     $(this).parent().next('.year_items').fadeIn();
