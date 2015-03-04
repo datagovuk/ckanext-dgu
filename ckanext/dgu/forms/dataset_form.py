@@ -12,7 +12,6 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.lib import helpers as dgu_helpers
-from ckanext.dgu.schema import GeoCoverageType
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_resources, \
      validate_additional_resource_types, \
@@ -494,6 +493,7 @@ def extract_other(option_list):
 
 
 def convert_geographic_to_db(value, context):
+    from ckanext.dgu.schema import GeoCoverageType
 
     if isinstance(value, list):
         regions = value
@@ -506,6 +506,7 @@ def convert_geographic_to_db(value, context):
 
 
 def convert_geographic_to_form(value, context):
+    from ckanext.dgu.schema import GeoCoverageType
     return GeoCoverageType.get_instance().db_to_form(value)
 
 

@@ -12,7 +12,7 @@
      "topics": ["armed forces", "forces", "defence", "search & rescue", "RAF", "corp", "tank", "airmen", "military", "gurka", "civilian", "veteran", "armour", "kill", "soldier", "regiment", "sailor", "barrack", "PTSD", "battalion", "amputee", "squadron", "combat", "commando", "enlist", "nato", "firing programme", "weapon", "chemical weapon", "nuclear security"],
      "nscl": ["Defence"]
     },
-    {"title": "Economy & Business",
+    {"title": "Business & Economy",
      "stored_as": "Economy",
      "description": "Industry and small businesses. Statistics, surveys, economic indicators, import/exports and trade. Excludes government spending transactions & salaries. Excludes household finances",
      "topics": ["industry", "business", "small businesses", "SMEs", "economic", "import", "import licence", "export", "export licence", "trade", "prices", "buyer", "worth", "macroeconomy", "currency", "factory", "acquisition", "bond", "discal", "entrepreneurship", "output", "disinvest", "RPI", "deflation", "inflation", "company directors", "levy", "market report", "price index", "Pocket Data Bank", "UK Output", "gambling premises", "corporate venture", "company data", "company identifiers", "asset freeze", "financial sanction", "industrial property"],

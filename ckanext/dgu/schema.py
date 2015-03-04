@@ -274,8 +274,3 @@ def canonise_organisation_name(org_name):
         return org_name
     canonised_name = organisation_name_mapping.get(org_name.strip()) or org_name
     return canonised_name
-
-
-from ckanext.dgu.lib.theme import Themes
-
-THEMES = Themes.instance().themes
