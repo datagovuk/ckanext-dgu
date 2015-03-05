@@ -85,6 +85,7 @@ setup(
         vocabs = ckanext.dgu.commands.vocabs:VocabsCmd
         check_publisher_requests = ckanext.dgu.commands.check_publisher_requests:CheckRequests
         publisher_request_init = ckanext.dgu.commands.publisher_request_init:InitDB
+        schema = ckanext.dgu.commands.schema:Schema
     """,
     test_suite = 'nose.collector',
 )
