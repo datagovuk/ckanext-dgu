@@ -36,6 +36,10 @@ class Schema(Base):
     def get(cls, id):
         return model.Session.query(cls).filter(cls.id==id).first()
 
+    @classmethod
+    def by_title(cls, title):
+        return model.Session.query(cls).filter(cls.title==title).first()
+
 
 class Codelist(Base):
     """
