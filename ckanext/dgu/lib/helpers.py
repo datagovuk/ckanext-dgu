@@ -2115,6 +2115,22 @@ def orgs_for_admin_report():
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
+def get_schema_options():
+    return (
+        ('', ''),
+        ('4', 'Four'),
+        ('5', 'Five'),
+        ('6', 'Six'),
+    )
+
+def get_codelist_options():
+    return (
+        ('', ''),
+        ('7', 'Seven'),
+        ('8', 'Eight'),
+        ('9', 'Nine'),
+    )
+
 def get_mandate_list(data):
     mandate = data.get('mandate') or []
     if isinstance(mandate, basestring):

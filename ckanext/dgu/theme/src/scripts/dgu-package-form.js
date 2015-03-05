@@ -76,8 +76,32 @@
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
 
+    $('#schema-add').click(function(e) {
+        var list = $('#schema-list');
+
+        var new_schema = list.children().first().clone();
+
+        new_schema.children().first().attr('value', '');
+
+        list.append(new_schema);
+
+        return false;
+    });
+
+    $('#codelist-add').click(function(e) {
+        var list = $('#codelist-list');
+
+        var new_codelist = list.children().first().clone();
+
+        new_codelist.children().first().attr('value', '');
+
+        list.append(new_codelist);
+
+        return false;
+    });
+
     $('#mandates-add').click(function(e) {
-        var list = $('#mandates-list');
+        var list = $('#mandate-list');
 
         var new_mandate = list.children().first().clone();
 
