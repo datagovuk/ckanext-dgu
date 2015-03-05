@@ -275,6 +275,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'schema': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'codelist': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -352,6 +354,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, from_json, ignore_missing],
+            'schema': [convert_from_extras, from_json, ignore_missing],
+            'codelist': [convert_from_extras, from_json, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
             'theme-secondary': [convert_from_extras, ignore_missing],
