@@ -2116,20 +2116,20 @@ def orgs_for_admin_report():
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
 def get_schema_options():
-    return (
-        ('', ''),
-        ('4', 'Four'),
-        ('5', 'Five'),
-        ('6', 'Six'),
-    )
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    schemas = get_action('schema_list')(context, {})
+    return [('', '')] + [(schema['id'], schema['title']) for schema in schemas]
 
 def get_codelist_options():
-    return (
-        ('', ''),
-        ('7', 'Seven'),
-        ('8', 'Eight'),
-        ('9', 'Nine'),
-    )
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    codelists = get_action('codelist_list')(context, {})
+    return [('', '')] + [(codelist['id'], codelist['title']) for codelist in codelists]
 
 def get_mandate_list(data):
     mandate = data.get('mandate') or []

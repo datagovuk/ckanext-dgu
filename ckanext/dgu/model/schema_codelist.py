@@ -32,6 +32,13 @@ class Schema(Base):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'url': self.url,
+            'title': self.title,
+        }
+
     @classmethod
     def get(cls, id):
         return model.Session.query(cls).filter(cls.id==id).first()
@@ -58,9 +65,20 @@ class Codelist(Base):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def as_dict(self):
+        return {
+            'id': self.id,
+            'url': self.url,
+            'title': self.title,
+        }
+
     @classmethod
     def get(cls, id):
         return model.Session.query(cls).filter(cls.id==id).first()
+
+    @classmethod
+    def by_title(cls, title):
+        return model.Session.query(cls).filter(cls.title==title).first()
 
 
 def init_tables(e):

@@ -571,6 +571,7 @@ class ApiPlugin(p.SingletonPlugin):
     '''DGU-specific API'''
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
 
     def before_map(self, map):
         api_controller = 'ckanext.dgu.controllers.api:DguApiController'
@@ -583,9 +584,18 @@ class ApiPlugin(p.SingletonPlugin):
         return map
 
     def get_actions(self):
-        from ckanext.dgu.logic.action.get import publisher_show
+        from ckanext.dgu.logic.action.get import publisher_show, schema_list, codelist_list
         return {
             'publisher_show': publisher_show,
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }
+
+    def get_auth_functions(self):
+        from ckanext.dgu.logic.auth.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
             }
 
 class SiteIsDownPlugin(p.SingletonPlugin):

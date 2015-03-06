@@ -41,7 +41,7 @@ class Schema(CkanCommand):
     def create_test_data(self):
         from ckan import plugins
         from ckan import model
-        from ckanext.dgu.model.schema_codelist import Schema
+        from ckanext.dgu.model.schema_codelist import Schema, Codelist
         pt = plugins.toolkit
         context = {'model': model, 'user': 'admin'}
 
@@ -56,6 +56,18 @@ class Schema(CkanCommand):
                     setattr(existing_schema, k, v)
             else:
                 model.Session.add(Schema(**schema))
+            model.repo.commit_and_remove()
+
+        codelists = [dict(url='http://example.com/foo', title='Foo List'),
+                     dict(url='http://example.com/bar', title='Bar List'),]
+        for codelist in codelists:
+            existing_list = Codelist.by_title(codelist['title'])
+            if existing_list:
+                codelist['id'] = existing_list.id
+                for k, v in codelist.items():
+                    setattr(existing_list, k, v)
+            else:
+                model.Session.add(Codelist(**codelist))
             model.repo.commit_and_remove()
 
         # Create org
@@ -75,7 +87,8 @@ class Schema(CkanCommand):
                         notes='This is a test')
         datasets = [dict(name='oxford-toilets',
                          title='Oxford toilets',
-                         schemas='["%s"]' % Schema.by_title('Toilet locations').id)
+                         codelist=[Codelist.by_title('Foo List').id],
+                         schema=[Schema.by_title('Toilet locations').id])
                     ]
         for dataset in datasets:
             dataset.update(defaults)
