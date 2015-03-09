@@ -319,9 +319,9 @@ Passed in:
         <ul id="schema-list">
         {% for schema in schemas %}
           <li>
-            <select class="form-control" name="schema">
+            <select class="form-control" name="schema" data-placeholder="Please choose a schema">
                 {% for value, title in h.get_schema_options() %}
-                <option value="{{value}}" {% if schema == value %}selected{% endif %}>
+                <option value="{{value}}" {% if value != '' and schema == value %}selected{% endif %}>
                 {{title}}
                 </option>
                 {% endfor %}
@@ -341,9 +341,9 @@ Passed in:
         <ul id="codelist-list">
         {% for codelist in codelists %}
           <li>
-            <select class="form-control" name="codelist">
+            <select class="form-control" name="codelist" data-placeholder="Please choose a codelist">
                 {% for value, title in h.get_codelist_options() %}
-                <option value="{{value}}" {% if codelist == value %}selected{% endif %}>
+                <option value="{{value}}" {% if value != '' and codelist == value %}selected{% endif %}>
                 {{title}}
                 </option>
                 {% endfor %}
@@ -944,5 +944,11 @@ Passed in:
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<script>
+        $("#schema-list select").chosen({allow_single_deselect: true});
+        $("#codelist-list select").chosen({allow_single_deselect: true});
+</script>
+
 
 </form>
