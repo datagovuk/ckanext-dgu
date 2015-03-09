@@ -32,15 +32,16 @@ THEMES = {
 
 class FixThemes(object):
     @classmethod
-    def command(cls, config_ini, write):
+    def command(cls, config_ini, options):
         common.load_config(config_ini)
         common.register_translator()
 
         rev = model.repo.new_revision()
         rev.author = 'script-fix_themes.py'
 
-        for package in model.Session.query(model.Package)\
-                .filter(model.Package.state=='active'):
+        datasets = common.get_datasets(state='active',
+                                       dataset_name=options.dataset)
+        for package in datasets:
             if 'theme-primary' in package.extras:
                 primary = package.extras.get('theme-primary')
                 new_primary = THEMES.get(primary, primary)
@@ -73,7 +74,6 @@ class FixThemes(object):
                         del package.extras['theme-secondary']
                         continue
 
-
                 if new_secondary != secondary:
                     stats.add('Fixing secondary theme', package.name)
                     package.extras['theme-secondary'] = json.dumps(new_secondary)
@@ -84,13 +84,13 @@ class FixThemes(object):
 
         print stats.report()
 
-        if write:
+        if options.write:
             print 'Writing'
             model.Session.commit()
 
 usage = __doc__ + '''
 Usage:
-    python fix_themes.py <CKAN config ini filepath> [--write]'''
+    python fix_themes.py <ckan.ini> [--write]'''
 
 if __name__ == '__main__':
     parser = OptionParser(usage=usage)
@@ -99,8 +99,9 @@ if __name__ == '__main__':
                       dest="write",
                       default=False,
                       help="write the changes to the datasets")
+    parser.add_option('-d', '--dataset', dest='dataset')
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error('Wrong number of arguments')
     config_ini = args[0]
-    FixThemes.command(config_ini, options.write)
+    FixThemes.command(config_ini, options)
