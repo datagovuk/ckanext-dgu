@@ -714,7 +714,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
     from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
@@ -811,6 +811,43 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         except ValueError:
             pass # Not JSON for some reason...
 
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    all_schemas = get_action('schema_list')(context, {})
+    all_schemas = dict([(schema['id'], schema) for schema in all_schemas])
+
+
+    schemas = pkg_extras.get('schema')
+    if schemas:
+        def linkify(schema_id):
+            schema = all_schemas[schema_id]
+            return '<a href="%(url)s">%(title)s</a>' % schema
+
+        try:
+            schemas = json.loads(schemas)
+            schemas = [linkify(schema_id) for schema_id in schemas]
+            schemas = Markup("<br>".join(schemas))
+        except ValueError:
+            pass
+
+    all_codelists = get_action('codelist_list')(context, {})
+    all_codelists = dict([(codelist['id'], codelist) for codelist in all_codelists])
+
+    codelists = pkg_extras.get('codelist')
+    if codelists:
+        def linkify(code_id):
+            codelist = all_codelists[code_id]
+            return '<a href="%(url)s">%(title)s</a>' % codelist
+
+        try:
+            codelists = json.loads(codelists)
+            codelists = [linkify(code_id) for code_id in codelists]
+            codelists = Markup("<br>".join(codelists))
+        except ValueError:
+            pass
+
     field_value_map = {
         # field_name : {display info}
         'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
@@ -833,6 +870,8 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
         'mandate': {'label': 'Mandate', 'value': mandates},
+        'schema': {'label': 'Schema', 'value': schemas},
+        'codelist': {'label': 'Codelist', 'value': codelists},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
