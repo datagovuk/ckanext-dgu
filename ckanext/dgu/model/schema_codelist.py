@@ -1,8 +1,7 @@
 import uuid
-import datetime
 
-from sqlalchemy import Table, Column, MetaData, ForeignKey
-from sqlalchemy import types, orm
+from sqlalchemy import Column
+from sqlalchemy import types
 from sqlalchemy.ext.declarative import declarative_base
 
 from ckan import model
@@ -47,6 +46,10 @@ class Schema(Base):
     def by_title(cls, title):
         return model.Session.query(cls).filter(cls.title==title).first()
 
+    @classmethod
+    def by_url(cls, url):
+        return model.Session.query(cls).filter(cls.url==url).first()
+
 
 class Codelist(Base):
     """
@@ -80,7 +83,10 @@ class Codelist(Base):
     def by_title(cls, title):
         return model.Session.query(cls).filter(cls.title==title).first()
 
+    @classmethod
+    def by_url(cls, url):
+        return model.Session.query(cls).filter(cls.url==url).first()
+
 
 def init_tables(e):
     Base.metadata.create_all(e)
-
