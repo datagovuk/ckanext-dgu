@@ -312,7 +312,7 @@
         </a>
       </div>
       {{facet_box(
-                'Show only...',
+                'Published status',
                 h.search_facets_unselected(['unpublished']),
                 h.search_facets_selected(['unpublished']),
                 'No further filters to apply.'
@@ -368,6 +368,20 @@
                     more_button='more-publishers-button'
                 )}}
       {% endif %}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Schema',
+                h.search_facets_unselected(['schema']),
+                h.search_facets_selected(['schema']),
+                'No further schema filters to apply.',
+            )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Code lists',
+                h.search_facets_unselected(['codelist']),
+                h.search_facets_selected(['codelist']),
+                'No further code list filters to apply.',
+            )}}
       <div class="facet-divider"></div>
       {{facet_box(
                 'Openness Score (beta)',

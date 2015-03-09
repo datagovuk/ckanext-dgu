@@ -1,6 +1,7 @@
 from logging import getLogger
 import re
 import string
+import json
 
 from paste.deploy.converters import asbool
 
@@ -26,7 +27,6 @@ class SearchIndexing(object):
             if asbool(pkg_dict.get('unpublished', False)):
                 from ckanext.dgu.lib.helpers import feedback_comment_count
                 score += feedback_comment_count(pkg_dict)
-                log.debug('Updated score for unpublished item {0} to {1}'.format(pkg_dict['name'], score))
         except ValueError:
             # If the unpublished field is not a proper bool then we should assume it is false
             pass
@@ -36,22 +36,22 @@ class SearchIndexing(object):
             score += get_score_for_dataset(pkg_dict['name'])
 
         pkg_dict['popularity'] = score
-        log.info("Popularity for {0} is {1}".format(pkg_dict['name'], pkg_dict['popularity']))
+        log.debug('Popularity: %s', pkg_dict['popularity'])
 
     @classmethod
     def add_inventory(cls, pkg_dict):
         ''' Sets unpublished to false if not present and also states whether the item is marked
             as never being published. '''
         pkg_dict['unpublished'] = pkg_dict.get('unpublished', False)
-        log.debug('Unpublished? %s: %s', pkg_dict['unpublished'], pkg_dict['name'])
+        log.debug('Unpublished: %s', pkg_dict['unpublished'])
 
         pkg_dict['core_dataset'] = pkg_dict.get('core-dataset', False)
-        log.debug('NII dataset? %s: %s', pkg_dict['core_dataset'], pkg_dict['name'])
+        log.debug('NII: %s', pkg_dict['core_dataset'])
 
         # We also need to mark whether it is restricted (as in it will never be
         # released).
         pkg_dict['publish_restricted'] = pkg_dict.get('publish-restricted', False)
-        log.debug('Will not be published? %s: %s', pkg_dict['publish_restricted'], pkg_dict['name'])
+        log.debug('Publish restricted: %s', pkg_dict['publish_restricted'])
 
 
     @classmethod
@@ -136,7 +136,7 @@ class SearchIndexing(object):
 
         if abbr:
             pkg_dict['group_abbreviation'] = abbr
-            log.debug('Abbreviations %s: %s', pkg_dict['name'], abbr)
+            log.debug('Abbreviations: %s', abbr)
 
     @classmethod
     def add_field__publisher(cls, pkg_dict):
@@ -153,7 +153,7 @@ class SearchIndexing(object):
         # Publisher names
         if not pkg_dict.has_key('publisher'):
             pkg_dict['publisher'] = publisher.name
-            log.info(u"{0} is the publisher for {1}".format(publisher.name, pkg_dict['name']))
+            log.debug(u"Publisher: %s", publisher.name)
         else:
             log.warning('Unable to add "publisher" to index, as the datadict '
                         'already contains a key of that name')
@@ -221,7 +221,7 @@ class SearchIndexing(object):
             log.warning('QA not installed - not indexing it.')
             return
         pkg_dict['openness_score'] = qa_openness.get('openness_score')
-        log.debug('Openness score %s: %s', pkg_dict['openness_score'], pkg_dict['name'])
+        log.debug('Openness score: %s', pkg_dict['openness_score'])
 
         try:
             qa_broken = get_action('qa_package_broken_show')(context, data_dict)
@@ -236,5 +236,35 @@ class SearchIndexing(object):
                     None: 'TBC'
                     }
         pkg_dict['broken_links'] = cls.broken_links_map[qa_broken.get('archival_is_broken')]
-        log.debug('Broken links %s: %s', pkg_dict['broken_links'], pkg_dict['name'])
+        log.debug('Broken links: %s', pkg_dict['broken_links'])
 
+    @classmethod
+    def add_theme(cls, pkg_dict):
+        # Extract multiple theme values (concatted with ' ') into one multi-value schema field
+        all_themes = set()
+        for value in (pkg_dict.get('theme-primary', ''), pkg_dict.get('theme-secondary', '')):
+            for theme in value.split(' '):
+                if theme:
+                    all_themes.add(theme)
+        pkg_dict['all_themes'] = list(all_themes)
+        log.debug('Themes: %s', ' '.join(all_themes))
+
+    @classmethod
+    def add_schema(cls, pkg_dict):
+        try:
+            schemas = json.loads(pkg_dict.get('schema') or '[]')
+        except ValueError:
+            log.error('Not valid JSON in schema field: %s %r',
+                      pkg_dict['name'], pkg_dict.get('schema'))
+            schemas = None
+        pkg_dict['schema'] = schemas
+        log.debug('Schema: %s', ' '.join(schemas))
+
+        try:
+            code_lists = json.loads(pkg_dict.get('codelist') or '[]')
+        except ValueError:
+            log.error('Not valid JSON in codelists field: %s %r',
+                      pkg_dict['name'], pkg_dict.get('codelist'))
+            code_lists = None
+        pkg_dict['codelist'] = code_lists
+        log.debug('Code lists: %s', ' '.join(code_lists))

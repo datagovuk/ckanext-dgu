@@ -275,8 +275,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
-            'schema': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
-            'codelist': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'schema': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras, dict_to_id],
+            'codelist': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras, dict_to_id],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -354,8 +354,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, from_json, ignore_missing],
-            'schema': [convert_from_extras, from_json, ignore_missing],
-            'codelist': [convert_from_extras, from_json, ignore_missing],
+            'schema': [convert_from_extras, from_json, id_to_dict, ignore_missing],
+            'codelist': [convert_from_extras, from_json, id_to_dict, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
             'theme-secondary': [convert_from_extras, ignore_missing],
@@ -538,3 +538,35 @@ def tags_schema():
         'state': [ignore],
     }
     return schema
+
+def id_to_dict(key, data, errors, context):
+    from ckanext.dgu.model.schema_codelist import Schema, Codelist
+    import pdb; pdb.set_trace()
+    for i, id_ in enumerate(data[key]):
+        if key == ('schema',):
+            obj = Schema.get(id_)
+        elif key == ('codelist',):
+            obj = Codelist.get(id_)
+        else:
+            raise NotImplementedError('Bad key: %s' % key)
+        if not obj:
+            raise Invalid('%s id does not exist: %s' % (key, id_))
+        data[key][i] = obj.as_dict()
+
+def dict_to_id(key, data, errors, context):
+    from ckanext.dgu.model.schema_codelist import Schema, Codelist
+    for i, dict_ in enumerate(data[key]):
+        try:
+            id_ = dict_['id']
+        except ValueError:
+            id_ = None
+        if key == ('schema',):
+            obj = Schema.get(id_)
+        elif key == ('codelist',):
+            obj = Codelist.get(id_)
+        else:
+            raise NotImplementedError('Bad key: %s' % key)
+        if not obj:
+            raise Invalid('%s id does not exist: %s' % (key, id_))
+        data[key][i] = obj.as_dict()
+

@@ -3,6 +3,11 @@
 {% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
 {% import "_dgu_jinja_util.html" as m with context %}
 
+{#
+   c.pkg_dict - the result of package_show
+   c.pkg - package object (don't use this if you can...)
+#}
+
 {% block optional_head %}
     <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
     <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
@@ -47,6 +52,8 @@
 
     <!-- Warn if reading old revision -->
     {% if c.pkg_revision_id %}
+    all_codelists = get_action('codelist_list')(context, {})
+    all_codelists = dict([(codelist['id'], codelist) for codelist in all_codelists])
     <div class="panel panel-warning">
       <div class="panel-heading">Viewing Dataset Revision</div>
       {% if c.pkg_revision_not_latest %}
@@ -145,7 +152,7 @@
       <h2>Additional Information</h2>
       <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
         <tbody>
-          {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
+          {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, c.pkg_dict, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
           <tr>
             <!-- TODO: label_attributes and value_attributes are dicts, we need to decouple them -->
             <td class="key" {{m.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>

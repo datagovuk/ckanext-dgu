@@ -546,6 +546,7 @@ class SearchPlugin(p.SingletonPlugin):
         Dynamically creates a license_id-is-ogl field to index on, and clean
         up resource formats prior to indexing.
         """
+        log.info('Indexing: %s', pkg_dict['name'])
         SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
@@ -557,21 +558,16 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_theme(pkg_dict)
+        if is_plugin_enabled('dgu_schema'):
+            SearchIndexing.add_schema(pkg_dict)
 
-        # Extract multiple theme values (concatted with ' ') into one multi-value schema field
-        all_themes = set()
-        for value in (pkg_dict.get('theme-primary', ''), pkg_dict.get('theme-secondary', '')):
-            for theme in value.split(' '):
-                if theme:
-                    all_themes.add(theme)
-        pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 
 class ApiPlugin(p.SingletonPlugin):
     '''DGU-specific API'''
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IActions)
-    p.implements(p.IAuthFunctions)
 
     def before_map(self, map):
         api_controller = 'ckanext.dgu.controllers.api:DguApiController'
@@ -584,19 +580,11 @@ class ApiPlugin(p.SingletonPlugin):
         return map
 
     def get_actions(self):
-        from ckanext.dgu.logic.action.get import publisher_show, schema_list, codelist_list
+        from ckanext.dgu.logic.action.get import publisher_show
         return {
             'publisher_show': publisher_show,
-            'schema_list': schema_list,
-            'codelist_list': codelist_list,
             }
 
-    def get_auth_functions(self):
-        from ckanext.dgu.logic.auth.get import schema_list, codelist_list
-        return {
-            'schema_list': schema_list,
-            'codelist_list': codelist_list,
-            }
 
 class SiteIsDownPlugin(p.SingletonPlugin):
     '''"Site is down for maintenance" message shown for all requests - better
@@ -606,3 +594,26 @@ class SiteIsDownPlugin(p.SingletonPlugin):
     def make_middleware(self, app, config):
         return SiteDownMiddleware(app, config)
 
+
+class SchemaPlugin(p.SingletonPlugin):
+    '''Schemas & Code lists'''
+    p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
+
+    # IActions
+
+    def get_actions(self):
+        from ckanext.dgu.logic.action.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }
+
+    # IAuthFunctions
+
+    def get_auth_functions(self):
+        from ckanext.dgu.logic.auth.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }

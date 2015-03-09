@@ -44,6 +44,7 @@ setup(
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
         dgu_site_down = ckanext.dgu.plugin:SiteIsDownPlugin
+        dgu_schema = ckanext.dgu.plugin:SchemaPlugin
 
         [console_scripts]
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command

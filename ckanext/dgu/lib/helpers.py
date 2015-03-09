@@ -706,7 +706,7 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
-def get_package_fields(package, pkg_extras, dataset_was_harvested,
+def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                        is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
@@ -799,7 +799,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     if mandates:
         def linkify(string):
             if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s" target="_blank">%s</a>' % (string, string)
+                return '<a href="%s" target="_blank">%s</a>' % (urllib.quote(string), string)
             else:
                 return string
 
@@ -811,39 +811,25 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         except ValueError:
             pass # Not JSON for some reason...
 
-    from ckan.logic import get_action
-    from ckan import model
-
-    context = {'model': model, 'session': model.Session}
-    all_schemas = get_action('schema_list')(context, {})
-    all_schemas = dict([(schema['id'], schema) for schema in all_schemas])
-
-
-    schemas = pkg_extras.get('schema')
+    schemas = package_dict.get('schema')
     if schemas:
-        def linkify(schema_id):
-            schema = all_schemas[schema_id]
+        def linkify(schema):
+            h.link_to(schema['title'], urllib.quote(schema['url']))
             return '<a href="%(url)s">%(title)s</a>' % schema
-
         try:
-            schemas = json.loads(schemas)
-            schemas = [linkify(schema_id) for schema_id in schemas]
+            schemas = [linkify(schema) for schema in schemas]
             schemas = Markup("<br>".join(schemas))
         except ValueError:
             pass
 
-    all_codelists = get_action('codelist_list')(context, {})
-    all_codelists = dict([(codelist['id'], codelist) for codelist in all_codelists])
-
-    codelists = pkg_extras.get('codelist')
+    codelists = package_dict.get('codelist')
     if codelists:
-        def linkify(code_id):
-            codelist = all_codelists[code_id]
+        def linkify(codelist):
+            h.link_to(codelist['title'], urllib.quote(codelist['url']))
             return '<a href="%(url)s">%(title)s</a>' % codelist
 
         try:
-            codelists = json.loads(codelists)
-            codelists = [linkify(code_id) for code_id in codelists]
+            codelists = [linkify(codelist) for codelist in codelists]
             codelists = Markup("<br>".join(codelists))
         except ValueError:
             pass
