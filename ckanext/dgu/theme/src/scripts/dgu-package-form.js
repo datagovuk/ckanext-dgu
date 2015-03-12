@@ -76,29 +76,30 @@
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
 
-    $('#schema-add').click(function(e) {
-        var list = $('#schema-list');
 
-        var new_schema = list.children().first().clone();
+    function add_extra_select(list_selector) {
+      return function(e){
+        console.log('add_extra_select 3');
+        var list = $(list_selector);
 
-        new_schema.children().first().attr('value', '');
+        var new_select = list.find('select').first().clone();
 
-        list.append(new_schema);
+        new_select.removeAttr('value');
+        new_select.removeAttr('style');
+        new_select.removeAttr('id');
+        new_select.removeClass('chzn-done');
 
-        return false;
-    });
+        var new_list_item = $('<li></li>').append(new_select);
 
-    $('#codelist-add').click(function(e) {
-        var list = $('#codelist-list');
+        list.append(new_list_item);
 
-        var new_codelist = list.children().first().clone();
-
-        new_codelist.children().first().attr('value', '');
-
-        list.append(new_codelist);
+        new_select.chosen({allow_single_deselect: true});
 
         return false;
-    });
+      }
+    }
+    $('#schema-add').click(add_extra_select('#schema-list'));
+    $('#codelist-add').click(add_extra_select('#codelist-list'));
 
     $('#mandates-add').click(function(e) {
         var list = $('#mandate-list');

@@ -946,8 +946,13 @@ Passed in:
 </div><!-- /.modal -->
 
 <script>
-        $("#schema-list select").chosen({allow_single_deselect: true});
-        $("#codelist-list select").chosen({allow_single_deselect: true});
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  if(/#section-data-field$/.test(e.target)) {
+    // Only activate chosen on selects once the tab has been revealed
+    $("#schema-list select").chosen({allow_single_deselect: true});
+    $("#codelist-list select").chosen({allow_single_deselect: true});
+  }
+});
 </script>
 
 
