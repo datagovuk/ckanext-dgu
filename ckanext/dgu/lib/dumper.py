@@ -63,13 +63,13 @@ class CSVDumper(object):
 
 
     def __init__(self, *args, **kwargs):
-        self.dataset_file  = tempfile.NamedTemporaryFile(delete = False)
-        self.resource_file = tempfile.NamedTemporaryFile(delete = False)
+        self.dataset_file = tempfile.NamedTemporaryFile(delete=False)
+        self.resource_file = tempfile.NamedTemporaryFile(delete=False)
 
-        self.dataset_csv  = csv.writer(self.dataset_file)
+        self.dataset_csv = csv.writer(self.dataset_file)
         self.resource_csv = csv.writer(self.resource_file)
 
-        self.dataset_filename  = self.dataset_file.name
+        self.dataset_filename = self.dataset_file.name
         self.resource_filename = self.resource_file.name
 
         self.organization_cache = {}
@@ -79,21 +79,40 @@ class CSVDumper(object):
     def dump(self, limit=None):
         packages = model.Session.query(model.Package)\
             .filter(model.Package.state == 'active')\
-            .filter(model.Package.private == False )
+            .filter(model.Package.private == False)\
+            .order_by('name')
         if limit:
             packages = packages.limit(limit)
 
         first = True
-        for pkg in packages.order_by('name').yield_per(200):
+        for pkg in packages.yield_per(200):
             self.write_object(pkg, first)
             first = False
 
+    def _encode(self, s):
+        ''' csv.write doesn't do encoding - call this on all row cells
+        first.
+        '''
+        if s is None:
+            return ''
+        if isinstance(s, unicode):
+            return s.encode('utf-8')
+        elif isinstance(s, bool):
+            return str(s)
+        elif isinstance(s, (int, float)):
+            return s  # so that it can't get quoted by csv.QUOTE_NONNUMERIC
+        elif not isinstance(s, str):
+            s = str(s)
+        return s
+
     def write_object(self, pkg, first=False):
         pkg_dict, resources = self._flatten(pkg)
-        keys = sorted(pkg_dict.keys())
 
         if first:
-            self.write_header(keys)
+            # TODO Get a better list of fields to dump than just what we see in
+            # the first dataset...
+            self.dataset_keys = sorted(pkg_dict.keys())
+            self.write_header(self.dataset_keys)
 
         url = config.get('ckan.site_url')
         full_url = urlparse.urljoin(url, '/dataset/%s' % pkg.name)
@@ -112,23 +131,19 @@ class CSVDumper(object):
 
             self.organization_cache[pkg.owner_org] = (organization, top_level_publisher)
 
-        def encode(s):
-            if not s:
-                return u''
-            if isinstance( s, (str, unicode)):
-                return s.encode('utf-8')
-            return unicode(s)
-
         license = pkg.license or ''
         if license:
             license = pkg.license.title
 
         # This really should have been published, rather than unpublished.
-        published = not asbool(pkg.extras.get('unpublished', "false"))
-        nii = asbool(pkg.extras.get('core-dataset', "false"))
+        published = not asbool(pkg.extras.get('unpublished') or False)
+        nii = asbool(pkg.extras.get('core-dataset') or False)
+        location = asbool(pkg.extras.get('UKLP') or False)
+        import_source = pkg.extras.get('import_source') or \
+            'harvest' if pkg.extras.get('harvest_object_id') else ''
 
-        vals = [pkg.name, pkg.title, full_url, organization, top_level_publisher, license, published, nii] + \
-            [encode(pkg_dict[k]) for k in keys]
+        vals = [self._encode(val) for val in [pkg.name, pkg.title, full_url, organization, top_level_publisher, license, published, nii, location, import_source]]
+        vals += [self._encode(pkg_dict.get(k)) for k in self.dataset_keys]
 
         self.dataset_csv.writerow(vals)
 
@@ -143,23 +158,23 @@ class CSVDumper(object):
                 resource['id'], resource['position'], date, organization, top_level_publisher]
             self.resource_csv.writerow(row)
 
-    def write_header(self, keys):
+    def write_header(self, dataset_keys):
         """
         Generate the header row for datasets.csv (with some preset fields) and then
         the fixed headers for resources.
         """
-        header_row = [
-            'Name', 'Title', 'URL', 'Organisation', 'Top level organisation', 'License', 'Published', 'NII'
+        dataset_header_row = [
+            'Name', 'Title', 'URL', 'Organization', 'Top level organisation', 'License', 'Published', 'NII', 'Location', 'Import source'
         ]
 
         resource_header_row = [
-            'Dataset Name', 'URL', 'Format', 'Description', 'Resource ID', 'Position', 'Date', 'Organisation', 'Top level organisation'
+            'Dataset Name', 'URL', 'Format', 'Description', 'Resource ID', 'Position', 'Date', 'Organization', 'Top level organization'
         ]
 
-        for k in keys:
-            header_row.append(make_nice_name(k))
+        for k in dataset_keys:
+            dataset_header_row.append(self._encode(make_nice_name(k)))
 
-        self.dataset_csv.writerow(header_row)
+        self.dataset_csv.writerow(dataset_header_row)
         self.resource_csv.writerow(resource_header_row)
 
     def _flatten(self, pkg):
@@ -173,7 +188,7 @@ class CSVDumper(object):
         new_dict = {}
 
         for name, value in pkg_dict.items()[:]:
-            if name == 'extras' or  name in IGNORE_KEYS:
+            if name == 'extras' or name in IGNORE_KEYS:
                 continue
 
             if name == 'resources':
@@ -222,7 +237,7 @@ class CSVDumper(object):
 
         return new_dict, resources
 
-    def _add_cert_info(self, d ,v):
+    def _add_cert_info(self, d, v):
         """
         Add the ODI Certificate URL if we have one
         """
@@ -239,6 +254,3 @@ class CSVDumper(object):
         self.resource_file.close()
 
         return self.dataset_filename, self.resource_filename
-
-
-
