@@ -103,7 +103,7 @@ class Schema(CkanCommand):
         datasets = [
             dict(name='oxford-toilets',
                  title='Oxford toilets',
-                 codelist=[Codelist.by_title('Foo List').id],
+                 codelist=[],
                  schema=[Schema.by_title('Toilet locations').id]),
             dict(name='bathing-waters',
                  title='Bathing waters',
