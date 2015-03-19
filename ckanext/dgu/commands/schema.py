@@ -43,7 +43,7 @@ class Schema(CkanCommand):
         from ckan import model
         from ckanext.dgu.model.schema_codelist import Schema, Codelist
         pt = plugins.toolkit
-        context = {'model': model, 'user': 'admin'}
+        context = {'model': model, 'user': 'dgu'}
 
         # Create schemas
         schemas = [dict(url='http://lga.org/toilet?v0.3', title='Toilet locations'),
