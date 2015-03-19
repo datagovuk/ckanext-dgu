@@ -251,20 +251,27 @@ class SearchIndexing(object):
 
     @classmethod
     def add_schema(cls, pkg_dict):
+        from ckanext.dgu.model.schema_codelist import Schema, Codelist
         try:
-            schemas = json.loads(pkg_dict.get('schema') or '[]')
+            schema_ids = json.loads(pkg_dict.get('schema') or '[]')
         except ValueError:
             log.error('Not valid JSON in schema field: %s %r',
                       pkg_dict['name'], pkg_dict.get('schema'))
             schemas = None
+        schemas = []
+        for schema_id in schema_ids:
+            schemas.append(Schema.get(schema_id).title)
         pkg_dict['schema_multi'] = schemas
         log.debug('Schema: %s', ' '.join(schemas))
 
         try:
-            code_lists = json.loads(pkg_dict.get('codelist') or '[]')
+            codelist_ids = json.loads(pkg_dict.get('codelist') or '[]')
         except ValueError:
             log.error('Not valid JSON in codelists field: %s %r',
                       pkg_dict['name'], pkg_dict.get('codelist'))
-            code_lists = None
-        pkg_dict['codelist_multi'] = code_lists
-        log.debug('Code lists: %s', ' '.join(code_lists))
+            codelists = None
+        codelists = []
+        for codelist_id in codelist_ids:
+            codelists.append(Codelist.get(codelist_id).title)
+        pkg_dict['codelist_multi'] = codelists
+        log.debug('Code lists: %s', ' '.join(codelists))
