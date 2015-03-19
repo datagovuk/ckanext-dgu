@@ -152,6 +152,7 @@
     <dynamicField name="extras_*" type="text" indexed="true" stored="true" multiValued="false"/>
     <dynamicField name="vocab_*" type="string" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="*" type="string" indexed="true"  stored="false"/>
+    <dynamicField name="*_multi" type="string" indexed="true"  stored="false" multiValued="true"/>
 </fields>
 
 <uniqueKey>index_id</uniqueKey>

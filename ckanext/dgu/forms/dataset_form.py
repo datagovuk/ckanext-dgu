@@ -275,8 +275,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
-            'schema': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras, dict_to_id],
-            'codelist': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras, dict_to_id],
+            'schema': [ignore_missing, to_list, dict_to_id, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'codelist': [ignore_missing, to_list, dict_to_id, remove_blanks, ignore_empty, to_json, convert_to_extras],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -354,8 +354,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, from_json, ignore_missing],
-            'schema': [convert_from_extras, from_json, id_to_dict, ignore_missing],
-            'codelist': [convert_from_extras, from_json, id_to_dict, ignore_missing],
+            'schema': [convert_from_extras, from_json, ignore_missing, id_to_dict],
+            'codelist': [convert_from_extras, from_json, ignore_missing, id_to_dict],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
             'theme-secondary': [convert_from_extras, ignore_missing],
@@ -541,7 +541,6 @@ def tags_schema():
 
 def id_to_dict(key, data, errors, context):
     from ckanext.dgu.model.schema_codelist import Schema, Codelist
-    import pdb; pdb.set_trace()
     for i, id_ in enumerate(data[key]):
         if key == ('schema',):
             obj = Schema.get(id_)
@@ -556,11 +555,17 @@ def id_to_dict(key, data, errors, context):
 def dict_to_id(key, data, errors, context):
     from ckanext.dgu.model.schema_codelist import Schema, Codelist
     for i, dict_ in enumerate(data[key]):
+        if isinstance(dict_, basestring):
+            # it is an id already. This is the case for create_test_data and the form
+            continue
+        # therefore it is a dict. I imagine this is needed for the API
+        import pdb; pdb.set_trace()
         try:
             id_ = dict_['id']
         except ValueError:
             id_ = None
         if key == ('schema',):
+            import pdb; pdb.set_trace()
             obj = Schema.get(id_)
         elif key == ('codelist',):
             obj = Codelist.get(id_)

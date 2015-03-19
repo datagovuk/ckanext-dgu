@@ -257,7 +257,7 @@ class SearchIndexing(object):
             log.error('Not valid JSON in schema field: %s %r',
                       pkg_dict['name'], pkg_dict.get('schema'))
             schemas = None
-        pkg_dict['schema'] = schemas
+        pkg_dict['schema_multi'] = schemas
         log.debug('Schema: %s', ' '.join(schemas))
 
         try:
@@ -266,5 +266,5 @@ class SearchIndexing(object):
             log.error('Not valid JSON in codelists field: %s %r',
                       pkg_dict['name'], pkg_dict.get('codelist'))
             code_lists = None
-        pkg_dict['codelist'] = code_lists
+        pkg_dict['codelist_multi'] = code_lists
         log.debug('Code lists: %s', ' '.join(code_lists))

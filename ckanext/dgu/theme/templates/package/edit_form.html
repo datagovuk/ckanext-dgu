@@ -316,15 +316,16 @@ Passed in:
       <p class="instructions basic">Stuff about schemas here...</p>
       <div class="form-group">
         {%- set schemas = data.get('schema', ['']) -%}
+        {%- set schema_options = h.get_schema_options() -%}
         <ul id="schema-list">
         {% for schema in schemas %}
           <li>
             <select class="form-control" name="schema" data-placeholder="Please choose a schema">
-                {% for value, title in h.get_schema_options() %}
-                <option value="{{value}}" {% if value != '' and schema == value %}selected{% endif %}>
-                {{title}}
+              {% for id, title in schema_options %}
+                <option value="{{id}}" {% if id != '' and schema['id'] == id %}selected{% endif %}>
+                  {{title}}
                 </option>
-                {% endfor %}
+              {% endfor %}
             </select>
           </li>
         {% endfor %}
@@ -338,15 +339,16 @@ Passed in:
       <p class="instructions basic">Stuff about code lists here</p>
       <div class="form-group">
         {%- set codelists = data.get('codelist', ['']) -%}
+        {%- set codelist_options = h.get_codelist_options() -%}
         <ul id="codelist-list">
         {% for codelist in codelists %}
           <li>
             <select class="form-control" name="codelist" data-placeholder="Please choose a codelist">
-                {% for value, title in h.get_codelist_options() %}
-                <option value="{{value}}" {% if value != '' and codelist == value %}selected{% endif %}>
-                {{title}}
+              {% for id, title in codelist_options %}
+                <option value="{{id}}" {% if id != '' and codelist['id'] == id %}selected{% endif %}>
+                  {{title}}
                 </option>
-                {% endfor %}
+              {% endfor %}
             </select>
           </li>
         {% endfor %}

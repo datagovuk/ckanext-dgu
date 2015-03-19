@@ -32,6 +32,12 @@ class Schema(DeclarativeBase, model.DomainObject):
         return model.Session.query(cls).filter(cls.id==id).first()
 
     @classmethod
+    def by_title(cls, title, autoflush=True):
+        obj = model.Session.query(cls).autoflush(autoflush)\
+                   .filter_by(title=title).first()
+        return obj
+
+    @classmethod
     def by_url(cls, url):
         return model.Session.query(cls).filter(cls.url==url).first()
 
@@ -52,6 +58,12 @@ class Codelist(DeclarativeBase, model.DomainObject):
     @classmethod
     def get(cls, id):
         return model.Session.query(cls).filter(cls.id==id).first()
+
+    @classmethod
+    def by_title(cls, title, autoflush=True):
+        obj = model.Session.query(cls).autoflush(autoflush)\
+                   .filter_by(title=title).first()
+        return obj
 
     @classmethod
     def by_url(cls, url):
