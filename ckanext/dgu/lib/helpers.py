@@ -972,9 +972,14 @@ def get_licenses(pkg):
     # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
-        license_url_title = pkg.extras.get('licence_url_title') or license_url
-        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None, False))
+        license_url_is_ogl = \
+            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
+            '//reference.data.gov.uk/id/open-government-licence' in license_url
+        already_said_we_are_ogl = any([license[3] for license in licenses])
+        if not (license_url_is_ogl and already_said_we_are_ogl):
+            license_url_title = pkg.extras.get('licence_url_title') or license_url
+            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
