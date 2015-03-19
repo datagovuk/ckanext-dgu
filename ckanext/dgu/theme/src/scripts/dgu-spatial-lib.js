@@ -209,10 +209,11 @@ $(function() {
 
         var geocoderServiceUrl = 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name='
         var COPYRIGHT_STATEMENTS =
-            "Contains Ordnance Survey data &copy; Crown copyright and database right  [2012].<br/>" +
-            "Contains Royal Mail data &copy; Royal Mail copyright and database right [2012].<br/>" +
-            "Contains bathymetry data by GEBCO &copy; Copyright [2012].<br/>" +
-            "Contains data by Land & Property Services (Northern Ireland) &copy; Crown copyright [2012]."
+            "Map background contains data from:<br/>" +
+            "Ordnance Survey &copy; Crown copyright and database right [2012];<br/>" +
+            "Royal Mail &copy; Royal Mail copyright and database right [2012];<br/>" +
+            "Bathymetry by GEBCO &copy; Copyright [2012];<br/>" +
+            "Land & Property Services (Northern Ireland) &copy; Crown copyright [2012]."
 
         var geojsonFormat = new ol.format.GeoJSON()
 
