@@ -712,7 +712,6 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
-    from ckanext.dgu.schema import THEMES
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
@@ -779,21 +778,16 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     if taxonomy_url and taxonomy_url.startswith('http'):
         taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
     primary_theme = pkg_extras.get('theme-primary') or ''
-    primary_theme = THEMES.get(primary_theme, primary_theme)
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
             secondary_themes = json.loads(secondary_themes) or ''
 
-            if isinstance(secondary_themes, types.StringTypes):
-                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
-            else:
-                secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
+            if isinstance(secondary_themes, types.ListType):
+                secondary_themes = ', '.join(secondary_themes)
         except ValueError:
             # string for single value
-            secondary_themes = str(secondary_themes)
-            secondary_themes = THEMES.get(secondary_themes,
-                                          secondary_themes)
+            secondary_themes = unicode(secondary_themes)
 
     mandates = pkg_extras.get('mandate')
     if mandates:
@@ -978,9 +972,14 @@ def get_licenses(pkg):
     # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
-        license_url_title = pkg.extras.get('licence_url_title') or license_url
-        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None, False))
+        license_url_is_ogl = \
+            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
+            '//reference.data.gov.uk/id/open-government-licence' in license_url
+        already_said_we_are_ogl = any([license[3] for license in licenses])
+        if not (license_url_is_ogl and already_said_we_are_ogl):
+            license_url_title = pkg.extras.get('licence_url_title') or license_url
+            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
@@ -1627,9 +1626,6 @@ def search_facet_text(key,value):
                 'discovery' : 'Discovery',
             }
         return mapping.get(value,value)
-    if key=='theme-primary' or key=='all_themes':
-        from ckanext.dgu.schema import THEMES
-        return THEMES.get(value,value)
     return value
 
 def search_facet_tooltip(key,value):
@@ -1829,16 +1825,15 @@ def inventory_status(package_items):
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
 def themes_count():
-    from ckanext.dgu.schema import THEMES
     from ckan import model
     theme_count = {}
-    for theme in THEMES.keys():
+    for theme, theme_dict in themes().items():
         count = model.Session.query(model.Package)\
             .join(model.PackageExtra)\
             .filter(model.PackageExtra.key=='theme-primary')\
-            .filter(model.PackageExtra.value==theme)\
+            .filter(model.PackageExtra.value==theme_dict['title'])\
             .filter(model.Package.state=='active').count()
-        theme_count[theme] = count
+        theme_count[theme_dict['title']] = count
     return theme_count
 
 def themes():
@@ -2126,12 +2121,12 @@ def orgs_for_admin_report():
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
-
 def get_mandate_list(data):
     mandate = data.get('mandate') or []
     if isinstance(mandate, basestring):
-        # this is the case when only one <input> is on the form
+        # This shouldn't happen, but maybe a harvester puts in a string
         return [mandate]
     if not isinstance(mandate, list):
         log.error('Mandate should be a list: %r', mandate)
+        return mandate
     return mandate

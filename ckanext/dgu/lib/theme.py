@@ -43,7 +43,7 @@ class Themes(object):
         self.la_service = {}  # LA services extra
         self.odc = {}  # OpenDataCommunities.org theme extra
         for theme_dict in themes_list:
-            name = theme_dict.get('stored_as') or theme_dict['title']
+            name = theme_dict['title']
 
             for key in ('topics', 'gemet', 'nscl', 'ons', 'la_function', 'la_service',
                         'odc'):

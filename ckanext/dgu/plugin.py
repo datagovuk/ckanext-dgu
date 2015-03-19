@@ -1,4 +1,5 @@
 ﻿from logging import getLogger
+import json
 
 from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
@@ -560,12 +561,18 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
 
-        # Extract multiple theme values (concatted with ' ') into one multi-value schema field
+        # Extract all primary and secondary themes into the 'all_themes' field
         all_themes = set()
-        for value in (pkg_dict.get('theme-primary', ''), pkg_dict.get('theme-secondary', '')):
-            for theme in value.split(' '):
+        if pkg_dict.get('theme-primary'):
+            all_themes.add(pkg_dict.get('theme-primary', ''))
+        try:
+            secondary_themes = json.loads(pkg_dict.get('theme-secondary', '[]'))
+            for theme in secondary_themes:
                 if theme:
                     all_themes.add(theme)
+        except ValueError, e:
+            log.error('Could not parse secondary themes: %s %r',
+                      pkg_dict['name'], pkg_dict.get('theme-secondary'))
         pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 

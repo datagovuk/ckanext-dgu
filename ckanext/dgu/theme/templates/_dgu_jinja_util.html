@@ -433,7 +433,7 @@
   <!--! Form input for primary/secondary themes -->
   {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
       <label class="radio js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
-        <input type="radio" name="theme-primary" value="{{theme}}" {% if data.get('theme-primary', '') == theme %}checked="checked"{% endif %} />
+        <input type="radio" name="theme-primary" value="{{theme_dict['title']}}" {% if data.get('theme-primary', '') == theme_dict['title'] %}checked="checked"{% endif %} />
           {{theme_dict['title']}}
       </label>
   {% endfor %}
@@ -445,7 +445,7 @@
 {% macro secondary_theme_input(data, errors) %}
   {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
     <label class="checkbox js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
-      <input type="checkbox" name="theme-secondary" value="{{theme}}" {% if theme in h.secondary_themes(data) %}checked="checked"{% endif %}/>
+      <input type="checkbox" name="theme-secondary" value="{{theme_dict['title']}}" {% if theme_dict['title'] in h.secondary_themes(data) %}checked="checked"{% endif %}/>
         {{theme_dict['title']}}
     </label>
   {% endfor %}

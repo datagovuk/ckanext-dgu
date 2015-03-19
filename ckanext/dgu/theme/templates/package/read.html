@@ -122,7 +122,7 @@
           <h2>Data Resources ({{h.timeseries_resources()|length}} in a time series)</h2>
   	       {% for year, items in h.groupby(h.timeseries_resources()|reverse, h.extract_year) %}
   	       <div class="year">
-              <h3>{{year}} <span class="showyear"></span><span class="hideyear"></span></h3>
+              <h3>{{year}} <span class="showyear" style="display: none;">View More <i class="icon-chevron-down"></i></span><span class="hideyear" style="display: none;">View Less <i class="icon-chevron-up"></i></span></h3>
               <div class="year_items">
               {{resource_table(items, publisher_name)}}
               </div>

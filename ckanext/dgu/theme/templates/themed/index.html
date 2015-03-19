@@ -1,17 +1,15 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Themes</py:def>
+{% block title %}Themes{% endblock %}
 
-  <div py:match="content">
+{% block primary_content_inner %}
+    {% set theme_count = h.themes_count() %}
     <h1>Themes</h1>
-    <div class="container" py:with="theme_count=h.themes_count()">
+    <div class="container">
       <div class="row">
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Society">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Society">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/society.jpg"/>
@@ -19,14 +17,14 @@
                 <div class="description"><div class="inner">Employment, benefits, household finances, poverty, population, demography, lifestyles, surveys and opinions.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Society <br/><small>${theme_count.get('Society')} datasets &raquo;</small></h2>
+                <h2>Society <br/><small>{{theme_count.get('Society')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Spending">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Spending">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img style="top:-4%;" src="/images/spending.jpg"/>
@@ -34,14 +32,14 @@
                 <div class="description"><div class="inner">Government transaction data. Mandated for public bodies (transactions above £25k &amp; GPC card) and local authorities (transactions above £500). Includes grants. <b>Excludes</b> budgets &amp; staff pay.</div></div>
               </div>
               <div class="inner-text">
-                <h2 style="font-size: 18px;">Government Spending <br/><small>${theme_count.get('Spending')} datasets &raquo;</small></h2>
+                <h2 style="font-size: 18px;">Government Spending <br/><small>{{theme_count.get('Government Spending')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Education">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Education">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/education.jpg"/>
@@ -49,14 +47,14 @@
                 <div class="description"><div class="inner">Data collected from schools, universities and libraries.<br/>Students, training, qualifications and the National Curriculum.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Education <br/><small>${theme_count.get('Education')} datasets &raquo;</small></h2>
+                <h2>Education <br/><small>{{theme_count.get('Education')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Mapping">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Mapping">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img style="top:-4%;" src="/images/map.png"/>
@@ -64,7 +62,7 @@
                 <div class="description"><div class="inner">Administrative boundaries, property addresses, land ownership, aerial photographs, the shape of the seabed and land terrain, general-purpose maps. <b>Excludes</b> maps of any specific topic.</div></div>
               </div>
               <div class="inner-text">
-                <h2 style="font-size: 18px;">Mapping <br/><small>${theme_count.get('Mapping')} datasets &raquo;</small></h2>
+                <h2 style="font-size: 18px;">Mapping <br/><small>{{theme_count.get('Mapping')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
@@ -73,7 +71,7 @@
       <div class="row">
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Crime">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Crime">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/crime.jpg"/>
@@ -81,14 +79,14 @@
                 <div class="description"><div class="inner">Statistics on crimes, policing, justice, courts, prisons, offenders, borders, and immigration.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Crime &amp; Justice <br/><small>${theme_count.get('Crime')} datasets &raquo;</small></h2>
+                <h2>Crime &amp; Justice <br/><small>{{theme_count.get('Crime & Justice')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Environment">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Environment">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/environment.jpg"/>
@@ -96,14 +94,14 @@
                 <div class="description"><div class="inner">Management and measurement of the natural environment. For example: weather, flooding, rivers, air quality, living creatures, geology and agriculture.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Environment <br/><small>${theme_count.get('Environment')} datasets &raquo;</small></h2>
+                <h2>Environment <br/><small>{{theme_count.get('Environment')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Towns">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Towns">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/town.png"/>
@@ -111,14 +109,14 @@
                 <div class="description"><div class="inner">Housing, urban planning, leisure, waste, energy production, energy consumption (macroscopic)</div></div>
               </div>
               <div class="inner-text">
-                <h2>Towns &amp; Cities <br/><small>${theme_count.get('Towns')} datasets &raquo;</small></h2>
+                <h2>Towns &amp; Cities <br/><small>{{theme_count.get('Towns & Cities')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Health">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Health">
               <div class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/health.jpg"/>
@@ -126,7 +124,7 @@
                 <div class="description"><div class="inner">Measurement of health, health care and social care. Includes medicine performance, hospitals, safety, mortality rates and data on smoking, drugs and alcohol.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Health <br/><small>${theme_count.get('Health')} datasets &raquo;</small></h2>
+                <h2>Health <br/><small>{{theme_count.get('Health')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
@@ -135,7 +133,7 @@
       <div class="row">
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Government">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Government">
             <div class="img-scrollbox">
               <div class="img-container">
                 <img src="/images/government.jpg"/>
@@ -143,14 +141,14 @@
               <div class="description"><div class="inner">Organograms, staff numbers, expenses, staff pay, senior staff meetings, hospitality &amp; gifts, lists of local councillors, department business plans, government buildings. <b>Excludes</b> spending.</div></div>
             </div>
             <div class="inner-text">
-              <h2>Government <br/><small>${theme_count.get('Government')} datasets &raquo;</small></h2>
+              <h2>Government <br/><small>{{theme_count.get('Government')}} datasets &raquo;</small></h2>
             </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Defence">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Defence">
             <div class="img-scrollbox">
               <div class="img-container">
                 <img src="/images/defence.jpg"/>
@@ -158,14 +156,14 @@
               <div class="description"><div class="inner">Statistics on the armed forces, Ministry of Defence, workforce, health &amp; safety and search &amp; rescue.</div></div>
             </div>
             <div class="inner-text">
-              <h2>Defence <br/><small>${theme_count.get('Defence')} datasets &raquo;</small></h2>
+              <h2>Defence <br/><small>{{theme_count.get('Defence')}} datasets &raquo;</small></h2>
             </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Economy">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Economy">
             <div id="scroll-economy" class="img-scrollbox">
               <div class="img-container">
                 <img src="/images/economy.jpg"/>
@@ -173,14 +171,14 @@
               <div class="description"><div class="inner">Industry and small businesses. Statistics, surveys, economic indicators, import/exports and trade. <b>Excludes</b> government spending &amp; salaries. <b>Excludes</b> household finances.</div></div>
             </div>
             <div class="inner-text">
-              <h2 style="font-size:20px;">Business &amp; Economy <br/><small>${theme_count.get('Economy')} datasets &raquo;</small></h2>
+              <h2 style="font-size:20px;">Business &amp; Economy <br/><small>{{theme_count.get('Business & Economy')}} datasets &raquo;</small></h2>
             </div>
             </a>
           </div>
         </div>
         <div class="col-md-3">
           <div class="boxed" style="padding: 0 0 0 0;">
-            <a class="theme-box" href="${h.url_for(controller='package', action='search')}?theme-primary=Transport">
+            <a class="theme-box" href="{{h.url_for(controller='package', action='search')}}?theme-primary=Transport">
               <div id="scroll-transport" class="img-scrollbox">
                 <div class="img-container">
                   <img src="/images/transport.jpg"/>
@@ -188,7 +186,7 @@
                 <div class="description"><div class="inner">Airports, roads, freight, electric vehicles, parking, buses, footpaths and travel statistics.</div></div>
               </div>
               <div class="inner-text">
-                <h2>Transport <br/><small>${theme_count.get('Transport')} datasets &raquo;</small></h2>
+                <h2>Transport <br/><small>{{theme_count.get('Transport')}} datasets &raquo;</small></h2>
               </div>
             </a>
           </div>
@@ -196,6 +194,4 @@
       </div>
     </div>
   </div>
-
-  <xi:include href="../layout.html" />
-</html>
+{% endblock %}

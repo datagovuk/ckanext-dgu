@@ -566,7 +566,9 @@ def admin_editor(org=None, include_sub_organizations=False):
 
     if org:
         q = model.Group.all('organization')
-        parent = model.Session.query(model.Group).filter_by(name=org).one()
+        parent = model.Group.by_name(org)
+        if not parent:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
 
         if include_sub_organizations:
             child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
@@ -645,7 +647,11 @@ def admin_editor_authorize(user, options):
 
     if options.get('org', False):
         org_name = options["org"]
-        org = model.Session.query(model.Group).filter_by(name=org_name).one()
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        if not org:
+            return False
 
         if user_is_admin(user, org) or user_is_rm(user, org):
             return True

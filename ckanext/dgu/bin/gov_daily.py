@@ -337,21 +337,25 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump','dump_analysis','backup']
+TASKS_TO_RUN = ['analytics', 'openspending', 'dump', 'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
-    Usage: python %s [config.ini]
+    Usage: python %s <config.ini> [task]
 
-    You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from %s or run multiple by
-    separating by a comma.
+    Where:
+       [task] - task to run (optional), picked from:
+                %s
+                or run multiple by separating by a comma.
     ''' % (sys.argv[0], ','.join(TASKS_TO_RUN))
 
-    if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
+    if set(sys.argv) & set(('--help', '-h')):
+        print USAGE
+        sys.exit(1)
+    if len(sys.argv) < 2:
         err = 'Error: Please specify config file.'
         print USAGE, err
-        logging.error('%s\n%s' % (USAGE, err))
+        logging.error('%s' % err)
         sys.exit(1)
     config_file = sys.argv[1]
     config_ini_filepath = os.path.abspath(config_file)
