@@ -358,7 +358,7 @@ $(function() {
                 return this.extent2bboxstring(geom.getExtent())
             },
             extent2bboxstring: function(extent) {
-                return extent.join(',')
+                return extent.slice(0).map(function(coord) {return coord.toFixed(6)}).join(',')
             },
             drawExtentFromCoords: function(xmin, ymin, xmax, ymax) {
                 return this.bbox2geom(xmin, ymin, xmax, ymax)
