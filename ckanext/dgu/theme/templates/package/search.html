@@ -48,19 +48,19 @@
             <input class="form-control" placeholder="Search for location"  type="text" style="width: 100%; display: inline"/>
           </div>
           {% if 'ext_bbox' in request.params %}
-            <a href="{{ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }}" class="action">
-              <div class="facet-kill pull-right">
-                <i class="icon-large icon-remove-sign"></i>
-              </div>
-              <span data-placement="right">
-                {% set coords = h.extract_bbox_from_param(request.params['ext_bbox']) %}
-                {% if coords %}
-                  [{{coords[0]|round(2)}}, {{coords[1]|round(2)}}] [{{coords[2]|round(2)}}, {{coords[3]|round(2)}}]
-                {% else %}
-                  error
-                {% endif %}
-              </span>
-            </a>
+          <div class="facet-kill pull-right">
+              <a href="{{ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }}" class="action" style="text-decoration: none">
+                  <i class="icon-large icon-remove-sign"></i>
+              </a>
+          </div>
+          <span data-placement="right">
+            {% set coords = h.extract_bbox_from_param(request.params['ext_bbox']) %}
+            {% if coords %}
+              [{{coords[0]|round(2)}}, {{coords[1]|round(2)}}] [{{coords[2]|round(2)}}, {{coords[3]|round(2)}}]
+            {% else %}
+              error
+            {% endif %}
+          </span>
           {% endif %}
         </div>
       </div>
