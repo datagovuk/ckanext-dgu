@@ -42,12 +42,13 @@
         {{ _('Filter by location') }}
       </h4>
       <div class="dataset-map dataset-map-facet" data-module="spatial-query" data-default_extent="{{ default_extent }}">
-        <div class="{% if 'ext_bbox' in request.params %}facet-option facet-option-selected{% endif %}">
+        {% set has_bbox = 'ext_bbox' in request.params and request.params['ext_bbox'] != '' %}
+        <div class="{% if has_bbox %}facet-option facet-option-selected{% endif %}">
           <div id="dataset-map-container"></div>
           <div style="position: relative" id="gazetteer">
             <input class="form-control" placeholder="Search for location"  type="text" style="width: 100%; display: inline"/>
           </div>
-          {% if 'ext_bbox' in request.params %}
+          {% if has_bbox %}
           <div class="facet-kill pull-right">
               <a href="{{ h.remove_url_param(['ext_bbox','ext_prev_extent', 'ext_location']) }}" class="action" style="text-decoration: none">
                   <i class="icon-large icon-remove-sign"></i>
