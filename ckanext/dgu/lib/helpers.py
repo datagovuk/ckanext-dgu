@@ -2145,16 +2145,14 @@ def get_schema_options():
     from ckan import model
 
     context = {'model': model, 'session': model.Session}
-    schemas = get_action('schema_list')(context, {})
-    return [('', '')] + [(schema['id'], schema['title']) for schema in schemas]
+    return get_action('schema_list')(context, {})
 
 def get_codelist_options():
     from ckan.logic import get_action
     from ckan import model
 
     context = {'model': model, 'session': model.Session}
-    codelists = get_action('codelist_list')(context, {})
-    return [('', '')] + [(codelist['id'], codelist['title']) for codelist in codelists]
+    return get_action('codelist_list')(context, {})
 
 def get_mandate_list(data):
     mandate = data.get('mandate') or []

@@ -322,9 +322,10 @@ Passed in:
         {% for schema in schemas %}
           <li>
             <select class="form-control" name="schema" data-placeholder="Please choose a schema">
-              {% for id, title in schema_options %}
-                <option value="{{id}}" {% if id != '' and schema['id'] == id %}selected{% endif %}>
-                  {{title}}
+              <option value="" />
+              {% for option in schema_options %}
+                <option value="{{option['id']}}" {% if id != '' and schema['id'] == option['id'] %}selected{% endif %}>
+                  {{option['title']}} - {{option['url']}}
                 </option>
               {% endfor %}
             </select>
@@ -345,9 +346,10 @@ Passed in:
         {% for codelist in codelists %}
           <li>
             <select class="form-control" name="codelist" data-placeholder="Please choose a codelist">
-              {% for id, title in codelist_options %}
-                <option value="{{id}}" {% if id != '' and codelist['id'] == id %}selected{% endif %}>
-                  {{title}}
+              <option value="" />
+              {% for option in codelist_options %}
+                <option value="{{option['id']}}" {% if id != '' and codelist['id'] == option['id'] %}selected{% endif %}>
+                  {{option['title']}} - {{option['url']}}
                 </option>
               {% endfor %}
             </select>
