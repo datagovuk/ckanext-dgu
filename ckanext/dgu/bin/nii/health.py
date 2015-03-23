@@ -46,7 +46,7 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
 
             url = row[15].strip()
             if url:
-                dataset['resources'] = [{'url': url, 'name': 'Data'}]
+                dataset['resources'] = [{'url': url, 'description': 'Data', 'format': 'CSV'}]
 
             schema = row[13].strip()
             if schema:
@@ -62,10 +62,11 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             except UnicodeDecodeError:
                 print "Encoding Error", dataset['title']
 
-import uuid
-with open('codelists.jsonl', 'w') as codelists:
-    for code in codes:
-        if not code:
-            continue
-        id = str(uuid.uuid4())
-        codelists.write("%s\n" % json.dumps({'id': id, 'title': code, 'url': ''}))
+if False:  # don't need to produce the codelists repeatedly with differing ids
+    import uuid
+    with open('codelists.jsonl', 'w') as codelists:
+        for code in codes:
+            if not code:
+                continue
+            id = str(uuid.uuid4())
+            codelists.write("%s\n" % json.dumps({'id': id, 'title': code, 'url': ''}))

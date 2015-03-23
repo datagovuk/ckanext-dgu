@@ -13,11 +13,12 @@ with open('dft.csv') as csv_file:
             dataset = {}
             dataset['title'] = row[0]
             dataset['name'] = slugify.slugify(row[0])
-            dataset['notes'] = row[0] # For now...
+            dataset['notes'] = row[0]  # For now...
             dataset['owner_org'] = 'department-for-transport'
-            if row[2].strip() == 'Yes':
+            unpublished = row[2].strip() == 'Yes'
+            if unpublished:
                 dataset['extras'] = [{'key': 'unpublished', 'value': True}]
-                dataset['license_id'] = 'unpublished'
+                dataset['license_id'] = None
             else:
                 if row[6].strip() == 'OGL':
                     dataset['license_id'] = 'uk-ogl'
@@ -25,8 +26,9 @@ with open('dft.csv') as csv_file:
                     dataset['license_id'] = None
 
             if url:
-                dataset['resources'] = [{'url': url, 'name': 'Website'}]
-                if dataset['license_id'] == 'unpublished':
-                    print "Adding resource to unpublished dataset", dataset['title']
+                if not unpublished:
+                    dataset['resources'] = [{'url': url, 'description': 'Website', 'format': 'HTML'}]
+                else:
+                    dataset['notes'] += '\n\n%s' % url
 
             jsonl.write("%s\n" % json.dumps(dataset))
