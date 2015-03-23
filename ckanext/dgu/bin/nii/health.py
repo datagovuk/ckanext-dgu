@@ -12,9 +12,6 @@ import collections
 
 HSCIC_ID = CHOICES_ID = CQC_ID = '421a4052-275a-4617-8d9d-d958417710fd'
 
-SCHEMA_LOOKUP = collections.defaultdict(lambda: '4f47b582-0054-4940-9438-c43e0495c4cc')
-CODELIST_LOOKUP = collections.defaultdict(lambda: '5640d2df-6d38-47a2-9980-0afa9902f628')
-
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
     csv_reader = csv.reader(utf_8_encoder(unicode_csv_data),
@@ -26,6 +23,8 @@ def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
 def utf_8_encoder(unicode_csv_data):
     for line in unicode_csv_data:
         yield line.encode('utf-8')
+
+codes = set()
 
 with codecs.open('health.csv', encoding='cp1252') as csv_file:
     with open('health.jsonl', 'w') as jsonl:
@@ -54,22 +53,24 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             if url:
                 dataset['resources'] = [{'url': url, 'name': 'Data'}]
 
-            extras = []
-
             schema = row[13].strip()
             if schema:
-                schema_list = json.dumps([SCHEMA_LOOKUP[schema]])
-                extras.append({'key': 'schema', 'value': schema_list})
+                dataset['schema'] = [schema]
 
             codelists = [row[5].strip(), row[6].strip(), row[7].strip(), row[8].strip()]
             if any(codelists):
-                codelist_list = json.dumps([CODELIST_LOOKUP[codelist] for codelist in codelists if codelist])
-                extras.append({'key': 'codelist', 'value': codelist_list})
-
-            if extras:
-                dataset['extras'] = extras
+                codes.update(codelists)
+                dataset['codelist'] = [code for code in codelists if code]
 
             try:
                 jsonl.write("%s\n" % json.dumps(dataset))
             except UnicodeDecodeError:
                 print "Encoding Error", dataset['title']
+
+import uuid
+with open('codelists.jsonl', 'w') as codelists:
+    for code in codes:
+        if not code:
+            continue
+        id = str(uuid.uuid4())
+        codelists.write("%s\n" % json.dumps({'id': id, 'title': code, 'url': ''}))
