@@ -158,6 +158,8 @@ class Schema(CkanCommand):
         schema_dicts = []
         with open(schema_filepath) as f:
             for line in f.readlines():
+                if not line.strip():
+                    continue
                 schema_dict = json.loads(line)
                 schema_dicts.append(schema_dict)
 
