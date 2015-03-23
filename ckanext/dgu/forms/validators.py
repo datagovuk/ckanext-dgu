@@ -12,26 +12,6 @@ from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
 
-def allow_empty_if_inventory(key, data, errors, context):
-    """ Allow a specific field to not be required if unpublished=true """
-    unpublished = data.get('unpublished', False)
-    value = data.get(key)
-
-    if unpublished:
-        if value is missing or value is None:
-            data.pop(key, None)
-            raise StopOnError
-    else:
-        if not value or value is missing:
-            errors[key].append(_('Missing value'))
-            raise StopOnError
-
-
-
-def required_if_inventory(key, data, errors, context):
-    """ Make a field required if inventory=true in extras """
-    pass
-
 def drop_if_same_as_publisher(key, data, errors, context):
     """
     Validates the contact- and foi- data.
@@ -99,6 +79,10 @@ def validate_license(key, data, errors, context):
      access_constraints is DROPPED
 
     """
+    # Unpublished data doesn't need a licence
+    if data.get(('unpublished',)) == True:
+        return
+
     if data[('license_id',)]== '__extra__': # harvested dataset
         data[('license_id',)] = None
         return

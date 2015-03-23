@@ -2,6 +2,11 @@ import csv
 import json
 import slugify
 
+clashing_names = set(('electric-vehicle-charging-points',
+                      'cycle-routes',
+                      'hydrographic-data',
+                      ))
+
 with open('dft.csv') as csv_file:
     with open('dft.jsonl', 'w') as jsonl:
         reader = csv.reader(csv_file)
@@ -13,18 +18,20 @@ with open('dft.csv') as csv_file:
             dataset = {}
             dataset['title'] = row[0]
             dataset['name'] = slugify.slugify(row[0])
+            if dataset['name'] in clashing_names:
+                dataset['name'] += '_'
             dataset['notes'] = row[0]  # For now...
             dataset['owner_org'] = 'department-for-transport'
             dataset['core-dataset'] = 'True'  # i.e. NII
             unpublished = row[2].strip() == 'Yes'
             if unpublished:
-                dataset['extras'] = [{'key': 'unpublished', 'value': True}]
-                dataset['license_id'] = None
+                dataset['unpublished'] = 'True'
+                dataset['license_id'] = ''
             else:
                 if row[6].strip() == 'OGL':
                     dataset['license_id'] = 'uk-ogl'
                 else:
-                    dataset['license_id'] = None
+                    dataset['license_id'] = row[6].strip()
 
             if url:
                 if not unpublished:

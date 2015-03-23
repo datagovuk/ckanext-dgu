@@ -20,8 +20,7 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_license, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
-     remove_blank_resources, \
-     allow_empty_if_inventory
+     remove_blank_resources
 from ckan.lib.navl.dictization_functions import missing
 
 #convert_from_extras = tk.get_validator('convert_from_extras')

@@ -2,10 +2,9 @@ import csv
 import json
 import slugify
 import codecs
-import collections
 
-# TODO
-# Check for name clashes
+clashing_names = set(('hospitals'))
+
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
@@ -29,6 +28,8 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             dataset = {}
             dataset['title'] = row[0]
             dataset['name'] = slugify.slugify(row[0])
+            if dataset['name'] in clashing_names:
+                dataset['name'] += '_'
             dataset['notes'] = (row[16].strip() or row[0]).replace('\n', '\n\n')
             dataset['theme-primary'] = 'Health'
             dataset['core-dataset'] = 'True'  # i.e. NII
