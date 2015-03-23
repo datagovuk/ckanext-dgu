@@ -313,9 +313,10 @@ Passed in:
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
     <div class="well form-inline">
       <h3>Schema</h3>
-      <p class="instructions basic">Stuff about schemas here...</p>
+      <p class="instructions basic">Name any common schemas, vocabularies or ontologies that describe the data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
       <div class="form-group">
-        {%- set schemas = data.get('schema', ['']) -%}
+        {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('schema') so we use h.ensure_strings_are_in_a_list. #}
+        {%- set schemas = h.ensure_ids_are_in_a_list_of_dicts(data.get('schema', [''])) -%}
         {%- set schema_options = h.get_schema_options() -%}
         <ul id="schema-list">
         {% for schema in schemas %}
@@ -331,14 +332,14 @@ Passed in:
         {% endfor %}
         </ul>
         <a href="javascript:;" id="schema-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
-        <p class="instructions further">Further instructions...</p>
       </div>
     </div>
     <div class="well form-inline">
       <h3>Code Lists</h3>
-      <p class="instructions basic">Stuff about code lists here</p>
+      <p class="instructions basic">Name any common code lists or references that describe a field inside the data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
       <div class="form-group">
-        {%- set codelists = data.get('codelist', ['']) -%}
+        {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('codelist') so we use h.ensure_strings_are_in_a_list. #}
+        {%- set codelists = h.ensure_ids_are_in_a_list_of_dicts(data.get('codelist', [''])) -%}
         {%- set codelist_options = h.get_codelist_options() -%}
         <ul id="codelist-list">
         {% for codelist in codelists %}
@@ -354,7 +355,6 @@ Passed in:
         {% endfor %}
         </ul>
         <a href="javascript:;" id="codelist-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
-        <p class="instructions further">Further instructions... </p>
       </div>
     </div>
 

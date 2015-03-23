@@ -2165,3 +2165,13 @@ def get_mandate_list(data):
         log.error('Mandate should be a list: %r', mandate)
         return mandate
     return mandate
+
+def ensure_ids_are_in_a_list_of_dicts(l):
+    if isinstance(l, basestring):
+        # validation error when there is a single schema/codelist drop-down
+        return [{'id': l}]
+    elif isinstance(l, list) and l and isinstance(l[0], basestring):
+        # validation error when there are multiple schema/codelist drop-downs
+        return [{'id': id} for id in l]
+    # initial load of the form
+    return l

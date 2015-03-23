@@ -555,6 +555,9 @@ def id_to_dict(key, data, errors, context):
 def schema_codelist_validator(key, data, errors, context):
     from ckanext.dgu.model.schema_codelist import Schema, Codelist
     for i, schema_ref in enumerate(data[key]):
+        if not schema_ref:
+            # drop-down has no selection - ignore
+            continue
         # form gives an ID. API might give a title.
         if key == ('schema',):
             obj = Schema.get(schema_ref) or Schema.by_title(schema_ref) or \
@@ -565,6 +568,7 @@ def schema_codelist_validator(key, data, errors, context):
         else:
             raise NotImplementedError('Bad key: %s' % key)
         if not obj:
-            raise Invalid('%s id does not exist: %s' % (key, schema_ref))
+            raise Invalid('%s id does not exist: %r' % (key[0], schema_ref))
+        # write the ID in case it came in via the API and was a URL or title
         data[key][i] = obj.id
 
