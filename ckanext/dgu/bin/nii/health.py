@@ -31,6 +31,7 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             dataset['name'] = slugify.slugify(row[0])
             dataset['notes'] = (row[16].strip() or row[0]).replace('\n', '\n\n')
             dataset['theme-primary'] = 'Health'
+            dataset['core-dataset'] = 'True'  # i.e. NII
 
             if row[3] == 'HSCIC':
                 dataset['owner_org'] = 'health-and-social-care-information-centre'

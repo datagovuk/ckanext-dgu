@@ -811,28 +811,26 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
         except ValueError:
             pass # Not JSON for some reason...
 
-    schemas = package_dict.get('schema')
-    if schemas:
-        def linkify(schema):
-            h.link_to(schema['title'], urllib.quote(schema['url']))
-            return '<a href="%(url)s">%(title)s</a>' % schema
+    def linkify(schema):
+        if schema['url']:
+            return h.link_to(schema['title'], schema['url'])
+        return escape(schema['title'])
+    def list_of_links(schemas):
         try:
             schemas = [linkify(schema) for schema in schemas]
-            schemas = Markup("<br>".join(schemas))
-        except ValueError:
+            return Markup('<br>'.join(schemas))
+            #return Markup('<ul>\n<li>%s</li>\n</ul>' %
+            #              '</li>\n<li>'.join(schemas))
+        except ValueError, e:
+            log.error('Could not display schemas: %r %s', schemas, e)
             pass
+    schemas = package_dict.get('schema')
+    if schemas:
+        schemas = list_of_links(schemas)
 
     codelists = package_dict.get('codelist')
     if codelists:
-        def linkify(codelist):
-            h.link_to(codelist['title'], urllib.quote(codelist['url']))
-            return '<a href="%(url)s">%(title)s</a>' % codelist
-
-        try:
-            codelists = [linkify(codelist) for codelist in codelists]
-            codelists = Markup("<br>".join(codelists))
-        except ValueError:
-            pass
+        codelists = list_of_links(codelists)
 
     field_value_map = {
         # field_name : {display info}

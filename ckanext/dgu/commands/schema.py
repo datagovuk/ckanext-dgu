@@ -13,6 +13,7 @@ class Schema(CkanCommand):
     init - initialize the database tables
     create_test_data - create some test data (idempotent)
     import_schemas <schemas.jsonl> - create/update schemas from a file
+    import_codelists <codelists.jsonl> - create/update codelists from a file
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
@@ -39,6 +40,13 @@ class Schema(CkanCommand):
             if not os.path.exists(schema_filepath):
                 self.parser.error('File does not exist: %s' % schema_filepath)
             self.import_schemas(schema_filepath)
+        elif cmd == 'import_codelists':
+            assert_arg_number(1)
+            codelist_filepath = cmd_args[0]
+            if not os.path.exists(codelist_filepath):
+                self.parser.error('File does not exist: %s' %
+                                  codelist_filepath)
+            self.import_codelists(codelist_filepath)
         else:
             raise NotImplementedError
 
@@ -182,3 +190,34 @@ class Schema(CkanCommand):
             print json.dumps(schema_obj.as_dict())
         model.Session.remove()
 
+    def import_codelists(self, codelist_filepath):
+        from ckan import model
+        from ckanext.dgu.model.schema_codelist import Codelist
+
+        # Load file with codelists
+        codelist_dicts = []
+        with open(codelist_filepath) as f:
+            for line in f.readlines():
+                if not line.strip():
+                    continue
+                codelist_dict = json.loads(line)
+                codelist_dicts.append(codelist_dict)
+
+        # Create/update in the db
+        for codelist in codelist_dicts:
+            if 'id' in codelist:
+                existing_codelist = Codelist.by_title(codelist['title'])
+            else:
+                existing_codelist = Codelist.by_title(codelist['title'])
+            if existing_codelist:
+                codelist['id'] = existing_codelist.id
+                for k, v in codelist.items():
+                    setattr(existing_codelist, k, v)
+                codelist_obj = existing_codelist
+            else:
+                codelist_obj = Codelist(**codelist)
+                model.Session.add(codelist_obj)
+            model.Session.commit()
+            # Print JSONL with ids, in case you want to save with IDs
+            print json.dumps(codelist_obj.as_dict())
+        model.Session.remove()

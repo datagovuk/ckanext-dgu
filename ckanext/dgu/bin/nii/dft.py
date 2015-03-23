@@ -15,6 +15,7 @@ with open('dft.csv') as csv_file:
             dataset['name'] = slugify.slugify(row[0])
             dataset['notes'] = row[0]  # For now...
             dataset['owner_org'] = 'department-for-transport'
+            dataset['core-dataset'] = 'True'  # i.e. NII
             unpublished = row[2].strip() == 'Yes'
             if unpublished:
                 dataset['extras'] = [{'key': 'unpublished', 'value': True}]
