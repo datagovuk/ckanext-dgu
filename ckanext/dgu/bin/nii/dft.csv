@@ -1,0 +1,46 @@
+name,title,unpublished,organization_name,Standard,Vocabularies and Codes,Licence,Legislation,File structure,Non-compliance,URL
+Air Timetables,,Yes,OAG,,None,Commercial,,,,http://www.oag.com/
+Air Fares Data,,Yes,operators,,None,,,,Data currently held by service operators and therefore not available in a nationally consistent format,
+Minor Airports,,No,CAA,,None,,,,,https://www.caa.co.uk/default.aspx?catid=68&pagetype=76&gid=1113
+National Coach Service database,,No,DfT,TransXChange,None,OGL,,,,http://data.gov.uk/dataset/national-coach-services
+Bus / Coach fares,,Yes,operators,,None,,,,Data currently held by service operators and therefore not available in a nationally consistent format,
+Tram/Light rail networks,,Yes,operators,,None,,,,,
+National Public Transport Access Nodes,stops,No,DfT,NaPTAN,None,OGL,,stops.csv,,http://data.gov.uk/dataset/naptan
+National Public Transport Gazetteer,localities,No,DfT,,None,OGL,,localities.csv,,http://data.gov.uk/dataset/nptg
+National Public Transport Dataset,,No,Traveline,TransXChange,None,OGL,,,,http://data.gov.uk/dataset/traveline-national-dataset
+Real time bus running,,No,Traveline,,None,OGL,,,,http://www.traveline.info/about-traveline/developer-area/
+Accessibility data,"IF136, IF147, IF157",No,DfT,,None,OGL,,"IF136.csv
+IF145.csv
+IF157.csv",,http://data.gov.uk/dataset/transport-accessibility-data
+Accessibility data,,Yes,TfL / ATOC,,None,,,,,http://www.directenquiries.com/
+Taxi rank locations,,Yes,,,None,,,,,
+Car Parks,,No,DfT/BPA/Commercial,,None,OGL for DfT and BPA.  Commercial for others,,,,http://data.gov.uk/dataset/car-parks
+Walking Paths/routes,,Yes,OS,,None,Commercial,,,,https://www.ordnancesurvey.co.uk/blog/2010/11/urban-paths-plots-a-route-to-greener-transport/
+High Speed 2 route map,,No,DfT,,None,OGL,,,,http://data.gov.uk/dataset/hs2-gis-route
+Rail Timetables ,,No,ATOC,Rail Cif,None,Creative Commons Licence,,,,http://data.atoc.org/
+Rail Engineering Works,,Yes,Network Rail,,None,Network Rail Infrastructure Ltd _ Data Feeds Licence,,,,
+Rail Network,,No,Network Rail,,None,OGL,,,,http://data.gov.uk/dataset/railway-network-inspire
+Rail Fares,,No,ATOC,,None,Creative Commons Licence,,,,http://data.atoc.org/fares-data
+Real-time train running data,,No,Network Rail,,None,Network Rail Infrastructure Ltd _ Data Feeds Licence,,,Only 500 users permitted to use this data,http://www.networkrail.co.uk/data-feeds/
+Rail asset locations,,No,Network Rail,,None,Network Rail Infrastructure Ltd _ Data Feeds Licence,,,,http://www.networkrail.co.uk/data-feeds/
+Road Network,,No,HA,,None,OGL,,,,http://data.gov.uk/dataset/highways-agency-roads-network-inspire-data
+Bulk Vehicle Data,,Yes,DVLA,,None,,,,,
+Live Traffic Information,,No,HA,,None,OGL,,,,http://data.gov.uk/dataset/live-traffic-information-from-the-highways-agency-road-network
+Streetworks,,No,HA/ELGIN,,None,OGL for HA/Commercial for Elgin,,,,"http://data.gov.uk/dataset/highways_agency_planned_roadworks
+and
+http://www.elgin.org.uk/roadworks-portal"
+Anonymised MoT Data,,No,DVSA,,None,OGL,,,,http://data.gov.uk/dataset/anonymised_mot_test
+Integrated Transport Network,,Yes,OS,,None,Commercial,,,,http://www.ordnancesurvey.co.uk/business-and-government/products/itn-layer.html
+Road Speed Limits,,Yes,,,None,,,,,
+Highways Agency journey time and data flow,HAJourneyTime,No,HA,,None,OGL,,HAJourneyTime.csv,,http://data.gov.uk/dataset/dft-eng-srn-routes-journey-times
+Speed Camera Locations,,Yes,,,None,,,,,
+Road Tolls,,No,DfT,,None,,,,,https://www.gov.uk/uk-toll-roads
+Electric Vehicle Charging Points,,Yes,Commercial,,None,Commercial,,,,
+Petrol Station Locations,,Yes,Commercial,,None,Commercial,,,,
+Cycle routes,,Yes,CycleStreets,,None,,,,,http://www.cyclestreets.net/
+Hydrographic Data,,Yes,MCA,,None,,,,,
+Ferry fares,,Yes,operators,,None,,,,Data currently held by service operators and therefore not available in a nationally consistent format,
+Canal Network,,Yes,,,None,,,,,
+River Maps,,Yes,OS,,None,Commercial,,,,http://www.ordnancesurvey.co.uk/
+Port Locations,,Yes,,,None,,,,,
+Ferry Routes,,Yes,,,None,,,,,
