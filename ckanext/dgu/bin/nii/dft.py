@@ -2,9 +2,6 @@ import csv
 import json
 import slugify
 
-#DFT_ID = 'e4900b3b-a7f8-447a-bd5e-43735f8f1b4a'
-DFT_ID = '5e89f364-26f6-454d-b364-1a84a36ad9a6'
-
 with open('dft.csv') as csv_file:
     with open('dft.jsonl', 'w') as jsonl:
         reader = csv.reader(csv_file)
@@ -17,7 +14,7 @@ with open('dft.csv') as csv_file:
             dataset['title'] = row[0]
             dataset['name'] = slugify.slugify(row[0])
             dataset['notes'] = row[0] # For now...
-            dataset['owner_org'] = DFT_ID
+            dataset['owner_org'] = 'department-for-transport'
             if row[2].strip() == 'Yes':
                 dataset['extras'] = [{'key': 'unpublished', 'value': True}]
                 dataset['license_id'] = 'unpublished'

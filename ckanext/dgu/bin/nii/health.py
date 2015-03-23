@@ -5,12 +5,7 @@ import codecs
 import collections
 
 # TODO
-# Create script to add schemas and codelists? Can generate lookup table?
-# Complete both lookup dictionaries
-# Fill out 3 IDs for 3 orgs
 # Check for name clashes
-
-HSCIC_ID = CHOICES_ID = CQC_ID = '421a4052-275a-4617-8d9d-d958417710fd'
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
@@ -38,11 +33,11 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             dataset['theme-primary'] = 'Health'
 
             if row[3] == 'HSCIC':
-                dataset['owner_org'] = HSCIC_ID
+                dataset['owner_org'] = 'health-and-social-care-information-centre'
             elif row[3] == 'NHS Choices':
-                dataset['owner_org'] = CHOICES_ID
+                dataset['owner_org'] = 'nhs-choices'
             else:
-                dataset['owner_org'] = CQC_ID
+                dataset['owner_org'] = 'care-quality-commission'
 
             if row[9].strip() == 'OGL':
                 dataset['license_id'] = 'uk-ogl'
