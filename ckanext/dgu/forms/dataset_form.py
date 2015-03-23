@@ -275,8 +275,8 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
-            'schema': [ignore_missing, to_list, dict_to_id, remove_blanks, ignore_empty, to_json, convert_to_extras],
-            'codelist': [ignore_missing, to_list, dict_to_id, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'schema': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'codelist': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -552,26 +552,19 @@ def id_to_dict(key, data, errors, context):
             raise Invalid('%s id does not exist: %s' % (key, id_))
         data[key][i] = obj.as_dict()
 
-def dict_to_id(key, data, errors, context):
+def schema_codelist_validator(key, data, errors, context):
     from ckanext.dgu.model.schema_codelist import Schema, Codelist
-    for i, dict_ in enumerate(data[key]):
-        if isinstance(dict_, basestring):
-            # it is an id already. This is the case for create_test_data and the form
-            continue
-        # therefore it is a dict. I imagine this is needed for the API
-        import pdb; pdb.set_trace()
-        try:
-            id_ = dict_['id']
-        except ValueError:
-            id_ = None
+    for i, schema_ref in enumerate(data[key]):
+        # form gives an ID. API might give a title.
         if key == ('schema',):
-            import pdb; pdb.set_trace()
-            obj = Schema.get(id_)
+            obj = Schema.get(schema_ref) or Schema.by_title(schema_ref) or \
+                    Schema.by_url(schema_ref)
         elif key == ('codelist',):
-            obj = Codelist.get(id_)
+            obj = Codelist.get(schema_ref) or Codelist.by_title(schema_ref) or\
+                    Codelist.by_url(schema_ref)
         else:
             raise NotImplementedError('Bad key: %s' % key)
         if not obj:
-            raise Invalid('%s id does not exist: %s' % (key, id_))
-        data[key][i] = obj.as_dict()
+            raise Invalid('%s id does not exist: %s' % (key, schema_ref))
+        data[key][i] = obj.id
 
