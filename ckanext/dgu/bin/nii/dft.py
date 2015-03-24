@@ -40,4 +40,7 @@ with open('dft.csv') as csv_file:
                 else:
                     dataset['notes'] += '\n\n%s' % url
 
+            if row[9].strip():
+                dataset['notes'] += '\n\n%s' % row[9].strip()
+
             jsonl.write("%s\n" % json.dumps(dataset))
