@@ -22,6 +22,7 @@ with open('dft.csv') as csv_file:
                 dataset['name'] += '_'
             dataset['notes'] = row[0]  # For now...
             dataset['owner_org'] = 'department-for-transport'
+            dataset['theme-primary'] = 'Transport'
             dataset['core-dataset'] = 'True'  # i.e. NII
             unpublished = row[2].strip() == 'Yes'
             if unpublished:
