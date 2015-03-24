@@ -80,7 +80,7 @@ def validate_license(key, data, errors, context):
 
     """
     # Unpublished data doesn't need a licence
-    if data.get(('unpublished',)) == True:
+    if p.toolkit.asbool(data.get(('unpublished',))):
         return
 
     if data[('license_id',)]== '__extra__': # harvested dataset
