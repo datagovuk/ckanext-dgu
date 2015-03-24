@@ -20,13 +20,17 @@ def convert(input_file_name, output_file_name):
             if row_object['name'] == 'Null':
                 continue
 
-            row_object['required'] = row[3] == 'Yes'
+            try:
+                row_object['required'] = row[3] == 'Yes'
+            except IndexError:
+                row_object['required'] = False
+
 
             try:
                 row_object['maxLength'] = int(row[2])
                 if row_object['maxLength'] == 0:
                     continue
-            except ValueError:
+            except (ValueError, IndexError):
                 # Probably row[2] == ''
                 pass
 
