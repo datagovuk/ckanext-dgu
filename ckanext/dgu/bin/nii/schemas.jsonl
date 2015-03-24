@@ -39,3 +39,6 @@
 {"id": "8e67323d-0730-4c10-aeb1-1b9ec847d4f9", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/etr.json", "title": "etr"}
 {"id": "b349b66d-b0bb-4796-b559-933adfbda14e", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/etreat.json", "title": "etreat"}
 {"id": "15c283eb-2831-4817-9d64-c5821c8b121e", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ets.json", "title": "ets"}
+{"id": "8a0ca7ce-9348-45c4-be21-d7eb289a2a99", "url": "https://www.gov.uk/government/publications/transxchange-downloads-and-schema", "title": "TransXChange"}
+{"id": "a90a56a0-0bea-4098-9bc6-2ffa6db59751", "url": "https://www.gov.uk/government/publications/national-public-transport-access-node-schema", "title": "NaPTAN"}
+{"id": "31bd397b-d951-418c-bd4e-477934702009", "url": "http://www.atoc.org/clientfiles/files/RSPDocuments/20070801.pdf", "title": "Rail Common Interface File (CIF)"}

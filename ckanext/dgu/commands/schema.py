@@ -174,7 +174,7 @@ class Schema(CkanCommand):
         # Create/update in the db
         for schema in schema_dicts:
             if 'id' in schema:
-                existing_schema = Schema.by_title(schema['title'])
+                existing_schema = Schema.get(schema['id'])
             else:
                 existing_schema = Schema.by_title(schema['title'])
             if existing_schema:
