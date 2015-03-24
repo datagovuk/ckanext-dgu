@@ -20,7 +20,8 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_license, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
-     remove_blank_resources
+     remove_blank_resources, \
+     bool_
 from ckan.lib.navl.dictization_functions import missing
 
 #convert_from_extras = tk.get_validator('convert_from_extras')
@@ -286,11 +287,11 @@ class DatasetForm(p.SingletonPlugin):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'unpublished': [ignore_missing, bool, convert_to_extras],
-            'core-dataset': [ignore_missing, bool, convert_to_extras],
+            'unpublished': [ignore_missing, bool_, convert_to_extras],
+            'core-dataset': [ignore_missing, bool_, convert_to_extras],
             'release-notes': [ignore_missing, unicode, convert_to_extras],
             'publish-date': [ignore_missing, date_to_db, convert_to_extras],
-            'publish-restricted': [ignore_missing, bool, convert_to_extras],
+            'publish-restricted': [ignore_missing, bool_, convert_to_extras],
 
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
             'theme-secondary': [ignore_missing, to_json, convert_to_extras],

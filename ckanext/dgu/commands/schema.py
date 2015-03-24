@@ -47,6 +47,13 @@ class Schema(CkanCommand):
                 self.parser.error('File does not exist: %s' %
                                   codelist_filepath)
             self.import_codelists(codelist_filepath)
+        elif cmd == 'patch_datasets':
+            assert_arg_number(1)
+            patch_filepath = cmd_args[0]
+            if not os.path.exists(patch_filepath):
+                self.parser.error('File does not exist: %s' %
+                                  patch_filepath)
+            self.patch_datasets(patch_filepath)
         else:
             raise NotImplementedError
 
@@ -221,3 +228,17 @@ class Schema(CkanCommand):
             # Print JSONL with ids, in case you want to save with IDs
             print json.dumps(codelist_obj.as_dict())
         model.Session.remove()
+
+    def patch_datasets(self, patch_filepath):
+        import ckanapi
+        registry = ckanapi.LocalCKAN()
+        dataset_names = []
+        with open(patch_filepath) as f:
+            for line in f.readlines():
+                if not line.strip():
+                    continue
+                print line
+                dataset = json.loads(line)
+                dataset_names.append(dataset.get('name') or dataset.get('id'))
+                registry.action.package_patch(**dataset)
+        print 'Patched: ' + ' '.join(dataset_names)
