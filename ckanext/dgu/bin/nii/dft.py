@@ -43,4 +43,7 @@ with open('dft.csv') as csv_file:
             if row[9].strip():
                 dataset['notes'] += '\n\n%s' % row[9].strip()
 
+            if row[3].strip() == 'operators':
+                dataset['notes'] += "\n\nThis data is held by the transport operators"
+
             jsonl.write("%s\n" % json.dumps(dataset))
