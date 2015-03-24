@@ -3,7 +3,7 @@ import json
 import slugify
 import codecs
 
-clashing_names = set(('hospitals'))
+clashing_names = set(('hospitals',))
 
 
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
