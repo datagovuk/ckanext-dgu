@@ -14,6 +14,7 @@
 {"id": "2355b5bc-34ea-48b0-b11f-58443131583e", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ecsu.json", "title": "ecsu"}
 {"id": "f6127793-e219-426f-85e9-c0f5944803c6", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ecsusite.json", "title": "ecsusite"}
 {"id": "790975c7-1241-4308-8f95-f39d9ceb19cb", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ect.json", "title": "ect"}
+{"id": "656c22ea-b781-4635-bb51-3ad101523282", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ectsite.json", "title": "ectsite"}
 {"id": "c5821fb0-e2ab-4acd-b2bc-65ccab53a04b", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/edconcur.json", "title": "edconcur"}
 {"id": "397bccd2-0117-4939-8070-8909ef3b205b", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/edispensary.json", "title": "edispensary"}
 {"id": "199dc347-1f17-4770-82d5-584fb356c886", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/educate.json", "title": "educate"}
@@ -24,7 +25,7 @@
 {"id": "d77808c2-d2b6-43cd-adc0-00c6448ce24a", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ehospice.json", "title": "ehospice"}
 {"id": "3c24eef6-7ecb-40d5-925e-70adb9965863", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/ensa.json", "title": "ensa"}
 {"id": "dc774dfe-944a-44a7-9cff-13cd5354b5df", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/enurse.json", "title": "enurse"}
-{"id": "71331f7f-f5fe-4b89-8488-a4e19544dad0", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/eopthq.json", "title": "eopthq.json"}
+{"id": "71331f7f-f5fe-4b89-8488-a4e19544dad0", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/eopthq.json", "title": "eopthq"}
 {"id": "6b3743d5-ad33-4ef4-9d7b-b3896d7a8e67", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/eoptsite", "title": "eoptsite"}
 {"id": "73f664b8-ae7d-4d6b-9462-3008455ae1fa", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/eother.json", "title": "eother"}
 {"id": "fe935f0a-1a9e-4f16-8a8b-e344d6759f07", "url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/epcdp.json", "title": "epcdp"}
