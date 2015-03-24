@@ -56,3 +56,17 @@
 {"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/GPOpeningTimes.json", "id": "a2870e6f-e91a-421a-aa0a-b983602b18d7", "title": "GPOpeningTime"}
 {"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/GP.json", "id": "d5859ee9-e41b-4f78-ae37-54734ac483cc", "title": "GP"}
 {"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/PharmacyServices.json", "id": "2d3f5a8f-0d33-4599-94ef-34d26235f934", "title": "PharmacyService"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/SCLServices.json", "id": "cb33335e-2e30-42f4-94b4-9fa5d592ca56", "title": "SCLServices"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/OpticianOpeningTimes.json", "id": "324d1f89-cbf3-4c93-aa6f-41c5abf68139", "title": "OpticianOpeningTimes"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/Hospital.json", "id": "2bf4046c-d3d2-44b3-872f-db5e1d68ec34", "title": "Hospital"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/PharmacyOpeningTimes.json", "id": "bea6470a-42ef-47d0-9ca8-e30b017a92ea", "title": "PharmacyOpeningTimes"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/GPStaff.json", "id": "9cb734b0-9667-41e3-b4b8-577e334be2e6", "title": "GPStaff"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/Pharmacy.json", "id": "db9476b0-a559-44c1-879a-02031605460f", "title": "Pharmacy"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/Clinics.json", "id": "e3e873c7-035d-4e6c-8037-d7d77e70ce59", "title": "Clinics"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/Optician.json", "id": "9173d66d-0c54-4a95-a6b4-61e8ca9bb685", "title": "Optician"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/GPServices.json", "id": "dfc41bd1-f68d-4202-89d4-a0147ca9ae27", "title": "GPServices"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/SCP.json", "id": "01e0137a-3679-475f-ab0c-e355dbe70938", "title": "SCP"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/SCL.json", "id": "ac612ead-19ea-44e6-91f4-b7acbff46213", "title": "SCL"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/GPOpeningTimes.json", "id": "4145055b-3a32-4c80-80c4-95a04099de95", "title": "GPOpeningTimes"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/GP.json", "id": "2fbf0419-37a2-4299-a8fc-ee081fa91bb6", "title": "GP"}
+{"url": "https://raw.githubusercontent.com/datagovuk/health-schemas/master/PharmacyServices.json", "id": "acebf12d-2833-4ff0-899c-ce978c3973fb", "title": "PharmacyServices"}

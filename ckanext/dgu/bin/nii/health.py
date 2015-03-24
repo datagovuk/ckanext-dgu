@@ -50,7 +50,7 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             if url:
                 dataset['resources'] = [{'url': url, 'description': 'Data', 'format': 'CSV'}]
 
-            schema = row[11].strip('.csv')
+            schema = row[11][:-4] # Remove .csv from end
             if schema:
                 dataset['schema'] = [schema]
 
