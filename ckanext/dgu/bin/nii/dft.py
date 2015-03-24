@@ -22,6 +22,7 @@ with open('dft.csv') as csv_file:
                 dataset['name'] += '_'
             dataset['notes'] = row[0]  # For now...
             dataset['owner_org'] = 'department-for-transport'
+            dataset['theme-primary'] = 'Transport'
             dataset['core-dataset'] = 'True'  # i.e. NII
             unpublished = row[2].strip() == 'Yes'
             if unpublished:
@@ -38,5 +39,11 @@ with open('dft.csv') as csv_file:
                     dataset['resources'] = [{'url': url, 'description': 'Website', 'format': 'HTML'}]
                 else:
                     dataset['notes'] += '\n\n%s' % url
+
+            if row[9].strip():
+                dataset['notes'] += '\n\n%s' % row[9].strip()
+
+            if row[3].strip() == 'operators':
+                dataset['notes'] += "\n\nThis data is held by the transport operators"
 
             jsonl.write("%s\n" % json.dumps(dataset))
