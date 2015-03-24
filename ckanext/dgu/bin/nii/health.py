@@ -44,7 +44,7 @@ with codecs.open('health.csv', encoding='cp1252') as csv_file:
             if row[9].strip() == 'OGL':
                 dataset['license_id'] = 'uk-ogl'
             else:
-                dataset['license_id'] = None
+                dataset['license_id'] = row[9].strip()
 
             url = row[15].strip()
             if url:
