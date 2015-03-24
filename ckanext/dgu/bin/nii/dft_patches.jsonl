@@ -5,10 +5,10 @@
 {"id": "transport-accessibility-data", "schema": ["IF136", "IF145", "IF157"], "sla": "true"}
 {"id": "car-parks", "core-dataset": ""}
 {"id": "hs2-gis-route", "core-dataset": "true", "last_major_modification": "", "sla": "true"}
-{"id": "railway-network-inspire", "core-dataset": "true", "sla": "true"}
+{"id": "railway-network-inspire", "core-dataset": "true", "sla": "true", "owner_org": "network-rail"}
 {"id": "highways-agency-roads-network-inspire-data", "core-dataset": "true", "sla": "true"}
 {"id": "live-traffic-information-from-the-highways-agency-road-network", "core-dataset": "true", "sla": "true"}
 {"id": "highways_agency_planned_roadworks", "core-dataset": "true"}
-{"id": "anonymised_mot_test", "core-dataset": "true", "sla": "true"}
+{"id": "anonymised_mot_test", "core-dataset": "true", "sla": "true", "owner_org": "driver-vehicle-standards-agency"}
 {"id": "dft-eng-srn-routes-journey-times", "core-dataset": "true", "schema": ["HAJourneyTime"], "sla": "true"}
 {"id": "car-parks-bpa", "core-dataset": "true", "sla": "true"}
