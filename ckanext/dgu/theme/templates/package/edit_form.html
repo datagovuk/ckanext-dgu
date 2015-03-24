@@ -68,8 +68,6 @@ Passed in:
 
   <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
   <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
-  <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
-  <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{extras.get('core-dataset',False)}}" />
   {% if 'odi-certificate' in extras %}
     <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
     <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{extras['odi-certificate']}}" />
@@ -360,15 +358,18 @@ Passed in:
       </div>
     </div>
     <div class="well">
-      <h3>SLA</h3>
+      <h3>Service Level Agreement (SLA)</h3>
       <div class="form-group">
           <label class="control-label" style="font-weight: normal;">
             <div class="controls">
               <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
+                <input id="sla" name="sla" type="hidden" value=""/>
                 <input id="sla" name="sla" type="checkbox" value="true"
                 {% if data.get('sla', '').lower() == 'true' %} checked="checked"{% endif %} />
                 {{h.get_sla()}}
               </div>
+            </div>
           </label>
       </div>
       <p class="instructions further">Providing a Service Level Agreement reassures those wishing to use a dataset long-term.</p>
@@ -678,6 +679,24 @@ Passed in:
         <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
         <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
       </div>
+    </div>
+
+    <div class="well">
+      <h3>National Information Infrastructure (NII)</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
+                <input id="core-dataset" name="core-dataset" type="hidden" value=""/>
+                <input id="core-dataset" name="core-dataset" type="checkbox" value="true"
+                {% if data.get('core-dataset', '').lower() == 'true' %} checked="checked"{% endif %} />
+                Part of the NII
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">NII datasets are determined by their publishers to be nationally important, and publishers agree to the higher level of publishing quality described in the NII literature.</p>
     </div>
 
 </fieldset>
