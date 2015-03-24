@@ -359,6 +359,20 @@ Passed in:
         <a href="javascript:;" id="codelist-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
       </div>
     </div>
+    <div class="well">
+      <h3>SLA</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                <input id="sla" name="sla" type="checkbox" value="true"
+                {% if data.get('sla', '').lower() == 'true' %} checked="checked"{% endif %} />
+                {{h.get_sla()}}
+              </div>
+          </label>
+      </div>
+      <p class="instructions further">Providing a Service Level Agreement reassures those wishing to use a dataset long-term.</p>
+    </div>
 
 </fieldset>
 

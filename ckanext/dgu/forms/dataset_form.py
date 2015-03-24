@@ -276,6 +276,8 @@ class DatasetForm(p.SingletonPlugin):
             'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
             'schema': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
             'codelist': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'sla': [ignore_missing, convert_to_extras],
+
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -355,6 +357,7 @@ class DatasetForm(p.SingletonPlugin):
             'mandate': [convert_from_extras, from_json, ignore_missing],
             'schema': [convert_from_extras, from_json, ignore_missing, id_to_dict],
             'codelist': [convert_from_extras, from_json, ignore_missing, id_to_dict],
+            'sla': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
             'theme-secondary': [convert_from_extras, ignore_missing],

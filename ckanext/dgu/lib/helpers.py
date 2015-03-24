@@ -714,7 +714,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
     from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist'])
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
@@ -831,6 +831,10 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
     codelists = package_dict.get('codelist')
     if codelists:
         codelists = list_of_links(codelists)
+    sla = package_dict.get('sla')
+    if sla:
+        if sla == 'true':
+            sla = Markup('<span class="js-tooltip" title="%s" data-container="body" >SLA Agreed <i class="icon-info-sign"></i></span>' % escape(get_sla()))
 
     field_value_map = {
         # field_name : {display info}
@@ -856,6 +860,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
         'mandate': {'label': 'Mandate', 'value': mandates},
         'schema': {'label': 'Schema', 'value': schemas},
         'codelist': {'label': 'Codelist', 'value': codelists},
+        'sla': {'label': 'Service Level', 'value': sla},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
@@ -2171,3 +2176,6 @@ def ensure_ids_are_in_a_list_of_dicts(l):
         return [{'id': id} for id in l]
     # initial load of the form
     return l
+
+def get_sla():
+    return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'
