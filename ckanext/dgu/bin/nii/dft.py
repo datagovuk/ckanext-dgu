@@ -70,4 +70,7 @@ with open('dft.csv') as csv_file:
             if row[3].strip() == 'operators':
                 dataset['notes'] += "\n\nThis data is held by the transport operators"
 
+            if row[3].strip() == 'Commercial':
+                dataset['notes'] += "\n\nThis data is commercial data"
+
             jsonl.write("%s\n" % json.dumps(dataset))
