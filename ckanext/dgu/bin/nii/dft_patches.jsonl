@@ -1,1 +1,14 @@
 {"id": "national-coach-services", "schema": ["TransXChange"]}
+{"id": "naptan", "schema": ["NaPTAN", "stops"]}
+{"id": "nptg", "schema": ["localities"]}
+{"id": "traveline-national-dataset", "schema": ["TransXChange"]}
+{"id": "transport-accessibility-data", "schema": ["IF136", "IF145", "IF157"]}
+{"id": "car-parks", "core-dataset": ""}
+{"id": "hs2-gis-route", "core-dataset": "true", "last_major_modification": ""}
+{"id": "railway-network-inspire", "core-dataset": "true"}
+{"id": "highways-agency-roads-network-inspire-data", "core-dataset": "true"}
+{"id": "live-traffic-information-from-the-highways-agency-road-network", "core-dataset": "true"}
+{"id": "highways_agency_planned_roadworks", "core-dataset": "true"}
+{"id": "anonymised_mot_test", "core-dataset": "true"}
+{"id": "dft-eng-srn-routes-journey-times", "core-dataset": "true", "schema": ["HAJourneyTime"]}
+{"id": "car-parks-bpa", "core-dataset": "true"}

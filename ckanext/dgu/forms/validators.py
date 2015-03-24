@@ -10,7 +10,7 @@ from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
                                                 StopOnError, missing
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
-
+from ckan import plugins as p
 
 def drop_if_same_as_publisher(key, data, errors, context):
     """
@@ -314,3 +314,13 @@ def validate_publisher_category(key, data, errors, context):
         if category:
             errors[('category',)] = ['Category is not valid.']
 
+def bool_(key, data, errors, context):
+    value = data[key]
+    if value in ('', None):
+        data[key] = 'false'
+        return
+    try:
+        true_or_false = p.toolkit.asbool(value)
+        data[key] = str(true_or_false).lower()
+    except ValueError:
+        errors[key] = ['Must be true or false']
