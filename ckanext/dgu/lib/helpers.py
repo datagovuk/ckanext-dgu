@@ -706,14 +706,14 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
-def get_package_fields(package, pkg_extras, dataset_was_harvested,
+def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                        is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
-    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
@@ -793,7 +793,7 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     if mandates:
         def linkify(string):
             if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s" target="_blank">%s</a>' % (string, string)
+                return '<a href="%s" target="_blank">%s</a>' % (urllib.quote(string), string)
             else:
                 return string
 
@@ -804,6 +804,31 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
             mandates = Markup("<br>".join(mandates))
         except ValueError:
             pass # Not JSON for some reason...
+
+    def linkify(schema):
+        if schema['url']:
+            return h.link_to(schema['title'], schema['url'])
+        return escape(schema['title'])
+    def list_of_links(schemas):
+        try:
+            schemas = [linkify(schema) for schema in schemas]
+            return Markup('<br>'.join(schemas))
+            #return Markup('<ul>\n<li>%s</li>\n</ul>' %
+            #              '</li>\n<li>'.join(schemas))
+        except ValueError, e:
+            log.error('Could not display schemas: %r %s', schemas, e)
+            pass
+    schemas = package_dict.get('schema')
+    if schemas:
+        schemas = list_of_links(schemas)
+
+    codelists = package_dict.get('codelist')
+    if codelists:
+        codelists = list_of_links(codelists)
+    sla = package_dict.get('sla')
+    if sla:
+        if sla == 'true':
+            sla = Markup('<span class="js-tooltip" title="%s" data-container="body" >SLA Agreed <i class="icon-info-sign"></i></span>' % escape(get_sla()))
 
     field_value_map = {
         # field_name : {display info}
@@ -827,6 +852,9 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
         'mandate': {'label': 'Mandate', 'value': mandates},
+        'schema': {'label': 'Schema', 'value': schemas},
+        'codelist': {'label': 'Code list', 'value': codelists},
+        'sla': {'label': 'Service Level', 'value': sla},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
@@ -2110,6 +2138,20 @@ def orgs_for_admin_report():
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
+def get_schema_options():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    return get_action('schema_list')(context, {})
+
+def get_codelist_options():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    return get_action('codelist_list')(context, {})
+
 def get_mandate_list(data):
     mandate = data.get('mandate') or []
     if isinstance(mandate, basestring):
@@ -2119,3 +2161,16 @@ def get_mandate_list(data):
         log.error('Mandate should be a list: %r', mandate)
         return mandate
     return mandate
+
+def ensure_ids_are_in_a_list_of_dicts(l):
+    if isinstance(l, basestring):
+        # validation error when there is a single schema/codelist drop-down
+        return [{'id': l}]
+    elif isinstance(l, list) and l and isinstance(l[0], basestring):
+        # validation error when there are multiple schema/codelist drop-downs
+        return [{'id': id} for id in l]
+    # initial load of the form
+    return l
+
+def get_sla():
+    return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'

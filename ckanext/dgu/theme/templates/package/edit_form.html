@@ -68,8 +68,6 @@ Passed in:
 
   <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
   <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
-  <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
-  <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{extras.get('core-dataset',False)}}" />
   {% if 'odi-certificate' in extras %}
     <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
     <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{extras['odi-certificate']}}" />
@@ -311,6 +309,71 @@ Passed in:
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+    <div class="well form-inline">
+      <h3>Schema</h3>
+      <p class="instructions basic">Name any common schemas, vocabularies or ontologies that describe the data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
+      <div class="form-group">
+        {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('schema') so we use h.ensure_strings_are_in_a_list. #}
+        {%- set schemas = h.ensure_ids_are_in_a_list_of_dicts(data.get('schema', [''])) -%}
+        {%- set schema_options = h.get_schema_options() -%}
+        <ul id="schema-list">
+        {% for schema in schemas %}
+          <li>
+            <select class="form-control" name="schema" data-placeholder="Please choose a schema">
+              <option value="" />
+              {% for option in schema_options %}
+                <option value="{{option['id']}}" {% if id != '' and schema['id'] == option['id'] %}selected{% endif %}>
+                  {{option['title']}} - {{option['url']}}
+                </option>
+              {% endfor %}
+            </select>
+          </li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="schema-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+      </div>
+    </div>
+    <div class="well form-inline">
+      <h3>Code Lists</h3>
+      <p class="instructions basic">Name any common code lists or references that describe a field inside the data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
+      <div class="form-group">
+        {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('codelist') so we use h.ensure_strings_are_in_a_list. #}
+        {%- set codelists = h.ensure_ids_are_in_a_list_of_dicts(data.get('codelist', [''])) -%}
+        {%- set codelist_options = h.get_codelist_options() -%}
+        <ul id="codelist-list">
+        {% for codelist in codelists %}
+          <li>
+            <select class="form-control" name="codelist" data-placeholder="Please choose a codelist">
+              <option value="" />
+              {% for option in codelist_options %}
+                <option value="{{option['id']}}" {% if id != '' and codelist['id'] == option['id'] %}selected{% endif %}>
+                  {{option['title']}} - {{option['url']}}
+                </option>
+              {% endfor %}
+            </select>
+          </li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="codelist-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+      </div>
+    </div>
+    <div class="well">
+      <h3>Service Level Agreement (SLA)</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
+                <input id="sla" name="sla" type="hidden" value=""/>
+                <input id="sla" name="sla" type="checkbox" value="true"
+                {% if data.get('sla', '').lower() == 'true' %} checked="checked"{% endif %} />
+                {{h.get_sla()}}
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">Providing a Service Level Agreement reassures those wishing to use a dataset long-term.</p>
+    </div>
 
 </fieldset>
 
@@ -608,7 +671,7 @@ Passed in:
       <p>For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
       <div class="form-group">
         {%- set mandates = h.get_mandate_list(data) + [''] -%}
-        <ul id="mandates-list">
+        <ul id="mandate-list">
         {% for mandate in mandates %}
           <li><input class="form-control" name="mandate" size="80" type="text" value="{{mandate}}"/></li>
         {% endfor %}
@@ -616,6 +679,24 @@ Passed in:
         <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
         <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
       </div>
+    </div>
+
+    <div class="well">
+      <h3>National Information Infrastructure (NII)</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
+                <input id="core-dataset" name="core-dataset" type="hidden" value=""/>
+                <input id="core-dataset" name="core-dataset" type="checkbox" value="true"
+                {% if data.get('core-dataset', '').lower() == 'true' %} checked="checked"{% endif %} />
+                Part of the NII
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">NII datasets are determined by their publishers to be nationally important, and publishers agree to the higher level of publishing quality described in the NII literature.</p>
     </div>
 
 </fieldset>
@@ -900,5 +981,16 @@ Passed in:
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<script>
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  if(/#section-data-field$/.test(e.target)) {
+    // Only activate chosen on selects once the tab has been revealed
+    $("#schema-list select").chosen({allow_single_deselect: true});
+    $("#codelist-list select").chosen({allow_single_deselect: true});
+  }
+});
+</script>
+
 
 </form>
