@@ -1,8 +1,8 @@
-{"id": "national-coach-services", "schema": ["TransXChange"], "sla": "true"}
-{"id": "naptan", "schema": ["NaPTAN", "stops"], "sla": "true"}
-{"id": "nptg", "schema": ["localities"], "sla": "true"}
-{"id": "traveline-national-dataset", "schema": ["TransXChange"]}
-{"id": "transport-accessibility-data", "schema": ["IF136", "IF145", "IF157"], "sla": "true"}
+{"id": "national-coach-services", "schema": ["TransXChange"], "sla": "true", "core-dataset": "true"}
+{"id": "naptan", "schema": ["NaPTAN", "stops"], "sla": "true", "core-dataset": "true"}
+{"id": "nptg", "schema": ["localities"], "sla": "true", "core-dataset": "true"}
+{"id": "traveline-national-dataset", "schema": ["TransXChange"], "core-dataset": "true"}
+{"id": "transport-accessibility-data", "schema": ["IF136", "IF145", "IF157"], "sla": "true", "core-dataset": "true"}
 {"id": "car-parks", "core-dataset": ""}
 {"id": "hs2-gis-route", "core-dataset": "true", "last_major_modification": "", "sla": "true"}
 {"id": "railway-network-inspire", "core-dataset": "true", "sla": "true", "owner_org": "network-rail"}
@@ -11,4 +11,4 @@
 {"id": "highways_agency_planned_roadworks", "core-dataset": "true"}
 {"id": "anonymised_mot_test", "core-dataset": "true", "sla": "true", "owner_org": "driver-vehicle-standards-agency"}
 {"id": "dft-eng-srn-routes-journey-times", "core-dataset": "true", "schema": ["HAJourneyTime"], "sla": "true"}
-{"id": "car-parks-bpa", "core-dataset": "true", "sla": "true"}
+{"id": "car-parks-bpa", "core-dataset": "true"}
