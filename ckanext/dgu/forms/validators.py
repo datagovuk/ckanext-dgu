@@ -98,9 +98,8 @@ def validate_license(key, data, errors, context):
         else:
             # i.e. neither license_id nor access_constraints filled in
             errors[('license_id',)] = ['Please enter the access constraints.']
-        #return
 
-    if not license_id:
+    if not license_id and license_id_other:
         data[('license_id',)] = data[('access_constraints',)]
     if license_id_other:
         del data[('access_constraints',)]

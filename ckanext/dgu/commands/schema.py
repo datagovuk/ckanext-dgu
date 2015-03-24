@@ -14,6 +14,9 @@ class Schema(CkanCommand):
     create_test_data - create some test data (idempotent)
     import_schemas <schemas.jsonl> - create/update schemas from a file
     import_codelists <codelists.jsonl> - create/update codelists from a file
+    patch_datasets <patches.jsonl>
+    make_datasets_nii <dataset_names.txt>
+    make_datasets_sla <dataset_names.txt>
     """
     summary = __doc__.split('\n')[0]
     usage = __doc__
@@ -54,6 +57,20 @@ class Schema(CkanCommand):
                 self.parser.error('File does not exist: %s' %
                                   patch_filepath)
             self.patch_datasets(patch_filepath)
+        elif cmd == 'make_datasets_nii':
+            assert_arg_number(1)
+            patch_filepath = cmd_args[0]
+            if not os.path.exists(patch_filepath):
+                self.parser.error('File does not exist: %s' %
+                                  patch_filepath)
+            self.make_datasets_nii(patch_filepath)
+        elif cmd == 'make_datasets_sla':
+            assert_arg_number(1)
+            patch_filepath = cmd_args[0]
+            if not os.path.exists(patch_filepath):
+                self.parser.error('File does not exist: %s' %
+                                  patch_filepath)
+            self.make_datasets_sla(patch_filepath)
         else:
             raise NotImplementedError
 
@@ -242,3 +259,39 @@ class Schema(CkanCommand):
                 dataset_names.append(dataset.get('name') or dataset.get('id'))
                 registry.action.package_patch(**dataset)
         print 'Patched: ' + ' '.join(dataset_names)
+
+    def make_datasets_nii(self, patch_filepath):
+        import ckan.model as model
+        dataset_names = []
+        rev = model.repo.new_revision()
+        rev.author = 'script-schema'
+        with open(patch_filepath) as f:
+            for line in f.readlines():
+                if not line.strip():
+                    continue
+                print line
+                dataset_name = line.strip()
+                dataset = model.Package.get(dataset_name)
+                assert dataset, dataset_name
+                dataset.extras['core-dataset'] = 'true'
+                model.Session.commit()
+                dataset_names.append(dataset_name)
+        print 'Made NII: ' + ' '.join(dataset_names)
+
+    def make_datasets_sla(self, patch_filepath):
+        import ckan.model as model
+        dataset_names = []
+        rev = model.repo.new_revision()
+        rev.author = 'script-schema'
+        with open(patch_filepath) as f:
+            for line in f.readlines():
+                if not line.strip():
+                    continue
+                print line
+                dataset_name = line.strip()
+                dataset = model.Package.get(dataset_name)
+                assert dataset, dataset_name
+                dataset.extras['sla'] = 'true'
+                model.Session.commit()
+                dataset_names.append(dataset_name)
+        print 'Made SLA: ' + ' '.join(dataset_names)

@@ -26,6 +26,7 @@ with open('dft.csv') as csv_file:
                 dataset['owner_org'] = 'oag'
             elif publisher == 'CAA':
                 dataset['owner_org'] = 'civil-aviation-authority'
+                dataset['sla'] = 'true'
             elif publisher == 'Traveline':
                 dataset['owner_org'] = 'traveline-information-limited'
             elif publisher == 'TfL / ATOC':
@@ -36,16 +37,20 @@ with open('dft.csv') as csv_file:
                 dataset['owner_org'] = 'atoc'
             elif publisher == 'Network Rail':
                 dataset['owner_org'] = 'network-rail'
+                dataset['sla'] = 'true'
             elif publisher == 'DVLA':
                 dataset['owner_org'] = 'driver-and-vehicle-licensing-agency'
+                dataset['sla'] = 'true'
             elif publisher == 'DVSA':
                 dataset['owner_org'] = 'driver-vehicle-standards-agency'
+                dataset['sla'] = 'true'
             elif publisher == 'MCA':
                 dataset['owner_org'] = 'maritime-and-coastguard-agency'
             elif publisher == 'CycleStreets':
                 dataset['owner_org'] = 'cycle-streets'
             else:
                 dataset['owner_org'] = 'department-for-transport'
+                dataset['sla'] = 'true'
             dataset['theme-primary'] = 'Transport'
             dataset['core-dataset'] = 'True'  # i.e. NII
             unpublished = row[2].strip() == 'Yes'
