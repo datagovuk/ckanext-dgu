@@ -363,7 +363,7 @@ Passed in:
           <label class="control-label" style="font-weight: normal;">
             <div class="controls">
               <div class="checkbox">
-                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name. There is JS at the bottom that deletes one of the checkboxes, so that only one is submitted. #}
                 <input id="sla-hidden" name="sla" type="hidden" value=""/>
                 <input id="sla" name="sla" type="checkbox" value="true"
                 {% if data.get('sla', '').lower() == 'true' %} checked="checked"{% endif %} />
@@ -687,8 +687,8 @@ Passed in:
           <label class="control-label" style="font-weight: normal;">
             <div class="controls">
               <div class="checkbox">
-                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
-                <input id="core-dataset" name="core-dataset" type="hidden" value=""/>
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name. There is JS at the bottom that deletes one of the checkboxes, so that only one is submitted. #}
+                <input id="core-dataset-hidden" name="core-dataset" type="hidden" value=""/>
                 <input id="core-dataset" name="core-dataset" type="checkbox" value="true"
                 {% if data.get('core-dataset', '').lower() == 'true' %} checked="checked"{% endif %} />
                 Part of the NII
@@ -995,6 +995,9 @@ $(function() {
   $("#dataset-edit").submit(function(){
     if ($("#sla").prop("checked")) {
       $("#sla-hidden").prop("disabled", true);
+    }
+    if ($("#core-dataset").prop("checked")) {
+      $("#core-dataset-hidden").prop("disabled", true);
     }
   });
 });
