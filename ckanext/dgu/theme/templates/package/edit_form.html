@@ -364,7 +364,7 @@ Passed in:
             <div class="controls">
               <div class="checkbox">
                 {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name #}
-                <input id="sla" name="sla" type="hidden" value=""/>
+                <input id="sla-hidden" name="sla" type="hidden" value=""/>
                 <input id="sla" name="sla" type="checkbox" value="true"
                 {% if data.get('sla', '').lower() == 'true' %} checked="checked"{% endif %} />
                 {{h.get_sla()}}
@@ -989,6 +989,14 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     $("#schema-list select").chosen({allow_single_deselect: true});
     $("#codelist-list select").chosen({allow_single_deselect: true});
   }
+});
+
+$(function() {
+  $("#dataset-edit").submit(function(){
+    if ($("#sla").prop("checked")) {
+      $("#sla-hidden").prop("disabled", true);
+    }
+  });
 });
 </script>
 
