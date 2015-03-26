@@ -11,7 +11,9 @@ $(function() {
       notes.find('a.notes-read-more').remove();
     }
     else {
-      notes.find('a.notes-read-more').click(function(e) {
+      var more = notes.find('a.notes-read-more');
+      more.css('display', 'block');
+      more.click(function(e) {
         e.preventDefault();
         $('.notes').trigger('destroy.dot');
         notes.find('a.notes-read-more').remove();
@@ -31,7 +33,9 @@ $(function() {
       license_info.find('a.license-read-more').remove();
     }
     else {
-      license_info.find('a.license-read-more').click(function(e) {
+      var more = license_info.find('a.license-read-more');
+      more.show()
+      more.click(function(e) {
         e.preventDefault();
         $('#license-info').trigger('destroy.dot');
         license_info.find('a.license-read-more').remove();
