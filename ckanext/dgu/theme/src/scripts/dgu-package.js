@@ -20,6 +20,25 @@ $(function() {
     }
   });
 
+  var license_info = $('#license-info');
+  license_info.dotdotdot({
+    height: 50,
+    tolerance: 10,
+    after: 'a.license-read-more'
+  });
+  license_info.trigger('isTruncated', function(isTruncated) {
+    if (!isTruncated) {
+      license_info.find('a.license-read-more').remove();
+    }
+    else {
+      license_info.find('a.license-read-more').click(function(e) {
+        e.preventDefault();
+        $('#license-info').trigger('destroy.dot');
+        license_info.find('a.license-read-more').remove();
+        return false;
+      });
+    }
+  });
 
   var spinConfig = {
     lines: 9, // The number of lines to draw
