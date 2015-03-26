@@ -310,8 +310,8 @@ Passed in:
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
     <div class="well form-inline">
-      <h3>Schema</h3>
-      <p class="instructions basic">Name any common schemas, vocabularies or ontologies that describe the data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
+      <h3>Schema/Vocabulary</h3>
+      <p class="instructions basic">Name any schema, vocabulary or ontology that describes the main data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
       <div class="form-group">
         {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('schema') so we use h.ensure_strings_are_in_a_list. #}
         {%- set schemas = h.ensure_ids_are_in_a_list_of_dicts(data.get('schema', [''])) -%}
