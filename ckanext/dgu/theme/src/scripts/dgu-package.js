@@ -11,7 +11,9 @@ $(function() {
       notes.find('a.notes-read-more').remove();
     }
     else {
-      notes.find('a.notes-read-more').click(function(e) {
+      var more = notes.find('a.notes-read-more');
+      more.css('display', 'block');
+      more.click(function(e) {
         e.preventDefault();
         $('.notes').trigger('destroy.dot');
         notes.find('a.notes-read-more').remove();
@@ -20,6 +22,28 @@ $(function() {
     }
   });
 
+  var license_info = $('#license-info');
+  var more = license_info.find('a.license-read-more');
+  more.show()
+  license_info.dotdotdot({
+    height: 50,
+    tolerance: 10,
+    after: 'a.license-read-more'
+  });
+  license_info.trigger('isTruncated', function(isTruncated) {
+    if (!isTruncated) {
+      license_info.find('a.license-read-more').remove();
+    }
+    else {
+      var more = license_info.find('a.license-read-more');
+      more.click(function(e) {
+        e.preventDefault();
+        $('#license-info').trigger('destroy.dot');
+        license_info.find('a.license-read-more').remove();
+        return false;
+      });
+    }
+  });
 
   var spinConfig = {
     lines: 9, // The number of lines to draw
