@@ -6,6 +6,7 @@ from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
+from ckanext.dgu.lib.publisher import go_up_tree
 
 log = logging.getLogger(__name__)
 
@@ -484,6 +485,46 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
+# app-dataset
+
+def app_dataset_report():
+    app_dataset_dicts = []
+    for related in model.Session.query(model.RelatedDataset) \
+                        .filter(model.Related.type=='App') \
+                        .all():
+        dataset = related.dataset
+        org = dataset.get_organization()
+        top_org = list(go_up_tree(org))[-1]
+
+        app_dataset_dict = OrderedDict((
+            ('app title', related.related.title),
+            ('app url', related.related.url),
+            ('dataset name', dataset.name),
+            ('dataset title', dataset.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('dataset theme', related.dataset.extras.get('theme-primary', '')),
+            ('dataset notes', lib.dataset_notes(dataset)),
+            ))
+        app_dataset_dicts.append(app_dataset_dict)
+
+    app_dataset_dicts.sort(key=lambda row: row['top-level organization title']
+                           + row['organization title'])
+
+    return {'table': app_dataset_dicts}
+
+app_dataset_report_info = {
+    'name': 'app-dataset-report',
+    'title': 'Apps with datasets',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': app_dataset_report,
+    'template': 'report/app_dataset.html',
+    }
+
 # app-dataset by theme
 
 def app_dataset_theme_report():
@@ -521,6 +562,8 @@ app_dataset_theme_report_info = {
     'generate': app_dataset_theme_report,
     'template': 'report/app_dataset_theme_report.html',
     }
+
+# admin-editor report
 
 def get_user_realname(user):
     from ckanext.dgu.drupalclient import DrupalClient

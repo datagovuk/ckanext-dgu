@@ -391,6 +391,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.unpublished_report_info,
                 reports.datasets_without_resources_info,
                 reports.app_dataset_theme_report_info,
+                reports.app_dataset_report_info,
                 reports.admin_editor_info,
                 ]
 
