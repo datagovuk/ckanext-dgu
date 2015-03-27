@@ -23,6 +23,8 @@ $(function() {
   });
 
   var license_info = $('#license-info');
+  var more = license_info.find('a.license-read-more');
+  more.show()
   license_info.dotdotdot({
     height: 50,
     tolerance: 10,
@@ -34,7 +36,6 @@ $(function() {
     }
     else {
       var more = license_info.find('a.license-read-more');
-      more.show()
       more.click(function(e) {
         e.preventDefault();
         $('#license-info').trigger('destroy.dot');
