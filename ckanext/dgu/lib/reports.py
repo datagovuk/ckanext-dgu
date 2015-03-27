@@ -484,7 +484,9 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
-def dataset_app_report():
+# app-dataset by theme
+
+def app_dataset_theme_report():
     table = []
 
     datasets = collections.defaultdict(lambda: {'apps': []})
@@ -510,14 +512,14 @@ def dataset_app_report():
 
     return {'table': table}
 
-dataset_app_report_info = {
-    'name': 'dataset-app-report',
-    'title': 'Datasets used in apps',
+app_dataset_theme_report_info = {
+    'name': 'app-dataset-theme-report',
+    'title': 'Apps with datasets by theme',
     'description': 'Datasets that have been used by apps, grouped by theme.',
     'option_defaults': None,
     'option_combinations': None,
-    'generate': dataset_app_report,
-    'template': 'report/dataset_app_report.html',
+    'generate': app_dataset_theme_report,
+    'template': 'report/app_dataset_theme_report.html',
     }
 
 def get_user_realname(user):
