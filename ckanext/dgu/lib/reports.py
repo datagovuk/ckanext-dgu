@@ -128,7 +128,9 @@ def publisher_resources(organization=None,
             for res in resources:
                 res_dict = {'id': res.id, 'position': res.position,
                             'description': res.description, 'url': res.url,
-                            'format': res.format, 'created': res.created}
+                            'format': res.format,
+                            'created': (res.created.isoformat()
+                                        if res.created else None)}
                 rows.append(create_row(pkg, res_dict))
             num_resources += len(resources)
         else:
