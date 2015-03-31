@@ -378,8 +378,11 @@ def publisher_activity(organization, include_sub_organizations=False):
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
     columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
+    quarters_iso = dict([(last_or_this, [date_.isoformat() for date_ in q_list])
+                         for last_or_this, q_list in quarters.iteritems()])
+
     return {'table': datasets, 'columns': columns,
-            'quarters': quarters}
+            'quarters': quarters_iso}
 
 def publisher_activity_combinations():
     for org in lib.all_organizations(include_none=False):
