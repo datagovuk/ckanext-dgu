@@ -222,6 +222,14 @@ class DrupalAuthMiddleware(object):
             user = query.one()
             log.debug('Drupal user found in CKAN: %s', user.name)
 
+            if user.email != user_properties['mail'] or \
+                    user.fullname != user_properties['name']:
+                user.email = user_properties['mail']
+                user.fullname = user_properties['name']
+                log.debug('User details updated from Drupal: %s %s',
+                          user.email, user.fullname)
+                model.Session.commit()
+
         self.set_roles(ckan_user_name, user_properties['roles'].values())
 
         # There is a chance that on this request we needed to get authtkt
