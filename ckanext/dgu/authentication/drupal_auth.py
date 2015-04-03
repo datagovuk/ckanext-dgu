@@ -197,24 +197,18 @@ class DrupalAuthMiddleware(object):
             return
 
         # ask drupal about this user
-        user_properties = self.drupal_client.get_user_properties(drupal_user_id)
+        drupal_user_properties = self.drupal_client.get_user_properties(drupal_user_id)
+        user_dict = DrupalUserMapping.drupal_user_to_ckan_user(
+                drupal_user_properties)
 
         # see if user already exists in CKAN
-        ckan_user_name = DrupalUserMapping.drupal_id_to_ckan_user_name(drupal_user_id)
+        ckan_user_name = user_dict['name']
         from ckan import model
         from ckan.model.meta import Session
         query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
         if not query.count():
             # need to add this user to CKAN
-
-            date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
-            user = model.User(
-                name=ckan_user_name,
-                fullname=unicode(user_properties['name']),  # NB may change in Drupal db
-                about=u'User account imported from Drupal system.',
-                email=user_properties['mail'], # NB may change in Drupal db
-                created=date_created,
-            )
+            user = model.User(user_dict)
             Session.add(user)
             Session.commit()
             log.debug('Drupal user added to CKAN as: %s', user.name)
@@ -222,10 +216,10 @@ class DrupalAuthMiddleware(object):
             user = query.one()
             log.debug('Drupal user found in CKAN: %s', user.name)
 
-            if user.email != user_properties['mail'] or \
-                    user.fullname != user_properties['name']:
-                user.email = user_properties['mail']
-                user.fullname = user_properties['name']
+            if user.email != user_dict['email'] or \
+                    user.fullname != user_dict['name']:
+                user.email = user_dict['email']
+                user.fullname = user_dict['fullname']
                 log.debug('User details updated from Drupal: %s %s',
                           user.email, user.fullname)
                 model.Session.commit()
@@ -316,3 +310,14 @@ class DrupalUserMapping:
             return ckan_user_name[len(cls._user_name_prefix):]
         else:
             return None # Not a Drupal user
+
+    @classmethod
+    def drupal_user_to_ckan_user(cls, drupal_user_dict, existing_user_name=None):
+        return dict(
+            name=existing_user_name or
+                cls.drupal_id_to_ckan_user_name(drupal_user_dict['uid']),
+            fullname=unicode(drupal_user_dict['name']),
+            about=u'User account imported from Drupal system.',
+            email=drupal_user_dict['mail'],
+            created=datetime.datetime.fromtimestamp(int(drupal_user_dict['created']))
+            )
