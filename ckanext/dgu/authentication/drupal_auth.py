@@ -44,14 +44,17 @@ class DrupalAuthMiddleware(object):
             cookies.load(str(cookie_string))
         except Cookie.CookieError:
             log.error("Received invalid cookie: %s" % cookie_string)
-            return False       
+            return False
         similar_cookies = []
         for cookie in cookies:
-            if cookie.startswith('SESS'):
+            if cookie.startswith('SESS') or cookie.startswith('SSESS'):
                 # Drupal 6 uses md5, Drupal 7 uses sha256
                 server_hash = hashlib.sha256(server_name).hexdigest()[:32]
                 if cookie == 'SESS%s' % server_hash:
                     log.debug('Drupal cookie found for server request %s', server_name)
+                    return cookies[cookie].value
+                elif cookie == 'SSESS%s' % server_hash:
+                    log.debug('Drupal cookie (secure) found for server request %s', server_name)
                     return cookies[cookie].value
                 else:
                     similar_cookies.append(cookie)
