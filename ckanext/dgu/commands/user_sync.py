@@ -1,6 +1,5 @@
 import logging
 
-#from ckan.plugins import toolkit
 from ckan.lib.cli import CkanCommand
 
 from ckanext.dgu.bin.running_stats import StatsList
@@ -27,17 +26,7 @@ class UserSync(CkanCommand):
     def command(self):
         self._load_config()
         self.log = logging.getLogger(__name__)
-
-        #model.Session.remove()
-        #model.Session.configure(bind=model.meta.engine)
-        #model.repo.new_revision()
         self.log.info('Database access initialised')
-
-        #root_url = config.get('ckan.site_url', 'http://data.gov.uk')
-        #self.log.debug("Drupal URL: " + root_url)
-        #if toolkit.asbool(config.get('debug')):
-        #    root_url = "http://data.gov.uk"
-        #    self.log.debug("Overriding root_url in DEBUG ")
 
         self.sync(write=self.options.write)
 
