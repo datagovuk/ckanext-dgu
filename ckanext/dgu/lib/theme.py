@@ -39,7 +39,7 @@ class Themes(object):
         self.odc = {}  # OpenDataCommunities.org theme extra
 
         context = {'model': model}
-        terms = get_action('taxonomy_term_list')(context, {'name': 'dgu'})
+        terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
         for term in terms:
             theme_dict = term['extras']
             theme_dict['title'] = name = term['label']
