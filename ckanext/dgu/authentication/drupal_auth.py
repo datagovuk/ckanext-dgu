@@ -211,7 +211,7 @@ class DrupalAuthMiddleware(object):
         query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
         if not query.count():
             # need to add this user to CKAN
-            user = model.User(user_dict)
+            user = model.User(**user_dict)
             Session.add(user)
             Session.commit()
             log.debug('Drupal user added to CKAN as: %s', user.name)

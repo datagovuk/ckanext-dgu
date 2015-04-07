@@ -52,7 +52,14 @@ class UserSync(CkanCommand):
                                        '%s %s' % (drupal_user_id, user.fullname)))
                     if write:
                         user.delete()
-                        continue
+                    continue
+                elif 'Access denied for user' in str(e):
+                    log.info(stats.add('Removed blocked user',
+                                       '%s %s' % (drupal_user_id, user.fullname)))
+                    if write:
+                        user.delete()
+                    continue
+                raise
             DrupalRequestError
             user_dict = DrupalUserMapping.drupal_user_to_ckan_user(drupal_user)
             user_changed = False
