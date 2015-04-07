@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.util import bigrams, trigrams
 
 from ckanext.dgu.schema import tag_munge
+from ckanext.dgu.plugins_toolkit import get_action
 from ckan import model
 
 log = __import__('logging').getLogger(__name__)
@@ -27,12 +28,6 @@ class Themes(object):
         return cls._instance
 
     def __init__(self):
-        themes_filepath = os.path.abspath(os.path.join(__file__, '../../themes.json'))
-        assert os.path.exists(themes_filepath), themes_filepath
-        log.debug('Reading themes.json')
-        with codecs.open(themes_filepath, encoding='utf8') as f:
-            themes_json = f.read()
-        themes_list = json.loads(themes_json)
         self.data = {}
         self.topic_words = {}  # topic:theme_name
         self.topic_bigrams = {} # (topicword1, topicword2):theme_name
@@ -42,13 +37,32 @@ class Themes(object):
         self.la_function = {} # LA functions extra
         self.la_service = {}  # LA services extra
         self.odc = {}  # OpenDataCommunities.org theme extra
-        for theme_dict in themes_list:
-            name = theme_dict['title']
+
+        context = {'model': model}
+        terms = get_action('taxonomy_term_list')(context, {'name': 'dgu'})
+        for term in terms:
+            name = term['label']
+            term_id = term['id']
+
+            theme_dict = {}
+            theme_dict['title'] = name = term['label']
+            theme_dict['description'] = term['description']
 
             for key in ('topics', 'gemet', 'nscl', 'ons', 'la_function', 'la_service',
                         'odc'):
-                if key in theme_dict:
-                    assert isinstance(theme_dict[key], list), (name, key)
+                data = {
+                    'term_id': term_id,
+                    'label': key,
+                }
+                try:
+                    extra = get_action('taxonomy_term_extra_show')(context, data)
+                    if extra:
+                        theme_dict[key] = json.loads(extra['value']) or []
+                    else:
+                        theme_dict[key] = []
+                except ValueError:
+                    theme_dict[key] = []
+                assert isinstance(theme_dict[key], list), (name, key)
 
             for topic in theme_dict['topics']:
                 words = [normalize_token(word) for word in split_words(topic)]
