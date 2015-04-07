@@ -19,6 +19,9 @@ class UserSync(CkanCommand):
     def __init__(self, name):
         super(UserSync, self).__init__(name)
 
+        self.parser.add_option('-u', '--username',
+                               dest='user',
+                               help='Only a particular user')
         self.parser.add_option('-w', '--write',
                                dest='write', action='store_true',
                                help='Write the changes to the db')
@@ -28,9 +31,9 @@ class UserSync(CkanCommand):
         self.log = logging.getLogger(__name__)
         self.log.info('Database access initialised')
 
-        self.sync(write=self.options.write)
+        self.sync(write=self.options.write, user=self.options.user)
 
-    def sync(self, write):
+    def sync(self, write, user):
         from ckan import model
         from ckanext.dgu.drupalclient import DrupalClient, DrupalRequestError
         from ckanext.dgu.authentication.drupal_auth import DrupalUserMapping
@@ -39,8 +42,10 @@ class UserSync(CkanCommand):
         drupal = DrupalClient()
         users = model.Session.query(model.User)\
                      .filter_by(state='active')\
-                     .filter(model.User.name.like('user_d%'))\
-                     .all()
+                     .filter(model.User.name.like('user_d%'))
+        if user:
+            users = users.filter(model.User.fullname == user)
+        users = users.all()
         log.info('Drupal users in CKAN: %s', len(users))
         for user in users:
             drupal_user_id = DrupalUserMapping.ckan_user_name_to_drupal_id(user.name)
