@@ -109,7 +109,7 @@ class DrupalAuthMiddleware(object):
 
         self.do_drupal_login_logout(environ, new_headers)
 
-	#log.debug('New headers: %r', new_headers)
+        #log.debug('New headers: %r', new_headers)
         def cookie_setting_start_response(status, headers, exc_info=None):
             if headers:
                 headers.extend(new_headers)
@@ -224,7 +224,7 @@ class DrupalAuthMiddleware(object):
                           user.email, user.fullname)
                 model.Session.commit()
 
-        self.set_roles(ckan_user_name, user_properties['roles'].values())
+        self.set_roles(ckan_user_name, drupal_user_properties['roles'].values())
 
         # There is a chance that on this request we needed to get authtkt
         # to log-out. This would have created headers like this:
