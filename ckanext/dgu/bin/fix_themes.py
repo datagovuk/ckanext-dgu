@@ -1,20 +1,20 @@
 '''
-Fix the themes to be the long form
+Fix the themes
 
-e.g.
-
-Crime -> Crime & Justice
+* to long form e.g. Crime -> Crime & Justice
+* bad format e.g. {Crime}
+* bad theme names recategorized
 '''
 
 import common
 import json
 from optparse import OptionParser
-from ckan import model
 
-from running_stats import StatsList
+from running_stats import Stats
 
-stats_primary = StatsList()
-stats_secondary = StatsList()
+stats_primary = Stats()
+stats_secondary = Stats()
+stats_recategorize = Stats()
 
 THEME_MAP = {
     u"Health": u"Health",
@@ -32,18 +32,23 @@ THEME_MAP = {
 }
 THEMES = THEME_MAP.values()
 
+
 class FixThemes(object):
     @classmethod
     def command(cls, config_ini, options):
         common.load_config(config_ini)
         common.register_translator()
 
+        from ckan import model
+        from ckanext.dgu.lib.theme import (categorize_package, PRIMARY_THEME,
+                                           SECONDARY_THEMES)
         rev = model.repo.new_revision()
         rev.author = 'script-fix_themes.py'
 
         datasets = common.get_datasets(state='active',
                                        dataset_name=options.dataset,
                                        organization_ref=options.organization)
+
         def fix_theme(theme_str):
             '''Returns (fixed_theme_str, outcome)'''
             if not theme_str:
@@ -55,26 +60,41 @@ class FixThemes(object):
             else:
                 fixed_theme = THEME_MAP.get(theme_str)
                 if fixed_theme is None:
-                    return theme_str, 'Unknown theme %s' % theme_str
+                    return theme_str, 'Unknown theme %s - recategorizing' % theme_str
                 else:
                     assert(fixed_theme != theme_str)
                     return fixed_theme, 'Changed to long form'
-                    package.extras['theme-primary'] = new_primary
+                    package.extras[PRIMARY_THEME] = new_primary
+
+        def recategorize(pkg):
+            themes = categorize_package(pkg, stats_recategorize)
+            print 'Recategorize: %s' % themes
+            if themes:
+                pkg.extras[PRIMARY_THEME] = themes[0]
+            elif PRIMARY_THEME in pkg.extras:
+                pkg.extras[PRIMARY_THEME] = ''
+            if len(themes) > 1:
+                pkg.extras[SECONDARY_THEMES] = '["%s"]' % themes[1]
+            elif SECONDARY_THEMES in pkg.extras:
+                pkg.extras[SECONDARY_THEMES] = '[]'
 
         for package in datasets:
-            if 'theme-primary' in package.extras:
-                primary = package.extras.get('theme-primary')
+            if PRIMARY_THEME in package.extras:
+                primary = package.extras.get(PRIMARY_THEME)
                 new_primary, outcome = fix_theme(primary)
                 if new_primary != primary:
-                    package.extras['theme-primary'] = new_primary
+                    package.extras[PRIMARY_THEME] = new_primary
                 output = stats_primary.add(outcome, package.name)
                 if outcome != 'Ok':
                     print output
+                if outcome.startswith('Unknown theme'):
+                    recategorize(package)
+                    continue
             else:
                 stats_primary.add('No theme', package.name)
 
-            if 'theme-secondary' in package.extras:
-                secondary = package.extras.get('theme-secondary')
+            if SECONDARY_THEMES in package.extras:
+                secondary = package.extras.get(SECONDARY_THEMES)
                 try:
                     secondary = json.loads(secondary)
                 except ValueError:
@@ -89,6 +109,7 @@ class FixThemes(object):
                     secondary = []
 
                 new_secondary = []
+                do_recategorize = False
 
                 if not isinstance(secondary, list):
                     secondary = [secondary]
@@ -101,9 +122,14 @@ class FixThemes(object):
                         new_secondary.append(new_theme)
                     if outcome != 'Ok':
                         print stats_secondary.add(outcome, package.name)
-                if new_secondary != package.extras.get('theme-secondary'):
+                    if outcome.startswith('Unknown theme'):
+                        do_recategorize = True
+                if do_recategorize:
+                    recategorize(package)
+                    continue
+                if new_secondary != package.extras.get(SECONDARY_THEMES):
                     stats_secondary.add('Fixed', package.name)
-                    package.extras['theme-secondary'] = json.dumps(new_secondary)
+                    package.extras[SECONDARY_THEMES] = json.dumps(new_secondary)
                 else:
                     stats_secondary.add('Ok', package.name)
             else:
@@ -118,6 +144,8 @@ class FixThemes(object):
         print stats_primary.report()
         print "\nSecondary theme:"
         print stats_secondary.report()
+        print "\nRecategorizations:"
+        print stats_recategorize.report()
 
         if options.write:
             print 'Writing'
