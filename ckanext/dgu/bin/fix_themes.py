@@ -48,6 +48,8 @@ class FixThemes(object):
             '''Returns (fixed_theme_str, outcome)'''
             if not theme_str:
                 return '', 'Blank'
+            elif theme_str == 'null':
+                return '', '"null"->""'
             elif theme_str in THEMES:
                 return theme_str, 'Ok'
             else:
@@ -106,6 +108,11 @@ class FixThemes(object):
                     stats_secondary.add('Ok', package.name)
             else:
                 stats_secondary.add('No theme', package.name)
+
+            if 'themes-secondary' in package.extras:
+                print stats_secondary.add('Old key removed: themes-secondary',
+                                          '%s %s' % (package.name, package.extras['themes-secondary']))
+                del package.extras['themes-secondary']
 
         print "\nPrimary theme:"
         print stats_primary.report()
