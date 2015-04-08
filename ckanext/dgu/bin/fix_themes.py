@@ -44,21 +44,30 @@ class FixThemes(object):
         datasets = common.get_datasets(state='active',
                                        dataset_name=options.dataset,
                                        organization_ref=options.organization)
+        def fix_theme(theme_str):
+            '''Returns (fixed_theme_str, outcome)'''
+            if not theme_str:
+                return '', 'Blank'
+            elif theme_str in THEMES:
+                return theme_str, 'Ok'
+            else:
+                fixed_theme = THEME_MAP.get(theme_str)
+                if theme_str is None:
+                    return theme_str, 'Unknown theme %s' % theme_str
+                else:
+                    assert(fixed_theme != theme_str)
+                    return fixed_theme, 'Changed to long form'
+                    package.extras['theme-primary'] = new_primary
+
         for package in datasets:
             if 'theme-primary' in package.extras:
                 primary = package.extras.get('theme-primary')
-                if not primary:
-                    stats_primary.add('Blank', package.name)
-                elif primary in THEMES:
-                    stats_primary.add('Ok', package.name)
-                else:
-                    new_primary = THEME_MAP.get(primary)
-                    if new_primary is None:
-                        print stats_primary.add('Unknown theme %s' % primary, package.name)
-                    else:
-                        assert(new_primary != primary)
-                        print stats_primary.add('Changed to long form', package.name)
-                        package.extras['theme-primary'] = new_primary
+                new_primary, outcome = fix_theme(primary)
+                if new_primary != primary:
+                    package.extras['theme-primary'] = new_primary
+                output = stats_primary.add(outcome, package.name)
+                if outcome != 'Ok':
+                    print output
             else:
                 stats_primary.add('No theme', package.name)
 
@@ -66,30 +75,36 @@ class FixThemes(object):
                 secondary = package.extras.get('theme-secondary')
                 try:
                     secondary = json.loads(secondary)
-
-                    if isinstance(secondary, list):
-                        new_secondary = [THEME_MAP.get(x, x) for x in secondary]
-                    elif isinstance(secondary, basestring):
-                        new_secondary = THEME_MAP.get(secondary, secondary)
-                    else:
-                        stats_secondary.add('Problem JSON', package.name)
-                        del package.extras['theme-secondary']
-                        continue
                 except ValueError:
-                    stats_secondary.add('Error decoding JSON', package.name)
                     if secondary.startswith('{') and secondary.endswith('}'):
-                        new_secondary = secondary[1:-1] # '{Crime}' -> 'Crime'
+                        # '{Crime}' -> 'Crime'
+                        secondary = secondary[1:-1]
                     else:
-                        del package.extras['theme-secondary']
-                        continue
+                        print stats_secondary.add('Error decoding JSON', package.name)
 
+                if secondary == {}:
+                    secondary = []
+
+                new_secondary = []
+
+                if not isinstance(secondary, list):
+                    secondary = [secondary]
+                for theme_str in secondary:
+                    if not isinstance(theme_str, basestring):
+                        print stats_secondary.add('Not a list of strings %s' % type(theme_str), package.name)
+                        continue
+                    new_theme, outcome = fix_theme(theme_str)
+                    if new_theme:
+                        new_secondary.append(new_theme)
+                    if outcome != 'Ok':
+                        print stats_secondary.add(outcome, package.name)
                 if new_secondary != secondary:
-                    stats_secondary.add('Fixed (long form / to list)', package.name)
+                    stats_secondary.add('Fixed', package.name)
                     package.extras['theme-secondary'] = json.dumps(new_secondary)
                 else:
                     stats_secondary.add('Ok', package.name)
             else:
-                stats_secondary.add('No secondary theme', package.name)
+                stats_secondary.add('No theme', package.name)
 
         print "\nPrimary theme:"
         print stats_primary.report()
