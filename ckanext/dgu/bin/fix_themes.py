@@ -13,9 +13,10 @@ from ckan import model
 
 from running_stats import StatsList
 
-stats = StatsList()
+stats_primary = StatsList()
+stats_secondary = StatsList()
 
-THEMES = {
+THEME_MAP = {
     u"Health": u"Health",
     u"Environment": u"Environment",
     u"Education": u"Education",
@@ -29,6 +30,7 @@ THEMES = {
     u"Mapping": u"Mapping",
     u"Towns": u"Towns & Cities",
 }
+THEMES = THEME_MAP.values()
 
 class FixThemes(object):
     @classmethod
@@ -40,18 +42,25 @@ class FixThemes(object):
         rev.author = 'script-fix_themes.py'
 
         datasets = common.get_datasets(state='active',
-                                       dataset_name=options.dataset)
+                                       dataset_name=options.dataset,
+                                       organization_ref=options.organization)
         for package in datasets:
             if 'theme-primary' in package.extras:
                 primary = package.extras.get('theme-primary')
-                new_primary = THEMES.get(primary, primary)
-                if new_primary != primary:
-                    stats.add('Fixing primary theme', package.name)
-                    package.extras['theme-primary'] = new_primary
+                if not primary:
+                    stats_primary.add('Blank', package.name)
+                elif primary in THEMES:
+                    stats_primary.add('Ok', package.name)
                 else:
-                    stats.add('Not fixing primary theme', package.name)
+                    new_primary = THEME_MAP.get(primary)
+                    if new_primary is None:
+                        print stats_primary.add('Unknown theme %s' % primary, package.name)
+                    else:
+                        assert(new_primary != primary)
+                        print stats_primary.add('Changed to long form', package.name)
+                        package.extras['theme-primary'] = new_primary
             else:
-                stats.add('No primary theme', package.name)
+                stats_primary.add('No theme', package.name)
 
             if 'theme-secondary' in package.extras:
                 secondary = package.extras.get('theme-secondary')
@@ -59,15 +68,15 @@ class FixThemes(object):
                     secondary = json.loads(secondary)
 
                     if isinstance(secondary, list):
-                        new_secondary = [THEMES.get(x, x) for x in secondary]
+                        new_secondary = [THEME_MAP.get(x, x) for x in secondary]
                     elif isinstance(secondary, basestring):
-                        new_secondary = THEMES.get(secondary, secondary)
+                        new_secondary = THEME_MAP.get(secondary, secondary)
                     else:
-                        stats.add('Problem JSON', package.name)
+                        stats_secondary.add('Problem JSON', package.name)
                         del package.extras['theme-secondary']
                         continue
                 except ValueError:
-                    stats.add('Error decoding JSON', package.name)
+                    stats_secondary.add('Error decoding JSON', package.name)
                     if secondary.startswith('{') and secondary.endswith('}'):
                         new_secondary = secondary[1:-1] # '{Crime}' -> 'Crime'
                     else:
@@ -75,14 +84,17 @@ class FixThemes(object):
                         continue
 
                 if new_secondary != secondary:
-                    stats.add('Fixing secondary theme', package.name)
+                    stats_secondary.add('Fixed (long form / to list)', package.name)
                     package.extras['theme-secondary'] = json.dumps(new_secondary)
                 else:
-                    stats.add('Not fixing secondary theme', package.name)
+                    stats_secondary.add('Ok', package.name)
             else:
-                stats.add('No secondary theme', package.name)
+                stats_secondary.add('No secondary theme', package.name)
 
-        print stats.report()
+        print "\nPrimary theme:"
+        print stats_primary.report()
+        print "\nSecondary theme:"
+        print stats_secondary.report()
 
         if options.write:
             print 'Writing'
@@ -100,6 +112,7 @@ if __name__ == '__main__':
                       default=False,
                       help="write the changes to the datasets")
     parser.add_option('-d', '--dataset', dest='dataset')
+    parser.add_option('-o', '--organization', dest='organization')
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error('Wrong number of arguments')
