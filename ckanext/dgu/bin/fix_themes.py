@@ -127,7 +127,7 @@ class FixThemes(object):
                 if do_recategorize:
                     recategorize(package)
                     continue
-                if new_secondary != package.extras.get(SECONDARY_THEMES):
+                if json.dumps(new_secondary) != package.extras.get(SECONDARY_THEMES):
                     stats_secondary.add('Fixed', package.name)
                     package.extras[SECONDARY_THEMES] = json.dumps(new_secondary)
                 else:
