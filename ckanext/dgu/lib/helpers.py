@@ -198,7 +198,7 @@ def get_from_flat_dict(list_of_dicts, key, default=None):
     '''
     for dict_ in list_of_dicts:
         if dict_.get('key', '') == key:
-            return dict_.get('value', default).strip('"')
+            return (dict_.get('value', default) or '').strip('"')
     return default
 
 def extras_list_to_dict(extras_list):
