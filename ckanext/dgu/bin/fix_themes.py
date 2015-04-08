@@ -52,7 +52,7 @@ class FixThemes(object):
                 return theme_str, 'Ok'
             else:
                 fixed_theme = THEME_MAP.get(theme_str)
-                if theme_str is None:
+                if fixed_theme is None:
                     return theme_str, 'Unknown theme %s' % theme_str
                 else:
                     assert(fixed_theme != theme_str)
@@ -78,7 +78,8 @@ class FixThemes(object):
                 except ValueError:
                     if secondary.startswith('{') and secondary.endswith('}'):
                         # '{Crime}' -> 'Crime'
-                        secondary = secondary[1:-1]
+                        secondary = secondary[1:-1].strip('\"')
+                        print stats_secondary.add('Tidied {}', package.name)
                     else:
                         print stats_secondary.add('Error decoding JSON', package.name)
 
@@ -98,7 +99,7 @@ class FixThemes(object):
                         new_secondary.append(new_theme)
                     if outcome != 'Ok':
                         print stats_secondary.add(outcome, package.name)
-                if new_secondary != secondary:
+                if new_secondary != package.extras.get('theme-secondary'):
                     stats_secondary.add('Fixed', package.name)
                     package.extras['theme-secondary'] = json.dumps(new_secondary)
                 else:
