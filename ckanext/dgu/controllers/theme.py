@@ -8,11 +8,14 @@ Themes are not currently stored in the database (they're in schema.py for now
 but should the need arise to add more 
 """
 import sqlalchemy
-import pylons
+from pylons import request, response
+from pylons.controllers.util import abort
 import os
 import logging
+import json
 from ckan.lib.base import (BaseController, abort)
 from ckanext.dgu.plugins_toolkit import (c, render, get_action)
+from ckanext.dgu.lib.theme import categorize_package
 from ckan import model
 
 log = logging.getLogger(__name__)
@@ -22,6 +25,25 @@ class ThemeController(BaseController):
 
     def index(self):
         return render('themed/index.html')
+
+    def categorize(self):
+        response.headers['Content-type'] = 'application/json'
+        if 'pkg' not in request.params:
+            print "pkg parameter missing"
+            abort(400, "pkg parameter missing")
+
+        try:
+            data = json.loads(request.params.get('pkg'))
+        except ValueError:
+            print "Error decoding pkg JSON"
+            abort(400, "Error decoding pkg JSON")
+
+        for key in ['name', 'title', 'notes', 'tags', 'extras']:
+            if key not in data:
+                print "Missing key '%s' in pkg JSON" % key
+                abort(400, "Missing key '%s' in pkg JSON" % key)
+
+        return json.dumps(categorize_package(data))
 
     def named_theme(self, name):
         """ 

@@ -552,17 +552,18 @@ Passed in:
 <fieldset class="tab-pane boxed whitebox fade" id="section-themes-field">
     <div style="width: 45%; float: left; margin-right: 4%;">
     <h3 style="font-weight: bold;">Primary Theme</h3>
-    <p>1. Please choose a primary theme which this data record falls under from the options below.</p>
         {{m.primary_theme_input(data, errors)}}
     </div>
     <div style="width: 45%; float: left; padding-left: 4%; border-left: 1px solid #aaa;">
       <h3>Secondary Theme</h3>
-      <p>2. If there are other themes in this data, select them here:</p>
       <div class="well">
         {{m.secondary_theme_input(data, errors)}}
       </div>
     </div>
     <div class="clearfix">&nbsp;</div>
+    <p>These themes are automatically chosen based on the details provided in the name, description, tags etc. If the dataset has not yet received a theme or you believe it has been given the wrong theme then you must add more details to the dataset.</p>
+    <button id="recategorize">Recategorize</button>
+
 
     <hr/>
     <h3>Tags</h3>
@@ -989,6 +990,10 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
     $("#schema-list select").chosen({allow_single_deselect: true});
     $("#codelist-list select").chosen({allow_single_deselect: true});
   }
+
+  if(/#section-themes-field$/.test(e.target)) {
+    categorize();
+  }
 });
 
 $(function() {
@@ -1000,7 +1005,41 @@ $(function() {
       $("#core-dataset-hidden").prop("disabled", true);
     }
   });
+
+  $('#section-themes-field input').on('click', function(){return false});
 });
+
+function categorize() {
+  var pkg_data = {
+    name: $("#name").val(),
+    title: $("#title").val(),
+    notes: $("#notes").val(),
+    tags: $("#tag_string").val().split(","),
+    extras: {}
+  };
+
+  $.ajax({
+    type: "POST",
+    url: "/data/themes/categorize",
+    data: {pkg: JSON.stringify(pkg_data)},
+    dataType: 'json',
+    success: function(data, text, xhr) {
+      $('#section-themes-field input[type=radio]').prop('checked', false)
+      $('#section-themes-field input[type=checkbox]').prop('checked', false)
+      $(data).each(function(i, el) {
+          if(i == 0) {
+            $('#section-themes-field input[type=radio][value="' + el + '"]').prop('checked', true)
+          } else {
+            $('#section-themes-field input[type=checkbox][value="' + el + '"]').prop('checked', true)
+          }
+      });
+    },
+    error: function(d) { console.log("error " + d + ".") }
+  });
+  return false;
+}
+$('#recategorize').click(categorize);
+
 </script>
 
 

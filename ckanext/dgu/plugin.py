@@ -194,6 +194,7 @@ class ThemePlugin(p.SingletonPlugin):
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')
+        map.connect('/data/themes/categorize', controller=theme_controller, action='categorize')
         map.connect('/data/themes/{name}', controller=theme_controller, action='named_theme')
 
         # For test usage when Drupal is not running
