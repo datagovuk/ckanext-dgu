@@ -184,14 +184,6 @@
     </div>
     {% endif %}
 
-    <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
-      {% if c.user %}
-      Add Feedback &raquo;
-      {% else %}
-      Login to Add Feedback &raquo;
-      {% endif %}
-    </a>
-
     {% if h.has_related_apps(c.pkg_dict.get('id')) %}
     <h2>Related Applications</h2>
     <ul>
@@ -202,6 +194,33 @@
       {% endfor %}
     </ul>
     {% endif %}
+
+    <a href="{{h.url_for('issues_new', package_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+      {% if c.user %}
+      New Issue &raquo;
+      {% else %}
+      Login to create an issue &raquo;
+      {% endif %}
+    </a>
+    {% if h.issues_enabled(c.pkg_dict) %}
+      <h2>Issues</h2>
+      {# <a class="view-feedback-link" href="{{h.url_for('issues_home', package_id=c.pkg_dict.name)}}">Issues &raquo;</a> #}
+      {% set issues = h.issues_list(c.pkg_dict.id) %}
+      <ul id="issue-list" class="issue-list-group list-group">
+        {% import "issues/common.html" as common with context %}
+        {% for issue in issues %}
+            {{ common.issue_item(issue, c.pkg) }}
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+      {% if c.user %}
+      Add Feedback &raquo;
+      {% else %}
+      Login to Add Feedback &raquo;
+      {% endif %}
+    </a>
 
     <h2>Dataset Feedback</h2>
     <div class="dataset-feedback-container">
