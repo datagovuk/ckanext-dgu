@@ -191,8 +191,38 @@ def command(config_file):
         query = model.Session.query(model.Package).filter(model.Package.state=='active')
         dump_file_base = start_time.strftime(dump_filebase)
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
-        for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
-                                  ('json', dumper.SimpleDumper().dump_json),
+
+
+        # Explicitly dump the packages and resources to their respective CSV files
+        # before zipping them up and moving them into position.
+        import ckanext.dgu.lib.dumper as dumperlib
+
+        dump_filepath = os.path.join(dump_dir, dump_file_base + '.csv.zip')
+
+        log.info('Creating CSV files: %s' % dump_filepath)
+        dumpobj = dumperlib.CSVDumper()
+        dumpobj.dump()
+
+        dataset_file, resource_file = dumpobj.close()
+
+        log.info('Dumped datasets file is %dMb in size' % (os.path.getsize(dataset_file) / (1024*1024)))
+        log.info('Dumped resources file is %dMb in size' % (os.path.getsize(resource_file) / (1024*1024)))
+
+        dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
+        dump_file.write(dataset_file, "datasets.csv")
+        dump_file.write(resource_file, "resources.csv")
+        dump_file.close()
+
+        link_filepath = os.path.join(dump_dir, "data.gov.uk-ckan-meta-data-latest.csv.zip")
+
+        if os.path.exists(link_filepath):
+            os.unlink(link_filepath)
+        os.symlink(dump_filepath, link_filepath)
+        os.remove(dataset_file)
+        os.remove(resource_file)
+
+        # Dump the json and unpublished csv to the usual place.
+        for file_type, dumper_ in (('json', dumper.SimpleDumper().dump_json),
                                   ('unpublished.csv', inventory_dumper),
                                  ):
             dump_filename = '%s.%s' % (dump_file_base, file_type)
@@ -216,7 +246,6 @@ def command(config_file):
             os.symlink(dump_filepath, link_filepath)
 
             os.remove(tmp_filepath)
-
         report_time_taken(log)
 
     # Dump analysis
@@ -308,21 +337,25 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump','dump_analysis','backup']
+TASKS_TO_RUN = ['analytics', 'openspending', 'dump', 'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
-    Usage: python %s [config.ini]
+    Usage: python %s <config.ini> [task]
 
-    You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from %s or run multiple by
-    separating by a comma.
+    Where:
+       [task] - task to run (optional), picked from:
+                %s
+                or run multiple by separating by a comma.
     ''' % (sys.argv[0], ','.join(TASKS_TO_RUN))
 
-    if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
+    if set(sys.argv) & set(('--help', '-h')):
+        print USAGE
+        sys.exit(1)
+    if len(sys.argv) < 2:
         err = 'Error: Please specify config file.'
         print USAGE, err
-        logging.error('%s\n%s' % (USAGE, err))
+        logging.error('%s' % err)
         sys.exit(1)
     config_file = sys.argv[1]
     config_ini_filepath = os.path.abspath(config_file)

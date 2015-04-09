@@ -546,13 +546,6 @@ class PublisherController(OrganizationController):
         use the available groups for the current user, but should be optional
         in case this is a top level group
         """
-        c.body_class = "group edit"
-        c.schema_fields = [
-            'contact-name', 'contact-email', 'contact-phone',
-            'foi-name', 'foi-email', 'foi-phone', 'foi-web',
-                'category',
-        ]
-
         if group_type=='organization':
             # editing an organization?
             group = context.get('group')
@@ -578,10 +571,8 @@ class PublisherController(OrganizationController):
 
         else:
             # creating an organization
-            c.body_class = 'group new'
             c.allowable_parent_groups = model.Group.all(
                 group_type='organization')
-
 
         c.categories = categories
 

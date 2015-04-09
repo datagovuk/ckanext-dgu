@@ -7,7 +7,6 @@ from ckanext.dgu.bin.xmlrpc_command import XmlRpcCommand
 from ckan.lib.helpers import json
 
 from ckanext.dgu.schema import canonise_organisation_name
-from ckanext.dgu.ons.producers import get_ons_producers
 from ckanext.dgu.drupalclient import DrupalClient
 
 log = logging.getLogger(__name__)
@@ -51,7 +50,6 @@ class LotsOfOrganisations(object):
         has_errors = False
         orgs_to_lookup = set()
         orgs_to_lookup.add('Northern Ireland Executive')
-        orgs_to_lookup |= set(get_ons_producers())
         for org_name in orgs_to_lookup:
             org_name = canonise_organisation_name(org_name)
             org_id = drupal.match_organisation(org_name)

@@ -1,5 +1,3 @@
-
-
   <!--! Herein can be found generic macros for re-use in the jinjified templates -->
 
 
@@ -52,7 +50,7 @@
 
     {% set page     = pageobj.page %}
     {% set numpages = pageobj.page_count %}
-    {% set url_for  = h.paginator_page_url(paginator_page_url) %}
+    {% set url_for_page = h.paginator_page_url(pageobj) %}
     {% if numpages > 1 %}
     <div class="dgu-pagination">
       <ul class="pagination">
@@ -155,6 +153,7 @@
       </div>
       {% endif %}
     </div>
+   </div>
 {% endmacro %}
 
 {% macro map_preview_button_direct(pkg_dict,small=True) %}
@@ -164,7 +163,7 @@
 {% macro package_list_from_dict(packages,mini=False) %}
   <div class="common-dataset-list">
     <div class="{{if_(mini,'row')}}">
-      {% for i in range(len(packages)) %}
+      {% for i in range(packages|length) %}
         {% if i%4==0 %}
         <div class="clearfix visible-lg"></div>
         {% endif %}
@@ -274,7 +273,7 @@
             </a>
           </div>
         {% endfor %}
-        {% for i in range(len(unselected)) %}
+        {% for i in range(unselected|length) %}
           {% with %}
           {% set (link,text,tooltip) = unselected[i] %}
           {% set overflow = i>5 and more_button %}
@@ -287,7 +286,7 @@
           </div>
           {% endwith %}
         {% endfor %}
-        {% if more_button and len(unselected)>5 %}
+        {% if more_button and unselected|length>5 %}
           <a id="{{more_button}}" class="facet-expand-collapse" href="#">
             <div class="expander">
               <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
@@ -297,7 +296,7 @@
             </div>
           </a>
         {% endif %}
-        {% if not len(selected) and not len(unselected) %}
+        {% if not selected|length and not unselected|length %}
         <div class="facet-option"><em>{{if_empty}}</em></div>
         {% endif %}
       </div>
@@ -313,7 +312,7 @@
         </a>
       </div>
       {{facet_box(
-                'Show only...',
+                'Published status',
                 h.search_facets_unselected(['unpublished']),
                 h.search_facets_selected(['unpublished']),
                 'No further filters to apply.'
@@ -369,6 +368,22 @@
                     more_button='more-publishers-button'
                 )}}
       {% endif %}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Schema/Vocabulary',
+                h.search_facets_unselected(['schema_multi']),
+                h.search_facets_selected(['schema_multi']),
+                'No further schema filters to apply.',
+                more_button='more-schemas-button'
+            )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Code lists',
+                h.search_facets_unselected(['codelist_multi']),
+                h.search_facets_selected(['codelist_multi']),
+                'No further code list filters to apply.',
+                more_button='more-codelists-button'
+            )}}
       <div class="facet-divider"></div>
       {{facet_box(
                 'Openness Score (beta)',
@@ -441,7 +456,7 @@
   <!--! Form input for primary/secondary themes -->
   {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
       <label class="radio js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
-        <input type="radio" name="theme-primary" value="{{theme}}" {% if data.get('theme-primary', '') == theme %}checked="checked"{% endif %} />
+        <input type="radio" name="theme-primary" value="{{theme_dict['title']}}" {% if data.get('theme-primary', '') == theme_dict['title'] %}checked="checked"{% endif %} />
           {{theme_dict['title']}}
       </label>
   {% endfor %}
@@ -453,7 +468,7 @@
 {% macro secondary_theme_input(data, errors) %}
   {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
     <label class="checkbox js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
-      <input type="checkbox" name="theme-secondary" value="{{theme}}" {% if theme in h.secondary_themes(data) %}checked="checked"{% endif %}/>
+      <input type="checkbox" name="theme-secondary" value="{{theme_dict['title']}}" {% if theme_dict['title'] in h.secondary_themes(data) %}checked="checked"{% endif %}/>
         {{theme_dict['title']}}
     </label>
   {% endfor %}

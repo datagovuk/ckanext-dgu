@@ -28,7 +28,7 @@
         <td>{% if row_dict['resource_url'] %}<a href="{{row_dict['resource_url']}}" style="word-wrap:break-word;">{{row_dict['resource_url']}}</a>{% endif %}</td>
         <td>{{row_dict.get('resource_description', 'not recorded') or '' }}</td>
         <td>{{row_dict.get('resource_format', 'not recorded') or '' }}</td>
-        <td>{{row_dict.get('resource_created').strftime('%d/%m/%y  %H:%M') if row_dict.get('resource_created') else 'not recorded'}}</td>
+        <td>{{h.render_datetime(row_dict.get('resource_created')) if row_dict.get('resource_created') else 'not recorded'}}</td>
       </tr>
       {% endfor %}
     </tbody>

@@ -1,0 +1,42 @@
+<div class="widget-container">
+  {% if data.table.0 == {} %}
+    <h2>Please select a department or organisation</h2>
+  {% else %}
+    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+          <thead>
+            <tr>
+              <th style="width: 80px">Publisher</th>
+              <th style="width: 80px">Administrators</th>
+              <th style="width: 80px">Editors</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dataset in data.table %}
+                 <tr>
+                     <td>
+                       <a href="/publisher/{{dataset.publisher_name}}">
+                         {{ dataset.publisher_title }}
+                       </a>
+                     </td>
+                     <td>
+                     {% with %}
+                       {% set admins = dataset.admins.split('\n') %}
+                       {% for admin in admins %}
+                       <a href="mailto:{{admin}}">{{admin}}</a><br/>
+                       {% endfor %}
+                     {% endwith %}
+                     </td>
+                     <td>
+                     {% with %}
+                       {% set editors = dataset.editors.split('\n') %}
+                       {% for editor in editors %}
+                         <a href="mailto:{{editor}}">{{editor}}</a><br/>
+                       {% endfor %}
+                     {% endwith %}
+                     </td>
+                 </tr>
+            {% endfor %}
+          </tbody>
+    </table>
+  {% endif %}
+</div>

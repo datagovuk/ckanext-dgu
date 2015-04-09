@@ -25,7 +25,8 @@ class DGUAuthTktCookiePlugin(AuthTktCookiePlugin):
             elif caller == ('middleware.py', '__call__'):
                 user_id = dict(identity)['repoze.who.userid']
                 if user_id.startswith('user_d'):
-                    log.debug('Ignoring middleware request to remember Drupal login: %r', user_id)
+                    #log.debug('Ignoring middleware request to remember Drupal login: %r', user_id)
+                    pass
                 else:
                     log.info('Remembering non-Drupal identity %r', user_id)
                     return super(DGUAuthTktCookiePlugin, self).remember(environ, identity)

@@ -13,7 +13,6 @@ import os
 import logging
 from ckan.lib.base import (BaseController, abort)
 from ckanext.dgu.plugins_toolkit import (c, render, get_action)
-from ckanext.dgu.schema import THEMES
 from ckan import model
 
 log = logging.getLogger(__name__)
@@ -31,8 +30,7 @@ class ThemeController(BaseController):
         the front end.
         """
         raise NotImplementedError('Cannot view theme pages yet.')
-        c.theme = name
-        c.theme_name = THEMES.get(name)
+        c.theme = c.theme_name = name
         if not c.theme_name:
             abort(404)
 

@@ -6,6 +6,7 @@ from ckan import plugins
 import ckan.lib.plugins as lib_plugins
 from ckan.lib.navl.dictization_functions import validate
 from ckan.logic.action.get import organization_show
+from ckanext.dgu.model.schema_codelist import Schema, Codelist
 
 #from ckan.plugins.toolkit as t
 
@@ -68,3 +69,18 @@ def suggest_themes(context, data_dict):
     results['secondary-theme'] = themes[1:]
 
     return results
+
+def schema_list(context, data_dict):
+    check_access('schema_list', context, data_dict) 
+
+    model = context['model']
+    items = model.Session.query(Schema).order_by('title')
+    return [item.as_dict() for item in items.all()]
+
+@side_effect_free
+def codelist_list(context, data_dict):
+    check_access('codelist_list', context, data_dict) 
+
+    model = context['model']
+    items = model.Session.query(Codelist).order_by('title')
+    return [item.as_dict() for item in items.all()]

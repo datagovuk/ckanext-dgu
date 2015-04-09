@@ -6,6 +6,7 @@ from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
+from ckanext.dgu.lib.publisher import go_up_tree
 
 log = logging.getLogger(__name__)
 
@@ -127,7 +128,9 @@ def publisher_resources(organization=None,
             for res in resources:
                 res_dict = {'id': res.id, 'position': res.position,
                             'description': res.description, 'url': res.url,
-                            'format': res.format, 'created': res.created}
+                            'format': res.format,
+                            'created': (res.created.isoformat()
+                                        if res.created else None)}
                 rows.append(create_row(pkg, res_dict))
             num_resources += len(resources)
         else:
@@ -375,8 +378,11 @@ def publisher_activity(organization, include_sub_organizations=False):
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
     columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
+    quarters_iso = dict([(last_or_this, [date_.isoformat() for date_ in q_list])
+                         for last_or_this, q_list in quarters.iteritems()])
+
     return {'table': datasets, 'columns': columns,
-            'quarters': quarters}
+            'quarters': quarters_iso}
 
 def publisher_activity_combinations():
     for org in lib.all_organizations(include_none=False):
@@ -484,8 +490,49 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
+# app-dataset
 
-def dataset_app_report():
+def app_dataset_report():
+    app_dataset_dicts = []
+    for related in model.Session.query(model.RelatedDataset) \
+                        .filter(model.Related.type=='App') \
+                        .all():
+        dataset = related.dataset
+        org = dataset.get_organization()
+        top_org = list(go_up_tree(org))[-1]
+
+        app_dataset_dict = OrderedDict((
+            ('app title', related.related.title),
+            ('app url', related.related.url),
+            ('dataset name', dataset.name),
+            ('dataset title', dataset.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('dataset theme', related.dataset.extras.get('theme-primary', '')),
+            ('dataset notes', lib.dataset_notes(dataset)),
+            ))
+        app_dataset_dicts.append(app_dataset_dict)
+
+    app_dataset_dicts.sort(key=lambda row: row['top-level organization title']
+                           + row['organization title'])
+
+    return {'table': app_dataset_dicts}
+
+app_dataset_report_info = {
+    'name': 'app-dataset-report',
+    'title': 'Apps with datasets',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': app_dataset_report,
+    'template': 'report/app_dataset.html',
+    }
+
+# app-dataset by theme
+
+def app_dataset_theme_report():
     table = []
 
     datasets = collections.defaultdict(lambda: {'apps': []})
@@ -511,12 +558,166 @@ def dataset_app_report():
 
     return {'table': table}
 
-dataset_app_report_info = {
-    'name': 'dataset-app-report',
-    'title': 'Datasets used in apps',
+app_dataset_theme_report_info = {
+    'name': 'app-dataset-theme-report',
+    'title': 'Apps with datasets by theme',
     'description': 'Datasets that have been used by apps, grouped by theme.',
     'option_defaults': None,
     'option_combinations': None,
-    'generate': dataset_app_report,
-    'template': 'report/dataset_app_report.html',
+    'generate': app_dataset_theme_report,
+    'template': 'report/app_dataset_theme_report.html',
+    }
+
+# admin-editor report
+
+def get_user_realname(user):
+    from ckanext.dgu.drupalclient import DrupalClient
+    from HTMLParser import HTMLParser
+
+    if user.name.startswith('user_d'):
+        user_id = user.name[len('user_d'):]
+
+        html_parser = HTMLParser()
+
+        try:
+            dc = DrupalClient()
+            properties = dc.get_user_properties(user_id)
+        except Exception, ex:
+            return user.fullname
+
+        try:
+            first_name = properties['field_first_name']['und'][0]['safe_value']
+            first_name = html_parser.unescape(first_name)
+        except:
+            first_name = ''
+
+        try:
+            surname = properties['field_surname']['und'][0]['safe_value']
+            surname = html_parser.unescape(surname)
+        except:
+            surname = ''
+    else:
+        first_name = ''
+        surname = ''
+
+    name = '%s %s' % (first_name, surname)
+    if name.strip() == '':
+        name = user.fullname
+
+    return name
+
+def admin_editor(org=None, include_sub_organizations=False):
+    from ckanext.dgu.lib.helpers import group_get_users
+
+    table = []
+
+    if org:
+        q = model.Group.all('organization')
+        parent = model.Group.by_name(org)
+        if not parent:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
+
+        if include_sub_organizations:
+            child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
+        else:
+            child_ids = []
+
+        q = q.filter(model.Group.id.in_([parent.id] + child_ids))
+
+        for g in q.all():
+            record = {}
+            record['publisher_name'] = g.name
+            record['publisher_title'] = g.title
+
+            admin_users = group_get_users(g, capacity='admin')
+            admins = []
+            for u in admin_users:
+                name = get_user_realname(u)
+                admins.append('%s <%s>' % (name, u.email))
+
+            record['admins'] = "\n".join(admins)
+
+            editor_users = group_get_users(g, capacity='editor')
+            editors = []
+            for u in editor_users:
+                name = get_user_realname(u)
+                editors.append('%s <%s>' % (name, u.email))
+
+            record['editors'] = "\n".join(editors)
+            table.append(record)
+    else:
+        table.append({})
+
+    return {'table': table}
+
+def admin_editor_combinations():
+    from ckanext.dgu.lib.helpers import organization_list
+
+    for org, _ in organization_list(top=False):
+        for include_sub_organizations in (False, True):
+            yield {'org': org,
+                    'include_sub_organizations': include_sub_organizations}
+
+def user_is_admin(user, org=None):
+    import ckan.lib.helpers as helpers
+    if org:
+        return helpers.check_access('organization_update', {'id': org.id})
+    else:
+        # Are they admin of any org?
+        return len(user.get_groups('organization', capacity='admin')) > 0
+
+def user_is_rm(user, org=None):
+    from pylons import config
+    from ast import literal_eval
+    from ckanext.dgu.lib.publisher import go_up_tree
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
+    allowed_orgs = relationship_managers.get(user.name, [])
+
+    if org:
+        for o in go_up_tree(org):
+            if o.name in allowed_orgs:
+                return True
+
+        return False
+    else:
+        # Are they RM of any org?
+        return len(allowed_orgs) > 0
+
+def admin_editor_authorize(user, options):
+    if not user:
+        return False
+
+    if user.sysadmin:
+        return True
+
+    if options.get('org', False):
+        org_name = options["org"]
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        if not org:
+            return False
+
+        if user_is_admin(user, org) or user_is_rm(user, org):
+            return True
+        else:
+            return False
+    else:
+        # Allow them to see front page / see report on report index
+        if user_is_admin(user) or user_is_rm(user):
+            return True
+
+    return False
+
+admin_editor_info = {
+    'name': 'admin_editor',
+    'title': 'Publisher administrators and editors',
+    'description': 'Filterable list of publishers which shows who has administrator and editor rights.',
+    'option_defaults': OrderedDict((('org', ''), ('include_sub_organizations', False))),
+    'option_combinations': admin_editor_combinations,
+    'generate': admin_editor,
+    'template': 'report/admin_editor.html',
+    'authorize' : admin_editor_authorize
     }

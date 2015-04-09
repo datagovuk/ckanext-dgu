@@ -1,4 +1,5 @@
 ﻿from logging import getLogger
+import json
 
 from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
@@ -389,7 +390,9 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.publisher_resources_info,
                 reports.unpublished_report_info,
                 reports.datasets_without_resources_info,
-                reports.dataset_app_report_info,
+                reports.app_dataset_theme_report_info,
+                reports.app_dataset_report_info,
+                reports.admin_editor_info,
                 ]
 
 
@@ -545,6 +548,7 @@ class SearchPlugin(p.SingletonPlugin):
         Dynamically creates a license_id-is-ogl field to index on, and clean
         up resource formats prior to indexing.
         """
+        log.info('Indexing: %s', pkg_dict['name'])
         SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
@@ -556,14 +560,10 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_theme(pkg_dict)
+        if is_plugin_enabled('dgu_schema'):
+            SearchIndexing.add_schema(pkg_dict)
 
-        # Extract multiple theme values (concatted with ' ') into one multi-value schema field
-        all_themes = set()
-        for value in (pkg_dict.get('theme-primary', ''), pkg_dict.get('theme-secondary', '')):
-            for theme in value.split(' '):
-                if theme:
-                    all_themes.add(theme)
-        pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 
 class ApiPlugin(p.SingletonPlugin):
@@ -588,6 +588,7 @@ class ApiPlugin(p.SingletonPlugin):
             'suggest_themes': suggest_themes,
             }
 
+
 class SiteIsDownPlugin(p.SingletonPlugin):
     '''"Site is down for maintenance" message shown for all requests - better
     than an error while there is maintenance.'''
@@ -596,3 +597,26 @@ class SiteIsDownPlugin(p.SingletonPlugin):
     def make_middleware(self, app, config):
         return SiteDownMiddleware(app, config)
 
+
+class SchemaPlugin(p.SingletonPlugin):
+    '''Schemas & Code lists'''
+    p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
+
+    # IActions
+
+    def get_actions(self):
+        from ckanext.dgu.logic.action.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }
+
+    # IAuthFunctions
+
+    def get_auth_functions(self):
+        from ckanext.dgu.logic.auth.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }

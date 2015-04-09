@@ -1,0 +1,34 @@
+<div class="widget-container">
+
+    <p>
+    Number of apps with datasets: {{table|length}}
+    </p>
+
+    <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+        <thead>
+            <tr>
+            <th style="width: 80px">App</th>
+            <th style="width: 80px">Dataset</th>
+            <th style="width: 80px">Publisher</th>
+            <th style="width: 80px">Top-level Publisher</th>
+            <th style="width: 50px">Theme</th>
+            <th style="width: 50px">Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table %}
+                <tr>
+                    <td><a href="{{row['app url']}}">{{row['app title']}}</a></td>
+                    <td><a href="/dataset/{{row['dataset name']}}">{{row['dataset title']}}</a></td>
+                    <td><a href="/publisher/{{row['organization name']}}">{{row['organization title']}}</a></td>
+                    <td><a href="/publisher/{{row['top-level organization name']}}">{{row['top-level organization title']}}</a></td>
+                    <td>{{row['dataset theme']}}</td>
+                    <td>{{row['dataset notes']}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+

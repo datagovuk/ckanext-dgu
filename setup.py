@@ -44,6 +44,7 @@ setup(
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
         dgu_site_down = ckanext.dgu.plugin:SiteIsDownPlugin
+        dgu_schema = ckanext.dgu.plugin:SchemaPlugin
 
         [console_scripts]
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
@@ -85,6 +86,8 @@ setup(
         vocabs = ckanext.dgu.commands.vocabs:VocabsCmd
         check_publisher_requests = ckanext.dgu.commands.check_publisher_requests:CheckRequests
         publisher_request_init = ckanext.dgu.commands.publisher_request_init:InitDB
+        schema = ckanext.dgu.commands.schema:Schema
+        user_sync = ckanext.dgu.commands.user_sync:UserSync
     """,
     test_suite = 'nose.collector',
 )

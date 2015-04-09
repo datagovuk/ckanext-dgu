@@ -91,11 +91,14 @@ a.tag {
 .pre-notes {
   color: #555;
 }
+.license-read-more {
+  display: none;
+}
 .notes {
     color: #555;
     .notes-read-more {
       margin-top: 7px;
-      display: block;
+      display: none;
       text-align: center;
       color: #000;
     }
@@ -1177,6 +1180,14 @@ body.controller-package {
     .notes .notes-inner {
       padding-top: 15px;
     }
+    .hideyear,
+    .showyear {
+      background: #E0E0E0;
+      border-radius: 3px;
+      padding-left: 5px;
+      padding-right: 5px;
+      font-size: 14px;
+    }
   }
   .dataset-resource {
     margin-bottom: 22px;
@@ -1342,14 +1353,6 @@ body.controller-package.action-edit {
     font-weight: normal;
 
   }
-    #package-edit ul.nav,
-    #package-edit ul.nav li {
-      /*
-        width: 210px;
-        margin-right: -1px;
-        background: #fff;
-        */
-    }
     .tab-content {
       /*
         display: block;
@@ -1405,6 +1408,16 @@ body.controller-package.action-edit {
     .resource-url .error input {
         background: transparent url(../images/icons/error.png) 98% center no-repeat;
     }
+    #schema-list,
+    #codelist-list,
+    #mandate-list {
+        list-style: none;
+        margin-left: 0;
+        padding-left: 0;
+        li {
+            padding: 2px;
+        }
+    }
 }
 
 /* PAGE: package/history */
@@ -1446,7 +1459,6 @@ body.controller-user.action-read {
         width: 280px;
     }
     ul.stats li {
-        width: 100px;
         list-style-type: none;
         float: left;
         padding: 20px;
