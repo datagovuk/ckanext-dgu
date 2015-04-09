@@ -183,7 +183,7 @@ def categorize_package2(pkg, stats=None):
     max_score = max(theme['score'] for theme in theme_scores)
     if max_score > 5:
         score_threshold = max_score / 3
-    theme_scores = filter(lambda y: y['score'] > score_threshold, theme_scores)
+        theme_scores = filter(lambda y: y['score'] > score_threshold, theme_scores)
 
     primary_theme = theme_scores[0]['name'] if scores else None
 
