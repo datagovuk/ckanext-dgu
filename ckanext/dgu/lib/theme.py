@@ -180,7 +180,7 @@ def categorize_package2(pkg, stats=None):
 
     # discard secondary themes if there is a good score for the primary theme -
     # assume they are noise.
-    max_score = max(theme['score'] for theme in theme_scores)
+    max_score = max(theme['score'] for theme in theme_scores) if scores else 0
     if max_score > 5:
         score_threshold = max_score / 3
         theme_scores = filter(lambda y: y['score'] > score_threshold, theme_scores)

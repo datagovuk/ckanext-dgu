@@ -225,23 +225,55 @@
         data: { name: name, title: title, notes: notes },
         dataType: "json",
         success: function(obj) {
-            var nm = obj.result['primary-theme'].name || "";
+            var nm = obj.result['primary-theme'].name || "None";
             $('#theme-primary-label').html(nm);
             $('#theme-primary').val(nm);
+ 
+            $('#theme-primary-reasons').empty();
+            var reasons = obj.result['primary-theme'].reasons || [];
+
+            if (reasons.length > 0) {
+              $('#theme-primary-reasons-label').show()
+            } else {
+              $('#theme-primary-reasons-label').hide()
+            }
+
+            for (i = 0; i < reasons.length; i++) {
+               $('#theme-primary-reasons').append('<li>' + reasons[i] + '</li>');
+            }
 
             nm = '';
 
             var secondaries = obj.result['secondary-theme'];
-            console.log(secondaries);
+            var all_reasons = [];
             for (var i = 0; i < secondaries.length; i++ ) {
                 var th = secondaries[i].name;
                 nm = nm + th;
                 if ( i != secondaries.length-1 ) {
                   nm = nm + ", "
                 }
+                reasons = secondaries[i].reasons || []
+                for (j = 0; j < reasons.length; j++) {
+                  all_reasons.push(th + ' - ' + reasons[j]);
+                }
+            }
+
+            if (nm === '') {
+              nm = 'None'
             }
             $('#theme-secondary-label').html(nm);
             $('#theme-secondary').val(nm);
+
+            if (all_reasons.length > 0) {
+              $('#theme-secondary-reasons-label').show()
+            } else {
+              $('#theme-secondary-reasons-label').hide()
+            }
+
+            $('#theme-secondary-reasons').empty();
+            for (i = 0; i < all_reasons.length; i++) {
+               $('#theme-secondary-reasons').append('<li>' + all_reasons[i] + '</li>');
+            }
 
             $('#check-themes').removeAttr('disabled');
         }
