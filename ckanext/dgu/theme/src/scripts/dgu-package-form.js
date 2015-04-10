@@ -219,10 +219,15 @@
       var name = $('#name').val();
       var title = $('#title').val();
       var notes = $('#notes').val();
+      var tags = $('#tag_string').val();
 
       $.ajax({
-        url: "/api/3/action/suggest_themes",
-        data: { name: name, title: title, notes: notes },
+        url: "/api/3/action/suggest_themes?",
+        data: JSON.stringify({ name: name,
+                               title: title, 
+                               notes: notes,
+                               tags: tags }),
+        type: "POST",
         dataType: "json",
         success: function(obj) {
             var nm = obj.result['primary-theme'].name || "None";
@@ -277,5 +282,11 @@
 
             $('#check-themes').removeAttr('disabled');
         }
+      });
+
+      $('#notes').focusout(update_themes);
+      $('#reveal-tags').click(function(){
+        $('#tags').show();
+        return false;
       });
   }

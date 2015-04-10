@@ -57,7 +57,7 @@ def suggest_themes(context, data_dict):
         pkg_dict = {'name': data_dict.get('name'),
                     'title': data_dict.get('title'),
                     'notes': data_dict.get('notes'),
-                    'tags': [t for t in data_dict.get('tags', '').split(' ')],
+                    'tags': [t for t in data_dict.get('tags', '').split(',')],
                     'extras': [{'key': '', 'value': ''}]
                     }
         themes = categorize_package2(pkg_dict)

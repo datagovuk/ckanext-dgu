@@ -391,7 +391,7 @@ Passed in:
   <button id="check-themes" class="pull-right btn btn-info" onclick="update_themes();return false;">Update themes</button>
 
   <p class="instructions basic">The theme under which this dataset will be categorised is done by searching for keywords in the title and description fields.</p>
-  <p class="instructions further instruction-needed">If the theme is inaccurate, please expand the description to mention the topics of the dataset better. If the topic is still not being picked up, please <a href="/">contact us</a>.</p>
+  <p class="instructions further instruction-needed">If the theme is inaccurate, please expand the description to mention the topics of the dataset better. If the topic is still not being picked up, please <a id="reveal-tags" href="#">click here</a> to add some tags. Otherwise please <a href="/contact">contact us</a>.</p>
   <br/>
   <div style="width: 45%; float: left; margin-right: 4%;">
     <label>Primary theme</label>
@@ -415,6 +415,19 @@ Passed in:
     <br/>
     <label id="theme-secondary-reasons-label" style="display: none">Reason</label>
     <ul id="theme-secondary-reasons"></ul>
+  </div>
+  <div class="clearfix">&nbsp;</div>
+
+  <div id="tags" style="display: none">
+    <hr/>
+    <h3>Tags</h3>
+    <p>Please list tags which describe the subject of this data in commonly used terms abstract terms e.g. "air quality, pollution, roads". For government spend transactions, include the special tag "spend-transactions". Put commas between each tag.</p>
+    <div class="form-group">
+      <input class="form-control long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
+           data-tagcomplete-url="/api/2/util/tag/autocomplete"
+           id="tag_string" name="tag_string" size="60" type="text"
+           value="{{data.get('tag_string') or ', '.join(h.free_tags(data))}}" />
+    </div>
   </div>
 </fieldset>
 
