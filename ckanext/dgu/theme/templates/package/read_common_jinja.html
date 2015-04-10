@@ -223,7 +223,7 @@
         <!-- blank style tag avoids a bug in jquery.dotdotdot -->
         <div class="notes" style="">
           <div class="dataset-theme theme-{{h.get_primary_theme(c.pkg_dict) or 'none'}}">
-            <div class="theme-name">{{h.theme_stored_name_to_displayed_name(h.get_primary_theme(c.pkg_dict)) or '(Uncategorised)'}}</div>
+            <div class="theme-name">{{h.get_primary_theme(c.pkg_dict) or '(Uncategorised)'}}</div>
           </div>
           {% if dataset_is_from_ns_pubhub == 'ons' and h.as_dict(c.pkg_extras).get('national_statistic', '').lower() == 'yes' -%}
           <a

@@ -1857,11 +1857,6 @@ def themes():
     from ckanext.dgu.lib.theme import Themes
     return Themes.instance().data
 
-def theme_stored_name_to_displayed_name(stored_name):
-    from ckanext.dgu.schema import THEMES
-    return THEMES.get(stored_name, stored_name)
-
-
 def span_read_more(text, word_limit, classes=""):
     trimmed = truncate(text, length=word_limit, whole_word=True)
     if trimmed==text:
