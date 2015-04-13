@@ -222,11 +222,11 @@
       var tags = $('#tag_string').val();
 
       $.ajax({
-        url: "/api/3/action/suggest_themes?",
-        data: JSON.stringify({ name: name,
-                               title: title, 
-                               notes: notes,
-                               tags: tags }),
+        url: "/api/3/action/suggest_themes",
+        data: encodeURIComponent(JSON.stringify({name: name,
+                                                 title: title,
+                                                 notes: notes,
+                                                 tags: tags})),
         type: "POST",
         dataType: "json",
         success: function(obj) {
@@ -283,10 +283,16 @@
             $('#check-themes').removeAttr('disabled');
         }
       });
-
-      $('#notes').focusout(update_themes);
-      $('#reveal-tags').click(function(){
-        $('#tags').show();
-        return false;
-      });
   }
+
+  $(function() {
+    $('#notes').focusout(update_themes);
+    $('#reveal-tags').click(function(){
+      $('#tags').show(400, function() {
+        $('html, body').animate({
+          scrollTop: $("#tags").offset().top
+        }, 400);
+      });
+      return false;
+    });
+  });
