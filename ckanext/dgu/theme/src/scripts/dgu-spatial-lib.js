@@ -155,10 +155,12 @@ $(function() {
                 $('.apply', buttons).removeClass('disabled').addClass('btn-primary');
             })
 
+            /*
             // Record the current map view so we can replicate it after submitting
             map.onMoveEnd( function(e) {
                 $('#ext_prev_extent').val(spatial_lib.extent2bboxstring(map.getExtent()));
             });
+            */
 
             // Ok setup the default state for the map
             var previous_bbox;
