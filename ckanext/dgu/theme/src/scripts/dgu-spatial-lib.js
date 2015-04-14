@@ -100,7 +100,7 @@ $(function() {
             var buttons;
 
             // Add necessary fields to the search form if not already created
-            $(['ext_bbox', 'ext_prev_extent']).each(function(index, item){
+            $(['ext_bbox', 'ext_prev_extent', 'ext_gazname']).each(function(index, item){
                 if ($("#" + item).length === 0) {
                     $('<input type="hidden" />').attr({'id': item, 'name': item}).appendTo(form);
                 }

@@ -26,7 +26,11 @@ $(function() {
                 } else {
                     geom = selection.data.bbox_geom
                 }
-                module.map.setSelectedGeom(geom);
+                module.map.setSelectedGeom(geom)
+                module.map.fitToSelection()
+
+                $("#gazetteer>input").val(selection.data.properties.name)
+                $('#ext_gazname').val(selection.data.properties.name)
 
                 module.submitForm()
             },
@@ -34,5 +38,7 @@ $(function() {
                 module.map.highlightGeom(hovered);
             }
         )
+
+        $("#gazetteer>input").val(module._getParameterByName('ext_gazname'))
     })
 })
