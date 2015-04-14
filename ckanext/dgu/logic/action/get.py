@@ -32,6 +32,44 @@ def publisher_show(context, data_dict):
     return group_dict
 
 @side_effect_free
+def suggest_themes(context, data_dict):
+    '''Suggests themes for a dataset or the component parts of a dataset
+
+    To be able to determine the primary and secondary theme, the description
+    tags and title are required for a Package. The categorize_package function
+    requires works with Package models and a dictionary, so both versions are
+    supported.  If an id is passed, then the package will be retrieved and passed
+    to the categorisation, otherwise it will be formatted as per the required
+    dictionary.
+    '''
+    from ckanext.dgu.lib.theme import categorize_package2
+    themes = []
+
+    # TODO: Make this only available to logged in publishers
+
+    model = context['model']
+
+    id = data_dict.get('id')
+    if id:
+        pkg = model.Package.get(id)
+        themes = categorize_package2(pkg)
+    else:
+        pkg_dict = {'name': data_dict.get('name'),
+                    'title': data_dict.get('title'),
+                    'notes': data_dict.get('notes'),
+                    'tags': [t for t in data_dict.get('tags', '').split(',')],
+                    'extras': [{'key': '', 'value': ''}]
+                    }
+        themes = categorize_package2(pkg_dict)
+
+    results = {'primary-theme': {}, 'secondary-theme': []}
+    if len(themes) >= 1:
+        results['primary-theme'] = themes[0]
+
+    results['secondary-theme'] = themes[1:]
+
+    return results
+
 def schema_list(context, data_dict):
     check_access('schema_list', context, data_dict) 
 
