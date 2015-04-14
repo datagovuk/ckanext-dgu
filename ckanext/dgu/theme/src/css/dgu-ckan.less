@@ -1799,19 +1799,30 @@ body.controller-widgets.action-index {
     #dataset-map-edit-buttons {
       position: absolute;
       z-index: 100;
-      display: block;
-      right: 0;
+      display: none;
       margin: 5px;
       top: 36px;
       padding: 0;
+      margin-top: 0;
 
       .btn {
-        background-color: white;
+        width: 4em;
+        display: block;
+        margin-bottom: 3px;
+        padding: 3px;
+      }
+      .btn:hover {
+        color: black;
+      }
+
+      .apply {
+        background-color: #8bc658;
         border-color: #8eb06d;
       }
 
-      .btn-primary {
-        background-color: #8bc658;
+      .cancel {
+        background-color: white;
+        border-color: #B0B0B0;
       }
     }
 

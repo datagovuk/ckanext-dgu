@@ -23,12 +23,11 @@ $(function() {
     DguSearch.prototype = {
 
         template: {
-            buttons: [
-                '<div id="dataset-map-edit-buttons">',
-                '<a href="javascript:;" class="btn cancel">Cancel</a> ',
-                '<a href="javascript:;" class="btn apply disabled">Apply</a>',
+            buttons:
+                '<div id="dataset-map-edit-buttons">' +
+                '<a href="javascript:;" class="btn cancel">Cancel</a> ' +
+                '<a href="javascript:;" class="btn apply disabled">Apply</a>' +
                 '</div>'
-            ].join('')
         },
 
         initialize: function () {
@@ -133,6 +132,7 @@ $(function() {
                 setPreviousBBBox();
                 map.reset();
                 is_exanded = false;
+                buttons.hide()
             });
 
             // Handle the apply expanded action
@@ -149,11 +149,39 @@ $(function() {
                 }
             });
 
+            var currentSelectedGeom
+
+            var positionBBoxButtons = function(bboxExtent) {
+                if (!bboxExtent && currentSelectedGeom) bboxExtent = currentSelectedGeom.getExtent()
+
+                if (bboxExtent && is_exanded) {
+                    var topRightCorner = ol.extent.getTopRight(bboxExtent)
+                    var screenPos = map.getPixelFromCoordinate(topRightCorner)
+
+                    var top = screenPos[1]
+                    var left = screenPos[0]
+                    var mapContainer = buttons.offsetParent().find("#dataset-map-container")
+                    if (top < 0 || top > mapContainer.height() - buttons.height()) top = 0
+                    if (left < 0 || left > mapContainer.width() - buttons.width()) left = buttons.offsetParent().find(".dataset-map").width() - buttons.width()
+                    buttons.css('left', left + mapContainer.position().left)
+                    buttons.css('top', top + mapContainer.position().top)
+                }
+            }
+
             // When user finishes drawing the box, record it and add it to the map
             map.onSelect(function(geom) {
-                $('#ext_bbox').val(spatial_lib.geom2bboxstring(geom));
-                $('.apply', buttons).removeClass('disabled').addClass('btn-primary');
+                currentSelectedGeom = geom
+                $('#ext_bbox').val(spatial_lib.geom2bboxstring(geom))
+                if (is_exanded) {
+                    $('.apply', buttons).removeClass('disabled').addClass('btn-primary')
+                    positionBBoxButtons()
+                    buttons.show()
+                }
             })
+
+            map.getOL3Map().on('pointerdrag', function(e) {positionBBoxButtons()})
+            map.getOL3Map().on('moveend', function(e) {positionBBoxButtons()})
+            map.getOL3Map().getView().on('change:resolution', function(e) {positionBBoxButtons()})
 
             /*
             // Record the current map view so we can replicate it after submitting
@@ -618,7 +646,7 @@ $(function() {
                 var isDrawing
 
                 $(map.getViewport()).on('click', function(evt) {
-                    if (!isDrawing) {
+                    if (!isDrawing && !$('body').hasClass('dataset-map-expanded')) {
                         var pixel = map.getEventPixel(evt.originalEvent)
 
                         var feature = map.forEachFeatureAtPixel(
@@ -682,6 +710,10 @@ $(function() {
 
                 var mapComponent = {
 
+                    getOL3Map: function() {
+                        return map
+                    },
+
                     highlightResult: function(id) {
                         var feature = id && resultsBboxSource.getFeatureById(id)
                         highlightFeature(feature)
@@ -714,6 +746,10 @@ $(function() {
                     },
 
                     /* spatial_lib implementation */
+
+                    getPixelFromCoordinate: function(coords) {
+                        return map.getPixelFromCoordinate(coords)
+                    },
 
                     clearResults: function(geom) {
                         resultsBboxSource.clear()
