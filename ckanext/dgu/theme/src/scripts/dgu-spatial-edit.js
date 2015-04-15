@@ -23,7 +23,7 @@ CKAN.DguSpatialEditor = function($) {
             extent: [-180,-90,180,90],
             resolutions: [0.703125,0.3515625,0.17578125,0.087890625,0.0439453125,0.02197265625,0.010986328125,0.0054931640625,0.00274658203125,0.001373291015625,6.866455078125E-4,3.4332275390625E-4,1.71661376953125E-4,8.58306884765625E-5,4.291534423828125E-5,2.1457672119140625E-5,1.0728836059570312E-5,5.364418029785156E-6,2.682209014892578E-6,1.341104507446289E-6],
             tileSize: 256,
-            clippingExtent: [-15, 50.00, 3, 63.00],
+            clippingExtent: [-29.5, 48.5, 3.3, 64.00],
             wmsLayerName: 'InspireVectorStack',
             projection: 'EPSG:4326'
         },
@@ -37,23 +37,23 @@ CKAN.DguSpatialEditor = function($) {
         },
         INSPIRE_WGS84 : {
             extent: [-30, 48.00, 7.79, 64.00],
-            resolutions: [0.037797400884406626,0.025198267256271084,0.012599133628135542,0.0025198267256271085,6.299566814067771E-4,1.889870044220331E-4,1.259913362813554E-4,6.29956681406777E-5,2.5198267256271077E-5,1.2599133628135539E-5,6.299566814067769E-6],
+            resolutions: [0.037797400884406626,0.025198267256271084,0.012599133628135542,0.0025198267256271085,6.299566814067771E-4,1.889870044220331E-4,1.259913362813554E-4,6.29956681406777E-5,2.5198267256271077E-5],
             tileSize: 250,
-            clippingExtent: [-12, 50.00, 3, 60.00],
+            clippingExtent: [-29.5, 48.5, 3.3, 64.00],
             wmsLayerName: 'InspireWGS84',
             projection: 'EPSG:4326'
         },
         INSPIRE_ETRS89 : {
             extent: [-30, 48.00, 7.79, 64.00],
-            resolutions: [0.037797400884406626,0.025198267256271084,0.012599133628135542,0.0025198267256271085,6.299566814067771E-4,1.889870044220331E-4,1.259913362813554E-4,6.29956681406777E-5,2.5198267256271077E-5,1.2599133628135539E-5,6.299566814067769E-6],
+            resolutions: [0.037797400884406626,0.025198267256271084,0.012599133628135542,0.0025198267256271085,6.299566814067771E-4,1.889870044220331E-4,1.259913362813554E-4,6.29956681406777E-5,2.5198267256271077E-5],
             tileSize: 250,
-            clippingExtent: [-12, 50.00, 3, 60.00],
+            clippingExtent: [-29.5, 48.5, 3.3, 64.00],
             wmsLayerName: 'InspireETRS89',
             projection: 'EPSG:4258'
         }
     }
 
-    var activeLayer = OSLayers.INSPIRE_Vector_4326
+    var activeLayer = OSLayers.INSPIRE_WGS84
 
 
     // Resolutions for the basemap to complement the OS layer
@@ -227,7 +227,11 @@ CKAN.DguSpatialEditor = function($) {
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
         if (e.target.id == "section-geographic") {
             map.updateSize()
-            map.getView().fitExtent(selectBoxSource.getExtent(), map.getSize())
+            var default_extent = [-13.69136, 49.90961, 1.77171, 60.84755]
+            if (selectBoxSource.getFeatures().length)
+                map.getView().fitExtent(selectBoxSource.getExtent(), map.getSize())
+            else
+                map.getView().fitExtent(default_extent, map.getSize())
         }
 
     })
