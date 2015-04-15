@@ -113,4 +113,19 @@ $(function() {
     return false;
   });
 
+  // Closed issues
+  $(".hide-closed-issues").hide();
+  $("#issue-list-closed").hide();
+  $("span.show-closed-issues").on('click', function(){
+    $(this).parent().next('.issue-list-group').fadeIn();
+    $(this).siblings('.hide-closed-issues').show();
+    $(this).hide();
+    return false;
+  });
+  $("span.hide-closed-issues").on('click', function(){
+    $(this).parent().next('.issue-list-group').fadeOut();
+    $(this).siblings('.show-closed-issues').show();
+    $(this).hide();
+    return false;
+  });
 });

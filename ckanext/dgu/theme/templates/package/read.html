@@ -124,7 +124,7 @@
           <h2>Data Resources ({{h.timeseries_resources()|length}} in a time series)</h2>
   	       {% for year, items in h.groupby(h.timeseries_resources()|reverse, h.extract_year) %}
   	       <div class="year">
-              <h3>{{year}} <span class="showyear" style="display: none;">View More <i class="icon-chevron-down"></i></span><span class="hideyear" style="display: none;">View Less <i class="icon-chevron-up"></i></span></h3>
+              <h3>{{year}} <span class="showyear show-hide" style="display: none;">View More <i class="icon-chevron-down"></i></span><span class="hideyear show-hide" style="display: none;">View Less <i class="icon-chevron-up"></i></span></h3>
               <div class="year_items">
               {{resource_table(items, publisher_name)}}
               </div>
@@ -204,15 +204,30 @@
     </a>
     {% if h.issues_enabled(c.pkg_dict) %}
       <h2>Issues</h2>
-      {# <a class="view-feedback-link" href="{{h.url_for('issues_home', package_id=c.pkg_dict.name)}}">Issues &raquo;</a> #}
       {% set issues = h.issues_list(c.pkg_dict.id) %}
+      {{ ungettext('{number} open issue', '{number} open issues', issues|length).format(number=issues|length) }}:
+      <div class="clearfix"></div>
+      {% import "issues/common.html" as common with context %}
       <ul id="issue-list" class="issue-list-group list-group">
-        {% import "issues/common.html" as common with context %}
         {% for issue in issues %}
             {{ common.issue_item(issue, c.pkg) }}
         {% endfor %}
       </ul>
+      {% set closed_issues = h.issues_list(c.pkg_dict.id, status='closed') %}
+      {% if closed_issues %}
+        <p>
+          {{ ungettext('{number} closed issue', '{number} closed issues', closed_issues|length).format(number=closed_issues|length) }}
+          <span class="show-closed-issues show-hide">View <i class="icon-chevron-right"></i></span>
+          <span class="hide-closed-issues show-hide">Hide <i class="icon-chevron-down"></i></span>
+        </p>
+        <ul id="issue-list-closed" class="issue-list-group list-group">
+          {% for issue in closed_issues %}
+            {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% endif %}
     {% endif %}
+    <br/>
 
     <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
       {% if c.user %}
