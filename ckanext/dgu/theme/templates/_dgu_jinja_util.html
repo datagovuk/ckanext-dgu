@@ -309,7 +309,7 @@
 
 {% macro facet_filters() %}
       {{facet_box(
-                'Show only...',
+                'Published status',
                 h.search_facets_unselected(['unpublished']),
                 h.search_facets_selected(['unpublished']),
                 'No further filters to apply.'
@@ -365,6 +365,22 @@
                     more_button='more-publishers-button'
                 )}}
       {% endif %}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Schema/Vocabulary',
+                h.search_facets_unselected(['schema_multi']),
+                h.search_facets_selected(['schema_multi']),
+                'No further schema filters to apply.',
+                more_button='more-schemas-button'
+            )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Code lists',
+                h.search_facets_unselected(['codelist_multi']),
+                h.search_facets_selected(['codelist_multi']),
+                'No further code list filters to apply.',
+                more_button='more-codelists-button'
+            )}}
       <div class="facet-divider"></div>
       {{facet_box(
                 'Openness Score (beta)',

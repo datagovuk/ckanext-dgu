@@ -91,11 +91,14 @@ a.tag {
 .pre-notes {
   color: #555;
 }
+.license-read-more {
+  display: none;
+}
 .notes {
     color: #555;
     .notes-read-more {
       margin-top: 7px;
-      display: block;
+      display: none;
       text-align: center;
       color: #000;
     }
@@ -1416,7 +1419,9 @@ body.controller-package.action-edit {
     .resource-url .error input {
         background: transparent url(../images/icons/error.png) 98% center no-repeat;
     }
-    #mandates-list {
+    #schema-list,
+    #codelist-list,
+    #mandate-list {
         list-style: none;
         margin-left: 0;
         padding-left: 0;

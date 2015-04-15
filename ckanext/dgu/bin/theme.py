@@ -143,7 +143,7 @@ def recategorize(options):
     if options.theme:
         theme_filter = set(options.theme.split(','))
         for theme in theme_filter:
-            assert theme in themes.data, '"%s" not in %r' % (theme, themes.data)
+            assert theme in themes.data, '"%s" not in %r' % (theme, themes.data.keys())
     else:
         theme_filter = themes.data
 

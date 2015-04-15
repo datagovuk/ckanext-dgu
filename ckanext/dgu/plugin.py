@@ -392,7 +392,8 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.publisher_resources_info,
                 reports.unpublished_report_info,
                 reports.datasets_without_resources_info,
-                reports.dataset_app_report_info,
+                reports.app_dataset_theme_report_info,
+                reports.app_dataset_report_info,
                 reports.admin_editor_info,
                 ]
 
@@ -549,6 +550,7 @@ class SearchPlugin(p.SingletonPlugin):
         Dynamically creates a license_id-is-ogl field to index on, and clean
         up resource formats prior to indexing.
         """
+        log.info('Indexing: %s', pkg_dict['name'])
         SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
@@ -560,20 +562,10 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_theme(pkg_dict)
+        if is_plugin_enabled('dgu_schema'):
+            SearchIndexing.add_schema(pkg_dict)
 
-        # Extract all primary and secondary themes into the 'all_themes' field
-        all_themes = set()
-        if pkg_dict.get('theme-primary'):
-            all_themes.add(pkg_dict.get('theme-primary', ''))
-        try:
-            secondary_themes = json.loads(pkg_dict.get('theme-secondary', '[]'))
-            for theme in secondary_themes:
-                if theme:
-                    all_themes.add(theme)
-        except ValueError, e:
-            log.error('Could not parse secondary themes: %s %r',
-                      pkg_dict['name'], pkg_dict.get('theme-secondary'))
-        pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 
 class ApiPlugin(p.SingletonPlugin):
@@ -597,6 +589,7 @@ class ApiPlugin(p.SingletonPlugin):
             'publisher_show': publisher_show,
             }
 
+
 class SiteIsDownPlugin(p.SingletonPlugin):
     '''"Site is down for maintenance" message shown for all requests - better
     than an error while there is maintenance.'''
@@ -605,3 +598,26 @@ class SiteIsDownPlugin(p.SingletonPlugin):
     def make_middleware(self, app, config):
         return SiteDownMiddleware(app, config)
 
+
+class SchemaPlugin(p.SingletonPlugin):
+    '''Schemas & Code lists'''
+    p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
+
+    # IActions
+
+    def get_actions(self):
+        from ckanext.dgu.logic.action.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }
+
+    # IAuthFunctions
+
+    def get_auth_functions(self):
+        from ckanext.dgu.logic.auth.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }

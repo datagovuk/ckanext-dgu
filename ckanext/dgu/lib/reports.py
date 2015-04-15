@@ -6,6 +6,7 @@ from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
+from ckanext.dgu.lib.publisher import go_up_tree
 
 log = logging.getLogger(__name__)
 
@@ -127,7 +128,9 @@ def publisher_resources(organization=None,
             for res in resources:
                 res_dict = {'id': res.id, 'position': res.position,
                             'description': res.description, 'url': res.url,
-                            'format': res.format, 'created': res.created}
+                            'format': res.format,
+                            'created': (res.created.isoformat()
+                                        if res.created else None)}
                 rows.append(create_row(pkg, res_dict))
             num_resources += len(resources)
         else:
@@ -375,8 +378,11 @@ def publisher_activity(organization, include_sub_organizations=False):
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
     columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
+    quarters_iso = dict([(last_or_this, [date_.isoformat() for date_ in q_list])
+                         for last_or_this, q_list in quarters.iteritems()])
+
     return {'table': datasets, 'columns': columns,
-            'quarters': quarters}
+            'quarters': quarters_iso}
 
 def publisher_activity_combinations():
     for org in lib.all_organizations(include_none=False):
@@ -484,7 +490,49 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
-def dataset_app_report():
+# app-dataset
+
+def app_dataset_report():
+    app_dataset_dicts = []
+    for related in model.Session.query(model.RelatedDataset) \
+                        .filter(model.Related.type=='App') \
+                        .all():
+        dataset = related.dataset
+        org = dataset.get_organization()
+        top_org = list(go_up_tree(org))[-1]
+
+        app_dataset_dict = OrderedDict((
+            ('app title', related.related.title),
+            ('app url', related.related.url),
+            ('dataset name', dataset.name),
+            ('dataset title', dataset.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('dataset theme', related.dataset.extras.get('theme-primary', '')),
+            ('dataset notes', lib.dataset_notes(dataset)),
+            ))
+        app_dataset_dicts.append(app_dataset_dict)
+
+    app_dataset_dicts.sort(key=lambda row: row['top-level organization title']
+                           + row['organization title'])
+
+    return {'table': app_dataset_dicts}
+
+app_dataset_report_info = {
+    'name': 'app-dataset-report',
+    'title': 'Apps with datasets',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': app_dataset_report,
+    'template': 'report/app_dataset.html',
+    }
+
+# app-dataset by theme
+
+def app_dataset_theme_report():
     table = []
 
     datasets = collections.defaultdict(lambda: {'apps': []})
@@ -510,15 +558,17 @@ def dataset_app_report():
 
     return {'table': table}
 
-dataset_app_report_info = {
-    'name': 'dataset-app-report',
-    'title': 'Datasets used in apps',
+app_dataset_theme_report_info = {
+    'name': 'app-dataset-theme-report',
+    'title': 'Apps with datasets by theme',
     'description': 'Datasets that have been used by apps, grouped by theme.',
     'option_defaults': None,
     'option_combinations': None,
-    'generate': dataset_app_report,
-    'template': 'report/dataset_app_report.html',
+    'generate': app_dataset_theme_report,
+    'template': 'report/app_dataset_theme_report.html',
     }
+
+# admin-editor report
 
 
 # admin_editor report

@@ -21,7 +21,7 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
      remove_blank_resources, \
-     allow_empty_if_inventory
+     bool_
 from ckan.lib.navl.dictization_functions import missing
 
 #convert_from_extras = tk.get_validator('convert_from_extras')
@@ -278,6 +278,10 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
             'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'schema': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'codelist': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'sla': [ignore_missing, convert_to_extras],
+
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -286,11 +290,11 @@ class DatasetForm(p.SingletonPlugin):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'unpublished': [ignore_missing, bool, convert_to_extras],
-            'core-dataset': [ignore_missing, bool, convert_to_extras],
+            'unpublished': [ignore_missing, bool_, convert_to_extras],
+            'core-dataset': [ignore_missing, bool_, convert_to_extras],
             'release-notes': [ignore_missing, unicode, convert_to_extras],
             'publish-date': [ignore_missing, date_to_db, convert_to_extras],
-            'publish-restricted': [ignore_missing, bool, convert_to_extras],
+            'publish-restricted': [ignore_missing, bool_, convert_to_extras],
 
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
             'theme-secondary': [ignore_missing, to_json, convert_to_extras],
@@ -357,6 +361,9 @@ class DatasetForm(p.SingletonPlugin):
 
             'published_via': [convert_from_extras, ignore_missing],
             'mandate': [convert_from_extras, from_json, ignore_missing],
+            'schema': [convert_from_extras, from_json, ignore_missing, id_to_dict],
+            'codelist': [convert_from_extras, from_json, ignore_missing, id_to_dict],
+            'sla': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
             'theme-secondary': [convert_from_extras, ignore_missing],
@@ -563,3 +570,37 @@ def tags_schema():
         'state': [ignore],
     }
     return schema
+
+def id_to_dict(key, data, errors, context):
+    from ckanext.dgu.model.schema_codelist import Schema, Codelist
+    for i, id_ in enumerate(data[key]):
+        if key == ('schema',):
+            obj = Schema.get(id_)
+        elif key == ('codelist',):
+            obj = Codelist.get(id_)
+        else:
+            raise NotImplementedError('Bad key: %s' % key)
+        if not obj:
+            raise Invalid('%s id does not exist: %s' % (key, id_))
+        data[key][i] = obj.as_dict()
+
+def schema_codelist_validator(key, data, errors, context):
+    from ckanext.dgu.model.schema_codelist import Schema, Codelist
+    for i, schema_ref in enumerate(data[key]):
+        if not schema_ref:
+            # drop-down has no selection - ignore
+            continue
+        # form gives an ID. API might give a title.
+        if key == ('schema',):
+            obj = Schema.get(schema_ref) or Schema.by_title(schema_ref) or \
+                    Schema.by_url(schema_ref)
+        elif key == ('codelist',):
+            obj = Codelist.get(schema_ref) or Codelist.by_title(schema_ref) or\
+                    Codelist.by_url(schema_ref)
+        else:
+            raise NotImplementedError('Bad key: %s' % key)
+        if not obj:
+            raise Invalid('%s id does not exist: %r' % (key[0], schema_ref))
+        # write the ID in case it came in via the API and was a URL or title
+        data[key][i] = obj.id
+
