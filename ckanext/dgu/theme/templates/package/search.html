@@ -49,6 +49,9 @@
                 {{sort_option('Location', 'spatial desc', 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}}
             </select>
             <button type="submit" class="btn btn-default js-hide">Go</button>
+            {% if request.params.get('ext_bbox', '') %}
+              <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox', '')}}" />
+            {% endif %}
             {% if c.fields %}
               {% for k,v in c.fields %}
                 <input type="hidden" name="{{k}}" value="{{v}}"/>
