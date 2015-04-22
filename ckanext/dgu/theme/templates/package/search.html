@@ -35,7 +35,7 @@
     <div class="module-content">
         <a href="#" class="visible-sm visible-xs btn btn-primary btn-sm show-facets">Show Search Facets &raquo;</a>
         {% block form %}
-        <form class="form-inline pull-right" id="search-sort-by">
+        <div class="form-inline pull-right" id="search-sort-by">
             {% macro sort_option(text, value, selected, disabled=False) %}
             <option value="{{value}}" {% if selected %} selected="selected"{% endif %}{% if disabled %} disabled="disabled"{% endif %}>{{text}}</option>
             {% endmacro %}
@@ -51,7 +51,7 @@
             <a class="feed-icon" href="{{ h.url(controller='feed', action='custom') }}?{{ c.search_url_params }}">
                 <i class="icon-rss-sign"></i>
             </a>
-        </form>
+        </div>
         {% endblock %}
 
         {% if not c.query_error %}
