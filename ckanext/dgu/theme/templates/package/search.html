@@ -35,19 +35,26 @@
     <div class="module-content">
         <a href="#" class="visible-sm visible-xs btn btn-primary btn-sm show-facets">Show Search Facets &raquo;</a>
         {% block form %}
-        <form class="form-inline pull-right" id="search-sort-by">
+        <form class="form-inline pull-right" id="search-sort-by" action="#search-sort-by">
             {% macro sort_option(text, value, selected, disabled=False) %}
             <option value="{{value}}" {% if selected %} selected="selected"{% endif %}{% if disabled %} disabled="disabled"{% endif %}>{{text}}</option>
             {% endmacro %}
             <label>Sort by:</label>
-            <select name="dataset-results-sort" class="form-control" style="display:inline-block;">
+            <select name="sort" class="form-control" style="display:inline-block;">
                 <!-- Can optimise this bit of the template, particularly results_sort_by -->
-                {{sort_option('Relevance', c.sort_by([('rank','desc')]), 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
-                {{sort_option('Popularity', c.sort_by([('popularity','desc')]), 'popularity' in h.results_sort_by())}}
-                {{sort_option('Title', c.sort_by([('title_string','asc')]), 'title_string' in h.results_sort_by())}}
-                {{sort_option('Last Updated', c.sort_by([('metadata_modified','desc')]), 'metadata_modified' in h.results_sort_by())}}
-                {{sort_option('Location', c.sort_by([('spatial','desc')]), 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}}
+                {{sort_option('Relevance', 'rank desc', 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
+                {{sort_option('Popularity', 'popularity desc', 'popularity' in h.results_sort_by())}}
+                {{sort_option('Title', 'title_string asc', 'title_string' in h.results_sort_by())}}
+                {{sort_option('Last Updated', 'metadata_modified desc', 'metadata_modified' in h.results_sort_by())}}
+                {{sort_option('Location', 'spatial desc', 'spatial' in h.results_sort_by(), h.sort_by_location_disabled())}}
             </select>
+            <button type="submit" class="btn btn-default js-hide">Go</button>
+            {% if c.fields %}
+              {% for k,v in c.fields %}
+                <input type="hidden" name="{{k}}" value="{{v}}"/>
+              {% endfor %}
+            {% endif %}
+
             <a class="feed-icon" href="{{ h.url(controller='feed', action='custom') }}?{{ c.search_url_params }}">
                 <i class="icon-rss-sign"></i>
             </a>
