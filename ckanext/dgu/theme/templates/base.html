@@ -53,6 +53,9 @@ ckan.favicon = /assets/img/favicon.ico
     window.jQuery || document.write('<script src="/assets/js/jquery-1.8.3.min.js"><\/script>')
     // ]]>
   </script>
+  <script type="text/javascript">
+    document.getElementsByTagName('html')[0].className += ' js-enabled';
+  </script>
 
   <!-- Vendor scripts -->
   <script type="text/javascript" src="/assets/js/vendor.min.js?{{h.get_shared_assets_timestamp()}}"></script>

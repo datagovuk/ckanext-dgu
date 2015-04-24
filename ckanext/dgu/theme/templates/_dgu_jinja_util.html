@@ -119,9 +119,7 @@
           </div>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              {% if k != 'unpublished' or k != 'core-dataset' %}
               <input type="hidden" name="{{k}}" value="{{v}}"/>
-              {% endif %}
             {% endfor %}
           {% endif %}
           {% if set_fields %}
