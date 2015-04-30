@@ -37,20 +37,29 @@ def not_found(self, url):
 def _guess_package_type(self, expecting_name=False):
     return 'dataset'
 
+def delete_routes_by_path_startswtih(map, path_startswith):
+    matches_to_delete = []
+    for match in map.matchlist:
+        if match.routepath.startswith(path_startswith):
+            matches_to_delete.append(match)
+    for match in matches_to_delete:
+        map.matchlist.remove(match)
+
+def delete_routes_by_name(map, route_names):
+    if isinstance(route_names, basestring):
+        route_names = [route_names]
+    for route_name in route_names:
+        del map._routenames[route_name]
+
+
 class DguReportPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
 
     def after_map(self, map):
         # Put reports at /data/reports instead of /reports
         # Delete routes to /report otherwise url_for links end up pointed there.
-        matches_to_delete = []
-        for match in map.matchlist:
-            if match.routepath.startswith('/report'):
-                matches_to_delete.append(match)
-        for match in matches_to_delete:
-            map.matchlist.remove(match)
-        for route_name in ('reports', 'report', 'report-org'):
-            del map._routenames[route_name]
+        delete_routes_by_path_startswtih(map, '/report')
+        delete_routes_by_name(map, ('reports', 'report', 'report-org'))
 
         # Add new routes to /data/reports
         report_ctlr = 'ckanext.report.controllers:ReportController'
@@ -230,12 +239,7 @@ class ThemePlugin(p.SingletonPlugin):
         # Delete routes to /tag since we use /data/tag and /tag is confusing to
         # have kicking around still when it uses the same template with
         # different inputs.
-        matches_to_delete = []
-        for match in map.matchlist:
-            if match.routepath.startswith('/tag'):
-                matches_to_delete.append(match)
-        for match in matches_to_delete:
-            map.matchlist.remove(match)
+        delete_routes_by_path_startswtih(map, path_startswith='/tag')
         return map
 
 
@@ -324,52 +328,45 @@ class PublisherPlugin(p.SingletonPlugin):
                     pass
 
     def before_map(self, map):
-        pub_ctlr = 'ckanext.dgu.controllers.publisher:PublisherController'
-
         map.redirect('/organization/{url:.*}', '/publisher/{url}')
-
-        map.connect('publisher_index',
-                    '/publisher',
-                    controller=pub_ctlr, action='index')
-        map.connect('publisher_edit',
-                    '/publisher/edit/:id',
-                    controller=pub_ctlr, action='edit')
-        map.connect('publisher_apply',
-                    '/publisher/apply/:id',
-                    controller=pub_ctlr, action='apply')
-        map.connect('publisher_apply_empty',
-                    '/publisher/apply',
-                    controller=pub_ctlr, action='apply')
-        map.connect('publisher_requests',
-                    '/publisher/users/requests',
-                    controller=pub_ctlr, action='publisher_requests')
-        map.connect('publisher_request',
-                    '/publisher/users/request/:token',
-                    controller=pub_ctlr, action='publisher_request')
-        map.connect('publisher_request_decision',
-                    '/publisher/users/request/:token/:decision',
-                    controller=pub_ctlr, action='publisher_request')
-        map.connect('publisher_users',
-                    '/publisher/users/:id',
-                    controller=pub_ctlr, action='users')
-        map.connect('publisher_new',
-                    '/publisher/new',
-                    controller=pub_ctlr, action='new')
-        map.connect('/publisher/report_groups_without_admins',
-                    controller=pub_ctlr, action='report_groups_without_admins')
-        map.connect('/publisher/report_publishers_and_users',
-                    controller=pub_ctlr, action='report_publishers_and_users')
-        map.connect('/publisher/report_users',
-                    controller=pub_ctlr, action='report_users')
-        map.connect('/publisher/report_users_not_assigned_to_groups',
-                    controller=pub_ctlr, action='report_users_not_assigned_to_groups')
-        map.connect('publisher_read',
-                    '/publisher/:id',
-                    controller=pub_ctlr, action='read')
+        with SubMapper(map, controller='ckanext.dgu.controllers.publisher:PublisherController') as m:
+            m.connect('publisher_index',
+                     '/publisher', action='index')
+            m.connect('publisher_edit',
+                     '/publisher/edit/:id', action='edit')
+            m.connect('publisher_apply',
+                     '/publisher/apply/:id', action='apply')
+            m.connect('publisher_apply_empty',
+                     '/publisher/apply', action='apply')
+            m.connect('publisher_requests',
+                     '/publisher/users/requests', action='publisher_requests')
+            m.connect('publisher_request',
+                     '/publisher/users/request/:token', action='publisher_request')
+            m.connect('publisher_request_decision',
+                     '/publisher/users/request/:token/:decision',
+                     action='publisher_request')
+            m.connect('publisher_users',
+                    '/publisher/users/:id', action='users')
+            m.connect('publisher_new',
+                      '/publisher/new', action='new')
+            m.connect('/publisher/report_groups_without_admins',
+                      action='report_groups_without_admins')
+            m.connect('/publisher/report_publishers_and_users',
+                      action='report_publishers_and_users')
+            m.connect('/publisher/report_users',
+                      action='report_users')
+            m.connect('/publisher/report_users_not_assigned_to_groups',
+                      action='report_users_not_assigned_to_groups')
+            m.connect('publisher_read',
+                      '/publisher/:id',
+                      action='read')
 
         return map
 
     def after_map(self, map):
+        delete_routes_by_name(map, 'issues_for_organization')
+        with SubMapper(map, controller='ckanext.issues.controller:IssueController') as m:
+            m.connect('issues_for_organization', '/publisher/:org_id/issues', action='issues_for_organization')
         return map
 
     def update_config(self, config):
