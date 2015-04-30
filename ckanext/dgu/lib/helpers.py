@@ -2018,10 +2018,18 @@ def report_generated_at(reportname, object_id='__all__', withsub=False):
 
 def relative_url_for(**kwargs):
     '''Return the existing URL but amended for the given url_for-style
-    parameters'''
+    parameters. Much easier than calling h.add_url_param etc. For switching to
+    URLs inside the current controller action only.
+    '''
     from ckan.lib.base import h
+    # Restrict the request params to the same action & controller, to avoid
+    # being an open redirect.
+    disallowed_params = set(('controller', 'action', 'anchor', 'host',
+                             'protocol', 'qualified'))
+    user_specified_params = [(k, v) for k, v in request.params.items()
+                             if k not in disallowed_params]
     args = dict(request.environ['pylons.routes_dict'].items()
-                + request.params.items()
+                + user_specified_params
                 + kwargs.items())
     # remove blanks
     for k, v in args.items():
