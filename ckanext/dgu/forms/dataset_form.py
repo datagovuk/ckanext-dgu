@@ -1,5 +1,6 @@
 ﻿import re
 import json
+from itertools import chain
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
@@ -70,6 +71,7 @@ def resources_schema():
         'cache_last_updated': [ignore_missing],
         'webstore_last_updated': [ignore_missing],
     })
+    schema['id'].append(new_resource_if_url_and_description_change)
     return schema
 
 def resources_schema_to_form():
@@ -576,3 +578,24 @@ def schema_codelist_validator(key, data, errors, context):
         # write the ID in case it came in via the API and was a URL or title
         data[key][i] = obj.id
 
+
+def new_resource_if_url_and_description_change(key, data, errors, context):
+    id_ = data[key]
+    if not id_:
+        return
+    old_resource = model.Resource.get(id_)
+    if not old_resource:
+        return
+    if data[(key[0], key[1], 'url')] != old_resource.url and \
+            data[(key[0], key[1], 'description')] != old_resource.description:
+        # Resource has changed so much we consider it a new one by deleting its
+        # id and other hidden properties.  We saw occasions when a resource in
+        # the form had its fields wiped and new description and URL put in, but
+        # it kept the resource ID (hidden in the form) so it still had old
+        # cached resources associated with it, incorrectly.
+        resource_columns = set(('date', 'description', 'url', 'format'))
+        for key_ in data.keys():
+            if key_[0] == key[0] and \
+                    key_[1] == key[1] and \
+                    key_[2] not in resource_columns:
+                del data[key_]
