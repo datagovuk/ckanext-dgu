@@ -43,7 +43,7 @@ class FixSecondaryTheme2(object):
                         if secondary_theme == 'None':
                             secondary_theme = []
                         else:
-                            secondary_theme = secondary_theme.split(',')
+                            secondary_theme = [t.strip() for t in secondary_theme.split(',')]
                         break
 
                 if json.dumps(secondary_theme) != package.extras.get('theme-secondary'):
