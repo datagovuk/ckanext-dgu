@@ -40,6 +40,10 @@ class FixSecondaryTheme2(object):
                     try:
                         secondary_theme = json.loads(secondary_theme)
                     except ValueError:
+                        if secondary_theme == 'None':
+                            secondary_theme = []
+                        else:
+                            secondary_theme = secondary_theme.split(',')
                         break
 
                 if json.dumps(secondary_theme) != package.extras.get('theme-secondary'):
