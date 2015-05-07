@@ -293,7 +293,7 @@ class DatasetForm(p.SingletonPlugin):
             'publish-restricted': [ignore_missing, bool_, convert_to_extras],
 
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
-            'theme-secondary': [ignore_missing, to_json, convert_to_extras],
+            'theme-secondary': [ignore_missing, commas_to_list, to_json, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
             # This is needed by the core CKAN update_resource, but isn't found by it because
@@ -360,7 +360,7 @@ class DatasetForm(p.SingletonPlugin):
             'sla': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
-            'theme-secondary': [convert_from_extras, ignore_missing],
+            'theme-secondary': [convert_from_extras, from_json, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],
@@ -457,6 +457,11 @@ def to_list(key, data, errors, context):
     item = data[key]
     if isinstance(item, basestring):
         data[key] = [item]
+
+def commas_to_list(key, data, errors, context):
+    item = data[key]
+    if isinstance(item, basestring):
+        data[key] = [i.strip() for i in item.split(',')]
 
 def to_json(key, data, errors, context):
     try:
