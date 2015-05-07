@@ -160,6 +160,23 @@ class DatasetForm(p.SingletonPlugin):
     # Override the form validation to be able to vary the schema by the type of
     # package and user
     def validate(self, context, data_dict, schema, action):
+        if action == 'package_update':
+            old_resources = dict((r.id, r) for r in context['package'].resources)
+
+            individual = data_dict.get('individual_resources', [])
+            timeseries = data_dict.get('timeseries_resources', [])
+            for new_resource in chain(individual, timeseries):
+                new_id = new_resource.get('id')
+                if not new_id:
+                    continue
+
+                old_resource = old_resources.get(new_id)
+                if old_resource and new_resource.get('id') == old_resource.id:
+                    desc_changed = new_resource.get('description') != old_resource.description
+                    url_changed = new_resource.get('url') != old_resource.url
+                    if desc_changed and url_changed:
+                        del new_resource['id']
+
         if action in ('package_update', 'package_create'):
             # If the caller to package_update specified a schema (e.g.
             # harvesters specify the default schema) then we don't want to
