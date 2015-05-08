@@ -71,39 +71,40 @@ def resources_schema():
         'cache_last_updated': [ignore_missing],
         'webstore_last_updated': [ignore_missing],
     })
-    schema['id'].append(new_resource_if_url_and_description_change)
     return schema
+
 
 def resources_schema_to_form():
-    schema = resources_schema().copy()
-    schema['date'] = [ignore_missing,date_to_form]
+    schema = resources_schema()
+    schema['date'] = [ignore_missing, date_to_form]
     return schema
 
-def additional_resource_schema():
+
+def resources_schema_to_db():
     schema = resources_schema()
+    schema['id'].append(new_resource_if_url_and_description_change)
     schema['format'] = [not_empty, unicode]
+    schema['url'] = [not_empty]
+    schema['description'] = [not_empty]
+    return schema
+
+
+def additional_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['resource_type'].insert(0, validate_additional_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
-def individual_resource_schema():
-    schema = resources_schema()
-    schema['format'] = [not_empty, unicode]
+def individual_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['resource_type'].insert(0, validate_data_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
-def timeseries_resource_schema():
-    schema = resources_schema()
+def timeseries_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['date'] = [not_empty, unicode, convert_to_extras, date_to_db]
-    schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
@@ -216,12 +217,6 @@ class DatasetForm(p.SingletonPlugin):
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
 
-    @property
-    def _resource_format_optional(self):
-        return {
-            'theme-primary': [ignore_missing, unicode, convert_to_extras],
-        }
-
     def db_to_form_schema_options(self, options={}):
         context = options.get('context', {})
         schema = context.get('schema', None)
@@ -255,9 +250,9 @@ class DatasetForm(p.SingletonPlugin):
             'url': [ignore_missing, unicode],
             'taxonomy_url': [ignore_missing, unicode, convert_to_extras],
 
-            'additional_resources': additional_resource_schema(),
-            'timeseries_resources': timeseries_resource_schema(),
-            'individual_resources': individual_resource_schema(),
+            'additional_resources': additional_resource_schema_to_db(),
+            'timeseries_resources': timeseries_resource_schema_to_db(),
+            'individual_resources': individual_resource_schema_to_db(),
 
             'owner_org': [val.owner_org_validator, unicode],
             'groups': {
