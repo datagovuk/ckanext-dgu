@@ -95,7 +95,8 @@
     <div class="recline-read-only resource-preview">
       <div class="preview-header" py:if="not h.is_wms(c.resource)">
         <h2>Preview</h2>
-        <p>Preview is currently available for files such as CSV, spreadsheets and plain text. <span id="ckanext-datapreview-source"></span></p>
+       <!-- <p>Preview is currently available for files such as CSV, spreadsheets and plain text. <span id="ckanext-datapreview-source"></span></p> -->
+       <p>Preview is temporarily disabled</p>
       </div>
       <div id="ckanext-datapreview"></div>
       <div id="ckanext-datapreview-extra"></div>
@@ -144,11 +145,14 @@
       });
     </script>
     <![endif]-->
+   /* disable for now */
+   <!--
     <script type="text/javascript">
       $(function() {
         CKAN.Dgu.resourcePreviewer.loadPreviewDialog(preload_resource);
       });
     </script>
+   -->
   </py:def>
 
   <py:def function="data_api_help(datastore_api)">
