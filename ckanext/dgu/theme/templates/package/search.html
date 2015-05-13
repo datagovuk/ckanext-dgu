@@ -52,6 +52,9 @@
             {% if request.params.get('ext_bbox', '') %}
               <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox', '')}}" />
             {% endif %}
+            {% if request.params.get('q', '') %}
+              <input type="hidden" name="q" value="{{request.params.get('q', '')}}" />
+            {% endif %}
             {% if c.fields %}
               {% for k,v in c.fields %}
                 <input type="hidden" name="{{k}}" value="{{v}}"/>
