@@ -343,6 +343,7 @@ def publisher_activity(organization, include_sub_organizations=False):
 
         for quarter_name in quarters:
             quarter = quarters[quarter_name]
+            # created
             if quarter[0] < created_.revision_timestamp < quarter[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
                 created[quarter_name].append(
@@ -350,27 +351,30 @@ def publisher_activity(organization, include_sub_organizations=False):
                      'created', quarter_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
-            else:
-                prs = pr_q.filter(model.PackageRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageRevision.revision_timestamp < quarter[1])
-                rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > quarter[0])\
-                          .filter(model.ResourceRevision.revision_timestamp < quarter[1])
-                pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
-                authors = ' '.join(set([r[1].author for r in prs] +
-                                      [r[2].author for r in rrs] +
-                                      [r[2].author for r in pes]))
-                dates = set([r[1].timestamp.date() for r in prs] +
-                            [r[2].timestamp.date() for r in rrs] +
-                            [r[2].timestamp.date() for r in pes])
-                dates_formatted = ' '.join([date.isoformat()
-                                            for date in sorted(dates)])
-                if authors:
-                    published = not asbool(pkg.extras.get('unpublished'))
-                    modified[quarter_name].append(
-                        (pkg.name, pkg.title, lib.dataset_notes(pkg),
-                         'modified', quarter_name,
-                         dates_formatted, authors, published))
+
+            # modified
+            # exclude the creation revision
+            period_start = max(quarter[0], created_.revision_timestamp)
+            prs = pr_q.filter(model.PackageRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageRevision.revision_timestamp < quarter[1])
+            rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > period_start)\
+                        .filter(model.ResourceRevision.revision_timestamp < quarter[1])
+            pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
+            authors = ' '.join(set([r[1].author for r in prs] +
+                                   [r[2].author for r in rrs] +
+                                   [r[2].author for r in pes]))
+            dates = set([r[1].timestamp.date() for r in prs] +
+                        [r[2].timestamp.date() for r in rrs] +
+                        [r[2].timestamp.date() for r in pes])
+            dates_formatted = ' '.join([date.isoformat()
+                                        for date in sorted(dates)])
+            if authors:
+                published = not asbool(pkg.extras.get('unpublished'))
+                modified[quarter_name].append(
+                    (pkg.name, pkg.title, lib.dataset_notes(pkg),
+                        'modified', quarter_name,
+                        dates_formatted, authors, published))
 
     datasets = []
     for quarter_name in quarters:
