@@ -230,9 +230,9 @@
         type: "POST",
         dataType: "json",
         success: function(obj) {
-            var nm = obj.result['primary-theme'].name || "None";
-            $('#theme-primary-label').html(nm);
-            $('#theme-primary').val(nm);
+            var nm = obj.result['primary-theme'].name;
+            $('#theme-primary-label').html(nm || "None");
+            $('#theme-primary').val(nm || "");
  
             $('#theme-primary-reasons').empty();
             var reasons = obj.result['primary-theme'].reasons || [];
@@ -263,11 +263,11 @@
                 }
             }
 
+            $('#theme-secondary').val(nm);
             if (nm === '') {
               nm = 'None'
             }
             $('#theme-secondary-label').html(nm);
-            $('#theme-secondary').val(nm);
 
             if (all_reasons.length > 0) {
               $('#theme-secondary-reasons-label').show()
