@@ -8,6 +8,8 @@ e.g.
 '"Government, Society"' -> '["Government", "Society"]'
 'None' -> '[]'
 '[\"None\"]' -> '[]'
+'{}' -> '[]'
+'{Government}" -> '["Government"]'
 '''
 
 import json
@@ -37,6 +39,7 @@ class FixSecondaryTheme2(object):
 
             secondary_theme = package.extras.get('theme-secondary')
 
+            # Convert from JSON to a list
             loop = 1
             while isinstance(secondary_theme, basestring):
                 try:
@@ -60,20 +63,26 @@ class FixSecondaryTheme2(object):
                 elif loop == 3:
                     # e.g. '"\\"Health\\""'
                     print stats_format.add('Multiple JSON encoded', package.name)
+            if secondary_theme in ('None', '', {}):
+                print stats_format.add('Empty list', package.name)
+                secondary_theme = []
+            assert isinstance(secondary_theme, list)
 
+            # Filter out nulls in the list
             for filter_string in (None, 'None', ''):
                 if filter_string in secondary_theme:
                     print stats_format.add('%r in the list' % filter_string, package.name)
                     secondary_theme = [theme for theme in secondary_theme
                                        if theme != filter_string]
 
+            # Remove {} from strings e.g. ["{Government}"]
+            if '{' in str(secondary_theme):
+                print stats_format.add('{theme}', package.name)
+                secondary_theme = [theme.strip('{}') for theme in secondary_theme]
+
             if json.dumps(secondary_theme) != package.extras.get('theme-secondary'):
                 stats_outcome.add('Fixing', package.name)
-                if secondary_theme == 'None' or secondary_theme == '':
-                    stats_format.add(secondary_theme, package.name)
-                    package.extras['theme-secondary'] = json.dumps([])
-                else:
-                    package.extras['theme-secondary'] = json.dumps(secondary_theme)
+                package.extras['theme-secondary'] = json.dumps(secondary_theme)
             else:
                 stats_outcome.add('Unchanged', package.name)
 
@@ -84,6 +93,7 @@ class FixSecondaryTheme2(object):
             print 'Writing...'
             model.Session.commit()
             print '...done'
+            stats_format.show_time_taken()
 
 
 
