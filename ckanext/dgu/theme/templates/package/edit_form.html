@@ -401,9 +401,9 @@ Passed in:
   <br/>
   <div style="width: 45%; float: left; margin-right: 4%;">
     <label>Primary theme</label>
-    <input type="hidden" id="theme-primary" name="theme-primary" value="{{ data.get('theme-primary') }}"/>
+    <input type="hidden" id="theme-primary" name="theme-primary" value="{{ data.get('theme-primary', '') }}"/>
     <span id="theme-primary-label">
-      {{ data.get('theme-primary') }}
+      {{ data.get('theme-primary', 'None') }}
     </span>
 
     <br/>
@@ -413,9 +413,9 @@ Passed in:
 
   <div style="width: 45%; float: left; margin-right: 4%;">
     <label>Secondary themes</label>
-    <input type="hidden" id="theme-secondary" name="theme-secondary" value="{{ data.get('theme-secondary') }}"/>
+    <input type="hidden" id="theme-secondary" name="theme-secondary" value="{{ ','.join(data.get('theme-secondary', [])) }}"/>
     <span id="theme-secondary-label">
-      {{ data.get('theme-secondary') }}
+      {{ ','.join(data.get('theme-secondary', [])) or 'None' }}
     </span>
 
     <br/>
