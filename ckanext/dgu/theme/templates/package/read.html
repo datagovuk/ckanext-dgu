@@ -203,14 +203,18 @@
     {% if h.issues_enabled(c.pkg_dict) %}
       <h2>Issues</h2>
       {% set issues = h.issues_list(c.pkg_dict.id) %}
-      {{ ungettext('{number} open issue', '{number} open issues', issues|length).format(number=issues|length) }}:
-      <div class="clearfix"></div>
-      {% import "issues/common.html" as common with context %}
-      <ul id="issue-list" class="issue-list-group list-group">
-        {% for issue in issues %}
-            {{ common.issue_item(issue, c.pkg) }}
-        {% endfor %}
-      </ul>
+      {% if issues: %}
+        <p>{{ ungettext('{number} open issue', '{number} open issues', issues|length).format(number=issues|length) }}:</p>
+        <div class="clearfix"></div>
+        {% import "issues/common.html" as common with context %}
+        <ul id="issue-list" class="issue-list-group list-group">
+          {% for issue in issues %}
+              {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>0 open issues</p>
+      {% endif %}
       {% set closed_issues = h.issues_list(c.pkg_dict.id, status='closed') %}
       {% if closed_issues %}
         <p>
