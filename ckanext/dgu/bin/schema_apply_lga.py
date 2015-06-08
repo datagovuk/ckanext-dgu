@@ -166,12 +166,9 @@ class LaSchemas(object):
                         if dataset['name'] not in result['dataset_names']:
                             result['dataset_names'].append(dataset['name'])
                             result['dataset_titles'].append(dataset['title'])
-                            print('DATASET', dataset['name'])
-                            print('SCHEMA', dataset.get('schema'))
                             schema_applied = True if schema.dgu_schema_name in \
                                 [s['title'] for s in dataset.get('schema', [])] \
                                 else False
-                            print(schema_applied, schema.dgu_schema_name, [s['title'] for s in dataset.get('schema', [])])
                             result['dataset_schema_applied'].append(schema_applied)
                             if not schema_applied and options.write:
                                 pkg = model.Package.get(dataset['name'])
