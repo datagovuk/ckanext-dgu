@@ -752,12 +752,11 @@ def la_schemas(local_authority=None, schema=None, incentive_only=False):
 
 
 def la_schemas_combinations():
-    from ckanext.dgu.bin.schema_apply_lga import LaSchemas
-    for organization in [None] + LaSchemas.all_la_org_names():
+    for la_name in [None] + dgu_helpers.all_la_org_names():
         for schema in [None] + dgu_helpers.get_la_schema_options():
             for incentive_only in (False, True):
-                yield {'local_authority': organization,
-                       'schema': schema.dgu_schema_name,
+                yield {'local_authority': la_name,
+                       'schema': schema['title'] if schema else None,
                        'incentive_only': incentive_only}
 
 la_schemas_info = {
