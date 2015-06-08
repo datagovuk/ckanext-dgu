@@ -1,0 +1,23 @@
+{#
+Option snippet - Local Authority (subset of organizations)
+
+value - Value of this option
+default - Default value for this option
+#}
+
+<span class="form-select control-group control-organization">
+    <label for="option-organization"> {{ _('Local Authority:') }} </label>
+    {% set offer_organization_index = default == None %}
+    {% if offer_organization_index and value != None %}
+        <a href="{{ h.report__relative_url_for(local_authority=None) }}">All local authorities</a>
+    {% endif %}
+    <select id="option-organization" name="local_authority" class="inline js-auto-submit">
+        {% if offer_organization_index %}
+          <option value="" {% if value == None %}selected="selected"{% endif %}>-- {{ _('All local authorities') }} --</option>
+        {% endif %}
+        {% for org_name, org_title in h.all_la_org_names_and_titles() %}
+            <option value="{{org_name}}" {% if value == org_name %}selected="selected" {% endif %}> {{org_title}} </option>
+        {% endfor %}
+    </select>
+</span>
+
