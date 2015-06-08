@@ -1,0 +1,44 @@
+  <div class="widget-container">
+      <p>Read more about the <a href="http://incentive.opendata.esd.org.uk/">LGA Incentive Scheme.</a></p>
+      <p>
+        Number of rows: {{table|length}}
+      </p>
+      <p>Rows with dataset(s): {{data['rows_with_datasets_count']}}</p>
+      <p>Rows with dataset(s) or candidate datasets: {{data['rows_with_datasets_or_candidate_datasets_count']}}</p>
+      <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+            <thead>
+              <tr>
+                <th style="width: 80px">Publisher</th>
+                <th style="width: 80px">Schema</th>
+                <th style="width: 80px">Dataset(s)</th>
+                <th style="width: 80px">Candidate datasets without schema</th>
+                <th style="width: 40px">LGA Incentive accepted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in table %}
+                  <tr>
+                      <td><a href="/publisher/{{row['org_name']}}">{{row['org_title']}}</a></td>
+                      <td>{{row['schema_dgu_title']}}</td>
+                      <td style="overflow: hidden; text-overflow: ellipsis">
+                          {% for schema in row['dataset_schema_applied'] %}
+                            {% if schema %}
+                              <a href="/dataset/{{row['dataset_names'][loop.index0]}}">{{row['dataset_titles'][loop.index0]}}</a>
+                            {% endif %}
+                          {% endfor %}
+                      </td>
+                      <td style="overflow: hidden; text-overflow: ellipsis">
+                          {% for schema in row['dataset_schema_applied'] %}
+                            {% if not schema %}
+                              <a href="/dataset/{{row['dataset_names'][loop.index0]}}">{{row['dataset_titles'][loop.index0]}}</a>
+                            {% endif %}
+                          {% endfor %}
+                      </td>
+                      <td>{{'Y' if row['lga_application_acceptance_status'] == 'Accepted'}}</td>
+                  </tr>
+              {% endfor %}
+            </tbody>
+      </table>
+
+  </div>
+

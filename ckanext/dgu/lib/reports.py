@@ -1,6 +1,7 @@
 import collections
 import datetime
 import logging
+import os
 
 from ckan import model
 from ckan.lib.helpers import OrderedDict
@@ -9,6 +10,9 @@ from ckanext.report import lib
 from ckanext.dgu.lib.publisher import go_up_tree
 
 log = logging.getLogger(__name__)
+
+
+# NII
 
 
 def nii_report():
@@ -88,6 +92,9 @@ nii_report_info = {
 }
 
 
+# Publisher resources
+
+
 def publisher_resources(organization=None,
                         include_sub_organizations=False):
     '''
@@ -159,6 +166,9 @@ publisher_resources_info = {
     'generate': publisher_resources,
     'template': 'report/publisher_resources.html',
     }
+
+
+# Feedback
 
 
 def feedback_report(organization=None, include_sub_organizations=False, include_published=False):
@@ -723,5 +733,40 @@ admin_editor_info = {
     'option_combinations': admin_editor_combinations,
     'generate': admin_editor,
     'template': 'report/admin_editor.html',
-    'authorize' : admin_editor_authorize
+    'authorize': admin_editor_authorize
+    }
+
+
+# LA Schemas
+
+
+def la_schemas(organization=None, schema=None, incentive_only=False):
+    from ckanext.dgu.bin.schema_apply_lga import LaSchemas
+    Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset'))
+    options = Options(organization=organization, incentive_only=incentive_only,
+                      schema=schema, write=False, dataset=None)
+    csv_filepath = os.path.abspath(os.path.join(__file__, '../../incentive.csv'))
+    return LaSchemas.command(config_ini=None, options=options,
+                             submissions_csv_filepath=csv_filepath)
+
+
+def la_schemas_combinations():
+    from ckanext.dgu.bin.schema_apply_lga import LaSchemas, all_schemas
+    for organization in [None] + LaSchemas.all_la_org_names():
+        for schema in [None] + all_schemas:
+            for incentive_only in (False, True):
+                yield {'organization': organization,
+                       'schema': schema.dgu_schema_name,
+                       'incentive_only': incentive_only}
+
+la_schemas_info = {
+    'name': 'la-schemas',
+    'title': 'Schemas for local authorities',
+    'description': 'Schemas matched to local authority datasets.',
+    'option_defaults': OrderedDict((('organization', None),
+                                    ('schema', None),
+                                    ('incentive_only', False))),
+    'option_combinations': la_schemas_combinations,
+    'generate': la_schemas,
+    'template': 'report/la_schemas.html',
     }

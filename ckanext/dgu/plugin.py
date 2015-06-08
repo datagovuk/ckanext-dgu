@@ -393,6 +393,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.app_dataset_theme_report_info,
                 reports.app_dataset_report_info,
                 reports.admin_editor_info,
+                reports.la_schemas_info,
                 ]
 
 
