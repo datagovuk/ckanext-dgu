@@ -263,10 +263,13 @@ class SearchIndexing(object):
         except ValueError:
             log.error('Not valid JSON in schema field: %s %r',
                       pkg_dict['name'], pkg_dict.get('schema'))
-            schemas = None
+            schema_ids = None
         schemas = []
         for schema_id in schema_ids:
-            schemas.append(Schema.get(schema_id).title)
+            try:
+                schemas.append(Schema.get(schema_id).title)
+            except AttributeError, e:
+                log.error('Invalid schema_id: %r %s', schema_id, e)
         pkg_dict['schema_multi'] = schemas
         log.debug('Schema: %s', ' '.join(schemas))
 

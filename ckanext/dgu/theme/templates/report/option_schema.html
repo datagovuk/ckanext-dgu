@@ -8,14 +8,14 @@ default - Default value for this option
 <span class="form-select control-group control-organization">
     <label for="option-schema">Schema:</label>
     {% set offer_all = default == None %}
-    {% if offer_all and value != None %}
+    {% if offer_all and value %}
         <a href="{{ h.report__relative_url_for(schema=None) }}">All schemas</a>
     {% endif %}
     <select id="option-schema" name="schema" class="inline js-auto-submit">
         {% if offer_all %}
           <option value="" {% if value == None %}selected="selected"{% endif %}>-- All schemas --</option>
         {% endif %}
-        {% for schema in h.get_incentive_schema_options() %}
+        {% for schema in h.get_la_schema_options() %}
             <option value="{{schema.title}}" {% if value == schema.title %}selected="selected" {% endif %}> {{schema.title}} </option>
         {% endfor %}
     </select>

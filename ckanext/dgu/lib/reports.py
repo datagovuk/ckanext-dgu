@@ -8,6 +8,7 @@ from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
 from ckanext.dgu.lib.publisher import go_up_tree
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 log = logging.getLogger(__name__)
 
@@ -740,22 +741,22 @@ admin_editor_info = {
 # LA Schemas
 
 
-def la_schemas(organization=None, schema=None, incentive_only=False):
+def la_schemas(local_authority=None, schema=None, incentive_only=False):
     from ckanext.dgu.bin.schema_apply_lga import LaSchemas
-    Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset'))
-    options = Options(organization=organization, incentive_only=incentive_only,
-                      schema=schema, write=False, dataset=None)
+    Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset', 'print_'))
+    options = Options(organization=local_authority, incentive_only=incentive_only,
+                      schema=schema, write=False, dataset=None, print_=False)
     csv_filepath = os.path.abspath(os.path.join(__file__, '../../incentive.csv'))
     return LaSchemas.command(config_ini=None, options=options,
                              submissions_csv_filepath=csv_filepath)
 
 
 def la_schemas_combinations():
-    from ckanext.dgu.bin.schema_apply_lga import LaSchemas, all_schemas
+    from ckanext.dgu.bin.schema_apply_lga import LaSchemas
     for organization in [None] + LaSchemas.all_la_org_names():
-        for schema in [None] + all_schemas:
+        for schema in [None] + dgu_helpers.get_la_schema_options():
             for incentive_only in (False, True):
-                yield {'organization': organization,
+                yield {'local_authority': organization,
                        'schema': schema.dgu_schema_name,
                        'incentive_only': incentive_only}
 
@@ -763,7 +764,7 @@ la_schemas_info = {
     'name': 'la-schemas',
     'title': 'Schemas for local authorities',
     'description': 'Schemas matched to local authority datasets.',
-    'option_defaults': OrderedDict((('organization', None),
+    'option_defaults': OrderedDict((('local_authority', None),
                                     ('schema', None),
                                     ('incentive_only', False))),
     'option_combinations': la_schemas_combinations,

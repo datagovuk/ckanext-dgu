@@ -2,6 +2,7 @@
 Adds schema to datasets in the LGA Incentive Scheme CSV
 '''
 
+from __future__ import print_function
 import common
 import re
 from optparse import OptionParser
@@ -9,6 +10,7 @@ import csv
 import codecs
 import os
 from collections import namedtuple
+import json
 
 from running_stats import Stats
 
@@ -21,9 +23,9 @@ dataset_name_corrections = {
 Schema = namedtuple('Schema', ('lga_name', 'dgu_schema_name', 'search_for'))
 all_schemas = [
     Schema(lga_name='Toilets', dgu_schema_name='Public Toilets (for LGTC by LGA)',
-           search_for=['toilet', 'toilets', 'public_toilets', 'public conveniences']),
+           search_for=['toilet', 'public_toilets', 'public conveniences']),
     Schema(lga_name='Premises', dgu_schema_name='Premises Licences (for LGTC by LGA)',
-           search_for=['premises licence', 'premises license', 'premise licences', 'premises licences', 'premises licenses', 'premises licensing', 'licensed premises', 'premiseslicences']),
+           search_for=['premises licence', 'premises license', 'premises licensing', 'licensed premises', 'premiseslicences']),
     Schema(lga_name='Planning', dgu_schema_name='Planning Applications (for LGTC by LGA)',
            search_for=['planning applications']),
     ]
@@ -77,6 +79,8 @@ class LaSchemas(object):
 
         from ckan import model
         from ckan.plugins import toolkit
+        from ckanext.dgu.lib import helpers as dgu_helpers
+        from ckanext.dgu.model.schema_codelist import Schema
 
         # Match the organizations in the submissions
         lga_orgs_by_dgu_org_name = {}
@@ -108,7 +112,7 @@ class LaSchemas(object):
         elif options.incentive_only:
             org_names = sorted(accepted_submission_dgu_orgs)
         else:
-            org_names = cls.all_la_org_names()
+            org_names = dgu_helpers.all_la_org_names()
         #print '%s organizations' % len(org_names)
         for org_name in org_names:
             org_title = model.Group.by_name(org_name).title
@@ -162,10 +166,25 @@ class LaSchemas(object):
                         if dataset['name'] not in result['dataset_names']:
                             result['dataset_names'].append(dataset['name'])
                             result['dataset_titles'].append(dataset['title'])
+                            print('DATASET', dataset['name'])
+                            print('SCHEMA', dataset.get('schema'))
                             schema_applied = True if schema.dgu_schema_name in \
                                 [s['title'] for s in dataset.get('schema', [])] \
                                 else False
+                            print(schema_applied, schema.dgu_schema_name, [s['title'] for s in dataset.get('schema', [])])
                             result['dataset_schema_applied'].append(schema_applied)
+                            if not schema_applied and options.write:
+                                pkg = model.Package.get(dataset['name'])
+                                schema_obj = Schema.by_title(schema.dgu_schema_name)
+                                assert schema_obj
+                                try:
+                                    schema_ids = json.loads(pkg.extras.get('schema') or '[]')
+                                except ValueError:
+                                    log.error('Not valid JSON in schema field: %s %r',
+                                              dataset['name'], pkg.extras.get('schema'))
+                                    schema_ids = []
+                                schema_ids.append(schema_obj.id)
+                                pkg.extras['schema'] = json.dumps(schema_ids)
 
                 # Already a schema?
                 data_dict = {'fq': 'publisher:%s ' % org_name +
@@ -174,7 +193,7 @@ class LaSchemas(object):
                 if datasets['count'] > 0:
                     add_datasets_to_results(datasets['results'], result)
                     stats.add('OK - Dataset with schema',
-                                    stat_id + ' %s' % result['dataset_name'])
+                              stat_id + ' %s' % ';'.join(result['dataset_names']))
                     found_schema = True
                 else:
                     found_schema = False
@@ -270,12 +289,16 @@ class LaSchemas(object):
             len([result for result in results
                  if result['dataset_schema_applied']])
 
-        log = __import__('logging').getLogger('ckanext.dgu.bin.' + __file__)
-        log.info('\n Incentive stats\n' + stats_incentive.report())
-        log.info('\n Overall stats\n' + stats.report())
+        if options.print_:
+            log_info = print
+        else:
+            log = __import__('logging').getLogger('ckanext.dgu.bin.' + __file__)
+            log_info = log.info
+        log_info('\n Incentive stats\n' + stats_incentive.report())
+        log_info('\n Overall stats\n' + stats.report())
 
         if options.write:
-            print 'Writing'
+            print('Writing')
             model.Session.commit()
 
         return {'table': results,
@@ -303,12 +326,6 @@ class LaSchemas(object):
                     dataset_names.add(dataset['name'])
 
         return datasets
-
-    @classmethod
-    def all_la_org_names(cls):
-        from ckan import model
-        la_root = model.Group.get('local-authorities')
-        return [la.name for la in la_root.get_children_groups(type='organization')]
 
 
 class UTF8Recoder:
@@ -390,6 +407,11 @@ if __name__ == '__main__':
     parser.add_option('-o', '--organization', dest='organization')
     parser.add_option('-i', '--incentive-submissions-only', dest='incentive_only')
     parser.add_option('-s', '--schema', dest='schema')
+    parser.add_option("-p",
+                      action="store_false",
+                      dest="print_",
+                      default=True,
+                      help="Instead of printing output, just log it")
     (options, args) = parser.parse_args()
     if len(args) != 2:
         parser.error('Wrong number of arguments')

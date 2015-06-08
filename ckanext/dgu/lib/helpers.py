@@ -2146,6 +2146,16 @@ def orgs_for_admin_report():
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
+def all_la_org_names():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([la.name for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
+def all_la_org_names_and_titles():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([(la.name, la.title) for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
 def get_schema_options():
     from ckan.logic import get_action
     from ckan import model
@@ -2153,7 +2163,7 @@ def get_schema_options():
     context = {'model': model, 'session': model.Session}
     return get_action('schema_list')(context, {})
 
-def get_incentive_schema_options():
+def get_la_schema_options():
     all_schemas = get_schema_options()
     incentive_schemas = []
     for schema in all_schemas:
