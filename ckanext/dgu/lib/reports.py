@@ -744,7 +744,7 @@ admin_editor_info = {
 def la_schemas(local_authority=None, schema=None, incentive_only=False):
     from ckanext.dgu.bin.schema_apply_lga import LaSchemas
     Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset', 'print_'))
-    options = Options(organization=local_authority, incentive_only=incentive_only,
+    options = Options(organization=None, incentive_only=incentive_only,
                       schema=schema, write=False, dataset=None, print_=False)
     csv_filepath = os.path.abspath(os.path.join(__file__, '../../incentive.csv'))
     return LaSchemas.command(config_ini=None, options=options,
@@ -752,19 +752,16 @@ def la_schemas(local_authority=None, schema=None, incentive_only=False):
 
 
 def la_schemas_combinations():
-    for la_name in [''] + dgu_helpers.all_la_org_names():
-        for schema in [''] + dgu_helpers.get_la_schema_options():
-            for incentive_only in (False, True):
-                yield {'local_authority': la_name,
-                       'schema': schema['title'] if schema else None,
-                       'incentive_only': incentive_only}
+    for schema in [''] + dgu_helpers.get_la_schema_options():
+        for incentive_only in (False, True):
+            yield {'schema': schema['title'] if schema else None,
+                   'incentive_only': incentive_only}
 
 la_schemas_info = {
     'name': 'la-schemas',
     'title': 'Schemas for local authorities',
     'description': 'Schemas matched to local authority datasets.',
-    'option_defaults': OrderedDict((('local_authority', None),
-                                    ('schema', None),
+    'option_defaults': OrderedDict((('schema', None),
                                     ('incentive_only', False))),
     'option_combinations': la_schemas_combinations,
     'generate': la_schemas,

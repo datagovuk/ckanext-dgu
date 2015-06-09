@@ -28,7 +28,7 @@ all_schemas = [
     Schema(lga_name='Planning', dgu_schema_name='Planning Applications (for LGTC by LGA)',
            search_for=['planning applications']),
     Schema(lga_name='', dgu_schema_name=u'Spend over \xa3500 by local authority (Expenditure transactions exceeding \xa3500) (for LGTC by LGA)',
-           search_for=['spend', 'expenditure', u'\xa3500']),
+           search_for=['spend over', 'spending over', 'expenditure over', u'\xa3500']),
     Schema(lga_name='', dgu_schema_name='Procurement Information (Local authority contracts) (for LGTC by LGA)',
            search_for=['procurement', 'contracts']),
     Schema(lga_name='', dgu_schema_name='Land and building assets (for LGTC by LGA)',
