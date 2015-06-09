@@ -752,8 +752,8 @@ def la_schemas(local_authority=None, schema=None, incentive_only=False):
 
 
 def la_schemas_combinations():
-    for la_name in [None] + dgu_helpers.all_la_org_names():
-        for schema in [None] + dgu_helpers.get_la_schema_options():
+    for la_name in [''] + dgu_helpers.all_la_org_names():
+        for schema in [''] + dgu_helpers.get_la_schema_options():
             for incentive_only in (False, True):
                 yield {'local_authority': la_name,
                        'schema': schema['title'] if schema else None,

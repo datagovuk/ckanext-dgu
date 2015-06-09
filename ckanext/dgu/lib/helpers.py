@@ -2167,9 +2167,7 @@ def get_la_schema_options():
     all_schemas = get_schema_options()
     incentive_schemas = []
     for schema in all_schemas:
-        if schema['title'].startswith('Public Toilets') or \
-                schema['title'].startswith('Premises Licences') or \
-                schema['title'].startswith('Planning Applications'):
+        if 'LGTC' in schema['title']:
             incentive_schemas.append(schema)
     return incentive_schemas
 

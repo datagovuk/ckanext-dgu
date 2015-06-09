@@ -2,7 +2,6 @@
 Adds schema to datasets in the LGA Incentive Scheme CSV
 '''
 
-from __future__ import print_function
 import common
 import re
 from optparse import OptionParser
@@ -28,6 +27,24 @@ all_schemas = [
            search_for=['premises licence', 'premises license', 'premises licensing', 'licensed premises', 'premiseslicences']),
     Schema(lga_name='Planning', dgu_schema_name='Planning Applications (for LGTC by LGA)',
            search_for=['planning applications']),
+    Schema(lga_name='', dgu_schema_name=u'Spend over \xa3500 by local authority (Expenditure transactions exceeding \xa3500) (for LGTC by LGA)',
+           search_for=['spend', 'expenditure', u'\xa3500']),
+    Schema(lga_name='', dgu_schema_name='Procurement Information (Local authority contracts) (for LGTC by LGA)',
+           search_for=['procurement', 'contracts']),
+    Schema(lga_name='', dgu_schema_name='Land and building assets (for LGTC by LGA)',
+           search_for=['land assets', 'building assets', 'land ownership', 'land assets', 'land and property assets', 'local authority land', 'Public Property and Land', 'land terrier', 'Council Registered Land', 'owned land', 'council land', 'land owned']),
+    Schema(lga_name='', dgu_schema_name='Organisation structure (org chart / organogram for local authority) (for LGTC by LGA)',
+           search_for=['org chart', 'organisation chart', 'organisation structure']),
+    Schema(lga_name='', dgu_schema_name='Senior employees of a local authority (for LGTC by LGA)',
+           search_for=['senior staff', 'senior employees', 'senior roles']),
+    Schema(lga_name='', dgu_schema_name='Salary counts of senior employees of a local authority (for LGTC by LGA)',
+           search_for=['salary counts', 'senior salaries']),
+    Schema(lga_name='', dgu_schema_name='Counter fraud activity (for LGTC)',
+           search_for=['counter fraud', 'fraud', 'fradulent activity']),
+    Schema(lga_name='', dgu_schema_name='Pay multiples across an organisation (for LGTC)',
+           search_for=['pay multiples']),
+    Schema(lga_name='', dgu_schema_name='Trade union facility time (for LGTC)',
+           search_for=['trade union', 'facility time']),
     ]
 all_schemas_by_lga_name = dict((s.lga_name, s) for s in all_schemas)
 all_schemas_by_dgu_name = dict((s.dgu_schema_name, s) for s in all_schemas)
@@ -72,6 +89,7 @@ class LaSchemas(object):
             submissions = [Submission(*row) for row in csv]
 
         if config_ini:
+            # this is only for when running from the command-line
             #print 'Loading CKAN config...'
             common.load_config(config_ini)
             common.register_translator()
@@ -287,15 +305,11 @@ class LaSchemas(object):
                  if result['dataset_schema_applied']])
 
         if options.print_:
-            log_info = print
-        else:
-            log = __import__('logging').getLogger('ckanext.dgu.bin.' + __file__)
-            log_info = log.info
-        log_info('\n Incentive stats\n' + stats_incentive.report())
-        log_info('\n Overall stats\n' + stats.report())
+            print '\n Incentive stats\n' + stats_incentive.report()
+            print '\n Overall stats\n' + stats.report()
 
         if options.write:
-            print('Writing')
+            print 'Writing'
             model.Session.commit()
 
         return {'table': results,
@@ -416,4 +430,7 @@ if __name__ == '__main__':
     csv_filepath = args[1]
     if not os.path.exists(csv_filepath):
         parser.error('CSV not found: %s', csv_filepath)
+    # Convert utf8 in option inputs to unicode
+    if options.schema:
+        options.schema = options.schema.decode('utf8')
     LaSchemas.command(config_ini, options, csv_filepath)
