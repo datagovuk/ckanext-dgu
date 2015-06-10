@@ -100,6 +100,8 @@ class LaSchemas(object):
         from ckanext.dgu.lib import helpers as dgu_helpers
         from ckanext.dgu.model.schema_codelist import Schema
 
+        log = __import__('logging').getLogger(__name__)
+
         # Match the organizations in the submissions
         lga_orgs_by_dgu_org_name = {}
         accepted_submission_dgu_orgs = set()
@@ -191,7 +193,7 @@ class LaSchemas(object):
                             if not schema_applied and options.write:
                                 pkg = model.Package.get(dataset['name'])
                                 schema_obj = Schema.by_title(schema.dgu_schema_name)
-                                assert schema_obj
+                                assert schema_obj, schema.dgu_schema_name
                                 try:
                                     schema_ids = json.loads(pkg.extras.get('schema') or '[]')
                                 except ValueError:

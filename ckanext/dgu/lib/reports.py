@@ -754,7 +754,7 @@ def la_schemas(local_authority=None, schema=None, incentive_only=False):
 def la_schemas_combinations():
     for schema in [''] + dgu_helpers.get_la_schema_options():
         for incentive_only in (False, True):
-            yield {'schema': schema['title'] if schema else None,
+            yield {'schema': schema['title'] if schema else '',
                    'incentive_only': incentive_only}
 
 la_schemas_info = {
