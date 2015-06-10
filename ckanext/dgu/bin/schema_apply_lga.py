@@ -140,9 +140,20 @@ class LaSchemas(object):
 
             # Iterate over the schemas
             if options.schema:
-                schemas = [all_schemas_by_lga_name.get(
-                           options.schema,
-                           all_schemas_by_dgu_name[options.schema])]
+                schema = all_schemas_by_dgu_name[options.schema]
+                if options.incentive_only and not schema.lga_name:
+                    # not an incentive schema, so no results
+                    schemas = []
+                elif options.incentive_only:
+                    schemas = [all_schemas_by_lga_name[submission.theme]
+                               for submission in submissions
+                               if submission.laname == lga_org
+                               and submission.theme == schema.lga_name
+                               and submission.acceptancestatus == 'Accepted']
+                else:
+                    schemas = [all_schemas_by_lga_name.get(
+                               options.schema,
+                               schema)]
             elif options.incentive_only:
                 schemas = [all_schemas_by_lga_name[submission.theme]
                            for submission in submissions
