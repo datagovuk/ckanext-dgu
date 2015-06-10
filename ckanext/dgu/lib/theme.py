@@ -8,6 +8,7 @@ from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
 from nltk.util import bigrams, trigrams
+import sqlalchemy
 
 from ckanext.dgu.schema import tag_munge
 from ckanext.dgu.plugins_toolkit import get_action
@@ -19,7 +20,7 @@ PRIMARY_THEME = 'theme-primary'
 SECONDARY_THEMES = 'theme-secondary'
 
 class Themes(object):
-    '''Singleton class containing the data from themes.json with a bit of processing.'''
+    '''Singleton class containing the themes data (from ckanext-taxonomy) with a bit of processing.'''
     _instance = None
     @classmethod
     def instance(cls):
@@ -39,7 +40,15 @@ class Themes(object):
         self.odc = {}  # OpenDataCommunities.org theme extra
 
         context = {'model': model}
-        terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
+        # Get the themes from ckanext-taxonomy
+        try:
+            terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
+        except sqlalchemy.exc.ProgrammingError, e:
+            if 'relation "taxonomy" does not exist' in str(e):
+                # this happens in ckanext-harvest test
+                model.Session.remove()  # clear the erroring transaction
+                raise ImportError('ckanext-taxonomy tables not setup')
+            raise
         for term in terms:
             theme_dict = term['extras']
             theme_dict['title'] = name = term['label']
