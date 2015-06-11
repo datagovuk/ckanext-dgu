@@ -11,7 +11,9 @@ $(function() {
       notes.find('a.notes-read-more').remove();
     }
     else {
-      notes.find('a.notes-read-more').click(function(e) {
+      var more = notes.find('a.notes-read-more');
+      more.css('display', 'block');
+      more.click(function(e) {
         e.preventDefault();
         $('.notes').trigger('destroy.dot');
         notes.find('a.notes-read-more').remove();
@@ -20,6 +22,28 @@ $(function() {
     }
   });
 
+  var license_info = $('#license-info');
+  var more = license_info.find('a.license-read-more');
+  more.show()
+  license_info.dotdotdot({
+    height: 50,
+    tolerance: 10,
+    after: 'a.license-read-more'
+  });
+  license_info.trigger('isTruncated', function(isTruncated) {
+    if (!isTruncated) {
+      license_info.find('a.license-read-more').remove();
+    }
+    else {
+      var more = license_info.find('a.license-read-more');
+      more.click(function(e) {
+        e.preventDefault();
+        $('#license-info').trigger('destroy.dot');
+        license_info.find('a.license-read-more').remove();
+        return false;
+      });
+    }
+  });
 
   var spinConfig = {
     lines: 9, // The number of lines to draw
@@ -63,13 +87,18 @@ $(function() {
 
   // Year segmentation
   $(".year .year_items").hide();
-  $(".year .hideyear").hide();
-  $(".year .hideyear").first().show();
-  $(".year .showyear").first().hide();
   $(".year .year_items").first().show();
 
-  $(".year h3 span.showyear").addClass("icon-chevron-right");
-  $(".year h3 span.hideyear").addClass("icon-chevron-down");
+  // 'View More' and 'View Less' are hidden by default so
+  // that viewers without javascript cannot see them
+
+  // Show the first 'View Less' button
+  $(".year .hideyear").first().show();
+
+
+  // Show all but the first 'View More' button
+  $(".year .showyear").show();
+  $(".year .showyear").first().hide();
 
   $(".year h3 span.showyear").on('click', function(){
     $(this).parent().next('.year_items').fadeIn();

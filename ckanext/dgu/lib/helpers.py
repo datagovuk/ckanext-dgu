@@ -20,6 +20,7 @@ import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
 from webhelpers.html import escape
+from jinja2 import Markup
 from pylons import config
 from pylons import request
 
@@ -211,7 +212,7 @@ def get_from_flat_dict(list_of_dicts, key, default=None):
     '''
     for dict_ in list_of_dicts:
         if dict_.get('key', '') == key:
-            return dict_.get('value', default).strip('"')
+            return (dict_.get('value', default) or '').strip('"')
     return default
 
 def extras_list_to_dict(extras_list):
@@ -719,15 +720,14 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
-def get_package_fields(package, pkg_extras, dataset_was_harvested,
+def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                        is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
-    from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage'])
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
     field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
@@ -792,21 +792,57 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
     if taxonomy_url and taxonomy_url.startswith('http'):
         taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
     primary_theme = pkg_extras.get('theme-primary') or ''
-    primary_theme = THEMES.get(primary_theme, primary_theme)
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
             secondary_themes = json.loads(secondary_themes) or ''
 
-            if isinstance(secondary_themes, types.StringTypes):
-                secondary_themes = THEMES.get(secondary_themes, secondary_themes)
-            else:
-                secondary_themes = ', '.join([THEMES.get(theme, theme) for theme in secondary_themes])
+            if isinstance(secondary_themes, types.ListType):
+                secondary_themes = ', '.join(secondary_themes)
         except ValueError:
             # string for single value
-            secondary_themes = str(secondary_themes)
-            secondary_themes = THEMES.get(secondary_themes,
-                                          secondary_themes)
+            secondary_themes = unicode(secondary_themes)
+
+    mandates = pkg_extras.get('mandate')
+    if mandates:
+        def linkify(string):
+            if string.startswith('http://') or string.startswith('https://'):
+                return '<a href="%s" target="_blank">%s</a>' % (urllib.quote(string), string)
+            else:
+                return string
+
+        try:
+            mandates = json.loads(mandates)
+            mandates = [Markup.escape(m) for m in mandates]
+            mandates = [linkify(m) for m in mandates]
+            mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass # Not JSON for some reason...
+
+    def linkify(schema):
+        if schema['url']:
+            return h.link_to(schema['title'], schema['url'])
+        return escape(schema['title'])
+    def list_of_links(schemas):
+        try:
+            schemas = [linkify(schema) for schema in schemas]
+            return Markup('<br>'.join(schemas))
+            #return Markup('<ul>\n<li>%s</li>\n</ul>' %
+            #              '</li>\n<li>'.join(schemas))
+        except ValueError, e:
+            log.error('Could not display schemas: %r %s', schemas, e)
+            pass
+    schemas = package_dict.get('schema')
+    if schemas:
+        schemas = list_of_links(schemas)
+
+    codelists = package_dict.get('codelist')
+    if codelists:
+        codelists = list_of_links(codelists)
+    sla = package_dict.get('sla')
+    if sla:
+        if sla == 'true':
+            sla = Markup('<span class="js-tooltip" title="%s" data-container="body" >SLA Agreed <i class="icon-info-sign"></i></span>' % escape(get_sla()))
 
     field_value_map = {
         # field_name : {display info}
@@ -829,6 +865,10 @@ def get_package_fields(package, pkg_extras, dataset_was_harvested,
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
         'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
+        'mandate': {'label': 'Mandate', 'value': mandates},
+        'schema': {'label': 'Schema/Vocabulary', 'value': schemas},
+        'codelist': {'label': 'Code list', 'value': codelists},
+        'sla': {'label': 'Service Level', 'value': sla},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
@@ -974,9 +1014,14 @@ def get_licenses(pkg):
     # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
-        license_url_title = pkg.extras.get('licence_url_title') or license_url
-        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None, False))
+        license_url_is_ogl = \
+            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
+            '//reference.data.gov.uk/id/open-government-licence' in license_url
+        already_said_we_are_ogl = any([license[3] for license in licenses])
+        if not (license_url_is_ogl and already_said_we_are_ogl):
+            license_url_title = pkg.extras.get('licence_url_title') or license_url
+            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
@@ -1623,9 +1668,6 @@ def search_facet_text(key,value):
                 'discovery' : 'Discovery',
             }
         return mapping.get(value,value)
-    if key=='theme-primary' or key=='all_themes':
-        from ckanext.dgu.schema import THEMES
-        return THEMES.get(value,value)
     return value
 
 def search_facet_tooltip(key,value):
@@ -1814,16 +1856,15 @@ def inventory_status(package_items):
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
 def themes_count():
-    from ckanext.dgu.schema import THEMES
     from ckan import model
     theme_count = {}
-    for theme in THEMES.keys():
+    for theme, theme_dict in themes().items():
         count = model.Session.query(model.Package)\
             .join(model.PackageExtra)\
             .filter(model.PackageExtra.key=='theme-primary')\
-            .filter(model.PackageExtra.value==theme)\
+            .filter(model.PackageExtra.value==theme_dict['title'])\
             .filter(model.Package.state=='active').count()
-        theme_count[theme] = count
+        theme_count[theme_dict['title']] = count
     return theme_count
 
 def themes():
@@ -1991,10 +2032,18 @@ def report_generated_at(reportname, object_id='__all__', withsub=False):
 
 def relative_url_for(**kwargs):
     '''Return the existing URL but amended for the given url_for-style
-    parameters'''
+    parameters. Much easier than calling h.add_url_param etc. For switching to
+    URLs inside the current controller action only.
+    '''
     from ckan.lib.base import h
+    # Restrict the request params to the same action & controller, to avoid
+    # being an open redirect.
+    disallowed_params = set(('controller', 'action', 'anchor', 'host',
+                             'protocol', 'qualified'))
+    user_specified_params = [(k, v) for k, v in request.params.items()
+                             if k not in disallowed_params]
     args = dict(request.environ['pylons.routes_dict'].items()
-                + request.params.items()
+                + user_specified_params
                 + kwargs.items())
     # remove blanks
     for k, v in args.items():
@@ -2126,3 +2175,58 @@ def humanize_number(num):
 
 def has_api(resource):
     return resource.get('datastore_active', False)
+
+def all_la_org_names():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([la.name for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
+def all_la_org_names_and_titles():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([(la.name, la.title) for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
+def get_schema_options():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    return get_action('schema_list')(context, {})
+
+def get_la_schema_options():
+    all_schemas = get_schema_options()
+    incentive_schemas = []
+    for schema in all_schemas:
+        if 'LGTC' in schema['title']:
+            incentive_schemas.append(schema)
+    return incentive_schemas
+
+def get_codelist_options():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    return get_action('codelist_list')(context, {})
+
+def get_mandate_list(data):
+    mandate = data.get('mandate') or []
+    if isinstance(mandate, basestring):
+        # This shouldn't happen, but maybe a harvester puts in a string
+        return [mandate]
+    if not isinstance(mandate, list):
+        log.error('Mandate should be a list: %r', mandate)
+        return mandate
+    return mandate
+
+def ensure_ids_are_in_a_list_of_dicts(l):
+    if isinstance(l, basestring):
+        # validation error when there is a single schema/codelist drop-down
+        return [{'id': l}]
+    elif isinstance(l, list) and l and isinstance(l[0], basestring):
+        # validation error when there are multiple schema/codelist drop-downs
+        return [{'id': id} for id in l]
+    # initial load of the form
+    return l
+
+def get_sla():
+    return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'

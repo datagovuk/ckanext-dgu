@@ -442,7 +442,7 @@ class TestPackageController(DguFunctionalTestBase):
     def test_edit_mandate(self):
         form, env, app, name = self._new_dataset()
         form_field_id = 'mandate'
-        value = 'http://link.com'
+        value = ['http://link.com']
         form[form_field_id] = value
 
         form = self._submit_with_validation_error(form, env)

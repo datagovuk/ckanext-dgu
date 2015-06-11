@@ -70,7 +70,6 @@
 
 
 <fields>
-    <field name="validated_data_dict" type="string" indexed="false" stored="true" />
     <field name="index_id" type="string" indexed="true" stored="true" required="true" />
     <field name="id" type="string" indexed="true" stored="true" required="true" />
     <field name="site_id" type="string" indexed="true" stored="true" required="true" />
@@ -144,6 +143,7 @@
     <field name="title_string" type="string" indexed="true" stored="false" />
 
     <field name="data_dict" type="string" indexed="false" stored="true" />
+    <field name="validated_data_dict" type="string" indexed="false" stored="true" />
 
     <field name="_version_" type="string" indexed="true" stored="true"/>
 
@@ -152,6 +152,7 @@
     <dynamicField name="extras_*" type="text" indexed="true" stored="true" multiValued="false"/>
     <dynamicField name="vocab_*" type="string" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="*" type="string" indexed="true"  stored="false"/>
+    <dynamicField name="*_multi" type="string" indexed="true"  stored="true" multiValued="true"/>
 </fields>
 
 <uniqueKey>index_id</uniqueKey>

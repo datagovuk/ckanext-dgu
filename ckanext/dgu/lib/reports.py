@@ -1,13 +1,19 @@
 import collections
 import datetime
 import logging
+import os
 
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
+from ckanext.dgu.lib.publisher import go_up_tree
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 log = logging.getLogger(__name__)
+
+
+# NII
 
 
 def nii_report():
@@ -87,6 +93,9 @@ nii_report_info = {
 }
 
 
+# Publisher resources
+
+
 def publisher_resources(organization=None,
                         include_sub_organizations=False):
     '''
@@ -127,7 +136,9 @@ def publisher_resources(organization=None,
             for res in resources:
                 res_dict = {'id': res.id, 'position': res.position,
                             'description': res.description, 'url': res.url,
-                            'format': res.format, 'created': res.created}
+                            'format': res.format,
+                            'created': (res.created.isoformat()
+                                        if res.created else None)}
                 rows.append(create_row(pkg, res_dict))
             num_resources += len(resources)
         else:
@@ -156,6 +167,9 @@ publisher_resources_info = {
     'generate': publisher_resources,
     'template': 'report/publisher_resources.html',
     }
+
+
+# Feedback
 
 
 def feedback_report(organization=None, include_sub_organizations=False, include_published=False):
@@ -340,6 +354,7 @@ def publisher_activity(organization, include_sub_organizations=False):
 
         for quarter_name in quarters:
             quarter = quarters[quarter_name]
+            # created
             if quarter[0] < created_.revision_timestamp < quarter[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
                 created[quarter_name].append(
@@ -347,27 +362,30 @@ def publisher_activity(organization, include_sub_organizations=False):
                      'created', quarter_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
-            else:
-                prs = pr_q.filter(model.PackageRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageRevision.revision_timestamp < quarter[1])
-                rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > quarter[0])\
-                          .filter(model.ResourceRevision.revision_timestamp < quarter[1])
-                pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
-                authors = ' '.join(set([r[1].author for r in prs] +
-                                      [r[2].author for r in rrs] +
-                                      [r[2].author for r in pes]))
-                dates = set([r[1].timestamp.date() for r in prs] +
-                            [r[2].timestamp.date() for r in rrs] +
-                            [r[2].timestamp.date() for r in pes])
-                dates_formatted = ' '.join([date.isoformat()
-                                            for date in sorted(dates)])
-                if authors:
-                    published = not asbool(pkg.extras.get('unpublished'))
-                    modified[quarter_name].append(
-                        (pkg.name, pkg.title, lib.dataset_notes(pkg),
-                         'modified', quarter_name,
-                         dates_formatted, authors, published))
+
+            # modified
+            # exclude the creation revision
+            period_start = max(quarter[0], created_.revision_timestamp)
+            prs = pr_q.filter(model.PackageRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageRevision.revision_timestamp < quarter[1])
+            rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > period_start)\
+                        .filter(model.ResourceRevision.revision_timestamp < quarter[1])
+            pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
+            authors = ' '.join(set([r[1].author for r in prs] +
+                                   [r[2].author for r in rrs] +
+                                   [r[2].author for r in pes]))
+            dates = set([r[1].timestamp.date() for r in prs] +
+                        [r[2].timestamp.date() for r in rrs] +
+                        [r[2].timestamp.date() for r in pes])
+            dates_formatted = ' '.join([date.isoformat()
+                                        for date in sorted(dates)])
+            if authors:
+                published = not asbool(pkg.extras.get('unpublished'))
+                modified[quarter_name].append(
+                    (pkg.name, pkg.title, lib.dataset_notes(pkg),
+                        'modified', quarter_name,
+                        dates_formatted, authors, published))
 
     datasets = []
     for quarter_name in quarters:
@@ -375,8 +393,11 @@ def publisher_activity(organization, include_sub_organizations=False):
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
     columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
+    quarters_iso = dict([(last_or_this, [date_.isoformat() for date_ in q_list])
+                         for last_or_this, q_list in quarters.iteritems()])
+
     return {'table': datasets, 'columns': columns,
-            'quarters': quarters}
+            'quarters': quarters_iso}
 
 def publisher_activity_combinations():
     for org in lib.all_organizations(include_none=False):
@@ -484,7 +505,49 @@ datasets_without_resources_info = {
     'template': 'report/datasets_without_resources.html',
     }
 
-def dataset_app_report():
+# app-dataset
+
+def app_dataset_report():
+    app_dataset_dicts = []
+    for related in model.Session.query(model.RelatedDataset) \
+                        .filter(model.Related.type=='App') \
+                        .all():
+        dataset = related.dataset
+        org = dataset.get_organization()
+        top_org = list(go_up_tree(org))[-1]
+
+        app_dataset_dict = OrderedDict((
+            ('app title', related.related.title),
+            ('app url', related.related.url),
+            ('dataset name', dataset.name),
+            ('dataset title', dataset.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('dataset theme', related.dataset.extras.get('theme-primary', '')),
+            ('dataset notes', lib.dataset_notes(dataset)),
+            ))
+        app_dataset_dicts.append(app_dataset_dict)
+
+    app_dataset_dicts.sort(key=lambda row: row['top-level organization title']
+                           + row['organization title'])
+
+    return {'table': app_dataset_dicts}
+
+app_dataset_report_info = {
+    'name': 'app-dataset-report',
+    'title': 'Apps with datasets',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': app_dataset_report,
+    'template': 'report/app_dataset.html',
+    }
+
+# app-dataset by theme
+
+def app_dataset_theme_report():
     table = []
 
     datasets = collections.defaultdict(lambda: {'apps': []})
@@ -510,15 +573,17 @@ def dataset_app_report():
 
     return {'table': table}
 
-dataset_app_report_info = {
-    'name': 'dataset-app-report',
-    'title': 'Datasets used in apps',
+app_dataset_theme_report_info = {
+    'name': 'app-dataset-theme-report',
+    'title': 'Apps with datasets by theme',
     'description': 'Datasets that have been used by apps, grouped by theme.',
     'option_defaults': None,
     'option_combinations': None,
-    'generate': dataset_app_report,
-    'template': 'report/dataset_app_report.html',
+    'generate': app_dataset_theme_report,
+    'template': 'report/app_dataset_theme_report.html',
     }
+
+# admin-editor report
 
 def get_user_realname(user):
     from ckanext.dgu.drupalclient import DrupalClient
@@ -563,7 +628,9 @@ def admin_editor(org=None, include_sub_organizations=False):
 
     if org:
         q = model.Group.all('organization')
-        parent = model.Session.query(model.Group).filter_by(name=org).one()
+        parent = model.Group.by_name(org)
+        if not parent:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
 
         if include_sub_organizations:
             child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
@@ -642,7 +709,11 @@ def admin_editor_authorize(user, options):
 
     if options.get('org', False):
         org_name = options["org"]
-        org = model.Session.query(model.Group).filter_by(name=org_name).one()
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        if not org:
+            return False
 
         if user_is_admin(user, org) or user_is_rm(user, org):
             return True
@@ -663,5 +734,36 @@ admin_editor_info = {
     'option_combinations': admin_editor_combinations,
     'generate': admin_editor,
     'template': 'report/admin_editor.html',
-    'authorize' : admin_editor_authorize
+    'authorize': admin_editor_authorize
+    }
+
+
+# LA Schemas
+
+
+def la_schemas(local_authority=None, schema=None, incentive_only=False):
+    from ckanext.dgu.bin.schema_apply_lga import LaSchemas
+    Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset', 'print_'))
+    options = Options(organization=None, incentive_only=incentive_only,
+                      schema=schema, write=False, dataset=None, print_=False)
+    csv_filepath = os.path.abspath(os.path.join(__file__, '../../incentive.csv'))
+    return LaSchemas.command(config_ini=None, options=options,
+                             submissions_csv_filepath=csv_filepath)
+
+
+def la_schemas_combinations():
+    for schema in [''] + dgu_helpers.get_la_schema_options():
+        for incentive_only in (False, True):
+            yield {'schema': schema['title'] if schema else '',
+                   'incentive_only': incentive_only}
+
+la_schemas_info = {
+    'name': 'la-schemas',
+    'title': 'Schemas for local authorities',
+    'description': 'Schemas matched to local authority datasets.',
+    'option_defaults': OrderedDict((('schema', ''),
+                                    ('incentive_only', False))),
+    'option_combinations': la_schemas_combinations,
+    'generate': la_schemas,
+    'template': 'report/la_schemas.html',
     }

@@ -40,7 +40,6 @@ Passed in:
         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-description" id="section-description" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-description-field">Description</a></li>
         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-licence" id="section-licence" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-licence-field">Licence</a></li>
         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-publisher" id="section-publisher" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-publisher-field">Publisher</a></li>
-        <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-themes" id="section-themes" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-themes-field">Theme &amp; tags</a></li>
         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-additional_resources" id="section-additional_resources" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-additional_resources-field">Additional resources</a></li>
         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-temporal" id="section-temporal" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-temporal-field">Temporal coverage</a></li>
         <li><a data-toggle="tab" class="{{classes}}" data-hash="tab-geographic" id="section-geographic" {% if boilerplace %}disabled="disabled"{% endif %} href="#section-geographic-field">Geographic coverage</a></li>
@@ -68,8 +67,6 @@ Passed in:
 
   <input id="extras__100__key" name="extras__100__key" type="hidden" value="unpublished" />
   <input id="extras__100__value" name="extras__100__value" type="hidden" value="false" />
-  <input id="extras__101__key" name="extras__101__key" type="hidden" value="core-dataset" />
-  <input id="extras__101__value" name="extras__101__value" type="hidden" value="{{extras.get('core-dataset',False)}}" />
   {% if 'odi-certificate' in extras %}
     <input id="extras__102__key" name="extras__102__key" type="hidden" value="odi-certificate" />
     <input id="extras__102__value" name="extras__102__value" type="hidden" value="{{extras['odi-certificate']}}" />
@@ -311,6 +308,71 @@ Passed in:
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
     <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+    <div class="well form-inline">
+      <h3>Schema/Vocabulary</h3>
+      <p class="instructions basic">Name any schema, vocabulary or ontology that describes the main data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
+      <div class="form-group">
+        {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('schema') so we use h.ensure_strings_are_in_a_list. #}
+        {%- set schemas = h.ensure_ids_are_in_a_list_of_dicts(data.get('schema', [''])) -%}
+        {%- set schema_options = h.get_schema_options() -%}
+        <ul id="schema-list">
+        {% for schema in schemas %}
+          <li>
+            <select class="form-control" name="schema" data-placeholder="Please choose a schema">
+              <option value="" />
+              {% for option in schema_options %}
+                <option value="{{option['id']}}" {% if id != '' and schema['id'] == option['id'] %}selected{% endif %}>
+                  {{option['title']}} - {{option['url']}}
+                </option>
+              {% endfor %}
+            </select>
+          </li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="schema-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+      </div>
+    </div>
+    <div class="well form-inline">
+      <h3>Code Lists</h3>
+      <p class="instructions basic">Name any common code lists or references that describe a field inside the data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
+      <div class="form-group">
+        {# if a single checkbox is submitted, on validation error you get a string, not a list of strings in data.get('codelist') so we use h.ensure_strings_are_in_a_list. #}
+        {%- set codelists = h.ensure_ids_are_in_a_list_of_dicts(data.get('codelist', [''])) -%}
+        {%- set codelist_options = h.get_codelist_options() -%}
+        <ul id="codelist-list">
+        {% for codelist in codelists %}
+          <li>
+            <select class="form-control" name="codelist" data-placeholder="Please choose a codelist">
+              <option value="" />
+              {% for option in codelist_options %}
+                <option value="{{option['id']}}" {% if id != '' and codelist['id'] == option['id'] %}selected{% endif %}>
+                  {{option['title']}} - {{option['url']}}
+                </option>
+              {% endfor %}
+            </select>
+          </li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="codelist-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+      </div>
+    </div>
+    <div class="well">
+      <h3>Service Level Agreement (SLA)</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name. There is JS at the bottom that deletes one of the checkboxes, so that only one is submitted. #}
+                <input id="sla-hidden" name="sla" type="hidden" value=""/>
+                <input id="sla" name="sla" type="checkbox" value="true"
+                {% if data.get('sla', '').lower() == 'true' %} checked="checked"{% endif %} />
+                {{h.get_sla()}}
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">Providing a Service Level Agreement reassures those wishing to use a dataset long-term.</p>
+    </div>
 
 </fieldset>
 
@@ -318,9 +380,61 @@ Passed in:
   <h3>Description</h3>
   <p class="instructions basic">Please add a description of the data set.  What does the data contain/show?  Why was it produced?</p>
   <p class="instructions further instruction-needed">(It is often displayed with the package title. In particular, it should start with a short sentence that describes the data set succinctly, because the first few words alone may be used in some views of the data sets. Here is the place to state if there are any limitations or deficiencies to the data in order to enable users to evaluate the information; even incomplete data may be adequate for some users).</p>
-  <textarea class="form-control field_req" cols="260" id="notes" name="notes" rows="10">{{data.get('notes', '')}}</textarea>
+  <textarea class="form-control field_req" cols="260" id="notes" name="notes" rows="10" onblur="update_themes();">{{data.get('notes', '')}}</textarea>
 
   {{ m.display_error(errors, 'notes', True) }}
+
+  <hr/>
+
+  <h3>Theme</h3>
+
+  <button id="check-themes" class="pull-right btn btn-primary" onclick="update_themes();return false;">Update themes</button>
+
+  <p class="instructions basic">The theme under which this dataset will be categorised is done by searching for keywords in the title and description fields.</p>
+  <div class="clearfix">&nbsp;</div>
+
+  <div class="panel panel-success">
+    <div class="panel-heading">
+      <strong>Note</strong>: If the theme is inaccurate, please expand the description to mention the topics of the dataset better. If the topic is still not being picked up, please <a id="reveal-tags" href="#">click here</a> to add some tags. Otherwise please <a href="/contact/7">contact us</a>.
+    </div>
+  </div>
+  <br/>
+  <div style="width: 45%; float: left; margin-right: 4%;">
+    <label>Primary theme</label>
+    <input type="hidden" id="theme-primary" name="theme-primary" value="{{ data.get('theme-primary', '') }}"/>
+    <span id="theme-primary-label">
+      {{ data.get('theme-primary', 'None') }}
+    </span>
+
+    <br/>
+    <label id="theme-primary-reasons-label" style="display: none">Reason</label>
+    <ul id="theme-primary-reasons"></ul>
+  </div>
+
+  <div style="width: 45%; float: left; margin-right: 4%;">
+    <label>Secondary themes</label>
+    <input type="hidden" id="theme-secondary" name="theme-secondary" value="{{ ','.join(data.get('theme-secondary', [])) }}"/>
+    <span id="theme-secondary-label">
+      {{ ','.join(data.get('theme-secondary', [])) or 'None' }}
+    </span>
+
+    <br/>
+    <label id="theme-secondary-reasons-label" style="display: none">Reason</label>
+    <ul id="theme-secondary-reasons"></ul>
+  </div>
+  <div class="clearfix">&nbsp;</div>
+
+  <div id="tags" style="display: none">
+    <hr/>
+    <h3>Tags</h3>
+    <p>Please list tags which describe the subject of this data in commonly used terms abstract terms e.g. "air quality, pollution, roads". For government spend transactions, include the special tag "spend-transactions". Put commas between each tag.</p>
+    <div class="form-group">
+      <input class="form-control long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
+           data-tagcomplete-url="/api/2/util/tag/autocomplete"
+           id="tag_string" name="tag_string" size="60" type="text"
+           value="{{data.get('tag_string') or ', '.join(h.free_tags(data))}}" />
+    </div>
+  </div>
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade form-inline" id="section-licence-field">
@@ -486,31 +600,6 @@ Passed in:
       </fieldset>
 </fieldset>
 
-<fieldset class="tab-pane boxed whitebox fade" id="section-themes-field">
-    <div style="width: 45%; float: left; margin-right: 4%;">
-    <h3 style="font-weight: bold;">Primary Theme</h3>
-    <p>1. Please choose a primary theme which this data record falls under from the options below.</p>
-        {{m.primary_theme_input(data, errors)}}
-    </div>
-    <div style="width: 45%; float: left; padding-left: 4%; border-left: 1px solid #aaa;">
-      <h3>Secondary Theme</h3>
-      <p>2. If there are other themes in this data, select them here:</p>
-      <div class="well">
-        {{m.secondary_theme_input(data, errors)}}
-      </div>
-    </div>
-    <div class="clearfix">&nbsp;</div>
-
-    <hr/>
-    <h3>Tags</h3>
-    <p>Please list tags which describe the subject of this data in commonly used terms abstract terms e.g. "air quality, pollution, roads". For government spend transactions, include the special tag "spend-transactions". Put commas between each tag.</p>
-    <div class="form-group">
-      <input class="form-control long autocomplete-tag" data-tagcomplete-queryparam="incomplete"
-           data-tagcomplete-url="/api/2/util/tag/autocomplete"
-           id="tag_string" name="tag_string" size="60" type="text"
-           value="{{data.get('tag_string') or ', '.join(h.free_tags(data))}}" />
-    </div>
-</fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade" id="section-additional_resources-field">
   <h3>Additional resources</h3>
@@ -604,12 +693,36 @@ Passed in:
 
     <div class="well form-inline">
       <h3>Mandate</h3>
+      <p class="instructions basic">The law (or other public commitment) that caused the data to be collected (if appropriate).</p>
+      <p>For example, civil servants' salaries are recorded because of Public Record Act 1958 s.2, for which you would put: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2" target="_blank">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
       <div class="form-group">
-        <input class="form-control" id="mandate" name="mandate" size="40" type="text" value="{{data.get('mandate', '')}}"/>
+        {%- set mandates = h.get_mandate_list(data) + [''] -%}
+        <ul id="mandate-list">
+        {% for mandate in mandates %}
+          <li><input class="form-control" name="mandate" size="80" type="text" value="{{mandate}}"/></li>
+        {% endfor %}
+        </ul>
+        <a href="javascript:;" id="mandates-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Entry</a>
+        <p class="instructions further">The particular law should be referenced by finding it at The National Archives' <a href="http://www.legislation.gov.uk/" target="_blank">Legislation website</a>, and where possible it should be for the relevant section of the Act. Where it is collected because of a public announcement, provide the relevant link to the announcement. Multiple responses can be provided, one URL per box, using the "Add Entry" button.</p>
       </div>
-      <p class="instructions basic">An Internet link to the enabling legislation that serves as the mandate for the collection or creation of this data, if appropriate.</p>
-      <p class="hints">For example Public Record Act s.2 would be: <a href="http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2">http://www.legislation.gov.uk/id/ukpga/Eliz2/6-7/51/section/2</a></p>
-      <p class="instructions further">This should be taken from The National Archives' Legislation website, and where possible be a link directly to the relevant section of the Act.</p>
+    </div>
+
+    <div class="well">
+      <h3>National Information Infrastructure (NII)</h3>
+      <div class="form-group">
+          <label class="control-label" style="font-weight: normal;">
+            <div class="controls">
+              <div class="checkbox">
+                {# When submitting a non-validated form, and you uncheck the box, then you need it to submit a value, or it will be overwritten in the controller by the saved value, so we use a hidden field of the same name. There is JS at the bottom that deletes one of the checkboxes, so that only one is submitted. #}
+                <input id="core-dataset-hidden" name="core-dataset" type="hidden" value=""/>
+                <input id="core-dataset" name="core-dataset" type="checkbox" value="true"
+                {% if data.get('core-dataset', '').lower() == 'true' %} checked="checked"{% endif %} />
+                Part of the NII
+              </div>
+            </div>
+          </label>
+      </div>
+      <p class="instructions further">NII datasets are determined by their publishers to be nationally important, and publishers agree to the higher level of publishing quality described in the NII literature.</p>
     </div>
 
 </fieldset>
@@ -894,5 +1007,27 @@ Passed in:
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<script>
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  if(/#section-data-field$/.test(e.target)) {
+    // Only activate chosen on selects once the tab has been revealed
+    $("#schema-list select").chosen({allow_single_deselect: true});
+    $("#codelist-list select").chosen({allow_single_deselect: true});
+  }
+});
+
+$(function() {
+  $("#dataset-edit").submit(function(){
+    if ($("#sla").prop("checked")) {
+      $("#sla-hidden").prop("disabled", true);
+    }
+    if ($("#core-dataset").prop("checked")) {
+      $("#core-dataset-hidden").prop("disabled", true);
+    }
+  });
+});
+</script>
+
 
 </form>

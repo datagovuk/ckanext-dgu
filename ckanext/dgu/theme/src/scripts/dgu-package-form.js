@@ -76,6 +76,43 @@
     CKAN.Dgu.copyTableRowOnClick($('#timeseries_resources-add'), $('#timeseries_resources-table'));
     CKAN.Dgu.copyTableRowOnClick($('#individual_resources-add'), $('#individual_resources-table'));
 
+
+    function add_extra_select(list_selector) {
+      return function(e){
+        console.log('add_extra_select 3');
+        var list = $(list_selector);
+
+        var new_select = list.find('select').first().clone();
+
+        new_select.removeAttr('value');
+        new_select.removeAttr('style');
+        new_select.removeAttr('id');
+        new_select.removeClass('chzn-done');
+
+        var new_list_item = $('<li></li>').append(new_select);
+
+        list.append(new_list_item);
+
+        new_select.chosen({allow_single_deselect: true});
+
+        return false;
+      }
+    }
+    $('#schema-add').click(add_extra_select('#schema-list'));
+    $('#codelist-add').click(add_extra_select('#codelist-list'));
+
+    $('#mandates-add').click(function(e) {
+        var list = $('#mandate-list');
+
+        var new_mandate = list.children().first().clone();
+
+        new_mandate.children().first().attr('value', '');
+
+        list.append(new_mandate);
+      
+        return false;
+    });
+
     // Correctly handle disabled nav buttons
     $('a.disabled').click(function(e) {
       e.preventDefault();
@@ -174,4 +211,88 @@
 
     /* Apply a datepicker to all date rows */
     $('.needs-datepicker').datepicker({dateFormat:'dd/mm/yy'});
+  });
+
+  function update_themes() {
+      $('#check-themes').attr('disabled', 'disabled');
+
+      var name = $('#name').val();
+      var title = $('#title').val();
+      var notes = $('#notes').val();
+      var tags = $('#tag_string').val();
+
+      $.ajax({
+        url: "/api/3/action/suggest_themes",
+        data: encodeURIComponent(JSON.stringify({name: name,
+                                                 title: title,
+                                                 notes: notes,
+                                                 tags: tags})),
+        type: "POST",
+        dataType: "json",
+        success: function(obj) {
+            var nm = obj.result['primary-theme'].name;
+            $('#theme-primary-label').html(nm || "None");
+            $('#theme-primary').val(nm || "");
+ 
+            $('#theme-primary-reasons').empty();
+            var reasons = obj.result['primary-theme'].reasons || [];
+
+            if (reasons.length > 0) {
+              $('#theme-primary-reasons-label').show()
+            } else {
+              $('#theme-primary-reasons-label').hide()
+            }
+
+            for (i = 0; i < reasons.length; i++) {
+               $('#theme-primary-reasons').append('<li>' + reasons[i] + '</li>');
+            }
+
+            nm = '';
+
+            var secondaries = obj.result['secondary-theme'];
+            var all_reasons = [];
+            for (var i = 0; i < secondaries.length; i++ ) {
+                var th = secondaries[i].name;
+                nm = nm + th;
+                if ( i != secondaries.length-1 ) {
+                  nm = nm + ", "
+                }
+                reasons = secondaries[i].reasons || []
+                for (j = 0; j < reasons.length; j++) {
+                  all_reasons.push(th + ' - ' + reasons[j]);
+                }
+            }
+
+            $('#theme-secondary').val(nm);
+            if (nm === '') {
+              nm = 'None'
+            }
+            $('#theme-secondary-label').html(nm);
+
+            if (all_reasons.length > 0) {
+              $('#theme-secondary-reasons-label').show()
+            } else {
+              $('#theme-secondary-reasons-label').hide()
+            }
+
+            $('#theme-secondary-reasons').empty();
+            for (i = 0; i < all_reasons.length; i++) {
+               $('#theme-secondary-reasons').append('<li>' + all_reasons[i] + '</li>');
+            }
+
+            $('#check-themes').removeAttr('disabled');
+        }
+      });
+  }
+
+  $(function() {
+    $('#notes').focusout(update_themes);
+    $('#reveal-tags').click(function(){
+      $('#tags').show(400, function() {
+        $('html, body').animate({
+          scrollTop: $("#tags").offset().top
+        }, 400);
+      });
+      return false;
+    });
   });

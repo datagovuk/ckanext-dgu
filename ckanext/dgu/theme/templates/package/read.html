@@ -3,6 +3,11 @@
 {% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
 {% import "_dgu_jinja_util.html" as m with context %}
 
+{#
+   c.pkg_dict - the result of package_show
+   c.pkg - package object (don't use this if you can...)
+#}
+
 {% block optional_head %}
     <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
     <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
@@ -38,3 +43,268 @@
   {{ h.build_nav('dataset_read', c.pkg_dict.get('title', c.pkg_dict['name']), id=c.pkg_dict['name']) }}
 {% endblock %}
 
+
+{% macro package_content() %}
+
+    {% set is_location_data          = h.is_location_data(c.pkg_dict) %}
+    {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
+    {% set is_local_government_data  = h.is_local_government_data(c.pkg_dict) %}
+
+    <!-- Warn if reading old revision -->
+    {% if c.pkg_revision_id %}
+    <div class="panel panel-warning">
+      <div class="panel-heading">Viewing Dataset Revision</div>
+      {% if c.pkg_revision_not_latest %}
+      <div class="panel-body">
+        This is an old revision of this dataset, as edited at {{h.render_datetime(c.pkg_revision_timestamp)}}. It may differ significantly from the <a href="{{h.url(controller='package', action='read', id=c.pkg.name)}}">current revision</a>.
+      </div>
+      {% endif %}
+      {% if not c.pkg_revision_not_latest %}
+      <div class="panel-body">
+        This is the current revision of this dataset, as edited at {{h.render_datetime(c.pkg_revision_timestamp)}}.
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col-lg-push-2 col-lg-4 col-md-push-1 col-md-5 col-sm-7">
+        {% if not h.is_unpublished_item(c.pkg_dict) %}
+        <div class="dataset-map">
+          <!-- Dataset Extent Map (only if present) -->
+          {% if h.has_extent(c.pkg) %}
+            <div id="dataset-map-container"></div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="col-lg-push-2 col-lg-4 col-md-push-1 col-md-4 col-sm-5">
+        <div class="dataset-map-info">
+          {% if h.get_wms_info_urls(c.pkg_dict) %}
+          <div style="margin-bottom:10px;">
+            {{m.map_preview_button_direct(c.pkg_dict, small=False)}}
+          </div>
+          {% endif %}
+          {% if h.has_bounding_box(c.pkg_extras) and h.has_extent(c.pkg) %}
+          <h3>Dataset Extent</h3>
+          <table class="table">
+            <tr>
+              <td class="key">Latitude:</td>
+              <td class="value">{{h.as_dict(c.pkg_extras).get('bbox-north-lat')[:7]}}&deg; to {{h.as_dict(c.pkg_extras).get('bbox-south-lat')[:7]}}&deg;</td>
+            </tr>
+            <tr>
+              <td class="key">Longitude:</td>
+              <td class="value">{{h.as_dict(c.pkg_extras).get('bbox-west-long')[:7]}}&deg; to {{h.as_dict(c.pkg_extras).get('bbox-east-long')[:7]}}&deg;</td>
+            </tr>
+          </table>
+          {% endif %}
+          {% if h.has_extent(c.pkg) %}
+            <div id="dataset-map-attribution"></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+
+    <div id="dataset">
+      <!--! id=dataset for ckanext-spatial -->
+    </div>
+
+    {% set publisher_name = c.pkg.get_organization().name %}
+    {% if not h.is_unpublished_item(c.pkg_dict) %}
+      <div class="dataset-resources">
+        <!-- Resources -->
+        {% if h.individual_resources() %}
+          <h2>Data Resources ({{h.individual_resources()|length}})</h2>
+          {{resource_table(h.individual_resources(), publisher_name)}}
+        {% endif %}
+        {% if h.timeseries_resources() %}
+          <h2>Data Resources ({{h.timeseries_resources()|length}} in a time series)</h2>
+  	       {% for year, items in h.groupby(h.timeseries_resources()|reverse, h.extract_year) %}
+  	       <div class="year">
+              <h3>{{year}} <span class="showyear" style="display: none;">View More <i class="icon-chevron-down"></i></span><span class="hideyear" style="display: none;">View Less <i class="icon-chevron-up"></i></span></h3>
+              <div class="year_items">
+              {{resource_table(items, publisher_name)}}
+              </div>
+           </div>
+  	      {% endfor %}
+        {% endif %}
+      </div>
+    {% endif %}
+    {% if not h.is_unpublished_item(c.pkg_dict) %}
+    <div class="dataset-resources-additional">
+      {% if h.additional_resources() or h.gemini_resources() %}
+        <h2>Additional Links ({{h.additional_resources()|length + h.gemini_resources()|length}})</h2>
+        {{resource_table(h.additional_resources() + h.gemini_resources(), publisher_name)}}
+      {% endif %}
+
+      {% if not (is_location_data or h.individual_resources() or h.timeseries_resources() or h.additional_resources()) %}
+        <em>(none)</em>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if not h.is_unpublished_item(c.pkg_dict) %}
+    <div class="dataset-additional-information" >
+      <!-- Dataset Information Section -->
+      <h2>Additional Information</h2>
+      <table class="table table-bordered table-condensed table-dgu-fixed-size dgu-table" style="margin-bottom: 45px;">
+        <tbody>
+          {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, c.pkg_dict, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
+          <tr>
+            {# TODO: label_attributes and value_attributes are dicts, we need to decouple them #} 
+            <td class="key" {{m.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>
+            <td class="value" {{m.dict_to_attributes(value_attributes)}}>{{field_dict.get('value') or 'No value'}}</td>
+          </tr>
+          {% endfor %}
+          {% if is_location_data and h.as_dict(c.pkg_extras).get('resource-type') in ('dataset', 'series', 'service') %}
+          <tr>
+            {% set is_service=h.as_dict(c.pkg_extras).get('resource-type')=='service' %}
+            <td class="key">Coupled {{m.if_(is_service,'Datasets','Services')}}</td>
+            <td class="value">
+              {% if h.coupled_pkg_tuples(c.pkg)%}
+                <ul>
+                  {% for name, title in h.coupled_pkg_tuples(c.pkg) %}
+                  <li>
+                    <a href="/dataset/{{name}}">{{title}}</a>
+                  </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+              {% if not h.coupled_pkg_tuples(c.pkg) %}
+                <span>(none)</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+      {% if c.user %}
+      Add Feedback &raquo;
+      {% else %}
+      Login to Add Feedback &raquo;
+      {% endif %}
+    </a>
+
+    {% if h.has_related_apps(c.pkg_dict.get('id')) %}
+    <h2>Related Applications</h2>
+    <ul>
+      {% for rel in h.get_related_apps(c.pkg_dict.get('id'))%}
+      <li>
+        <a href="{{rel.url}}">{{rel.title}}</a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Dataset Feedback</h2>
+    <div class="dataset-feedback-container">
+      {{m.feedback_summary(c.pkg_dict,render_title=False,large=True)}}
+      <a class="view-feedback-link" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}}">View all feedback &raquo;</a>
+    </div>
+
+
+    <div id="comments-container">
+      <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
+      <div style="height: 50px;" class="comments-spinner"></div>
+    </div>
+{% endmacro %}
+
+
+{% macro resource_table(resources, publisher_name) %}
+  <div class="row">
+    {% for res in resources %}
+    <div class="col-sm-6">
+    <div class="dataset-resource">
+      <div class="dataset-resource-format">
+        <i class="icon-3x icon-file-text"></i>
+        <span class="format-name">
+          {% if res.get('gemini',False) %}
+            {{res.get('type','')}}
+          {% else %}
+            {{res.get('format','')}}
+          {% endif %}
+        </span>
+      </div>
+      <div class="dataset-resource-text">
+        <div class="inner">
+          <div class="inner2">
+            {% if h.is_resource_broken(res['id']) %}
+              <a class="js-tooltip" data-toggle="tooltip" data-placement="right" title="There is an error with this resource" href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}#qualitycheck" style="text-decoration:none;color:#D43F3A;">
+                <i class="icon-exclamation-sign"></i>
+              </a>
+            {% endif %}
+
+            {% if res.get('scraped') or res.get('scraper_url') %}
+              {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
+            {% endif %}
+            {{res.get('date','')}}
+            {{h.resource_display_name(res)}}
+          </div>
+        </div>
+      </div>
+      <div class="dropdown" style="pointer-events:none;">
+        <a href="#" class="dataset-resource-chevron" data-toggle="dropdown" style="pointer-events:auto;">
+          <i class="icon-chevron-down"></i>
+        </a>
+        {% with %}
+          {% set gemini      = res.get('gemini',False) %}
+          {% set is_download = not is_location_data and res.get('resource_type') == 'file' %}
+        <ul class="dropdown-menu" role="menu" style="pointer-events:auto;">
+          {% if gemini %}
+            <li>
+              <a href="{{res.get('url', '')}}" rel="dcat: distribution" target="_blank" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+                <i class="icon-search"></i>&nbsp; {{res['action']}}
+              </a>
+            </li>
+          {% else %}
+            <li>
+              <a href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}">
+                <i class="icon-search"></i>&nbsp; {{'Preview' if h.predict_if_resource_will_preview(res) else 'Details'}}
+              </a>
+            </li>
+          {% endif %}
+
+          {% if not gemini%}
+            <li>
+              <a href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+                <i class="icon-download-alt"></i>&nbsp;
+                {% if is_download %}
+                  Download
+                {% else %}
+                  Direct Link
+                {% endif %}
+              </a>
+            </li>
+          {% endif %}
+          {% with %}
+            {% set cache_url, cache_timestamp = h.get_cache(res) %}
+            {% if not gemini and cache_url %}
+            <li>
+              <a href="{{cache_url}}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on {{cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown date'}}" onclick="{{h.ga_download_tracking(res, publisher_name, 'download-cache')}}">
+                <i class="icon-save"></i>&nbsp;
+                Cached
+              </a>
+            </li>
+            {% endif %}
+          {% endwith %}
+          {% if not gemini and not h.get_cache(res)[0] %}
+            <li>
+              <a class="disabled">
+                <i class="icon-save"></i>&nbsp;
+                (no cache available)
+              </a>
+            </li>
+          {% endif %}
+        </ul><!-- /dropdown-mnu-->
+        {% endwith %}
+      </div><!--/dropdown-->
+    </div><!-- /dataset-resource -->
+    </div><!-- /col-sm-6 -->
+    {% endfor %}
+  </div>
+{% endmacro %}

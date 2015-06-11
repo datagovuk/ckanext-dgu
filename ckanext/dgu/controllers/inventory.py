@@ -64,7 +64,7 @@ class InventoryController(BaseController):
 
     def edit_item(self, id, data=None, errors=None, error_summary=None):
         """
-        Allows for the editing of a single item
+        Allows for the editing of a single unpublished dataset
         """
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,

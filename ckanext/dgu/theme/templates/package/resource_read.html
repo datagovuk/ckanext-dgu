@@ -15,6 +15,7 @@
 
 
 {% block optional_head %}
+    <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
     <link rel="stylesheet" href="/css/dgu-recline-pack.min.css" />
     {% if not h.is_wms(c.resource) %}
     <!-- data preview -->
@@ -44,7 +45,7 @@
 {% endblock %}
 
 
-{% block primary_content_inner %}
+{% block dataset_detail %}
   <div>
     <hr/>
     {% if c.resource.get('state') == 'deleted' %}
@@ -78,7 +79,7 @@
         {% if c.resource.get('resource_type') == 'listing' %}
           <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'service' %}
-          <py:when test="'service'"><i class="icon-search"></i>&nbsp; View
+          <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'api' %}
           <i class="icon-code"></i>&nbsp; API Endpoint
         {% else %}
@@ -92,18 +93,18 @@
         {% endif %}
       </a>
       {% endif %}
-      {% endwith %}
 
       {% set cache_url, cache_timestamp = h.get_cache(c.resource) %}
       {% if cache_url and not h.get_resource_wms(c.resource) %}
-       <a class="btn btn-danger resource-url-analytics resource-type-${c.resource.get('resource_type')}" href="${cache_url}" onclick="${h.ga_download_tracking(c.resource, publisher.name, 'download-cache')}">
-        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: ${cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown'}">
+       <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{h.ga_download_tracking(c.resource, publisher.name, 'download-cache')}}">
+        <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: {{cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown'}}">
           {% if not h.as_bool(h.get_resource_wms(c.resource)) %}
               <i class="icon-save"></i>&nbsp; Cached
           {% endif %}
         </div>
        </a>
        {% endif %}
+      {% endwith %}
 
       {% if h.is_wms(c.resource) %}
       <!--! Only display buttons if this resource is WMS. Otherwise, Widget Preview buttons would display for all resources of a WMS dataset otherwise-->
@@ -114,11 +115,11 @@
 
     {{data_viewer_embed_dialog()}}
 
-    <py:if test="c.resource.get('description')">
+    {% if c.resource.get('description') %}
       <div class="resource-notes" property="rdfs:label">
         {{c.resource.get('description')}}
       </div>
-    </py:if>
+    {% endif %}
 
     <div class="recline-read-only resource-preview">
     {% if not h.is_wms(c.resource)%}
@@ -159,8 +160,8 @@
       </tr>
       {% for field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource, h.as_dict(c.pkg_extras)) %}
       <tr>
-        <td class="dataset-label" py:attrs="label_attributes">{{field_dict.get('label') or field_dict['name']}}</td>
-        <td class="dataset-details" py:attrs="value_attributes">{{field_dict.get('value') or 'No value'}}</td>
+        <td class="dataset-label" {{label_attributes|xmlattr}}">{{field_dict.get('label') or field_dict['name']}}</td>
+        <td class="dataset-details" {{value_attributes|xmlattr}}">{{field_dict.get('value') or 'No value'}}</td>
       </tr>
       {% endfor %}
     </table>

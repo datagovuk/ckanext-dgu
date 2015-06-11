@@ -1,0 +1,2 @@
+python-slugify==0.1.0
+ckanapi==3.4
