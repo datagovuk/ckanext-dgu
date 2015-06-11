@@ -64,7 +64,7 @@
         {% if c.resource.get('resource_type') == 'listing' %}
           <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'service' %}
-          <py:when test="'service'"><i class="icon-search"></i>&nbsp; View
+          <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'api' %}
           <i class="icon-code"></i>&nbsp; API Endpoint
         {% else %}
@@ -100,11 +100,11 @@
 
     {{data_viewer_embed_dialog()}}
 
-    <py:if test="c.resource.get('description')">
+    {% if c.resource.get('description') %}
       <div class="resource-notes" property="rdfs:label">
         {{c.resource.get('description')}}
       </div>
-    </py:if>
+    {% endif %}
 
     <div class="recline-read-only resource-preview">
     {% if not h.is_wms(c.resource)%}
@@ -145,8 +145,8 @@
       </tr>
       {% for field_dict, label_attributes, value_attributes in h.get_resource_fields(c.resource, h.as_dict(c.pkg_extras)) %}
       <tr>
-        <td class="dataset-label" py:attrs="label_attributes">{{field_dict.get('label') or field_dict['name']}}</td>
-        <td class="dataset-details" py:attrs="value_attributes">{{field_dict.get('value') or 'No value'}}</td>
+        <td class="dataset-label" {{label_attributes|xmlattr}}">{{field_dict.get('label') or field_dict['name']}}</td>
+        <td class="dataset-details" {{value_attributes|xmlattr}}">{{field_dict.get('value') or 'No value'}}</td>
       </tr>
       {% endfor %}
     </table>
