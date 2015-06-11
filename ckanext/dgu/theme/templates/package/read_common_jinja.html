@@ -322,7 +322,9 @@
     </div>
     {% endif %}
 
-    {{package_content()}}
+    {% block dataset_detail %}
+      {{package_content()}}
+    {% endblock %}
 
     {% endwith %}
   </div>
