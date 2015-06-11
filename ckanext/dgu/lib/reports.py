@@ -761,7 +761,7 @@ la_schemas_info = {
     'name': 'la-schemas',
     'title': 'Schemas for local authorities',
     'description': 'Schemas matched to local authority datasets.',
-    'option_defaults': OrderedDict((('schema', None),
+    'option_defaults': OrderedDict((('schema', ''),
                                     ('incentive_only', False))),
     'option_combinations': la_schemas_combinations,
     'generate': la_schemas,
