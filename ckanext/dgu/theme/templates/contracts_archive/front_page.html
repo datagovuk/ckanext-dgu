@@ -1,0 +1,22 @@
+{% extends "page.html" %}
+
+{% block title %}Contracts Archive{% endblock %}
+
+{% block breadcrumb_content %}
+    <li><a href="{{h.url_for(controller='data', action='contracts_archive')}}">Contracts Archive</a></li>
+{% endblock %}
+
+{% block primary_content_inner %}
+    <h1>Contracts Archive</h1>
+    <p>This site is a read only archive of historic contract data from the Business Link Contracts Finder website that closed in February 2015.</p>
+
+    <p>This site includes public sector contract tenders and contracts awarded between 11/2/2011 and 25/2/2015</p>
+
+    <p>The site was superceded by a <a href="https://www.gov.uk/contracts-finder">new Contracts Finder</a> designed and operated by Government Digital Services.</p>
+
+    <p>The data has been frozen when the site closed. This data will not be updated and will not be up to date for contracts which have been awarded since the data was frozen. There was no batched copying of data from the old site to the new site, but there may have been transfers on a case-by-case basis.</p>
+
+    <p>This archive has been provided by the <a href="http://data.gov.uk/">data.gov.uk</a> team using data from Crown Commerical Services.</p>
+
+    <iframe src="http://46.43.41.30/" width="100%" height="500px;" style="border: none;"></iframe>
+{% endblock %}

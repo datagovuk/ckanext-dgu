@@ -193,11 +193,15 @@ class DataController(BaseController):
 
     def viz_social_investment_and_foundations(self):
         return render('viz/social_investment_and_foundations.html')
+
     def viz_investment_readiness_programme(self):
         return render('viz/investment_readiness_programme.html')
+
     def viz_front_page(self):
         return render('viz/front_page.html')
 
+    def contracts_archive(self):
+        return render('contracts_archive/front_page.html')
 
     def resource_cache(self, root, resource_id, filename):
         """
