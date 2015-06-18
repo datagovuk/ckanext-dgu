@@ -200,8 +200,17 @@ class DataController(BaseController):
     def viz_front_page(self):
         return render('viz/front_page.html')
 
-    def contracts_archive(self):
-        return render('contracts_archive/front_page.html')
+    def contracts_archive(self, relative_url):
+        import requests, urlparse
+        headers = {'X-Script-Name': '/data/contracts-archive'}
+        url = urlparse.urljoin('http://46.43.41.30/', relative_url)
+        r = requests.get(url, headers=headers)
+
+        if request.params.get('nowrap'):
+            return r.text
+        else:
+            c.content = r.text
+            return render('contracts_archive/front_page.html')
 
     def resource_cache(self, root, resource_id, filename):
         """
