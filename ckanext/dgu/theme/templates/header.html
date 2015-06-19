@@ -80,7 +80,7 @@
         <li><a class="{{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
         <li><a class="" href="/data-request">Data Requests</a></li>
         <li><a class="{{ 'active' if url.startswith('/publisher') }}" href="/publisher">Publishers</a></li>
-        <li><a class="" href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
+        <li><a class="" href="/organogram/cabinet-office">Organograms</a></li>
         {% if h.config_get('dgu.openspending_reports_enabled') %}
           <li><a class="{{ 'active' if url.startswith('/data/openspending-report') }}" href="/data/openspending-report/index">Spend Reports</a></li>
         {% endif %}
@@ -88,7 +88,7 @@
           <li><a class="{{ 'active' if url.startswith('/data/site-usage') }}" href="/data/site-usage">Site Analytics</a></li>
         {% endif %}
         <li><a class="{{ 'active' if url.startswith('/data/report') }}" href="/data/report">Reports</a></li>
-        <li><a class="{{ 'active' if url.startswith('/data/contracts-archive') }}" href="/data/contracts-archive">Contracts Archive</a></li>
+        <li><a class="{{ 'active' if url.startswith('/data/contracts-archive') }}" href="/data/contracts-archive">Contracts</a></li>
         <br/>
 
         {% if c.userobj.sysadmin %}
