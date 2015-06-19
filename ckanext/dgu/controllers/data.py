@@ -202,12 +202,16 @@ class DataController(BaseController):
 
     def contracts_archive(self, relative_url):
         import requests, urlparse
+        from pylons import response
+
         headers = {'X-Script-Name': '/data/contracts-archive'}
         url = urlparse.urljoin('http://46.43.41.30/', relative_url)
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, stream=True)
 
-        if request.params.get('nowrap'):
-            return r.text
+        if relative_url.startswith('/static/'):
+            # CSS will only get loaded if it has the right content type
+            response.content_type = r.headers.get('content-type', 'text/html')
+            return r.raw.read() # Some of the static files are binary
         else:
             c.content = r.text
             return render('contracts_archive/front_page.html')
