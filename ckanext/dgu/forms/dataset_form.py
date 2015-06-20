@@ -248,6 +248,7 @@ class DatasetForm(p.SingletonPlugin):
             'geographic_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
             'spatial_name': [ignore_missing, convert_to_extras],
             'spatial': [ignore_missing, convert_to_extras],
+            'use_pub_extent': [ignore_missing, convert_to_extras],
             'geographic_granularity-other': [ignore_missing],
             'geographic_coverage': [ignore_missing, convert_geographic_to_db, convert_to_extras],
             'temporal_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
@@ -322,6 +323,7 @@ class DatasetForm(p.SingletonPlugin):
             'geographic_coverage': [convert_from_extras, ignore_missing, convert_geographic_to_form],
             'spatial': [convert_from_extras, ignore_missing],
             'spatial_name': [convert_from_extras, ignore_missing],
+            'use_pub_extent': [convert_from_extras, ignore_missing],
             'temporal_granularity': [convert_from_extras, ignore_missing, extract_other(temporal_granularity)],
             'temporal_coverage-from': [convert_from_extras, ignore_missing, date_to_form],
             'temporal_coverage-to': [convert_from_extras, ignore_missing, date_to_form],
@@ -410,6 +412,9 @@ class DatasetForm(p.SingletonPlugin):
             'foi-email': g.extras.get('foi-email', ''),
             'foi-phone': g.extras.get('foi-phone', ''),
             'foi-web': g.extras.get('foi-web', ''),
+            'spatial_name': g.extras.get('spatial_name', ''),
+            'spatial': g.extras.get('spatial', ''),
+            'use_pub_extent': g.extras.get('use_pub_extent', ''),
         } for g in groups]
 
         return dict((g['name'], g) for g in groups)

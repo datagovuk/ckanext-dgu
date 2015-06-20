@@ -218,9 +218,11 @@ CKAN.DguSpatialEditor = function($) {
     var selectButton = $("<div class='selectButton ol-unselectable ol-control ol-collapsed' style='top: 4em; left: .5em;'><button class='ol-has-tooltip' type='button'><span class='glyphicon icon-crop' aria-hidden='true'></span><span role='tooltip'>Draw Selection</span></button></div>")
     $(".ol-viewport").append(selectButton)
     selectButton.click(function (e) {
-        selectBoxSource.clear()
-        map.addInteraction(boundingBoxInteraction)
-        $(map.getViewport()).toggleClass('drawing', true)
+        if (!$(this).hasClass('disabled')) {
+            selectBoxSource.clear()
+            map.addInteraction(boundingBoxInteraction)
+            $(map.getViewport()).toggleClass('drawing', true)
+        }
     })
 
     // important : this forces the refresh of the map when the tab is displayed. Short of that, the map is not displayed because the original offsetSize is null.
@@ -289,6 +291,12 @@ CKAN.DguSpatialEditor = function($) {
     $('#use_exact_geom').change(function() {
         CKAN.DguSpatialEditor.setUseExactGeometry($(this).prop('checked'))
     })
+
+    /*
+    $('#use_pub_extent').change(function(evt) {
+        CKAN.DguSpatialEditor.usePublisherExtent ($(this).prop('checked'))
+    })
+    */
 
 
     return {
@@ -421,6 +429,40 @@ CKAN.DguSpatialEditor = function($) {
                 $el.prop('disabled', !bbox || bbox === undefined)
                 $el.val(bbox || "")
             })
+        },
+
+        usePublisherExtent: function(toggle) {
+            if (typeof(publishers) != "undefined" && toggle) {
+                var publisher
+                $.each(publishers, function(name, pub) {
+                    if (pub && pub.id == $("#owner_org").val())
+                        publisher = pub
+                })
+                var bbox = publisher && publisher.spatial
+                var spatial_name = publisher && publisher.spatial_name
+                if (bbox)
+                    try {
+                        CKAN.DguSpatialEditor.setBBox(geojsonFormat.readGeometry(bbox), true)
+                    } catch (err) {}
+
+                if (spatial_name)
+                    $("#spatial_name").val(spatial_name)
+
+                $("#spatial_name").prop("readonly", true);
+                $("input[id^=bbox_]").prop('readonly', true)
+                $("div.selectButton").toggleClass('disabled', true)
+                $("#region-select>a.btn:not(.btn-publisherselect)").toggleClass('disabled', true)
+                $(".btn-publisherselect").toggleClass("selected", true)
+                $('#spatial_name').autocomplete().disable()
+            } else {
+                $("#spatial_name").prop('readonly', false)
+                $("input[id^=bbox_]").prop('readonly', false)
+                $("div.selectButton").toggleClass('disabled', false)
+                $("#region-select>a.btn:not(.btn-publisherselect)").toggleClass('disabled', false)
+                $(".btn-publisherselect").toggleClass("selected", false)
+                $('#spatial_name').autocomplete().enable()
+            }
+            $('#use_pub_extent').prop('checked', toggle)
         }
     }
 } (jQuery)
@@ -429,22 +471,43 @@ $(function() {
     CKAN.DguSpatialEditor.bindCoordinateInputs("#bbox_minx","#bbox_miny","#bbox_maxx","#bbox_maxy")
     CKAN.DguSpatialEditor.bindInput("#spatial")
 
+    if ($('#use_pub_extent').length) {
+        $("#region-select")
+            .append(
+            $("<a class='btn btn-publisherselect' role='button'>Use Publisher Extent</a>")
+                .click(function() {
+                    CKAN.DguSpatialEditor.usePublisherExtent(!$('#use_pub_extent').prop('checked'))
+                })
+                .append(
+                $('#use_pub_extent').click(function(evt) {
+                    $('#use_pub_extent').prop('checked', !$('#use_pub_extent').prop('checked'))
+                    CKAN.DguSpatialEditor.usePublisherExtent(!$('#use_pub_extent').prop('checked'))
+                    evt.stopPropagation()
+                })
+            )
+        )
+    }
+
     $("#region-select")
         .append(
         $("<a class='btn btn-warning' role='button'>None</a>")
             .click(function() {
-                CKAN.DguSpatialEditor.setBBox()
-                $("#spatial_name").val("")
+                if (!$(this).hasClass('disabled')) {
+                    CKAN.DguSpatialEditor.setBBox()
+                    $("#spatial_name").val("")
+                }
             }))
     $.each(CKAN.DguSpatialEditor.regions, function(name, box) {
 
         $("#region-select")
-            .append(      
+            .append(
         $("<a class='btn btn-info' role='button'>"+name.replace(" ", "&nbsp;")+"</a>")
                 .click(function() {
+                    if (!$(this).hasClass('disabled')) {
                         CKAN.DguSpatialEditor.setBBox(CKAN.DguSpatialEditor.bbox2geom(box), true)
-                        $("#spatial_name").val(box?name:"")
-                    })
+                        $("#spatial_name").val(box ? name : "")
+                    }
+                })
         )
         /*
         $("#region-select")
@@ -455,4 +518,6 @@ $(function() {
             })
             */
     })
+
+    CKAN.DguSpatialEditor.usePublisherExtent ($('#use_pub_extent').prop('checked'))
 })

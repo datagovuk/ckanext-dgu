@@ -194,6 +194,49 @@ ${h.prep_group_edit_data(data)}
 </fieldset>
 </div>
 
+<div class="row dgu-equal-height" data-selector=".panel-default">
+    <fieldset id="geospatial-coverage" class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><strong>Default Geographic Coverage</strong></div>
+            <div class="panel-body">
+                <div class="control-group" id="section-geographic-field">
+                    <div class="controls">
+                        <table>
+                            <tr style="margin-bottom: 0.5em"><td colspan="2" style="padding-bottom: 0.5em"><div id="region-select"></div></td></tr>
+                            <tr>
+                                <td width="100%">
+                        <span id="gazetteer" style="position: relative">
+                            <input class="form-control" id="spatial_name" name="spatial_name" type="text" value="${data.get('spatial_name', '')}"
+                                   style="width: 100%; max-width: 20em; height: 30px"/>
+                            <div id="spatial_spinner" class="spinner"
+                                 style="position: absolute;right: 1em;top: 0.5em; display: none">
+                                <div class="rect1"></div>
+                                <div class="rect2"></div>
+                                <div class="rect3"></div>
+                            </div>
+                        </span>
+                                </td>
+                                <td>
+                                    <div style="white-space: nowrap; line-height: 8px; font-size: 90%">[<input
+                                            id="bbox_minx" />,<input id="bbox_miny" />]<br/>
+                                        [<input id="bbox_maxx" />,<input id="bbox_maxy" />]
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        <input id="spatial" name="spatial" size="40" type="hidden" value="${data.get('spatial', '')}"/>
+                        <span class="field_error" py:if="errors.get('category', '')">${errors.get('category', '')}</span>
+                    </div>
+                    <div id="dataset-map" style="width:100%; height:300px;"></div>
+                </div>
+
+                <script type="text/javascript" src="/scripts/dgu-spatial-edit.js"></script>
+            </div>
+        </div>
+    </fieldset>
+
+</div>
+
 <!--! Users need to be submitted or they are removed from the publisher -->
 <fieldset id="users" style="display: none;">
   <h3>Users <span py:if="data.get('users', [])">(${len(data.get('users', []))})</span></h3>
