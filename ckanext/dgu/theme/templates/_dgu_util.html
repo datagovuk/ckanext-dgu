@@ -65,7 +65,7 @@
           </div>
           <py:if test="c.fields">
             <py:for each="(k, v) in c.fields">
-              <input type="hidden" name="${k}" value="${v}" py:if="k != 'unpublished' or k != 'core-dataset'"/>
+              <input type="hidden" name="${k}" value="${v}"/>
             </py:for>
           </py:if>
           <py:if test="set_fields">

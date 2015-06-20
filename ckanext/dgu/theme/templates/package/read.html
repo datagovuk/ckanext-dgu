@@ -52,8 +52,6 @@
 
     <!-- Warn if reading old revision -->
     {% if c.pkg_revision_id %}
-    all_codelists = get_action('codelist_list')(context, {})
-    all_codelists = dict([(codelist['id'], codelist) for codelist in all_codelists])
     <div class="panel panel-warning">
       <div class="panel-heading">Viewing Dataset Revision</div>
       {% if c.pkg_revision_not_latest %}

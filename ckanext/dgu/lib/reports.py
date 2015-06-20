@@ -1,14 +1,19 @@
 import collections
 import datetime
 import logging
+import os
 
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
 from ckanext.dgu.lib.publisher import go_up_tree
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 log = logging.getLogger(__name__)
+
+
+# NII
 
 
 def nii_report():
@@ -88,6 +93,9 @@ nii_report_info = {
 }
 
 
+# Publisher resources
+
+
 def publisher_resources(organization=None,
                         include_sub_organizations=False):
     '''
@@ -159,6 +167,9 @@ publisher_resources_info = {
     'generate': publisher_resources,
     'template': 'report/publisher_resources.html',
     }
+
+
+# Feedback
 
 
 def feedback_report(organization=None, include_sub_organizations=False, include_published=False):
@@ -343,6 +354,7 @@ def publisher_activity(organization, include_sub_organizations=False):
 
         for quarter_name in quarters:
             quarter = quarters[quarter_name]
+            # created
             if quarter[0] < created_.revision_timestamp < quarter[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
                 created[quarter_name].append(
@@ -350,27 +362,30 @@ def publisher_activity(organization, include_sub_organizations=False):
                      'created', quarter_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
-            else:
-                prs = pr_q.filter(model.PackageRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageRevision.revision_timestamp < quarter[1])
-                rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > quarter[0])\
-                          .filter(model.ResourceRevision.revision_timestamp < quarter[1])
-                pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
-                authors = ' '.join(set([r[1].author for r in prs] +
-                                      [r[2].author for r in rrs] +
-                                      [r[2].author for r in pes]))
-                dates = set([r[1].timestamp.date() for r in prs] +
-                            [r[2].timestamp.date() for r in rrs] +
-                            [r[2].timestamp.date() for r in pes])
-                dates_formatted = ' '.join([date.isoformat()
-                                            for date in sorted(dates)])
-                if authors:
-                    published = not asbool(pkg.extras.get('unpublished'))
-                    modified[quarter_name].append(
-                        (pkg.name, pkg.title, lib.dataset_notes(pkg),
-                         'modified', quarter_name,
-                         dates_formatted, authors, published))
+
+            # modified
+            # exclude the creation revision
+            period_start = max(quarter[0], created_.revision_timestamp)
+            prs = pr_q.filter(model.PackageRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageRevision.revision_timestamp < quarter[1])
+            rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > period_start)\
+                        .filter(model.ResourceRevision.revision_timestamp < quarter[1])
+            pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
+            authors = ' '.join(set([r[1].author for r in prs] +
+                                   [r[2].author for r in rrs] +
+                                   [r[2].author for r in pes]))
+            dates = set([r[1].timestamp.date() for r in prs] +
+                        [r[2].timestamp.date() for r in rrs] +
+                        [r[2].timestamp.date() for r in pes])
+            dates_formatted = ' '.join([date.isoformat()
+                                        for date in sorted(dates)])
+            if authors:
+                published = not asbool(pkg.extras.get('unpublished'))
+                modified[quarter_name].append(
+                    (pkg.name, pkg.title, lib.dataset_notes(pkg),
+                        'modified', quarter_name,
+                        dates_formatted, authors, published))
 
     datasets = []
     for quarter_name in quarters:
@@ -722,7 +737,38 @@ admin_editor_info = {
     'option_combinations': admin_editor_combinations,
     'generate': admin_editor,
     'template': 'report/admin_editor.html',
-    'authorize' : admin_editor_authorize
+    'authorize': admin_editor_authorize
+    }
+
+
+# LA Schemas
+
+
+def la_schemas(local_authority=None, schema=None, incentive_only=False):
+    from ckanext.dgu.bin.schema_apply_lga import LaSchemas
+    Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset', 'print_'))
+    options = Options(organization=None, incentive_only=incentive_only,
+                      schema=schema, write=False, dataset=None, print_=False)
+    csv_filepath = os.path.abspath(os.path.join(__file__, '../../incentive.csv'))
+    return LaSchemas.command(config_ini=None, options=options,
+                             submissions_csv_filepath=csv_filepath)
+
+
+def la_schemas_combinations():
+    for schema in [''] + dgu_helpers.get_la_schema_options():
+        for incentive_only in (False, True):
+            yield {'schema': schema['title'] if schema else '',
+                   'incentive_only': incentive_only}
+
+la_schemas_info = {
+    'name': 'la-schemas',
+    'title': 'Schemas for local authorities',
+    'description': 'Schemas matched to local authority datasets.',
+    'option_defaults': OrderedDict((('schema', ''),
+                                    ('incentive_only', False))),
+    'option_combinations': la_schemas_combinations,
+    'generate': la_schemas,
+    'template': 'report/la_schemas.html',
     }
 
 

@@ -103,7 +103,7 @@
 {% macro if_(testValue,stringIfTrue,stringIfFalse='') %}{% if testValue %}{{stringIfTrue}}{% else %}{{stringIfFalse}}{% endif%}{% endmacro %}
 
 
-{% macro search_form(mini=False, placeholder='Search for data...', set_fields=None, extra_options=None) %}
+{% macro search_form(mini=False, placeholder='Search for data...', set_fields=None) %}
   <div class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
       <div class="{{if_(mini,'mini','left')}}">
@@ -119,9 +119,7 @@
           </div>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              {% if k != 'unpublished' or k != 'core-dataset' %}
               <input type="hidden" name="{{k}}" value="{{v}}"/>
-              {% endif %}
             {% endfor %}
           {% endif %}
           {% if set_fields %}
@@ -133,8 +131,9 @@
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox','')}}" />
           {% endif %}
         </form>
-        {% if extra_options %}
-          {{extra_options()}}
+        {# extra_options can be passed in using the "call" syntax #}
+        {% if caller %}
+          {{ caller() }}
         {% endif %}
         </div>
       </div>

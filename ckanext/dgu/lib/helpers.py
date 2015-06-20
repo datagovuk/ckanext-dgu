@@ -2029,10 +2029,18 @@ def report_generated_at(reportname, object_id='__all__', withsub=False):
 
 def relative_url_for(**kwargs):
     '''Return the existing URL but amended for the given url_for-style
-    parameters'''
+    parameters. Much easier than calling h.add_url_param etc. For switching to
+    URLs inside the current controller action only.
+    '''
     from ckan.lib.base import h
+    # Restrict the request params to the same action & controller, to avoid
+    # being an open redirect.
+    disallowed_params = set(('controller', 'action', 'anchor', 'host',
+                             'protocol', 'qualified'))
+    user_specified_params = [(k, v) for k, v in request.params.items()
+                             if k not in disallowed_params]
     args = dict(request.environ['pylons.routes_dict'].items()
-                + request.params.items()
+                + user_specified_params
                 + kwargs.items())
     # remove blanks
     for k, v in args.items():
@@ -2149,12 +2157,30 @@ def orgs_for_admin_report():
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
 
+def all_la_org_names():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([la.name for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
+def all_la_org_names_and_titles():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([(la.name, la.title) for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
 def get_schema_options():
     from ckan.logic import get_action
     from ckan import model
 
     context = {'model': model, 'session': model.Session}
     return get_action('schema_list')(context, {})
+
+def get_la_schema_options():
+    all_schemas = get_schema_options()
+    incentive_schemas = []
+    for schema in all_schemas:
+        if 'LGTC' in schema['title']:
+            incentive_schemas.append(schema)
+    return incentive_schemas
 
 def get_codelist_options():
     from ckan.logic import get_action

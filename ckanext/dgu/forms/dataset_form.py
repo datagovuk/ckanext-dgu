@@ -1,5 +1,6 @@
 ﻿import re
 import json
+from itertools import chain
 import shapely
 
 from ckan.lib.base import c, model
@@ -73,36 +74,38 @@ def resources_schema():
     })
     return schema
 
+
 def resources_schema_to_form():
-    schema = resources_schema().copy()
-    schema['date'] = [ignore_missing,date_to_form]
+    schema = resources_schema()
+    schema['date'] = [ignore_missing, date_to_form]
     return schema
 
-def additional_resource_schema():
+
+def resources_schema_to_db():
     schema = resources_schema()
+    schema['id'].append(new_resource_if_url_and_description_change)
     schema['format'] = [not_empty, unicode]
+    schema['url'] = [not_empty]
+    schema['description'] = [not_empty]
+    return schema
+
+
+def additional_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['resource_type'].insert(0, validate_additional_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
-def individual_resource_schema():
-    schema = resources_schema()
-    schema['format'] = [not_empty, unicode]
+def individual_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['resource_type'].insert(0, validate_data_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
-def timeseries_resource_schema():
-    schema = resources_schema()
+def timeseries_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['date'] = [not_empty, unicode, convert_to_extras, date_to_db]
-    schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
@@ -216,12 +219,6 @@ class DatasetForm(p.SingletonPlugin):
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
 
-    @property
-    def _resource_format_optional(self):
-        return {
-            'theme-primary': [ignore_missing, unicode, convert_to_extras],
-        }
-
     def db_to_form_schema_options(self, options={}):
         context = options.get('context', {})
         schema = context.get('schema', None)
@@ -258,9 +255,9 @@ class DatasetForm(p.SingletonPlugin):
             'url': [ignore_missing, unicode],
             'taxonomy_url': [ignore_missing, unicode, convert_to_extras],
 
-            'additional_resources': additional_resource_schema(),
-            'timeseries_resources': timeseries_resource_schema(),
-            'individual_resources': individual_resource_schema(),
+            'additional_resources': additional_resource_schema_to_db(),
+            'timeseries_resources': timeseries_resource_schema_to_db(),
+            'individual_resources': individual_resource_schema_to_db(),
 
             'owner_org': [val.owner_org_validator, unicode],
             'groups': {
@@ -298,7 +295,7 @@ class DatasetForm(p.SingletonPlugin):
             'publish-restricted': [ignore_missing, bool_, convert_to_extras],
 
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
-            'theme-secondary': [ignore_missing, to_json, convert_to_extras],
+            'theme-secondary': [ignore_missing, commas_to_list, to_json, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
             # This is needed by the core CKAN update_resource, but isn't found by it because
@@ -368,7 +365,7 @@ class DatasetForm(p.SingletonPlugin):
             'sla': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
-            'theme-secondary': [convert_from_extras, ignore_missing],
+            'theme-secondary': [convert_from_extras, from_json, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],
@@ -491,6 +488,11 @@ def to_list(key, data, errors, context):
     if isinstance(item, basestring):
         data[key] = [item]
 
+def commas_to_list(key, data, errors, context):
+    item = data[key]
+    if isinstance(item, basestring):
+        data[key] = [i.strip() for i in item.split(',')]
+
 def to_json(key, data, errors, context):
     try:
         encoded = json.dumps(data[key])
@@ -609,3 +611,24 @@ def schema_codelist_validator(key, data, errors, context):
         # write the ID in case it came in via the API and was a URL or title
         data[key][i] = obj.id
 
+
+def new_resource_if_url_and_description_change(key, data, errors, context):
+    id_ = data[key]
+    if not id_:
+        return
+    old_resource = model.Resource.get(id_)
+    if not old_resource:
+        return
+    if data[(key[0], key[1], 'url')] != old_resource.url and \
+            data[(key[0], key[1], 'description')] != old_resource.description:
+        # Resource has changed so much we consider it a new one by deleting its
+        # id and other hidden properties.  We saw occasions when a resource in
+        # the form had its fields wiped and new description and URL put in, but
+        # it kept the resource ID (hidden in the form) so it still had old
+        # cached resources associated with it, incorrectly.
+        resource_columns = set(('date', 'description', 'url', 'format'))
+        for key_ in data.keys():
+            if key_[0] == key[0] and \
+                    key_[1] == key[1] and \
+                    key_[2] not in resource_columns:
+                del data[key_]

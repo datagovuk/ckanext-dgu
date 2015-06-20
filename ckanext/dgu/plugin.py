@@ -395,6 +395,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.app_dataset_theme_report_info,
                 reports.app_dataset_report_info,
                 reports.admin_editor_info,
+                reports.la_schemas_info,
                 ]
 
 
@@ -435,6 +436,7 @@ class InventoryPlugin(p.SingletonPlugin):
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
+        # home page for publishers is /unpublished/{org-id}/edit
         map.connect('unpublished_edit', '/unpublished/:id/edit',
                     controller=inv_ctlr, action='edit')
         map.connect('/unpublished/:id/edit/download',
