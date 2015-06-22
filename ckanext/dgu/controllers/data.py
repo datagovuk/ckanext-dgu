@@ -208,7 +208,7 @@ class DataController(BaseController):
         url = urlparse.urljoin('http://46.43.41.30/', relative_url)
         r = requests.get(url, headers=headers, stream=True)
 
-        if relative_url.startswith('/static/'):
+        if relative_url.startswith(('/static/', '/download/')):
             # CSS will only get loaded if it has the right content type
             response.content_type = r.headers.get('content-type', 'text/html')
             return r.raw.read() # Some of the static files are binary
