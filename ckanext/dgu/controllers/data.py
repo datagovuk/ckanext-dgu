@@ -205,7 +205,7 @@ class DataController(BaseController):
         from pylons import response
 
         headers = {'X-Script-Name': '/data/contracts-archive'}
-        contracts_url = pylons.config.get('ckanext-dgu.contracts_url')
+        contracts_url = pylons.config.get('dgu.contracts_url')
         url = urlparse.urljoin(contracts_url, relative_url)
         r = requests.get(url,
                          headers=headers,
