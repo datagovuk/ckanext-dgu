@@ -200,7 +200,7 @@ class DataController(BaseController):
     def viz_front_page(self):
         return render('viz/front_page.html')
 
-    def contracts_archive(self, relative_url):
+    def contracts_archive(self, relative_url='/'):
         import requests, urlparse
         from pylons import response
 

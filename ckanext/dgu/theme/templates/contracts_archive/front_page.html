@@ -9,7 +9,7 @@
 {% block title %}Contracts Archive{% endblock %}
 
 {% block breadcrumb_content %}
-    <li><a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='contracts_archive')}}">Contracts Archive</a></li>
+    <li><a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='contracts_archive', relative_url='/')}}">Contracts Archive</a></li>
 {% endblock %}
 
 {% block primary_content_inner %}
