@@ -193,11 +193,33 @@ class DataController(BaseController):
 
     def viz_social_investment_and_foundations(self):
         return render('viz/social_investment_and_foundations.html')
+
     def viz_investment_readiness_programme(self):
         return render('viz/investment_readiness_programme.html')
+
     def viz_front_page(self):
         return render('viz/front_page.html')
 
+    def contracts_archive(self, relative_url='/'):
+        import requests, urlparse
+        from pylons import response
+
+        headers = {'X-Script-Name': '/data/contracts-archive'}
+        contracts_url = pylons.config.get('dgu.contracts_url')
+        url = urlparse.urljoin(contracts_url, relative_url)
+        r = requests.get(url,
+                         headers=headers,
+                         params=request.params,
+                         stream=True)
+
+        if relative_url.startswith(('/static/', '/download/')):
+            # CSS will only get loaded if it has the right content type
+            response.content_type = r.headers.get('content-type', 'text/html')
+            return r.raw.read() # Some of the static files are binary
+        else:
+            extra_vars = {'content': r.text}
+            return render('contracts_archive/front_page.html',
+                          extra_vars=extra_vars)
 
     def resource_cache(self, root, resource_id, filename):
         """

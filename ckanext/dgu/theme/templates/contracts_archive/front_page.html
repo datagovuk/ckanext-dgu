@@ -1,0 +1,18 @@
+{% extends "page.html" %}
+
+{% block links %}
+  {{ super() }}
+  <link rel=stylesheet type=text/css href="/data/contracts-archive/static/semantic.css">
+  <link rel=stylesheet type=text/css href="/data/contracts-archive/static/main.css">
+{% endblock %}
+
+{% block title %}Contracts Archive{% endblock %}
+
+{% block breadcrumb_content %}
+    <li><a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='contracts_archive', relative_url='/')}}">Contracts Archive</a></li>
+{% endblock %}
+
+{% block primary_content_inner %}
+    <h1>Contracts Archive</h1>
+    {{content|safe}}
+{% endblock %}
