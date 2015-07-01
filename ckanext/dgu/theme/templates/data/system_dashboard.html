@@ -86,7 +86,7 @@
         <ul>
           <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users') }}">Users</a></li>
           <li>Appoint a Publisher Admin or Publisher Editor by <a href="/publisher">navigating to the publisher</a> and clicking 'Edit User Permissions'</li>
-          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins') }}">Report - Users who are admins/editors for publishers</a></li>
+          <li><a href="{{ h.url_for('report', report_name='admin_editor') }}">Report - Users who are admins/editors for publishers</a></li>
           <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users_not_assigned_to_groups') }}">Report - Users not assigned to a publisher</a></li>
           <li><a href="{{ h.url_for('ckanadmin_index') }}">Sysadmins</a></li>
           <li><a href="{{ h.url_for('publisher_requests') }}">Report - Publisher (Editor) Requests</a></li>
