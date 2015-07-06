@@ -93,7 +93,7 @@
     },
     {"title": "Transport",
     "description": "Airports, roads, freight, electric vehicles, parking, buses, footpaths and travel statistics.",
-    "topics": ["airports", "roads", "freight", "vehicles", "cars", "electric vehicles", "parking", "car park", "buses", "footpaths", "travel", "transport", "roadworthiness", "unlicensed", "journey", "HS2", "coach", "airline", "cyclist", "crossrail", "aviation", "congestion", "grit", "MOT", "rider", "cruise", "speed camera", "tram", "airplane", "roadworks", "DLR", "van", "traffic", "air accident", "charge points", "tax discs", "rail", "passenger", "carriageway", "drive", "translink", "driver", "highway", "railway", "freight", "cargo", "mileage", "hard shoulder", "airport", "MOT"],
+    "topics": ["airports", "roads", "freight", "vehicles", "cars", "electric vehicles", "parking", "car park", "buses", "footpaths", "travel", "transport", "roadworthiness", "unlicensed", "journey", "HS2", "coach", "airline", "bicycle", "cyclist", "crossrail", "aviation", "congestion", "grit", "MOT", "rider", "cruise", "speed camera", "tram", "aeroplane", "airplane", "roadworks", "DLR", "van", "traffic", "air accident", "charge points", "tax discs", "rail", "passenger", "carriageway", "drive", "translink", "driver", "highway", "railway", "freight", "cargo", "mileage", "hard shoulder", "airport", "MOT"],
     "gemet": ["Transport networks"],
     "nscl": ["Travel and Transport"],
     "la_function": ["108", "109", "111", "110", "113", "112", "106", "107", "105"],
