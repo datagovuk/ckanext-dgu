@@ -102,7 +102,9 @@ schema. In this case the version should be set to the next CKAN version number.
     <field name="ratings_average" type="float" indexed="true" stored="false" />
     <field name="tags" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="groups" type="string" indexed="true" stored="true" multiValued="true"/>
+    <!-- DGU has alternatives
     <field name="organization" type="string" indexed="true" stored="true" multiValued="false"/>
+    -->
 
     <field name="capacity" type="string" indexed="true" stored="true" multiValued="false"/>
 
@@ -135,6 +137,20 @@ schema. In this case the version should be set to the next CKAN version number.
 
     <field name="indexed_ts" type="date" indexed="true" stored="true" default="NOW" multiValued="false"/>
 
+    <!-- DGU -->
+    <!-- organization and organization_titles here are based on the old group and group_titles so maybe we could review these and revert to default ckan's organization? -->
+    <field name="organization" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="organization_titles" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="all_themes" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="publisher" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="parent_publishers" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="popularity" type="int" indexed="true" stored="true" default="0"/>
+    <field name="openness_score" type="int" indexed="true" stored="true"/>
+    <field name="broken_links" type="string" indexed="true" stored="true"/>
+
     <!-- Copy the title field into titleString, and treat as a string
          (rather than text type).  This allows us to sort on the titleString -->
     <field name="title_string" type="string" indexed="true" stored="false" />
@@ -150,6 +166,7 @@ schema. In this case the version should be set to the next CKAN version number.
     <dynamicField name="res_extras_*" type="text" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="vocab_*" type="string" indexed="true" stored="true" multiValued="true"/>
     <dynamicField name="*" type="string" indexed="true"  stored="false"/>
+    <dynamicField name="*_multi" type="string" indexed="true"  stored="true" multiValued="true"/>
 </fields>
 
 <uniqueKey>index_id</uniqueKey>
@@ -176,6 +193,9 @@ schema. In this case the version should be set to the next CKAN version number.
 <copyField source="res_description" dest="text"/>
 <copyField source="maintainer" dest="text"/>
 <copyField source="author" dest="text"/>
+<!-- DGU -->
+<copyField source="organization_titles" dest="text"/>
+<copyField source="res_format" dest="text"/>
 
 </schema>
 
