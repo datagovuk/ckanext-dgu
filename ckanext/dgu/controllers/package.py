@@ -5,7 +5,6 @@ from urllib2 import HTTPError, URLError
 
 from ckan.lib.base import model, abort, response, h, BaseController
 from ckanext.dgu.plugins_toolkit import render, c, request, _, ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access
-from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid, DataError
 from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import missing

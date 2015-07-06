@@ -15,7 +15,7 @@ import messytables
 
 from ckan.lib.celery_app import celery
 import ckan.lib.munge as munge
-from ckan.lib.field_types import DateType, DateConvertError
+from ckanext.dgu.lib.dgu_date import DguDateType, DguDateConvertError
 from ckanclient import CkanClient, CkanApiError
 
 def _process_upload(context, data):
@@ -229,8 +229,8 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
     if isinstance(publish_date, basestring) and publish_date.strip():
         # e.g. CSV containing "1/2/14" -> "14/02/01"
         try:
-            publish_date = DateType.form_to_db(publish_date)
-        except DateConvertError:
+            publish_date = DguDateType.form_to_db(publish_date)
+        except DguDateConvertError:
             # Lots of text went into this field but have decided to not allow from now
             # and it never gets displayed.
             msg = 'Could not parse date: "%s" Must be: DD/MM/YY' % publish_date
@@ -238,7 +238,7 @@ def process_incoming_inventory_row(row_number, row, default_group_name, client, 
             raise Exception(msg)
     if isinstance(publish_date, datetime.datetime):
         # e.g. Excel -> "14/02/01"
-        publish_date = DateType.date_to_db(publish_date)
+        publish_date = DguDateType.date_to_db(publish_date)
     if not isinstance(publish_date, basestring):
         # e.g. Excel int
         msg = 'Could not parse date: "%s" Must be: DD/MM/YY' % publish_date

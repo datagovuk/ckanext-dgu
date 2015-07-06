@@ -5,11 +5,11 @@ import os
 import re
 from datetime import datetime
 import csv
-from ckan.lib.field_types import DateType,DateConvertError
+from ckanext.dgu.lib.dgu_date import DguDateType, DguDateConvertError
 
 class CleanResourceDates(CkanCommand):
     """
-    Iterate through resources, cleaning up dates to conform to DateType YYYY-MM-DD database spec.
+    Iterate through resources, cleaning up dates to conform to DguDateType YYYY-MM-DD database spec.
     Usage: clean_resource_dates.py
        Or: clean_resource_dates.py commit
     """
@@ -123,7 +123,7 @@ class CleanResourceDates(CkanCommand):
                 and not self.regex_year_month_day.match(db_string):
                     return False
         try:
-            parsed = DateType.parse_timedate(db_string,'db')
+            parsed = DguDateType.parse_timedate(db_string,'db')
             assert parsed['readable_format'] in ['YYYY','YYYY-MM','YYYY-MM-DD']
             if parsed['readable_format'] in ['YYYY-MM','YYYY-MM-DD']:
                 assert parsed['month'] in range(1,13)
@@ -131,7 +131,7 @@ class CleanResourceDates(CkanCommand):
                 assert parsed['day'] in range(1,32)
             assert parsed['year'] in range(1900,2100)
             return True
-        except (DateConvertError,AssertionError), e:
+        except (DguDateConvertError,AssertionError), e:
             return False
 
     def _clean_date(self,datestring):

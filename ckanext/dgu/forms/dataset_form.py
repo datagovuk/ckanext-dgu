@@ -3,7 +3,7 @@ import json
 from itertools import chain
 
 from ckan.lib.base import c, model
-from ckan.lib.field_types import DateType, DateConvertError
+from ckanext.dgu.lib.dgu_date import DguDateType, DguDateConvertError
 from ckan.lib.navl.dictization_functions import Invalid
 
 import ckan.logic.schema as default_schema
@@ -408,16 +408,16 @@ class DatasetForm(p.SingletonPlugin):
 
 def date_to_db(value, context):
     try:
-        value = DateType.form_to_db(value)
-    except DateConvertError, e:
+        value = DguDateType.form_to_db(value)
+    except DguDateConvertError, e:
         raise Invalid(str(e))
     return value
 
 
 def date_to_form(value, context):
     try:
-        value = DateType.db_to_form(value)
-    except DateConvertError, e:
+        value = DguDateType.db_to_form(value)
+    except DguDateConvertError, e:
         raise Invalid(str(e))
     return value
 

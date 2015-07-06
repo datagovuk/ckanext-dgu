@@ -709,7 +709,7 @@ def get_resource_fields(resource, pkg_extras):
 def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                        is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
     from ckan.lib.base import h
-    from ckan.lib.field_types import DateType
+    from ckanext.dgu.lib.dgu_date import DguDateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
@@ -751,7 +751,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
             field_names.add(('bbox', 'spatial-reference-system', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'resource-type', 'metadata-language'))
             if pkg_extras.get('resource-type') == 'service':
                 field_names.add(['spatial-data-service-type'])
-            dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+            dataset_reference_date = ', '.join(['%s (%s)' % (DguDateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
@@ -766,10 +766,10 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
     temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
     if temporal_coverage_from and temporal_coverage_to:
         temporal_coverage = '%s - %s' % \
-          (DateType.db_to_form(temporal_coverage_from),
-           DateType.db_to_form(temporal_coverage_to))
+          (DguDateType.db_to_form(temporal_coverage_from),
+           DguDateType.db_to_form(temporal_coverage_to))
     elif temporal_coverage_from or temporal_coverage_to:
-        temporal_coverage = DateType.db_to_form(temporal_coverage_from or \
+        temporal_coverage = DguDateType.db_to_form(temporal_coverage_from or \
                                                 temporal_coverage_to)
     else:
         temporal_coverage = ''
@@ -841,8 +841,8 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
         'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (escape(pkg_extras.get('bbox-north-lat')), escape(pkg_extras.get('bbox-south-lat')), escape(pkg_extras.get('bbox-west-long')), escape(pkg_extras.get('bbox-east-long')))) if has_extent(c.pkg) else ''},
         'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
         'data_modified': {'label': 'Data last modified', 'value': render_datestamp(pkg_extras.get('data_modified', ''))},
-        'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
-        'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
+        'date_updated': {'label': 'Date data last updated', 'value': DguDateType.db_to_form(pkg_extras.get('date_updated', ''))},
+        'date_released': {'label': 'Date data last released', 'value': DguDateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
         'resource-type': {'label': 'ISO19139 resource type', 'value': pkg_extras.get('resource-type')},
@@ -856,7 +856,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
         'codelist': {'label': 'Code list', 'value': codelists},
         'sla': {'label': 'Service Level', 'value': sla},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
-        'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
+        'metadata-date': {'label': 'Metadata date', 'value': DguDateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
         'la-function': {'label': 'Local Authority Function', 'value': pkg_extras.get('la_function')},
         'la-service': {'label': 'Local Authority Service', 'value': pkg_extras.get('la_service')},
@@ -1326,9 +1326,9 @@ def are_legacy_extras(data):
     return are_legacy_extras
 
 def timeseries_resources():
-    from ckan.lib.field_types import DateType
+    from ckanext.dgu.lib.dgu_date import DguDateType
     unsorted = c.pkg_dict.get('timeseries_resources', [])
-    get_iso_date = lambda resource: DateType.form_to_db(resource.get('date'),may_except=False)
+    get_iso_date = lambda resource: DguDateType.form_to_db(resource.get('date'),may_except=False)
     return sorted(unsorted, key=get_iso_date)
 
 def additional_resources():
@@ -1878,10 +1878,10 @@ def render_db_date(db_date_str):
          '2014' -> '2014'
     Non-parsing strings get '' returned.
     '''
-    from ckan.lib.field_types import DateType, DateConvertError
+    from ckanext.dgu.lib.dgu_date import DguDateType, DguDateConvertError
     try:
-        return DateType.db_to_form(db_date_str)
-    except DateConvertError:
+        return DguDateType.db_to_form(db_date_str)
+    except DguDateConvertError:
         return ''
 
 
@@ -2048,11 +2048,11 @@ def has_related_apps(pid):
     return len(list(get_related_apps(pid))) > 0
 
 def parse_date(date_string):
-    from ckan.lib.field_types import DateType, DateConvertError
+    from ckanext.dgu.lib.dgu_date import DguDateType, DguDateConvertError
 
     try:
-        return DateType.parse_timedate(date_string, 'form')
-    except DateConvertError:
+        return DguDateType.parse_timedate(date_string, 'form')
+    except DguDateConvertError:
         class FakeDate(dict):
             pass
         return FakeDate(year='')
