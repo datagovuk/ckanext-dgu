@@ -516,7 +516,7 @@ def get_organization_from_resource(res_dict):
     res = model.Resource.get(res_id)
     if not res:
         return None
-    return res.resource_group.package.get_organization()
+    return model.Group.get(res.package.owner_org)
 
 def ga_download_tracking(resource, publisher_name, action='download'):
     '''Google Analytics event tracking for downloading a resource. (Universal
@@ -1023,7 +1023,8 @@ def get_dataset_openness(pkg):
     return None
 
 def get_contact_details(pkg, pkg_extras):
-    publisher = c.pkg.get_organization()
+    from ckan import model
+    publisher = model.Group.get(c.pkg.owner_org)
     name = pkg_extras.get('contact-name')
     email = pkg_extras.get('contact-email')
     phone = pkg_extras.get('contact-phone')
@@ -1044,23 +1045,26 @@ def have_foi_contact_details(pkg, pkg_extras):
     return any(get_foi_contact_details(pkg, pkg_extras))
 
 def get_contact_name(pkg, extras):
+    from ckan import model
     name = extras.get('contact-name')
     if not name:
-        publisher = pkg.get_organization()
+        publisher = model.Group.get(pkg.owner_org)
         if publisher:
             name = publisher.extras.get('contact-name')
     return name
 
 def get_foi_contact_name(pkg, extras):
+    from ckan import model
     name = extras.get('foi-name')
     if not name:
-        publisher = pkg.get_organization()
+        publisher = model.Group.get(pkg.owner_org)
         if publisher:
             name = publisher.extras.get('foi-name')
     return name
 
 def get_foi_contact_details(pkg, pkg_extras):
-    publisher = c.pkg.get_organization()
+    from ckan import model
+    publisher = model.Group.get(pkg.owner_org)
     foi_name = pkg_extras.get('foi-name')
     foi_email = pkg_extras.get('foi-email')
     foi_phone = pkg_extras.get('foi-phone')
@@ -1837,7 +1841,7 @@ def inventory_status(package_items):
         pid = p['package']
         action = p['action']
         pkg = model.Package.get(pid)
-        grp = pkg.get_organization()
+        grp = model.Group.get(pkg.owner_org)
 
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 

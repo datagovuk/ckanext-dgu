@@ -5,6 +5,8 @@ import ckan.lib.munge as munge
 from ckanext.dgu.plugins_toolkit import (c, NotAuthorized,
     ValidationError, get_action, check_access)
 from ckan.lib.search import SearchIndexError
+from ckan import model
+
 
 def inventory_dumper(tmpfile, query):
     """ Dumps all of the inventory items to the open tmpfile using the
@@ -18,7 +20,7 @@ def inventory_dumper(tmpfile, query):
         if not pkg.extras.get('unpublished', False):
             continue
 
-        org = pkg.get_organization()
+        org = model.Group.get(pkg.owner_org)
         if not org:
             # This should not happen, but does appear in test data during development
             grp = 'Unknown'

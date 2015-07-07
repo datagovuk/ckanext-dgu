@@ -51,7 +51,7 @@ def nii_report():
     nii_organizations = set()
     for dataset_object in nii_dataset_objects:
         broken_resources = broken_resources_for_package(dataset_object.id)
-        org = dataset_object.get_organization()
+        org = model.Group.get(dataset_object.owner_org)
         dataset_details = {
                 'name': dataset_object.name,
                 'title': dataset_object.title,
@@ -114,7 +114,7 @@ def publisher_resources(organization=None,
 
     # Get their resources
     def create_row(pkg_, resource_dict):
-        org_ = pkg_.get_organization()
+        org_ = model.Group.get(pkg_.owner_org)
         return OrderedDict((
                 ('publisher_title', org_.title),
                 ('publisher_name', org_.name),
@@ -427,7 +427,7 @@ def unpublished():
                 .all()
     pkg_dicts = []
     for pkg in pkgs:
-        org = pkg.get_organization()
+        org = model.Group.get(pkg.owner_org)
         pkg_dict = {
                 'name': pkg.name,
                 'title': pkg.title,
@@ -478,7 +478,7 @@ def datasets_without_resources():
         if len(pkg.resources) != 0 or \
           pkg.extras.get('unpublished', '').lower() == 'true':
             continue
-        org = pkg.get_organization()
+        org = model.Group.get(pkg.owner_org)
         deleted, url = last_resource_deleted(pkg)
         pkg_dict = OrderedDict((
                 ('name', pkg.name),
@@ -513,7 +513,7 @@ def app_dataset_report():
                         .filter(model.Related.type=='App') \
                         .all():
         dataset = related.dataset
-        org = dataset.get_organization()
+        org = model.Group.get(dataset.owner_org)
         top_org = list(go_up_tree(org))[-1]
 
         app_dataset_dict = OrderedDict((

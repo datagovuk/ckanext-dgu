@@ -80,8 +80,9 @@ class VoidConstructor(CkanCommand):
         # TODO: Work out why qualified won't work in url_for
         from pylons import config
         from ckan.lib.helpers import url_for
+        from ckan import model
 
-        pub = dataset.get_organization()
+        pub = model.Group.get(dataset.owner_org)
         url = config.get('ckan.site_url', '') + url_for(controller='package', action='read', id=dataset.id,
             format='rdf')
 

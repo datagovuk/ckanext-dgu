@@ -48,7 +48,7 @@ def generate_stats():
             counter[package.extras['theme-primary'] or 'Empty'] = counter[package.extras['theme-primary'] or 'Empty'] + 1
         else:
             counter['No theme'] = counter['No theme'] + 1
-            org = package.get_organization()
+            org = model.Group.get(package.owner_org)
             if not org
                 print package.name, "has no organization"
             else:

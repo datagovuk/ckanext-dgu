@@ -40,7 +40,7 @@ class FeedbackController(BaseController):
         except NotAuthorized:
             abort(401, _('Unauthorized to read package %s') % id)
 
-        c.publisher = c.pkg.get_organization()
+        c.publisher = model.Group.get(c.pkg.owner_org)
         if not c.publisher:
             log.warning("Package {0} is not a member of any group!".format(id))
 

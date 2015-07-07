@@ -42,7 +42,7 @@ class FixContactDetails(object):
         rev.author = 'fix_contact_details.py'
 
         for package in model.Session.query(model.Package).filter_by(state='active'):
-            group = package.get_organization()
+            group = model.Group.get(package.owner_org)
             if not group:
                 stats.add('was not in a group', package.name)
                 continue

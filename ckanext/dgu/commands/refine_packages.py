@@ -86,7 +86,7 @@ class RefinePackages(CkanCommand):
             log.info('Iterating over %d packages...' % count)
             n = 0
             def extract_publisher(pkg):
-                publisher = pkg.get_organization()
+                publisher = model.Group.get(pkg.owner_org)
                 if publisher:
                     return publisher.title
                 return ''
