@@ -6,6 +6,7 @@ import re
 import sqlalchemy
 import urlparse
 import datetime
+import urllib
 
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h
@@ -260,6 +261,7 @@ class DataController(BaseController):
         is_html = fmt == "HTML"
 
         filepath = os.path.join(archive_root, root, resource_id, filename).encode('utf-8')
+        filepath = urllib.quote(filepath)
         if not os.path.exists(filepath):
             abort(404, "Resource is not cached")
 
