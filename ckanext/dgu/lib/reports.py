@@ -337,9 +337,8 @@ def publisher_activity(organization, include_sub_organizations=False):
         rr_q = model.Session.query(model.Package, model.ResourceRevision, model.Revision)\
             .filter(model.Package.id == pkg.id)\
             .filter_by(state='active')\
-            .join(model.ResourceGroup)\
             .join(model.ResourceRevision,
-                  model.ResourceGroup.id == model.ResourceRevision.resource_group_id)\
+                  model.Package.id == model.ResourceRevision.package_id)\
             .join(model.Revision)\
             .filter(~model.Revision.author.in_(system_authors))\
             .filter(~model.Revision.author.like(system_author_template))
@@ -452,9 +451,8 @@ unpublished_report_info = {
     }
 
 def last_resource_deleted(pkg):
-    
+
     resource_revisions = model.Session.query(model.ResourceRevision) \
-                              .join(model.ResourceGroup) \
                               .join(model.Package) \
                               .filter_by(id=pkg.id) \
                               .order_by(model.ResourceRevision.revision_timestamp) \

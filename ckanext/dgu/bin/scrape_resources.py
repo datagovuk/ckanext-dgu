@@ -39,7 +39,7 @@ class ScrapeResources(CkanCommand):
 
         for resource in self._get_resources():
             scrapername = resource.extras.get('scraper_url')
-            package = resource.resource_group.package
+            package = resource.package
 
             # Get the data for this scraper and give up if there is none
             datalist = s.get_simple_scraper_data(scrapername)

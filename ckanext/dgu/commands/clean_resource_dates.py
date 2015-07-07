@@ -97,7 +97,6 @@ class CleanResourceDates(CkanCommand):
         log = self.log
         resources = model.Session.query(model.Resource) \
                                  .filter_by(state='active') \
-                                 .join(model.ResourceGroup) \
                                  .join(model.Package) \
                                  .filter_by(state='active') \
                                  .all()

@@ -1170,7 +1170,7 @@ def groups_for_current_user():
 
 def additional_extra_fields(res):
     return [r for r in res.keys() if r not in
-            ('id','resource_type','resource_group_id',
+            ('id','resource_type',
              'revision_id', 'url','description','format', 'scraper_url')]
 
 
@@ -1182,12 +1182,12 @@ def hidden_extra_fields(data):
 
 def timeseries_extra_fields(res):
     return [r for r in res.keys() if r not in
-            ('id','resource_type','resource_group_id',
+            ('id','resource_type',
             'revision_id', 'url','description','format','date')]
 
 def resource_extra_fields(res):
     return [r for r in res.keys() if r not in
-            ('id','resource_type','resource_group_id',
+            ('id','resource_type',
             'revision_id', 'url','description','format')]
 
 def cell_has_errors(errors, res_type, num, col):

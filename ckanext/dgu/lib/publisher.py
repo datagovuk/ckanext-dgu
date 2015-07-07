@@ -103,8 +103,7 @@ def openness_scores(publisher, include_sub_publishers=False, use_cache=True):
                  TS.key = 'openness_score' AND
                  TS.entity_id in (
                    SELECT R.id from resource  as R
-                   INNER JOIN resource_group as RG ON RG.id = R.resource_group_id
-                   INNER JOIN package as P ON P.id = RG.package_id
+                   INNER JOIN package as P ON P.id = R.package_id
                    WHERE P.state = 'active' AND R.state='active' AND
                          P.id in (SELECT table_id FROM member
                                   WHERE group_id in ({pub_id})
@@ -130,8 +129,7 @@ def resource_count(publisher, include_sub_publishers=False):
         returns the scalar.
     """
     q = """SELECT count(R.id) from resource  as R
-           INNER JOIN resource_group as RG ON RG.id = R.resource_group_id
-           INNER JOIN package as P ON P.id = RG.package_id
+           INNER JOIN package as P ON P.id = R.package_id
            WHERE P.state = 'active' AND R.state='active' AND
                  P.id in (SELECT table_id FROM member
                           WHERE group_id IN ({pub_id})

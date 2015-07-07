@@ -135,7 +135,7 @@ class ResourceRemapper(CkanCommand):
             model.Session.add(resource)
             model.Session.commit()
 
-        pkg = resource.resource_group.package
+        pkg = resource.package
         if pkg.state == 'deleted':
             self.remap_stats.increment('URL has GONE within already deleted package')
             self.record_transaction(pkg, resource, TRANSLOG_PACKAGE_ALREADY_DELETED)
@@ -167,7 +167,7 @@ class ResourceRemapper(CkanCommand):
             model.Session.commit()        
 
         # Record whether we have updated an active resource within a deleted package
-        pkg = resource.resource_group.package
+        pkg = resource.package
         if pkg.state == 'deleted':
             self.remap_stats.increment('URL has MOVED within already deleted package')
             self.record_transaction(pkg, resource, TRANSLOG_PACKAGE_ALREADY_DELETED)

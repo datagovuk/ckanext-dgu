@@ -166,13 +166,11 @@ class DguApiController(ApiController):
             query = model.Session.query(model.ResourceRevision) \
                     .join(model.Revision) \
                     .filter(model.Revision.timestamp >= since_timestamp) \
-                    .join(model.ResourceGroup,
-                          model.ResourceRevision.resource_group_id == model.ResourceGroup.id) \
                     .limit(max_limit)
             res = query.all()
             if len(res) == max_limit:
                 result['results_limited'] = True
-            changed_package_ids.update([obj_rev.resource_group.package_id \
+            changed_package_ids.update([obj_rev.package_id \
                                         for obj_rev in res])
 
         if not result['results_limited']:

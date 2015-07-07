@@ -271,7 +271,6 @@ class LaSchemas(object):
                 # Submission mentions dataset on LA site - maybe it is in DGU already?
                 elif submission and submission.dataseturl:
                     datasets = model.Session.query(model.Package) \
-                                    .join(model.ResourceGroup) \
                                     .join(model.Resource) \
                                     .filter(model.Resource.url==submission.dataseturl) \
                                     .filter(model.Package.state=='active') \

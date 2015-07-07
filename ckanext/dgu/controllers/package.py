@@ -1,16 +1,12 @@
 import urllib2
 import logging
-from urllib import quote
 from urllib2 import HTTPError, URLError
 
 from ckan.lib.base import model, abort, response, h, BaseController
 from ckanext.dgu.plugins_toolkit import render, c, request, _, ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access
-from ckan.lib.navl.dictization_functions import Invalid, DataError
-from ckanext.dgu.schema import GeoCoverageType
-from ckan.lib.navl.dictization_functions import missing
+from ckan.lib.navl.dictization_functions import DataError
 import ckan.controllers.package
 from ckanext.dgu.lib.helpers import get_from_flat_dict
-from ckan.lib.package_saver import PackageSaver
 
 log = logging.getLogger(__name__)
 

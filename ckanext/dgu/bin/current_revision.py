@@ -14,7 +14,6 @@ from running_stats import StatsList
 def _get_resources(state, options):
     resources = model.Session.query(model.Resource) \
                 .filter_by(state=state) \
-                .join(model.ResourceGroup) \
                 .join(model.Package) \
                 .filter_by(state='active')
     if options.dataset:
@@ -131,7 +130,7 @@ def refix(options):
         print 'Written'
 
 def add_stat(outcome, res, stats):
-    return stats.add(outcome, '%s %s' % (res.resource_group.package.name, res.id[:4]))
+    return stats.add(outcome, '%s %s' % (res.package.name, res.id[:4]))
 
 
 if __name__ == '__main__':

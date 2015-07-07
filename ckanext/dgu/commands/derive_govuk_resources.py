@@ -207,7 +207,7 @@ class GovUkResourceChecker(CkanCommand):
 
         log.info("Found %d resources for www.gov.uk links" % resources.count())
         for r in resources:
-            pkg = r.resource_group.package
+            pkg = r.package
 
             # If we only want one, then skip the others
             if self.options.single and not pkg.name == self.options.single:

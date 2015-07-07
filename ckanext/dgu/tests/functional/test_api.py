@@ -324,7 +324,7 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
                              format="CSV",
                              url="http://www.barnsley.nhs.uk/spend.csv")
         model.Session.add(res)
-        model.Package.by_name('latest').resource_groups_all[0].resources_all.append(res)
+        model.Package.by_name('latest').resources_all.append(res)
         model.repo.commit_and_remove()
         self._assert_revision_created()
         res = self._last_revision()

@@ -49,7 +49,7 @@ def fix_redirects(options):
 
     for archival, res in results:
         def stats_add(msg):
-            pkg = res.resource_group.package
+            pkg = res.package
             return stats.add(msg, ('%s/%s %s' % (pkg.name, res.id, res.url)).encode('latin7', 'ignore'))
         if archival.reason.endswith('410 Gone'):
             # Find out the redirect - it is in the html

@@ -49,7 +49,6 @@ def get_resources(state='active', resource_id=None, dataset_name=None):
     from ckan import model
     resources = model.Session.query(model.Resource) \
                 .filter_by(state=state) \
-                .join(model.ResourceGroup) \
                 .join(model.Package) \
                 .filter_by(state='active')
     criteria = [state]

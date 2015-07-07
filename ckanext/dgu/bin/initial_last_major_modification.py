@@ -51,7 +51,6 @@ class Tool:
                           .order_by(model.ResourceRevision.revision_timestamp)
         # Get this package's resource revisions, latest first.
         resource_revisions = model.Session.query(model.ResourceRevision)\
-                             .join(model.ResourceGroup)\
                              .join(model.Package)\
                              .filter(model.Package.id==pkg.id)\
                              .order_by(model.ResourceRevision.revision_timestamp.desc())
