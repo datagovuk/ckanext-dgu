@@ -271,11 +271,15 @@ class PublisherController(OrganizationController):
 
         data['users'] = []
         for capacity in ('admin', 'editor'):
+            data_dict = {'id': c.group.id,
+                         'object_type': 'user',
+                         'capacity': capacity}
             data['users'].extend(
-                { "name": user.name,
-                  "fullname": user.fullname,
-                  "capacity": capacity }
-                for user in c.group.members_of_type(model.User, capacity).all() )
+                {"name": user['name'],
+                 "fullname": user['fullname'],
+                 "capacity": capacity}
+                for user in get_action('member_list')(context, data_dict)
+                )
 
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
         c.form = render('publisher/users_form.html', extra_vars=vars)
@@ -357,8 +361,15 @@ class PublisherController(OrganizationController):
             c.facets = {}
             c.page = h.Page(collection=[])
 
-        c.administrators = c.group.members_of_type(model.User, 'admin')
-        c.editors = c.group.members_of_type(model.User, 'editor')
+        c.administrators = [id_ for id_, type_, capacity in
+                            get_action('member_list')(context,
+                                                     {'id': c.group.id,
+                                                      'object_type': 'user',
+                                                      'capacity': 'admin'})]
+        c.editors = [id_ for id_, type_, capacity in
+                     get_action('member_list')(context, {'id': c.group.id,
+                                                        'object_type': 'user',
+                                                        'capacity': 'editor'})]
 
         parent_groups = c.group.get_parent_groups(type='organization')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
