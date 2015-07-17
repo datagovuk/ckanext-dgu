@@ -5,7 +5,9 @@ import ckan.new_tests.factories as factories
 from ckan import model
 
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
-from ckanext.dgu.lib.helpers import dgu_linked_user, user_properties
+from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
+                                     render_partial_datestamp
+                                     )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
 
@@ -148,3 +150,18 @@ class TestUserProperties(PylonsTestCase):
         factories.Organization(users=org_users, category='ministerial-department')
         name, obj, drupal_id, type_, this_is_me = user_properties(user['name'])
         assert_equal(type_, 'official')
+
+
+class TestRenderPartialDatestamp(object):
+    def test_full_timestamp(self):
+        assert_equal(render_partial_datestamp('2012-06-12T17:33:02.884649'),
+                     '12/06/2012')
+
+    def test_date(self):
+        assert_equal(render_partial_datestamp('2012-06-12'), '12/06/2012')
+
+    def test_month(self):
+        assert_equal(render_partial_datestamp('2012-06'), 'Jun 2012')
+
+    def test_year(self):
+        assert_equal(render_partial_datestamp('2012'), '2012')
