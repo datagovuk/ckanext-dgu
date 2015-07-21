@@ -1,6 +1,11 @@
+import os.path
+
 from nose.tools import assert_equal
 
+from ckan import model
 from ckanext.dgu.lib.theme import categorize_package, categorize_package2
+from ckanext.taxonomy.models import init_tables
+from ckanext.taxonomy import lib
 
 fish_pkg = {'name': '',
             'title': 'fishing in the river',
@@ -9,13 +14,33 @@ fish_pkg = {'name': '',
             'extras': {}}
 
 fish_and_spend_pkg = {'name': '',
-                      'title': 'fishing in the river',
+                      'title': 'fishing in the river spend',
                       'notes': 'Fish spend transactions',
                       'tags': '',
                       'extras': {}}
 
+death_pkg = {'name': '',
+             'title': 'Death',
+             'notes': '',
+             'tags': '',
+             'extras': {}}
 
-class TestCategorizePackage:
+
+class ThemeTestBase(object):
+    @classmethod
+    def setup_class(cls):
+        init_tables()
+        themes_filepath = os.path.abspath(os.path.join(__file__,
+                                                       '../../../themes.json'))
+        lib.load_terms_and_extras(themes_filepath, 'dgu-themes')
+
+    @classmethod
+    def teardown_class(cls):
+        model.repo.rebuild_db()
+
+
+class TestCategorizePackage(ThemeTestBase):
+
     def test_basic(self):
         themes = categorize_package(fish_pkg)
 
@@ -24,10 +49,11 @@ class TestCategorizePackage:
     def test_with_secondary_theme(self):
         themes = categorize_package(fish_and_spend_pkg)
 
-        assert_equal(themes, ['Environment', 'Spending'])
+        assert_equal(themes, ['Environment', 'Government Spending'])
 
 
-class TestCategorizePackage2:
+class TestCategorizePackage2(ThemeTestBase):
+
     def test_basic(self):
         themes = categorize_package2(fish_pkg)
 
@@ -59,7 +85,13 @@ class TestCategorizePackage2:
                      theme['reasons'])
 
         theme = themes[1]
-        assert_equal(theme['name'], 'Spending')
-        assert_equal([u'"transact" matched description',
+        assert_equal(theme['name'], 'Government Spending')
+        assert_equal([u'"spend" matched title',
+                      u'"transact" matched description',
                       u'"spend" matched description'],
                      theme['reasons'])
+
+    def test_topic_in_two_categories(self):
+        themes = categorize_package2(death_pkg)
+        theme_names = [theme['name'] for theme in themes]
+        assert_equal(set(('Society', 'Health')), set(theme_names))
