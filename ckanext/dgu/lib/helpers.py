@@ -401,12 +401,22 @@ def render_partial_datestamp(datestamp_str):
     '''
     if not datestamp_str:
         return ''
-    bits = map(int, re.split('[^\d]', datestamp_str)[:3])
-    num_bits = len(bits)
-    format_ = {3: '%d/%m/%Y', 2: '%b %Y', 1: '%Y'}[num_bits]
-    # pad it out to three bits (if its a partial date)
-    bits += [1] * (3 - num_bits)
-    return datetime.datetime(*bits).strftime(format_)
+    try:
+        bits = map(int, re.split('[^\d]', datestamp_str)[:3])
+        num_bits = len(bits)
+        format_ = {3: '%d/%m/%Y', 2: '%b %Y', 1: '%Y'}[num_bits]
+        # pad it out to three bits (if its a partial date)
+        bits += [1] * (3 - num_bits)
+        return datetime.datetime(*bits).strftime(format_)
+    except:
+        try:
+            request_path = t.request.path
+        except TypeError:
+            # not in a request (e.g. in a test)
+            request_path = ''
+        log.error('Could not render datestamp: %r %s', datestamp_str,
+                  request_path)
+        return ''
 
 
 def get_cache(resource_dict):

@@ -165,3 +165,9 @@ class TestRenderPartialDatestamp(object):
 
     def test_year(self):
         assert_equal(render_partial_datestamp('2012'), '2012')
+
+    def test_string(self):
+        assert_equal(render_partial_datestamp('feb'), '')
+
+    def test_invalid_date(self):
+        assert_equal(render_partial_datestamp('2012-01-50'), '')
