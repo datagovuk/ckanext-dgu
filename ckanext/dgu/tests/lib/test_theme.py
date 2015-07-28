@@ -3,7 +3,8 @@ import os.path
 from nose.tools import assert_equal
 
 from ckan import model
-from ckanext.dgu.lib.theme import categorize_package, categorize_package2
+from ckanext.dgu.lib.theme import (categorize_package, categorize_package2,
+                                   normalize_token)
 from ckanext.taxonomy.models import init_tables
 from ckanext.taxonomy import lib
 
@@ -95,3 +96,15 @@ class TestCategorizePackage2(ThemeTestBase):
         themes = categorize_package2(death_pkg)
         theme_names = [theme['name'] for theme in themes]
         assert_equal(set(('Society', 'Health')), set(theme_names))
+
+
+class TestNormalizeToken(object):
+    def test_no_change(self):
+        assert_equal(normalize_token('fish'), 'fish')
+
+    def test_stem(self):
+        assert_equal(normalize_token('fishes'), 'fish')
+
+    def test_stem_exception(self):
+        assert_equal(normalize_token('hospitality'), 'hospitality')
+        # not hospital
