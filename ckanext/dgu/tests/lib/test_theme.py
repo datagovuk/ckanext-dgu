@@ -26,6 +26,11 @@ death_pkg = {'name': '',
              'tags': '',
              'extras': {}}
 
+employer_pkg = {'name': '',
+                'title': 'employer',
+                'notes': '',
+                'tags': '',
+                'extras': {}}
 
 class ThemeTestBase(object):
     @classmethod
@@ -97,6 +102,11 @@ class TestCategorizePackage2(ThemeTestBase):
         theme_names = [theme['name'] for theme in themes]
         assert_equal(set(('Society', 'Health')), set(theme_names))
 
+    def test_stem_exception(self):
+        themes = categorize_package2(employer_pkg)
+        theme_names = [theme['name'] for theme in themes]
+        assert_equal(set(('Business & Economy',)), set(theme_names))
+
 
 class TestNormalizeToken(object):
     def test_no_change(self):
@@ -104,6 +114,8 @@ class TestNormalizeToken(object):
 
     def test_stem(self):
         assert_equal(normalize_token('fishes'), 'fish')
+        assert_equal(normalize_token('expense'), 'expens')
+        assert_equal(normalize_token('expenditure'), 'expenditur')
 
     def test_stem_exception(self):
         assert_equal(normalize_token('hospitality'), 'hospitality')
