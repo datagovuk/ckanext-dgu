@@ -1,21 +1,16 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">${c.group.title or c.group.name} - Edit - Publisher</py:def>
+{% block title %}{{c.group.title or c.group.name}} - Edit - Publisher{% endblock%}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/publisher">Publishers</a></li>
-    <li><a href="/publisher/${c.group.name}">${c.group.title or c.group.name}</a></li>
-    <li><a href="/publisher/edit/${c.group.name}">Edit</a></li>
-  </py:match>
+{% block breadcrumb_content %}
+  {{ h.build_nav('publisher_index', _('Publishers')) }}
+  {{ h.build_nav('publisher_read', c.group.title, id=c.group.name) }}
+  {{ h.build_nav('publisher_edit', _('Edit'), id=c.group.name) }}
+{% endblock %}
 
-  <div py:match="content" class="dataset-edit-form">
-    <h1>Edit Publisher <small>${c.group.title}</small></h1>
-    ${c.form}
-  </div>
 
-  <xi:include href="../layout_base.html" />
-</html>
+{% block primary_content_inner %}
+    <h1>Edit Publisher <small>{{c.group.title}}</small></h1>
 
+    {{c.form|safe}}
+{% endblock %}

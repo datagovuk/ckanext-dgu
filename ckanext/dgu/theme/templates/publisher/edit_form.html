@@ -1,29 +1,34 @@
 <form action="" method="post"
     class="form-horizontal publisher-form"
-    py:attrs="{'class':'has-errors form-horizontal'} if errors else {}"
-    xmlns:i18n="http://genshi.edgewall.org/i18n"
-    xmlns:py="http://genshi.edgewall.org/"
-    xmlns:xi="http://www.w3.org/2001/XInclude">
+    {% if errors %}class="has-errors form-horizontal"{% endif %}
+    >
+
     <script>
       $(function() {
         new CKAN.Dgu.UrlEditor({slugType:'group'});
       });
     </script>
 
-  <div class="panel panel-danger error-explanation" py:if="error_summary">
+  {% if error_summary %}
+  <div class="panel panel-danger error-explanation">
     <div class="panel-heading"><strong>Errors in form</strong></div>
     <div class="panel-body">
       The form contains invalid entries:
       <ul style="margin-bottom: 0;">
-        <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+        {% for key, error in error_summary.items() %}
+        <li>{{"%s: %s" % (key, error)}}</li>
+        {% endfor %}
       </ul>
     </div>
   </div>
+  {% endif %}
 
 <input type="hidden" id="type" name="type" value="organization" />
 <input type="hidden" id="approval_status" name="approval_status" value="pending" />
 
-${h.prep_group_edit_data(data)}
+<div style="display:none">
+{{ h.prep_group_edit_data(data)}}
+</div>
 
 <div class="row dgu-equal-height" data-selector=".panel-default">
 <fieldset id="basic-information">
@@ -34,43 +39,60 @@ ${h.prep_group_edit_data(data)}
   <div class="panel-body">
     <div class="control-group">
       <label class="control-label" for="name">Publisher name</label>
-      <div class="controls" py:with="editable = not c.group or h.is_sysadmin()">
-        <!--! CKAN.Dgu.UrlEditor javascript takes the value in .js-title
+      {% with %}
+      {% set editable = not c.group or h.is_sysadmin()%}
+      <div class="controls">
+        {# CKAN.Dgu.UrlEditor javascript takes the value in .js-title
         and puts munged version into the URL field.
-        -->
-        <input id="title" name="title" type="text" value="${data.get('title', '')}" class="js-title form-control" py:attrs="{} if editable else {'disabled':'disabled'}"/>
-        <span py:if="not editable" class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
+        #}
+        <input id="title" name="title" type="text" value="{{data.get('title', '')}}" class="js-title form-control" {% if not editable %}disabled="disabled"{% endif %}/>
+        {% if not editable %}
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
+        {% endif %}
 
-        <span class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</span>
+        {% if errors.get('name', '') %}
+          <span class="field_error">{{errors.get('name', '')}}</span>
+        {% endif %}
       </div>
+      {% endwith %}
     </div>
 
     <div class="control-group">
       <label class="control-label" for="url">URL</label>
       <div class="controls name-field">
         <div class="input-prepend">
-      <!--! NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
+      {# NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
     paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
-      -->
-          <span class="add-on">${h.url_for('publisher_index')+'/'}</span><input maxlength="100" name="name" type="text" value="${data.get('name', '')}" py:attrs="{'readonly':'readonly'} if c.editing else {'class':'js-url-input '}"/>
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
+      #}
+          <span class="add-on">{{h.url_for('publisher_index')+'/'}}</span>
+          <input maxlength="100" name="name" type="text" value="{{data.get('name', '')}}" {%if c.editing %}readonly="readonly"{% else %}class="js-url-input"{% endif %}>
+
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL">{% if c.editing %}<img src="/images/information-grey.png"/>{% endif %}</span>
         </div>
         <p style="font-size: 11px; margin-top: 1px; color: #888;">2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
         <p class="js-url-is-valid">&nbsp;</p>
-        <p class="field_error" py:if="errors.get('name', '')">${errors.get('name', '')}</p>
+        {% if errors.get('name', '') %}
+          <p class="field_error">{{errors.get('name', '')}}</p>
+        {% endif %}
       </div>
     </div>
 
     <div class="control-group">
       <label class="control-label" for="name">Name Abbreviation (optional)</label>
       <div class="controls">
-        <input id="abbreviation" name="abbreviation" type="text" class="form-control" value="${data.get('abbreviation', '')}"/>
-        <span class="field_error" py:if="errors.get('abbreviation', '')">${errors.get('name', '')}</span>
+        <input id="abbreviation" name="abbreviation" type="text" class="form-control" value="{{data.get('abbreviation', '')}}"/>
+        {% if errors.get('abbreviation', '') %}
+        <span class="field_error">{{errors.get('abbreviation', '')}}</span>
+        {% endif %}
       </div>
     </div>
+
+  </div>
+
   </div>
 </div>
 </div>
+
 <div class="col-md-6">
 <div class="panel panel-default">
   <div class="panel-heading"><strong>Further Information</strong></div>
@@ -78,53 +100,68 @@ ${h.prep_group_edit_data(data)}
     <div class="control-group">
       <label class="control-label" for="description">Publisher Description</label>
       <div class="controls description-field">
-        <textarea class="form-control" style="width: 100%;" rows="9" name="description" id="notes" placeholder="${_('Start with a summary sentence ...')}">${data.get('description','')}</textarea>
+        <textarea class="form-control" style="width: 100%;" rows="9" name="description" id="notes" placeholder="{{_('Start with a summary sentence ...')}}">{{data.get('description','')}}</textarea>
       </div>
     </div>
 
     <div class="control-group">
       <label class="control-label" for="parent">Parent publisher</label>
-      <div class="controls parent-field" py:with="selected_parent = (data.get('groups') or [{'name':''}])[0]['name']; editable = not c.editing or h.is_sysadmin()">
-        <select py:if="editable" id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
-          <py:if test="editable">
-            <option py:attrs="{'selected': 'selected'} if not selected_parent else {}" value="">No parent (top level)</option>
-            <py:for each="pg in c.allowable_parent_groups">
-              <option py:attrs="{'selected': 'selected'} if selected_parent == pg.name else {}" value="${pg.name}">${pg.title}</option>
-            </py:for>
-          </py:if>
+      {% with %}
+      {% set selected_parent = (data.get('groups') or [{'name':''}])[0]['name'] %}
+      {% set editable = not c.editing or h.is_sysadmin() %}
+      <div class="controls parent-field">
+        {% if editable %}
+        <select id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
+
+            <option {% if not selected_parent %}selected="selected"{% endif %} value="">No parent (top level)</option>
+            {% for pg in c.allowable_parent_groups %}
+              <option {% if selected_parent == pg.name %}selected="selected"{% endif%} value="{{pg.name}}">{{pg.title}}</option>
+            {% endfor %}
         </select>
-        <py:if test="not editable">
-          <input id="dummy" type="text" disabled="disabled" value="${h.group_name_to_title(selected_parent) or 'No parent (top level)'}"/>
-          <input id="groups__0__name" name="groups__0__name" type="hidden" value="${selected_parent}" />
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher"><img py:if="not c.editing == ''" src="/images/information-grey.png"/></span>
-        </py:if>
+        {% else %}
+          <input id="dummy" type="text" disabled="disabled" value="{{h.group_name_to_title(selected_parent) or 'No parent (top level)'}}"/>
+          <input id="groups__0__name" name="groups__0__name" type="hidden" value="{{selected_parent}}" />
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher">{% if c.editing %}<img src="/images/information-grey.png"/>{% endif%}</span>
+        {% endif %}
       </div>
+      {% endwith %}
     </div>
 
-    <div class="control-group" py:with="editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id})">
+    {% with %}
+    {% set editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
+    <div class="control-group">
       <label class="control-label" for="state">State
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher" py:if="not editable"><img src="/images/information-grey.png"/></span>
+          {% if not editable %}
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
+          {% endif %}
       </label>
       <div class="controls state-field" >
-          <select id="state" class="form-control" name="state" py:attrs="{} if editable else {'disabled': 'disabled'}" style="width:100px;">
-            <option py:attrs="{'selected': 'selected' if data.get('state') == 'active' else None}" value="active">active</option>
-            <option py:attrs="{'selected': 'selected' if data.get('state') == 'deleted' else None}" value="deleted">deleted</option>
+          <select id="state" class="form-control" name="state" {% if not editable %}disabled="disabled"{% endif %} style="width:100px;">
+            {# Could this not just set the value and title from state? #}
+            {% if data.get('state') == 'active' %}
+            <option value="active">active</option>
+            {% else %}
+            <option value="deleted">deleted</option>
+            {% endif %}
           </select>
       </div>
     </div>
+    {% endwith %}
 
     <div class="control-group">
-      <label class="control-label" for="state">Category</label>
+      <label class="control-label" for="category">Category</label>
       <div class="controls">
-        <select style="width: 80%;" id="category" name="category" class="form-control" value="${data.get('contact-name', '')}">
+        <select style="width: 80%;" id="category" name="category" class="form-control" value="{{data.get('contact-name', '')}}">
           <option value=""></option>
-          <py:for each="cat_name, cat_desc in c.categories">
-            <option value="${cat_name}" py:attrs="{'selected': 'selected' if data.get('category', '') == cat_name else None}" >
-              ${cat_desc}
+          {% for cat_name, cat_desc in c.categories %}
+            <option value="{{cat_name}}" {% if data.get('category', '') == cat_name %}selected="selected"{% endif%} >
+              {{cat_desc}}
             </option>
-          </py:for>
+          {% endfor %}
         </select>
-        <span class="field_error" py:if="errors.get('category', '')">${errors.get('category', '')}</span>
+        {% if errors.get('category', '') %}
+        <span class="field_error">{{errors.get('category', '')}}</span>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -141,19 +178,19 @@ ${h.prep_group_edit_data(data)}
     <div class="control-group">
       <label class="control-label" for="contact-name">Name <small style="color:#aaa">e.g. Barnsley Council Data Enquiries Helpline</small></label>
       <div class="controls">
-        <input id="contact-name" maxlength="64" name="contact-name" type="text" class="form-control" value="${data.get('contact-name', '')}" />
+        <input id="contact-name" maxlength="64" name="contact-name" type="text" class="form-control" value="{{data.get('contact-name', '')}}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="contact-email">Email</label>
       <div class="controls">
-        <input id="contact-email" maxlength="100" name="contact-email" type="text" class="form-control" value="${data.get('contact-email', '')}" />
+        <input id="contact-email" maxlength="100" name="contact-email" type="text" class="form-control" value="{{data.get('contact-email', '')}}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="contact-name">Telephone</label>
       <div class="controls">
-        <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="form-control" value="${data.get('contact-phone', '')}" />
+        <input id="contact-phone" maxlength="30" name="contact-phone" type="text" class="form-control" value="{{data.get('contact-phone', '')}}" />
       </div>
     </div>
     </div>
@@ -168,25 +205,25 @@ ${h.prep_group_edit_data(data)}
     <div class="control-group">
       <label class="control-label" for="foi-name">Name <small style="color:#aaa">e.g. DfT FOI Enquiry Service</small></label>
       <div class="controls">
-        <input id="foi-name" maxlength="64" name="foi-name" type="text" class="form-control" value="${data.get('foi-name', '')}" />
+        <input id="foi-name" maxlength="64" name="foi-name" type="text" class="form-control" value="{{data.get('foi-name', '')}}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="foi-email">Email</label>
       <div class="controls">
-        <input id="foi-email" maxlength="100" name="foi-email" type="text" class="form-control" value="${data.get('foi-email', '')}" />
+        <input id="foi-email" maxlength="100" name="foi-email" type="text" class="form-control" value="{{data.get('foi-email', '')}}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="foi-web">Web</label>
       <div class="controls">
-        <input id="foi-web" maxlength="100" name="foi-web" type="text" class="form-control" value="${data.get('foi-web', '')}" />
+        <input id="foi-web" maxlength="100" name="foi-web" type="text" class="form-control" value="{{data.get('foi-web', '')}}" />
       </div>
     </div>
     <div class="control-group">
       <label class="control-label" for="foi-name">Telephone</label>
       <div class="controls">
-        <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="form-control" value="${data.get('foi-phone', '')}" />
+        <input id="foi-phone" maxlength="30" name="foi-phone" type="text" class="form-control" value="{{data.get('foi-phone', '')}}" />
       </div>
     </div>
   </div>
@@ -194,44 +231,52 @@ ${h.prep_group_edit_data(data)}
 </fieldset>
 </div>
 
-<!--! Users need to be submitted or they are removed from the publisher -->
+{# Users need to be submitted or they are removed from the publisher #}
 <fieldset id="users" style="display: none;">
-  <h3>Users <span py:if="data.get('users', [])">(${len(data.get('users', []))})</span></h3>
-  <dl py:if="data.get('users', [])">
-    <py:for each="num, user in enumerate(data.get('users', []))">
+  <h3>Users {% if data.get('users', []) %}<span>({{ data.get('users', [])|length }})</span>{% endif %}</h3>
+  {% if data.get('users', []) %}
+  <dl>
+
+    {% for num, user in h.list_enumerate(data.get('users', [])) %}
     <dd>
-      <label>${user['name']}</label>
-      <input type="hidden" name="users__${num}__name" value="${user['name']}"/>
-      <input type="hidden" name="users__${num}__capacity" value="${user['capacity']}"/>
-  </dd>
-    </py:for>
+      <label>{{user['name']}}</label>
+      <input type="hidden" name="users__{{num}}__name" value="{{user['name']}}"/>
+      <input type="hidden" name="users__{{num}}__capacity" value="{{user['capacity']}}"/>
+    </dd>
+    {% endfor %}
   </dl>
-  <p py:if="not data.get('users', [])">There are no users currently in this publisher.</p>
+  {% endif %}
+  {% if not data.get('users', []) %}
+    <p>There are no users currently in this publisher.</p>
+  {% endif %}
 </fieldset>
 
-<!--! Extras need to be submitted or they are deleted -->
+{# Extras need to be submitted or they are deleted #}
 <fieldset id="extras" style="display: none;">
-  <py:with vars="extras = data.get('extras', [])">
-  <py:for each="num, extra in enumerate(data.get('extras', []))">
-    <py:if test="extra.get('key')"> <!--! Somehow some extras have no key! - delete -->
-      <input id="extras__${num}__key" name="extras__${num}__key" type="hidden" value="${extra.get('key')}" />
-      <input id="extras__${num}__value" name="extras__${num}__value" type="hidden" value="${extra.get('value')}" />
-     </py:if>
-  </py:for>
-  <hr py:if="len(extras)" class="extras-divider" />
-  </py:with>
+  {% with %}
+    {% set extras = data.get('extras', []) %}
+    {% for num,extra in h.list_enumerate(data.get('extras', [])) %}
+    {% if extra.get('key') %}
+      <input id="extras__{{num}}__key" name="extras__{{num}}__key" type="hidden" value="{{extra.get('key')}}" />
+      <input id="extras__{{num}}__value" name="extras__{{num}}__value" type="hidden" value="{{extra.get('value')}}" />
+    {% endif %}
+    {% endfor %}
+    {% if extras|length > 0 %}
+      <hr class="extras-divider" />
+    {% endif %}
+  {% endwith %}
 </fieldset>
 
-<!--! Datasets don't need to be submitted because we set prevent_packages_update -->
+{# Datasets don't need to be submitted because we set prevent_packages_update #}
 
 <div class="form-actions">
-  <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Save Changes')}" />
-  <py:if test="c.group">
-    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
-  </py:if>
+  <input id="save" class="btn btn-primary" name="save" type="submit" value="{{_('Save Changes')}}" />
+  {% if c.group %}
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="{{_('Cancel')}}" action="{{h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}}" />
+  {% endif %}
 </div>
 
 <script>
-	$(".chzn-select").chosen();
+    $(".chzn-select").chosen();
 </script>
 </form>
