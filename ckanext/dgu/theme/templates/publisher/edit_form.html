@@ -297,7 +297,9 @@ Passed in:
                             </tr>
                         </table>
                         <input id="spatial" name="spatial" size="40" type="hidden" value="{{data.get('spatial', '')}}"/>
-                        <span class="field_error" py:if="errors.get('category', '')">{{errors.get('category', '')}}</span>
+                        {% if errors.get('category', '') %}
+                          <span class="field_error">{{errors.get('category', '')}}</span>
+                        {% endif %}
                     </div>
                     <div id="dataset-map" style="width:100%; height:300px;"></div>
                 </div>
