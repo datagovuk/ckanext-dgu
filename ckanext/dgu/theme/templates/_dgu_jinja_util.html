@@ -1,12 +1,10 @@
-
-
   <!--! Herein can be found generic macros for re-use in the jinjified templates -->
 
 
 <!-- recursive function turns errors into hierarchical lists -->
 
 {% macro display_error(errors, name, field_error=False, msg=None) %}
-  {% if errors.get(name ) %}
+  {% if errors.get(name) %}
     {% set error_msg = msg or errors.get(name) %}
     {% if h.is_list(error_msg) %}
       {% set error_msg = errors.get(name)[0] %}
@@ -52,7 +50,11 @@
 
     {% set page     = pageobj.page %}
     {% set numpages = pageobj.page_count %}
+<<<<<<< HEAD
     {% set url_for_page  = h.paginator_page_url(pageobj) %}
+=======
+    {% set url_for_page = h.paginator_page_url(pageobj) %}
+>>>>>>> master
     {% if numpages > 1 %}
     <div class="dgu-pagination">
       <ul class="pagination">
@@ -105,7 +107,7 @@
 {% macro if_(testValue,stringIfTrue,stringIfFalse='') %}{% if testValue %}{{stringIfTrue}}{% else %}{{stringIfFalse}}{% endif%}{% endmacro %}
 
 
-{% macro search_form(mini=False, placeholder='Search for data...', set_fields=None, extra_options=None) %}
+{% macro search_form(mini=False, placeholder='Search for data...', set_fields=None) %}
   <div class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
       <div class="{{if_(mini,'mini','left')}}">
@@ -121,9 +123,7 @@
           </div>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              {% if k != 'unpublished' or k != 'core-dataset' %}
               <input type="hidden" name="{{k}}" value="{{v}}"/>
-              {% endif %}
             {% endfor %}
           {% endif %}
           {% if set_fields %}
@@ -135,8 +135,9 @@
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox','')}}" />
           {% endif %}
         </form>
-        {% if extra_options %}
-          {{extra_options()}}
+        {# extra_options can be passed in using the "call" syntax #}
+        {% if caller %}
+          {{ caller() }}
         {% endif %}
         </div>
       </div>
@@ -155,6 +156,7 @@
       </div>
       {% endif %}
     </div>
+   </div>
 {% endmacro %}
 
 {% macro map_preview_button_direct(pkg_dict,small=True) %}
@@ -287,7 +289,7 @@
           </div>
           {% endwith %}
         {% endfor %}
-        {% if more_button and len(unselected)>5 %}
+        {% if more_button and unselected|length>5 %}
           <a id="{{more_button}}" class="facet-expand-collapse" href="#">
             <div class="expander">
               <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
@@ -313,7 +315,7 @@
         </a>
       </div>
       {{facet_box(
-                'Show only...',
+                'Published status',
                 h.search_facets_unselected(['unpublished']),
                 h.search_facets_selected(['unpublished']),
                 'No further filters to apply.'
@@ -369,6 +371,22 @@
                     more_button='more-publishers-button'
                 )}}
       {% endif %}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Schema/Vocabulary',
+                h.search_facets_unselected(['schema_multi']),
+                h.search_facets_selected(['schema_multi']),
+                'No further schema filters to apply.',
+                more_button='more-schemas-button'
+            )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
+                'Code lists',
+                h.search_facets_unselected(['codelist_multi']),
+                h.search_facets_selected(['codelist_multi']),
+                'No further code list filters to apply.',
+                more_button='more-codelists-button'
+            )}}
       <div class="facet-divider"></div>
       {{facet_box(
                 'Openness Score (beta)',
@@ -441,7 +459,7 @@
   <!--! Form input for primary/secondary themes -->
   {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
       <label class="radio js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
-        <input type="radio" name="theme-primary" value="{{theme}}" {% if data.get('theme-primary', '') == theme %}checked="checked"{% endif %} />
+        <input type="radio" name="theme-primary" value="{{theme_dict['title']}}" {% if data.get('theme-primary', '') == theme_dict['title'] %}checked="checked"{% endif %} />
           {{theme_dict['title']}}
       </label>
   {% endfor %}
@@ -453,7 +471,7 @@
 {% macro secondary_theme_input(data, errors) %}
   {% for theme, theme_dict in h.sorted_list(h.themes().iteritems()) %}
     <label class="checkbox js-tooltip" data-original-title="{{theme_dict['description'].replace('£', '&pound;')}}">
-      <input type="checkbox" name="theme-secondary" value="{{theme}}" {% if theme in h.secondary_themes(data) %}checked="checked"{% endif %}/>
+      <input type="checkbox" name="theme-secondary" value="{{theme_dict['title']}}" {% if theme_dict['title'] in h.secondary_themes(data) %}checked="checked"{% endif %}/>
         {{theme_dict['title']}}
     </label>
   {% endfor %}

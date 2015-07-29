@@ -8,17 +8,19 @@ from collections import defaultdict
 import nltk
 from nltk.corpus import stopwords
 from nltk.util import bigrams, trigrams
+import sqlalchemy
 
 from ckanext.dgu.schema import tag_munge
+from ckanext.dgu.plugins_toolkit import get_action
 from ckan import model
 
 log = __import__('logging').getLogger(__name__)
 
 PRIMARY_THEME = 'theme-primary'
-SECONDARY_THEMES = 'themes-secondary'
+SECONDARY_THEMES = 'theme-secondary'
 
 class Themes(object):
-    '''Singleton class containing the data from themes.json with a bit of processing.'''
+    '''Singleton class containing the themes data (from ckanext-taxonomy) with a bit of processing.'''
     _instance = None
     @classmethod
     def instance(cls):
@@ -27,23 +29,35 @@ class Themes(object):
         return cls._instance
 
     def __init__(self):
-        themes_filepath = os.path.abspath(os.path.join(__file__, '../../themes.json'))
-        assert os.path.exists(themes_filepath), themes_filepath
-        log.debug('Reading themes.json')
-        with codecs.open(themes_filepath, encoding='utf8') as f:
-            themes_json = f.read()
-        themes_list = json.loads(themes_json)
         self.data = {}
-        self.topic_words = {}  # topic:theme_name
-        self.topic_bigrams = {} # (topicword1, topicword2):theme_name
-        self.topic_trigrams = {} # (topicword1, topicword2, topicword3):theme_name
+        self.topic_words = {}  # topic:[theme_name]
+        self.topic_bigrams = {} # (topicword1, topicword2):[theme_name]
+        self.topic_trigrams = {} # (topicword1, topicword2, topicword3):[theme_name]
         self.gemet = {}  # gemet_keyword:theme_name
         self.ons = {}  # ons_keyword:theme_name
         self.la_function = {} # LA functions extra
         self.la_service = {}  # LA services extra
         self.odc = {}  # OpenDataCommunities.org theme extra
-        for theme_dict in themes_list:
-            name = theme_dict.get('stored_as') or theme_dict['title']
+
+        context = {'model': model}
+        # Get the themes from ckanext-taxonomy
+        try:
+            terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
+        except sqlalchemy.exc.OperationalError, e:
+            if 'no such table: taxonomy' in str(e):
+                model.Session.remove()  # clear the erroring transaction
+                raise ImportError('ckanext-taxonomy tables not setup')
+            raise
+        except sqlalchemy.exc.ProgrammingError, e:
+            if 'relation "taxonomy" does not exist' in str(e):
+                # this happens in ckanext-harvest test
+                model.Session.remove()  # clear the erroring transaction
+                raise ImportError('ckanext-taxonomy tables not setup')
+            raise
+        for term in terms:
+            theme_dict = term['extras']
+            theme_dict['title'] = name = term['label']
+            theme_dict['description'] = term['description']
 
             for key in ('topics', 'gemet', 'nscl', 'ons', 'la_function', 'la_service',
                         'odc'):
@@ -53,13 +67,19 @@ class Themes(object):
             for topic in theme_dict['topics']:
                 words = [normalize_token(word) for word in split_words(topic)]
                 if len(words) == 1:
-                    self.topic_words[words[0]] = name
+                    topic_dict = self.topic_words
+                    key = words[0]
                 elif len(words) == 2:
-                    self.topic_bigrams[tuple(words)] = name
+                    topic_dict = self.topic_bigrams
+                    key = tuple(words)
                 elif len(words) == 3:
-                    self.topic_trigrams[tuple(words)] = name
+                    topic_dict = self.topic_trigrams
+                    key = tuple(words)
                 else:
                     assert 0, 'Too many words in topic: %s' % topic
+                if key not in topic_dict:
+                    topic_dict[key] = []
+                topic_dict[key].append(name)
 
             for gemet_keyword in theme_dict.get('gemet', []):
                 self.gemet[normalize_keyword(gemet_keyword)] = name
@@ -90,7 +110,7 @@ def split_words(sentence):
     return words
 
 # some words change meaning if you reduce them to their stem
-stem_exceptions = set(('parking', 'national', 'coordinates', 'granted'))
+stem_exceptions = set(('parking', 'national', 'coordinates', 'granted', 'hospitality', 'employers', 'employer', 'employee', 'employees'))
 
 porter = None
 def normalize_token(token):
@@ -134,6 +154,25 @@ def categorize_package(pkg, stats=None):
     its estimate for primary-theme and secondary-theme.
 
     package - object or dict
+
+    This method is for backwards compatability
+    '''
+    theme_scores = categorize_package2(pkg, stats)
+    return [theme['name'] for theme in theme_scores[:2]]
+
+def categorize_package2(pkg, stats=None):
+    '''Given a package it does various searching for topic keywords and returns
+    its estimate for primary-theme and secondary-theme(s) with some reasons.
+
+    package - object or dict
+
+    :returns example:
+        [{'name': 'Spending',
+          'score': 3,
+          'reasons': [u'"transact" matched description',
+                      u'"spend" matched description'],
+         }]
+
     '''
     if stats is None:
         class MockStats:
@@ -150,26 +189,36 @@ def categorize_package(pkg, stats=None):
     score_by_la_function(pkg, scores)
     score_by_odc_theme(pkg, scores)
 
-    # add up scores
-    theme_scores = defaultdict(int)  # theme:total_score
+    # add up scores and reasons
+    theme_scores = defaultdict(lambda: {'name': '', 'score': 0, 'reasons': []})
     for theme, theme_scores_ in scores.items():
         for score, reason in theme_scores_:
-            theme_scores[theme] += score
-    theme_scores = sorted(theme_scores.items(), key=lambda y: -y[1])
+            theme_scores[theme]['name'] = theme
+            theme_scores[theme]['score'] += score
+            theme_scores[theme]['reasons'] += [reason]
+    theme_scores = sorted(theme_scores.values(), key=lambda y: -y['score'])
 
-    primary_theme = theme_scores[0][0] if scores else None
+    # discard secondary themes if there is a good score for the primary theme -
+    # assume they are noise.
+    max_score = max(theme['score'] for theme in theme_scores) if scores else 0
+    if max_score > 5:
+        score_threshold = max_score / 3
+        theme_scores = filter(lambda y: y['score'] > score_threshold, theme_scores)
+
+    primary_theme = theme_scores[0]['name'] if scores else None
 
     current_primary_theme = pkg['extras'].get(PRIMARY_THEME)
     if scores:
         if primary_theme == current_primary_theme:
-            log.debug(stats.add('Theme matches', '%s %s %s' % (pkg['name'], primary_theme, theme_scores[0][1])))
+            log.debug(stats.add('Theme matches', '%s %s %s' % (pkg['name'], primary_theme, theme_scores[0]['score'])))
         elif current_primary_theme:
-            log.debug(stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg['name'], primary_theme, current_primary_theme, theme_scores[0][1])))
+            log.debug(stats.add('Misidentified theme', '%s guess=%s shd_be=%s %s' % (pkg['name'], primary_theme, current_primary_theme, theme_scores[0]['score'])))
         else:
-            log.debug(stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg['name'], primary_theme, theme_scores[0][1])))
+            log.debug(stats.add('Theme where there was none previously', '%s guess=%s %s' % (pkg['name'], primary_theme, theme_scores[0]['score'])))
     else:
         log.debug(stats.add('No match', pkg['name']))
-    return [theme for theme, score in theme_scores[:2]]
+
+    return theme_scores
 
 def score_by_topic(pkg, scores):
     '''Examines the pkg and adds scores according to topics in it.'''
@@ -195,12 +244,13 @@ def score_by_topic(pkg, scores):
                 for ngram in matching_ngrams:
                     occurrences = ngrams.count(ngram)
                     score = (3-level) * occurrences * num_words
-                    theme = topic_ngrams[ngram]
+                    themes_for_ngram = topic_ngrams[ngram]
                     ngram_printable = ' '.join(ngram) if isinstance(ngram, tuple) else ngram
                     reason = '"%s" matched %s' % (ngram_printable, LEVELS[level])
                     if occurrences > 1:
                         reason += ' (%s times)' % occurrences
-                    scores[theme].append((score, reason))
+                    for theme in themes_for_ngram:
+                        scores[theme].append((score, reason))
                     log.debug(' %s %s %s', theme, score, reason)
 
 def score_by_gemet(pkg, scores):
@@ -246,7 +296,7 @@ def score_by_la_function(pkg, scores):
     of the form:
     http://id.esd.org.uk/function/1
     '''
-    la_functions = pkg['extras'].get('functions', '').split(' ')
+    la_functions = pkg['extras'].get('la_function', '').split()
     if not la_functions:
         return
 
@@ -272,7 +322,7 @@ def score_by_la_service(pkg, scores):
     of the form:
     http://id.esd.org.uk/service/1
     '''
-    la_services = pkg['extras'].get('la_service', '').split(' ')
+    la_services = pkg['extras'].get('la_service', '').split()
     if not la_services:
         return
 

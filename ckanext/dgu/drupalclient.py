@@ -32,6 +32,7 @@ class DrupalClient(object):
 
         else:
             if xmlrpc_settings:
+                scheme = xmlrpc_settings.get('xmlrpc_scheme', 'http')
                 domain = xmlrpc_settings.get('xmlrpc_domain')
                 username = xmlrpc_settings.get('xmlrpc_username')
                 password = xmlrpc_settings.get('xmlrpc_password')
@@ -40,6 +41,7 @@ class DrupalClient(object):
                     from pylons import config
                 except ImportError:
                     assert 0, 'Either supply XML RPC parameters or install pylons to try the Pylons config for it.'
+                scheme = config.get('dgu.xmlrpc_scheme', 'http')
                 domain = config.get('dgu.xmlrpc_domain')
                 username = config.get('dgu.xmlrpc_username')
                 password = config.get('dgu.xmlrpc_password')
@@ -51,9 +53,9 @@ class DrupalClient(object):
             else:
                 server = '%s' % domain
                 server_log_safe = server
-            xmlrpc_url_template = 'http://%s/services/xmlrpc'
-            xmlrpc_url = xmlrpc_url_template % server
-            xmlrpc_url_log_safe = xmlrpc_url_template % server_log_safe
+            xmlrpc_url_template = '%s://%s/services/xmlrpc'
+            xmlrpc_url = xmlrpc_url_template % (scheme, server)
+            xmlrpc_url_log_safe = xmlrpc_url_template % (scheme, server_log_safe)
         log.info('XMLRPC connection to %s', xmlrpc_url_log_safe)
         return xmlrpc_url, xmlrpc_url_log_safe
 

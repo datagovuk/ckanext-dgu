@@ -8,8 +8,10 @@ from pylons.i18n import _
 
 from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
                                                 StopOnError, missing, Missing
+from ckan import plugins as p
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
+
 
 def to_json(key, data, errors, context):
     try:
@@ -119,6 +121,10 @@ def validate_license(key, data, errors, context):
      access_constraints is DROPPED
 
     """
+    # Unpublished data doesn't need a licence
+    if p.toolkit.asbool(data.get(('unpublished',))):
+        return
+
     if data[('license_id',)]== '__extra__': # harvested dataset
         data[('license_id',)] = None
         return
@@ -134,9 +140,8 @@ def validate_license(key, data, errors, context):
         else:
             # i.e. neither license_id nor access_constraints filled in
             errors[('license_id',)] = ['Please enter the access constraints.']
-        #return
 
-    if not license_id:
+    if not license_id and license_id_other:
         data[('license_id',)] = data[('access_constraints',)]
     if license_id_other:
         del data[('access_constraints',)]
@@ -357,6 +362,11 @@ def dgu_boolean_validator(value, context):
     is returned.  This enables checkboxes to be used for booleans
     whereas before the browser didn't send a value (when field
     unchecked) which resulted in a validation error.
+
+    True, true, 1, y -> True
+    False, false, 0, n -> True
+    Not specified -> False
+    anything else -> False
     """
     if isinstance(value, bool):
         return value
@@ -365,3 +375,20 @@ def dgu_boolean_validator(value, context):
     if value.lower() in ['true', 'yes', 't', 'y', '1']:
         return True
     return False
+
+def bool_(key, data, errors, context):
+    '''
+    True, true, 1, y -> True
+    False, false, 0, n -> True
+    Not specified -> False
+    anything else -> validation error raised
+    '''
+    value = data[key]
+    if value in ('', None):
+        data[key] = 'false'
+        return
+    try:
+        true_or_false = p.toolkit.asbool(value)
+        data[key] = str(true_or_false).lower()
+    except ValueError:
+        errors[key] = ['Must be true or false']

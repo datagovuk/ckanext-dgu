@@ -1,6 +1,22 @@
+{# Snippet
+
+Passed in:
+* data
+* errors
+* error_summary
+* action - 'new'/'edit'
+* c - deprecated!
+#}
+
+{% import "/_dgu_jinja_util.html" as m with context %}
+
 <form action="" method="post"
     class="form-horizontal publisher-form"
+<<<<<<< HEAD
     {% if errors %}class="has-errors form-horizontal"{%endif%}
+=======
+    {% if errors %}class="has-errors form-horizontal"{% endif %}
+>>>>>>> master
     >
 
     <script>
@@ -29,6 +45,7 @@
 <div style="display:none">
 {{ h.prep_group_edit_data(data)}}
 </div>
+<<<<<<< HEAD
 
 {% with %}
   {% set message = h. get_closed_publisher_message(data) %}
@@ -38,6 +55,8 @@
     </div>
   {% endif %}
 {% endwith %}
+=======
+>>>>>>> master
 
 <div class="row dgu-equal-height" data-selector=".panel-default">
 <fieldset id="basic-information">
@@ -47,6 +66,7 @@
   <div class="panel-heading"><strong>Basic Information</strong></div>
   <div class="panel-body">
     <div class="control-group">
+<<<<<<< HEAD
       <label class="control-label" for="name">Publisher name</label>
       {% with %}
       {% set editable = not c.group or h.is_sysadmin()%}
@@ -62,6 +82,23 @@
         {% if errors.get('name', '') %}
         <span class="field_error">{{errors.get('name', '')}}</span>
         {% endif %}
+=======
+      <label class="control-label" for="name">Publisher Name</label>
+      {% with %}
+      {% set editable = not c.group or h.is_sysadmin()%}
+      <div class="controls">
+        {# CKAN.Dgu.UrlEditor javascript takes the value in .js-title
+        and puts munged version into the URL field.
+        #}
+        <input id="title" name="title" type="text" value="{{data.get('title', '')}}" class="js-title form-control" {% if not editable %}disabled="disabled"{% endif %}/>
+        {% if not editable %}
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change your publisher name"><img src="/images/information-grey.png"/></span>
+        {% endif %}
+
+        {# it might seem weird that we display the name error, but blank title
+           doesn't cause an error because CKAN just defaults it to the name. #}
+        {{ m.display_error(errors, 'name', True) }}
+>>>>>>> master
       </div>
       {% endwith %}
     </div>
@@ -70,8 +107,9 @@
       <label class="control-label" for="url">URL</label>
       <div class="controls name-field">
         <div class="input-prepend">
-      <!--! NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
+      {# NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
     paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
+<<<<<<< HEAD
       -->
           <span class="add-on">{{h.url_for('publisher_index')+'/'}}</span>
           <input maxlength="100" name="name" type="text" value="{{data.get('name', '')}}" {%if c.editing %}readonly="readonly"{% else %}class="js-url-input"{% endif %}>
@@ -83,6 +121,17 @@
         {% if errors.get('name', '') %}
         <p class="field_error">{{errors.get('name', '')}}</p>
         {% endif %}
+=======
+      #}
+          <span class="add-on">{{h.url_for('publisher_index')+'/'}}</span><!-- don't want whitespace here
+       --><input maxlength="100" name="name" type="text" value="{{data.get('name', '')}}" {% if action == 'edit' %}readonly="readonly"{% else %}class="js-url-input"{% endif %}>
+
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL">{% if action == 'edit' %}<img src="/images/information-grey.png"/>{% endif %}</span>
+        </div>
+        <p style="font-size: 11px; margin-top: 1px; color: #888;">2+ characters, lowercase, using only 'a-z0-9' and '-_'</p>
+        <p class="js-url-is-valid">&nbsp;</p>
+        {{ m.display_error(errors, 'name', True) }}
+>>>>>>> master
       </div>
     </div>
 
@@ -90,6 +139,7 @@
       <label class="control-label" for="name">Name Abbreviation (optional)</label>
       <div class="controls">
         <input id="abbreviation" name="abbreviation" type="text" class="form-control" value="{{data.get('abbreviation', '')}}"/>
+<<<<<<< HEAD
         {% if errors.get('abbreviation', '') %}
         <span class="field_error">{{errors.get('abbreviation', '')}}</span>
         {% endif %}
@@ -122,6 +172,9 @@
           {% endfor %}
         </select>
         </label>
+=======
+        {{ m.display_error(errors, 'abbreviation', True) }}
+>>>>>>> master
       </div>
 
       {% if errors.get('replaced_by', '') %}
@@ -149,7 +202,11 @@
       <label class="control-label" for="parent">Parent publisher</label>
       {% with %}
       {% set selected_parent = (data.get('groups') or [{'name':''}])[0]['name'] %}
+<<<<<<< HEAD
       {% set editable = not c.editing or h.is_sysadmin() %}
+=======
+      {% set editable = action=='new' or h.is_sysadmin() %}
+>>>>>>> master
       <div class="controls parent-field">
         {% if editable %}
         <select id="groups__0__name" name="groups__0__name" class="chzn-select" data-placeholder="Please choose a publisher">
@@ -162,28 +219,46 @@
         {% else %}
           <input id="dummy" type="text" disabled="disabled" value="{{h.group_name_to_title(selected_parent) or 'No parent (top level)'}}"/>
           <input id="groups__0__name" name="groups__0__name" type="hidden" value="{{selected_parent}}" />
+<<<<<<< HEAD
           <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher">{% if c.editing %}<img src="/images/information-grey.png"/>{% endif%}</span>
+=======
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to change the parent publisher">{% if action == 'edit' %}<img src="/images/information-grey.png"/>{% endif%}</span>
+>>>>>>> master
         {% endif %}
       </div>
       {% endwith %}
     </div>
 
     {% with %}
+<<<<<<< HEAD
     {% set editable = c.group_dict and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
     <div class="control-group">
       <label class="control-label" for="state">State
           {% if not editable %}
           <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
           {% endif %}
+=======
+    {% set editable = action=='edit' and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
+    <div class="control-group">
+      <label class="control-label" for="state">State
+        {% if not editable %}
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
+        {% endif %}
+>>>>>>> master
       </label>
       <div class="controls state-field" >
           <select id="state" class="form-control" name="state" {% if not editable %}disabled="disabled"{% endif %} style="width:100px;">
             {# Could this not just set the value and title from state? #}
+<<<<<<< HEAD
             {% if data.get('state') == 'active' %}
             <option value="active">active</option>
             {% else %}
             <option value="deleted">deleted</option>
             {% endif %}
+=======
+            <option value="active" {% if data.get('state') == 'active' %}selected="selected"{% endif %}}>active</option>
+            <option value="deleted" {% if data.get('state') == 'deleted' %}selected="selected"{% endif %}}>deleted</option>
+>>>>>>> master
           </select>
       </div>
     </div>
@@ -200,9 +275,13 @@
             </option>
           {% endfor %}
         </select>
+<<<<<<< HEAD
         {% if errors.get('category', '') %}
         <span class="field_error">{{errors.get('category', '')}}</span>
         {% endif %}
+=======
+        {{ m.display_error(errors, 'category', True) }}
+>>>>>>> master
       </div>
     </div>
   </div>
@@ -272,7 +351,7 @@
 </fieldset>
 </div>
 
-<!--! Users need to be submitted or they are removed from the publisher -->
+{# Users need to be submitted or they are removed from the publisher #}
 <fieldset id="users" style="display: none;">
   <h3>Users {% if data.get('users', []) %}<span>({{ data.get('users', [])|length }})</span>{% endif %}</h3>
   {% if data.get('users', []) %}
@@ -292,7 +371,7 @@
   {% endif %}
 </fieldset>
 
-<!--! Extras need to be submitted or they are deleted -->
+{# Extras need to be submitted or they are deleted #}
 <fieldset id="extras" style="display: none;">
   {% with %}
     {% set extras = data.get('extras', []) %}
@@ -302,13 +381,18 @@
       <input id="extras__{{num}}__value" name="extras__{{num}}__value" type="hidden" value="{{extra.get('value')}}" />
     {% endif %}
     {% endfor %}
+<<<<<<< HEAD
     {% if extras|length > 0%}
     <hr class="extras-divider" />
+=======
+    {% if extras|length > 0 %}
+      <hr class="extras-divider" />
+>>>>>>> master
     {% endif %}
   {% endwith %}
 </fieldset>
 
-<!--! Datasets don't need to be submitted because we set prevent_packages_update -->
+{# Datasets don't need to be submitted because we set prevent_packages_update #}
 
 <div class="form-actions">
   <input id="save" class="btn btn-primary" name="save" type="submit" value="{{_('Save Changes')}}" />
@@ -318,6 +402,7 @@
 </div>
 
 <script>
+<<<<<<< HEAD
 	$(".chzn-select").chosen();
 
   $(document).ready(function(){
@@ -329,5 +414,8 @@
       $("#replacement-div").toggle(this.checked);
     });
   });
+=======
+    $(".chzn-select").chosen();
+>>>>>>> master
 </script>
 </form>

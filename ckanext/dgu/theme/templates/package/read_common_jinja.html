@@ -77,7 +77,7 @@
 
     </div>
     <h1>{{c.pkg_dict.get('title', c.pkg_dict['name'])}} {%if h.is_unpublished_item(c.pkg_dict) %}<span class="unpublished-text">(Unpublished)</span>{% endif %}</h1>
-    <div class="h1-subheading">
+    <div class="h1-subheading" id="license-info">
       {% set all_licences = h.get_licenses(c.pkg) %}
       {% set publisher    = c.pkg_dict.get('organization') %}
 
@@ -99,7 +99,7 @@
         {% for i in range(all_licences|length) %}
           {% with %}
             {% set (license_text, url, isopen, isogl) = all_licences[i] %}
-            {% set separator = m.if_(i==all_licences|length -1,'.',' &amp; ') %}
+            {% set separator = m.if_(i==all_licences|length -1,'.',' & ') %}
             {% if isogl %}
               <a href="{{url or 'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'}}" rel="dc:rights">
                 <img class="open-government-licence" src="/images/ogl-symbol.png" alt="[Open Government Licence]" />
@@ -125,6 +125,7 @@
           {% endif %}-->
         {% endfor %}
       </span>
+      <a href="#" class="license-read-more">Read More</a>
     </div>
 
     <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;">
@@ -232,7 +233,7 @@
             <img class="dataset-logo" src="/images/national_statistics.gif" />
           </a>
           {% endif %}
-          {% if is_location_data -%}
+          {% if is_location_data and c.pkg.extras.get('resource-type') != 'nonGeographicDataset' -%}
           <a
             class="dataset-optional-logo"
             href="/location"
@@ -321,7 +322,9 @@
     </div>
     {% endif %}
 
-    {{package_content()}}
+    {% block dataset_detail %}
+      {{package_content()}}
+    {% endblock %}
 
     {% endwith %}
   </div>

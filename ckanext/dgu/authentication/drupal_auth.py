@@ -44,14 +44,17 @@ class DrupalAuthMiddleware(object):
             cookies.load(str(cookie_string))
         except Cookie.CookieError:
             log.error("Received invalid cookie: %s" % cookie_string)
-            return False       
+            return False
         similar_cookies = []
         for cookie in cookies:
-            if cookie.startswith('SESS'):
+            if cookie.startswith('SESS') or cookie.startswith('SSESS'):
                 # Drupal 6 uses md5, Drupal 7 uses sha256
                 server_hash = hashlib.sha256(server_name).hexdigest()[:32]
                 if cookie == 'SESS%s' % server_hash:
                     log.debug('Drupal cookie found for server request %s', server_name)
+                    return cookies[cookie].value
+                elif cookie == 'SSESS%s' % server_hash:
+                    log.debug('Drupal cookie (secure) found for server request %s', server_name)
                     return cookies[cookie].value
                 else:
                     similar_cookies.append(cookie)
@@ -109,7 +112,7 @@ class DrupalAuthMiddleware(object):
 
         self.do_drupal_login_logout(environ, new_headers)
 
-	#log.debug('New headers: %r', new_headers)
+        #log.debug('New headers: %r', new_headers)
         def cookie_setting_start_response(status, headers, exc_info=None):
             if headers:
                 headers.extend(new_headers)
@@ -197,24 +200,18 @@ class DrupalAuthMiddleware(object):
             return
 
         # ask drupal about this user
-        user_properties = self.drupal_client.get_user_properties(drupal_user_id)
+        drupal_user_properties = self.drupal_client.get_user_properties(drupal_user_id)
+        user_dict = DrupalUserMapping.drupal_user_to_ckan_user(
+                drupal_user_properties)
 
         # see if user already exists in CKAN
-        ckan_user_name = DrupalUserMapping.drupal_id_to_ckan_user_name(drupal_user_id)
+        ckan_user_name = user_dict['name']
         from ckan import model
         from ckan.model.meta import Session
         query = Session.query(model.User).filter_by(name=unicode(ckan_user_name))
         if not query.count():
             # need to add this user to CKAN
-
-            date_created = datetime.datetime.fromtimestamp(int(user_properties['created']))
-            user = model.User(
-                name=ckan_user_name,
-                fullname=unicode(user_properties['name']),  # NB may change in Drupal db
-                about=u'User account imported from Drupal system.',
-                email=user_properties['mail'], # NB may change in Drupal db
-                created=date_created,
-            )
+            user = model.User(**user_dict)
             Session.add(user)
             Session.commit()
             log.debug('Drupal user added to CKAN as: %s', user.name)
@@ -222,7 +219,15 @@ class DrupalAuthMiddleware(object):
             user = query.one()
             log.debug('Drupal user found in CKAN: %s', user.name)
 
-        self.set_roles(ckan_user_name, user_properties['roles'].values())
+            if user.email != user_dict['email'] or \
+                    user.fullname != user_dict['name']:
+                user.email = user_dict['email']
+                user.fullname = user_dict['fullname']
+                log.debug('User details updated from Drupal: %s %s',
+                          user.email, user.fullname)
+                model.Session.commit()
+
+        self.set_roles(ckan_user_name, drupal_user_properties['roles'].values())
 
         # There is a chance that on this request we needed to get authtkt
         # to log-out. This would have created headers like this:
@@ -308,3 +313,14 @@ class DrupalUserMapping:
             return ckan_user_name[len(cls._user_name_prefix):]
         else:
             return None # Not a Drupal user
+
+    @classmethod
+    def drupal_user_to_ckan_user(cls, drupal_user_dict, existing_user_name=None):
+        return dict(
+            name=existing_user_name or
+                cls.drupal_id_to_ckan_user_name(drupal_user_dict['uid']),
+            fullname=unicode(drupal_user_dict['name']),
+            about=u'User account imported from Drupal system.',
+            email=drupal_user_dict['mail'],
+            created=datetime.datetime.fromtimestamp(int(drupal_user_dict['created']))
+            )
