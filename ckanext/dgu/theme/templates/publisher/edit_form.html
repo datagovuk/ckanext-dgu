@@ -38,7 +38,7 @@
   <div class="panel-heading"><strong>Basic Information</strong></div>
   <div class="panel-body">
     <div class="control-group">
-      <label class="control-label" for="name">Publisher name</label>
+      <label class="control-label" for="name">Publisher Name</label>
       {% with %}
       {% set editable = not c.group or h.is_sysadmin()%}
       <div class="controls">
@@ -64,8 +64,8 @@
       {# NB URL (i.e. package.name) can be set fine for a new publisher, but changing it when the publisher already exists is problematic - see #525. It must be changed with a command like this:
     paster group update uk-hydrographic-office united-kingdom-hydrographic-office -c dgu.ini
       #}
-          <span class="add-on">{{h.url_for('publisher_index')+'/'}}</span>
-          <input maxlength="100" name="name" type="text" value="{{data.get('name', '')}}" {%if c.editing %}readonly="readonly"{% else %}class="js-url-input"{% endif %}>
+          <span class="add-on">{{h.url_for('publisher_index')+'/'}}</span><!-- don't want whitespace here
+       --><input maxlength="100" name="name" type="text" value="{{data.get('name', '')}}" {% if c.editing %}readonly="readonly"{% else %}class="js-url-input"{% endif %}>
 
           <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL">{% if c.editing %}<img src="/images/information-grey.png"/>{% endif %}</span>
         </div>
@@ -86,8 +86,6 @@
         {% endif %}
       </div>
     </div>
-
-  </div>
 
   </div>
 </div>
