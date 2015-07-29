@@ -10,7 +10,6 @@ var CKAN = CKAN || {};
 CKAN.Dgu = function($, my) {
   my.stub = function() {}
 
-
  my.setupPublisherUserAutocomplete = function(elements) {
     elements.autocomplete({
       minLength: 2,

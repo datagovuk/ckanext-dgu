@@ -15,6 +15,7 @@ import itertools
 import datetime
 import random
 import types
+import json
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -115,9 +116,10 @@ def _publisher_hierarchy_recur(node):
     name  = node['name']
     children = [ _publisher_hierarchy_recur(child) for child in (node['children'] or []) ]
     return {
+            'id': node['id'],
             'title':title,
             'name':name,
-            'children':children
+            'children':children,
             }
 
 def publisher_hierarchy_mini(group_name_or_id):
@@ -2137,6 +2139,64 @@ def report_timestamps_split(timestamps):
 
 def report_users_split(users, organization):
     return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
+
+def closed_publisher_ids():
+    """
+    Returns the IDs of all of the closed publishers. For use in
+    publisher_index.
+    """
+    import ckan.model as model
+    extras = model.Session.query(model.GroupExtra.group_id)\
+        .filter(model.GroupExtra.key == 'closed')\
+        .filter(model.GroupExtra.value == 'true')\
+        .filter(model.GroupExtra.state == 'active')
+    return set(e[0] for e in extras.all())
+
+def all_publishers(exclude=None):
+    import ckan.model as model
+    pubs = model.Session.query(model.Group.name, model.Group.title)\
+        .filter(model.Group.state=='active')\
+        .filter(model.Group.type=='organization')
+
+    return pubs.order_by(model.Group.title)
+
+def get_closed_publisher_message(pub):
+    """ For publishers that are closed, this function will return a message to
+        display on the publisher_read/publisher_edit pages """
+    import ckan.model as model
+
+    closed = pub.get('closed')
+    replaced_by = pub.get('replaced_by')
+
+    if not closed:
+        return None
+
+    extra_msg = None
+    if replaced_by:
+        if isinstance(replaced_by, basestring):
+            replaced_by = [replaced_by]
+        publisher_urls = []
+        for p in replaced_by:
+            g = model.Group.get(p)
+            if not g:
+                log.warning('Could not find %s which replaces publisher %s', p,
+                            pub['name'])
+                continue
+            publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
+        extra_msg = ' or '.join(publisher_urls)
+        extra_msg = 'Please see %s instead.' % extra_msg
+
+    return 'This publisher has closed. %s ' % (extra_msg or '')
+
+def put_closed_publishers_last(pub_list, closed_publisher_ids):
+    open_pubs = []
+    closed_pubs = []
+    for pub in pub_list:
+        if pub['id'] in closed_publisher_ids:
+            closed_pubs.append(pub)
+        else:
+            open_pubs.append(pub)
+    return open_pubs + closed_pubs
 
 def get_dgu_dataset_form_options(field_name):
     '''

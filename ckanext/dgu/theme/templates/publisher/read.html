@@ -47,20 +47,25 @@
           <div class="panel-heading">Publisher Hierarchy</div>
           <div class="panel-body publisher-dropdown">
             <div class="publisher-hierarchy empty-search">
-              <div class="publisher">
+              {% with %}
                 {% set pub=h.publisher_hierarchy_mini(c.group.name) %}
-                <div class="publisher-row {% if pub['name']==c.group.name %}active{% endif %}">
+                {% set closed_publisher_ids=h.closed_publisher_ids() %}
+              <div class="publisher">
+                <div class="publisher-row {% if pub['name']==c.group.name %}active{% endif %} {% if pub['id'] in closed_publisher_ids %}closed{% endif %}">
                   <a href="/publisher/{{ pub['name'] }}">{{ pub['title'] }}</a>
+                  {% if pub['id'] in closed_publisher_ids %}(closed){% endif %}
                 </div>
-                {% for child in pub['children'] recursive %}
+                {% for child in h.put_closed_publishers_last(pub['children'], closed_publisher_ids) recursive %}
                     <div class="publisher">
-                    <div class="publisher-row {% if child['name']==c.group.name %}active{% endif %}">
+                    <div class="publisher-row {% if child['name']==c.group.name %}active{% endif %} {% if child['id'] in closed_publisher_ids %}closed{% endif %}">
                         <a href="/publisher/{{ child['name'] }}">{{ child['title'] }}</a>
+                        {% if child['id'] in closed_publisher_ids %}(closed){% endif %}
                     </div>
-                    {{ loop(child['children']) }}
+                    {{ loop(h.put_closed_publishers_last(child['children'], closed_publisher_ids)) }}
                     </div>
                 {% endfor %}
               </div>
+              {% endwith %}
             </div>
           </div>
         </div>
@@ -96,6 +101,7 @@
       </span>
       {% if c.userobj %}
       <span class="dropdown">
+        {% with %}
         {% set is_an_official = h.is_an_official() %}
         <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Administrators">
           <i class="icon-group icon-2x"></i>
@@ -140,6 +146,7 @@
             {% endif %}
           </ul>
         </div>
+        {% endwith %}
       </span>
       {% endif %}
       <a class="js-tooltip dropdown-button rss-link" data-placement="top" title="" data-delay="300" data-original-title="RSS&nbsp;Feed" href="{{ h.url(controller='feed', action='organization', id=c.group['name']) }}">
@@ -161,6 +168,16 @@
       {% set organizationupdate = h.check_access('organization_update', {'id':c.group.id}) %}
       {% set adminmode = (packagecreate or packagecreate) %}
       <div class="{% if adminmode %}col-md-8{% else %}col-md-12{% endif %}">
+
+        {% with %}
+          {% set message = h.get_closed_publisher_message(c.group_dict) %}
+          {% if message %}
+            <div class="alert alert-info">
+            {{message|safe}}
+            </div>
+          {% endif %}
+        {% endwith %}
+
         {% if h.group_category(c.group_extras) %}
           <p class="pre-notes">
             <b>Category: </b> {{ h.group_category(c.group_extras) }}
@@ -238,5 +255,3 @@
     <link rel="alternate" type="application/atom+xml" title="{{ g.site_title }} - Datasets in organization '{{ c.group['title'] }}'"
       href="{{ h.url(controller='feed', action='organization', id=c.group['name']) }}" />
 {% endblock %}
-
-

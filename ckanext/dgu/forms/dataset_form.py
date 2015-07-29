@@ -21,6 +21,7 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
      remove_blank_resources, \
+     to_json, from_json, \
      bool_
 from ckan.lib.navl.dictization_functions import missing
 
@@ -459,20 +460,6 @@ def commas_to_list(key, data, errors, context):
     item = data[key]
     if isinstance(item, basestring):
         data[key] = [i.strip() for i in item.split(',')]
-
-def to_json(key, data, errors, context):
-    try:
-        encoded = json.dumps(data[key])
-        data[key] = encoded
-    except:
-        pass
-
-def from_json(key, data, errors, context):
-    try:
-        decoded = json.loads(data[key])
-        data[key] = decoded
-    except:
-        pass
 
 
 def use_other(key, data, errors, context):

@@ -42,6 +42,15 @@ Passed in:
 {{ h.prep_group_edit_data(data)}}
 </div>
 
+{% with %}
+  {% set message = h.get_closed_publisher_message(data) %}
+  {% if message %}
+    <div class="alert alert-info">
+    {{message|safe}}
+    </div>
+  {% endif %}
+{% endwith %}
+
 <div class="row dgu-equal-height" data-selector=".panel-default">
 <fieldset id="basic-information">
 
@@ -92,9 +101,52 @@ Passed in:
       <div class="controls">
         <input id="abbreviation" name="abbreviation" type="text" class="form-control" value="{{data.get('abbreviation', '')}}"/>
         {{ m.display_error(errors, 'abbreviation', True) }}
+
+    <hr style="margin-top: 30px;"/>
+    <div class="control-group">
+      <div class="controls">
+        <label class="checkbox">
+          Closed <small style="color: #aaa;">Please check this box only if the publisher is considered closed</small>
+          <input id="closed" name="closed" type="checkbox" value="True" {% if data.get('closed', '') %}checked="checked"{% endif %}/>
+        </label>
+
+        {{ m.display_error(errors, 'closed', True) }}
+      </div>
+    </div>
+    <div class="control-group" style="margin-top: 10px;"  id="replacement-div" >
+      <div class="controls">
+        <label>Replaced by
+        <small style="color: #aaa;">Select which, if any, publishers should be considered alternatives</small>
+
+        <select name="replaced_by" class="chzn-select" multiple="multiple" data-placeholder=" ">
+          {% for name, title in h.all_publishers() %}
+            <option value="{{name}}" {% if name in data.get('replaced_by') %}selected="selected"{% endif %}>{{title}}</option>
+          {% endfor %}
+        </select>
+        </label>
+        {{ m.display_error(errors, 'replaced_by', True) }}
       </div>
     </div>
 
+    {% with %}
+    {% set editable = action=='edit' and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
+    <div class="control-group">
+      <label class="control-label" for="state">State
+        {% if not editable %}
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
+        {% endif %}
+      </label>
+      <div class="controls state-field" >
+          <select id="state" class="form-control" name="state" {% if not editable %}disabled="disabled"{% endif %} style="width:100px;">
+            <option value="active" {% if data.get('state') == 'active' %}selected="selected"{% endif %}}>active</option>
+            <option value="deleted" {% if data.get('state') == 'deleted' %}selected="selected"{% endif %}}>deleted</option>
+          </select>
+      </div>
+    </div>
+    {% endwith %}
+
+      </div>
+    </div>
   </div>
 </div>
 </div>
@@ -132,24 +184,6 @@ Passed in:
       </div>
       {% endwith %}
     </div>
-
-    {% with %}
-    {% set editable = action=='edit' and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
-    <div class="control-group">
-      <label class="control-label" for="state">State
-        {% if not editable %}
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
-        {% endif %}
-      </label>
-      <div class="controls state-field" >
-          <select id="state" class="form-control" name="state" {% if not editable %}disabled="disabled"{% endif %} style="width:100px;">
-            {# Could this not just set the value and title from state? #}
-            <option value="active" {% if data.get('state') == 'active' %}selected="selected"{% endif %}}>active</option>
-            <option value="deleted" {% if data.get('state') == 'deleted' %}selected="selected"{% endif %}}>deleted</option>
-          </select>
-      </div>
-    </div>
-    {% endwith %}
 
     <div class="control-group">
       <label class="control-label" for="category">Category</label>
@@ -278,6 +312,16 @@ Passed in:
 </div>
 
 <script>
-    $(".chzn-select").chosen();
+	$(".chzn-select").chosen();
+
+  $(document).ready(function(){
+    if (! $('#closed').is(':checked')) {
+      $('#replacement-div').hide();
+    }
+
+    $('#closed').click(function(){
+      $("#replacement-div").toggle(this.checked);
+    });
+  });
 </script>
 </form>
