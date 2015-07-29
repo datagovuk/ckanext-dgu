@@ -84,6 +84,7 @@ setup(
         clean_resource_dates = ckanext.dgu.commands.clean_resource_dates:CleanResourceDates
         sync_apps = ckanext.dgu.commands.appsync:AppSync
         vocabs = ckanext.dgu.commands.vocabs:VocabsCmd
+        sync_closed = ckanext.dgu.commands.sync_closed:SyncClosedPublishers
         check_publisher_requests = ckanext.dgu.commands.check_publisher_requests:CheckRequests
         publisher_request_init = ckanext.dgu.commands.publisher_request_init:InitDB
         schema = ckanext.dgu.commands.schema:Schema

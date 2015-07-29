@@ -9,7 +9,7 @@
     <li><a href="/publisher">Publishers</a></li>
   </py:match>
 
-  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
+  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy(); closed_publisher_ids = h.closed_publisher_ids();">
     <h1>Publishers</h1>
     <p>Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
     <div py:if="c.userobj" class="panel panel-info">
@@ -41,22 +41,27 @@
     </div><!-- /search-area -->
     <div class="publisher-hierarchy empty-search">
       <py:def function="render_publisher(pub)">
+        <py:with vars="closed = pub['id'] in closed_publisher_ids">
         <div class="publisher collapsed">
           <py:if test="len(pub['children'])">
             <button class="btn btn-xs btn-primary js-expand"><i class="icon icon-plus"/></button>
             <button class="btn btn-xs btn-default js-collapse"><i class="icon icon-minus"/></button>
           </py:if>
-          <div class="publisher-row">
+          <div class="publisher-row" py:attrs="{'class': 'publisher-row closed'} if closed else {'class': 'publisher-row'}">
             <a href="/publisher/${pub['name']}">
               ${pub['title']}
+              <py:if test="pub['id'] in closed_publisher_ids">
+              (Closed)
+              </py:if>
             </a>
           </div>
-          <py:for each="child in pub['children']">
+          <py:for each="child in h.put_closed_publishers_last(pub['children'], closed_publisher_ids)">
             ${render_publisher(child)}
           </py:for>
         </div>
+        </py:with>
       </py:def>
-      <py:for each="pub in hierarchy">
+      <py:for each="pub in h.put_closed_publishers_last(hierarchy, closed_publisher_ids)">
         ${render_publisher(pub)}
       </py:for>
     </div>
