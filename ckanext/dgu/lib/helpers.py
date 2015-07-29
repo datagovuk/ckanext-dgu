@@ -381,13 +381,43 @@ def dgu_linked_user(user_name, maxlength=24, organization=None):  # Overwrite h.
 
 
 def render_datestamp(datestamp_str, format='%d/%m/%Y'):
-    # e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+    '''
+    Takes a FULL ISO datetime and returns a pretty-printed date
+    e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+    '''
     if not datestamp_str:
         return ''
     try:
         return datetime.datetime(*map(int, re.split('[^\d]', datestamp_str)[:-1])).strftime(format)
     except Exception:
         return ''
+
+
+def render_partial_datestamp(datestamp_str):
+    '''
+    Takes a full or partial ISO datetime and returns a pretty-printed UK date
+    e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+         '2012-06' returns 'Jun 2012'
+    '''
+    if not datestamp_str:
+        return ''
+    try:
+        bits = map(int, re.split('[^\d]', datestamp_str)[:3])
+        num_bits = len(bits)
+        format_ = {3: '%d/%m/%Y', 2: '%b %Y', 1: '%Y'}[num_bits]
+        # pad it out to three bits (if its a partial date)
+        bits += [1] * (3 - num_bits)
+        return datetime.datetime(*bits).strftime(format_)
+    except:
+        try:
+            request_path = t.request.path
+        except TypeError:
+            # not in a request (e.g. in a test)
+            request_path = ''
+        log.error('Could not render datestamp: %r %s', datestamp_str,
+                  request_path)
+        return ''
+
 
 def get_cache(resource_dict):
     from ckanext.archiver.model import Archival
@@ -714,7 +744,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
         field_names_display_only_if_value.append('import_source')
@@ -838,14 +868,15 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
         'harvest-date': {'label': 'Harvest date', 'value': harvest_date},
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (escape(pkg_extras.get('bbox-north-lat')), escape(pkg_extras.get('bbox-south-lat')), escape(pkg_extras.get('bbox-west-long')), escape(pkg_extras.get('bbox-east-long')))) },
+        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (escape(pkg_extras.get('bbox-north-lat')), escape(pkg_extras.get('bbox-south-lat')), escape(pkg_extras.get('bbox-west-long')), escape(pkg_extras.get('bbox-east-long')))) if has_extent(c.pkg) else ''},
         'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
-        'data_modified': {'label': 'Data last modified', 'value': render_datestamp(pkg_extras.get('data_modified', ''))},
+        'data_issued': {'label': 'Data first issued', 'value': render_partial_datestamp(pkg_extras.get('data_issued', ''))},
+        'data_modified': {'label': 'Data last modified', 'value': render_partial_datestamp(pkg_extras.get('data_modified', ''))},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
-        'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
+        'resource-type': {'label': 'ISO19139 resource type', 'value': pkg_extras.get('resource-type')},
         'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
         'access_constraints': {'label': 'Access constraints', 'value': render_json(pkg_extras.get('access_constraints'))},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
@@ -1141,8 +1172,6 @@ def prep_group_edit_data(data):
     # on validation error, the submitted values appear in data[key] with the original
     # values in data['extras']. Therefore populate the form with the data[key] values
     # in preference, and fall back on the data['extra'] values.
-    if c.group:
-        c.editing = True
     original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
                                 for extra_dict in data.get('extras', {})])
     for key, value in original_extra_fields.items():

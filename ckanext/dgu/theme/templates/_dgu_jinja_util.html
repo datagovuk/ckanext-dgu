@@ -4,7 +4,7 @@
 <!-- recursive function turns errors into hierarchical lists -->
 
 {% macro display_error(errors, name, field_error=False, msg=None) %}
-  {% if errors.get(name ) %}
+  {% if errors.get(name) %}
     {% set error_msg = msg or errors.get(name) %}
     {% if h.is_list(error_msg) %}
       {% set error_msg = errors.get(name)[0] %}

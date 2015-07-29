@@ -233,7 +233,7 @@
             <img class="dataset-logo" src="/images/national_statistics.gif" />
           </a>
           {% endif %}
-          {% if is_location_data -%}
+          {% if is_location_data and c.pkg.extras.get('resource-type') != 'nonGeographicDataset' -%}
           <a
             class="dataset-optional-logo"
             href="/location"

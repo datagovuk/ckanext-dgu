@@ -30,9 +30,9 @@ class Themes(object):
 
     def __init__(self):
         self.data = {}
-        self.topic_words = {}  # topic:theme_name
-        self.topic_bigrams = {} # (topicword1, topicword2):theme_name
-        self.topic_trigrams = {} # (topicword1, topicword2, topicword3):theme_name
+        self.topic_words = {}  # topic:[theme_name]
+        self.topic_bigrams = {} # (topicword1, topicword2):[theme_name]
+        self.topic_trigrams = {} # (topicword1, topicword2, topicword3):[theme_name]
         self.gemet = {}  # gemet_keyword:theme_name
         self.ons = {}  # ons_keyword:theme_name
         self.la_function = {} # LA functions extra
@@ -43,6 +43,11 @@ class Themes(object):
         # Get the themes from ckanext-taxonomy
         try:
             terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
+        except sqlalchemy.exc.OperationalError, e:
+            if 'no such table: taxonomy' in str(e):
+                model.Session.remove()  # clear the erroring transaction
+                raise ImportError('ckanext-taxonomy tables not setup')
+            raise
         except sqlalchemy.exc.ProgrammingError, e:
             if 'relation "taxonomy" does not exist' in str(e):
                 # this happens in ckanext-harvest test
@@ -62,13 +67,19 @@ class Themes(object):
             for topic in theme_dict['topics']:
                 words = [normalize_token(word) for word in split_words(topic)]
                 if len(words) == 1:
-                    self.topic_words[words[0]] = name
+                    topic_dict = self.topic_words
+                    key = words[0]
                 elif len(words) == 2:
-                    self.topic_bigrams[tuple(words)] = name
+                    topic_dict = self.topic_bigrams
+                    key = tuple(words)
                 elif len(words) == 3:
-                    self.topic_trigrams[tuple(words)] = name
+                    topic_dict = self.topic_trigrams
+                    key = tuple(words)
                 else:
                     assert 0, 'Too many words in topic: %s' % topic
+                if key not in topic_dict:
+                    topic_dict[key] = []
+                topic_dict[key].append(name)
 
             for gemet_keyword in theme_dict.get('gemet', []):
                 self.gemet[normalize_keyword(gemet_keyword)] = name
@@ -99,7 +110,7 @@ def split_words(sentence):
     return words
 
 # some words change meaning if you reduce them to their stem
-stem_exceptions = set(('parking', 'national', 'coordinates', 'granted'))
+stem_exceptions = set(('parking', 'national', 'coordinates', 'granted', 'hospitality', 'employers', 'employer', 'employee', 'employees'))
 
 porter = None
 def normalize_token(token):
@@ -233,12 +244,13 @@ def score_by_topic(pkg, scores):
                 for ngram in matching_ngrams:
                     occurrences = ngrams.count(ngram)
                     score = (3-level) * occurrences * num_words
-                    theme = topic_ngrams[ngram]
+                    themes_for_ngram = topic_ngrams[ngram]
                     ngram_printable = ' '.join(ngram) if isinstance(ngram, tuple) else ngram
                     reason = '"%s" matched %s' % (ngram_printable, LEVELS[level])
                     if occurrences > 1:
                         reason += ' (%s times)' % occurrences
-                    scores[theme].append((score, reason))
+                    for theme in themes_for_ngram:
+                        scores[theme].append((score, reason))
                     log.debug(' %s %s %s', theme, score, reason)
 
 def score_by_gemet(pkg, scores):
