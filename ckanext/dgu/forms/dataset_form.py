@@ -21,7 +21,6 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
      remove_blank_resources, \
-     allow_empty_if_inventory, \
      to_json, from_json, \
      bool_
 from ckan.lib.navl.dictization_functions import missing

@@ -22,7 +22,7 @@ from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,
                                       empty,
                                       ignore,
-                                      keep_extras
+                                      keep_extras,
                                      )
 from ckanext.dgu.forms.validators import (validate_publisher_category,
                                           categories,

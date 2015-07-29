@@ -43,7 +43,7 @@ Passed in:
 </div>
 
 {% with %}
-  {% set message = h. get_closed_publisher_message(data) %}
+  {% set message = h.get_closed_publisher_message(data) %}
   {% if message %}
     <div class="alert alert-info">
     {{message|safe}}

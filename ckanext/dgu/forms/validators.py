@@ -34,25 +34,6 @@ def value_if_missing(new_value):
         return value
     return f
 
-def allow_empty_if_inventory(key, data, errors, context):
-    """ Allow a specific field to not be required if unpublished=true """
-    unpublished = data.get('unpublished', False)
-    value = data.get(key)
-
-    if unpublished:
-        if value is missing or value is None:
-            data.pop(key, None)
-            raise StopOnError
-    else:
-        if not value or value is missing:
-            errors[key].append(_('Missing value'))
-            raise StopOnError
-
-
-
-def required_if_inventory(key, data, errors, context):
-    """ Make a field required if inventory=true in extras """
-    pass
 
 def drop_if_same_as_publisher(key, data, errors, context):
     """
