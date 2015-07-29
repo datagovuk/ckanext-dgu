@@ -2179,13 +2179,14 @@ def get_closed_publisher_message(pub):
         for p in replaced_by:
             g = model.Group.get(p)
             if not g:
-                log.warning('Could not find %s', p)
+                log.warning('Could not find %s which replaces publisher %s', p,
+                            pub['name'])
                 continue
             publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
         extra_msg = ' or '.join(publisher_urls)
-        extra_msg = 'Please see %s' % extra_msg
+        extra_msg = 'Please see %s instead.' % extra_msg
 
-    return "This publisher has closed. %s " % (extra_msg or '')
+    return 'This publisher has closed. %s ' % (extra_msg or '')
 
 def put_closed_publishers_last(pub_list, closed_publisher_ids):
     open_pubs = []
