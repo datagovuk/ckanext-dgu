@@ -2140,16 +2140,17 @@ def report_timestamps_split(timestamps):
 def report_users_split(users, organization):
     return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
 
-def closed_publisher_list():
+def closed_publisher_ids():
     """
-    Returns the IDs of all of the closed publishers for use in publisher_index.
+    Returns the IDs of all of the closed publishers. For use in
+    publisher_index.
     """
     import ckan.model as model
     extras = model.Session.query(model.GroupExtra.group_id)\
         .filter(model.GroupExtra.key == 'closed')\
         .filter(model.GroupExtra.value == 'true')\
         .filter(model.GroupExtra.state == 'active')
-    return [e[0] for e in extras.all()]
+    return set(e[0] for e in extras.all())
 
 def all_publishers(exclude=None):
     import ckan.model as model
@@ -2161,7 +2162,7 @@ def all_publishers(exclude=None):
 
 def get_closed_publisher_message(pub):
     """ For publishers that are closed, this function will return a message to
-        display one the publisher_read/publisher_edit pages """
+        display on the publisher_read/publisher_edit pages """
     import ckan.model as model
 
     closed = pub.get('closed')
@@ -2173,24 +2174,28 @@ def get_closed_publisher_message(pub):
     extra_msg = None
     if replaced_by:
         if isinstance(replaced_by, basestring):
-            g = model.Group.get(replaced_by)
+            replaced_by = [replaced_by]
+        publisher_urls = []
+        for p in replaced_by:
+            g = model.Group.get(p)
             if not g:
-                print "Could not find {}".format(replaced_by)
-            else:
-                extra_msg = "Please see <a href='/publisher/%s'>%s</a>." % (g.name, g.title,)
+                log.warning('Could not find %s', p)
+                continue
+            publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
+        extra_msg = ' or '.join(publisher_urls)
+        extra_msg = 'Please see %s' % extra_msg
+
+    return "This publisher has closed. %s " % (extra_msg or '')
+
+def put_closed_publishers_last(pub_list, closed_publisher_ids):
+    open_pubs = []
+    closed_pubs = []
+    for pub in pub_list:
+        if pub['id'] in closed_publisher_ids:
+            closed_pubs.append(pub)
         else:
-            publisher_urls = []
-            for p in replaced_by:
-                g = model.Group.get(p)
-                if not g:
-                    print "Could not find {}".format(p)
-                    continue
-                publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
-            extra_msg = ' or '.join(publisher_urls)
-            extra_msg = 'Please see %s' % extra_msg
-
-    return "This publisher is no longer active. %s " % (extra_msg or '')
-
+            open_pubs.append(pub)
+    return open_pubs + closed_pubs
 
 def get_dgu_dataset_form_options(field_name):
     '''

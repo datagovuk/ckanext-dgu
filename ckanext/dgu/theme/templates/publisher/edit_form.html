@@ -128,6 +128,25 @@ Passed in:
       </div>
     </div>
 
+    {% with %}
+    {% set editable = action=='edit' and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
+    <div class="control-group">
+      <label class="control-label" for="state">State
+        {% if not editable %}
+          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
+        {% endif %}
+      </label>
+      <div class="controls state-field" >
+          <select id="state" class="form-control" name="state" {% if not editable %}disabled="disabled"{% endif %} style="width:100px;">
+            <option value="active" {% if data.get('state') == 'active' %}selected="selected"{% endif %}}>active</option>
+            <option value="deleted" {% if data.get('state') == 'deleted' %}selected="selected"{% endif %}}>deleted</option>
+          </select>
+      </div>
+    </div>
+    {% endwith %}
+
+      </div>
+    </div>
   </div>
 </div>
 </div>
@@ -165,23 +184,6 @@ Passed in:
       </div>
       {% endwith %}
     </div>
-
-    {% with %}
-    {% set editable = action=='edit' and h.check_access('organization_delete', {'id': c.group_dict.id}) %}
-    <div class="control-group">
-      <label class="control-label" for="state">State
-        {% if not editable %}
-          <span class="js-tooltip" data-original-title="Please contact the system administrator to delete this publisher"><img src="/images/information-grey.png"/></span>
-        {% endif %}
-      </label>
-      <div class="controls state-field" >
-          <select id="state" class="form-control" name="state" {% if not editable %}disabled="disabled"{% endif %} style="width:100px;">
-            <option value="active" {% if data.get('state') == 'active' %}selected="selected"{% endif %}}>active</option>
-            <option value="deleted" {% if data.get('state') == 'deleted' %}selected="selected"{% endif %}}>deleted</option>
-          </select>
-      </div>
-    </div>
-    {% endwith %}
 
     <div class="control-group">
       <label class="control-label" for="category">Category</label>

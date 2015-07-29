@@ -49,16 +49,19 @@
             <div class="publisher-hierarchy empty-search">
               {% with %}
                 {% set pub=h.publisher_hierarchy_mini(c.group.name) %}
+                {% set closed_publisher_ids=h.closed_publisher_ids() %}
               <div class="publisher">
-                <div class="publisher-row {% if pub['name']==c.group.name %}active{% endif %}">
+                <div class="publisher-row {% if pub['name']==c.group.name %}active{% endif %} {% if pub['id'] in closed_publisher_ids %}closed{% endif %}">
                   <a href="/publisher/{{ pub['name'] }}">{{ pub['title'] }}</a>
+                  {% if pub['id'] in closed_publisher_ids %}(closed){% endif %}
                 </div>
-                {% for child in pub['children'] recursive %}
+                {% for child in h.put_closed_publishers_last(pub['children'], closed_publisher_ids) recursive %}
                     <div class="publisher">
-                    <div class="publisher-row {% if child['name']==c.group.name %}active{% endif %}">
+                    <div class="publisher-row {% if child['name']==c.group.name %}active{% endif %} {% if child['id'] in closed_publisher_ids %}closed{% endif %}">
                         <a href="/publisher/{{ child['name'] }}">{{ child['title'] }}</a>
+                        {% if child['id'] in closed_publisher_ids %}(closed){% endif %}
                     </div>
-                    {{ loop(child['children']) }}
+                    {{ loop(h.put_closed_publishers_last(child['children'], closed_publisher_ids)) }}
                     </div>
                 {% endfor %}
               </div>
