@@ -1,20 +1,15 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">New - Publisher</py:def>
+{% block title %}New - Publisher{% endblock %}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/publisher">Publishers</a></li>
-    <li><a href="/publisher/new">New Publisher</a></li>
-  </py:match>
+{% block breadcrumb_content %}
+  {{ h.build_nav('publisher_index', _('Publishers')) }}
+  {{ h.build_nav('publisher_new', _('New')) }}
+{% endblock %}
 
-  <div py:match="content">
+
+{% block primary_content_inner %}
     <h1>New Publisher</h1>
-    ${c.form}
-  </div>
 
-  <xi:include href="../layout_base.html" />
-</html>
-
+    {{c.form|safe}}
+{% endblock %}
