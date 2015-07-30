@@ -132,6 +132,14 @@ def publisher_hierarchy_mini(group_name_or_id):
             data_dict={'id': group_name_or_id, 'type': 'organization'})
     return _publisher_hierarchy_recur(my_root_node)
 
+def publisher_abbreviations():
+    from ckan import model
+    abbrevs = model.Session.query(model.GroupExtra) \
+                   .filter_by(key='abbreviation') \
+                   .filter_by(state='active') \
+                   .all()
+    return dict(((abbrev.group_id, abbrev.value) for abbrev in abbrevs))
+
 def is_wms(resource):
     from ckanext.dgu.lib.helpers import get_resource_wms
     return bool(get_resource_wms(resource))

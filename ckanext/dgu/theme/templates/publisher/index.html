@@ -8,6 +8,7 @@
 
 {% block primary_content_inner %}
   {% set hierarchy = h.publisher_hierarchy() %}
+  {% set publisher_abbreviations = h.publisher_abbreviations() %}
   {% set closed_publisher_ids = h.closed_publisher_ids() %}
 
   <h1>Publishers</h1>
@@ -59,8 +60,11 @@
           <div class="publisher-row {% if closed %}closed{% endif %}">
             <a href="/publisher/{{ pub['name'] }}">
               {{ pub['title'] }}
+              {% if publisher_abbreviations.get(pub['id']) %}
+                ({{ publisher_abbreviations.get(pub['id']) }})
+              {% endif %}
               {% if closed %}
-              (Closed)
+                (Closed)
               {% endif %}
             </a>
           </div>
