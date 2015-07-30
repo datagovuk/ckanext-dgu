@@ -120,7 +120,7 @@ Passed in:
 
         <select name="replaced_by" class="chzn-select" multiple="multiple" data-placeholder=" ">
           {% for name, title in h.all_publishers() %}
-            <option value="{{name}}" {% if name in data.get('replaced_by') %}selected="selected"{% endif %}>{{title}}</option>
+            <option value="{{name}}" {% if name in data.get('replaced_by', []) %}selected="selected"{% endif %}>{{title}}</option>
           {% endfor %}
         </select>
         </label>
