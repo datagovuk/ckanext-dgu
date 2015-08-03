@@ -205,7 +205,10 @@ class DataController(BaseController):
         import requests, urlparse
         from pylons import response
 
-        headers = {'X-Script-Name': '/data/contracts-archive'}
+        if request.method == 'POST':
+            abort(405) # Method Not Allowed
+
+        headers = {'X-Script-Name': '/data/contracts-finder-archive'}
         contracts_url = pylons.config.get('dgu.contracts_url')
         url = urlparse.urljoin(contracts_url, relative_url)
         r = requests.get(url,
