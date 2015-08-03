@@ -271,6 +271,12 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
         content.append(my.escapeHTML(row));
       }
       my.$dialog().html(content);
+      if (data.extra_text) {
+          $("#ckanext-datapreview-extra").html(data.extra_text);
+      }
+      if (data.archived) {
+          $("#ckanext-datapreview-source").html(data.archived);
+      }
     }
   };
 
