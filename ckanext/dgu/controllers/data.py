@@ -202,7 +202,7 @@ class DataController(BaseController):
         return render('viz/front_page.html')
 
     def contracts_archive(self, relative_url='/'):
-        import requests, urlparse
+        import requests
         from pylons import response
 
         if request.method == 'POST':
@@ -213,7 +213,7 @@ class DataController(BaseController):
         url = urlparse.urljoin(contracts_url, relative_url)
         r = requests.get(url,
                          headers=headers,
-                         params=request.params,
+                         params=dict(request.params),
                          stream=True)
 
         if relative_url.startswith(('/static/', '/download/')):
