@@ -83,9 +83,7 @@
       {% if cache_url and not h.get_resource_wms(c.resource) %}
        <a class="btn btn-danger resource-url-analytics resource-type-{{c.resource.get('resource_type')}}" href="{{cache_url}}" onclick="{{h.ga_download_tracking(c.resource, publisher.name, 'download-cache')}}">
         <div class="download js-tooltip" data-placement="bottom" data-original-title="Cached by data.gov.uk on: {{cache_timestamp.strftime('%d/%m/%Y') if cache_timestamp else 'unknown'}}">
-          {% if not h.as_bool(h.get_resource_wms(c.resource)) %}
-              <i class="icon-save"></i>&nbsp; Cached
-          {% endif %}
+          <i class="icon-save"></i>&nbsp; Cached
         </div>
        </a>
        {% endif %}
