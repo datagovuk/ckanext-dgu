@@ -1863,10 +1863,10 @@ def tidy_url(url):
 
     # Check we aren't using any schemes we shouldn't be
     if not parsed_url.scheme in ('http', 'https', 'ftp'):
-        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+        raise Exception('Invalid url scheme "%s". Please use one of: http, https, ftp. Url: %s' % (parsed_url.scheme, url))
 
     if not parsed_url.netloc:
-        raise Exception('URL parsing failure - did not find a host name')
+        raise Exception('URL parsing failure - did not find a host name: %s' % url)
 
     return url
 
