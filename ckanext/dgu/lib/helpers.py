@@ -672,9 +672,11 @@ def package_publisher_dict(package):
 
 
 def formats_for_package(package):
-    formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
+    formats = [res.get('format', '').strip().lower()
+               for res in package.get('resources', [])
+               if res.get('resource_type') != 'documentation']
     # Strip empty strings, deduplicate and sort
-    formats = filter(bool,formats)
+    formats = filter(bool, formats)
     formats = set(formats)
     formats = sorted(list(formats))
     return formats
