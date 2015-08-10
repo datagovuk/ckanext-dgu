@@ -1,0 +1,15 @@
+{% extends "page.html" %}
+
+{% block title %}All Datasets{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+{% endblock %}
+
+{% block primary_content %}
+
+    {% for dataset in c.datasets %}
+        {{dataset|safe}}
+    {% endfor %}
+
+{% endblock %}

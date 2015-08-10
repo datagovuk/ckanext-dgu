@@ -226,6 +226,9 @@ class ThemePlugin(p.SingletonPlugin):
 
         map.redirect('/dashboard', '/data/user/me')
 
+        dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
+        map.connect('all_dataset_list', '/data/_all_datasets_', controller=dgu_package_controller, action='all_packages')
+
         return map
 
     def after_map(self, map):
