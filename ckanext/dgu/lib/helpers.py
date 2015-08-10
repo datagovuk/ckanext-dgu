@@ -831,22 +831,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
             # string for single value
             secondary_themes = unicode(secondary_themes)
 
-    mandates = pkg_extras.get('mandate')
-    if mandates:
-        def linkify(string):
-            # string is already escaped so we don't have to escape again
-            if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s" target="_blank">%s</a>' % (string, string)
-            else:
-                return string
-
-        try:
-            mandates = json.loads(mandates)
-            mandates = [Markup.escape(m) for m in mandates]
-            mandates = [linkify(m) for m in mandates]
-            mandates = Markup("<br>".join(mandates))
-        except ValueError:
-            pass # Not JSON for some reason...
+    mandates = render_mandates(pkg_extras)
 
     def linkify(schema):
         if schema['url']:
@@ -914,6 +899,27 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
 
     # calculate displayable field values
     return DisplayableFields(field_names, field_value_map, pkg_extras)
+
+
+def render_mandates(pkg_extras):
+    mandates = pkg_extras.get('mandate')
+    if mandates:
+        def linkify(string):
+            # string is already escaped so we don't have to escape again
+            if string.startswith('http://') or string.startswith('https://'):
+                return '<a href="%s" target="_blank">%s</a>' % (string, string)
+            else:
+                return string
+
+        try:
+            mandates = json.loads(mandates)
+            mandates = [Markup.escape(m) for m in mandates]
+            mandates = [linkify(m) for m in mandates]
+            mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass  # Not JSON for some reason...
+    return mandates
+
 
 def results_sort_by():
     # Default to location if there is a bbox and no other parameters. Otherwise
