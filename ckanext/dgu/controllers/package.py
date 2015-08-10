@@ -26,6 +26,19 @@ class PackageController(ckan.controllers.package.PackageController):
             abort(401, 'Log-in to see this page')
         return super(PackageController, self).history(id)
 
+    def all_packages(self):
+
+        ctx = {'model': model, 'session': model.Session}
+        package_list = get_action("package_list")(ctx, {})
+
+        def linkify_packages(pkgs):
+            x = 0
+            for pkg in pkgs:
+                yield '<a href="/dataset/{p}">{p}</a><br/>'.format(p=pkg)
+
+        c.datasets = linkify_packages(package_list)
+        return render("package/all_datasets.html")
+
     def delete(self, id):
         """Provide a delete ('withdraw') action, but only for UKLP datasets"""
         from ckan.lib.search import SearchIndexError
