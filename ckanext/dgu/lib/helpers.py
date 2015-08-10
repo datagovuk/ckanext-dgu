@@ -834,8 +834,9 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
     mandates = pkg_extras.get('mandate')
     if mandates:
         def linkify(string):
+            # string is already escaped so we don't have to escape again
             if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s" target="_blank">%s</a>' % (urllib.quote(string), string)
+                return '<a href="%s" target="_blank">%s</a>' % (string, string)
             else:
                 return string
 
