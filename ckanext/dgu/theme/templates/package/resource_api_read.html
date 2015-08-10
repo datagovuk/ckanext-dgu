@@ -168,13 +168,17 @@
       <h3>Examples</h3>
 
       <h4>The first 5 rows</h4>
-      /api/3/action/datastore_search?resource_id={{c.resource.id}}&amp;limit=5
+      <a href="{{ c.host }}/api/3/action/datastore_search?resource_id={{c.resource.id}}&amp;limit=5" target="_blank">
+      {{ c.host }}/api/3/action/datastore_search?resource_id={{c.resource.id}}&amp;limit=5
+      </a>
       <iframe src="/api/3/action/datastore_search?resource_id={{c.resource.id}}&limit=5" width="100%"></iframe>
 
       <hr/>
       {% set random_field = h.random_value_from_list(c.schema.schema.keys()) or '_id' %}
       <h4>The first 5 rows sorted by the '{{random_field}}' field </h4>
-      /api/3/action/datastore_search?resource_id={{c.resource.id}}&amp;limit=5&amp;sort='{{random_field}}'
+      <a href="{{ c.host }}/api/3/action/datastore_search?resource_id={{c.resource.id}}&amp;limit=5&amp;sort='{{random_field}}'" target="blank">
+      {{ c.host }}/api/3/action/datastore_search?resource_id={{c.resource.id}}&amp;limit=5&amp;sort='{{random_field}}'
+      </a>
       <iframe src="/api/3/action/datastore_search?resource_id={{c.resource.id}}&limit=5&sort='{{random_field}}'" width="100%"></iframe>
 
     </div>

@@ -21,6 +21,7 @@ from ckanext.dgu.lib.search import solr_escape
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
 from ckan.exceptions import CkanUrlException
+from ckanext.datapusher.interfaces import IDataPusher
 
 log = getLogger(__name__)
 
@@ -592,6 +593,29 @@ class ApiPlugin(p.SingletonPlugin):
             'publisher_show': publisher_show,
             'suggest_themes': suggest_themes,
             }
+
+
+class NIIDataPusherPlugin(p.SingletonPlugin):
+    p.implements(IDataPusher)
+
+    def can_upload(self, resource_id):
+        """ We only want to upload NII resources, so we need to find out if the
+            package is a core dataset or not """
+        from ckan import model
+
+        resource = model.Resource.get(resource_id)
+        if not resource:
+            log.debug('NIIDataPusher: %s not found', resource_id)
+            return False
+
+        ctx = dict(model=model, ignore_auth=True, session=model.Session)
+        package_dict = p.toolkit.get_action("package_show")(ctx, {'id': resource.get_package_id()})
+
+        return p.toolkit.asbool(package_dict.get('core-dataset', False))
+
+
+    def after_upload(self, resource_id):
+        pass
 
 
 class SiteIsDownPlugin(p.SingletonPlugin):

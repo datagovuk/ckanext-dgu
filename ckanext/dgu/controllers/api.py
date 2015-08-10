@@ -14,6 +14,8 @@ import ckan.plugins.toolkit as t
 from ckanext.dgu.lib.helpers import is_sysadmin
 from ckanext.dgu.lib import reports
 
+from pylons import config
+
 log = logging.getLogger(__name__)
 
 default_limit = 10
@@ -34,6 +36,8 @@ class DguApiController(ApiController):
             abort(401, 'Not authorized to save package')
         except t.ObjectNotFound, e:
             abort(404, _('Dataset not found'))
+
+        c.host = config.get('ckan.site_url', '')
 
         return render("package/resource_api_read.html")
 

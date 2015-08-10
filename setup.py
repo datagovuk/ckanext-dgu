@@ -45,6 +45,7 @@ setup(
         dgu_api = ckanext.dgu.plugin:ApiPlugin
         dgu_site_down = ckanext.dgu.plugin:SiteIsDownPlugin
         dgu_schema = ckanext.dgu.plugin:SchemaPlugin
+        dgu_nii_datapusher = ckanext.dgu.plugin:NIIDataPusherPlugin
 
         [console_scripts]
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
