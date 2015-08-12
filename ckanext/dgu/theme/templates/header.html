@@ -95,7 +95,6 @@
           <span class="divider-section">&nbsp; Sys Admin:</span>
           <li><a class="{{ 'active' if url.startswith('/data/system_dashboard') }}" href="{{ h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard') }}">System Dashboard</a></li>
           <li><a class="{{ 'active' if url.startswith('/harvest') }}" href="{{ h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index') }}">Harvest Sources</a></li>
-          <li><a class="{{ 'active' if url.startswith('/data/feedback/moderation') }}" href="{{ h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation') }}">Feedback moderation</a></li>
         {% endif %}
       </ul>
 

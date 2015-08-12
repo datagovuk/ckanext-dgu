@@ -17,12 +17,7 @@
   <py:def function="package_content">
     <hr/>
     <div class="view-feedback">
-      <h2>Feedback &nbsp;
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" class="h2-subheading add-feedback-button">
-          <py:if test="c.user">Add feedback &raquo;</py:if>
-          <py:if test="not c.user">Login to Add feedback &raquo;</py:if>
-        </a>
-      </h2>
+      <h2>Feedback &nbsp;</h2>
       <p style="font-style: italic; color: #666;" py:if="c.items.count() == 0">(No feedback yet)</p>
       <py:for each="item in c.items">
         ${feedback_item(item, c.pkg_dict)}
