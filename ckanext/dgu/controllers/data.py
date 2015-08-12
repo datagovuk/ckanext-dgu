@@ -216,6 +216,9 @@ class DataController(BaseController):
                          params=dict(request.params),
                          stream=True)
 
+        if r.status_code != 200:
+            abort(r.status_code)
+
         if relative_url.startswith(('/static/', '/download/')):
             # CSS will only get loaded if it has the right content type
             response.content_type = r.headers.get('content-type', 'text/html')
