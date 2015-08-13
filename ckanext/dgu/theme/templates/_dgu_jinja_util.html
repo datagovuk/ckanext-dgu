@@ -199,6 +199,11 @@
                   <div title="This dataset is part of the National Information Infrastructure" class="js-tooltip format-box" style='background-color: #8BC658;'>NII</div>
                 {% endif %}
 
+                {% if package.get('has-api') == 'true' %}
+                <div title="This dataset has an API available" class="js-tooltip format-box" style='background-color: #EA9631;'>API</div>
+
+                {% endif %}
+
                {% for format in h.formats_for_package(package) %}
                  {{format_box(format.lower())}}
                {% endfor %}

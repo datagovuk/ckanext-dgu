@@ -614,8 +614,29 @@ class NIIDataPusherPlugin(p.SingletonPlugin):
         return p.toolkit.asbool(package_dict.get('core-dataset', False))
 
 
-    def after_upload(self, resource_id):
-        pass
+    def after_upload(self, resource_dict, package_dict):
+        """ We will update the resource to mark it as having an api """
+        import datetime
+        from ckan import model
+        from dateutil.parser import parse
+
+        for resource in package_dict['resources']:
+            if resource['id'] == resource_dict['id']:
+                resource['has-api'] = True
+                break
+
+        package_dict['has-api'] = True
+        try:
+            dt = parse(package_dict['last_major_modification'])
+            package_dict['last_major_modification'] = dt.strftime('%d/%m/%Y %H:%M')
+        except:
+            package_dict['last_major_modification'] = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+        ctx = dict(model=model, ignore_auth=True, session=model.Session)
+        p.toolkit.get_action('package_update')(ctx, package_dict)
+
+        #if not p.toolkit.asbool(resource_dict.get('has-api', False)):
+        #    resource_dict['has-api'] = True
+        #    p.toolkit.get_action('package_update')(ctx, package_dict)
 
 
 class SiteIsDownPlugin(p.SingletonPlugin):
