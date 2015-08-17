@@ -40,7 +40,7 @@ class DeleteDuplicateDatasets(object):
                     stats.add('Skipping', package.name)
                 else:
                     stats.add('Deleting', package.name)
-                    package.delete()
+                    package.state = 'deleted'
 
         if write:
             model.Session.commit()
