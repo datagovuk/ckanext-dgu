@@ -20,8 +20,11 @@ class DeleteDuplicateDatasets(object):
         common.load_config(config_ini)
         common.register_translator()
 
-        rev = model.repo.new_revision()
-        rev.author = 'script_delete_duplicate_datasets.py'
+        def new_revision():
+            rev = model.repo.new_revision()
+            rev.author = 'script_delete_duplicate_datasets.py'
+        if write:
+            new_revision()
 
         publisher = model.Group.get(options.publisher)
         if publisher is None:
@@ -58,7 +61,11 @@ class DeleteDuplicateDatasets(object):
                     package.name = package.name + '_'
                     package.state = 'deleted'
 
+            # Write the name changes, so that we can reuse the best_name.
             stats.add('Keep', '%s->%s' % (kept_package.name, best_name))
+            if write:
+                model.Session.commit()
+                new_revision()
             kept_package.name = best_name
 
         if write:
