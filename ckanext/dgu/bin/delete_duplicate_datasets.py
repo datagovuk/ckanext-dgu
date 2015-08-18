@@ -33,14 +33,33 @@ class DeleteDuplicateDatasets(object):
             guids[package.extras.get('guid')].append(package)
 
         for guid, packages in guids.items():
+            if guid is None:
+                for package in packages:
+                    stats.add('Skip package not harvested', package.name)
+                continue
+            if len(packages) == 1:
+                stats.add('Skip guid without duplicates', guid)
+                continue
+
+            best_name = None
             for i, package in enumerate(sorted(packages,
                                                key=lambda x: x.metadata_modified,
                                                reverse=options.keep_last)):
+                if (not best_name or
+                    len(package.name) < len(best_name) or
+                    (len(package.name) == len(best_name) and
+                     package.name < best_name)):
+                        best_name = package.name
+
                 if i == 0:
-                    stats.add('Skipping', package.name)
+                    kept_package = package
                 else:
                     stats.add('Deleting', package.name)
+                    package.name = package.name + '_'
                     package.state = 'deleted'
+
+            stats.add('Keep', '%s->%s' % (kept_package.name, best_name))
+            kept_package.name = best_name
 
         if write:
             model.Session.commit()
@@ -75,7 +94,5 @@ if __name__ == '__main__':
     if options.publisher is None:
         print "You must specify a publisher to work on"
         sys.exit(0)
-
-    print options.keep_last
 
     DeleteDuplicateDatasets.command(config_ini, options.write)
