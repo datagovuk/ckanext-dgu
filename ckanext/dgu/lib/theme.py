@@ -54,6 +54,11 @@ class Themes(object):
                 model.Session.remove()  # clear the erroring transaction
                 raise ImportError('ckanext-taxonomy tables not setup')
             raise
+        except KeyError, e:
+            if 'Action \'taxonomy_term_list\' not found' in str(e):
+                # this happens in ckanext-dgu-local test
+                raise ImportError('ckanext-taxonomy not installed')
+            raise
         for term in terms:
             theme_dict = term['extras']
             theme_dict['title'] = name = term['label']
