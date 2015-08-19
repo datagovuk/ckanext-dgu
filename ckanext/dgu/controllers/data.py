@@ -222,6 +222,8 @@ class DataController(BaseController):
         if relative_url.startswith(('/static/', '/download/')):
             # CSS will only get loaded if it has the right content type
             response.content_type = r.headers.get('content-type', 'text/html')
+            if r.headers.get('content-disposition'):
+                response.content_type = r.headers.get('content-disposition')
             return r.raw.read() # Some of the static files are binary
         else:
             extra_vars = {'content': r.text}
