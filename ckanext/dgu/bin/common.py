@@ -84,3 +84,17 @@ def get_datasets(state='active', dataset_name=None, organization_ref=None):
     print '%i datasets (%s)' % (len(datasets), ' '.join(criteria))
     return datasets
 
+def get_publishers(state='active', publisher_name=None):
+    ''' Returns all active publishers, or filtered by the given criteria. '''
+    from ckan import model
+    publishers = model.Session.query(model.Group) \
+                    .filter_by(state=state)\
+                    .filter_by(is_organization=True)
+    criteria = [state]
+    if publisher_name:
+        publishers = publishers.filter_by(name=publisher_name)
+        criteria.append('Publisher:%s' % publisher_name)
+    publishers = publishers.all()
+    print '%i publishers (%s)' % (len(publishers), ' '.join(criteria))
+    return publishers
+
