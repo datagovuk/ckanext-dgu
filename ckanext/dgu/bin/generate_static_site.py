@@ -52,7 +52,9 @@ class GenerateStaticSite(threading.Thread):
             for publisher in publishers:
                 print "Spending: ", publisher.name
                 content = self._get_spending_page(publisher.name)
-                self._write_file("data/openspending-report", "publisher-".format(publisher.name), content)
+                if content:
+                    self._write_file("data/openspending-report", "publisher-".format(publisher.name), content)
+                    self.stats_pages.add("Wrote openspending report", publisher.name)
 
             return
 
@@ -171,11 +173,11 @@ if __name__ == '__main__':
     # Partition the publishers and datasets and pass them to the
     # GenerateStaticSite command so we can thread them ...
     threads = [
-        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
-        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
-        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
-        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
         GenerateStaticSite(options, [], []),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
     ]
 
     for t in threads:
