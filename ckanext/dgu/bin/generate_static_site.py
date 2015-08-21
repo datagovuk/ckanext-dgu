@@ -3,6 +3,7 @@
 '''
 import os
 import json
+import threading
 from optparse import OptionParser
 from pylons import config
 
@@ -11,7 +12,6 @@ from running_stats import Stats
 
 import webtest
 from ckan.config.middleware import make_app
-from routes import url_for
 
 
 def clean_response(s):
@@ -19,32 +19,34 @@ def clean_response(s):
     return s[pos:]
 
 
-class GenerateStaticSite(object):
+class GenerateStaticSite(threading.Thread):
 
-    def __init__(self, options):
+    def __init__(self, options, publishers, datasets):
         config['ckan.legacy_templates'] = False
         self.app = make_app(config['global_conf'], **config)
         self.app = webtest.TestApp(self.app)
         self.options =  options
-        # Set path or default
+        #TODO: Set path or default
         self.root = '/tmp/static'
         self._ensure_folder(self.root)
+        self.publishers = publishers
+        self.datasets = datasets
+        super(GenerateStaticSite, self).__init__()
 
 
-    def command(self):
+    def run(self):
         from ckan import model
 
         self.stats_pages = Stats()
 
-        print "Fetching publisher"
-        publishers = common.get_publishers(state='active')
+        #root = self._get_publisher_root_page()
+        #self._write_file("", "publisher", root)
+
+        print "Fetching publishers"
         count = 0
-        total = len(publishers)
+        total = len(self.publishers)
 
-        root = self._get_publisher_root_page()
-        self._write_file("", "publisher", root)
-
-        for publisher in publishers:
+        for publisher in self.publishers:
             print "{} - {}".format(count, publisher.name)
             response = self._get_publisher_page(publisher.name)
             self.stats_pages.add("Added publisher", publisher.name)
@@ -54,13 +56,11 @@ class GenerateStaticSite(object):
         print "-" * 60
 
         print "Fetching datasets"
-        datasets = common.get_datasets(state='active')
-
         count = 0
-        total = len(datasets)
+        total = len(self.datasets)
 
         print "Processing {} datasets".format(total)
-        for dataset in datasets:
+        for dataset in self.datasets:
             response = self._get_package_page(dataset.name)
             if not response:
                 self.stats_pages.add("Failed", dataset.name)
@@ -100,8 +100,7 @@ class GenerateStaticSite(object):
 
     def _get_resource_page(self, dataset_name, resource_id):
         response = self.app.get(
-            url=url_for(controller="package", action='resource_read', id=dataset_name, resource_id=resource_id),
-            extra_environ={},
+            url="/dataset/{}/resource/{}".format(dataset_name, resource_id)
         )
         return response.body
 
@@ -109,35 +108,34 @@ class GenerateStaticSite(object):
         try:
             group_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
             response = self.app.get(
-                url=url_for(controller=group_controller, action='read', id=name),
-                extra_environ={},
+                url="/publisher/{}".format(name)
             )
             return response.body
-        except:
-            print "FAILED: ", name
+        except Exception, e:
+            print "FAILED: ", name, e
         return ""
 
     def _get_publisher_root_page(self):
         try:
             response = self.app.get(
                 url="/publisher",
-                extra_environ={},
             )
             return response.body
-        except:
-            print "FAILED: ", name
+        except Exception, e:
+            print "FAILED: ", name, e
+            raise e
         return ""
 
     def _get_package_page(self, name):
         try:
             dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
             response = self.app.get(
-                url=url_for(controller=dgu_package_controller, action='read', id=name),
-                extra_environ={},
+                url="/dataset/{}".format(name)
             )
             return response.body
-        except:
-            print "FAILED: ", name
+        except Exception, e:
+            print "FAILED: ", name, e
+            raise e
         return ""
 
 
@@ -155,4 +153,33 @@ if __name__ == '__main__':
 
     common.load_config(config_ini)
     common.register_translator()
-    GenerateStaticSite(options).command()
+
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in xrange(0, len(l), n):
+            yield l[i:i+n]
+
+    publishers = common.get_publishers(state='active')
+    publisher_count = len(publishers)
+    publisher_generator = chunks(publishers, publisher_count/4)
+
+    datasets = common.get_datasets(state='active')
+    dataset_count = len(datasets)
+    dataset_generator = chunks(datasets, dataset_count/4)
+
+    # Partition the publishers and datasets and pass them to the
+    # GenerateStaticSite command so we can thread them ...
+    threads = [
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+    ]
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()
+
+
