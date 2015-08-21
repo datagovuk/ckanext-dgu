@@ -39,8 +39,22 @@ class GenerateStaticSite(threading.Thread):
 
         self.stats_pages = Stats()
 
-        #root = self._get_publisher_root_page()
-        #self._write_file("", "publisher", root)
+        if not self.publishers and not self.datasets:
+            content = self._get_publisher_root_page()
+            self._write_file("", "publisher", content)
+
+            content = self._get_spending_root_page()
+            self._write_file("data/openspending-report", "index", content)
+
+            # Get all publishers for spending reports, even though some
+            # don't have one.
+            publishers = common.get_publishers(state='active')
+            for publisher in publishers:
+                print "Spending: ", publisher.name
+                content = self._get_spending_page(publisher.name)
+                self._write_file("data/openspending-report", "publisher-".format(publisher.name), content)
+
+            return
 
         print "Fetching publishers"
         count = 0
@@ -97,46 +111,33 @@ class GenerateStaticSite(threading.Thread):
         if not os.path.exists(d):
             os.makedirs(d)
 
+    def _get_page(self, url):
+        try:
+            response = self.app.get(
+                url=url
+            )
+            return response.body
+        except Exception, e:
+            print "FAILED: ", url, e
+        return ""
 
     def _get_resource_page(self, dataset_name, resource_id):
-        response = self.app.get(
-            url="/dataset/{}/resource/{}".format(dataset_name, resource_id)
-        )
-        return response.body
+        return self._get_page("/dataset/{}/resource/{}".format(dataset_name, resource_id))
 
     def _get_publisher_page(self, name):
-        try:
-            group_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
-            response = self.app.get(
-                url="/publisher/{}".format(name)
-            )
-            return response.body
-        except Exception, e:
-            print "FAILED: ", name, e
-        return ""
+        return self._get_page("/publisher/{}".format(name))
 
     def _get_publisher_root_page(self):
-        try:
-            response = self.app.get(
-                url="/publisher",
-            )
-            return response.body
-        except Exception, e:
-            print "FAILED: ", name, e
-            raise e
-        return ""
+        return self._get_page("/publisher")
+
+    def _get_spending_root_page(self):
+        return self._get_page("/data/openspending-report/index")
+
+    def _get_spending_page(self, name):
+        return self._get_page("/data/openspending-report/publisher-{}.html".format(name))
 
     def _get_package_page(self, name):
-        try:
-            dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
-            response = self.app.get(
-                url="/dataset/{}".format(name)
-            )
-            return response.body
-        except Exception, e:
-            print "FAILED: ", name, e
-            raise e
-        return ""
+        return self._get_page("/dataset/{}".format(name))
 
 
 usage = '''
@@ -170,10 +171,11 @@ if __name__ == '__main__':
     # Partition the publishers and datasets and pass them to the
     # GenerateStaticSite command so we can thread them ...
     threads = [
-        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
-        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
-        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
-        GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        #GenerateStaticSite(options, publisher_generator.next(), dataset_generator.next()),
+        GenerateStaticSite(options, [], []),
     ]
 
     for t in threads:
