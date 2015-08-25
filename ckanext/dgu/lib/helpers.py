@@ -640,6 +640,16 @@ def json_list(json_str):
         return obj.items()
     # json can't be anything else
 
+def list_flatten(data):
+    '''
+    If data is a list flatten it,
+    otherwise return input data
+    '''
+    if isinstance(data, list):
+        return ", ".join(data)
+    else:
+        return data
+
 def dgu_format_icon(format_string):
     fmt = formats.Formats.match(format_string.strip().lower())
     icon_name = 'document'
