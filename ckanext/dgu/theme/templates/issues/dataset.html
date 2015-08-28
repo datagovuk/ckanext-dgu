@@ -1,0 +1,136 @@
+{% extends "package/read_common_jinja.html" %}
+
+{% import "issues/common.html" as common with context %}
+
+{% block breadcrumb_content %}
+  <li>{{ h.nav_link(_('Datasets'), controller='package', action='search') }}</li>
+  <li><a href="{{ h.url_for(controller='package', action='read', id=c.pkg.name) }}" title="{{ c.pkg.title }}">{{ h.truncate(c.pkg.title, 60) }}</a></li>
+  <li><a href="{{ h.url_for('issues_dataset', dataset_id=c.pkg.name) }}">Issues</a></li>
+{% endblock %}
+
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="/ckanext-issues/style.css" />
+{% endblock %}
+
+{% set pkg = c.pkg %}
+{% set filters = h.get_issue_filter_types() %}
+{% set issues_per_page = h.get_issues_per_page() %}
+
+{% block subtitle %}{{ _('Issues') }} - {{ super() }}{% endblock %}
+
+{% block primary_content_inner %}
+<section class="module issues-home"  style="min-height: 500px;">
+    <div class="header">
+      <h1 class="page-heading">
+        {{ _('Issues') }}
+        <div class="issues-actions">
+          {{ h.nav_link(_('New Issue'), named_route='issues_new', dataset_id=pkg.name, class_='btn btn-success') }}
+        </div>
+      </h1>
+   <div>
+
+<form class="search-form no-bottom-border" method="get" data-module="select-switch" _lpchecked="1">
+
+
+    <div class="search-input input-group search-giant">
+      <input type="text" class="search form-control" name="q" value="{{q}}" autocomplete="off" placeholder="Search issues...">
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
+      </span>
+   </div>
+
+    <span>
+      <input type="hidden" name="page" value="1">
+      <input type="hidden" name="per_page" value="{{pagination.per_page}}">
+      <input type="hidden" name="status" value="{{status}}">
+    </span>
+
+    <div class="form-select control-group control-order-by pull-right">
+      <label for="field-order-by">Order by</label>
+      <select id="field-order-by" name="sort">
+            <option value="least_commented" {% if sort == "least_commented" %}selected="selected"{% endif%}>Least Commented</option>
+            <option value="least_recently_updated" {% if sort == "least_recently_updated" %}selected="selected"{% endif%}>Least Recently Updated</option>
+            <option value="most_commented" {% if sort == "most_commented" %}selected="selected"{% endif%}>Most Commented</option>
+            <option value="newest" {% if sort == "newest" %}selected="selected"{% endif%}>Newest</option>
+            <option value="oldest" {% if sort == "oldest" %}selected="selected"{% endif%}>Oldest</option>
+            <option value="recently_updated" {% if sort == "recently_updated" %}selected="selected"{% endif%}>Recently Update</option>
+        </select>
+        <button class="btn js-hide" type="submit">Go</button>
+      </div>
+    </form>
+    <div class="clearfix"></div>
+
+      <h2 id="issues-foundx">
+        {% if q and pagination.total_count %}
+          {{ pagination.total_count }} issue(s) found for {{ q}}
+        {% else %}
+          {% if q %}
+            0 results found for {{q}}
+          {% else %}
+
+          {% endif %}
+        {% endif %}
+
+      </h2>
+    </div>
+
+  {% if issues %}
+    <ul id="issue-list" class="issue-list-group list-group">
+      {% for issue in issues %}
+        {{ common.issue_item(issue, pkg, c.user) }}
+      {% endfor %}
+    </ul>
+  {% else %}
+    {% if not q %}
+    <p class="empty">{{ _('No issues') }}</p>
+    {% endif %}
+  {% endif %}
+  </div>
+    <div class="dgu-pagination">
+      <ul class="pagination">
+        {% for page in pagination.iter_pages() %}
+          <li {% if page == pagination.page %}class="disabled"{% endif %}>
+            {% if page == pagination.page %}
+              <span>{{page}}</span>
+            {% else %}
+              {% set href = h.replace_url_param(new_params={'page': page}, extras={'dataset_id':pkg['name']}) %}
+              <a href="{{href}}">{{page}}</a>
+            {% endif %}
+          </li>
+        {% else %}
+        {% endfor %}
+      </ul>
+    </div>
+
+{% endblock %}
+
+{% block secondary_content %}
+  <h1>{{pkg.title}}</h1>
+
+<div class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+        <i class="icon-medium icon-filter"></i>
+        Filter by status
+    </h2>
+
+    <ul class="unstyled nav nav-simple" style="margin-bottom: 20px;">
+
+        <li class="nav-item active">
+          <a id="open-filter" href="/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/issues?status=open">
+            <span>Open</span>
+          </a>
+        </li>
+
+        <li class="nav-item ">
+          <a id="closed-filter" href="/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/issues?status=closed">
+            <span>Closed</span>
+          </a>
+        </li>
+
+    </ul>
+
+  </div>
+{% endblock %}
+

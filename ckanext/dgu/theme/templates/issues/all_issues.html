@@ -1,0 +1,54 @@
+<html xmlns:py="http://genshi.edgewall.org/"
+      xmlns:i18n="http://genshi.edgewall.org/i18n"
+      xmlns:xi="http://www.w3.org/2001/XInclude"
+      py:strip="">
+
+  <py:def function="page_title">Issue List</py:def>
+  <link rel="stylesheet"  type="text/css" media="screen, print"
+        href="/ckanext-issues/css/main.css"
+        py:def="optional_head()" />
+
+  <div py:match="content" class="package">
+    <h2 class="head">Issue List</h2>
+
+    <div id="issue-page" py:choose="">
+        <span py:when="not c.categories">
+            There are currently no issues.
+        </span>
+
+        <div py:otherwise="">
+            <ul id="issue-categories">
+                <py:for each="category in c.categories">
+                <li><a href="#${category.name}">${category.name}</a>
+                    (${category.issue_count})
+                </li>
+                </py:for>
+            </ul>
+
+            <py:for each="category in c.categories">
+            <div class="issue-category">
+                <h4 id="${category.name}">${category.name}</h4>
+                <ul>
+                    <py:for each="issue in category.issues">
+                    <li>
+                        <div py:choose="">Package:
+                            <span py:when="not issue.package_id">None</span>
+                            <span py:otherwise="">
+                                ${h.link_to(c.pkg_names[issue.package_id],
+                                            h.url_for(controller='package', action='read',
+                                                      id = c.pkg_names[issue.package_id]) + "#issue")}
+                            </span>
+                        </div>
+                        <div>Description: ${issue.description}</div>
+                        <div>Created: ${issue.created.strftime('%d %h %Y')}</div>
+                    </li>
+                    </py:for>
+                </ul>
+            </div>
+            </py:for>
+        </div>
+    </div>
+  </div> <!-- content -->
+
+  <xi:include href="../package/layout.html" />
+</html>

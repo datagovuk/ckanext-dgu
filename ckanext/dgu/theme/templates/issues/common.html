@@ -1,0 +1,70 @@
+{% macro issue_item(issue, pkg, current_user) -%}
+      <li class="list-group-item">
+        <span class="list-group-item-number">#{{issue.number}}</span>
+        {% set has_been_reported = h.issues_user_has_reported_issue(current_user, issue.abuse_reports) %}
+        {% if issue.visibility == 'hidden' %}
+          <div class="issue-comment-label">
+            Abuse
+          </div>
+        {% elif has_been_reported %}
+          <div class="issue-comment-label">
+            <i class="icon-flag"></i>Notified to admin
+          </div>
+        {% endif%}
+        <h4 class="list-group-item-name">
+          {% set issue_icon = 'abuse' if issue.visibility == 'hidden' else issue.status %}
+          <span class="{{ issue_icon }} icon" title="{{issue.status}} issue"><i class="icon-exclamation-sign"></i></span>
+          <a href="{{ h.url_for('issues_show', dataset_id=pkg.name, issue_number=issue.number) }}" {% if issue.visibility == 'hidden'%} class="issue-abuse"{% endif%}>
+            {{issue.title}}
+          </a>
+        </h4>
+        <ul class="list-group-item-meta">
+          <li>Opened by <a href="{{ h.url_for('user_datasets', id=issue.user) }}">{{issue.user}}</a></li>
+          <li>
+            <i class="icon-clock"></i>
+            <span class="timeago" title="{{h.render_datetime(issue.created)}}"> updated {{ h.time_ago_from_timestamp(issue.created) }}</span>
+          </li>
+          <li>
+            <i class="icon-comments"></i>
+            <a href="{{ h.url_for('issues_show', dataset_id=pkg.name, issue_number=issue.number) }}">
+              {{ _('%s comments') % (issue.comment_count) }}
+            </a>
+          </li>
+        </ul>
+      </li>
+{%- endmacro %}
+
+{% macro search_options_sidebar(user_can_change_visibility, url_params) -%}
+  <div class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+        <i class="icon-medium icon-filter"></i>
+        Status
+    </h2>
+    <ul class="unstyled nav nav-simple">
+        {% for valid_status in ['open', 'closed'] %}
+        <li class="nav-item {% if status==valid_status%}active{% endif %}">
+        {% set href = h.replace_url_param(new_params={'status': valid_status}, extras=url_params) %}
+        <a id="{{ valid_status }}-filter" href="{{ href }}">
+        <span>{{_(valid_status.title())}}</span>
+        </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% if user_can_change_visibility %}
+    <h2 class="module-heading">
+        <i class="icon-medium icon-filter"></i>
+        Visibility
+    </h2>
+    <ul class="unstyled nav nav-simple nav-facet">
+        {% for valid_visibility in ['visible', 'hidden'] %}
+        <li class="nav-item {% if visibility==valid_visibility%}active{% endif %}">
+        {% set href = h.remove_url_param('visibility', extras=url_params) if visibility==valid_visibility else h.replace_url_param(new_params={'visibility': valid_visibility}, extras=url_params) %}
+        <a id="{{ valid_visibility }}-filter" href="{{ href }}">
+        <span>{{_(valid_visibility.title())}}</span>
+        </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+{%- endmacro %}

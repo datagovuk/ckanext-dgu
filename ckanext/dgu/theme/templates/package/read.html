@@ -11,6 +11,7 @@
 {% block optional_head %}
     <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
     <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
+
     <script type="text/javascript">
       window.DATASET_ID = "{{c.pkg_dict.get('id')}}";
     </script>
@@ -105,10 +106,13 @@
       </div>
     </div>
 
-
     <div id="dataset">
       <!--! id=dataset for ckanext-spatial -->
     </div>
+
+
+    {% set issue_count = h.get_issue_count(c.pkg.id) %}
+
 
     {% set publisher_name = c.pkg.get_organization().name %}
     {% if not h.is_unpublished_item(c.pkg_dict) %}
@@ -131,6 +135,7 @@
         {% endif %}
       </div>
     {% endif %}
+
     {% if not h.is_unpublished_item(c.pkg_dict) %}
     <div class="dataset-resources-additional">
       {% if h.additional_resources() or h.gemini_resources() %}
@@ -152,7 +157,7 @@
         <tbody>
           {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, c.pkg_dict, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
           <tr>
-            {# TODO: label_attributes and value_attributes are dicts, we need to decouple them #} 
+            {# TODO: label_attributes and value_attributes are dicts, we need to decouple them #}
             <td class="key" {{m.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>
             <td class="value" {{m.dict_to_attributes(value_attributes)}}>{{field_dict.get('value') or 'No value'}}</td>
           </tr>
@@ -200,6 +205,52 @@
       {% endfor %}
     </ul>
     {% endif %}
+
+    {% if h.issues_enabled(c.pkg_dict) %}
+    <br/>
+      {% if c.user %}
+      <a href="{{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+            New Issue &raquo;
+      </a>
+      {% else %}
+      <a href="/user/login?destination={{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+            Login to create an issue &raquo;
+      </a>
+
+      {% endif %}
+    </a>
+      <section class="module issues-home">
+      <h2>Issues</h2>
+      {% set issues = h.issues_list(c.pkg_dict.id, status='open') %}
+      {% if issues %}
+        <p>{{ ungettext('{number} open issue', '{number} open issues', issues['count']).format(number=issues['count']) }}:</p>
+        <div class="clearfix"></div>
+        {% import "issues/common.html" as common with context %}
+        <ul id="issue-list" class="issue-list-group list-group">
+          {% for issue in issues['results'] %}
+              {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>0 open issues</p>
+      {% endif %}
+      {% set closed_issues = h.issues_list(c.pkg_dict.id, status='closed') %}
+      {% if closed_issues %}
+        <p>
+          {{ ungettext('{number} closed issue', '{number} closed issues', closed_issues['count']).format(number=closed_issues['count']) }}
+           <span class="show-closed-issues show-hide">View <i class="icon-chevron-right"></i></span>
+          <span class="hide-closed-issues show-hide">Hide <i class="icon-chevron-down"></i></span>
+        </p>
+        <ul id="issue-list-closed" class="issue-list-group list-group">
+          {% for issue in closed_issues['results'] %}
+            {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% endif %}
+      </section>
+    {% endif %}
+    <br/>
+
 
     <h2>Dataset Feedback</h2>
     <div class="dataset-feedback-container">

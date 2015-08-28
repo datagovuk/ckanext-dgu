@@ -5,8 +5,11 @@
 
 
 {% block primary_content_inner %}
+
+
   <div class="package">
   {% with is_location_data = h.is_location_data(c.pkg_dict) %}
+
     <div class="dropdown-buttons">
         {% set render_enquiries = not h.is_unpublished_item(c.pkg_dict) %}
         {% set render_foi       = h.have_foi_contact_details(c.pkg, h.as_dict(c.pkg_extras)) %}
@@ -73,9 +76,9 @@
           <i class="icon-time icon-2x"></i>
         </a>
       {% endif %}
-
-
     </div>
+
+
     <h1>{{c.pkg_dict.get('title', c.pkg_dict['name'])}} {%if h.is_unpublished_item(c.pkg_dict) %}<span class="unpublished-text">(Unpublished)</span>{% endif %}</h1>
     <div class="h1-subheading" id="license-info">
       {% set all_licences = h.get_licenses(c.pkg) %}
@@ -185,8 +188,6 @@
       {% endif %}
 
     </div>
-
-
 
     <div class="row">
 

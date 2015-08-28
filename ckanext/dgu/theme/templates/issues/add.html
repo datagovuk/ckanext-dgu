@@ -1,0 +1,50 @@
+{% extends "issues/base_form_page.html" %}
+
+{% block subtitle %}{{ _('New Issue') }} - {{super()}}{% endblock %}
+
+{% block page_heading %}{{ _('New Issue') }} {% endblock %}
+
+{% import 'macros/form.html' as form %}
+{% set data = c.data_dict %}
+{% set errors = c.errors %}
+
+{% block ourform %}
+<form id="issue-new" class="dataset-form form-horizontal" method="post" data-module="basic-form">
+  {% block error_summary %}
+    {% if c.error_summary | count %}
+      <div class="alert alert-error error-explanation">
+        <p>There was an error with the form, please correct the error and re-submit</p>
+        <ul>
+           {% for key, error in c.error_summary.items() %}
+            <li>{{ error[0] }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endblock %}
+
+
+
+  {% block fields %}
+
+  <div class="control-group {% if errors.get('title') %}has-error{%endif%}">
+    <label for="title">Title</label>
+    <input type="text" id="field-title" name="title" placeholder="Title" value="{{data.title}}" class="form-control"/>
+  </div>
+
+  <div class="control-group {% if errors.get('description') %}has-error{%endif%}">
+    <label for="comment">Comment</label>
+    <textarea class="form-control field_req" cols="260" id="description" name="description" rows="10"
+    placeholder="Explain the issue"></textarea>
+  </div>
+
+  {% endblock %}
+
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit" name="save" tabindex="4">{{ _('Create') }}</button>
+    {{ h.nav_link(_('Cancel'), controller='ckanext.dgu.controllers.package:PackageController', action='read', id=c.pkg.name,
+    class_='btn') }}
+  </div>
+</form>
+
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "issues/base.html" %}
+
+{% import "issues/common.html" as common with context %}
+
+{% set filters = h.get_issue_filter_types() %}
+{% set issues_per_page = h.get_issues_per_page() %}
+
+{% block subtitle %}{{ _('Issues') }} - {{ super() }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Organizations'), controller='organization', action='index' %}</li>
+  <li>{% link_for org.title|truncate(35), controller='organization', action='read', id=org.name %}</li>
+  <li class="active">{% link_for 'Issues', named_route='issues_for_organization', org_id=org.name %}</li>
+{% endblock %}
+
+{% block primary_content %}
+<section class="module issues-home">
+  <div class="module-content">
+    <div class="header">
+      <h1 class="page-heading">
+        {{ _('Issues') }}
+      </h1>
+    </div>
+    <div>
+
+<form class="search-form no-bottom-border" method="get" data-module="select-switch" _lpchecked="1">
+    <div class="search-input input-group search-giant">
+      <input type="text" class="search form-control" name="q" value="{{q}}" autocomplete="off" placeholder="Search issues...">
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
+      </span>
+   </div>
+
+    <span>
+      <input type="hidden" name="page" value="1">
+      <input type="hidden" name="per_page" value="{{pagination.per_page}}">
+      <input type="hidden" name="status" value="{{status}}">
+    </span>
+
+    <div class="form-select control-group control-order-by pull-right">
+      <label for="field-order-by">Order by</label>
+      <select id="field-order-by" name="sort">
+            <option value="least_commented" {% if sort == "least_commented" %}selected="selected"{% endif%}>Least Commented</option>
+            <option value="least_recently_updated" {% if sort == "least_recently_updated" %}selected="selected"{% endif%}>Least Recently Updated</option>
+            <option value="most_commented" {% if sort == "most_commented" %}selected="selected"{% endif%}>Most Commented</option>
+            <option value="newest" {% if sort == "newest" %}selected="selected"{% endif%}>Newest</option>
+            <option value="oldest" {% if sort == "oldest" %}selected="selected"{% endif%}>Oldest</option>
+            <option value="recently_updated" {% if sort == "recently_updated" %}selected="selected"{% endif%}>Recently Update</option>
+        </select>
+        <button class="btn js-hide" type="submit">Go</button>
+      </div>
+    </form>
+    <div class="clearfix"></div>
+
+      <h2>
+        {{ ungettext('{number} issue found', '{number} issues found', pagination.total_count) .format(number=pagination.total_count) }}
+      </h2>
+    </div>
+    <div id="issue-page">
+      {% if issues %}
+        <div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th></th>
+                <th>Title</th>
+                <th>Reported</th>
+                <th>Resolved</th>
+                <th>Comments</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for issue in issues %}
+              <tr class="${'success' if issue.resolved else 'error'}">
+                <td><a href="{{h.url_for(controller='package', action='read', id=issue.dataset.name)}}">{{issue.dataset.title}}</a></td>
+                <td><span class="list-group-item-number">#{{issue.id}}</span></td>
+                <td><a href="{{ h.url_for('issues_show',dataset_id=issue.dataset.name,issue_number=issue.number) }}">{{issue.title}}</a>
+                  {% if issue.resource %}
+                    <br/><br/>
+                    Resource: {{issue.resource.name or issue.resource.description}}
+                  {% endif %}
+                  {% if issue.visibility == 'hidden' %}
+                    <br/><br/>
+                    <div class="issue-comment-label">
+                      Reported as abuse
+                    </div>
+                  {%endif%}
+                </td>
+                <td><span class="timeago" title="{{h.render_datetime(issue.created, with_hours=True)}}"> updated {{ h.time_ago_from_timestamp(issue.created) }}</span></td>
+                <td>{% if issue.resolved %}Tick and show info in mouseover - Resolved by {{issue.resolver}} on {{issue.resolved}}{% endif %}</td>
+                <td>
+                  {% if issue.comment_count %}
+                    <i class="icon-comments"></i>
+                    <a href="{{issue.ckan_url}}">
+                    {{ _('%s comments') % (issue.comment_count) }}
+                    </a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          </table>
+      </div>
+      {% else %}
+        <span>
+            There are currently no issues for
+            <a href="{{ h.url_for(controller='organization', action='read', id=org.name) }}">
+            {{org.title}}
+            </a>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block secondary_content %}
+    {{ common.search_options_sidebar(user_can_change_visibility=h.check_access('organization_update', {'id': org.id }), url_params={'org_id': org.name}) }}
+{% endblock %}

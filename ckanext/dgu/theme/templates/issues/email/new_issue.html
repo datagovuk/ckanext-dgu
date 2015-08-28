@@ -1,0 +1,12 @@
+
+A user '{{ c.user.fullname }}' has raised an issue with one of your datasets on data.gov.uk.
+
+The dataset is '{{c.package.title}}'. The user left a comment explaining the issue:
+
+    "{{c.issue.description}}"
+
+In order to resolve this issue, please visit {{ h.url_for('issues_show', dataset_id=c.package.name, issue_number=c.issue.number,qualified=True) }} and click the 'resolve' button once the issue has been corrected.
+
+Thank you
+
+The data.gov.uk team

@@ -1,0 +1,13 @@
+
+A user '{{ c.user.fullname }}' has added a comment to one of your issues on data.gov.uk.
+
+The user left a comment:
+
+    {{c.comment.comment}}
+
+In order to respond to this comment, please visit {{ h.url_for('issues_show', dataset_id=c.package.name, issue_number=c.issue.number,qualified=True) }}
+
+
+Thank you
+
+The data.gov.uk team
