@@ -1201,19 +1201,27 @@ def prep_group_edit_data(data):
         if key not in data:
             data[key] = value
 
+
 def top_level_init():
-    # Top level initialisation previously done in layout_base to make sure it
-    # is available to all sub-templates. This is a bit nasty, and I think we
-    # would be better off splitting these c.* things either into separate helpers
-    # or into our own BaseController. Perhaps. TODO.
+    '''These 'globals' are initialised by Genshi's layout_base only - not done
+    in Jinja, so for new templates use instead: is_an_official() or
+    groups_for_current_user().
+    '''
     c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
 
+
 def is_an_official():
-    return bool(c.groups or is_sysadmin())
+    if is_sysadmin():
+        return True
+    return bool(groups_for_current_user())
+
 
 def groups_for_current_user():
-    return c.userobj.get_groups(group_type='organization') if c.userobj else []
+    if c.groups == '':
+        c.groups = c.userobj.get_groups(group_type='organization') \
+            if c.userobj else []
+    return c.groups
 
 
 def additional_extra_fields(res):
