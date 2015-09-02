@@ -58,6 +58,10 @@ class FixSecondaryTheme3(object):
                     secondary_theme = ['Government', 'Business & Economy']
                 elif secondary_theme == 'GovernmentSpending':
                     secondary_theme = ['Government Spending']
+                elif secondary_theme == 'EnvironmentEducationGovernmentSpending':
+                    secondary_theme = ['Environment', 'Education', 'Government Spending']
+                elif secondary_theme == 'EnvironmentGovernment':
+                    secondary_theme = ['Environment', 'Government']
                 else:
                     secondary_theme = [secondary_theme]
 
