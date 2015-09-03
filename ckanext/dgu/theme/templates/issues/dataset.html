@@ -47,7 +47,7 @@
       <input type="hidden" name="status" value="{{status}}">
     </span>
 
-    <div class="form-select control-group control-order-by pull-right">
+    <div class="form-select control-group control-order-by pull-right" style="margin-top:10px;">
       <label for="field-order-by">Order by</label>
       <select id="field-order-by" name="sort">
             <option value="least_commented" {% if sort == "least_commented" %}selected="selected"{% endif%}>Least Commented</option>
@@ -107,30 +107,6 @@
 {% endblock %}
 
 {% block secondary_content %}
-  <h1>{{pkg.title}}</h1>
-
-<div class="module module-narrow module-shallow">
-    <h2 class="module-heading">
-        <i class="icon-medium icon-filter"></i>
-        Filter by status
-    </h2>
-
-    <ul class="unstyled nav nav-simple" style="margin-bottom: 20px;">
-
-        <li class="nav-item active">
-          <a id="open-filter" href="/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/issues?status=open">
-            <span>Open</span>
-          </a>
-        </li>
-
-        <li class="nav-item ">
-          <a id="closed-filter" href="/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/issues?status=closed">
-            <span>Closed</span>
-          </a>
-        </li>
-
-    </ul>
-
-  </div>
+    {{ common.search_options_sidebar(user_can_change_visibility=h.check_access('package_update', {'id': pkg.name }), url_params={'dataset_id': pkg.name}) }}
 {% endblock %}
 

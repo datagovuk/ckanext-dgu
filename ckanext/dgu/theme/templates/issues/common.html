@@ -21,8 +21,10 @@
         <ul class="list-group-item-meta">
           <li>Opened by <a href="{{ h.url_for('user_datasets', id=issue.user) }}">{{issue.user}}</a></li>
           <li>
+            {% with update_label = "updated" if issue.comment_count else "created" %}
             <i class="icon-clock"></i>
-            <span class="timeago" title="{{h.render_datetime(issue.created)}}"> updated {{ h.time_ago_from_timestamp(issue.created) }}</span>
+            <span class="timeago" title="{{h.render_datetime(issue.created)}}"> {{update_label}} {{ h.time_ago_from_timestamp(issue.created) }}</span>
+            {% endwith %}
           </li>
           <li>
             <i class="icon-comments"></i>
@@ -35,6 +37,7 @@
 {%- endmacro %}
 
 {% macro search_options_sidebar(user_can_change_visibility, url_params) -%}
+
   <div class="module module-narrow module-shallow">
     <h2 class="module-heading">
         <i class="icon-medium icon-filter"></i>
@@ -51,7 +54,7 @@
         {% endfor %}
     </ul>
     {% if user_can_change_visibility %}
-    <h2 class="module-heading">
+    <h2 class="module-heading" style="margin-top: 10px;">
         <i class="icon-medium icon-filter"></i>
         Visibility
     </h2>

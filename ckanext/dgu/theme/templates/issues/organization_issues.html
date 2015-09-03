@@ -18,7 +18,7 @@
   <div class="module-content">
     <div class="header">
       <h1 class="page-heading">
-        {{ _('Issues') }}
+        {{ _('Issues') }} - {{org.title}}
       </h1>
     </div>
     <div>
@@ -37,7 +37,7 @@
       <input type="hidden" name="status" value="{{status}}">
     </span>
 
-    <div class="form-select control-group control-order-by pull-right">
+    <div class="form-select control-group control-order-by pull-right" style="margin-top:10px;">
       <label for="field-order-by">Order by</label>
       <select id="field-order-by" name="sort">
             <option value="least_commented" {% if sort == "least_commented" %}selected="selected"{% endif%}>Least Commented</option>
@@ -102,13 +102,6 @@
           </tbody>
           </table>
       </div>
-      {% else %}
-        <span>
-            There are currently no issues for
-            <a href="{{ h.url_for(controller='organization', action='read', id=org.name) }}">
-            {{org.title}}
-            </a>
-        </span>
       {% endif %}
     </div>
   </div>
