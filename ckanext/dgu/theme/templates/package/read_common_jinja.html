@@ -45,14 +45,12 @@
         <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
           <div class="panel-heading">Do More With This Data</div>
           <div class="panel-body">
-
-
             <ul>
               <li><a href="/node/add/app?dataset={{c.pkg_dict.get('name')}}">Share your app &raquo;</a><br/></li>
               <li><a href="/node/add/data-request?dataset={{c.pkg_dict.get('name')}}">Request new data &raquo;</a></li>
             </ul>
 
-            The information on this page (the dataset metadata) is also available in JSON format.
+            <p>The information on this page (the dataset metadata) is also available in JSON format.</p>
             <ul>
               <li>
                 <b>API: </b><a href="{{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}">
@@ -60,11 +58,20 @@
                 </a>
               </li>
               <li>
+                <b>Datapackage: </b>
+                <a href="{{ h.datapackage_url(c.pkg) }}">{{ h.datapackage_url(c.pkg) }}</a></li>
+              <li>
                 <a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
                   Read more about this site's CKAN API &raquo;
                 </a>
               </li>
             </ul>
+            {% if True or h.has_packagezip(c.pkg) %}
+            <p>A zipfile containing the cached resources held by data.gov.uk is also available for download.</p>
+            <ul>
+              <li><a href="{{ h.packagezip_url(c.pkg) }}">Download the zipfile</a></li>
+            </ul>
+            {% endif %}
           </div>
         </div>
       </span>
