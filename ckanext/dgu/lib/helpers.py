@@ -1218,7 +1218,7 @@ def is_an_official():
 
 
 def groups_for_current_user():
-    if not c.groups:
+    if c.groups == '':
         c.groups = c.userobj.get_groups(group_type='organization') \
             if c.userobj else []
     return c.groups
