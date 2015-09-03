@@ -1,35 +1,27 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "package/read_common_jinja.html" %}
 
+{% import "feedback/_feedback_util_jinja.html" as m with context %}
 
-<xi:include href="_feedback_util.html" />
+{% block title %}{{c.pkg.title or c.pkg.name}} - View Feedback{% endblock %}
 
-  <py:def function="page_title">${c.pkg.title or c.pkg.name} - View Feedback </py:def>
-
-  <py:match path="breadcrumbs">
+{% block breadcrumb_content %}
     <li><a href="/data/search">Datasets</a></li>
-    <li><a href="${h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}">${c.pkg_dict.get('title', c.pkg_dict['name'])}</a></li>
-    <li><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg_dict['name'])}">View Feedback</a></li>
-  </py:match>
+    <li><a href="{{h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}}">{{c.pkg_dict.get('title', c.pkg_dict['name'])}}</a></li>
+    <li><a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg_dict['name'])}}">View Feedback</a></li>
+{% endblock %}
 
-  <py:def function="package_content">
+{% macro package_content() %}
     <hr/>
     <div class="view-feedback">
       <h2>Feedback &nbsp;
-        <a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}" class="h2-subheading add-feedback-button">
-          <py:if test="c.user">Add feedback &raquo;</py:if>
-          <py:if test="not c.user">Login to Add feedback &raquo;</py:if>
+        <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="h2-subheading add-feedback-button">
+          {% if c.user %}Add feedback &raquo;{% else %}Login to Add feedback &raquo;{% endif %}
         </a>
       </h2>
-      <p style="font-style: italic; color: #666;" py:if="c.items.count() == 0">(No feedback yet)</p>
-      <py:for each="item in c.items">
-        ${feedback_item(item, c.pkg_dict)}
-      </py:for>
+      {% for item in c.items %}
+        {{m.feedback_item(item, c.pkg_dict)}}
+      {% else %}
+        <p style="font-style: italic; color: #666;">(No feedback yet)</p>
+      {% endfor %}
     </div>
-  </py:def>
-
-  <xi:include href="../package/read_common.html" />
-</html>
-
+{% endmacro %}
