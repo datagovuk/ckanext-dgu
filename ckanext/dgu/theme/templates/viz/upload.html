@@ -1,0 +1,71 @@
+{% extends "page.html" %}
+
+
+{% block title %}Social Investment Data Upload{% endblock title%}
+
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  <li><a href="${request.url}">Upload</a></li>
+{% endblock %}
+
+
+{% block primary_content_inner %}
+
+<form action="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='viz_upload')}}" method="POST" enctype="multipart/form-data" class="form-inline" style="margin: 10px;">
+
+ <div class="row">
+      <div class="col-md-12">
+        <h1>Social Investment Upload</h1>
+        <p></p>
+      </div>
+    </div>
+    <hr/>
+    <div class="panel panel-default">
+      <div class="panel-heading"><strong>Step 1: Select the file to upload</strong></div>
+      <div class="panel-body">
+        <em>Click the 'Choose file' button and select the file to be uploaded</em>
+        <p>
+          <input type="file" name="upload" style="margin-bottom: 8px;"/>
+        </p>
+      </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading"><strong>Step 2: Add details</strong></div>
+      <div class="panel-body">
+        <p>Add extra information about this file</p>
+        <div class="form-group col-md-12">
+          <label for="title">Title (required)</label>
+          <input type="text" class="form-control input-x-large field_req" name="title" placeholder="Title for this resource" value="{{c.title}}"/>
+        </div>
+        <p></p>
+        <div class="form-group col-md-12">
+          <label for="format">Format</label>
+          <input type="text" class="form-control input-x-large field_req" name="format" placeholder="Format, e.g. CSV" value="{{c.format}}"/>
+        </p>
+      </div>
+    </div>
+    </div>
+
+    <div class="panel panel-default">
+      <div class="panel-heading"><strong>Step 3: Choose dataset</strong></div>
+      <div class="panel-body">
+        <p>Choose which dataset to add this resource to</p>
+        <div class="form-group col-md-12">
+          <label for="dataset">Datasets (required)</label>
+          <select class="form-control input-x-large field_req" name="dataset">
+            <option value="">Select a dataset ...</option>
+            {% for pkg_name, pkg_title in c.package_names %}
+              <option value="{{pkg_name}}" {% if c.dataset == pkg_name %}selected="selected"{% endif %}>{{pkg_title}}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <input type="submit" class="btn btn-primary pull-right">
+    <div class="clearfix"></div>
+</form>
+
+{% endblock %}

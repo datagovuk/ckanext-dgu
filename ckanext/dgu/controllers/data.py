@@ -7,9 +7,13 @@ import sqlalchemy
 import urlparse
 import datetime
 import urllib
+import shutil
+import uuid
 
+from pylons import config
+from ckan.lib.helpers import flash_success, flash_error
 from ckanext.dgu.lib import helpers as dgu_helpers
-from ckan.lib.base import BaseController, model, abort, h
+from ckan.lib.base import BaseController, model, abort, h, redirect
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
 
 log = logging.getLogger(__name__)
@@ -216,9 +220,14 @@ class DataController(BaseController):
                          params=dict(request.params),
                          stream=True)
 
+        if r.status_code != 200:
+            abort(r.status_code)
+
         if relative_url.startswith(('/static/', '/download/')):
             # CSS will only get loaded if it has the right content type
-            response.content_type = r.headers.get('content-type', 'text/html')
+            response.content_type = r.headers.get('Content-Type', 'text/html')
+            if r.headers.get('Content-Disposition'):
+                response.headers['Content-Disposition'] = r.headers.get('Content-Disposition')
             return r.raw.read() # Some of the static files are binary
         else:
             extra_vars = {'content': r.text}
@@ -309,5 +318,119 @@ class DataController(BaseController):
 
         response.write(content)
 
+
+
+    def viz_upload(self):
+        """
+        Provides direct upload to DGU for users in specific publishers.
+        This is specifically for the social investment publishers so that
+        they can host their files somewhere.
+        """
+        import ckan.model as model
+
+        ALLOWED_PUBLISHERS = set([
+            'seedbed'
+            'health-social-ventures',
+            'big-issue-cooperate',
+            'social-incubator-east',
+            'young-academy',
+            'dotforge-social-ventures',
+            'wayra-unltd',
+            'social-incubator-north',
+            'bethnal-green-ventures',
+            'hub-launchpad',
+            'the-social-investment-business-group',
+        ])
+
+        # Check auth .. user must be in one of selected groups.
+        context = {"model": model, "session": model.Session, "user": c.user}
+
+        if dgu_helpers.is_sysadmin():
+            user_orgs = ALLOWED_PUBLISHERS
+        else:
+            res = get_action("organization_list_for_user")(context, {"permission": "create_dataset"})
+            user_orgs = set([o['name'] for o in res]) & ALLOWED_PUBLISHERS
+
+        if not user_orgs:
+            abort(401)
+
+        publisher_q = " OR ".join(["publisher:{}".format(o) for o in user_orgs])
+        res = get_action("package_search")(context, {"fq": "({})".format(publisher_q), 'rows': 100})
+
+        c.package_names = [(p['name'],u"{} ({})".format(p['title'], p['organization']['title']),) for p in res['results']]
+        if not c.package_names:
+            flash_error("There are no datasets available in your organisation. You will be unable to upload.")
+            return render('viz/upload.html')
+
+        c.package_names = sorted(c.package_names)
+
+        if request.method == 'POST':
+            success, errors = self._validate_viz_upload(request.POST)
+            c.title = request.POST.get('title', '')
+            c.format = request.POST.get('format', '')
+            c.dataset = request.POST.get('dataset', '')
+
+            if not success:
+                error_list = "<li>" + "</li><li>".join(errors) + "</li>"
+                flash_error('There was a problem with your submission<br/><ul>{}</ul>'.format(error_list), allow_html=True)
+                return render('viz/upload.html')
+
+            extension, url = self._store_file(request.POST['upload'], c.dataset)
+            if not c.format:
+                c.format = extension[1:].upper()
+
+            # Create resource
+            resource = {
+                u'description': c.title,
+                u'url': url,
+                u'format': c.format
+            }
+
+            # Show and update package
+            pkg = get_action('package_show')(context, {'id': c.dataset})
+            pkg['resources'].append(resource)
+            res = get_action('package_update')(context, pkg)
+            print res
+
+            flash_success('The file has been uploaded and added to the dataset. <a href="/dataset/{}" style="text-decoration:underline;">View dataset</a>'.format(c.dataset), allow_html=True)
+            return redirect("/data/viz/upload")
+
+        return render('viz/upload.html')
+
+    def _store_file(self, fileobj, dataset_name):
+        """ Given a file upload, and a dataset name, this method will work
+            out where to save the file and return a tuple of the extension
+            and the url where it will be served from
+        """
+        root = config.get('ckan.resource.store', '/tmp')
+
+        _, filename = os.path.split(fileobj.filename)
+        url_target = os.path.join( dataset_name, str(uuid.uuid4()), filename)
+        target = os.path.join( root, url_target)
+
+        _, extension = os.path.splitext(target)
+
+        directory = os.path.dirname(target)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        input_file = request.POST['upload'].file
+        input_file.seek(0)
+
+        with open(target, 'wb') as output_file:
+            shutil.copyfileobj(input_file, output_file)
+
+        return (extension, "{}/data/resource/{}".format(config['ckan.site_url'], url_target),)
+
+    def _validate_viz_upload(self, data_dict):
+        errors = []
+
+        if not 'upload' in data_dict or not hasattr(data_dict['upload'], "filename"):
+            errors.append("No file was selected for upload")
+        if not data_dict.get('title'):
+            errors.append("No title was provided")
+        if not data_dict.get('dataset'):
+            errors.append("No dataset was selected")
+        return len(errors) == 0, errors
 
 
