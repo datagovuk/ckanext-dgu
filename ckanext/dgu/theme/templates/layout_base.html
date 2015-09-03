@@ -54,7 +54,7 @@
   </script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <script>
-    //<![CDATA[ 
+    //<![CDATA[
     window.jQuery || document.write('<script src="/assets/js/jquery-1.8.3.min.js"><\/script>')
     // ]]>
   </script>
@@ -191,7 +191,6 @@ ${h.top_level_init()}
           <span class="divider-section">&nbsp; Sys Admin:</span>
           <li><a class="${if_(url.startswith('/data/system_dashboard'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
           <li><a class="${if_(url.startswith('/harvest'),'active')}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
-          <li><a class="${if_(url.startswith('/data/feedback/moderation'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </py:if>
       </ul>
 
