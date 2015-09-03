@@ -42,12 +42,12 @@
     </h2>
     <ul class="unstyled nav nav-simple">
         {% for valid_status in ['open', 'closed'] %}
-        <li class="nav-item {% if status==valid_status%}active{% endif %}">
-        {% set href = h.replace_url_param(new_params={'status': valid_status}, extras=url_params) %}
-        <a id="{{ valid_status }}-filter" href="{{ href }}">
-        <span>{{_(valid_status.title())}}</span>
-        </a>
-        </li>
+          <li class="nav-item {% if status==valid_status%}active{% endif %}">
+            {% set href = h.replace_url_param(new_params={'status': valid_status}, extras=url_params) %}
+            <a id="{{ valid_status }}-filter" href="{{ href }}">
+              <span>{{_(valid_status.title())}}</span>
+            </a>
+            </li>
         {% endfor %}
     </ul>
     {% if user_can_change_visibility %}

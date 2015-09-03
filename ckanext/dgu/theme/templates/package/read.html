@@ -222,7 +222,7 @@
       <section class="module issues-home">
       <h2>Issues</h2>
       {% set issues = h.issues_list(c.pkg_dict.id, status='open') %}
-      {% if issues %}
+      {% if issues['count'] %}
         <p>{{ ungettext('{number} open issue', '{number} open issues', issues['count']).format(number=issues['count']) }}:</p>
         <div class="clearfix"></div>
         {% import "issues/common.html" as common with context %}
@@ -235,17 +235,20 @@
         <p>0 open issues</p>
       {% endif %}
       {% set closed_issues = h.issues_list(c.pkg_dict.id, status='closed') %}
-      {% if closed_issues %}
+      {% if closed_issues['count'] %}
         <p>
           {{ ungettext('{number} closed issue', '{number} closed issues', closed_issues['count']).format(number=closed_issues['count']) }}
-           <span class="show-closed-issues show-hide">View <i class="icon-chevron-right"></i></span>
-          <span class="hide-closed-issues show-hide">Hide <i class="icon-chevron-down"></i></span>
+          &nbsp;
+           <span class="show-closed-issues show-hide"><span style='text-decoration:underline; cursor:pointer;' >View</span> <i class="icon-chevron-right"></i></span>
+          <span class="hide-closed-issues show-hide"><span style='text-decoration:underline; cursor:pointer;' >Hide</span> <i class="icon-chevron-down"></i></span>
         </p>
         <ul id="issue-list-closed" class="issue-list-group list-group">
           {% for issue in closed_issues['results'] %}
             {{ common.issue_item(issue, c.pkg) }}
           {% endfor %}
         </ul>
+      {% else %}
+        <p>0 closed issues</p>
       {% endif %}
       </section>
     {% endif %}

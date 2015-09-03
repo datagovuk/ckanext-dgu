@@ -13,7 +13,6 @@
   {% set statusUpper = issue.status|upper %}
   <meta property="og:description" content="{{statusUpper}}: {{ description }}">
   <meta property="og:url" content="{{ h.full_current_url() }}">
-  <meta property="og:image" content="{{ issue.user.gravatar_url }}">
 {% endblock -%}
 
 {% block breadcrumb_item %}{{ h.nav_link(issue.number, named_route='issues_show', dataset_id=dataset.name, issue_number=issue.number) }}
@@ -27,7 +26,6 @@
 <div class="issue-comment-wrapper">
   <a href="{{comment.user.ckan_url}}"
     class="issue-comment-avatar">
-    {{comment.user.gravatar}}
   </a>
   <div class="issue-comment">
     <div class="issue-comment-header">
@@ -44,9 +42,8 @@
           {% if not has_been_reported %}
             <div id="issue-report-abuse-button" class="issue-comment-action">
               <form id="issue-report-form" method="post" action="{{h.url_for('issues_report', dataset_id=dataset.name, issue_number=issue.number)}}">
-                <button class="subtle-btn-active subtle-btn-abuse" type="submit" title="Report">
+                <button class="subtle-btn-active subtle-btn-abuse" type="submit" title="Report spam/abuse">
                   <i class="icon-flag"></i>
-                  Report abuse
                 </button>
               </form>
             </div>
@@ -88,10 +85,7 @@
 
 {%- macro issue_comment(comment) %}
 <div class="issue-comment-wrapper">
-  <a href="{{comment.user.ckan_url}}"
-    class="issue-comment-avatar">
-    {{comment.user.gravatar}}
-  </a>
+
   <div class="issue-comment">
     <div class="issue-comment-header">
       <div class="issue-comment-actions">
@@ -109,9 +103,8 @@
         {% else %}
             <div id="issue-report-abuse-button" class="issue-comment-action">
               <form id="issue-report-form" method="post" action="{{h.url_for('issues_comment_report', dataset_id=dataset.name, issue_number=issue.number, comment_id=comment.id)}}">
-                <button class="subtle-btn-active subtle-btn-abuse" type="submit" title="Report">
+                <button class="subtle-btn-active subtle-btn-abuse" type="submit" title="Report spam/abuse">
                   <i class="icon-flag"></i>
-                  Report abuse
                 </button>
               </form>
             </div>
@@ -170,7 +163,7 @@
           {% if c.user %}
           <a href="{{c.current_user.ckan_url}}"
             class="issue-comment-avatar">
-            {{c.current_user.gravatar}}
+
           </a>
           <form id="issue-comment-form" class="dataset-form" method="post"
             data-module="basic-form"
@@ -234,7 +227,6 @@
   </h2>
   <div id='ckanext-issues-assignee'>
     {% if issue.assignee %}
-      {{ h.gravatar((issue.assignee.email_hash), size=22) }}
       {{ issue.assignee.name }}
     {% else %}
       {{ _('No one') }}

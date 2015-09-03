@@ -36,7 +36,7 @@
   <i class="icon icon-comment"></i>
   <p>
 
-    <span class="actor">{{ h.gravatar(comment.user.email_hash, 30) }}
+    <span class="actor">
         <a href="{{ h.url_for(controller='user', action='read', id=comment.user.id) }}">{{ comment.user.fullname }}</a>
     </span>
     <span>
