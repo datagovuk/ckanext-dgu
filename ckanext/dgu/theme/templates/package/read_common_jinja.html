@@ -66,7 +66,7 @@
                 </a>
               </li>
             </ul>
-            {% if True or h.has_packagezip(c.pkg) %}
+            {% if h.has_packagezip(c.pkg) %}
             <p>A zipfile containing the cached resources held by data.gov.uk is also available for download.</p>
             <ul>
               <li><a href="{{ h.packagezip_url(c.pkg) }}">Download the zipfile</a></li>
