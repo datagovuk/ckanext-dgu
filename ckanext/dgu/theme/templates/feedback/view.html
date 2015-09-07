@@ -13,11 +13,7 @@
 {% macro package_content() %}
     <hr/>
     <div class="view-feedback">
-      <h2>Feedback &nbsp;
-        <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="h2-subheading add-feedback-button">
-          {% if c.user %}Add feedback &raquo;{% else %}Login to Add feedback &raquo;{% endif %}
-        </a>
-      </h2>
+      <h2>Feedback &nbsp;</h2>
       {% for item in c.items %}
         {{m.feedback_item(item, c.pkg_dict)}}
       {% else %}

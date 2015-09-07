@@ -1201,19 +1201,27 @@ def prep_group_edit_data(data):
         if key not in data:
             data[key] = value
 
+
 def top_level_init():
-    # Top level initialisation previously done in layout_base to make sure it
-    # is available to all sub-templates. This is a bit nasty, and I think we
-    # would be better off splitting these c.* things either into separate helpers
-    # or into our own BaseController. Perhaps. TODO.
+    '''These 'globals' are initialised by Genshi's layout_base only - not done
+    in Jinja, so for new templates use instead: is_an_official() or
+    groups_for_current_user().
+    '''
     c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
 
+
 def is_an_official():
-    return bool(c.groups or is_sysadmin())
+    if is_sysadmin():
+        return True
+    return bool(groups_for_current_user())
+
 
 def groups_for_current_user():
-    return c.userobj.get_groups(group_type='organization') if c.userobj else []
+    if c.groups == '':
+        c.groups = c.userobj.get_groups(group_type='organization') \
+            if c.userobj else []
+    return c.groups
 
 
 def additional_extra_fields(res):
@@ -1936,52 +1944,6 @@ def render_db_date(db_date_str):
     except DateConvertError:
         return ''
 
-
-def feedback_report_checkbox_value(flag, name):
-    from pylons import request
-    checked = (flag == True)
-    val = ''.join([request.path, feedback_report_params_for_value(name, checked)])
-    return val, checked
-
-
-def feedback_report_params():
-    """ When we need a URL to call for generating a CSV we need to work out
-        which parameters are currently set and request those fields in the
-        http request to the CSV endpoint """
-    from urllib import urlencode
-    params = {}
-    if c.show_zero_feedback:
-        params['show-zero-feedback'] = 1
-    if c.include_subpublisher:
-        params['show-subpub'] = 1
-    if c.include_published:
-        params['show-published'] = 1
-    return urlencode(params, True)
-
-def feedback_report_params_for_value(name, field_checked):
-    """ Generates the correct value for the checkbox field. By default this
-        function simply returns an urlencoded string that contains the correct
-        parameters to display the report.
-
-        However, because we allow a GET on clicking a checkbox in the report,
-        we need to be able to specify the value field, which should be the URL
-        to call when clicking on the checkbox. To do this we need to invert the
-        boolean that specifies whether to apply the checked field when applying
-        the filter."""
-    from urllib import urlencode
-
-    params = {
-        'show-zero-feedback':  1 if c.show_zero_feedback else 0,
-        'show-subpub': 1 if c.include_subpublisher else 0,
-        'show-published': 1 if c.include_published else 0,
-    }
-
-    # We need to invert the named field, so that we can set it in the value attr
-    # of the checkbox.  This is what we want when we click the checkbox, so it
-    # should show the opposite of what you expect.
-    params[name] = 0 if field_checked else 1
-
-    return "?" + urlencode(params, True)
 
 def pagination_links(page,numpages,url_for_page):
     # Link to the first page, lastpage, and nearby pages

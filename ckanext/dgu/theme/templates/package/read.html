@@ -152,7 +152,7 @@
         <tbody>
           {% for field_dict, label_attributes, value_attributes in h.get_package_fields(c.pkg, c.pkg_dict, h.as_dict(c.pkg_extras), h.was_dataset_harvested(c.pkg_extras), is_location_data, dataset_is_from_ns_pubhub, is_local_government_data) %}
           <tr>
-            {# TODO: label_attributes and value_attributes are dicts, we need to decouple them #} 
+            {# TODO: label_attributes and value_attributes are dicts, we need to decouple them #}
             <td class="key" {{m.dict_to_attributes(label_attributes)}}>{{field_dict.get('label') or field_dict['name']}}</td>
             <td class="value" {{m.dict_to_attributes(value_attributes)}}>{{field_dict.get('value') or 'No value'}}</td>
           </tr>
@@ -181,14 +181,6 @@
       </table>
     </div>
     {% endif %}
-
-    <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
-      {% if c.user %}
-      Add Feedback &raquo;
-      {% else %}
-      Login to Add Feedback &raquo;
-      {% endif %}
-    </a>
 
     {% if h.has_related_apps(c.pkg_dict.get('id')) %}
     <h2>Related Applications</h2>
