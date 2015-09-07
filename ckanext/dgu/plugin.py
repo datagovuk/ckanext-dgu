@@ -432,9 +432,11 @@ class InventoryPlugin(p.SingletonPlugin):
                     controller=fb_ctlr, action='moderation')
 
         # Adding and viewing feedback per dataset
-        map.connect('/dataset/:id/feedback/view',
+        map.connect('feedback_view',
+                    '/dataset/:id/feedback/view',
                     controller=fb_ctlr, action='view')
-        map.connect('/dataset/:id/feedback/add',
+        map.connect('feedback_add',
+                    '/dataset/:id/feedback/add',
                     controller=fb_ctlr, action='add')
 
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'

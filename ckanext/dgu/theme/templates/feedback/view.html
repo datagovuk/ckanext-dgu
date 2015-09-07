@@ -5,9 +5,9 @@
 {% block title %}{{c.pkg.title or c.pkg.name}} - View Feedback{% endblock %}
 
 {% block breadcrumb_content %}
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="{{h.url_for(controller='package',action='read',id=c.pkg_dict['name'])}}">{{c.pkg_dict.get('title', c.pkg_dict['name'])}}</a></li>
-    <li><a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg_dict['name'])}}">View Feedback</a></li>
+    {{ h.build_nav('dgu_search', _('Datasets')) }}
+    {{ h.build_nav('dataset_read', c.pkg_dict.get('title', c.pkg_dict['name']), id=c.pkg_dict['name']) }}
+    {{ h.build_nav('feedback_view', _('View Feedback'), id=c.pkg_dict['name']) }}
 {% endblock %}
 
 {% macro package_content() %}
