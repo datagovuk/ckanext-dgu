@@ -14,7 +14,9 @@ import common
 from optparse import OptionParser
 from collections import defaultdict
 from pprint import pprint
+import warnings
 
+from requests.packages.urllib3 import exceptions
 import dateutil
 import ckanapi
 from ckan.logic import NotFound
@@ -27,7 +29,11 @@ class MergeDatasets(object):
     def command(cls, config_ini, dataset_names, options):
         common.load_config(config_ini)
         common.register_translator()
-        ckan = ckanapi.LocalCKAN()
+
+        from pylons import config
+        apikey = config['dgu.merge_datasets.apikey']
+        ckan = ckanapi.RemoteCKAN('https://data.gov.uk', apikey=apikey)
+        #ckan = ckanapi.LocalCKAN()
 
         if options.publisher:
             org = ckan.action.organization_show(id=options.publisher,
@@ -36,9 +42,22 @@ class MergeDatasets(object):
 
         datasets = []
         datasets_by_name = {}
+
+        def get_extra(dataset, key):
+            for extra in dataset['extras']:
+                if extra['key'] == key:
+                    return extra['value']
         for dataset_name in dataset_names:
+            # strip off the url part of the dataset name, if there is one
+            if dataset_name.startswith('http'):
+                dataset_name = dataset_name.split('/')[-1]
             print 'Dataset: %s' % dataset_name
             dataset = ckan.action.package_show(id=dataset_name)
+            harvest_source_ref = get_extra(dataset, 'harvest_source_reference')
+            if harvest_source_ref:
+                print 'Discarding dataset %s due to harvest source: %s' % \
+                    (dataset_name, harvest_source_ref)
+                continue
             datasets.append(dataset)
             datasets_by_name[dataset['name']] = dataset
         datasets.sort(key=lambda x: x['metadata_modified'])
@@ -89,6 +108,9 @@ class MergeDatasets(object):
                             res_stats.add('Found date in %s' % field_name,
                                           '%s %r' %
                                           (resource['date'], resource))
+                            if resource.get('resource_type') == 'documentation':
+                                resource['resource_type'] = 'file'
+                                res_stats.add('Converted additional resource', resource)
                             break
                     elif options.frequency == 'annually':
                         year = regexes['year'].search(field_value)
@@ -97,27 +119,38 @@ class MergeDatasets(object):
                             res_stats.add('Found date in %s' % field_name,
                                           '%s %r' %
                                           (resource['date'], resource))
+                            if resource.get('resource_type') == 'documentation':
+                                resource['resource_type'] = 'file'
+                                res_stats.add('Converted additional resource', resource)
                             break
                 else:
+                    if resource.get('resource_type') == 'documentation':
+                        print res_stats.add('Could not find date but it\'s Additional Resource', resource)
+                        continue
                     print res_stats.add('Could not find date', resource)
                     continue
 
             print 'Resources: \n', res_stats
 
             resources_without_date = [res for res in resources
-                                      if not res.get('date')]
+                                      if not res.get('date') and
+                                      res.get('resource_type') != 'documentation']
             for i, res in enumerate(resources_without_date):
                 print 'Resources without dates %s/%s' % (i+1, len(resources_without_date))
                 for field_name, field_value in fields_to_hunt_for_date(res):
                     print '  %s: %s' % (field_name, field_value)
                 date_format = {'annually': 'YYYY',
-                               'monthly': 'YYYY-MM'}
+                               'monthly': 'MM/YYYY'}
                 res['date'] = raw_input('Date (%s): ' %
                                         date_format[options.frequency])
+
+            resources.sort(key=lambda x: x.get('date', '').split('/')[::-1])
 
         # Ensure there is not a mixture of resources with and without a date
         have_dates = None
         for res in resources:
+            if res.get('resource_type') == 'documentation':
+                continue
             if have_dates is None:
                 have_dates = bool(res.get('date'))
             else:
@@ -147,7 +180,8 @@ class MergeDatasets(object):
                 'tracking_summary',
                 'num_resources',
                 'license_title',
-                'author', 'temporal_granularity', 'geographic_granularity',
+                'author', 'author_email',
+                'temporal_granularity', 'geographic_granularity',
                 'state', 'isopen', 'url', 'date_update_future', 'date_updated', 'date_released',
                 'temporal_coverage-from', 'temporal_coverage-to',
                 ))
@@ -162,6 +196,11 @@ class MergeDatasets(object):
             for field in all_field_values:
                 if field not in first_fields:
                     yield field, all_field_values[field]
+        spend_data_defaults = {
+            'geographic_coverage': None,
+            'theme-primary': 'Government Spending',
+            'theme-secondary': None,
+            }
         combined_dataset = {'resources': resources}
         all_fields_and_values = get_all_fields_and_values(datasets)
         for field, values in all_fields_and_values:
@@ -176,15 +215,17 @@ class MergeDatasets(object):
                 values = [tags_by_name.values()]
             print '\n%s:' % field
             pprint(list(enumerate(values)))
-            #if field == 'primary_theme':
-            #    import pdb; pdb.set_trace()
+            if options.spend and field in spend_data_defaults:
+                value = spend_data_defaults[field]
+                print 'Spend data defaults to: %s' % value
+                values = [value] if value is not None else None
             # dont be case-sensitive for boolean fields
             if field == 'core-dataset':
                 values = [v.lower() for v in values]
             try:
                 values_identicle = len(set(values)) == 1
             except TypeError:
-                if len(values):
+                if values and len(values):
                     val1 = values[0]
                     for val in values[1:]:
                         if val != val1:
@@ -192,7 +233,7 @@ class MergeDatasets(object):
                             break
                     else:
                         values_identicle = True
-            if not len(values):
+            if (not values) or (not len(values)):
                 pass
             elif values_identicle:
                 value = values[0]
@@ -200,8 +241,8 @@ class MergeDatasets(object):
                 while True:
                     from ckan.lib.munge import munge_title_to_name
                     munged_title = munge_title_to_name(combined_dataset['title'])
-                    munged_publisher = munge_title_to_name(datasets[0]['organization']['title'])
-                    value = raw_input('Type new value (%s-%s): ' % (munged_title, munged_publisher))
+                    print munge_title_to_name(datasets[0]['organization']['title'])
+                    value = raw_input('Type new value (%s): ' % (munged_title))
                     if not value:
                         value = munged_title
                     if len(value) < 3:
@@ -242,7 +283,10 @@ class MergeDatasets(object):
             import pdb
             pdb.set_trace()
         try:
-            ckan.action.dataset_create(**combined_dataset)
+            if options.update:
+                ckan.action.dataset_update(**combined_dataset)
+            else:
+                ckan.action.dataset_create(**combined_dataset)
         except Exception, e:
             print e
             import pdb
@@ -263,12 +307,22 @@ class MergeDatasets(object):
         def print_user(user, custom_info=''):
             print '  "%s" %s %s' % (user['fullname'], user['email'], custom_info)
         print 'Creators:'
+        user_cache = {}
+        def get_user(id_):
+            if id_ not in user_cache:
+                try:
+                    user = ckan.action.user_show(id=id_)
+                except NotFound:
+                    user = None
+                user_cache[id_] = user
+            return user_cache[id_]
+
         for dataset in datasets:
             creator_id = dataset['creator_user_id']
-            try:
-                user = ckan.action.user_show(id=creator_id)
+            user = get_user(creator_id)
+            if user:
                 print_user(user)
-            except NotFound:
+            else:
                 print '  Not found: %s' % creator_id
         print 'Publisher Editors & Admins:'
         org = ckan.action.organization_show(id=dataset['owner_org'], include_users=True)
@@ -288,7 +342,45 @@ class MergeDatasets(object):
         print '  with %s resources:' % len(combined_dataset['resources'])
         for res in combined_dataset['resources']:
             print '    %s %s' % (res.get('date'), res.get('title') or res['description'])
-        print '\nFor more about merging dataset series, see: http://datagovuk.github.io/guidance/monthly_datasets_problem.html'
+        print '\n--------------------------------------------------------\n'
+
+        if org.get('closed'):
+            print 'CLOSED - no need to notify'
+            sys.exit(0)
+
+        editors = user_cache.values()
+        params = {}
+        params['editor_emails'] = ', '.join(['<%s>' % ed['email']
+                                             for ed in editors if ed])
+        params['publisher_title'] = org['title']
+        params['dataset_name'] = combined_dataset['name']
+        print '''
+To: {editor_emails}
+Subject: data.gov.uk spend data arrangements
+
+Dear data.gov.uk editors at {publisher_title},
+
+Please be aware that we've slightly changed the arrangements for the monthly spend data records that are published on data.gov.uk.
+
+Until now you've been creating a new 'dataset' record on data.gov.uk each month. But this week these have been merged into a single dataset which contains a list of all the months' data links inside it. From now on, each month we ask you to 'Edit' the dataset, then click on the 'Data Files' tab and add your month's CSV link to the blank row at the bottom of the table.
+
+View the merged dataset:
+
+https://data.gov.uk/dataset/{dataset_name}
+
+Edit the merged dataset:
+
+https://data.gov.uk/dataset/edit/{dataset_name}
+
+(it will ask you to log-in first if you have not done so already)
+
+For more information about this process, please see:
+http://datagovuk.github.io/guidance/monthly_datasets_problem.html
+
+Regards,
+David Read
+data.gov.uk
+        '''.format(**params)
 
 global regexes
 regexes = None
@@ -351,6 +443,8 @@ if __name__ == '__main__':
     parser = OptionParser(usage=usage)
     parser.add_option('-p', '--publisher', dest='publisher', help='Take all datasets from a publisher')
     parser.add_option('-f', '--frequency', dest='frequency', metavar='FREQ')
+    parser.add_option('--spend', dest='spend', action='store_true', default=False)
+    parser.add_option('--update-dataset', dest='update', action='store_true', default=False, help='Updates a single dataset')
 
     (options, args) = parser.parse_args()
     if args == ['test']:
@@ -360,8 +454,12 @@ if __name__ == '__main__':
         parser.error('Need at least 1 arguments')
     config_ini = args[0]
     datasets = args[1:]
+    if options.update and len(datasets) != 1:
+        parser.error('Must be 1 dataset when specifying --update-dataset')
     FREQUENCIES = ['monthly', 'annually']
     if options.frequency and options.frequency not in FREQUENCIES:
         parser.error('Frequency must be one of: %r' % FREQUENCIES)
 
-    MergeDatasets.command(config_ini, dataset_names=datasets, options=options)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", exceptions.InsecurePlatformWarning)
+        MergeDatasets.command(config_ini, dataset_names=datasets, options=options)
