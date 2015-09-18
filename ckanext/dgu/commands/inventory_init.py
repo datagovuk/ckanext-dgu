@@ -34,6 +34,3 @@ class InitDB(CkanCommand):
         model.repo.new_revision()
         log.info("Database access initialised")
 
-        import ckanext.dgu.model.feedback as fb_model
-        fb_model.init_tables(model.meta.engine)
-        log.debug("Feedback DB tables are setup")

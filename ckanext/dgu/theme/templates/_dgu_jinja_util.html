@@ -240,22 +240,6 @@
   {% for k, v in d.iteritems() -%}{{k}}="{{v}}"{%- endfor %}
 {%- endmacro %}
 
-{% macro feedback_summary(package,render_title=True,large=False) %}
-  {% set comment_dict=h.feedback_comment_counts(package) %}
-    <div class="feedback-summary {{if_(large,'large', '')}}">
-      {% if render_title %}
-      <div class="pull-left feedback-summary-title">Feedback:</div>
-      {% endif %}
-      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Economic growth" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-gbp"></i> {{comment_dict['economic']}}</a>
-      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Social growth" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-group"></i>  {{comment_dict['social']}}</a>
-      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Effective public services" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-road"></i>  {{comment_dict['effective']}}</a>
-      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Potential links to other datasets" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-code-fork"></i>  {{comment_dict['linked']}}</a>
-      <a class="js-tooltip" data-toggle="tooltip" data-placement="bottom" title="Other key data" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=package.name)}}"><i class="icon-quote-left"></i> {{comment_dict['other']}}</a>
-      <div class="clearfix"></div>
-    </div>
-    <div class="clearfix"></div>
-{% endmacro %}
-
 {% macro facet_box(title, unselected, selected, if_empty, more_button=None) %}
     <div class="facet-box-unboxed">
       <h4 class="facet-title">{{title}}</h4>
