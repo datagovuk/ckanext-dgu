@@ -36,7 +36,8 @@ class MergeDatasets(object):
         #ckan = ckanapi.LocalCKAN()
 
         if options.publisher:
-            org = ckan.action.organization_show(id=options.publisher,
+            org_name = common.name_stripped_of_url(options.publisher)
+            org = ckan.action.organization_show(id=org_name,
                                                 include_datasets=True)
             dataset_names.extend([d['name'] for d in org['packages']])
 
@@ -49,8 +50,7 @@ class MergeDatasets(object):
                     return extra['value']
         for dataset_name in dataset_names:
             # strip off the url part of the dataset name, if there is one
-            if dataset_name.startswith('http'):
-                dataset_name = dataset_name.split('/')[-1]
+            dataset_name = common.name_stripped_of_url(dataset_name)
             print 'Dataset: %s' % dataset_name
             dataset = ckan.action.package_show(id=dataset_name)
             harvest_source_ref = get_extra(dataset, 'harvest_source_reference')
@@ -75,7 +75,7 @@ class MergeDatasets(object):
                 identity = resource_identity(resource, dataset['name'])
                 resource['dataset_name'] = dataset['name']
                 if identity in combined_resources:
-                    print res_stats.add('Discarding duplicate', '%s duplicate of %s' % (resource, combined_resources[identity]))
+                    print res_stats.add('Discarding duplicate', '\n%s duplicate of \n%s' % (resource, combined_resources[identity]))
                 else:
                     combined_resources[identity] = resource
         resources = combined_resources.values()
@@ -138,11 +138,17 @@ class MergeDatasets(object):
             for i, res in enumerate(resources_without_date):
                 print 'Resources without dates %s/%s' % (i+1, len(resources_without_date))
                 for field_name, field_value in fields_to_hunt_for_date(res):
-                    print '  %s: %s' % (field_name, field_value)
+                    print '  %s: %s' % (field_name, field_value.encode('latin-1', 'ignore'))
+                print 'https://data.gov.uk/dataset/%s/resource/%s' % (res['dataset_name'], res['id'])
                 date_format = {'annually': 'YYYY',
                                'monthly': 'MM/YYYY'}
-                res['date'] = raw_input('Date (%s): ' %
-                                        date_format[options.frequency])
+                input_ = raw_input('Date (%s) or DOCS to make it an Additional Resource: ' %
+                                   date_format[options.frequency])
+                if input_.strip().lower() == 'docs':
+                    res['date'] = ''
+                    res['resource_type'] = 'documentation'
+                else:
+                    res['date'] = input_
 
             resources.sort(key=lambda x: x.get('date', '').split('/')[::-1])
 
@@ -181,9 +187,13 @@ class MergeDatasets(object):
                 'num_resources',
                 'license_title',
                 'author', 'author_email',
+                'maintainer', 'maintainer_email',
                 'temporal_granularity', 'geographic_granularity',
-                'state', 'isopen', 'url', 'date_update_future', 'date_updated', 'date_released',
+                'state', 'isopen', 'url', 'date_update_future', 'date_updated',
+                'date_released', 'precision',
+                'taxonomy_url',
                 'temporal_coverage-from', 'temporal_coverage-to',
+                'published_via',
                 ))
             first_fields = ['title', 'name', 'notes', 'theme-primary', 'theme-secondary']
             all_field_values = defaultdict(list)
@@ -200,10 +210,13 @@ class MergeDatasets(object):
             'geographic_coverage': None,
             'theme-primary': 'Government Spending',
             'theme-secondary': None,
+            'update_frequency': 'monthly',
             }
         combined_dataset = {'resources': resources}
         all_fields_and_values = get_all_fields_and_values(datasets)
         for field, values in all_fields_and_values:
+            if field == 'notes':
+                values = [value.strip() for value in values]
             if field == 'tags':
                 # just merge them up-front and
                 # dont offer user any choice
@@ -213,6 +226,14 @@ class MergeDatasets(object):
                         if tag['name'] not in tags_by_name:
                             tags_by_name[tag['name']] = tag
                 values = [tags_by_name.values()]
+            if field in ('codelist', 'schema'):
+                # just merge them up-front
+                # And convert the dict into just an id string
+                ids = set()
+                for dataset_values in values:
+                    for value_dict in dataset_values:
+                        ids.add(value_dict['id'])
+                values = [list(ids)]
             print '\n%s:' % field
             pprint(list(enumerate(values)))
             if options.spend and field in spend_data_defaults:
@@ -298,7 +319,7 @@ class MergeDatasets(object):
         if combined_dataset['name'] in datasets_to_delete:
             datasets_to_delete.remove(combined_dataset['name'])
         print 'Old ones to delete: %r' % datasets_to_delete
-        response = raw_input('Press enter to delete the old ones: ')
+        #response = raw_input('Press enter to delete the old ones: ')
         for name in datasets_to_delete:
             ckan.action.dataset_delete(id=name)
         print 'Done'
@@ -327,7 +348,7 @@ class MergeDatasets(object):
         print 'Publisher Editors & Admins:'
         org = ckan.action.organization_show(id=dataset['owner_org'], include_users=True)
         for user_summary in org['users']:
-            user = ckan.action.user_show(id=user_summary['name'])
+            user = get_user(user_summary['name'])
             print_user(user, user_summary['capacity'])
         print '\n--------------------------------------------------------\n'
         print 'Publisher: %s https://data.gov.uk/publisher/%s' % \
@@ -348,7 +369,7 @@ class MergeDatasets(object):
             print 'CLOSED - no need to notify'
             sys.exit(0)
 
-        editors = user_cache.values()
+        editors = [u for u in user_cache.values() if u is not None]
         params = {}
         params['editor_emails'] = ', '.join(['<%s>' % ed['email']
                                              for ed in editors if ed])
@@ -387,14 +408,28 @@ regexes = None
 def ensure_regexes_are_initialized():
     global regexes
     if not regexes:
+        months = 'jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december'
         regexes = {
             'year': re.compile(r'\b(20\d{2})\b'),
             'year_at_start_of_date': re.compile(r'\b(20\d{2})[-/]'),
             'year_at_end_of_date': re.compile(r'[-/](20\d{2})\b'),
-            'month': re.compile(r'\b(jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)\b', flags=re.IGNORECASE),
+            'month': re.compile(r'\b(%s)\b' % months, flags=re.IGNORECASE),
+            'month_2_digit_year': re.compile(r'\b(%s)[-/ ]?(\d{2})\b' % months, flags=re.IGNORECASE),
             'month_year': re.compile(r'\b(\d{1,2})[-/](20\d{2})\b'),
             'year_month': re.compile(r'\b(20\d{2})[-/](\d{1,2})\b'),
         }
+
+def parse_month_as_word(month_word, year):
+    month = month_word.lower().replace('sept', 'sep')
+    month = month.replace('sepember', 'sep')
+    date_str = '%s %s' % (month, year)
+    try:
+        # dateutil converts 'june 2014' to datetime(2014, 6, xyz)
+        date = dateutil.parser.parse(date_str)
+    except ValueError:
+        print 'ERROR parsing date: %s' % date_str
+        import pdb; pdb.set_trace()
+    return date.month, date.year
 
 def hunt_for_month_and_year(field_value):
     global regexes
@@ -404,6 +439,12 @@ def hunt_for_month_and_year(field_value):
         month, year = month_year_match.groups()
         if int(month) < 13 and int(month) > 0:
             return int(month), int(year)
+    month_2_digit_year_match = regexes['month_2_digit_year'].search(field_value)
+    if month_2_digit_year_match:
+        month, year = month_2_digit_year_match.groups()
+        year = int(year)
+        if year > 9 and year < 20:
+            return parse_month_as_word(month, year + 2000)
     year_month_match = regexes['year_month'].search(field_value)
     if year_month_match:
         year, month = year_month_match.groups()
@@ -414,10 +455,7 @@ def hunt_for_month_and_year(field_value):
         regexes['year_at_end_of_date'].search(field_value)
     month_match = regexes['month'].search(field_value)
     if year_match and month_match:
-        # dateutil converts 'june 2014' to datetime(2014, 6, xyz)
-        date = dateutil.parser.parse('%s %s' %
-            (month_match.groups()[0], year_match.groups()[0]))
-        return date.month, date.year
+        return parse_month_as_word(month_match.groups()[0], year_match.groups()[0])
     return None, None
 
 
@@ -430,6 +468,8 @@ def test():
     assert_equal(hunt_for_month_and_year('2014 nov'), (11, 2014))
     assert_equal(hunt_for_month_and_year('2014 Nov'), (11, 2014))
     assert_equal(hunt_for_month_and_year('2014 November'), (11, 2014))
+    assert_equal(hunt_for_month_and_year('nov-14'), (11, 2014))
+    assert_equal(hunt_for_month_and_year('nov14'), (11, 2014))
     assert_equal(hunt_for_month_and_year('15-2014'), (None, None))
     print 'ok'
 
