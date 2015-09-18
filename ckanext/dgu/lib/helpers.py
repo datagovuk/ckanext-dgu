@@ -1826,35 +1826,8 @@ def is_unpublished_item(package):
 def is_unpublished_unavailable(package):
     return get_from_flat_dict(package['extras'], 'publish-restricted', False)
 
-def feedback_user_count(pkg):
-    from ckanext.dgu.model.feedback import Feedback
-    return Feedback.users_count(pkg)
-
-def feedback_comment_count(pkg):
-    from ckanext.dgu.model.feedback import Feedback
-    return Feedback.comments_count(pkg)
-
-
 def unpublished_release_notes(package):
     return get_from_flat_dict(package['extras'], 'release-notes')
-
-def feedback_comment_counts(package):
-    import ckan.model as model
-    from ckanext.dgu.model.feedback import Feedback
-
-    counts = {'economic': 0, 'social': 0, 'effective': 0, 'other':0, 'linked': 0}
-
-    for fb in model.Session.query(Feedback).filter(Feedback.visible==True).\
-            filter(Feedback.package_id==package['id']).\
-            filter(Feedback.active==True).all():
-        if fb.economic: counts['economic'] += 1
-        if fb.social: counts['social'] += 1
-        if fb.effective: counts['effective'] += 1
-        if fb.other: counts['other'] += 1
-        if fb.linked: counts['linked'] += 1
-
-    return counts
-
 
 def tidy_url(url):
     '''

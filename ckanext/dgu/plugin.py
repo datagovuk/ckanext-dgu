@@ -400,10 +400,6 @@ class InventoryPlugin(p.SingletonPlugin):
         pass
 
     def before_map(self, map):
-        fb_ctlr = 'ckanext.dgu.controllers.feedback:FeedbackController'
-        map.connect('/dataset/:id/feedback/view',
-                    controller=fb_ctlr, action='view')
-
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
