@@ -69,7 +69,9 @@ class ExportFeedback(object):
         writer = csv.DictWriter(sys.stdout, headers)
 
         for fb in model.Session.query(Feedback)\
-                .filter(Feedback.visible==True).filter(Feedback.active==True):
+                .filter(Feedback.visible==True)\
+                .filter(Feedback.active==True)\
+                .order_by(Feedback.created):
 
             if not any([fb.economic, fb.social, fb.effective, fb.linked, fb.other]):
                 stats.add('Missing any content', fb.id )
