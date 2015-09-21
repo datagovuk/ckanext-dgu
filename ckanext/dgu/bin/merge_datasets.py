@@ -193,7 +193,7 @@ class MergeDatasets(object):
                 'date_released', 'precision',
                 'taxonomy_url',
                 'temporal_coverage-from', 'temporal_coverage-to',
-                'published_via',
+                'published_via', 'creator_user_id',
                 ))
             first_fields = ['title', 'name', 'notes', 'theme-primary', 'theme-secondary']
             all_field_values = defaultdict(list)
@@ -422,6 +422,8 @@ def ensure_regexes_are_initialized():
 def parse_month_as_word(month_word, year):
     month = month_word.lower().replace('sept', 'sep')
     month = month.replace('sepember', 'sep')
+    month = month.replace('febuary', 'february')
+    month = month.replace('february', 'february')
     date_str = '%s %s' % (month, year)
     try:
         # dateutil converts 'june 2014' to datetime(2014, 6, xyz)
