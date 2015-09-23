@@ -37,9 +37,15 @@ class MergeDatasets(object):
 
         if options.publisher:
             org_name = common.name_stripped_of_url(options.publisher)
-            org = ckan.action.organization_show(id=org_name,
-                                                include_datasets=True)
-            dataset_names.extend([d['name'] for d in org['packages']])
+            if options.search:
+                results = ckan.action.package_search(q=options.search, fq='publisher:%s' % org_name, rows=100, escape_q=False)
+                dataset_names.extend([dataset['name']
+                                      for dataset in results['results']])
+            else:
+                org = ckan.action.organization_show(id=org_name,
+                                                    include_datasets=True)
+                dataset_names.extend([d['name'] for d in org['packages']])
+
 
         datasets = []
         datasets_by_name = {}
@@ -49,14 +55,15 @@ class MergeDatasets(object):
                 if extra['key'] == key:
                     return extra['value']
         for dataset_name in dataset_names:
+            print 'Dataset: %s' % dataset_name
+        for dataset_name in dataset_names:
             # strip off the url part of the dataset name, if there is one
             dataset_name = common.name_stripped_of_url(dataset_name)
-            print 'Dataset: %s' % dataset_name
             dataset = ckan.action.package_show(id=dataset_name)
             harvest_source_ref = get_extra(dataset, 'harvest_source_reference')
             if harvest_source_ref:
-                print 'Discarding dataset %s due to harvest source: %s' % \
-                    (dataset_name, harvest_source_ref)
+                print '** Discarding dataset %s due to harvest source: %s **' \
+                    % (dataset_name, harvest_source_ref)
                 continue
             datasets.append(dataset)
             datasets_by_name[dataset['name']] = dataset
@@ -101,7 +108,7 @@ class MergeDatasets(object):
             global regexes
             for resource in resources:
                 for field_name, field_value in fields_to_hunt_for_date(resource):
-                    if options.frequency == 'monthly':
+                    if options.frequency in ('monthly', 'quarterly', 'twice annually'):
                         month, year = hunt_for_month_and_year(field_value)
                         if year and month:
                             resource['date'] = '%02d/%s' % (month, year)
@@ -141,7 +148,9 @@ class MergeDatasets(object):
                     print '  %s: %s' % (field_name, field_value.encode('latin-1', 'ignore'))
                 print 'https://data.gov.uk/dataset/%s/resource/%s' % (res['dataset_name'], res['id'])
                 date_format = {'annually': 'YYYY',
-                               'monthly': 'MM/YYYY'}
+                               'monthly': 'MM/YYYY',
+                               'twice annually': 'MM/YYYY',
+                               'quarterly': 'MM/YYYY'}
                 input_ = raw_input('Date (%s) or DOCS to make it an Additional Resource: ' %
                                    date_format[options.frequency])
                 if input_.strip().lower() == 'docs':
@@ -362,7 +371,7 @@ class MergeDatasets(object):
         print '  https://data.gov.uk/dataset/%s' % (combined_dataset['name'])
         print '  with %s resources:' % len(combined_dataset['resources'])
         for res in combined_dataset['resources']:
-            print '    %s %s' % (res.get('date'), res.get('title') or res['description'])
+            print '    %s %r' % (res.get('date'), res.get('title') or res['description'])
         print '\n--------------------------------------------------------\n'
 
         if org.get('closed'):
@@ -478,12 +487,13 @@ def test():
 usage = '''
 Merge datasets, usually in a time series
 
-    python merge_datasets.py <CKAN config ini filepath> [-f monthly/annually] <dataset_name_1> <dataset_name_2> [...]
+    python merge_datasets.py <CKAN config ini filepath> [-f monthly/annually/quarterly] <dataset_name_1> <dataset_name_2> [...]
 '''.strip()
 
 if __name__ == '__main__':
     parser = OptionParser(usage=usage)
     parser.add_option('-p', '--publisher', dest='publisher', help='Take all datasets from a publisher')
+    parser.add_option('-s', '--search', dest='search', help='Filter datasets by a search phrase (use with -p)')
     parser.add_option('-f', '--frequency', dest='frequency', metavar='FREQ')
     parser.add_option('--spend', dest='spend', action='store_true', default=False)
     parser.add_option('--update-dataset', dest='update', action='store_true', default=False, help='Updates a single dataset')
@@ -496,9 +506,11 @@ if __name__ == '__main__':
         parser.error('Need at least 1 arguments')
     config_ini = args[0]
     datasets = args[1:]
+    if options.search and not options.publisher:
+        parser.error('If using --search you must also specify --publisher')
     if options.update and len(datasets) != 1:
         parser.error('Must be 1 dataset when specifying --update-dataset')
-    FREQUENCIES = ['monthly', 'annually']
+    FREQUENCIES = ['monthly', 'quarterly', 'twice annually', 'annually']
     if options.frequency and options.frequency not in FREQUENCIES:
         parser.error('Frequency must be one of: %r' % FREQUENCIES)
 
