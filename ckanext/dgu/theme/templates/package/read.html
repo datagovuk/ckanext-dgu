@@ -193,13 +193,6 @@
     </ul>
     {% endif %}
 
-    <h2>Dataset Feedback</h2>
-    <div class="dataset-feedback-container">
-      {{m.feedback_summary(c.pkg_dict,render_title=False,large=True)}}
-      <a class="view-feedback-link" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}}">View all feedback &raquo;</a>
-    </div>
-
-
     <div id="comments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
       <div style="height: 50px;" class="comments-spinner"></div>
