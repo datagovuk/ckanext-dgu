@@ -1,4 +1,4 @@
-{% extends "package/read_common_jinja.html" %}
+{% extends "package/read_common.html" %}
 
 {% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
 {% import "_dgu_jinja_util.html" as m with context %}
@@ -187,14 +187,6 @@
     </div>
     {% endif %}
 
-    <a href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='add',id=c.pkg.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
-      {% if c.user %}
-      Add Feedback &raquo;
-      {% else %}
-      Login to Add Feedback &raquo;
-      {% endif %}
-    </a>
-
     {% if h.has_related_apps(c.pkg_dict.get('id')) %}
     <h2>Related Applications</h2>
     <ul>
@@ -260,7 +252,6 @@
       {{m.feedback_summary(c.pkg_dict,render_title=False,large=True)}}
       <a class="view-feedback-link" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}}">View all feedback &raquo;</a>
     </div>
-
 
     <div id="comments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->

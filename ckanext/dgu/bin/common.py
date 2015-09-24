@@ -84,3 +84,16 @@ def get_datasets(state='active', dataset_name=None, organization_ref=None):
     print '%i datasets (%s)' % (len(datasets), ' '.join(criteria))
     return datasets
 
+
+def name_stripped_of_url(url_or_name):
+    '''Returns a name. If it is in a URL it strips that bit off.
+
+    e.g. https://data.gov.uk/publisher/barnet-primary-care-trust
+         -> barnet-primary-care-trust
+
+         barnet-primary-care-trust
+         -> barnet-primary-care-trust
+    '''
+    if url_or_name.startswith('http'):
+        return url_or_name.split('/')[-1]
+    return url_or_name
