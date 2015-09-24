@@ -111,10 +111,10 @@
     </div>
 
 
-    {% set issue_count = h.get_issue_count(c.pkg.id) %}
-
 
     {% set publisher_name = c.pkg.get_organization().name %}
+    {% set issue_count = h.get_issue_count(c.pkg.id) %}
+
     {% if not h.is_unpublished_item(c.pkg_dict) %}
       <div class="dataset-resources">
         <!-- Resources -->
@@ -198,7 +198,7 @@
     </ul>
     {% endif %}
 
-    {% if h.issues_enabled(c.pkg_dict) %}
+    {% if h.issues_enabled(c.pkg_dict) and h.enabled_for_organization(publisher_name) %}
     <br/>
       {% if c.user %}
       <a href="{{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
@@ -246,17 +246,6 @@
     {% endif %}
     <br/>
 
-
-    <h2>Dataset Feedback</h2>
-    <div class="dataset-feedback-container">
-      {{m.feedback_summary(c.pkg_dict,render_title=False,large=True)}}
-      <a class="view-feedback-link" href="{{h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController',action='view',id=c.pkg.name)}}">View all feedback &raquo;</a>
-    </div>
-
-    <div id="comments-container">
-      <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
-      <div style="height: 50px;" class="comments-spinner"></div>
-    </div>
 {% endmacro %}
 
 
