@@ -23,14 +23,6 @@ class SearchIndexing(object):
 
         score = 0
 
-        try:
-            if asbool(pkg_dict.get('unpublished', False)):
-                from ckanext.dgu.lib.helpers import feedback_comment_count
-                score += feedback_comment_count(pkg_dict)
-        except ValueError:
-            # If the unpublished field is not a proper bool then we should assume it is false
-            pass
-
         if 'ga-report' in config.get('ckan.plugins'):
             from ckanext.ga_report.ga_model import get_score_for_dataset
             score += get_score_for_dataset(pkg_dict['name'])

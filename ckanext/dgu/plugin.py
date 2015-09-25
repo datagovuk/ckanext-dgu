@@ -10,9 +10,7 @@ from ckanext.dgu.authorize import (
                              dgu_package_update,
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show,
-                             dgu_feedback_update, dgu_feedback_create,
-                             dgu_feedback_delete, dgu_organization_delete,
-                             dgu_group_change_state,
+                             dgu_organization_delete, dgu_group_change_state,
                              )
 from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
@@ -73,10 +71,6 @@ class DguReportPlugin(p.SingletonPlugin):
                      '/data/report/broken-links')
         map.redirect('/data/reports/qa/organisation/broken_resource_links/:organization',
                      '/data/report/broken-links/:organization')
-        map.redirect('/data/reports/feedback',
-                     '/data/report/feedback')
-        map.redirect('/data/reports/feedback/:organization',
-                     '/data/report/feedback/:organization')
         map.redirect('/data/reports/resources/:organization',
                      '/data/report/publisher-resources/:organization')
         # openness done
@@ -98,12 +92,6 @@ class DguReportPlugin(p.SingletonPlugin):
         #   /publisher/report_publishers_and_users
         #   /publisher/report_groups_without_admins
         #   /publisher/report_users_not_assigned_to_groups
-
-        # Older redirect
-        map.redirect('/data/feedback/report/{id}.{format}', '/data/report/feedback/{id}?format={format}')
-        map.redirect('/data/feedback/report/{id}', '/data/report/feedback/{id}')
-        map.redirect('/data/feedback/report.{format}', '/data/report/feedback?format={format}')
-        map.redirect('/data/feedback/report', '/data/report/feedback')
 
         return map
 
@@ -391,7 +379,6 @@ class PublisherPlugin(p.SingletonPlugin):
         """Register details of an extension's reports"""
         from ckanext.dgu.lib import reports
         return [reports.nii_report_info,
-                reports.feedback_report_info,
                 reports.publisher_activity_report_info,
                 reports.publisher_resources_info,
                 reports.unpublished_report_info,
@@ -408,35 +395,11 @@ class InventoryPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IConfigurer)
     p.implements(p.ISession, inherit=True)
-    p.implements(p.IAuthFunctions, inherit=True)
-
-    def get_auth_functions(self):
-        return {
-            'feedback_update': dgu_feedback_update,
-            'feedback_create': dgu_feedback_create,
-            'feedback_delete': dgu_feedback_delete,
-        }
 
     def before_commit(self, session):
         pass
 
     def before_map(self, map):
-        fb_ctlr = 'ckanext.dgu.controllers.feedback:FeedbackController'
-
-        # Feedback specific URLs
-        map.connect('/data/feedback/moderate/:id',
-                    controller=fb_ctlr, action='moderate')
-        map.connect('/data/feedback/abuse/:id',
-                    controller=fb_ctlr, action='report_abuse')
-        map.connect('/data/feedback/moderation',
-                    controller=fb_ctlr, action='moderation')
-
-        # Adding and viewing feedback per dataset
-        map.connect('/dataset/:id/feedback/view',
-                    controller=fb_ctlr, action='view')
-        map.connect('/dataset/:id/feedback/add',
-                    controller=fb_ctlr, action='add')
-
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')

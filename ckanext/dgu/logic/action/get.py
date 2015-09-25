@@ -70,8 +70,9 @@ def suggest_themes(context, data_dict):
 
     return results
 
+@side_effect_free
 def schema_list(context, data_dict):
-    check_access('schema_list', context, data_dict) 
+    check_access('schema_list', context, data_dict)
 
     model = context['model']
     items = model.Session.query(Schema).order_by('title')
@@ -79,7 +80,7 @@ def schema_list(context, data_dict):
 
 @side_effect_free
 def codelist_list(context, data_dict):
-    check_access('codelist_list', context, data_dict) 
+    check_access('codelist_list', context, data_dict)
 
     model = context['model']
     items = model.Session.query(Codelist).order_by('title')
