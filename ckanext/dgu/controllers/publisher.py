@@ -27,6 +27,7 @@ from ckan.plugins import PluginImplementations, IMiddleware
 from ckanext.dgu.plugin import DrupalAuthPlugin
 from ckanext.dgu.forms.validators import categories
 from ckanext.dgu.lib import helpers as dgu_helpers
+from ckanext.dgu.lib.member_util import group_members_of_type
 
 log = logging.getLogger(__name__)
 
@@ -148,7 +149,7 @@ class PublisherController(OrganizationController):
                 reason = request.params.get('reason', None)
 
                 if model.Session.query(PublisherRequest).filter_by(user_name=c.user, group_name=id).all():
-                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True) 
+                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True)
                     h.redirect_to('publisher_apply', id=id)
                     return
                 else:
@@ -275,7 +276,7 @@ class PublisherController(OrganizationController):
                 { "name": user.name,
                   "fullname": user.fullname,
                   "capacity": capacity }
-                for user in c.group.members_of_type(model.User, capacity).all() )
+                for user in group_members_of_type(c.group.id, model.User, capacity).all() )
 
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
         c.form = render('publisher/users_form.html', extra_vars=vars)
@@ -357,8 +358,8 @@ class PublisherController(OrganizationController):
             c.facets = {}
             c.page = h.Page(collection=[])
 
-        c.administrators = c.group.members_of_type(model.User, 'admin')
-        c.editors = c.group.members_of_type(model.User, 'editor')
+        c.administrators = group_members_of_type(c.group.id, model.User, 'admin')
+        c.editors = group_members_of_type(c.group.id, model.User, 'editor')
 
         parent_groups = c.group.get_parent_groups(type='organization')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
@@ -465,7 +466,7 @@ class PublisherController(OrganizationController):
             c.in_group = c.req_user.is_in_group(c.req_group.id)
         except Exception, ex:
             abort(404, 'Request not found')
- 
+
         if decision:
             if decision not in ['reject', 'accept']:
                 abort(400, 'Invalid Request')
@@ -567,7 +568,7 @@ class PublisherController(OrganizationController):
                     group_type='organization')
 
             if group:
-                c.users = group.members_of_type(model.User)
+                c.users = group_members_of_type(group.id, model.User)
 
         else:
             # creating an organization

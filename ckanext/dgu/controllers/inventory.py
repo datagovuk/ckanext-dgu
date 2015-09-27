@@ -250,14 +250,15 @@ class InventoryController(BaseController):
     def _get_group_info(self):
         """ Helper to get group information to be shown on each page """
         from urllib import quote
+        from ckanext.dgu.lib.member_util import group_members_of_type
 
-        c.group_admins = c.group.members_of_type(model.User, 'admin')
+        c.group_admins = group_members_of_type(c.group.id, model.User, 'admin')
         c.body_class = "group view"
 
-        c.administrators = c.group.members_of_type(model.User, 'admin')
-        c.editors = c.group.members_of_type(model.User, 'editor')
+        c.administrators = group_members_of_type(c.group.id, model.User, 'admin')
+        c.editors = group_members_of_type(c.group.id, model.User, 'editor')
         c.restricted_to_publisher = 'publisher' in request.params
-        parent_groups = c.group.get_parent_groups(type='organization')
+        parent_groups = group_get_parent_groups(c.group.id, type='organization')
         c.parent_publisher = parent_groups[0] if len(parent_groups) > 0 else None
         c.group_extras = []
         for extra in sorted(c.group_dict.get('extras',[]), key=lambda x:x['key']):
@@ -310,6 +311,6 @@ class InventoryController(BaseController):
         writer = csv.writer(response)
         inventory_lib.render_inventory_header(writer)
         for gp in groups:
-            ds = gp.members_of_type(model.Package).all()
+            ds = group_members_of_type(gp.id, model.Package).all()
             inventory_lib.render_inventory_row(writer, ds, gp)
 

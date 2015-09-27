@@ -190,6 +190,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(form['abbreviation'].value, 'tn2')
 
     def test_2_edit_publisher_does_not_affect_others(self):
+        from ckanext.dgu.lib.member_util import group_members_of_type
+
         publisher_name = 'national-health-service'
         def check_related_publisher_properties():
             group = model.Group.by_name(publisher_name)
@@ -206,9 +208,9 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
             child_groups = set([grp.name for grp in list(publib.go_down_tree(group))])
             assert set([u'newham-primary-care-trust', u'barnsley-primary-care-trust']) <= child_groups, child_groups
             # admins & editors
-            assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='admin')]),
+            assert_equal(set([user.name for user in group_members_of_type(group.id, model.User, capacity='admin')]),
                          set(('nhsadmin',)))
-            assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='editor')]),
+            assert_equal(set([user.name for user in group_members_of_type(group.id, model.User, capacity='editor')]),
                          set(('nhseditor', 'user_d101')))
         check_related_publisher_properties()
 
@@ -259,6 +261,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         res = self.app.get(offset, status=401)
 
     def test_5_appoint_editor(self):
+        from ckanext.dgu.lib.member_util import group_members_of_type
+
         publisher_name = 'national-health-service'
         def check_related_publisher_properties():
             group = model.Group.by_name(publisher_name)
@@ -294,9 +298,9 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
 
         # Check saved object
         group = model.Group.by_name(unicode(publisher_name))
-        assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='admin')]),
+        assert_equal(set([user.name for user in group_members_of_type(group.id, model.User, capacity='admin')]),
                      set(('nhsadmin',)))
-        assert_equal(set([user.name for user in group.members_of_type(model.User, capacity='editor')]),
+        assert_equal(set([user.name for user in group_members_of_type(group.id, model.User, capacity='editor')]),
                      set(('nhseditor', 'user_d101', 'test_user')))
 
         check_related_publisher_properties()

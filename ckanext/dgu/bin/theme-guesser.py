@@ -43,12 +43,12 @@ def load_config(path):
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
 
-    from ckan.lib.cli import MockTranslator    
-    from paste.registry import Registry 
-    registry=Registry() 
-    registry.prepare()     
-    translator_obj=MockTranslator() 
-    registry.register(pylons.translator, translator_obj) 
+    from ckan.lib.cli import MockTranslator
+    from paste.registry import Registry
+    registry=Registry()
+    registry.prepare()
+    translator_obj=MockTranslator()
+    registry.register(pylons.translator, translator_obj)
 
 
 def command(config_ini, commit):
@@ -62,7 +62,7 @@ def command(config_ini, commit):
     global_log = log
 
     from ckan import model
-    model.init_model(engine)    
+    model.init_model(engine)
     model.repo.new_revision()
 
     guess_theme(commit)
@@ -70,22 +70,24 @@ def command(config_ini, commit):
 def guess_theme(commit):
     from ckan import model
     from ckanext.dgu.lib import publisher as publib
+    from ckanext.dgu.lib.member_util import group_members_of_type
 
     log = global_log
 
     for k,v in publisher_themes.iteritems():
         updated = 0
-        pubs = list(publib.go_down_tree(model.Group.get(k))) 
+        pubs = list(publib.go_down_tree(model.Group.get(k)))
         print "Processing %d publishers from %s" % (len(pubs), k)
 
         for publisher in pubs:
-            packages = publisher.members_of_type(model.Package).filter(model.Package.state=='active')
+            packages = group_members_of_type(publisher.id, model.Package)\
+                .filter(model.Package.state=='active')
             print "\r", " " * 80,  # blank the line
             print "\rProcessing %s" % publisher.name,
 
             for package in packages:
                 if 'spend' in package.name or 'financ' in package.name:
-                    continue 
+                    continue
 
                 if not 'theme-primary' in package.extras or package.extras['theme-primary'] == '':
                     package.extras['theme-primary'] = v
@@ -105,7 +107,7 @@ def warn(msg, *params):
     global warnings
     warnings.append(msg % params)
     global_log.warn(msg, *params)
-    
+
 
 def usage():
     print """
@@ -114,7 +116,7 @@ Usage:
 
     python theme-stats.py <CKAN config ini filepath> <commit: y/n>
     """
-    
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         usage()

@@ -11,7 +11,6 @@ from ckanext.dgu.schema import GeoCoverageType
 from ckan.lib.navl.dictization_functions import missing
 import ckan.controllers.package
 from ckanext.dgu.lib.helpers import get_from_flat_dict
-from ckan.lib.package_saver import PackageSaver
 
 log = logging.getLogger(__name__)
 

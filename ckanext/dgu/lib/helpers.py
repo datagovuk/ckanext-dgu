@@ -281,10 +281,10 @@ def user_properties(user):
     '''
     from ckan import model
     is_system = False
-    if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
-        # These values occur in tests only?
-        user_name = user
-        is_system = True
+    #if user in [model.PSEUDO_USER__LOGGED_IN, model.PSEUDO_USER__VISITOR]:
+    #    # These values occur in tests only?
+    #    user_name = user
+    #    is_system = True
     if not isinstance(user, model.User):
         user_name = unicode(user)
         user = model.User.get(user_name) or model.Session.query(model.User).filter_by(fullname=user_name).first()
@@ -1187,7 +1187,8 @@ def user_get_groups(uid):
 
 def group_get_users(group, capacity):
     import ckan.model as model
-    return group.members_of_type(model.User, capacity=capacity)
+    from ckanext.dgu.lib.member_util import group_members_of_type
+    return group_members_of_type(group.id, model.User, capacity=capacity)
 
 
 def prep_group_edit_data(data):
@@ -2245,3 +2246,14 @@ def ensure_ids_are_in_a_list_of_dicts(l):
 
 def get_sla():
     return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'
+
+def get_organization(self):
+    """ Monkey patched into Package model ....
+        Returns the model for this package's owning organization if
+        one is set up. Will return None otherwise """
+    import ckan.model as model
+    if self.owner_org:
+        return model.Group.get(self.owner_org)
+    return None
+
+

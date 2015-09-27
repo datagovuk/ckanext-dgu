@@ -4,6 +4,7 @@ import logging
 import csv
 
 from common import load_config, register_translator
+from ckanext.dgu.lib.member_util import group_members_of_type
 
 USAGE = '''Shows all the email addresses for editors/admins of publishers
 in PCTs.
@@ -64,8 +65,8 @@ for pub in publisher_lib.go_down_tree(nhs):
     is_pct = ('Care Trust' in title or 'PCT' in title or title.startswith('NHS ') or 'Care Tust' in title) \
               and title not in not_pct and 'Foundation' not in title
     # Get the admins & editors
-    admins = pub.members_of_type(model.User, 'admin').all()
-    editors = pub.members_of_type(model.User, 'editor').all()
+    admins = group_members_of_type(pub.id, model.User, 'admin').all()
+    editors = group_members_of_type(pub.id, model.User, 'editor').all()
     # Get their email addresses
     users_with_email = []
     users_without_email = []

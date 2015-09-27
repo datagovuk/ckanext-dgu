@@ -19,7 +19,7 @@ def go_up_tree(publisher):
 def go_down_tree(publisher):
     '''Provided with a publisher object, it walks down the hierarchy and yields
     each publisher, including the one you supply.
-   
+
     Essentially this is a slower version of Group.get_children_group_hierarchy
     because it returns Group objects, rather than dicts.
     '''
@@ -30,10 +30,12 @@ def go_down_tree(publisher):
 
 def find_group_admins(group):
     '''Look for publisher admins up the tree'''
+    from ckanext.dgu.lib.member_util import group_members_of_type
+
     recipients = []
     recipient_publisher = None
     for publisher in go_up_tree(group):
-        admins = publisher.members_of_type(model.User, 'admin').all()
+        admins = group_members_of_type(publisher.id, model.User, 'admin').all()
         if admins:
             recipients = [(u.fullname,u.email) for u in admins]
             recipient_publisher = publisher.title

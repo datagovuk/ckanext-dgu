@@ -35,6 +35,7 @@ def not_found(self, url):
 def _guess_package_type(self, expecting_name=False):
     return 'dataset'
 
+
 class DguReportPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
 
@@ -125,6 +126,7 @@ class ThemePlugin(p.SingletonPlugin):
     from lib import helpers as dgu_helpers
     model.Package._isopen = model.Package.isopen
     model.Package.isopen = dgu_helpers.isopen
+    model.Package.get_organization = dgu_helpers.get_organization
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'theme/templates')
