@@ -279,9 +279,8 @@ class DataController(BaseController):
 
         file_size = os.path.getsize(filepath)
         if not is_html:
-            headers = [('Content-Type', content_type),
-                       ('Content-Length', str(file_size))]
-            fapp = FileApp(filepath, headers=headers)
+            headers = [('Content-Length', str(file_size))]
+            fapp = FileApp(filepath, headers=headers, content_type=content_type)
             return fapp(request.environ, self.start_response)
 
         origin = tidy_url(resource.url)
