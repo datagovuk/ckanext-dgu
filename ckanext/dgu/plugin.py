@@ -355,9 +355,10 @@ class PublisherPlugin(p.SingletonPlugin):
         return map
 
     def after_map(self, map):
-        delete_routes_by_name(map, 'issues_for_organization')
-        with SubMapper(map, controller='ckanext.issues.controller:IssueController') as m:
-            m.connect('issues_for_organization', '/publisher/:org_id/issues', action='issues_for_organization')
+        if is_plugin_enabled('issues'):
+            delete_routes_by_name(map, 'issues_for_organization')
+            with SubMapper(map, controller='ckanext.issues.controller:IssueController') as m:
+                m.connect('issues_for_organization', '/publisher/:org_id/issues', action='issues_for_organization')
         return map
 
     def update_config(self, config):

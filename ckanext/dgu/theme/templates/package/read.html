@@ -198,7 +198,7 @@
     </ul>
     {% endif %}
 
-    {% if h.issues_enabled(c.pkg_dict) and h.enabled_for_organization(publisher_name) %}
+    {% if h.issues_enabled(c.pkg_dict) %}
     <br/>
       {% if c.user %}
       <a href="{{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">

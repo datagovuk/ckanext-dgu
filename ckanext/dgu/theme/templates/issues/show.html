@@ -227,6 +227,7 @@
   </h2>
   <div id='ckanext-issues-assignee'>
     {% if issue.assignee %}
+      {{h.linked_user(issue.assignee.name, maxlength=200)}}
       {{ issue.assignee.name }}
     {% else %}
       {{ _('No one') }}
