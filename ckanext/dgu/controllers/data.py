@@ -265,7 +265,7 @@ class DataController(BaseController):
         # Make an attempt at getting the correct content type but fail with
         # application/octet-stream in cases where we don't know.
         formats = {
-            "CSV": "application/csv",
+            "CSV": "text/csv",
             "XLS": "application/vnd.ms-excel",
             "HTML": 'text/html; charset=utf-8' }
         content_type = formats.get(fmt, "application/octet-stream")
