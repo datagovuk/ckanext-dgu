@@ -269,6 +269,9 @@ class DataController(BaseController):
 
         file_size = os.path.getsize(filepath)
         if not is_html:
+            # Content-Type is determined by FileApp based on the extension.
+            # Using the format provided by QA isn't an option currently as
+            # for zip files it gives the format of the content of the zip.
             headers = [('Content-Length', str(file_size))]
             fapp = FileApp(filepath, headers=headers)
             return fapp(request.environ, self.start_response)
