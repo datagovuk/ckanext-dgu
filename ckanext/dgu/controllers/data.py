@@ -265,7 +265,7 @@ class DataController(BaseController):
         # Make an attempt at getting the correct content type but fail with
         # application/octet-stream in cases where we don't know.
         formats = {
-            "CSV": "text/csv",
+            "CSV": "application/csv",
             "XLS": "application/vnd.ms-excel",
             "HTML": 'text/html; charset=utf-8' }
         content_type = formats.get(fmt, "application/octet-stream")
@@ -279,8 +279,9 @@ class DataController(BaseController):
 
         file_size = os.path.getsize(filepath)
         if not is_html:
-            headers = [('Content-Length', str(file_size))]
-            fapp = FileApp(filepath, headers=headers, content_type=content_type)
+            headers = [('Content-Type', content_type),
+                       ('Content-Length', str(file_size))]
+            fapp = FileApp(filepath, headers=headers)
             return fapp(request.environ, self.start_response)
 
         origin = tidy_url(resource.url)
