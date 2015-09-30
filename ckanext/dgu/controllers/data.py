@@ -253,22 +253,12 @@ class DataController(BaseController):
             abort(404, "Could not find archive folder")
 
         resource = model.Resource.get(resource_id)
-        is_html = False
-        content_type = "application/octet-stream"
 
         fmt = ""
         if resource:
             qa = QA.get_for_resource(resource.id)
             if qa:
                 fmt = qa.format
-
-        # Make an attempt at getting the correct content type but fail with
-        # application/octet-stream in cases where we don't know.
-        formats = {
-            "CSV": "application/csv",
-            "XLS": "application/vnd.ms-excel",
-            "HTML": 'text/html; charset=utf-8' }
-        content_type = formats.get(fmt, "application/octet-stream")
 
         is_html = fmt == "HTML"
 
@@ -279,8 +269,10 @@ class DataController(BaseController):
 
         file_size = os.path.getsize(filepath)
         if not is_html:
-            headers = [('Content-Type', content_type),
-                       ('Content-Length', str(file_size))]
+            # Content-Type is determined by FileApp based on the extension.
+            # Using the format provided by QA isn't an option currently as
+            # for zip files it gives the format of the content of the zip.
+            headers = [('Content-Length', str(file_size))]
             fapp = FileApp(filepath, headers=headers)
             return fapp(request.environ, self.start_response)
 
@@ -289,7 +281,7 @@ class DataController(BaseController):
         url = "{0}://{1}".format(parts.scheme, parts.netloc)
         base_string = "<head><base href='{0}'>".format(url)
 
-        response.headers['Content-Type'] = content_type
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
         try:
             f = open(filepath, "r")
         except IOError:
