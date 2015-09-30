@@ -433,9 +433,11 @@ def parse_month_as_word(month_word, year):
     month = month.replace('sepember', 'sep')
     month = month.replace('febuary', 'february')
     month = month.replace('february', 'february')
-    date_str = '%s %s' % (month, year)
+    month = month.replace('feburary', 'february')
+    date_str = '1 %s %s' % (month, year)
     try:
-        # dateutil converts 'june 2014' to datetime(2014, 6, xyz)
+        # dateutil converts '1 june 2014' to datetime(2014, 6, 1)
+        # (we need the day or it won't parse 'february 2015' weirdly)
         date = dateutil.parser.parse(date_str)
     except ValueError:
         print 'ERROR parsing date: %s' % date_str
