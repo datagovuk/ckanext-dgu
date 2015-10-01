@@ -95,7 +95,7 @@
             {% if page == pagination.page %}
               <span>{{page}}</span>
             {% else %}
-              {% set href = h.replace_url_param(new_params={'page': page}, extras={'dataset_id':pkg['name']}) %}
+              {% set href = h.replace_url_param(new_params={'page': page, 'per_page': pagination.per_page,'sort': sort}, extras={'dataset_id':pkg['name']}) %}
               <a href="{{href}}">{{page}}</a>
             {% endif %}
           </li>

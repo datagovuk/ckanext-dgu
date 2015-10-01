@@ -1,13 +1,20 @@
 
-A user '{{ c.user.fullname }}' has added a comment to one of your issues on data.gov.uk.
+A user '{{ user.fullname }}' has added a comment to one of your issues on {{ site_title }}.
 
-The user left a comment:
+The dataset is: {{ dataset.title }}
+The issue is: {{ issue_subject }}
+The comment is: 
 
-    {{c.comment.comment}}
+    "{{ comment.comment }}"
 
-In order to respond to this comment, please visit {{ h.url_for('issues_show', dataset_id=c.package.name, issue_number=c.issue.number,qualified=True) }}
+In order to respond to the comment, please see the issue at: {{ h.url_for('issues_show', dataset_id=dataset.name, issue_number=issue.number, qualified=True) }}. Once the issue has been resolved, click 'Close issue'.
 
+Thank you,
 
-Thank you
+The {{ site_title }} team
 
-The data.gov.uk team
+--
+
+Issue: {{ h.url_for('issues_show', dataset_id=dataset.name, issue_number=issue.number, qualified=True) }}
+Dataset: {{ h.url_for('dataset_read', id=dataset.id, qualified=True) }}
+
