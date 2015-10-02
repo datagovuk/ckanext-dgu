@@ -251,7 +251,7 @@
 
             var secondaries = obj.result['secondary-theme'];
             var all_reasons = [];
-            for (var i = 0; i < secondaries.length; i++ ) {
+            for (var i = 0; i < secondaries.length; i++) {
                 var th = secondaries[i].name;
                 nm = nm + th;
                 if ( i != secondaries.length-1 ) {

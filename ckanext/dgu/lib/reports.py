@@ -169,101 +169,6 @@ publisher_resources_info = {
     }
 
 
-# Feedback
-
-
-def feedback_report(organization=None, include_sub_organizations=False, include_published=False):
-    """
-    For the publisher provided (and optionally for sub-publishers) this
-    function will generate a report on the feedback for that publisher.
-    """
-    import ckan.lib.helpers as helpers
-    from ckanext.dgu.model.feedback import Feedback
-
-    if organization:
-        organization = model.Group.by_name(organization)
-        if not organization:
-            raise p.toolkit.ObjectNotFound()
-    else:
-        organization = None
-
-    # Get packages for these organization(s)
-    memberships = model.Session.query(model.Member)\
-        .join(model.Package, model.Package.id==model.Member.table_id)\
-        .filter(model.Member.state == 'active')
-    memberships = lib.filter_by_organizations(memberships, organization,
-                                              include_sub_organizations)\
-        .filter(model.Member.table_name == 'package')\
-        .filter(model.Package.state == 'active')
-
-    # For each package, count the feedback comments
-    results = []
-    num_pkgs_with_feedback = 0
-    for member in memberships.all():
-        pkg = model.Package.get(member.table_id)
-
-        # Skip unpublished datasets if that's asked for
-        if not include_published and not pkg.extras.get('unpublished', False):
-            continue
-
-        pkg_data = collections.defaultdict(int)
-        pkg_data['organization-name'] = member.group.name
-        pkg_data['generated-at'] = helpers.render_datetime(datetime.datetime.now(), "%d/%m/%Y %H:%M")
-        pkg_data['organization-title'] = member.group.title
-        pkg_data['package-name'] = pkg.name
-        pkg_data['package-title'] = pkg.title
-        pkg_data['publish-date'] = pkg.extras.get('publish-date', '')
-
-        for feedback in model.Session.query(Feedback).filter(Feedback.visible == True)\
-                .filter(Feedback.package_id == member.table_id )\
-                .filter(Feedback.active == True ):
-            if feedback.economic: pkg_data['economic'] += 1
-            if feedback.social: pkg_data['social'] += 1
-            if feedback.linked: pkg_data['linked'] += 1
-            if feedback.other: pkg_data['other'] += 1
-            if feedback.effective: pkg_data['effective'] += 1
-
-        pkg_data['total-comments'] = sum([pkg_data['economic'],
-                                          pkg_data['social'],
-                                          pkg_data['linked'],
-                                          pkg_data['other'],
-                                          pkg_data['effective']])
-        results.append(pkg_data)
-        if pkg_data['total-comments'] > 0:
-            num_pkgs_with_feedback += 1
-
-    return {'table': sorted(results, key=lambda x: -x.get('total-comments')),
-            'dataset_count': len(results),
-            'dataset_count_with_feedback': num_pkgs_with_feedback,
-            }
-
-
-def feedback_report_combinations():
-    organization = None
-    include_sub_organizations = True  # assumed for index anyway
-    for include_published in (False, True):
-        yield {'organization': organization,
-               'include_sub_organizations': include_sub_organizations,
-               'include_published': include_published}
-
-    for organization in lib.all_organizations():
-        for include_sub_organizations in (False, True):
-            for include_published in (False, True):
-                yield {'organization': organization,
-                       'include_sub_organizations': include_sub_organizations,
-                       'include_published': include_published}
-
-feedback_report_info = {
-    'name': 'feedback',
-    'description': 'A summary of the feedback given on datasets, originally used to determine those to make part of the NII.',
-    'option_defaults': OrderedDict((('organization', None),
-                                    ('include_sub_organizations', True),
-                                    ('include_published', False))),
-    'option_combinations': feedback_report_combinations,
-    'generate': feedback_report,
-    'template': 'report/feedback.html',
-    }
-
 def get_quarter_dates(datetime_now):
     '''Returns the dates for this (current) quarter and last quarter. Uses
     calendar year, so 1 Jan to 31 Mar etc.'''
@@ -452,7 +357,7 @@ unpublished_report_info = {
     }
 
 def last_resource_deleted(pkg):
-    
+
     resource_revisions = model.Session.query(model.ResourceRevision) \
                               .join(model.ResourceGroup) \
                               .join(model.Package) \

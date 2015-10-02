@@ -413,9 +413,9 @@ Passed in:
 
   <div style="width: 45%; float: left; margin-right: 4%;">
     <label>Secondary themes</label>
-    <input type="hidden" id="theme-secondary" name="theme-secondary" value="{{ ','.join(data.get('theme-secondary', [])) }}"/>
+    <input type="hidden" id="theme-secondary" name="theme-secondary" value="{{ h.list_flatten(data.get('theme-secondary', '')) }}"/>
     <span id="theme-secondary-label">
-      {{ ','.join(data.get('theme-secondary', [])) or 'None' }}
+      {{ h.list_flatten(data.get('theme-secondary', 'None')) }}
     </span>
 
     <br/>

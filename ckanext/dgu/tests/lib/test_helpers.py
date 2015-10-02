@@ -1,3 +1,5 @@
+import json
+
 from nose.tools import assert_equal
 
 from ckan.tests.pylons_controller import PylonsTestCase
@@ -6,7 +8,8 @@ from ckan import model
 
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
-                                     render_partial_datestamp
+                                     render_partial_datestamp,
+                                     render_mandates,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
@@ -171,3 +174,39 @@ class TestRenderPartialDatestamp(object):
 
     def test_invalid_date(self):
         assert_equal(render_partial_datestamp('2012-01-50'), '')
+
+
+class TestRenderMandates(object):
+    def test_single(self):
+        assert_equal(render_mandates(
+            {'mandate': json.dumps(['http://example.com'])}),
+            '<a href="http://example.com" target="_blank">http://example.com</a>')
+
+    def test_multiple(self):
+        assert_equal(render_mandates(
+            {'mandate': json.dumps(['http://example.com/a', 'http://example.com/b'])}),
+            '<a href="http://example.com/a" target="_blank">http://example.com/a</a><br>'
+            '<a href="http://example.com/b" target="_blank">http://example.com/b</a>')
+
+    def test_escaping_umlaut(self):
+        # http://www.example.org/Durst (umlaut on the u)
+        assert_equal(render_mandates(
+            {'mandate': json.dumps(['http://www.example.org/D\u00fcrst'])}),
+            '<a href="http://www.example.org/D\\u00fcrst" target="_blank">http://www.example.org/D\\u00fcrst</a>')
+
+    def test_escaping_spaces_and_symbols(self):
+        # http://www.example.org/foo bar/qux<>?\^`{|}
+        assert_equal(render_mandates(
+            {'mandate': json.dumps(['http://www.example.org/foo bar/qux<>?\\\^`{|}'])}),
+            '<a href="http://www.example.org/foo bar/qux&lt;&gt;?\\\\^`{|}" target="_blank">http://www.example.org/foo bar/qux&lt;&gt;?\\\\^`{|}</a>')
+
+    def test_escaping_hash(self):
+        # http://2.example.org#frag2
+        assert_equal(render_mandates(
+            {'mandate': json.dumps(['http://2.example.org#frag2'])}),
+            '<a href="http://2.example.org#frag2" target="_blank">http://2.example.org#frag2</a>')
+
+    def test_escaping_invalid_chars(self):
+        assert_equal(render_mandates(
+            {'mandate': json.dumps(['http://example.com"><script src="nasty.js">'])}),
+            '<a href="http://example.com&#34;&gt;&lt;script src=&#34;nasty.js&#34;&gt;" target="_blank">http://example.com&#34;&gt;&lt;script src=&#34;nasty.js&#34;&gt;</a>')

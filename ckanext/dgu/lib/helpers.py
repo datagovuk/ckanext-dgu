@@ -132,6 +132,14 @@ def publisher_hierarchy_mini(group_name_or_id):
             data_dict={'id': group_name_or_id, 'type': 'organization'})
     return _publisher_hierarchy_recur(my_root_node)
 
+def publisher_abbreviations():
+    from ckan import model
+    abbrevs = model.Session.query(model.GroupExtra) \
+                   .filter_by(key='abbreviation') \
+                   .filter_by(state='active') \
+                   .all()
+    return dict(((abbrev.group_id, abbrev.value) for abbrev in abbrevs))
+
 def is_wms(resource):
     from ckanext.dgu.lib.helpers import get_resource_wms
     return bool(get_resource_wms(resource))
@@ -632,6 +640,16 @@ def json_list(json_str):
         return obj.items()
     # json can't be anything else
 
+def list_flatten(data):
+    '''
+    If data is a list flatten it,
+    otherwise return input data
+    '''
+    if isinstance(data, list):
+        return ", ".join(data)
+    else:
+        return data
+
 def dgu_format_icon(format_string):
     fmt = formats.Formats.match(format_string.strip().lower())
     icon_name = 'document'
@@ -664,9 +682,11 @@ def package_publisher_dict(package):
 
 
 def formats_for_package(package):
-    formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
+    formats = [res.get('format', '').strip().lower()
+               for res in package.get('resources', [])
+               if res.get('resource_type') != 'documentation']
     # Strip empty strings, deduplicate and sort
-    formats = filter(bool,formats)
+    formats = filter(bool, formats)
     formats = set(formats)
     formats = sorted(list(formats))
     return formats
@@ -821,21 +841,7 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
             # string for single value
             secondary_themes = unicode(secondary_themes)
 
-    mandates = pkg_extras.get('mandate')
-    if mandates:
-        def linkify(string):
-            if string.startswith('http://') or string.startswith('https://'):
-                return '<a href="%s" target="_blank">%s</a>' % (urllib.quote(string), string)
-            else:
-                return string
-
-        try:
-            mandates = json.loads(mandates)
-            mandates = [Markup.escape(m) for m in mandates]
-            mandates = [linkify(m) for m in mandates]
-            mandates = Markup("<br>".join(mandates))
-        except ValueError:
-            pass # Not JSON for some reason...
+    mandates = render_mandates(pkg_extras)
 
     def linkify(schema):
         if schema['url']:
@@ -903,6 +909,27 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
 
     # calculate displayable field values
     return DisplayableFields(field_names, field_value_map, pkg_extras)
+
+
+def render_mandates(pkg_extras):
+    mandates = pkg_extras.get('mandate')
+    if mandates:
+        def linkify(string):
+            # string is already escaped so we don't have to escape again
+            if string.startswith('http://') or string.startswith('https://'):
+                return '<a href="%s" target="_blank">%s</a>' % (string, string)
+            else:
+                return string
+
+        try:
+            mandates = json.loads(mandates)
+            mandates = [Markup.escape(m) for m in mandates]
+            mandates = [linkify(m) for m in mandates]
+            mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass  # Not JSON for some reason...
+    return mandates
+
 
 def results_sort_by():
     # Default to location if there is a bbox and no other parameters. Otherwise
@@ -1180,19 +1207,27 @@ def prep_group_edit_data(data):
         if key not in data:
             data[key] = value
 
+
 def top_level_init():
-    # Top level initialisation previously done in layout_base to make sure it
-    # is available to all sub-templates. This is a bit nasty, and I think we
-    # would be better off splitting these c.* things either into separate helpers
-    # or into our own BaseController. Perhaps. TODO.
+    '''These 'globals' are initialised by Genshi's layout_base only - not done
+    in Jinja, so for new templates use instead: is_an_official() or
+    groups_for_current_user().
+    '''
     c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
 
+
 def is_an_official():
-    return bool(c.groups or is_sysadmin())
+    if is_sysadmin():
+        return True
+    return bool(groups_for_current_user())
+
 
 def groups_for_current_user():
-    return c.userobj.get_groups(group_type='organization') if c.userobj else []
+    if c.groups == '':
+        c.groups = c.userobj.get_groups(group_type='organization') \
+            if c.userobj else []
+    return c.groups
 
 
 def additional_extra_fields(res):
@@ -1808,35 +1843,8 @@ def is_unpublished_item(package):
 def is_unpublished_unavailable(package):
     return get_from_flat_dict(package['extras'], 'publish-restricted', False)
 
-def feedback_user_count(pkg):
-    from ckanext.dgu.model.feedback import Feedback
-    return Feedback.users_count(pkg)
-
-def feedback_comment_count(pkg):
-    from ckanext.dgu.model.feedback import Feedback
-    return Feedback.comments_count(pkg)
-
-
 def unpublished_release_notes(package):
     return get_from_flat_dict(package['extras'], 'release-notes')
-
-def feedback_comment_counts(package):
-    import ckan.model as model
-    from ckanext.dgu.model.feedback import Feedback
-
-    counts = {'economic': 0, 'social': 0, 'effective': 0, 'other':0, 'linked': 0}
-
-    for fb in model.Session.query(Feedback).filter(Feedback.visible==True).\
-            filter(Feedback.package_id==package['id']).\
-            filter(Feedback.active==True).all():
-        if fb.economic: counts['economic'] += 1
-        if fb.social: counts['social'] += 1
-        if fb.effective: counts['effective'] += 1
-        if fb.other: counts['other'] += 1
-        if fb.linked: counts['linked'] += 1
-
-    return counts
-
 
 def tidy_url(url):
     '''
@@ -1866,10 +1874,10 @@ def tidy_url(url):
 
     # Check we aren't using any schemes we shouldn't be
     if not parsed_url.scheme in ('http', 'https', 'ftp'):
-        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+        raise Exception('Invalid url scheme "%s". Please use one of: http, https, ftp. Url: %s' % (parsed_url.scheme, url))
 
     if not parsed_url.netloc:
-        raise Exception('URL parsing failure - did not find a host name')
+        raise Exception('URL parsing failure - did not find a host name: %s' % url)
 
     return url
 
@@ -1926,52 +1934,6 @@ def render_db_date(db_date_str):
     except DateConvertError:
         return ''
 
-
-def feedback_report_checkbox_value(flag, name):
-    from pylons import request
-    checked = (flag == True)
-    val = ''.join([request.path, feedback_report_params_for_value(name, checked)])
-    return val, checked
-
-
-def feedback_report_params():
-    """ When we need a URL to call for generating a CSV we need to work out
-        which parameters are currently set and request those fields in the
-        http request to the CSV endpoint """
-    from urllib import urlencode
-    params = {}
-    if c.show_zero_feedback:
-        params['show-zero-feedback'] = 1
-    if c.include_subpublisher:
-        params['show-subpub'] = 1
-    if c.include_published:
-        params['show-published'] = 1
-    return urlencode(params, True)
-
-def feedback_report_params_for_value(name, field_checked):
-    """ Generates the correct value for the checkbox field. By default this
-        function simply returns an urlencoded string that contains the correct
-        parameters to display the report.
-
-        However, because we allow a GET on clicking a checkbox in the report,
-        we need to be able to specify the value field, which should be the URL
-        to call when clicking on the checkbox. To do this we need to invert the
-        boolean that specifies whether to apply the checked field when applying
-        the filter."""
-    from urllib import urlencode
-
-    params = {
-        'show-zero-feedback':  1 if c.show_zero_feedback else 0,
-        'show-subpub': 1 if c.include_subpublisher else 0,
-        'show-published': 1 if c.include_published else 0,
-    }
-
-    # We need to invert the named field, so that we can set it in the value attr
-    # of the checkbox.  This is what we want when we click the checkbox, so it
-    # should show the opposite of what you expect.
-    params[name] = 0 if field_checked else 1
-
-    return "?" + urlencode(params, True)
 
 def pagination_links(page,numpages,url_for_page):
     # Link to the first page, lastpage, and nearby pages
