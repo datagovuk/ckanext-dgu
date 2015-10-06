@@ -112,6 +112,33 @@
 
     {% set publisher_name = c.pkg.get_organization().name %}
     {% if not h.is_unpublished_item(c.pkg_dict) %}
+      <h2>Data Package</h2>
+      <p>Download a copy of all of the cached resources for this dataset</p>
+      <div class="datapackage-zip">
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="dataset-resource">
+              <div class="dataset-resource-format">
+                <i class="icon-25x icon-archive"></i>
+                <span class="format-name">ZIP</span>
+              </div>
+              <div class="dataset-resource-text">
+                <div class="inner">
+                  <div class="inner2">
+                    Download all data
+                  </div>
+                </div>
+              </div>
+              <div class="dropdown" style="pointer-events:none;">
+                <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;">
+                  <i class="icon-download-alt icon-25x"></i>
+                </a>
+              </div><!--/dropdown-->
+            </div><!-- /dataset-resource -->
+          </div><!-- /col-sm-6 -->
+        </div>
+      </div>
+
       <div class="dataset-resources">
         <!-- Resources -->
         {% if h.individual_resources() %}
@@ -206,7 +233,7 @@
     <div class="col-sm-6">
     <div class="dataset-resource">
       <div class="dataset-resource-format">
-        <i class="icon-3x icon-file-text"></i>
+        <i class="icon-25x icon-file-text"></i>
         <span class="format-name">
           {% if res.get('gemini',False) %}
             {{res.get('type','')}}
@@ -234,7 +261,7 @@
       </div>
       <div class="dropdown" style="pointer-events:none;">
         <a href="#" class="dataset-resource-chevron" data-toggle="dropdown" style="pointer-events:auto;">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-down icon-2x"></i>
         </a>
         {% with %}
           {% set gemini      = res.get('gemini',False) %}
