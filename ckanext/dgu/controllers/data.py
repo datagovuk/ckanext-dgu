@@ -310,8 +310,6 @@ class DataController(BaseController):
 
         response.write(content)
 
-
-
     def viz_upload(self):
         """
         Provides direct upload to DGU for users in specific publishers.
@@ -382,10 +380,10 @@ class DataController(BaseController):
             pkg = get_action('package_show')(context, {'id': c.dataset})
             pkg['resources'].append(resource)
             res = get_action('package_update')(context, pkg)
-            print res
+            log.info('Added viz to dataset %s: %s', pkg['name'], resource)
 
             flash_success('The file has been uploaded and added to the dataset. <a href="/dataset/{}" style="text-decoration:underline;">View dataset</a>'.format(c.dataset), allow_html=True)
-            return redirect("/data/viz/upload")
+            return redirect('/data/viz/upload')
 
         return render('viz/upload.html')
 
