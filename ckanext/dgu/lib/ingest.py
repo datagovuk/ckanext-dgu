@@ -25,7 +25,8 @@ import logging
 import messytables
 import os
 
-log = logging.getLogger("ckanext")
+log = logging.getLogger(__name__)
+
 
 class IngestException(Exception):
     """
@@ -55,7 +56,7 @@ class Ingester(object):
             if str(e) == "Unrecognized MIME type: text/plain":
                 # Attempt to force the load as a CSV file to work around messytables
                 # not recognising text/plain
-                self.tableset = messytables.any_tableset(f, mimetype="text/csv")
+                self.tableset = messytables.any_tableset(filename, mimetype="text/csv")
             else:
                 log.exception(e)
                 raise Exception(u"Failed to load the file at {0}".format(filename))
