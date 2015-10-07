@@ -117,7 +117,7 @@ def command(config_file):
         log.error("Failed to process Google Analytics data (see exception in previous log message)")
 
     # Copy openspending reports
-    if run_task('openspending'):
+    if False:  # DISABLED for now  #run_task('openspending'):
         log.info('OpenSpending reports')
         if not os.path.exists(openspending_reports_dir):
             log.info('Creating dump dir: %s' % openspending_reports_dir)
