@@ -85,21 +85,22 @@
             {{m.map_preview_button_direct(c.pkg_dict, small=False)}}
           </div>
           {% endif %}
-          {% if h.has_bounding_box(c.pkg_extras) and h.has_extent(c.pkg) %}
+          {% set bounding_box = h.get_bounding_box(c.pkg)%}
+          {% if bounding_box and h.has_extent(c.pkg) %}
           <h3>Dataset Extent</h3>
           <table class="table">
-              {% if h.as_dict(c.pkg_extras).get('spatial_name') %}
+              {% if h.get_spatial_name(c.pkg) %}
               <tr>
                   <td class="key">Location:</td>
-                  <td class="value">{{h.as_dict(c.pkg_extras).get('spatial_name')}}</td>
+                  <td class="value">{{h.get_spatial_name(c.pkg)}}</td>
               {% endif %}
             <tr>
               <td class="key">Latitude:</td>
-              <td class="value">{{h.as_dict(c.pkg_extras).get('bbox-north-lat')[:7]}}&deg; to {{h.as_dict(c.pkg_extras).get('bbox-south-lat')[:7]}}&deg;</td>
+              <td class="value">{{(bounding_box[1]|string)[:7]}}&deg; to {{(bounding_box[3]|string)[:7]}}&deg;</td>
             </tr>
             <tr>
               <td class="key">Longitude:</td>
-              <td class="value">{{h.as_dict(c.pkg_extras).get('bbox-west-long')[:7]}}&deg; to {{h.as_dict(c.pkg_extras).get('bbox-east-long')[:7]}}&deg;</td>
+              <td class="value">{{(bounding_box[0]|string)[:7]}}&deg; to {{(bounding_box[2]|string)[:7]}}&deg;</td>
             </tr>
           </table>
           {% endif %}

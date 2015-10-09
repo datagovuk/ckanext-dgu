@@ -12,6 +12,7 @@ import ckan.logic.validators as val
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
+from ckanext.spatial.lib import save_package_extent
 from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
@@ -374,6 +375,9 @@ class DatasetForm(p.SingletonPlugin):
         return schema
 
     def check_data_dict(self, data_dict, package_type=None):
+        if ('use_pub_extent' in data_dict and data_dict['use_pub_extent'] == 'true'):
+            data_dict.pop("spatial", None)
+            data_dict.pop("spatial_name", None)
         return
 
     def get_publishers(self):
@@ -438,6 +442,24 @@ class DatasetForm(p.SingletonPlugin):
             package.extras['bbox-south-lat'] = bounds[1]
             package.extras['bbox-east-long'] = bounds[2]
             package.extras['bbox-north-lat'] = bounds[3]
+
+
+        self.check_use_publisher_extent(package)
+
+    def check_use_publisher_extent(self,package):
+        if ('use_pub_extent' in package.extras and package.extras['use_pub_extent'] == 'true'):
+
+            ownerOrg = package.get_organization()
+            if not ownerOrg:
+                return
+
+            if 'spatial' in ownerOrg.extras:
+                spatial_extent = ownerOrg.extras['spatial']
+                spatial_name = 'spatial_name' in ownerOrg.extras and ownerOrg.extras['spatial_name']
+
+                geometry = json.loads(spatial_extent)
+                save_package_extent(package.id, geometry)
+
 
 
 def date_to_db(value, context):

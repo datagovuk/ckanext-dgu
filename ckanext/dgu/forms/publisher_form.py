@@ -1,4 +1,6 @@
 import os, logging
+import json
+from ckanext.spatial.lib import save_package_extent
 import ckan.logic.action.create as create
 import ckan.logic.action.update as update
 import ckan.logic.action.get as get
@@ -14,7 +16,7 @@ from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid
 from ckan.lib.navl.dictization_functions import validate, missing
 from ckan.lib.navl.dictization_functions import DataError, flatten_dict, unflatten
-from ckan.plugins import IDatasetForm, IGroupForm, IConfigurer
+from ckan.plugins import IDatasetForm, IGroupForm, IConfigurer, IOrganizationController
 from ckan.plugins import implements, SingletonPlugin
 from ckanext.dgu.plugins_toolkit import c, request, render, ValidationError, NotAuthorized, _, check_access
 
@@ -58,6 +60,7 @@ class PublisherForm(SingletonPlugin):
     """
     implements(IGroupForm, inherit=True)
     implements(IConfigurer, inherit=True)
+    implements(IOrganizationController, inherit=True)
 
     def update_config(self, config):
         """
@@ -125,7 +128,7 @@ class PublisherForm(SingletonPlugin):
             'category': [validate_publisher_category, convert_to_extras],
             'abbreviation': [ignore_missing, unicode, convert_to_extras],
             'spatial_name': [ignore_missing, unicode, convert_to_extras],
-            'spatial': [ignore_missing, convert_to_extras],
+            'spatial': [value_if_missing(None), convert_to_extras],
             'closed': [dgu_boolean_validator, convert_to_extras],
             'replaced_by': [value_if_missing([]), to_json, convert_to_extras],
         }
@@ -162,3 +165,36 @@ class PublisherForm(SingletonPlugin):
 
     def setup_template_variables(self, context, data_dict):
         pass # Moved to Publisher/OrganizationControll
+
+    def create(self, publisher):
+        self.check_spatial_extra(publisher)
+
+    def edit(self, publisher):
+        self.check_spatial_extra(publisher)
+
+    def check_spatial_extra(self,publisher):
+
+        spatial = publisher.extras.get('spatial')
+
+        if spatial:
+            try:
+                log.debug('Received: %r' % spatial)
+                geometry = json.loads(spatial)
+            except ValueError,e:
+                error_dict = {'spatial':[u'Error decoding JSON object: %s' % str(e)]}
+                raise ValidationError(error_dict)
+            except TypeError,e:
+                error_dict = {'spatial':[u'Error decoding JSON object: %s' % str(e)]}
+                raise ValidationError(error_dict)
+
+            self.push_extent_to_datasets(publisher,geometry)
+        else:
+            if 'spatial' in publisher.extras: del publisher.extras['spatial']
+            if 'spatial_name' in publisher.extras: del publisher.extras['spatial_name']
+            self.push_extent_to_datasets(publisher,None)
+
+    def push_extent_to_datasets(self, publisher, geometry):
+        # use the publisher extent to spatially index all its member packages
+        for package in publisher.packages():
+            save_package_extent(package.id, geometry)
+

@@ -16,6 +16,8 @@ import datetime
 import random
 import types
 import json
+import shapely
+import ckan.model as model
 
 import ckan.plugins.toolkit as t
 c = t.c
@@ -1526,16 +1528,49 @@ def facet_values(facet_tuples, facet_key):
     return values
 
 def has_extent(pkg):
-    return bool(pkg.extras.get('spatial'))
+    return bool(get_spatial_extent(pkg))
 
 def get_extent(pkg):
-    extent_json_str = pkg.extras.get('spatial', False)
+    extent_json_str = get_spatial_extent(pkg)
     # ensure it is JSON for security purposes, since the template will put it
     # in Javascipt unescaped using |safe
     try:
         return json.dumps(json.loads(extent_json_str))
     except ValueError:  # includes JSONDecodeError
         return ''
+
+def get_spatial_extent(pkg):
+    # this can be called either with a dict or a model object
+    is_dict = isinstance(pkg, dict)
+
+    use_pub_extent = bool(pkg.get('use_pub_extent')) if is_dict else bool(pkg.extras.get('use_pub_extent'))
+    if (use_pub_extent):
+        # use the publisher spatial extent, if any
+        org = model.Group.get(pkg.get('owner_org')) if is_dict else pkg.get_organization()
+        return org and org.extras.get('spatial', None)
+    else:
+        return pkg.get('spatial') if is_dict else pkg.extras.get('spatial')
+
+def get_spatial_name(pkg):
+    if (bool(pkg.extras.get('use_pub_extent'))):
+        # use the publisher spatial name, if any
+        org = pkg.get_organization()
+        return org and org.extras.get('spatial_name', None)
+    else:
+        return pkg.extras.get('spatial_name', None)
+
+def get_bounding_box(pkg):
+    if (bool(pkg.extras.get('use_pub_extent'))):
+        # compute the bbox from the publisher spatial extent, if any
+        org = pkg.get_organization()
+        if (org and 'spatial' in org.extras):
+            geometry = json.loads(org.extras.get('spatial'))
+            return shapely.geometry.shape(geometry).bounds
+    else:
+        if ('bbox-west-long' in pkg.extras):
+            return [pkg.extras['bbox-west-long'], pkg.extras['bbox-south-lat'], pkg.extras['bbox-east-long'], pkg.extras['bbox-north-lat']]
+
+    return None
 
 def get_tiles_url():
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
