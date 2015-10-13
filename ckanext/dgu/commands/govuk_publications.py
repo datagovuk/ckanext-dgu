@@ -17,6 +17,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
 
         autolink - Find clear links between gov.uk and DGU
 
+        fixup - Finds local resource that have URLs pointing to publications and fixes them.
+
     e.g.
 
       List all reports:
@@ -82,6 +84,11 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.autolink(resource_id=self.options.resource,
                                                dataset_name=self.options.dataset)
+            elif cmd == "fixup":
+                from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
+                GovukPublicationLinks.fix_local_resources(resource_id=self.options.resource,
+                                               dataset_name=self.options.dataset)
+
 
 
     def _initdb(self):
