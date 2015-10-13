@@ -4,6 +4,8 @@ import datetime
 from sqlalchemy import types, Table, Column, ForeignKey, orm
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.orderinglist import ordering_list
+from sqlalchemy.exc import ProgrammingError
+
 from ckan import model
 
 log = logging.getLogger(__name__)
@@ -20,6 +22,7 @@ __all__ = ['Collection', 'Publication', 'Attachment', 'init_tables']
 # psql ckan -c 'drop table collection, publication, govuk_organization, attachment, publink, collection_publication, organization_publication_table, publication_publink;'
 
 Base = declarative_base()
+
 
 class SimpleDomainObject(object):
     def __init__(self, **kwargs):
@@ -134,6 +137,11 @@ class Publication(Base, SimpleDomainObject):
     last_updated = Column(types.DateTime)  # None until the 2nd revision
     created = Column(types.DateTime, default=datetime.datetime.now)  # in CKAN
 
+    @classmethod
+    def by_govuk_id(cls, govuk_id):
+        return model.Session.query(cls) \
+                    .filter_by(govuk_id=govuk_id) \
+                    .first()
 
 # e.g. https://www.gov.uk/government/publications/new-school-proposals has
 # sector-link Academies and free schools
@@ -169,17 +177,51 @@ class Attachment(Base, SimpleDomainObject):
     title = Column(types.UnicodeText)
     created = Column(types.DateTime, default=datetime.datetime.now)
 
+    @classmethod
+    def by_govuk_id(cls, govuk_id):
+        return model.Session.query(cls) \
+                    .filter_by(govuk_id=govuk_id) \
+                    .first()
+
 
 class Link(Base, SimpleDomainObject):
     __tablename__ = 'link'
     id = Column('id', types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
     govuk_table = Column(types.UnicodeText, nullable=False)
-    govuk_id = Column(types.UnicodeText, nullable=False)
+    govuk_id = Column(types.Integer, nullable=False)
     ckan_table = Column(types.UnicodeText, nullable=False)
     ckan_id = Column(types.UnicodeText, nullable=False)
     created = Column(types.DateTime, default=datetime.datetime.now)
 
+    @property
+    def govuk(self):
+        govuk_class = {'collection': Collection,
+                       'publication': Publication,
+                       'attachment': Attachment}[self.govuk_table]
+        govuk_obj = govuk_class.by_govuk_id(int(self.govuk_id))
+        return govuk_obj
+
+    @property
+    def ckan(self):
+        ckan_class = {'dataset': model.Package,
+                      'resource': model.Resource}[self.ckan_table]
+        ckan_obj = model.Session.query(ckan_class) \
+                        .get(self.ckan_id)
+        return ckan_obj
+
+    def __unicode__(self):
+        try:
+            govuk = self.govuk
+            ckan = self.ckan
+            return '<Link %s %s>' % (
+                govuk.url,
+                ckan.name if isinstance(ckan, model.Package) else
+                '%s/%s' % (ckan.resource_group.package.name, ckan.id))
+        except ProgrammingError:
+            model.Session.remove()
+            return '<Link %s=%s %s=%s>' % (self.govuk_table, self.govuk_id,
+                                        self.ckan_table, self.ckan_id)
 
 def init_tables():
     Base.metadata.create_all(model.meta.engine)

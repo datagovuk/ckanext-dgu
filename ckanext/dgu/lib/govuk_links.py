@@ -54,7 +54,8 @@ class GovukPublicationLinks(object):
                 outcomes[govuk_type].append('removed')
                 needs_commit = True
             if outcomes:
-                outcomes_strs = ['%s %s' % (govuk_type, '/'.join(outcomes[govuk_type]))
+                outcomes_strs = ['%s %s' % (govuk_type.__name__,
+                                            '/'.join(outcomes[govuk_type]))
                                  for govuk_type in outcomes.keys()]
                 stats.add('Link %s' % ', '.join(outcomes_strs), res_identity)
             else:
@@ -69,11 +70,12 @@ class GovukPublicationLinks(object):
     def find_govuk_objs_to_autolink(cls, res_url):
         objs_to_link = []
         for govuk_type in (govuk_pubs_model.Publication,
-                            govuk_pubs_model.Attachment):
-            objs_to_link_ = model.Session.query(govuk_pubs_model.Publication) \
-                                    .filter_by(url=res_url) \
-                                    .all()
-            objs_to_link.extend([(govuk_type, obj) for obj in objs_to_link_])
+                           govuk_pubs_model.Attachment):
+            objs_to_link_ = model.Session.query(govuk_type) \
+                                 .filter_by(url=res_url) \
+                                 .all()
+            if objs_to_link_:
+                objs_to_link.extend([(govuk_type, obj) for obj in objs_to_link_])
         return objs_to_link
 
 
