@@ -119,7 +119,7 @@ class Formats(object):
                 ('NetCDF', (), ('cdf', 'netcdf'), ('application/x-netcdf',), 3, ''),
                 ('IATI', (), ('iati',), ('application/x-iati+xml',), 3, 'document-code'),
                 ('iCalendar', ('iCal', 'ICS'), ('ics', 'ical'), ('text/calendar',), 3, 'calendar-day'),
-                ('RDF', ('rdf/xml','Turtle'), ('rdf','ttl'), ('application/rdf+xml','text/turtle'), 5, 'document-rdf'),
+                ('RDF', ('rdf/xml','Turtle','N-Triples'), ('rdf','ttl','nt'), ('application/rdf+xml','text/turtle'), 5, 'document-rdf'),
                 ('RDFa', ('html+rdfa',), (), (), 5, 'document-rdf'),
                 ('SPARQL', (), (), ('application/sparql-results+xml', 'application/sparql-query'), 5, 'document-rdf'),
                 ('SPARQL web form', (), (), (), 5, 'document-rdf'),

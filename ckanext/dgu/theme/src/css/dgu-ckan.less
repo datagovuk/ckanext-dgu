@@ -2,6 +2,10 @@
 
 /* -- Misc -- */
 /* ---------- */
+.js-enabled .js-hide {
+  display: none;
+}
+
 .grey-white-split {
   border: 1px solid #f0f;
 
@@ -91,11 +95,14 @@ a.tag {
 .pre-notes {
   color: #555;
 }
+.license-read-more {
+  display: none;
+}
 .notes {
     color: #555;
     .notes-read-more {
       margin-top: 7px;
-      display: block;
+      display: none;
       text-align: center;
       color: #000;
     }
@@ -692,8 +699,14 @@ table.tablesorter {
       a { 
         color: #444; 
       }
+      &.closed a {
+        color: #999;
+      }
       &.active {
         background: #d3d3d3;
+      }
+      &.closed {
+        color: #999;
       }
     }
     .publisher {
@@ -1105,10 +1118,11 @@ body.controller-package.action-search {
   #search-sort-by {
     select {
       width: 150px;
-      margin: 0 12px 0 5px;
+      margin-left: 5px;
     }
     .feed-icon {
       color: #E75E00;
+      margin-left: 12px;
       i { 
         font-size: 32px; 
         vertical-align: middle; 
@@ -1176,6 +1190,14 @@ body.controller-package {
     }
     .notes .notes-inner {
       padding-top: 15px;
+    }
+    .hideyear,
+    .showyear {
+      background: #E0E0E0;
+      border-radius: 3px;
+      padding-left: 5px;
+      padding-right: 5px;
+      font-size: 14px;
     }
   }
   .dataset-resource {
@@ -1342,14 +1364,6 @@ body.controller-package.action-edit {
     font-weight: normal;
 
   }
-    #package-edit ul.nav,
-    #package-edit ul.nav li {
-      /*
-        width: 210px;
-        margin-right: -1px;
-        background: #fff;
-        */
-    }
     .tab-content {
       /*
         display: block;
@@ -1405,6 +1419,16 @@ body.controller-package.action-edit {
     .resource-url .error input {
         background: transparent url(../images/icons/error.png) 98% center no-repeat;
     }
+    #schema-list,
+    #codelist-list,
+    #mandate-list {
+        list-style: none;
+        margin-left: 0;
+        padding-left: 0;
+        li {
+            padding: 2px;
+        }
+    }
 }
 
 /* PAGE: package/history */
@@ -1446,7 +1470,6 @@ body.controller-user.action-read {
         width: 280px;
     }
     ul.stats li {
-        width: 100px;
         list-style-type: none;
         float: left;
         padding: 20px;
@@ -1769,3 +1792,7 @@ body.controller-widgets.action-index {
         padding-bottom: 20px;
     }
 }
+
+/* --------------------------- */
+/* Core-CKAN styling copied in */
+/* --------------------------- */

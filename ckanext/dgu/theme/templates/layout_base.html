@@ -54,7 +54,7 @@
   </script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
   <script>
-    //<![CDATA[ 
+    //<![CDATA[
     window.jQuery || document.write('<script src="/assets/js/jquery-1.8.3.min.js"><\/script>')
     // ]]>
   </script>
@@ -71,7 +71,7 @@
 
   <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
   <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
 
   <!-- font-awesome ie7 shim -->
@@ -152,7 +152,7 @@ ${h.top_level_init()}
         <py:if test="bool(c.user)">
           <!-- Publisher dropdown -->
           <span py:if="h.check_access('package_create')" class="dropdown">
-            <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-lock"></i></a>
+            <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-wrench"></i></a>
             <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
               <li role="presentation" class="dropdown-header">Tools</li>
               <li><a href="${h.url_for('dataset_new')}">Add a Dataset</a></li>
@@ -176,7 +176,7 @@ ${h.top_level_init()}
         <li><a class="${if_(url.startswith('/data/map-based-search'),'active')}" href="/data/map-based-search">Map Search</a></li>
         <li><a class="" href="/data-request">Data Requests</a></li>
         <li><a class="${if_(url.startswith('/publisher'),'active')}" href="/publisher">Publishers</a></li>
-        <li><a class="" href="/organogram/cabinet-office">Public Roles &amp; Salaries</a></li>
+        <li><a class="" href="/organogram/cabinet-office">Organograms</a></li>
         <py:if test="config.get('dgu.openspending_reports_enabled')">
           <li><a class="${if_(url.startswith('/data/openspending-report'),'active')}" href="/data/openspending-report/index">Spend Reports</a></li>
         </py:if>
@@ -184,19 +184,19 @@ ${h.top_level_init()}
           <li><a class="${if_(url.startswith('/data/site-usage'),'active')}" href="/data/site-usage">Site Analytics</a></li>
         </py:if>
           <li><a class="${if_(url.startswith('/data/report'),'active')}" href="/data/report">Reports</a></li>
+          <li><a class="${if_(url.startswith('/data/contracts-finder-archive'),'active')}" href="/data/contracts-finder-archive">Contracts</a></li>
         <br/>
 
         <py:if test="h.is_sysadmin()">
           <span class="divider-section">&nbsp; Sys Admin:</span>
           <li><a class="${if_(url.startswith('/data/system_dashboard'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard')}">System Dashboard</a></li>
           <li><a class="${if_(url.startswith('/harvest'),'active')}" href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest Sources</a></li>
-          <li><a class="${if_(url.startswith('/data/feedback/moderation'),'active')}" href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
         </py:if>
       </ul>
 
       <ul class="subnav subnav-interact">
         <li><a class="" href="/location">Location</a></li>
-        <li><a class="" href="http://co-prod3.dh.bytemark.co.uk/linked-data">Linked Data</a></li>
+        <li><a class="" href="/linked-data">Linked Data</a></li>
         <li><a href="/blog">All Blogs</a></li>
         <li><a href="/forum">All Forums</a></li>
         <li><a href="/library">Library</a></li>
@@ -273,7 +273,7 @@ ${h.top_level_init()}
         </div>
       </div>
     </footer>
-  </div> <!-- /footer -->
+  </div> <!-- /footer genshi -->
 
   <py:if test="h.asbool(config.get('ckan.tracking_enabled', 'false'))">
   <script type="text/javascript">

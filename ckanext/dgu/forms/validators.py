@@ -1,36 +1,39 @@
 """
 navl validators for the DGU package schema.
 """
-
+import json
 from itertools import chain, groupby
 
 from pylons.i18n import _
 
 from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
-                                                StopOnError, missing
+                                                StopOnError, missing, Missing
+from ckan import plugins as p
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
 
 
-def allow_empty_if_inventory(key, data, errors, context):
-    """ Allow a specific field to not be required if unpublished=true """
-    unpublished = data.get('unpublished', False)
-    value = data.get(key)
+def to_json(key, data, errors, context):
+    try:
+        encoded = json.dumps(data[key])
+        data[key] = encoded
+    except:
+        pass
 
-    if unpublished:
-        if value is missing or value is None:
-            data.pop(key, None)
-            raise StopOnError
-    else:
-        if not value or value is missing:
-            errors[key].append(_('Missing value'))
-            raise StopOnError
+def from_json(key, data, errors, context):
+    try:
+        encoded = json.loads(data[key])
+        data[key] = encoded
+    except:
+        pass
 
+def value_if_missing(new_value):
+    def f(value, context):
+        if value is missing or not value:
+            return new_value
+        return value
+    return f
 
-
-def required_if_inventory(key, data, errors, context):
-    """ Make a field required if inventory=true in extras """
-    pass
 
 def drop_if_same_as_publisher(key, data, errors, context):
     """
@@ -99,6 +102,10 @@ def validate_license(key, data, errors, context):
      access_constraints is DROPPED
 
     """
+    # Unpublished data doesn't need a licence
+    if p.toolkit.asbool(data.get(('unpublished',))):
+        return
+
     if data[('license_id',)]== '__extra__': # harvested dataset
         data[('license_id',)] = None
         return
@@ -114,9 +121,8 @@ def validate_license(key, data, errors, context):
         else:
             # i.e. neither license_id nor access_constraints filled in
             errors[('license_id',)] = ['Please enter the access constraints.']
-        #return
 
-    if not license_id:
+    if not license_id and license_id_other:
         data[('license_id',)] = data[('access_constraints',)]
     if license_id_other:
         del data[('access_constraints',)]
@@ -330,3 +336,40 @@ def validate_publisher_category(key, data, errors, context):
         if category:
             errors[('category',)] = ['Category is not valid.']
 
+def dgu_boolean_validator(value, context):
+    """
+    This validators the data coming in and out of the form in such
+    a way that if it is not positive (true, yes, etc) then False
+    is returned.  This enables checkboxes to be used for booleans
+    whereas before the browser didn't send a value (when field
+    unchecked) which resulted in a validation error.
+
+    True, true, 1, y -> True
+    False, false, 0, n -> True
+    Not specified -> False
+    anything else -> False
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, Missing):
+        return False
+    if value.lower() in ['true', 'yes', 't', 'y', '1']:
+        return True
+    return False
+
+def bool_(key, data, errors, context):
+    '''
+    True, true, 1, y -> True
+    False, false, 0, n -> True
+    Not specified -> False
+    anything else -> validation error raised
+    '''
+    value = data[key]
+    if value in ('', None):
+        data[key] = 'false'
+        return
+    try:
+        true_or_false = p.toolkit.asbool(value)
+        data[key] = str(true_or_false).lower()
+    except ValueError:
+        errors[key] = ['Must be true or false']

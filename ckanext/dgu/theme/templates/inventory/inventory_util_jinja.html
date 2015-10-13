@@ -1,0 +1,57 @@
+
+{% macro unpublished_block(title, pkg_list) %}
+    <div class="boxed">
+      <div class="title frontpage-search-panel">
+        <h2><span class="big">{{title}}</span> unpublished datasets</h2>
+        <hr/>
+        {% if not pkg_list %}
+          <p>There are no items to show</p>
+        {% else %}
+        <p>
+           <div class='view-content'>
+              {% for pkg in pkg_list %}
+                <div>
+                    <h4 class="views-field-title">
+                      <a href="{{h.url_for(controller='ckanext.dgu.controllers.package:PackageController', action='read',id=pkg.name)}}">{{pkg.title}}</a>
+                    </h4>
+                    <div>
+                      <strong>Description</strong>: {{h.truncate(pkg.notes, 200)}}..
+                    </div>
+                    {% if h.unpublished_release_date(pkg) %}
+                    <div>
+                      <strong>Publish date</strong>: {{h.render_datestamp(h.unpublished_release_date(pkg)) or "Not specified"}}
+                    </div>
+                    {% endif %}
+                    {% if h.unpublished_release_notes(pkg)%}
+                    <div>
+                      <strong>Release notes</strong>: {{h.truncate(h.unpublished_release_notes(pkg), 200)}}
+                    </div>
+                    {% endif %}
+                    <br/>
+                </div>
+
+              {% endfor %}
+            </div>
+        </p>
+        {% endif %}
+      </div>
+    </div>
+{% endmacro %}
+
+
+{% macro inventory_jobs() %}
+  <div class="panel panel-success">
+    <div class="panel-heading">Recent Inventory Uploads</div>
+    <div class="panel-body">
+      {% if not c.jobs %}
+        <p>There are no recent uploads</p>
+      {% else %}
+      <ul>
+        {% for jid, tstamp in c.jobs %}
+          <li><a href="{{h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='upload_status',id=c.group.name, upload_id=jid )}}">{{h.render_datestamp(tstamp)}} - {{h.render_datestamp(tstamp,format="%H:%M")}}</a></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}

@@ -36,7 +36,7 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
   //
   // Returns nothing.
   my.loadPreviewDialog = function(resourceData) {
-    my.$dialog().html('<h4>Loading ... <img src="http://assets.okfn.org/images/icons/ajaxload-circle.gif" class="loading-spinner" /></h4>');
+    my.$dialog().html('<h4>Loading ... <img src="//assets.okfn.org/images/icons/ajaxload-circle.gif" class="loading-spinner" /></h4>');
 
     function initializeDataExplorer(dataset) {
       var views = [
@@ -271,6 +271,12 @@ CKAN.Dgu.resourcePreviewer = (function($,my) {
         content.append(my.escapeHTML(row));
       }
       my.$dialog().html(content);
+      if (data.extra_text) {
+          $("#ckanext-datapreview-extra").html(data.extra_text);
+      }
+      if (data.archived) {
+          $("#ckanext-datapreview-source").html(data.archived);
+      }
     }
   };
 

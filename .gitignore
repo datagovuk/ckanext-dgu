@@ -17,4 +17,5 @@ tmp/*
 selenium/*
 package/DEBIAN/control
 *.swp
+*.swo
 node_modules/*

@@ -74,6 +74,10 @@ class Stats(dict):
             lines.append(indent_str + 'Time taken (h:m:s): %s' % time_taken)
         return '\n'.join(lines)
 
+    def show_time_taken(self):
+        time_taken = datetime.datetime.now() - self._start_time
+        print 'Time taken (h:m:s): %s' % time_taken
+
     def __repr__(self):
         return self.report()
 

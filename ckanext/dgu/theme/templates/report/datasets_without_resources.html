@@ -1,0 +1,38 @@
+
+  <div class="widget-container">
+
+      <p>
+        Number of datasets without resources: {{data['table']|length}}
+      </p>
+      <p>
+        NB: "Last resource URL" is blank if there is no history of any resources for the dataset.
+      </p>
+
+      <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+            <thead>
+              <tr>
+                <th style="width: 80px">Dataset</th>
+                <th style="width: 80px">Organization</th>
+                <th style="width: 50px">Notes</th>
+                <th style="width: 50px">Date created on DGU</th>
+                <th style="width: 50px">Date modified on DGU</th>
+                <th style="width: 50px">Date last resource deleted</th>
+                <th style="width: 100px">Last resource URL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dataset in data['table'] %}
+                  <tr>
+                      <td><a href="/dataset/{{dataset['name']}}">{{dataset['title']}}</a></td>
+                      <td><a href="/publisher/{{dataset['organization name']}}">{{dataset['organization title']}}</a></td>
+                      <td>{{dataset['dataset_notes']}}</td>
+                      <td>{{h.render_datetime(dataset['metadata created'], date_format='%d/%m/%Y')}}</td>
+                      <td>{{h.render_datetime(dataset['metadata modified'], date_format='%d/%m/%Y')}}</td>
+                      <td>{{h.render_datetime(dataset['last resource deleted'], date_format='%d/%m/%Y')}}</td>
+                      <td style="overflow: hidden; text-overflow: ellipsis"><a href="{{dataset['last resource url']}}">{{dataset['last resource url']}}</a></td>
+                  </tr>
+              {% endfor %}
+            </tbody>
+      </table>
+
+  </div>

@@ -6,13 +6,11 @@ from urllib import urlencode
 from pylons import response, config
 from ckan import model
 from ckan.model.types import make_uuid
-from ckan.lib.helpers import Page, flash_notice
-from ckanext.dgu.lib.helpers import get_from_flat_dict
-from ckan.lib.base import h, BaseController, abort, g
-from ckan.lib.navl.dictization_functions import DataError, unflatten, validate
+from ckan.lib.base import h, BaseController, abort
+from ckan.lib.navl.dictization_functions import DataError, unflatten
 from ckanext.dgu.lib.publisher import go_down_tree
 from ckan.lib.search import SearchIndexError
-from ckan.logic import tuplize_dict, clean_dict, parse_params, flatten_to_string_key
+from ckan.logic import tuplize_dict, clean_dict, parse_params
 from ckanext.dgu.plugins_toolkit import (render, c, request, _,
     ObjectNotFound, NotAuthorized, ValidationError, get_action, check_access)
 
@@ -32,11 +30,11 @@ def search_url(params):
     return url_with_params(url, params)
 
 
+# TODO rename this 'UnpublishedController'
 class InventoryController(BaseController):
 
 
     def _save_edit(self, name_or_id, context):
-        from ckan.lib.search import SearchIndexError
         try:
             data_dict = clean_dict(unflatten(
                 tuplize_dict(parse_params(request.POST))))
@@ -66,7 +64,7 @@ class InventoryController(BaseController):
 
     def edit_item(self, id, data=None, errors=None, error_summary=None):
         """
-        Allows for the editing of a single item
+        Allows for the editing of a single unpublished dataset
         """
         context = {'model': model, 'session': model.Session,
                    'user': c.user or c.author, 'extras_as_string': True,

@@ -1,0 +1,136 @@
+{% ckan_extends %}
+
+{%- block page -%}
+  {% set breakout = break_out_page if break_out_page is defined else None %}
+  {{ super() }}
+{% endblock %}
+
+{# Copied from core-ckan to keep general compatibility, but for these changes:
+   1. Strip out:
+      * class="container" - adds unwanted padding around breadcrumbs
+      * class="span3" and "span9" - page content itself does its layout
+      * class="page-header" - clash with drupal
+      * <ul class="nav"/> - draws an unwanted horizontal line below breadcrumbs
+   2. Blocks 'flash' and 'breadcrumb' - reordered and replaced with DGU versions
+   3. Block 'secondary' goes before the primary because when viewing the search
+      page on a mobile you want the search box and 'show facets' button
+      (secondary block) to display above the search results (primary) block.
+#}
+{%- block content %}
+    {% block maintag %}<div role="main">{% endblock %}
+    {% block toolbar %}
+    <div class="toolbar">
+        {% block breadcrumb %}
+        <div id="pre-content">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        {#
+                        Add breadcrumbs to the page by extending this breadcrumb_content.
+
+                        Example:
+
+                          {% block breadcrumb_content %}
+                            {{ h.build_nav('system_dashboard', _('System Dashboard')) }}
+                          {% endblock %}
+
+                        #}
+                        <ul id="breadcrumbs">
+                            <li><a href="/"><i class="icon-home"></i></a></li>
+                            {% block breadcrumb_content %}{% endblock %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+        {% block flash %}
+        <div class="flash-messages container">
+            {% block flash_inner %}
+            {% for message in h.flash.pop_messages() | list %}
+            <div class="panel {{ message.category.replace('alert','panel').replace('error','danger') }}">
+                <div class="panel-heading">{{ h.literal(message) }}</div>
+            </div>
+            {% endfor %}
+            {% endblock %}
+        </div>
+        {% endblock %}
+    </div>
+    {% endblock %}
+      <div id="content">
+        {% block main_content %}
+
+          <div class="container wrapper{% block wrapper_class %}{% endblock %}{% if self.secondary()|trim == '' %} no-nav{% endif %}">
+
+            {#
+            The pre_primary block can be used to add content to before the
+            rendering of the main content columns of the page.
+            #}
+            {% block pre_primary %}
+            {% endblock %}
+
+            {% block secondary %}
+              <aside class="secondary">
+                {#
+                The secondary_content block can be used to add content to the
+                sidebar of the page. This is the main block that is likely to be
+                used within a template.
+
+                Example:
+
+                  {% block secondary_content %}
+                    <h2>A sidebar item</h2>
+                    <p>Some content for the item</p>
+                  {% endblock %}
+                #}
+                {% block secondary_content %}{% endblock %}
+              </aside>
+            {% endblock %}
+
+            {% block primary %}
+              <div class="primary">
+                {#
+                The primary_content block can be used to add content to the page.
+                This is the main block that is likely to be used within a template.
+
+                Example:
+
+                  {% block primary_content %}
+                    <h1>My page content</h1>
+                    <p>Some content for the page</p>
+                  {% endblock %}
+                #}
+                {% block primary_content %}
+                  <article class="module">
+                    {% block page_header %}
+                      <header class="module-content">
+                        {% if self.content_action() | trim %}
+                          <div class="content_action">
+                            {% block content_action %}{% endblock %}
+                          </div>
+                        {% endif %}
+                      </header>
+                    {% endblock %}
+                    <div class="module-content">
+                      {% if self.page_primary_action() | trim %}
+                        <div class="page_primary_action">
+                          {% block page_primary_action %}{% endblock %}
+                        </div>
+                      {% endif %}
+                      {% block primary_content_inner %}
+                      {% endblock %}
+                    </div>
+                  </article>
+                {% endblock %}
+              </div>
+            {% endblock %}
+
+          </div>
+        {% endblock %}
+      </div>
+    </div>
+{% endblock -%}
+
+{% block scripts %}
+  {# This is empty, to disable core ckan scripts #}
+{% endblock %}

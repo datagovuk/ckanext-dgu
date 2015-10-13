@@ -1,23 +1,5 @@
 import re
 
-# Map: Database entry -> Displayname
-# Ensure this agrees with themes.json
-THEMES = {
-    u"Health": u"Health",
-    u"Environment": u"Environment",
-    u"Education": u"Education",
-    u"Crime": u"Crime & Justice",
-    u"Government": u"Government",
-    u"Defence": u"Defence",
-    u"Economy": u"Business & Economy",
-    u"Transport": u"Transport",
-    u"Spending": u"Government Spending",
-    u"Society": u"Society",
-    u"Mapping": u"Mapping",
-    u"Towns": u"Towns & Cities",
-}
-
-
 government_depts_raw = """
 Attorney General's Office
 Cabinet Office
@@ -292,5 +274,3 @@ def canonise_organisation_name(org_name):
         return org_name
     canonised_name = organisation_name_mapping.get(org_name.strip()) or org_name
     return canonised_name
-
-

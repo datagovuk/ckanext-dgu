@@ -1,99 +1,80 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Publishers</py:def>
+{% block title %}Publisher - {{ super() }}{% endblock %}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/publisher">Publishers</a></li>
-  </py:match>
+{% block breadcrumb_content %}
+  {{ h.build_nav('publisher_index', _('Publishers')) }}
+{% endblock %}
 
-  <py:match path="content" py:with="hierarchy=h.publisher_hierarchy()">
-    <h1>Publishers</h1>
-    <p>Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
-    <div py:if="c.userobj" class="panel panel-info">
-      <div class="panel-heading"><strong>Adding New Publishers</strong></div>
-      <div class="panel-body">If you are from a public sector body not listed yet, please <a href="/publisher/apply/cabinet-office">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your publisher</div>
+{% block primary_content_inner %}
+  {% set hierarchy = h.publisher_hierarchy() %}
+  {% set publisher_abbreviations = h.publisher_abbreviations() %}
+  {% set closed_publisher_ids = h.closed_publisher_ids() %}
+
+  <h1>Publishers</h1>
+  <p>Datasets are 'published' on data.gov.uk by a range of organisations, mainly from the public sector. On this page you can browse and search for them by name or place in a notional hierarchy.</p>
+  {% if h.check_access('organization_create', {}) %}
+    <div class="panel panel-info">
+      <div class="panel-heading"><strong>Add New Publisher</strong></div>
+      <div class="panel-body"><a href="{{ h.url_for('publisher_new') }}">Add publisher</a></div>
     </div>
-    <div class="search-area" style="margin-top: 20px; margin-bottom: 30px;">
-      <div class="clearfix dgu-equal-height" data-selector=".auto-height">
-        <div class="left">
-          <div class="left-inner auto-height form-search">
-            <div class="input-group">
-              <input id="js-search" class="form-control" type="text" name="q" value="${c.q}" results="0" placeholder="Start typing a name..." />
-              <span class="input-group-btn">
-                <button type="submit" class="btn btn-default">
-                  <i class="icon-search"></i>
-                </button>
-              </span>
-            </div>
-            <!--div class="alphabet-search">
-              <a href="#a" class="active">a</a>
-              <a href="#b">b</a>
-              <a href="#c">c</a>
-              <a href="#d">d</a>
-              <a href="#e">e</a>
-              <a href="#f">f</a>
-              <a href="#g">g</a>
-              <a href="#h">h</a>
-              <a href="#i">i</a>
-              <a href="#j">j</a>
-              <a href="#k">k</a>
-              <a href="#l">l</a>
-              <a href="#m">m</a>
-              <a href="#n">n</a>
-              <a href="#o">o</a>
-              <a href="#p">p</a>
-              <a href="#q">q</a>
-              <a href="#r">r</a>
-              <a href="#s">s</a>
-              <a href="#t">t</a>
-              <a href="#u">u</a>
-              <a href="#v">v</a>
-              <a href="#w">w</a>
-              <a href="#x">x</a>
-              <a href="#y">y</a>
-              <a href="#z">z</a>
-              <div class="clearfix"></div>
-            </div-->
-          </div>
-        </div>
-        <div class="right">
-          <div class="right-inner auto-height">
-          <div class="chevron"></div>
-            <div class="result-count">All</div>
-            <div class="result-count-footer">Publishers</div>
+  {% elif c.userobj %}
+    <div class="panel panel-info">
+      <div class="panel-heading"><strong>Adding New Publishers</strong></div>
+      <div class="panel-body">If you are from a public sector body not listed below, please <a href="/contact/6">get in touch with Cabinet Office data.gov.uk team</a> to request the addition of your organization.</div>
+    </div>
+  {% endif %}
+  <div class="search-area" style="margin-top: 20px; margin-bottom: 30px;">
+    <div class="clearfix dgu-equal-height" data-selector=".auto-height">
+      <div class="left">
+        <div class="left-inner auto-height form-search">
+          <div class="input-group">
+            <input id="js-search" class="form-control" type="text" name="q" value="{{c.q}}" results="0" placeholder="Start typing a name..." />
+            <span class="input-group-btn">
+              <button type="submit" class="btn btn-default">
+                <i class="icon-search"></i>
+              </button>
+            </span>
           </div>
         </div>
       </div>
-    </div><!-- /search-area -->
-    <div class="publisher-hierarchy empty-search">
-      <py:def function="render_publisher(pub)">
+      <div class="right">
+        <div class="right-inner auto-height">
+          <div class="chevron"></div>
+          <div class="result-count">All</div>
+          <div class="result-count-footer">Publishers</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /search-area -->
+  <div class="publisher-hierarchy empty-search">
+
+    {% macro render_publisher(pubs) %}
+      {% for pub in h.put_closed_publishers_last(pubs, closed_publisher_ids) recursive %}
+        {% set closed = pub['id'] in closed_publisher_ids %}
         <div class="publisher collapsed">
-          <py:if test="len(pub['children'])">
-            <button class="btn btn-xs btn-primary js-expand"><i class="icon icon-plus"/></button>
-            <button class="btn btn-xs btn-default js-collapse"><i class="icon icon-minus"/></button>
-          </py:if>
-          <div class="publisher-row">
-            <a href="/publisher/${pub['name']}">
-              ${pub['title']}
+          {% if pub['children'] %}
+            <button class="btn btn-xs btn-primary js-expand"><i class="icon icon-plus"></i></button>
+            <button class="btn btn-xs btn-default js-collapse"><i class="icon icon-minus"></i></button>
+          {% endif %}
+          <div class="publisher-row {% if closed %}closed{% endif %}">
+            <a href="/publisher/{{ pub['name'] }}">
+              {{ pub['title'] }}
+              {% if publisher_abbreviations.get(pub['id']) %}
+                ({{ publisher_abbreviations.get(pub['id']) }})
+              {% endif %}
+              {% if closed %}
+                (Closed)
+              {% endif %}
             </a>
           </div>
-          <py:for each="child in pub['children']">
-            ${render_publisher(child)}
-          </py:for>
+          {{ loop(h.put_closed_publishers_last(pub['children'], closed_publisher_ids)) }}
         </div>
-      </py:def>
-      <py:for each="pub in hierarchy">
-        ${render_publisher(pub)}
-      </py:for>
-    </div>
-  </py:match>
+      {% endfor %}
+    {% endmacro %}
 
-  <py:def function="optional_footer">
-    <script src="/scripts/dgu-publisher-index.min.js"></script>
-  </py:def>
+    {{ render_publisher(h.put_closed_publishers_last(hierarchy, closed_publisher_ids)) }}
+  </div>
 
-  <xi:include href="../layout.html" />
-</html>
+  <script src="/scripts/dgu-publisher-index.min.js"></script>
+{% endblock %}

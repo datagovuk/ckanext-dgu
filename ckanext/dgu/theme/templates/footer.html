@@ -1,0 +1,44 @@
+
+{% block footer_content %}
+  <div class="footer">
+    <footer role="contentinfo" class="container">
+      <ul class="links"><li class="menu-531 first"><a href="/faq">FAQ</a></li>
+        <li class="menu-527"><a href="/code-conduct">Code of conduct</a></li>
+        <li class="menu-524"><a href="/accessibility-statement">Accessibility</a></li>
+        <li class="menu-528"><a href="/cookies-policy">Cookies policy</a></li>
+        <li class="menu-537"><a href="/privacy">Privacy</a></li>
+        <li class="menu-536"><a href="/moderation-policy">Moderation policy</a></li>
+        <li class="menu-520"><a href="/contact" title="">Contact</a></li>
+        <li class="menu-538 "><a href="/terms-and-conditions">Terms and conditions</a></li>
+        <li class="menu-538"><a href="/data/api">API</a></li>
+        <li class="menu-538 last"><a href="/about">About</a></li>
+      </ul>
+      <div class="credits">
+        {% block footer_attribution %}
+          <div class="credit">
+            <strong>Powered by:</strong><br/>
+            <a href="http://ckan.org/" title="CKAN Version:{{c.__version__}}">
+              <div id="ckan-logo" class="retina-img">
+                <img src="/images/ckan-logo.png" alt="Powered By CKAN"/>
+              </div>
+            </a>
+          </div>
+        {% endblock %}
+        {% if c.environ['pylons.routes_dict']['controller'].startswith('ckanext.os.') %}
+          <div class="credit">
+            <strong>Map tool by:</strong><br/>
+            <a href="/location" title="UK Location Programme">
+              <img src="/images/uk_location.gif" />
+            </a>
+          </div>
+        {% endif %}
+  {% block footer_debug %}
+    {% if g.debug %}
+      {% include 'snippets/debug.html' %}
+    {% endif %}
+  {% endblock %}
+      </div>
+    </footer>
+
+  </div> <!-- /footer (jinja) -->
+{% endblock %}

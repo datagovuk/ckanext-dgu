@@ -1,24 +1,19 @@
 import collections
 import datetime
 import logging
+import os
 
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
 from ckanext.report import lib
+from ckanext.dgu.lib.publisher import go_up_tree
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 log = logging.getLogger(__name__)
 
 
-def get_source(package):
-    '''Returns the source of package object if it is not entered by the form.
-    Of particular interest are those from the NS Pub Hub (StatsHub) and
-    UK Location.'''
-    if p.toolkit.asbool(package.extras.get('INSPIRE')):
-        return 'UK Location'
-    if p.toolkit.asbool(package.extras.get('external_reference') == 'ONSHUB'):
-        return 'StatsHub'
-    return ''
+# NII
 
 
 def nii_report():
@@ -65,7 +60,6 @@ def nii_report():
                 'unpublished': p.toolkit.asbool(dataset_object.extras.get('unpublished')),
                 'num_broken_resources': len(broken_resources),
                 'broken_resources': broken_resources,
-                'source': get_source(dataset_object)
                 }
         nii_dataset_details.append(dataset_details)
         if broken_resources:
@@ -97,6 +91,9 @@ nii_report_info = {
     'generate': nii_report,
     'template': 'report/nii.html',
 }
+
+
+# Publisher resources
 
 
 def publisher_resources(organization=None,
@@ -139,7 +136,9 @@ def publisher_resources(organization=None,
             for res in resources:
                 res_dict = {'id': res.id, 'position': res.position,
                             'description': res.description, 'url': res.url,
-                            'format': res.format, 'created': res.created}
+                            'format': res.format,
+                            'created': (res.created.isoformat()
+                                        if res.created else None)}
                 rows.append(create_row(pkg, res_dict))
             num_resources += len(resources)
         else:
@@ -169,98 +168,6 @@ publisher_resources_info = {
     'template': 'report/publisher_resources.html',
     }
 
-
-def feedback_report(organization=None, include_sub_organizations=False, include_published=False):
-    """
-    For the publisher provided (and optionally for sub-publishers) this
-    function will generate a report on the feedback for that publisher.
-    """
-    import ckan.lib.helpers as helpers
-    from ckanext.dgu.model.feedback import Feedback
-
-    if organization:
-        organization = model.Group.by_name(organization)
-        if not organization:
-            raise p.toolkit.ObjectNotFound()
-    else:
-        organization = None
-
-    # Get packages for these organization(s)
-    memberships = model.Session.query(model.Member)\
-        .join(model.Package, model.Package.id==model.Member.table_id)\
-        .filter(model.Member.state == 'active')
-    memberships = lib.filter_by_organizations(memberships, organization,
-                                              include_sub_organizations)\
-        .filter(model.Member.table_name == 'package')\
-        .filter(model.Package.state == 'active')
-
-    # For each package, count the feedback comments
-    results = []
-    num_pkgs_with_feedback = 0
-    for member in memberships.all():
-        pkg = model.Package.get(member.table_id)
-
-        # Skip unpublished datasets if that's asked for
-        if not include_published and not pkg.extras.get('unpublished', False):
-            continue
-
-        pkg_data = collections.defaultdict(int)
-        pkg_data['organization-name'] = member.group.name
-        pkg_data['generated-at'] = helpers.render_datetime(datetime.datetime.now(), "%d/%m/%Y %H:%M")
-        pkg_data['organization-title'] = member.group.title
-        pkg_data['package-name'] = pkg.name
-        pkg_data['package-title'] = pkg.title
-        pkg_data['publish-date'] = pkg.extras.get('publish-date', '')
-
-        for feedback in model.Session.query(Feedback).filter(Feedback.visible == True)\
-                .filter(Feedback.package_id == member.table_id )\
-                .filter(Feedback.active == True ):
-            if feedback.economic: pkg_data['economic'] += 1
-            if feedback.social: pkg_data['social'] += 1
-            if feedback.linked: pkg_data['linked'] += 1
-            if feedback.other: pkg_data['other'] += 1
-            if feedback.effective: pkg_data['effective'] += 1
-
-        pkg_data['total-comments'] = sum([pkg_data['economic'],
-                                          pkg_data['social'],
-                                          pkg_data['linked'],
-                                          pkg_data['other'],
-                                          pkg_data['effective']])
-        results.append(pkg_data)
-        if pkg_data['total-comments'] > 0:
-            num_pkgs_with_feedback += 1
-
-    return {'table': sorted(results, key=lambda x: -x.get('total-comments')),
-            'dataset_count': len(results),
-            'dataset_count_with_feedback': num_pkgs_with_feedback,
-            }
-
-
-def feedback_report_combinations():
-    organization = None
-    include_sub_organizations = True  # assumed for index anyway
-    for include_published in (False, True):
-        yield {'organization': organization,
-               'include_sub_organizations': include_sub_organizations,
-               'include_published': include_published}
-
-    for organization in lib.all_organizations():
-        for include_sub_organizations in (False, True):
-            for include_published in (False, True):
-                yield {'organization': organization,
-                       'include_sub_organizations': include_sub_organizations,
-                       'include_published': include_published}
-
-feedback_report_info = {
-    'name': 'feedback',
-    'description': 'A summary of the feedback given on datasets, originally used to determine those to make part of the NII.',
-    'option_defaults': OrderedDict((('organization', None),
-                                    ('include_sub_organizations', True),
-                                    ('include_published', False))),
-    'option_combinations': feedback_report_combinations,
-    'generate': feedback_report,
-    'template': 'report/feedback.html',
-    }
 
 def get_quarter_dates(datetime_now):
     '''Returns the dates for this (current) quarter and last quarter. Uses
@@ -298,7 +205,9 @@ def publisher_activity(organization, include_sub_organizations=False):
                       'current_revision_fixer2', 'fix_contact_details.py',
                       'Repoint 410 Gone to webarchive url',
                       'Fix duplicate resources',
+                      'fix_secondary_theme.py',
                       )
+    system_author_template = 'script-%'  # "%" is a wildcard
 
     created = {'this': [], 'last': []}
     modified = {'this': [], 'last': []}
@@ -328,7 +237,8 @@ def publisher_activity(organization, include_sub_organizations=False):
             .filter(model.PackageRevision.id == pkg.id)\
             .filter_by(state='active')\
             .join(model.Revision)\
-            .filter(~model.Revision.author.in_(system_authors))
+            .filter(~model.Revision.author.in_(system_authors)) \
+            .filter(~model.Revision.author.like(system_author_template))
         rr_q = model.Session.query(model.Package, model.ResourceRevision, model.Revision)\
             .filter(model.Package.id == pkg.id)\
             .filter_by(state='active')\
@@ -336,17 +246,20 @@ def publisher_activity(organization, include_sub_organizations=False):
             .join(model.ResourceRevision,
                   model.ResourceGroup.id == model.ResourceRevision.resource_group_id)\
             .join(model.Revision)\
-            .filter(~model.Revision.author.in_(system_authors))
+            .filter(~model.Revision.author.in_(system_authors))\
+            .filter(~model.Revision.author.like(system_author_template))
         pe_q = model.Session.query(model.Package, model.PackageExtraRevision, model.Revision)\
             .filter(model.Package.id == pkg.id)\
             .filter_by(state='active')\
             .join(model.PackageExtraRevision,
                   model.Package.id == model.PackageExtraRevision.package_id)\
             .join(model.Revision)\
-            .filter(~model.Revision.author.in_(system_authors))
+            .filter(~model.Revision.author.in_(system_authors))\
+            .filter(~model.Revision.author.like(system_author_template))
 
         for quarter_name in quarters:
             quarter = quarters[quarter_name]
+            # created
             if quarter[0] < created_.revision_timestamp < quarter[1]:
                 published = not asbool(pkg.extras.get('unpublished'))
                 created[quarter_name].append(
@@ -354,27 +267,30 @@ def publisher_activity(organization, include_sub_organizations=False):
                      'created', quarter_name,
                      created_.revision_timestamp.isoformat(),
                      created_.revision.author, published))
-            else:
-                prs = pr_q.filter(model.PackageRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageRevision.revision_timestamp < quarter[1])
-                rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > quarter[0])\
-                          .filter(model.ResourceRevision.revision_timestamp < quarter[1])
-                pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > quarter[0])\
-                          .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
-                authors = ' '.join(set([r[1].author for r in prs] +
-                                      [r[2].author for r in rrs] +
-                                      [r[2].author for r in pes]))
-                dates = set([r[1].timestamp.date() for r in prs] +
-                            [r[2].timestamp.date() for r in rrs] +
-                            [r[2].timestamp.date() for r in pes])
-                dates_formatted = ' '.join([date.isoformat()
-                                            for date in sorted(dates)])
-                if authors:
-                    published = not asbool(pkg.extras.get('unpublished'))
-                    modified[quarter_name].append(
-                        (pkg.name, pkg.title, lib.dataset_notes(pkg),
-                         'modified', quarter_name,
-                         dates_formatted, authors, published))
+
+            # modified
+            # exclude the creation revision
+            period_start = max(quarter[0], created_.revision_timestamp)
+            prs = pr_q.filter(model.PackageRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageRevision.revision_timestamp < quarter[1])
+            rrs = rr_q.filter(model.ResourceRevision.revision_timestamp > period_start)\
+                        .filter(model.ResourceRevision.revision_timestamp < quarter[1])
+            pes = pe_q.filter(model.PackageExtraRevision.revision_timestamp > period_start)\
+                        .filter(model.PackageExtraRevision.revision_timestamp < quarter[1])
+            authors = ' '.join(set([r[1].author for r in prs] +
+                                   [r[2].author for r in rrs] +
+                                   [r[2].author for r in pes]))
+            dates = set([r[1].timestamp.date() for r in prs] +
+                        [r[2].timestamp.date() for r in rrs] +
+                        [r[2].timestamp.date() for r in pes])
+            dates_formatted = ' '.join([date.isoformat()
+                                        for date in sorted(dates)])
+            if authors:
+                published = not asbool(pkg.extras.get('unpublished'))
+                modified[quarter_name].append(
+                    (pkg.name, pkg.title, lib.dataset_notes(pkg),
+                        'modified', quarter_name,
+                        dates_formatted, authors, published))
 
     datasets = []
     for quarter_name in quarters:
@@ -382,8 +298,11 @@ def publisher_activity(organization, include_sub_organizations=False):
         datasets += sorted(modified[quarter_name], key=lambda x: x[1])
     columns = ('Dataset name', 'Dataset title', 'Dataset notes', 'Modified or created', 'Quarter', 'Timestamp', 'Author', 'Published')
 
+    quarters_iso = dict([(last_or_this, [date_.isoformat() for date_ in q_list])
+                         for last_or_this, q_list in quarters.iteritems()])
+
     return {'table': datasets, 'columns': columns,
-            'quarters': quarters}
+            'quarters': quarters_iso}
 
 def publisher_activity_combinations():
     for org in lib.all_organizations(include_none=False):
@@ -437,4 +356,319 @@ unpublished_report_info = {
     'template': 'report/unpublished.html',
     }
 
+def last_resource_deleted(pkg):
 
+    resource_revisions = model.Session.query(model.ResourceRevision) \
+                              .join(model.ResourceGroup) \
+                              .join(model.Package) \
+                              .filter_by(id=pkg.id) \
+                              .order_by(model.ResourceRevision.revision_timestamp) \
+                              .all()
+    previous_rr = None
+    # go through the RRs in reverse chronological order and when an active
+    # revision is found, return the rr in the previous loop.
+    for rr in resource_revisions[::-1]:
+        if rr.state == 'active':
+            return previous_rr.revision_timestamp, previous_rr.url
+        previous_rr = rr
+    return None, ''
+
+def datasets_without_resources():
+    pkg_dicts = []
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')\
+                .order_by(model.Package.title)\
+                .all()
+    for pkg in pkgs:
+        if len(pkg.resources) != 0 or \
+          pkg.extras.get('unpublished', '').lower() == 'true':
+            continue
+        org = pkg.get_organization()
+        deleted, url = last_resource_deleted(pkg)
+        pkg_dict = OrderedDict((
+                ('name', pkg.name),
+                ('title', pkg.title),
+                ('organization title', org.title),
+                ('organization name', org.name),
+                ('metadata created', pkg.metadata_created.isoformat()),
+                ('metadata modified', pkg.metadata_modified.isoformat()),
+                ('last resource deleted', deleted.isoformat() if deleted else None),
+                ('last resource url', url),
+                ('dataset_notes', lib.dataset_notes(pkg)),
+                ))
+        pkg_dicts.append(pkg_dict)
+    return {'table': pkg_dicts}
+
+
+datasets_without_resources_info = {
+    'name': 'datasets-without-resources',
+    'title': 'Datasets without resources',
+    'description': 'Datasets that have no resources (data URLs). Excludes unpublished ones.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': datasets_without_resources,
+    'template': 'report/datasets_without_resources.html',
+    }
+
+# app-dataset
+
+def app_dataset_report():
+    app_dataset_dicts = []
+    for related in model.Session.query(model.RelatedDataset) \
+                        .filter(model.Related.type=='App') \
+                        .all():
+        dataset = related.dataset
+        org = dataset.get_organization()
+        top_org = list(go_up_tree(org))[-1]
+
+        app_dataset_dict = OrderedDict((
+            ('app title', related.related.title),
+            ('app url', related.related.url),
+            ('dataset name', dataset.name),
+            ('dataset title', dataset.title),
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('dataset theme', related.dataset.extras.get('theme-primary', '')),
+            ('dataset notes', lib.dataset_notes(dataset)),
+            ))
+        app_dataset_dicts.append(app_dataset_dict)
+
+    app_dataset_dicts.sort(key=lambda row: row['top-level organization title']
+                           + row['organization title'])
+
+    return {'table': app_dataset_dicts}
+
+app_dataset_report_info = {
+    'name': 'app-dataset-report',
+    'title': 'Apps with datasets',
+    'description': 'Datasets that have been used by apps.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': app_dataset_report,
+    'template': 'report/app_dataset.html',
+    }
+
+# app-dataset by theme
+
+def app_dataset_theme_report():
+    table = []
+
+    datasets = collections.defaultdict(lambda: {'apps': []})
+    for related in model.Session.query(model.RelatedDataset).filter(model.Related.type=='App').all():
+        dataset_name = related.dataset.name
+
+        app = {
+          'title': related.related.title,
+          'url': related.related.url
+        }
+
+        datasets[dataset_name]['title'] = related.dataset.title
+        datasets[dataset_name]['theme'] = related.dataset.extras.get('theme-primary', '')
+        datasets[dataset_name]['apps'].append(app)
+
+    for dataset_name, dataset in datasets.items():
+        sorted_apps = sorted(dataset['apps'], key=lambda x: x['title'])
+        table.append({'dataset_title': dataset['title'],
+                      'dataset_name': dataset_name,
+                      'theme': dataset['theme'],
+                      'app_titles': "\n".join(a['title'] for a in sorted_apps),
+                      'app_urls': "\n".join(a['url'] for a in sorted_apps)})
+
+    return {'table': table}
+
+app_dataset_theme_report_info = {
+    'name': 'app-dataset-theme-report',
+    'title': 'Apps with datasets by theme',
+    'description': 'Datasets that have been used by apps, grouped by theme.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': app_dataset_theme_report,
+    'template': 'report/app_dataset_theme_report.html',
+    }
+
+# admin-editor report
+
+def get_user_realname(user):
+    from ckanext.dgu.drupalclient import DrupalClient
+    from HTMLParser import HTMLParser
+
+    if user.name.startswith('user_d'):
+        user_id = user.name[len('user_d'):]
+
+        html_parser = HTMLParser()
+
+        try:
+            dc = DrupalClient()
+            properties = dc.get_user_properties(user_id)
+        except Exception, ex:
+            return user.fullname
+
+        try:
+            first_name = properties['field_first_name']['und'][0]['safe_value']
+            first_name = html_parser.unescape(first_name)
+        except:
+            first_name = ''
+
+        try:
+            surname = properties['field_surname']['und'][0]['safe_value']
+            surname = html_parser.unescape(surname)
+        except:
+            surname = ''
+    else:
+        first_name = ''
+        surname = ''
+
+    name = '%s %s' % (first_name, surname)
+    if name.strip() == '':
+        name = user.fullname
+
+    return name
+
+def admin_editor(org=None, include_sub_organizations=False):
+    from ckanext.dgu.lib.helpers import group_get_users
+
+    table = []
+
+    if org:
+        q = model.Group.all('organization')
+        parent = model.Group.by_name(org)
+        if not parent:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
+
+        if include_sub_organizations:
+            child_ids = [ch[0] for ch in parent.get_children_group_hierarchy(type='organization')]
+        else:
+            child_ids = []
+
+        q = q.filter(model.Group.id.in_([parent.id] + child_ids))
+
+        for g in q.all():
+            record = {}
+            record['publisher_name'] = g.name
+            record['publisher_title'] = g.title
+
+            admin_users = group_get_users(g, capacity='admin')
+            admins = []
+            for u in admin_users:
+                name = get_user_realname(u)
+                admins.append('%s <%s>' % (name, u.email))
+
+            record['admins'] = "\n".join(admins)
+
+            editor_users = group_get_users(g, capacity='editor')
+            editors = []
+            for u in editor_users:
+                name = get_user_realname(u)
+                editors.append('%s <%s>' % (name, u.email))
+
+            record['editors'] = "\n".join(editors)
+            table.append(record)
+    else:
+        table.append({})
+
+    return {'table': table}
+
+def admin_editor_combinations():
+    from ckanext.dgu.lib.helpers import organization_list
+
+    for org, _ in organization_list(top=False):
+        for include_sub_organizations in (False, True):
+            yield {'org': org,
+                    'include_sub_organizations': include_sub_organizations}
+
+def user_is_admin(user, org=None):
+    import ckan.lib.helpers as helpers
+    if org:
+        return helpers.check_access('organization_update', {'id': org.id})
+    else:
+        # Are they admin of any org?
+        return len(user.get_groups('organization', capacity='admin')) > 0
+
+def user_is_rm(user, org=None):
+    from pylons import config
+    from ast import literal_eval
+    from ckanext.dgu.lib.publisher import go_up_tree
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
+    allowed_orgs = relationship_managers.get(user.name, [])
+
+    if org:
+        for o in go_up_tree(org):
+            if o.name in allowed_orgs:
+                return True
+
+        return False
+    else:
+        # Are they RM of any org?
+        return len(allowed_orgs) > 0
+
+def admin_editor_authorize(user, options):
+    if not user:
+        return False
+
+    if user.sysadmin:
+        return True
+
+    if options.get('org', False):
+        org_name = options["org"]
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        if not org:
+            return False
+
+        if user_is_admin(user, org) or user_is_rm(user, org):
+            return True
+        else:
+            return False
+    else:
+        # Allow them to see front page / see report on report index
+        if user_is_admin(user) or user_is_rm(user):
+            return True
+
+    return False
+
+admin_editor_info = {
+    'name': 'admin_editor',
+    'title': 'Publisher administrators and editors',
+    'description': 'Filterable list of publishers which shows who has administrator and editor rights.',
+    'option_defaults': OrderedDict((('org', ''), ('include_sub_organizations', False))),
+    'option_combinations': admin_editor_combinations,
+    'generate': admin_editor,
+    'template': 'report/admin_editor.html',
+    'authorize': admin_editor_authorize
+    }
+
+
+# LA Schemas
+
+
+def la_schemas(local_authority=None, schema=None, incentive_only=False):
+    from ckanext.dgu.bin.schema_apply_lga import LaSchemas
+    Options = collections.namedtuple('Options', ('organization', 'incentive_only', 'schema', 'write', 'dataset', 'print_'))
+    options = Options(organization=None, incentive_only=incentive_only,
+                      schema=schema, write=False, dataset=None, print_=False)
+    csv_filepath = os.path.abspath(os.path.join(__file__, '../../incentive.csv'))
+    return LaSchemas.command(config_ini=None, options=options,
+                             submissions_csv_filepath=csv_filepath)
+
+
+def la_schemas_combinations():
+    for schema in [''] + dgu_helpers.get_la_schema_options():
+        for incentive_only in (False, True):
+            yield {'schema': schema['title'] if schema else '',
+                   'incentive_only': incentive_only}
+
+la_schemas_info = {
+    'name': 'la-schemas',
+    'title': 'Schemas for local authorities',
+    'description': 'Schemas matched to local authority datasets.',
+    'option_defaults': OrderedDict((('schema', ''),
+                                    ('incentive_only', False))),
+    'option_combinations': la_schemas_combinations,
+    'generate': la_schemas,
+    'template': 'report/la_schemas.html',
+    }

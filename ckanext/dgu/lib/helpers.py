@@ -14,14 +14,19 @@ from itertools import dropwhile
 import itertools
 import datetime
 import random
+import types
+import json
 
 import ckan.plugins.toolkit as t
 c = t.c
 from webhelpers.text import truncate
+from webhelpers.html import escape
+from jinja2 import Markup
 from pylons import config
 from pylons import request
 
-from ckan.lib.helpers import icon, icon_html, json, unselected_facet_items
+from ckan.lib.helpers import (icon, icon_html, json, unselected_facet_items,
+                              get_pkg_dict_extra, organizations_available)
 import ckan.lib.helpers
 
 # not importing ckan.controllers here, since we need to monkey patch it in plugin.py
@@ -61,6 +66,8 @@ def _is_individual_resource(resource):
     return not _is_additional_resource(resource) and \
            not _is_timeseries_resource(resource)
 
+# NB these 3 functions are overwritten by the other function of the same name,
+# but we should probably use these ones in preference
 def additional_resources(package):
     """Extract the additional resources from a package"""
     return filter(_is_additional_resource, package.get('resources'))
@@ -83,11 +90,14 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
-def organization_list():
+def organization_list(top=False):
     from ckan import model
-    organizations = model.Session.query(model.Group).\
-        filter(model.Group.type=='organization').\
-        filter(model.Group.state=='active').order_by('title')
+    if top:
+        organizations = model.Group.get_top_level_groups(type='organization')
+    else:
+        organizations = model.Session.query(model.Group).\
+            filter(model.Group.type=='organization').\
+            filter(model.Group.state=='active').order_by('title')
     for organization in organizations:
         yield (organization.name, organization.title)
 
@@ -106,9 +116,10 @@ def _publisher_hierarchy_recur(node):
     name  = node['name']
     children = [ _publisher_hierarchy_recur(child) for child in (node['children'] or []) ]
     return {
+            'id': node['id'],
             'title':title,
             'name':name,
-            'children':children
+            'children':children,
             }
 
 def publisher_hierarchy_mini(group_name_or_id):
@@ -120,6 +131,14 @@ def publisher_hierarchy_mini(group_name_or_id):
     my_root_node = get_action('group_tree_section')(context=context,
             data_dict={'id': group_name_or_id, 'type': 'organization'})
     return _publisher_hierarchy_recur(my_root_node)
+
+def publisher_abbreviations():
+    from ckan import model
+    abbrevs = model.Session.query(model.GroupExtra) \
+                   .filter_by(key='abbreviation') \
+                   .filter_by(state='active') \
+                   .all()
+    return dict(((abbrev.group_id, abbrev.value) for abbrev in abbrevs))
 
 def is_wms(resource):
     from ckanext.dgu.lib.helpers import get_resource_wms
@@ -189,8 +208,14 @@ def get_from_flat_dict(list_of_dicts, key, default=None):
     '''
     for dict_ in list_of_dicts:
         if dict_.get('key', '') == key:
-            return dict_.get('value', default).strip('"')
+            return (dict_.get('value', default) or '').strip('"')
     return default
+
+def extras_list_to_dict(extras_list):
+    if not extras_list:
+        return {}
+    extras = dict((extra['key'], extra['value']) for extra in extras_list)
+    return extras
 
 def get_uklp_package_type(package):
     return get_from_flat_dict(package.get('extras', []), 'resource-type', '')
@@ -282,7 +307,8 @@ def user_properties(user):
 
     this_is_me = user and (c.user in (user.name, user.fullname))
 
-    is_official = not user or (user.get_groups('organization') or user.sysadmin)
+    is_official = (user_name and not user) or \
+                  (user and (user.get_groups('organization') or user.sysadmin))
     if user and user.name.startswith('user_d'):
         user_drupal_id = user.name.split('user_d')[-1]
     else:
@@ -290,7 +316,7 @@ def user_properties(user):
     type_ = 'system' if is_system else ('official' if is_official else None)
     return user_name, user, user_drupal_id, type_, this_is_me
 
-def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
+def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the display name and link to their profile page.
     '''
     from ckan.lib.base import h
@@ -331,12 +357,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
                 return ('System Administrator', None)
             elif groups:
                 # We don't want to show all of the groups that the user belongs to.
-                # We will try and match the organisation name if provided and use that
+                # We will try and match the organization name if provided and use that
                 # instead.  If none is provided, or we can't match one then we will use
                 # the highest level org.
                 matched_group = None
                 for group in groups:
-                    if group.title == organisation:
+                    if group.title == organization or group.name == organization:
                         matched_group = group
                         break
                 if not matched_group:
@@ -351,12 +377,12 @@ def user_link_info(user_name, organisation=None):  # Overwrite h.linked_user
         else:
             return ('System process' if type_ == 'system' else 'Staff', None)
 
-def dgu_linked_user(user_name, maxlength=24, organisation=None):  # Overwrite h.linked_user
+def dgu_linked_user(user_name, maxlength=24, organization=None):  # Overwrite h.linked_user
     '''Given a user, return the HTML Anchor to their user profile page, making
     sure officials are kept anonymous to the public.
     '''
     from ckan.lib.base import h
-    display_name, href = user_link_info(user_name, organisation=organisation)
+    display_name, href = user_link_info(user_name, organization=organization)
     display_name = truncate(display_name, length=maxlength)
     if href:
         return h.link_to(display_name, urllib.quote(href))
@@ -365,13 +391,43 @@ def dgu_linked_user(user_name, maxlength=24, organisation=None):  # Overwrite h.
 
 
 def render_datestamp(datestamp_str, format='%d/%m/%Y'):
-    # e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+    '''
+    Takes a FULL ISO datetime and returns a pretty-printed date
+    e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+    '''
     if not datestamp_str:
         return ''
     try:
         return datetime.datetime(*map(int, re.split('[^\d]', datestamp_str)[:-1])).strftime(format)
     except Exception:
         return ''
+
+
+def render_partial_datestamp(datestamp_str):
+    '''
+    Takes a full or partial ISO datetime and returns a pretty-printed UK date
+    e.g. '2012-06-12T17:33:02.884649' returns '12/6/2012'
+         '2012-06' returns 'Jun 2012'
+    '''
+    if not datestamp_str:
+        return ''
+    try:
+        bits = map(int, re.split('[^\d]', datestamp_str)[:3])
+        num_bits = len(bits)
+        format_ = {3: '%d/%m/%Y', 2: '%b %Y', 1: '%Y'}[num_bits]
+        # pad it out to three bits (if its a partial date)
+        bits += [1] * (3 - num_bits)
+        return datetime.datetime(*bits).strftime(format_)
+    except:
+        try:
+            request_path = t.request.path
+        except TypeError:
+            # not in a request (e.g. in a test)
+            request_path = ''
+        log.error('Could not render datestamp: %r %s', datestamp_str,
+                  request_path)
+        return ''
+
 
 def get_cache(resource_dict):
     from ckanext.archiver.model import Archival
@@ -406,6 +462,8 @@ def mini_stars_and_caption(num_stars):
 def calculate_dataset_stars(dataset_id):
     from ckan.logic import get_action, NotFound
     from ckan import model
+    if not is_plugin_enabled('qa'):
+        return (0, '', '')
     try:
         context = {'model': model, 'session': model.Session}
         qa = get_action('qa_package_openness_show')(context, {'id': dataset_id})
@@ -421,6 +479,8 @@ def calculate_dataset_stars(dataset_id):
 def render_resource_stars(resource_id):
     from ckan.logic import get_action, NotFound
     from ckan import model
+    if not is_plugin_enabled('qa'):
+        return 'QA not installed'
     try:
         context = {'model': model, 'session': model.Session}
         qa = get_action('qa_resource_show')(context, {'id': resource_id})
@@ -446,6 +506,8 @@ def render_qa_info_for_resource(resource_dict):
     resource_id = resource_dict['id']
     from ckan.logic import get_action, NotFound
     from ckan import model
+    if not is_plugin_enabled('qa'):
+        return 'QA not installed'
     try:
         context = {'model': model, 'session': model.Session}
         qa = get_action('qa_resource_show')(context, {'id': resource_id})
@@ -471,7 +533,7 @@ def render_stars(stars, reason, last_updated):
     else:
         stars_html = (stars or 0) * '<i class="icon-star"></i>'
 
-    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % reason) if reason else ''
+    tooltip = t.literal('<div class="star-rating-reason"><b>Reason: </b>%s</div>' % escape(reason)) if reason else ''
     for i in range(5,0,-1):
         classname = 'fail' if (i > (stars or 0)) else ''
         tooltip += t.literal('<div class="star-rating-entry %s">%s</div>' % (classname, mini_stars_and_caption(i)))
@@ -488,20 +550,28 @@ def scraper_icon(res, alt=None):
               "Powered by scraperwiki.com.".format(url=res.get('scraper_source'), date=res.get('scraped').format("%d/%m/%Y"))
     return icon('scraperwiki_small', alt=alt)
 
-def ga_download_tracking(resource, action='download'):
-    '''Google Analytics event tracking for downloading a resource.
+def get_organization_from_resource(res_dict):
+    from ckan import model
+    res_id = res_dict.get('id')
+    res = model.Resource.get(res_id)
+    if not res:
+        return None
+    return res.resource_group.package.get_organization()
+
+def ga_download_tracking(resource, publisher_name, action='download'):
+    '''Google Analytics event tracking for downloading a resource. (Universal
+    Analytics syntax)
 
     Values for action: download, download-cache
 
-    c.f. Google example:
-    <a href="#" onClick="_gaq.push(['_trackEvent', 'Videos', 'Play', 'Baby\'s First Birthday']);">Play</a>
+    e.g. ga('send', 'event', 'button', 'click', 'nav buttons', 4);
 
     The call here is wrapped in a timeout to give the push call time to complete as some browsers
-    will complete the new http call without allowing _gaq time to complete.  This *could* be resolved
+    will complete the new http call without allowing ga() time to complete.  This *could* be resolved
     by setting a target of _blank but this forces the download (many of them remote urls) into a new
     tab/window.
     '''
-    return "var that=this;_gaq.push(['_trackEvent','resource','%s','%s',0,true]);"\
+    return "var that=this;ga('send','event','resource','%s','%s');"\
            "setTimeout(function(){location.href=that.href;},200);return false;" \
            % (action, resource.get('url'))
 
@@ -570,6 +640,16 @@ def json_list(json_str):
         return obj.items()
     # json can't be anything else
 
+def list_flatten(data):
+    '''
+    If data is a list flatten it,
+    otherwise return input data
+    '''
+    if isinstance(data, list):
+        return ", ".join(data)
+    else:
+        return data
+
 def dgu_format_icon(format_string):
     fmt = formats.Formats.match(format_string.strip().lower())
     icon_name = 'document'
@@ -602,9 +682,11 @@ def package_publisher_dict(package):
 
 
 def formats_for_package(package):
-    formats = [ x.get('format','').strip().lower() for x in package.get('resources',[])]
+    formats = [res.get('format', '').strip().lower()
+               for res in package.get('resources', [])
+               if res.get('resource_type') != 'documentation']
     # Strip empty strings, deduplicate and sort
-    formats = filter(bool,formats)
+    formats = filter(bool, formats)
     formats = set(formats)
     formats = sorted(list(formats))
     return formats
@@ -662,9 +744,6 @@ def get_resource_fields(resource, pkg_extras):
         'scraper_source': {'label': 'Scrape date',
             'label_title':'The date when this data was scraped',
             'value': res_dict.get('scraper_source')},
-        'release_date': {'label': 'ONS Release',
-            'label_title':'The ONS release',
-            'value': res_dict.get('release_date')},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
         '': {'label': '', 'value': ''},
@@ -679,22 +758,22 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
-def get_package_fields(package, pkg_extras, dataset_type):
+def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
+                       is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
-    from ckanext.dgu.schema import THEMES
 
-    field_names = DatasetFieldNames()
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
-    if c.is_an_official:
+    field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    if is_an_official():
         field_names_display_only_if_value.append('external_reference')
-    # work out the dataset_type
+        field_names_display_only_if_value.append('import_source')
     pkg_extras = dict(pkg_extras)
     harvest_date = harvest_guid = harvest_url = dataset_reference_date = None
-    if dataset_type == 'uklp':
-        field_names.add(['harvest-url', 'harvest-date', 'harvest-guid', 'bbox', 'spatial-reference-system', 'metadata-date', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'metadata-language', 'resource-type'])
+    if dataset_was_harvested:
+        field_names.add(['harvest-url', 'harvest-date', 'metadata-date', 'harvest-guid'])
         field_names.remove(['geographic_coverage', 'mandate'])
         from ckan.logic import get_action, NotFound
         from ckan import model
@@ -716,23 +795,24 @@ def get_package_fields(package, pkg_extras, dataset_type):
                     harvest_date = harvest_object.gathered.strftime("%d/%m/%Y %H:%M")
                 else:
                     harvest_date = 'Metadata not available'
-                harvest_guid = pkg_extras.get('guid')
-                harvest_source_reference = pkg_extras.get('harvest_source_reference')
-                if harvest_source_reference and harvest_source_reference != harvest_guid:
-                    field_names.add(['harvest_source_reference'])
-        if pkg_extras.get('resource-type') == 'service':
-            field_names.add(['spatial-data-service-type'])
-        dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
-                       for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
-    elif dataset_type == 'ons':
+        harvest_guid = pkg_extras.get('guid')
+        harvest_source_reference = pkg_extras.get('harvest_source_reference')
+        if harvest_source_reference and harvest_source_reference != harvest_guid:
+            field_names.add(['harvest_source_reference'])
+        if is_location_data:
+            field_names.add(('bbox', 'spatial-reference-system', 'dataset-reference-date', 'frequency-of-update', 'responsible-party', 'access_constraints', 'resource-type', 'metadata-language'))
+            if pkg_extras.get('resource-type') == 'service':
+                field_names.add(['spatial-data-service-type'])
+            dataset_reference_date = ', '.join(['%s (%s)' % (DateType.db_to_form(date_dict.get('value')), date_dict.get('type')) \
+                        for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
+    elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-        field_names.remove(['mandate'])
-        if c.is_an_official:
-            field_names.add(['external_reference', 'import_source'])
-    elif dataset_type == 'form':
-        field_names.add_at_start('theme')
-        if pkg_extras.get('theme-secondary'):
-            field_names.add_after('theme', 'theme-secondary')
+    if is_local_government_data:
+        field_names.add(('la-function', 'la-service'))
+
+    field_names.add_after('date_added_to_dgu', 'theme')
+    if pkg_extras.get('theme-secondary'):
+        field_names.add_after('theme', 'theme-secondary')
 
     temporal_coverage_from = pkg_extras.get('temporal_coverage-from','').strip('"[]')
     temporal_coverage_to = pkg_extras.get('temporal_coverage-to','').strip('"[]')
@@ -750,40 +830,75 @@ def get_package_fields(package, pkg_extras, dataset_type):
     if taxonomy_url and taxonomy_url.startswith('http'):
         taxonomy_url = h.link_to(truncate(taxonomy_url, 70), taxonomy_url)
     primary_theme = pkg_extras.get('theme-primary') or ''
-    primary_theme = THEMES.get(primary_theme, primary_theme)
     secondary_themes = pkg_extras.get('theme-secondary')
     if secondary_themes:
         try:
-            # JSON for multiple values
-            secondary_themes = ', '.join(
-                [THEMES.get(theme, theme) \
-                 for theme in json.loads(secondary_themes)])
+            secondary_themes = json.loads(secondary_themes) or ''
+
+            if isinstance(secondary_themes, types.ListType):
+                secondary_themes = ', '.join(secondary_themes)
         except ValueError:
             # string for single value
-            secondary_themes = str(secondary_themes)
-            secondary_themes = THEMES.get(secondary_themes,
-                                          secondary_themes)
+            secondary_themes = unicode(secondary_themes)
+
+    mandates = render_mandates(pkg_extras)
+
+    def linkify(schema):
+        if schema['url']:
+            return h.link_to(schema['title'], schema['url'])
+        return escape(schema['title'])
+    def list_of_links(schemas):
+        try:
+            schemas = [linkify(schema) for schema in schemas]
+            return Markup('<br>'.join(schemas))
+            #return Markup('<ul>\n<li>%s</li>\n</ul>' %
+            #              '</li>\n<li>'.join(schemas))
+        except ValueError, e:
+            log.error('Could not display schemas: %r %s', schemas, e)
+            pass
+    schemas = package_dict.get('schema')
+    if schemas:
+        schemas = list_of_links(schemas)
+
+    codelists = package_dict.get('codelist')
+    if codelists:
+        codelists = list_of_links(codelists)
+    sla = package_dict.get('sla')
+    if sla:
+        if sla == 'true':
+            sla = Markup('<span class="js-tooltip" title="%s" data-container="body" >SLA Agreed <i class="icon-info-sign"></i></span>' % escape(get_sla()))
+
     field_value_map = {
         # field_name : {display info}
+        'date_added_to_dgu': {'label': 'Added to data.gov.uk', 'value': package.metadata_created.strftime('%d/%m/%Y')},
+        'date_updated_on_dgu': {'label': 'Updated on data.gov.uk', 'value': package.metadata_modified.strftime('%d/%m/%Y')},
         'state': {'label': 'State', 'value': c.pkg.state},
         'harvest-url': {'label': 'Harvest URL', 'value': harvest_url},
-        'harvest-date': {'label': 'Harvest Date', 'value': harvest_date},
+        'harvest-date': {'label': 'Harvest date', 'value': harvest_date},
         'harvest-guid': {'label': 'Harvest GUID', 'value': harvest_guid},
-        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (pkg_extras.get('bbox-north-lat'), pkg_extras.get('bbox-south-lat'), pkg_extras.get('bbox-west-long'), pkg_extras.get('bbox-east-long'))) },
-        'categories': {'label': 'ONS Category', 'value': pkg_extras.get('categories')},
+        'bbox': {'label': 'Extent', 'value': t.literal('Latitude: %s&deg; to %s&deg; <br/> Longitude: %s&deg; to %s&deg;' % (escape(pkg_extras.get('bbox-north-lat')), escape(pkg_extras.get('bbox-south-lat')), escape(pkg_extras.get('bbox-west-long')), escape(pkg_extras.get('bbox-east-long')))) if has_extent(c.pkg) else ''},
+        'categories': {'label': 'ONS category', 'value': pkg_extras.get('categories')},
+        'data_issued': {'label': 'Data first issued', 'value': render_partial_datestamp(pkg_extras.get('data_issued', ''))},
+        'data_modified': {'label': 'Data last modified', 'value': render_partial_datestamp(pkg_extras.get('data_modified', ''))},
         'date_updated': {'label': 'Date data last updated', 'value': DateType.db_to_form(pkg_extras.get('date_updated', ''))},
         'date_released': {'label': 'Date data last released', 'value': DateType.db_to_form(pkg_extras.get('date_released', ''))},
         'temporal_coverage': {'label': 'Temporal coverage', 'value': temporal_coverage},
         'geographic_coverage': {'label': 'Geographic coverage', 'value': GeoCoverageType.strip_off_binary(pkg_extras.get('geographic_coverage', ''))},
-        'resource-type': {'label': 'Gemini2 resource type', 'value': pkg_extras.get('resource-type')},
+        'resource-type': {'label': 'ISO19139 resource type', 'value': pkg_extras.get('resource-type')},
         'spatial-data-service-type': {'label': 'Gemini2 service type', 'value': pkg_extras.get('spatial-data-service-type')},
         'access_constraints': {'label': 'Access constraints', 'value': render_json(pkg_extras.get('access_constraints'))},
         'taxonomy_url': {'label': 'Taxonomy URL', 'value': taxonomy_url},
         'theme': {'label': 'Theme', 'value': primary_theme},
-        'theme-secondary': {'label': 'Secondary Theme(s)', 'value': secondary_themes},
+        'theme-secondary': {'label': 'Themes (secondary)', 'value': secondary_themes},
+        'mandate': {'label': 'Mandate', 'value': mandates},
+        'schema': {'label': 'Schema/Vocabulary', 'value': schemas},
+        'codelist': {'label': 'Code list', 'value': codelists},
+        'sla': {'label': 'Service Level', 'value': sla},
         'metadata-language': {'label': 'Metadata language', 'value': pkg_extras.get('metadata-language', '').replace('eng', 'English')},
         'metadata-date': {'label': 'Metadata date', 'value': DateType.db_to_form(pkg_extras.get('metadata-date', ''))},
         'dataset-reference-date': {'label': 'Dataset reference date', 'value': dataset_reference_date},
+        'la-function': {'label': 'Local Authority Function', 'value': pkg_extras.get('la_function')},
+        'la-service': {'label': 'Local Authority Service', 'value': pkg_extras.get('la_service')},
         '': {'label': '', 'value': ''},
     }
 
@@ -794,6 +909,27 @@ def get_package_fields(package, pkg_extras, dataset_type):
 
     # calculate displayable field values
     return DisplayableFields(field_names, field_value_map, pkg_extras)
+
+
+def render_mandates(pkg_extras):
+    mandates = pkg_extras.get('mandate')
+    if mandates:
+        def linkify(string):
+            # string is already escaped so we don't have to escape again
+            if string.startswith('http://') or string.startswith('https://'):
+                return '<a href="%s" target="_blank">%s</a>' % (string, string)
+            else:
+                return string
+
+        try:
+            mandates = json.loads(mandates)
+            mandates = [Markup.escape(m) for m in mandates]
+            mandates = [linkify(m) for m in mandates]
+            mandates = Markup("<br>".join(mandates))
+        except ValueError:
+            pass  # Not JSON for some reason...
+    return mandates
+
 
 def results_sort_by():
     # Default to location if there is a bbox and no other parameters. Otherwise
@@ -880,7 +1016,7 @@ def isopen(pkg):
         license_text = ';'.join(license_text_list)
     open_licenses = [
         'Open Government Licen',
-        'http://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/',
+        'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
         'http://reference.data.gov.uk/id/open-government-licence',
         'OS OpenData Licence',
         'OS Open Data Licence',
@@ -924,9 +1060,14 @@ def get_licenses(pkg):
     # UKLP might also have a URL to go with its licence
     license_url = pkg.extras.get('licence_url')
     if license_url:
-        license_url_title = pkg.extras.get('licence_url_title') or license_url
-        isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-        licenses.append((license_url_title, license_url, True if isopen else None, False))
+        license_url_is_ogl = \
+            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
+            '//reference.data.gov.uk/id/open-government-licence' in license_url
+        already_said_we_are_ogl = any([license[3] for license in licenses])
+        if not (license_url_is_ogl and already_said_we_are_ogl):
+            license_url_title = pkg.extras.get('licence_url_title') or license_url
+            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
+            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
 
 def get_dataset_openness(pkg):
@@ -1060,24 +1201,33 @@ def prep_group_edit_data(data):
     # on validation error, the submitted values appear in data[key] with the original
     # values in data['extras']. Therefore populate the form with the data[key] values
     # in preference, and fall back on the data['extra'] values.
-    if c.group:
-        c.editing = True
     original_extra_fields = dict([(extra_dict['key'], extra_dict['value']) \
                                 for extra_dict in data.get('extras', {})])
     for key, value in original_extra_fields.items():
         if key not in data:
             data[key] = value
 
+
 def top_level_init():
-    # Top level initialisation previously done in layout_base to make sure it
-    # is available to all sub-templates. This is a bit nasty, and I think we
-    # would be better off splitting these c.* things either into separate helpers
-    # or into our own BaseController. Perhaps. TODO.
+    '''These 'globals' are initialised by Genshi's layout_base only - not done
+    in Jinja, so for new templates use instead: is_an_official() or
+    groups_for_current_user().
+    '''
     c.groups = groups_for_current_user()
     c.is_an_official = bool(c.groups or is_sysadmin())
 
+
+def is_an_official():
+    if is_sysadmin():
+        return True
+    return bool(groups_for_current_user())
+
+
 def groups_for_current_user():
-    return c.userobj.get_groups(group_type='organization') if c.userobj else []
+    if c.groups == '':
+        c.groups = c.userobj.get_groups(group_type='organization') \
+            if c.userobj else []
+    return c.groups
 
 
 def additional_extra_fields(res):
@@ -1087,8 +1237,10 @@ def additional_extra_fields(res):
 
 
 def hidden_extra_fields(data):
+    from ckanext.dgu.forms.dataset_form import DatasetForm
+    schema_fields = set(DatasetForm.form_to_db_schema().keys())
     return [ e for e in data.get('extras', []) \
-                        if e['key'] not in c.schema_fields ]
+                        if e['key'] not in schema_fields ]
 
 def timeseries_extra_fields(res):
     return [r for r in res.keys() if r not in
@@ -1156,11 +1308,23 @@ def get_license_extra(pkg):
         license_extra = None
     return license_extra
 
-def available_license_ids():
-    return zip(*c.licenses)[1]
+ckan_licenses = None
+def get_ckan_licenses():
+    global ckan_licenses
+    if ckan_licenses is None:
+        from ckan import model
+        ckan_license_dicts = model.Package.get_license_options()
+        ckan_licenses = dict([(k, v) for v, k in ckan_license_dicts])
+    return ckan_licenses
 
 def license_choices(data):
-    return set(available_license_ids()) & set([data.get('license_id', 'uk-ogl'), 'uk-ogl'])
+    license_ids = ['uk-ogl', 'odc-odbl', 'odc-by', 'cc-zero', 'cc-by', 'cc-by-sa']
+    selected_license = data.get('license_id')
+    ckan_licenses = get_ckan_licenses()
+    if selected_license not in license_ids and \
+            selected_license in ckan_licenses:
+        license_ids.append(selected_license)
+    return [(id, ckan_licenses[id]) for id in license_ids]
 
 def edit_publisher_group_name(data):
     if not data.get('organization'):
@@ -1218,6 +1382,8 @@ def are_timeseries_resources(data):
     return are_timeseries_resources
 
 def are_legacy_extras(data):
+    # These are not displayed on a package, but show on the edit form if they
+    # have values, so that they are not lost.
     are_legacy_extras = False
     for key in set(('url', 'taxonomy_url', 'national_statistic', 'date_released', 'date_updated', 'date_update_future', 'precision', 'temporal_granularity', 'geographic_granularity')) & set(data.keys()):
         if data[key]:
@@ -1235,10 +1401,9 @@ def additional_resources():
     return c.pkg_dict.get('additional_resources', [])
 
 def gemini_resources():
-    extras = dict(c.pkg_extras)
-    if not dataset_type(extras)  == 'uklp':
+    if not is_location_data(c.pkg_dict):
         return []
-    harvest_object_id = extras.get('harvest_object_id')
+    harvest_object_id = get_pkg_dict_extra(c.pkg_dict, 'harvest_object_id')
     gemini_resources = [
         {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
          'title': 'Source GEMINI2 record',
@@ -1310,17 +1475,40 @@ def init_resources_for_nav():
             c.pkg_dict['resources'] = individual_resources() + timeseries_resources() + \
                 additional_resources() + gemini_resources()
 
-
-def dataset_type(pkg_extras):
-    dataset_type = 'form' # default - entered via the form
-    resource_type = 'dataset'
+def was_dataset_harvested(pkg_extras):
     extras = dict(pkg_extras)
-    if extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True':
-        dataset_type = 'uklp'
-        resource_type = extras.get('resource-type') + ' record' # dataset/service
-    elif extras.get('external_reference') == 'ONSHUB':
-        dataset_type = 'ons'
-    return dataset_type
+    # NB hopefully all harvested resources will soon use import_source=harvest
+    # and we can simplify this.
+    return extras.get('import_source') == 'harvest' or extras.get('UKLP') == 'True' or extras.get('INSPIRE') == 'True'
+
+def get_harvest_object(pkg):
+    from ckanext.harvest.model import HarvestObject
+    harvest_object_id = pkg.extras.get('harvest_object_id')
+    if harvest_object_id:
+        return HarvestObject.get(harvest_object_id)
+
+# 'Type'/'Source' of dataset determined by these functions
+# (replaces dataset_type() as there were overlaps like local&location)
+
+def is_location_data(pkg_dict):
+    if get_pkg_dict_extra(pkg_dict, 'UKLP') == 'True' or \
+       get_pkg_dict_extra(pkg_dict, 'INSPIRE') == 'True':
+        return True
+
+def dataset_is_from_ns_pubhub(pkg_dict):
+    if get_pkg_dict_extra(pkg_dict, 'external_reference') == 'ONSHUB':
+        return True
+
+def is_local_government_data(pkg_dict):
+    if pkg_dict['organization']:
+        from ckan import model
+        org = model.Group.get(pkg_dict['organization']['id'])
+        if org:
+            if org.extras.get('category') == 'local-council':
+                return True
+
+# end of 'Type'/'Source' of dataset functions
+
 
 def has_bounding_box(extras):
     pkg_extras = dict(extras)
@@ -1337,14 +1525,17 @@ def facet_values(facet_tuples, facet_key):
     values = sorted(values)
     return values
 
-def get_package_mini_metadata(pkg):
-    return {
-        'date-added-computed': pkg.metadata_created.strftime("%d/%m/%Y"),
-        'date-updated-computed': pkg.metadata_modified.strftime("%d/%m/%Y")
-    }
+def has_extent(pkg):
+    return bool(pkg.extras.get('spatial'))
 
-def get_extent():
-    return  c.pkg.extras.get('spatial', False)
+def get_extent(pkg):
+    extent_json_str = pkg.extras.get('spatial', False)
+    # ensure it is JSON for security purposes, since the template will put it
+    # in Javascipt unescaped using |safe
+    try:
+        return json.dumps(json.loads(extent_json_str))
+    except ValueError:  # includes JSONDecodeError
+        return ''
 
 def get_tiles_url():
     GEOSERVER_HOST = config.get('ckanext-os.geoserver.host',
@@ -1529,9 +1720,6 @@ def search_facet_text(key,value):
                 'discovery' : 'Discovery',
             }
         return mapping.get(value,value)
-    if key=='theme-primary' or key=='all_themes':
-        from ckanext.dgu.schema import THEMES
-        return THEMES.get(value,value)
     return value
 
 def search_facet_tooltip(key,value):
@@ -1644,35 +1832,8 @@ def is_unpublished_item(package):
 def is_unpublished_unavailable(package):
     return get_from_flat_dict(package['extras'], 'publish-restricted', False)
 
-def feedback_user_count(pkg):
-    from ckanext.dgu.model.feedback import Feedback
-    return Feedback.users_count(pkg)
-
-def feedback_comment_count(pkg):
-    from ckanext.dgu.model.feedback import Feedback
-    return Feedback.comments_count(pkg)
-
-
 def unpublished_release_notes(package):
     return get_from_flat_dict(package['extras'], 'release-notes')
-
-def unpublished_comments_lookup(package):
-    import ckan.model as model
-    from ckanext.dgu.model.feedback import Feedback
-
-    counts = {'economic': 0, 'social': 0, 'effective': 0, 'other':0, 'linked': 0}
-
-    for fb in model.Session.query(Feedback).filter(Feedback.visible==True).\
-            filter(Feedback.package_id==package['id']).\
-            filter(Feedback.active==True).all():
-        if fb.economic: counts['economic'] += 1
-        if fb.social: counts['social'] += 1
-        if fb.effective: counts['effective'] += 1
-        if fb.other: counts['other'] += 1
-        if fb.linked: counts['linked'] += 1
-
-    return counts
-
 
 def tidy_url(url):
     '''
@@ -1702,10 +1863,10 @@ def tidy_url(url):
 
     # Check we aren't using any schemes we shouldn't be
     if not parsed_url.scheme in ('http', 'https', 'ftp'):
-        raise Exception('Invalid url scheme. Please use one of: http, https, ftp')
+        raise Exception('Invalid url scheme "%s". Please use one of: http, https, ftp. Url: %s' % (parsed_url.scheme, url))
 
     if not parsed_url.netloc:
-        raise Exception('URL parsing failure - did not find a host name')
+        raise Exception('URL parsing failure - did not find a host name: %s' % url)
 
     return url
 
@@ -1720,16 +1881,15 @@ def inventory_status(package_items):
         yield pkg,grp, pkg.extras.get('publish-date', ''), pkg.extras.get('release-notes', ''), action
 
 def themes_count():
-    from ckanext.dgu.schema import THEMES
     from ckan import model
     theme_count = {}
-    for theme in THEMES.keys():
+    for theme, theme_dict in themes().items():
         count = model.Session.query(model.Package)\
             .join(model.PackageExtra)\
             .filter(model.PackageExtra.key=='theme-primary')\
-            .filter(model.PackageExtra.value==theme)\
+            .filter(model.PackageExtra.value==theme_dict['title'])\
             .filter(model.Package.state=='active').count()
-        theme_count[theme] = count
+        theme_count[theme_dict['title']] = count
     return theme_count
 
 def themes():
@@ -1737,15 +1897,17 @@ def themes():
     return Themes.instance().data
 
 def span_read_more(text, word_limit, classes=""):
-    trimmed = truncate(text,length=word_limit,whole_word=True)
+    trimmed = truncate(text, length=word_limit, whole_word=True)
     if trimmed==text:
-        return t.literal('<span class="%s">%s</span>' % (classes,text))
+        return t.literal('<span class="%s">%s</span>' %
+                         (classes, escape(text)))
     return t.literal('<span class="read-more-parent">\
             <span style="display:none;" class="expanded %s">%s</span>\
             <span class="collapsed %s">%s</span>\
             <a href="#" class="collapsed link-read-more">Read more &raquo;</a>\
             <a href="#" class="expanded link-read-less" style="display:none;">&laquo; Hide</a>\
-            </span>' % (classes,text,classes,trimmed))
+            </span>' % (classes, escape(text),
+                        classes, trimmed))
 
 def render_db_date(db_date_str):
     '''Takes a string as we generally store it in the database and returns it
@@ -1761,52 +1923,6 @@ def render_db_date(db_date_str):
     except DateConvertError:
         return ''
 
-
-def feedback_report_checkbox_value(flag, name):
-    from pylons import request
-    checked = (flag == True)
-    val = ''.join([request.path, feedback_report_params_for_value(name, checked)])
-    return val, checked
-
-
-def feedback_report_params():
-    """ When we need a URL to call for generating a CSV we need to work out
-        which parameters are currently set and request those fields in the
-        http request to the CSV endpoint """
-    from urllib import urlencode
-    params = {}
-    if c.show_zero_feedback:
-        params['show-zero-feedback'] = 1
-    if c.include_subpublisher:
-        params['show-subpub'] = 1
-    if c.include_published:
-        params['show-published'] = 1
-    return urlencode(params, True)
-
-def feedback_report_params_for_value(name, field_checked):
-    """ Generates the correct value for the checkbox field. By default this
-        function simply returns an urlencoded string that contains the correct
-        parameters to display the report.
-
-        However, because we allow a GET on clicking a checkbox in the report,
-        we need to be able to specify the value field, which should be the URL
-        to call when clicking on the checkbox. To do this we need to invert the
-        boolean that specifies whether to apply the checked field when applying
-        the filter."""
-    from urllib import urlencode
-
-    params = {
-        'show-zero-feedback':  1 if c.show_zero_feedback else 0,
-        'show-subpub': 1 if c.include_subpublisher else 0,
-        'show-published': 1 if c.include_published else 0,
-    }
-
-    # We need to invert the named field, so that we can set it in the value attr
-    # of the checkbox.  This is what we want when we click the checkbox, so it
-    # should show the opposite of what you expect.
-    params[name] = 0 if field_checked else 1
-
-    return "?" + urlencode(params, True)
 
 def pagination_links(page,numpages,url_for_page):
     # Link to the first page, lastpage, and nearby pages
@@ -1895,10 +2011,18 @@ def report_generated_at(reportname, object_id='__all__', withsub=False):
 
 def relative_url_for(**kwargs):
     '''Return the existing URL but amended for the given url_for-style
-    parameters'''
+    parameters. Much easier than calling h.add_url_param etc. For switching to
+    URLs inside the current controller action only.
+    '''
     from ckan.lib.base import h
+    # Restrict the request params to the same action & controller, to avoid
+    # being an open redirect.
+    disallowed_params = set(('controller', 'action', 'anchor', 'host',
+                             'protocol', 'qualified'))
+    user_specified_params = [(k, v) for k, v in request.params.items()
+                             if k not in disallowed_params]
     args = dict(request.environ['pylons.routes_dict'].items()
-                + request.params.items()
+                + user_specified_params
                 + kwargs.items())
     # remove blanks
     for k, v in args.items():
@@ -1922,6 +2046,208 @@ def parse_date(date_string):
     try:
         return DateType.parse_timedate(date_string, 'form')
     except DateConvertError:
-        class FakeDate:
-            year = ''
-        return FakeDate()
+        class FakeDate(dict):
+            pass
+        return FakeDate(year='')
+
+def user_page_url():
+    from ckan.lib.base import h
+    url = '/user' if 'dgu_drupal_auth' in config['ckan.plugins'] \
+                  else h.url_for(controller='user', action='me')
+    if not c.user:
+        url += '?destination=%s' % request.path[1:]
+    return url
+
+def is_plugin_enabled(plugin_name):
+    return plugin_name in config.get('ckan.plugins', '').split()
+
+def config_get(key, default=None):
+    return config.get(key, default)
+
+def paginator_page_url(pageobj):
+    # Return a function that can be queried to get the url for a specific
+    # page.
+    return lambda x: pageobj._url_generator(page=x)
+
+def is_dict(d):
+    return type(d) == dict and bool(d)
+
+def is_list(d):
+    return type(d) == list and bool(d)
+
+def is_string(d):
+    return (type(d) in [str, unicode]) and bool(d)
+
+def list_enumerate(l):
+    return enumerate(l)
+
+def sorted_list(l):
+    return sorted(l)
+
+def as_dict(d):
+    return dict(d)
+
+def extract_year(resource_dict):
+    return parse_date(resource_dict.get('date'))['year']
+
+def report_match_organization_name(name, dct):
+    return filter(lambda d: d['organization_name'] == name, dct)
+
+def report_match_rows(rows, type_, quarter):
+    return [row for row in rows if (row[3]==type_ and row[4]==quarter)]
+
+def report_timestamps_split(timestamps):
+    return [render_datetime(timestamp) for timestamp in timestamps.split(' ')]
+
+def report_users_split(users, organization):
+    return [dgu_linked_user(user, organization=organization) for user in users.split(' ')]
+
+def closed_publisher_ids():
+    """
+    Returns the IDs of all of the closed publishers. For use in
+    publisher_index.
+    """
+    import ckan.model as model
+    extras = model.Session.query(model.GroupExtra.group_id)\
+        .filter(model.GroupExtra.key == 'closed')\
+        .filter(model.GroupExtra.value == 'true')\
+        .filter(model.GroupExtra.state == 'active')
+    return set(e[0] for e in extras.all())
+
+def all_publishers(exclude=None):
+    import ckan.model as model
+    pubs = model.Session.query(model.Group.name, model.Group.title)\
+        .filter(model.Group.state=='active')\
+        .filter(model.Group.type=='organization')
+
+    return pubs.order_by(model.Group.title)
+
+def get_closed_publisher_message(pub):
+    """ For publishers that are closed, this function will return a message to
+        display on the publisher_read/publisher_edit pages """
+    import ckan.model as model
+
+    closed = pub.get('closed')
+    replaced_by = pub.get('replaced_by')
+
+    if not closed:
+        return None
+
+    extra_msg = None
+    if replaced_by:
+        if isinstance(replaced_by, basestring):
+            replaced_by = [replaced_by]
+        publisher_urls = []
+        for p in replaced_by:
+            g = model.Group.get(p)
+            if not g:
+                log.warning('Could not find %s which replaces publisher %s', p,
+                            pub['name'])
+                continue
+            publisher_urls.append('<a href="/publisher/%s">%s</a>' % (g.name, g.title,))
+        extra_msg = ' or '.join(publisher_urls)
+        extra_msg = 'Please see %s instead.' % extra_msg
+
+    return 'This publisher has closed. %s ' % (extra_msg or '')
+
+def put_closed_publishers_last(pub_list, closed_publisher_ids):
+    open_pubs = []
+    closed_pubs = []
+    for pub in pub_list:
+        if pub['id'] in closed_publisher_ids:
+            closed_pubs.append(pub)
+        else:
+            open_pubs.append(pub)
+    return open_pubs + closed_pubs
+
+def get_dgu_dataset_form_options(field_name):
+    '''
+    Returns a list of option tuples for the given field.
+    Each tuple: (code_as_stored_in_db, displayed_value)
+
+    :param field_name: e.g. "geographic_granularity"
+    '''
+    from ckanext.dgu.forms import dataset_form
+    return getattr(dataset_form, field_name)
+
+def orgs_for_admin_report():
+    from ast import literal_eval
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+
+    admin_orgs = organizations_available(permission='admin')
+
+    relationship_managers = literal_eval(config.get('dgu.relationship_managers', '{}'))
+
+    allowed_orgs = relationship_managers.get(c.user, [])
+    if allowed_orgs:
+        data_dict = {
+            'organizations': allowed_orgs,
+            'all_fields': True,
+        }
+        rm_orgs = get_action('organization_list')(context, data_dict)
+    else:
+        rm_orgs = []
+
+    all_orgs = {}
+    for org in (admin_orgs + rm_orgs):
+       all_orgs[org['name']] = org
+
+    return sorted(all_orgs.values(), key=lambda x: x['title'])
+
+def all_la_org_names():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([la.name for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
+def all_la_org_names_and_titles():
+    from ckan import model
+    la_root = model.Group.get('local-authorities')
+    return sorted([(la.name, la.title) for la in sorted(la_root.get_children_groups(type='organization'), key=lambda g: g.title)])
+
+def get_schema_options():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    return get_action('schema_list')(context, {})
+
+def get_la_schema_options():
+    all_schemas = get_schema_options()
+    incentive_schemas = []
+    for schema in all_schemas:
+        if 'LGTC' in schema['title']:
+            incentive_schemas.append(schema)
+    return incentive_schemas
+
+def get_codelist_options():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    return get_action('codelist_list')(context, {})
+
+def get_mandate_list(data):
+    mandate = data.get('mandate') or []
+    if isinstance(mandate, basestring):
+        # This shouldn't happen, but maybe a harvester puts in a string
+        return [mandate]
+    if not isinstance(mandate, list):
+        log.error('Mandate should be a list: %r', mandate)
+        return mandate
+    return mandate
+
+def ensure_ids_are_in_a_list_of_dicts(l):
+    if isinstance(l, basestring):
+        # validation error when there is a single schema/codelist drop-down
+        return [{'id': l}]
+    elif isinstance(l, list) and l and isinstance(l[0], basestring):
+        # validation error when there are multiple schema/codelist drop-downs
+        return [{'id': id} for id in l]
+    # initial load of the form
+    return l
+
+def get_sla():
+    return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'

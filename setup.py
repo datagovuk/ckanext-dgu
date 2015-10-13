@@ -43,22 +43,17 @@ setup(
         dgu_dataset_form = ckanext.dgu.forms.dataset_form:DatasetForm
         dgu_mock_drupal2 = ckanext.dgu.testtools.mock_drupal2:MockDrupal2
         dgu_api = ckanext.dgu.plugin:ApiPlugin
+        dgu_site_down = ckanext.dgu.plugin:SiteIsDownPlugin
+        dgu_schema = ckanext.dgu.plugin:SchemaPlugin
 
         [console_scripts]
-        ons_loader = ckanext.dgu.ons.command:load
-        cospread_loader = ckanext.dgu.cospread:load
         change_licenses = ckanext.dgu.bin.change_licenses_cmd:command
+        bulk_delete = ckanext.dgu.bin.bulk_delete_cmd:command
         transfer_url = ckanext.dgu.bin.transfer_url_cmd:command
-        ons_analysis = ckanext.dgu.bin.ons_analysis_cmd:command
         ofsted_fix = ckanext.dgu.bin.ofsted_fix_cmd:command
         publisher_migration = ckanext.dgu.bin.publisher_migration:command
         metadata_v3_migration = ckanext.dgu.bin.metadata_v3_migration:command
         generate_test_organisations = ckanext.dgu.testtools.organisations:command
-        ons_remove_resources = ckanext.dgu.bin.ons_remove_resources:command
-        ons_remove_packages = ckanext.dgu.bin.ons_remove_packages:command
-        ons_delete_resourceless_packages = ckanext.dgu.bin.ons_delete_resourceless_packages:command
-        ons_uksa_data4nr = ckanext.dgu.bin.ons_uksa_data4nr:command
-        ons_merge_duplicates = ckanext.dgu.bin.ons_merge_duplicates:command
         dump_analysis = ckanext.dgu.bin.dump_analysis:command
         gov_daily = ckanext.dgu.bin.gov_daily:command
         sync_organisations = ckanext.dgu.bin.sync_organisations:command
@@ -77,7 +72,6 @@ setup(
         wdtk_publisher_match = ckanext.dgu.commands.wdtk2:PublisherMatch
         update_licenses = ckanext.dgu.commands.license_updates:UpdateLicense
         scrape_resources = ckanext.dgu.bin.scrape_resources:ScrapeResources
-        ons_scrape = ckanext.dgu.bin.ons_scraper:ONSUpdateTask
         selenium_tests = ckanext.dgu.commands.selenium_tests:TestRunner
         build_void = ckanext.dgu.commands.void_constructor:VoidConstructor
         stress_solr = ckanext.dgu.commands.solr_stress:SolrStressTest
@@ -90,6 +84,12 @@ setup(
         clean_resource_dates = ckanext.dgu.commands.clean_resource_dates:CleanResourceDates
         sync_apps = ckanext.dgu.commands.appsync:AppSync
         govuk_publications = ckanext.dgu.commands.govuk_publications:GovukPublicationsCommand
+        vocabs = ckanext.dgu.commands.vocabs:VocabsCmd
+        sync_closed = ckanext.dgu.commands.sync_closed:SyncClosedPublishers
+        check_publisher_requests = ckanext.dgu.commands.check_publisher_requests:CheckRequests
+        publisher_request_init = ckanext.dgu.commands.publisher_request_init:InitDB
+        schema = ckanext.dgu.commands.schema:Schema
+        user_sync = ckanext.dgu.commands.user_sync:UserSync
     """,
     test_suite = 'nose.collector',
 )

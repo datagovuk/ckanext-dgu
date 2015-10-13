@@ -1,34 +1,30 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-<xi:include href="util.html" />
+{% import "commitment/util.html" as m with context %}
 
-<py:def function="body_class">no-sidebar</py:def>
+{% block title %}{{c.publisher.display_name}}{% endblock%}
 
-  <py:def function="page_title">${c.publisher.display_name}</py:def>
 
-  <py:def function="page_heading">
-    Editing PM Commitments
-  </py:def>
+<h1>Editing PM Commitments</h1>
 
-  <py:match path="breadcrumbs">
-    <li><a href="/data/search">Datasets</a></li>
-    <li><a href="/publisher/${c.publisher.name}">${c.publisher.title}</a></li>
-    <li><a href="${h.url_for('commitments_publisher',id=c.publisher.name)}">Data Publication Commitments</a></li>
-    <li><a href="${h.url_for('commitments_edit', id=c.publisher.name)}">Edit</a></li>
-  </py:match>
+{% block breadcrumb_content %}
+  {{ h.build_nav('dgu_search', _('Datasets')) }}
+  {{ h.build_nav('publisher_read', c.publisher.title, id=c.publisher.name ) }}
+  {{ h.build_nav('commitments', _('Data Publication Commitments')) }}
+  {{ h.build_nav('commitments_edit', _('Edit'), id=c.publisher.name) }}
+{% endblock %}
 
-  <py:match path="content">
 
-    <h1>Edit PM Commitments <small>${c.publisher.title}</small></h1>
+{% block primary_content_inner %}
+
+    <h1>Edit PM Commitments <small>{{c.publisher.title}}</small></h1>
     <form action="" method="POST">
 
     <div class="boxed">
 
     <h2><a href="http://www.number10.gov.uk/news/letter-to-government-departments-on-opening-up-data">Prime Minister's Letter May 2010</a></h2>
-    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM1')">
+    {% with %}
+      {% set commitments = h.commitments_by_source(c.commitments, 'PM1') %}
         <table class="table table-striped table-bordered" width="100%">
           <thead>
             <tr>
@@ -39,14 +35,14 @@
           </thead>
 
           <tbody>
-          <py:if test="not commitments">
-            ${editable_commitment_row(None, idx=0, src="PM1")}
-            ${editable_commitment_row(None, idx=1, src="PM1")}
-          </py:if>
+          {% if not commitments %}
+            {{m.editable_commitment_row(None, idx=0, src="PM1")}}
+            {{m.editable_commitment_row(None, idx=1, src="PM1")}}
+          {% endif %}
 
-          <py:for each="idx,commitment in enumerate(commitments)">
-              ${editable_commitment_row(commitment, idx=idx, src="PM1")}
-          </py:for>
+          {% for commitment in commitments %}
+              {{m.editable_commitment_row(commitment, idx=loop.index0, src="PM1")}}
+          {% endfor %}
 
           <tr>
             <td colspan="3">
@@ -57,12 +53,13 @@
 
           </tbody>
           </table>
-    </py:with>
+    {% endwith %}
 
     <div class="clearfix"></div>
 
     <h2><a href="http://www.number10.gov.uk/news/letter-to-cabinet-ministers-on-transparency-and-open-data">Prime Minister's Letter July 2011</a></h2>
-    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'PM2')">
+      {% with %}
+        {% set commitments = h.commitments_by_source(c.commitments, 'PM2') %}
         <table class="table table-striped table-bordered" width="100%">
           <thead>
             <tr>
@@ -73,14 +70,14 @@
           </thead>
 
           <tbody>
-          <py:if test="not commitments">
-            ${editable_commitment_row(None, idx=0, src="PM2")}
-            ${editable_commitment_row(None, idx=1, src="PM2")}
-          </py:if>
+          {% if not commitments %}
+            {{m.editable_commitment_row(None, idx=0, src="PM2")}}
+            {{m.editable_commitment_row(None, idx=1, src="PM2")}}
+          {% endif %}
 
-          <py:for each="idx,commitment in enumerate(commitments)">
-              ${editable_commitment_row(commitment,idx=idx,  src="PM2")}
-          </py:for>
+          {% for commitment in commitments %}
+              {{m.editable_commitment_row(commitment,idx=loop.index0,  src="PM2")}}
+          {% endfor %}
 
           <tr>
             <td colspan="3">
@@ -90,15 +87,18 @@
 
           </tbody>
           </table>
-    </py:with>
+    {% endwith %}
 
     <div class="clearfix"></div>
 
-    <h2 py:with="url = h.open_data_strategy_link(c.publisher)">
-      <a py:if="url" href="${h.open_data_strategy_link(c.publisher)}">Open data strategy</a>
-      <py:if test="not url">Open data strategy</py:if>
+    {% set url = h.open_data_strategy_link(c.publisher) %}
+    <h2>
+      {% if url %}<a href="{{h.open_data_strategy_link(c.publisher)}}">Open data strategy</a>
+      {% else %}Open data strategy
+      {% endif %}
     </h2>
-    <py:with vars="commitments = h.commitments_by_source(c.commitments, 'ODS')">
+    {% with %}
+    {% set commitments = h.commitments_by_source(c.commitments, 'ODS') %}
         <table class="table table-striped table-bordered" width="100%">
           <thead>
             <tr>
@@ -109,13 +109,13 @@
           </thead>
 
           <tbody>
-          <py:if test="not commitments">
-            ${editable_commitment_row(None, idx=0, src="ODS")}
-            ${editable_commitment_row(None, idx=1, src="ODS")}
-          </py:if>
-          <py:for each="idx,commitment in enumerate(commitments)">
-              ${editable_commitment_row(commitment, idx=idx, src="ODS")}
-          </py:for>
+          {% if not commitments %}
+            {{m.editable_commitment_row(None, idx=0, src="ODS")}}
+            {{m.editable_commitment_row(None, idx=1, src="ODS")}}
+          {% endif %}
+          {% for commitment in commitments %}
+              {{m.editable_commitment_row(commitment, idx=loop.index0, src="ODS")}}
+          {% endfor %}
 
           <tr>
             <td colspan="3">
@@ -126,13 +126,13 @@
 
           </table>
 
-    </py:with>
+    {% endwith %}
 
 
     <div class="clearfix"></div>
 
     <div class="btn-toolbar">
-      <a href="${h.url_for('commitments_publisher',id=c.publisher.name)}" class="pull-right btn btn-default" style="margin-left: 8px;">Cancel</a>
+      <a href="{{h.url_for('commitments_publisher',id=c.publisher.name)}}" class="pull-right btn btn-default" style="margin-left: 8px;">Cancel</a>
       <input type="submit" class="pull-right btn btn-primary" value="Save"/>
     </div>
 
@@ -141,12 +141,10 @@
     </div>
 
   </form>
+{% endblock %}
 
 
-
-  </py:match>
-
- <py:def function="optional_head">
+{% block optional_head %}
     <script type="text/javascript">
       $(document).ready(function(){
         console.log( $('.addrow').length )
@@ -195,10 +193,7 @@
 
       });
     </script>
- </py:def>
 
-
-  <xi:include href="../layout.html" />
-</html>
+{% endblock %}
 
 

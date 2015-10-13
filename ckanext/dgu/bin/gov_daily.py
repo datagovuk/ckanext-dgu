@@ -95,26 +95,30 @@ def command(config_file):
                 log.info('Getting analytics for this month')
                 from ckanext.ga_report.download_analytics import DownloadAnalytics
                 from ckanext.ga_report.ga_auth import (init_service, get_profile_id)
-                try:
-                    token, svc = init_service(ga_token_filepath, None)
-                except TypeError:
-                    log.error('Could not complete authorization for Google Analytics.'
-                              'Have you correctly run the getauthtoken task and '
-                              'specified the correct token file?')
-                    sys.exit(0)
-                downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
-                                               delete_first=False,
-                                               skip_url_stats=False)
-                downloader.latest()
+                if not os.path.exists(ga_token_filepath):
+                    log.error('GA Token does not exist: %s - not downloading '
+                              'analytics' % ga_token_filepath)
+                else:
+                    try:
+                        token, svc = init_service(ga_token_filepath, None)
+                    except TypeError, e:
+                        log.error('Could not complete authorization for Google '
+                                'Analytics. Have you correctly run the '
+                                'getauthtoken task and specified the correct '
+                                'token file?\nError: %s', e)
+                        sys.exit(1)
+                    downloader = DownloadAnalytics(svc, token=token, profile_id=get_profile_id(svc),
+                                                delete_first=False)
+                    downloader.latest()
         else:
             log.info('No token specified, so not downloading Google Analytics data')
     except Exception, exc_analytics:
-        log.error("Failed to process Google Analytics data")
         log.exception(exc_analytics)
+        log.error("Failed to process Google Analytics data (see exception in previous log message)")
 
     # Copy openspending reports
-    if run_task('openspending'):
-        log.info('Copying in OpenSpending reports')
+    if False:  # DISABLED for now  #run_task('openspending'):
+        log.info('OpenSpending reports')
         if not os.path.exists(openspending_reports_dir):
             log.info('Creating dump dir: %s' % openspending_reports_dir)
             os.makedirs(openspending_reports_dir)
@@ -135,6 +139,7 @@ def command(config_file):
                           e)
             else:
                 urls = [openspending_reports_url]
+                log.info('Getting reports, starting with: %s', urls[0])
                 for publisher in publishers:
                     urls.append('%spublisher-%s.html' % (openspending_reports_url, publisher))
 
@@ -142,7 +147,9 @@ def command(config_file):
                     try:
                         report_response = urllib2.urlopen(url).read()
                     except urllib2.HTTPError, e:
-                        if e.code == 404:
+                        if e.code == 404 and url == openspending_reports_url:
+                            log.error('Got 404 for openspending report index! %s' % url)
+                        elif e.code == 404:
                             log.info('Got 404 for openspending report %s' % url)
                         else:
                             log.error('Could not download openspending report %r: %s',
@@ -162,9 +169,9 @@ def command(config_file):
                         # Sort out non-encoded symbols
                         report_html = re.sub(u' & ', ' &amp; ', report_html)
                         report_html = re.sub('\xc2\xa3', '&pound;', report_html)
-                        report_html = re.sub(u'\u2714', '&#x2714;', report_html)
-                        report_html = re.sub(u'\u2718', '&#x2718;', report_html)
-                        report_html = re.sub(u'\u0141', '&#x0141;', report_html)
+                        report_html = re.sub(u'\u2714', '&#x2714;', report_html) # tick
+                        report_html = re.sub(u'\u2718', '&#x2718;', report_html) # cross
+                        report_html = re.sub(u'\u0141', '&#x0141;', report_html) # pound
                         # save it
                         filename = url[url.rfind('/')+1:] or 'index.html'
                         filepath = os.path.join(openspending_reports_dir, filename)
@@ -184,8 +191,38 @@ def command(config_file):
         query = model.Session.query(model.Package).filter(model.Package.state=='active')
         dump_file_base = start_time.strftime(dump_filebase)
         logging.getLogger("MARKDOWN").setLevel(logging.WARN)
-        for file_type, dumper_ in (('csv', dumper.SimpleDumper().dump_csv),
-                                  ('json', dumper.SimpleDumper().dump_json),
+
+
+        # Explicitly dump the packages and resources to their respective CSV files
+        # before zipping them up and moving them into position.
+        import ckanext.dgu.lib.dumper as dumperlib
+
+        dump_filepath = os.path.join(dump_dir, dump_file_base + '.csv.zip')
+
+        log.info('Creating CSV files: %s' % dump_filepath)
+        dumpobj = dumperlib.CSVDumper()
+        dumpobj.dump()
+
+        dataset_file, resource_file = dumpobj.close()
+
+        log.info('Dumped datasets file is %dMb in size' % (os.path.getsize(dataset_file) / (1024*1024)))
+        log.info('Dumped resources file is %dMb in size' % (os.path.getsize(resource_file) / (1024*1024)))
+
+        dump_file = zipfile.ZipFile(dump_filepath, 'w', zipfile.ZIP_DEFLATED)
+        dump_file.write(dataset_file, "datasets.csv")
+        dump_file.write(resource_file, "resources.csv")
+        dump_file.close()
+
+        link_filepath = os.path.join(dump_dir, "data.gov.uk-ckan-meta-data-latest.csv.zip")
+
+        if os.path.exists(link_filepath):
+            os.unlink(link_filepath)
+        os.symlink(dump_filepath, link_filepath)
+        os.remove(dataset_file)
+        os.remove(resource_file)
+
+        # Dump the json and unpublished csv to the usual place.
+        for file_type, dumper_ in (('json', dumper.SimpleDumper().dump_json),
                                   ('unpublished.csv', inventory_dumper),
                                  ):
             dump_filename = '%s.%s' % (dump_file_base, file_type)
@@ -209,7 +246,6 @@ def command(config_file):
             os.symlink(dump_filepath, link_filepath)
 
             os.remove(tmp_filepath)
-
         report_time_taken(log)
 
     # Dump analysis
@@ -249,6 +285,8 @@ def command(config_file):
         db_details = get_db_config(config)
         pg_dump_filename = start_time.strftime(backup_filebase)
         pg_dump_filepath = os.path.join(backup_dir, pg_dump_filename)
+        pg_anon_dump_filepath = os.path.join(
+            backup_dir, pg_dump_filename.replace('.pg_dump', '.anon_pg_dump.gz'))
         cmd = 'export PGPASSWORD=%(db_pass)s&&pg_dump ' % db_details
         for pg_dump_option, db_details_key in (('U', 'db_user'),
                                                ('h', 'db_host'),
@@ -260,6 +298,18 @@ def command(config_file):
         ret = os.system(cmd)
         if ret == 0:
             log.info('Backup successful: %s' % pg_dump_filepath)
+            from anonymize_sql import anonymize_files
+            log.info('Anonymizing to: %s' % pg_anon_dump_filepath)
+            num_users = anonymize_files(pg_dump_filepath,
+                                        pg_anon_dump_filepath)
+            if num_users < 500:
+                log.error('Not enough users anonymized in backup - %i users. '
+                          'Not anonymized successfully so deleting the file',
+                          num_users)
+                os.remove(pg_anon_dump_filepath)
+            else:
+                log.info('Created anonymous backup: %s (%i users)',
+                        pg_anon_dump_filepath, num_users)
             log.info('Zipping up backup')
             pg_dump_zipped_filepath = pg_dump_filepath + '.gz'
             # -f to overwrite any existing file, instead of prompt Yes/No
@@ -270,6 +320,15 @@ def command(config_file):
                 log.info('Backup gzip successful: %s' % pg_dump_zipped_filepath)
             else:
                 log.error('Backup gzip error: %s' % ret)
+            # Only give read permission to anon backup, unless root, to
+            # encourage use of the anonymous versions
+            cmd = 'chmod 640 %s' % pg_dump_zipped_filepath
+            log.info('Chmod command: %s' % cmd)
+            ret = os.system(cmd)
+            if ret == 0:
+                log.info('Backup chmod successful: %s' % pg_dump_zipped_filepath)
+            else:
+                log.error('Backup chmod error: %s' % ret)
         else:
             log.error('Backup error: %s' % ret)
 
@@ -278,21 +337,25 @@ def command(config_file):
     log.info('Finished daily script')
     log.info('----------------------------')
 
-TASKS_TO_RUN = ['analytics','openspending','dump','dump_analysis','backup']
+TASKS_TO_RUN = ['analytics', 'openspending', 'dump', 'dump_analysis', 'backup']
 
 if __name__ == '__main__':
     USAGE = '''Daily script for government
-    Usage: python %s [config.ini]
+    Usage: python %s <config.ini> [task]
 
-    You may provide an optional argument at the end which is the tasks to run,
-    and you can choose from %s or run multiple by
-    separating by a comma.
+    Where:
+       [task] - task to run (optional), picked from:
+                %s
+                or run multiple by separating by a comma.
     ''' % (sys.argv[0], ','.join(TASKS_TO_RUN))
 
-    if len(sys.argv) < 2 or sys.argv[1] in ('--help', '-h'):
+    if set(sys.argv) & set(('--help', '-h')):
+        print USAGE
+        sys.exit(1)
+    if len(sys.argv) < 2:
         err = 'Error: Please specify config file.'
         print USAGE, err
-        logging.error('%s\n%s' % (USAGE, err))
+        logging.error('%s' % err)
         sys.exit(1)
     config_file = sys.argv[1]
     config_ini_filepath = os.path.abspath(config_file)

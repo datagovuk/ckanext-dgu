@@ -23,3 +23,6 @@ nltk
 
 # Requests cache for govuk_publications.py
 requests_cache
+
+# Git Python for UK Gov Linked Data
+GitPython==0.3.2.RC1

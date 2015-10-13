@@ -1,16 +1,14 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">System Dashboard</py:def>
+{% set user = c.user_dict %}
 
-  <py:match path="breadcrumbs">
-    <li><a href="/data/system_dashboard">System Dashboard</a></li>
-  </py:match>
+{% block title %}System Dashboard - {{ super() }}{% endblock %}
 
+{% block breadcrumb_content %}
+  {{ h.build_nav('system_dashboard', _('System Dashboard')) }}
+{% endblock %}
 
-  <py:match path="content">
+{% block primary_content_inner %}
     <h1>System Dashboard</h1>
     <p>This page includes reports and administration tools for use by data.gov.uk System Administrators.</p>
 
@@ -23,19 +21,9 @@
         <ul>
           <li><a href="/dataset/new">Create a dataset</a></li>
           <li>Edit a dataset by <a href="/data/search">navigating to it</a> and clicking 'Edit'</li>
-          <li>${h.link_to("Report - Broken Links", h.url_for('report', report_name='broken-links'))}</li>
-          <li>${h.link_to("Report - 5 Stars of Openness scores", h.url_for('report', report_name='openness'))}</li>
-          <li>${h.link_to("Report - Publisher Resources", h.url_for('report', report_name='publisher-resources'))}</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="panel panel-info">
-      <div class="panel-heading">Feedback (related to NII/inventory)</div>
-      <div class="panel-body">
-        <ul>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.reports:ReportsController', action='view', report_name='feedback')}">Feedback report</a></li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.feedback:FeedbackController', action='moderation')}">Feedback moderation</a></li>
+          <li>{{ h.link_to("Report - Broken Links", h.url_for('report', report_name='broken-links')) }}</li>
+          <li>{{ h.link_to("Report - 5 Stars of Openness scores", h.url_for('report', report_name='openness')) }}</li>
+          <li>{{ h.link_to("Report - Publisher Resources", h.url_for('report', report_name='publisher-resources')) }}</li>
         </ul>
       </div>
     </div>
@@ -44,15 +32,16 @@
       <div class="panel-heading">Reports</div>
       <div class="panel-body">
         <ul>
-          <li>${h.link_to("Broken Links", h.url_for('report', report_name='broken-links'))}</li>
-          <li>${h.link_to("5 Stars of Openness scores", h.url_for('report', report_name='openness'))}</li>
-          <li>${h.link_to("Publisher Activity", h.url_for('report', report_name='publisher-activity'))}</li>
-          <li>${h.link_to("Publisher Resource", h.url_for('report', report_name='publisher-resources'))}</li>
-          <li>${h.link_to("NII", h.url_for('report', report_name='nii'))}</li>
-          <li>${h.link_to("Feedback", h.url_for('report', report_name='feedback'))}</li>
-          <li><a href="${h.url_for('commitments')}">Data publication commitments</a></li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_publishers_and_users')}">Publisher Editors/Admins</a></li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins')}">Publishers without Editors/Admins</a></li>
+          <li>{{ h.link_to("Broken Links", h.url_for('report', report_name='broken-links')) }}</li>
+          <li>{{ h.link_to("5 Stars of Openness scores", h.url_for('report', report_name='openness')) }}</li>
+          <li>{{ h.link_to("Publisher Activity", h.url_for('report', report_name='publisher-activity')) }}</li>
+          <li>{{ h.link_to("Publisher Resource", h.url_for('report', report_name='publisher-resources')) }}</li>
+          <li>{{ h.link_to("NII", h.url_for('report', report_name='nii')) }}</li>
+          <li>{{ h.link_to("Feedback", h.url_for('report', report_name='feedback')) }}</li>
+          <li><a href="{{ h.url_for('commitments') }}">Data publication commitments</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_publishers_and_users') }}">Publisher Editors/Admins</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins') }}">Publishers without Editors/Admins</a></li>
+          <li><a href="{{ h.url_for('publisher_requests') }}">Publisher (Editor) Requests</a></li>
         </ul>
       </div>
     </div>
@@ -61,7 +50,7 @@
       <div class="panel-heading">Harvesting</div>
       <div class="panel-body">
         <ul>
-          <li><a href="${h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index')}">Harvest sources</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index') }}">Harvest sources</a></li>
         </ul>
       </div>
     </div>
@@ -73,10 +62,10 @@
       <div class="panel-heading">Publishers</div>
       <div class="panel-body">
         <ul>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='new')}">Create a new publisher</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='new') }}">Create a new publisher</a></li>
           <li>Edit a publisher by <a href="/publisher">navigating to it</a> and clicking 'Edit'</li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_publishers_and_users')}">Report - Publishers and their editors/admins</a></li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins')}">Report - Publishers without editors/admins</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_publishers_and_users') }}">Report - Publishers and their editors/admins</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins') }}">Report - Publishers without editors/admins</a></li>
         </ul>
       </div>
     </div>
@@ -85,33 +74,29 @@
       <div class="panel-heading">Users</div>
       <div class="panel-body">
         <ul>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users')}">Users</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users') }}">Users</a></li>
           <li>Appoint a Publisher Admin or Publisher Editor by <a href="/publisher">navigating to the publisher</a> and clicking 'Edit User Permissions'</li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_groups_without_admins')}">Report - Users who are admins/editors for publishers</a></li>
-          <li><a href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users_not_assigned_to_groups')}">Report - Users not assigned to a publisher</a></li>
-          <li><a href="${h.url_for('ckanadmin_index')}">Sysadmins</a></li>
+          <li><a href="{{ h.url_for('report', report_name='admin_editor') }}">Report - Users who are admins/editors for publishers</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='report_users_not_assigned_to_groups') }}">Report - Users not assigned to a publisher</a></li>
+          <li><a href="{{ h.url_for('ckanadmin_index') }}">Sysadmins</a></li>
+          <li><a href="{{ h.url_for('publisher_requests') }}">Report - Publisher (Editor) Requests</a></li>
         </ul>
       </div>
     </div>
-    <py:if test="h.ga_report_installed()">
+    {% if h.ga_report_installed() %}
     <div class="panel panel-info">
       <div class="panel-heading">Site Usage</div>
       <div class="panel-body">
         <ul>
-          <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index')}">Site-wide</a></li>
-          <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='publishers')}">Publishers leaderboard</a></li>
-          <li py:if="h.ga_report_installed()"><a href="${h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read')}">Datasets</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.ga_report.controller:GaReport',action='index') }}">Site-wide</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='publishers') }}">Publishers leaderboard</a></li>
+          <li><a href="{{ h.url_for(controller='ckanext.ga_report.controller:GaDatasetReport',action='read') }}">Datasets</a></li>
           <li><a href="http://www.google.com/analytics/">Google Analytics</a></li>
         </ul>
       </div>
     </div>
-    </py:if>
+    {% endif %}
     </div>
     </div>
-  </py:match>
-
-
-
-  <xi:include href="../layout.html" />
-</html>
+{% endblock %}
 

@@ -1,23 +1,20 @@
 ﻿from logging import getLogger
-
-from pylons import config
-import sqlalchemy.orm
+import json
 
 from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
 import ckan.plugins.toolkit as toolkit
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
+from ckanext.dgu.lib.site_down_middleware import SiteDownMiddleware
 from ckanext.dgu.authorize import (
                              dgu_package_update,
                              dgu_extra_fields_editable,
                              dgu_dataset_delete, dgu_user_list, dgu_user_show,
-                             dgu_feedback_update, dgu_feedback_create,
-                             dgu_feedback_delete, dgu_organization_delete,
-                             dgu_group_change_state,
+                             dgu_organization_delete, dgu_group_change_state,
                              )
 from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
-from ckanext.dgu.lib.helpers import dgu_linked_user
+from ckanext.dgu.lib.helpers import dgu_linked_user, is_plugin_enabled
 from ckanext.dgu.lib.search import solr_escape
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
@@ -74,10 +71,6 @@ class DguReportPlugin(p.SingletonPlugin):
                      '/data/report/broken-links')
         map.redirect('/data/reports/qa/organisation/broken_resource_links/:organization',
                      '/data/report/broken-links/:organization')
-        map.redirect('/data/reports/feedback',
-                     '/data/report/feedback')
-        map.redirect('/data/reports/feedback/:organization',
-                     '/data/report/feedback/:organization')
         map.redirect('/data/reports/resources/:organization',
                      '/data/report/publisher-resources/:organization')
         # openness done
@@ -99,12 +92,6 @@ class DguReportPlugin(p.SingletonPlugin):
         #   /publisher/report_publishers_and_users
         #   /publisher/report_groups_without_admins
         #   /publisher/report_users_not_assigned_to_groups
-
-        # Older redirect
-        map.redirect('/data/feedback/report/{id}.{format}', '/data/report/feedback/{id}?format={format}')
-        map.redirect('/data/feedback/report/{id}', '/data/report/feedback/{id}')
-        map.redirect('/data/feedback/report.{format}', '/data/report/feedback?format={format}')
-        map.redirect('/data/feedback/report', '/data/report/feedback')
 
         return map
 
@@ -183,17 +170,18 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/linked-data-admin', controller=data_controller, action='linked_data_admin')
         map.connect('/data/tag', controller=tag_controller, action='index')
         map.connect('/data/tag/{id}', controller=tag_controller, action='read')
-        map.connect('/data/search', controller='package', action='search')
-        map.connect('/data/api', controller=data_controller, action='api')
-        map.connect('/data/system_dashboard', controller=data_controller, action='system_dashboard')
-        map.connect('/data/openspending-report/index', controller=data_controller, action='openspending_report')
-        map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
-        map.connect('/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
-        map.connect('/data/carparks', controller=data_controller, action='carparks')
+        map.connect('dgu_search', '/data/search', controller='package', action='search')
+        map.connect('api_page', '/data/api', controller=data_controller, action='api')
+        map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
+        map.connect('openspending_index', '/data/openspending-report/index', controller=data_controller, action='openspending_report')
+        map.connect('openspending_read', '/data/openspending-report/{id}', controller=data_controller, action='openspending_publisher_report')
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
         map.connect('/data/viz/new-front-page', controller=data_controller, action='viz_front_page')
+        map.connect('/data/viz/upload', controller=data_controller, action='viz_upload')
+
+        map.connect('/data/contracts-finder-archive{relative_url:.*}', controller=data_controller, action='contracts_archive')
 
         theme_controller = 'ckanext.dgu.controllers.theme:ThemeController'
         map.connect('/data/themes', controller=theme_controller, action='index')
@@ -207,10 +195,6 @@ class ThemePlugin(p.SingletonPlugin):
         # Remap the /user/me to the DGU version of the User controller
         with SubMapper(map, controller=user_controller) as m:
             m.connect('/data/user/me', action='me')
-
-        with SubMapper(map, controller='ckanext.dgu.controllers.package:PackageController') as m:
-            m.connect('/dataset/{id:.*}/release/{release_name:.*}', action='release')
-            m.connect('/dataset/{id:.*}/release', action='release')
 
         # Map /user* to /data/user/ because Drupal uses /user
         with SubMapper(map, controller='user') as m:
@@ -230,6 +214,9 @@ class ThemePlugin(p.SingletonPlugin):
             m.connect('/data/user', action='index')
 
         map.redirect('/dashboard', '/data/user/me')
+
+        dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
+        map.connect('all_dataset_list', '/data/_all_datasets_', controller=dgu_package_controller, action='all_packages')
 
         return map
 
@@ -347,6 +334,15 @@ class PublisherPlugin(p.SingletonPlugin):
         map.connect('publisher_apply_empty',
                     '/publisher/apply',
                     controller=pub_ctlr, action='apply')
+        map.connect('publisher_requests',
+                    '/publisher/users/requests',
+                    controller=pub_ctlr, action='publisher_requests')
+        map.connect('publisher_request',
+                    '/publisher/users/request/:token',
+                    controller=pub_ctlr, action='publisher_request')
+        map.connect('publisher_request_decision',
+                    '/publisher/users/request/:token/:decision',
+                    controller=pub_ctlr, action='publisher_request')
         map.connect('publisher_users',
                     '/publisher/users/:id',
                     controller=pub_ctlr, action='users')
@@ -383,10 +379,14 @@ class PublisherPlugin(p.SingletonPlugin):
         """Register details of an extension's reports"""
         from ckanext.dgu.lib import reports
         return [reports.nii_report_info,
-                reports.feedback_report_info,
                 reports.publisher_activity_report_info,
                 reports.publisher_resources_info,
                 reports.unpublished_report_info,
+                reports.datasets_without_resources_info,
+                reports.app_dataset_theme_report_info,
+                reports.app_dataset_report_info,
+                reports.admin_editor_info,
+                reports.la_schemas_info,
                 ]
 
 
@@ -395,45 +395,16 @@ class InventoryPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IConfigurer)
     p.implements(p.ISession, inherit=True)
-    p.implements(p.IAuthFunctions, inherit=True)
-
-    def get_auth_functions(self):
-        return {
-            'feedback_update': dgu_feedback_update,
-            'feedback_create': dgu_feedback_create,
-            'feedback_delete': dgu_feedback_delete,
-        }
 
     def before_commit(self, session):
         pass
 
     def before_map(self, map):
-        fb_ctlr = 'ckanext.dgu.controllers.feedback:FeedbackController'
-
-        # Feedback specific URLs
-        map.connect('/data/feedback/moderate/:id',
-                    controller=fb_ctlr, action='moderate')
-        map.connect('/data/feedback/abuse/:id',
-                    controller=fb_ctlr, action='report_abuse')
-        map.connect('/data/feedback/moderation',
-                    controller=fb_ctlr, action='moderation')
-
-        # Adding and viewing feedback per dataset
-        map.connect('/dataset/:id/feedback/view',
-                    controller=fb_ctlr, action='view')
-        map.connect('/dataset/:id/feedback/add',
-                    controller=fb_ctlr, action='add')
-
-        # As users have been sent out a direct link to /inventory/publisher-name/edit
-        # we will (at least for a short while) allow /inventory to redirect to
-        # /unpublished
-        map.redirect('/unpublished', '/data/search?unpublished=true')
-        map.redirect('/inventory/{url:.*}', '/unpublished/{url}')
-
         inv_ctlr = 'ckanext.dgu.controllers.inventory:InventoryController'
         map.connect('/unpublished/edit-item/:id',
                     controller=inv_ctlr, action='edit_item')
-        map.connect('/unpublished/:id/edit',
+        # home page for publishers is /unpublished/{org-id}/edit
+        map.connect('unpublished_edit', '/unpublished/:id/edit',
                     controller=inv_ctlr, action='edit')
         map.connect('/unpublished/:id/edit/download',
                     controller=inv_ctlr, action='download')
@@ -548,6 +519,7 @@ class SearchPlugin(p.SingletonPlugin):
         Dynamically creates a license_id-is-ogl field to index on, and clean
         up resource formats prior to indexing.
         """
+        log.info('Indexing: %s', pkg_dict['name'])
         SearchIndexing.clean_title_string(pkg_dict)
         SearchIndexing.add_field__is_ogl(pkg_dict)
         SearchIndexing.resource_format_cleanup(pkg_dict)
@@ -559,14 +531,10 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_theme(pkg_dict)
+        if is_plugin_enabled('dgu_schema'):
+            SearchIndexing.add_schema(pkg_dict)
 
-        # Extract multiple theme values (concatted with ' ') into one multi-value schema field
-        all_themes = set()
-        for value in (pkg_dict.get('theme-primary', ''), pkg_dict.get('theme-secondary', '')):
-            for theme in value.split(' '):
-                if theme:
-                    all_themes.add(theme)
-        pkg_dict['all_themes'] = list(all_themes)
         return pkg_dict
 
 class ApiPlugin(p.SingletonPlugin):
@@ -585,11 +553,41 @@ class ApiPlugin(p.SingletonPlugin):
         return map
 
     def get_actions(self):
-        from ckanext.dgu.logic.action.get import publisher_show
+        from ckanext.dgu.logic.action.get import publisher_show, suggest_themes
         return {
             'publisher_show': publisher_show,
+            'suggest_themes': suggest_themes,
             }
 
 
-def is_plugin_enabled(plugin_name):
-    return plugin_name in config.get('ckan.plugins', '').split()
+class SiteIsDownPlugin(p.SingletonPlugin):
+    '''"Site is down for maintenance" message shown for all requests - better
+    than an error while there is maintenance.'''
+    p.implements(p.IMiddleware, inherit=True)
+
+    def make_middleware(self, app, config):
+        return SiteDownMiddleware(app, config)
+
+
+class SchemaPlugin(p.SingletonPlugin):
+    '''Schemas & Code lists'''
+    p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
+
+    # IActions
+
+    def get_actions(self):
+        from ckanext.dgu.logic.action.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }
+
+    # IAuthFunctions
+
+    def get_auth_functions(self):
+        from ckanext.dgu.logic.auth.get import schema_list, codelist_list
+        return {
+            'schema_list': schema_list,
+            'codelist_list': codelist_list,
+            }

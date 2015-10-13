@@ -14,23 +14,14 @@ def dgu_package_update(context, data_dict):
     #   Note: the harvest user *is* a sysadmin
     #   Note: if changing this, check the code and comments in
     #         ckanext/forms/dataset_form.py:DatasetForm.form_to_db_schema_options()
-    # Sysadmins can edit ONS packages.
-    #   Note: the dgu user *is* a sysadmin
     if user_obj.sysadmin:
         return {'success': True}
 
-    fail = {'success': False,
-            'msg': _('User %s not authorized to edit packages in these groups') % str(user)}
-
-    # UKLP datasets cannot be edited by the average admin/editor because they
-    # are harvested
-    if package.extras.get('UKLP', '') == 'True':
-        return fail
-
-    # ONSHUB datasets cannot be edited by the average admin/editor because they
-    # are automatically updated
-    if package.extras.get('external_reference') == 'ONSHUB':
-        return fail
+    # UKLP datasets and other harvested datasets cannot be edited by the
+    # average admin/editor because changes will be overwritten on next harvest.
+    if dgu_helpers.was_dataset_harvested(package.extras):
+        return {'success': False,
+                'msg': _('User %s not authorized to edit harvested datasets') % str(user)}
 
     # Leave the core CKAN auth to work out the hierarchy stuff
     return ckan.logic.auth.update.package_update(context, data_dict)
@@ -52,8 +43,10 @@ def dgu_dataset_delete(context, data_dict):
     if user_obj.sysadmin:
         return {'success': True}
 
-    # Don't allow admin/editor to delete (apart from UKLP datasets which CAN be
-    # withdrawn by the appropriate admin/editor)
+    # Don't allow admin/editor to delete
+    # * apart from UKLP datasets which CAN be withdrawn by the appropriate
+    # admin/editor because they are all live services, so can't be cached to
+    # preserve them without the service provider's help
     if package.extras.get('UKLP', '') != 'True':
         return {'success': False}
 
@@ -97,35 +90,6 @@ def dgu_user_list(context, data_dict):
         return { 'success': False, 'msg': _('Only publishers may view this page') }
 
     return {'success': True}
-
-def dgu_feedback_create(context, data_dict):
-    model = context['model']
-    user = context.get('user','')
-
-    if not user:
-        return {'success': False, 'msg': _('Only logged in users can post feedback')}
-
-    return { 'success': True }
-
-def dgu_feedback_update(context, data_dict):
-    """
-    Checks whether the user has permission to update the feedback.
-    """
-    user = context.get('user','')
-
-    if not user:
-        return {'success': False, 'msg': _('Only logged in admins can update feedback')}
-
-    # Sysadmins only
-    return { 'success': False, 'msg': _('Only sysadmins can update feedback') }
-
-
-def dgu_feedback_delete(context, data_dict):
-    """
-    Determines whether the current user has the ability to flip the active flag
-    on the feedback item.  For now, this is the same as update.
-    """
-    return dgu_feedback_update(context, data_dict)
 
 def dgu_organization_delete(context, data_dict):
     # Sysadmins only

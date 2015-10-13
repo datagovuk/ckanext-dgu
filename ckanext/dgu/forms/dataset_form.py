@@ -1,26 +1,18 @@
 ﻿import re
 import json
+from itertools import chain
 
 from ckan.lib.base import c, model
 from ckan.lib.field_types import DateType, DateConvertError
 from ckan.lib.navl.dictization_functions import Invalid
-from ckan.lib.navl.validators import (ignore_missing,
-                                      not_empty,
-                                      empty,
-                                      ignore,
-                                      missing,
-                                      not_missing,
-                                      keep_extras,
-                                      )
 
 import ckan.logic.schema as default_schema
 import ckan.logic.validators as val
 
 import ckan.plugins as p
-import ckan.plugins.toolkit as toolkit
+import ckan.plugins.toolkit as tk
 from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.lib import helpers as dgu_helpers
-from ckanext.dgu.schema import GeoCoverageType
 from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      validate_resources, \
      validate_additional_resource_types, \
@@ -29,7 +21,18 @@ from ckanext.dgu.forms.validators import merge_resources, unmerge_resources, \
      drop_if_same_as_publisher, \
      populate_from_publisher_if_missing, \
      remove_blank_resources, \
-     allow_empty_if_inventory
+     to_json, from_json, \
+     bool_
+from ckan.lib.navl.dictization_functions import missing
+
+#convert_from_extras = tk.get_validator('convert_from_extras')
+ignore_missing = tk.get_validator('ignore_missing')
+not_empty = tk.get_validator('not_empty')
+empty = tk.get_validator('empty')
+ignore = tk.get_validator('ignore')
+ignore_empty = tk.get_validator('ignore_empty')
+keep_extras = tk.get_validator('keep_extras')
+not_missing = tk.get_validator('not_missing')
 
 geographic_granularity = [('', ''),
                           ('national', 'national'),
@@ -71,36 +74,38 @@ def resources_schema():
     })
     return schema
 
+
 def resources_schema_to_form():
-    schema = resources_schema().copy()
-    schema['date'] = [ignore_missing,date_to_form]
+    schema = resources_schema()
+    schema['date'] = [ignore_missing, date_to_form]
     return schema
 
-def additional_resource_schema():
+
+def resources_schema_to_db():
     schema = resources_schema()
+    schema['id'].append(new_resource_if_url_and_description_change)
     schema['format'] = [not_empty, unicode]
+    schema['url'] = [not_empty]
+    schema['description'] = [not_empty]
+    return schema
+
+
+def additional_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['resource_type'].insert(0, validate_additional_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
-def individual_resource_schema():
-    schema = resources_schema()
-    schema['format'] = [not_empty, unicode]
+def individual_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['resource_type'].insert(0, validate_data_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
-def timeseries_resource_schema():
-    schema = resources_schema()
+def timeseries_resource_schema_to_db():
+    schema = resources_schema_to_db()
     schema['date'] = [not_empty, unicode, convert_to_extras, date_to_db]
-    schema['format'] = [not_empty, unicode]
     schema['resource_type'].insert(0, validate_data_resource_types)
-    schema['url'] = [not_empty]
-    schema['description'] = [not_empty]
     return schema
 
 
@@ -143,22 +148,16 @@ class DatasetForm(p.SingletonPlugin):
     def package_form(self, package_type=None):
         return 'package/edit_form.html'
 
-    def setup_template_variables(self, context, data_dict=None, package_type=None):
-        c.licenses = model.Package.get_license_options()
-        c.geographic_granularity = geographic_granularity
-        c.update_frequency = filter(lambda f: f[0] != 'discontinued', update_frequency)
-        c.temporal_granularity = temporal_granularity
-
-        # We only actually need these in edit/new and not in read. A fair
-        # slow down for read but can't see how we can find out where we are
-        # being called from
-        if 'save' in context:
+    def setup_template_variables(self, context, data_dict=None,
+                                 package_type=None):
+        is_edit_or_new_form = 'save' in context
+        if is_edit_or_new_form:
+            # These expensive calls are needed for the edit/new form (not
+            # package read).
+            # It's not ideal to use c - normally use a helper - but it makes
+            # sense here since several different templates use c.publishers.
             c.publishers = self.get_publishers()
             c.publishers_json = json.dumps(c.publishers)
-
-        c.resource_columns = ('description', 'url', 'format')
-
-        c.schema_fields = set(self.form_to_db_schema().keys())
 
     # Override the form validation to be able to vary the schema by the type of
     # package and user
@@ -168,20 +167,11 @@ class DatasetForm(p.SingletonPlugin):
             # harvesters specify the default schema) then we don't want to
             # override that.
             if not context.get('schema'):
+                schema = self.form_to_db_schema_options(context)
                 if 'api_version' in context:
-                    # When accessed by the API, just use the default schemas.
-                    # It's only the forms that are customized to make it easier
-                    # for humans.
-                    if action == 'package_create':
-                        schema = default_schema.default_create_package_schema()
-                    else:
-                        schema = default_schema.default_update_package_schema()
                     # Tag validation is looser than CKAN default
                     schema['tags'] = tags_schema()
-                else:
-                    # Customized schema for DGU form
-                    schema = self.form_to_db_schema_options(context)
-        return toolkit.navl_validate(data_dict, schema, context)
+        return tk.navl_validate(data_dict, schema, context)
 
     def form_to_db_schema_options(self, context):
         '''Returns the schema for the customized DGU form.'''
@@ -196,9 +186,8 @@ class DatasetForm(p.SingletonPlugin):
         if dgu_helpers.is_sysadmin_by_context(context) and \
            pkg and pkg.extras.get('UKLP') == 'True':
             self._uklp_sysadmin_schema_updates(schema)
-        if dgu_helpers.is_sysadmin_by_context(context) and \
-           pkg and pkg.extras.get('external_reference') == 'ONSHUB':
-            self._ons_sysadmin_schema_updates(schema)
+        if pkg and pkg.extras.get('external_reference') == 'ONSHUB':
+            self._ons_schema_updates(schema)
         return schema
 
     def _uklp_sysadmin_schema_updates(self, schema):
@@ -219,21 +208,15 @@ class DatasetForm(p.SingletonPlugin):
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
 
-    def _ons_sysadmin_schema_updates(self, schema):
+    def _ons_schema_updates(self, schema):
         schema.update(
             {
                 'theme-primary': [ignore_missing, unicode, convert_to_extras],
-                })
+            })
         for resources in ('additional_resources',
                           'timeseries_resources',
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
-
-    @property
-    def _resource_format_optional(self):
-        return {
-            'theme-primary': [ignore_missing, unicode, convert_to_extras],
-        }
 
     def db_to_form_schema_options(self, options={}):
         context = options.get('context', {})
@@ -243,7 +226,8 @@ class DatasetForm(p.SingletonPlugin):
         else:
             return self.db_to_form_schema()
 
-    def form_to_db_schema(self, package_type=None):
+    @classmethod
+    def form_to_db_schema(cls, package_type=None):
 
         schema = {
             'title': [not_empty, unicode],
@@ -267,9 +251,9 @@ class DatasetForm(p.SingletonPlugin):
             'url': [ignore_missing, unicode],
             'taxonomy_url': [ignore_missing, unicode, convert_to_extras],
 
-            'additional_resources': additional_resource_schema(),
-            'timeseries_resources': timeseries_resource_schema(),
-            'individual_resources': individual_resource_schema(),
+            'additional_resources': additional_resource_schema_to_db(),
+            'timeseries_resources': timeseries_resource_schema_to_db(),
+            'individual_resources': individual_resource_schema_to_db(),
 
             'owner_org': [val.owner_org_validator, unicode],
             'groups': {
@@ -287,7 +271,11 @@ class DatasetForm(p.SingletonPlugin):
             'foi-web': [ignore_missing, unicode, drop_if_same_as_publisher, convert_to_extras],
 
             'published_via': [ignore_missing, unicode, convert_to_extras],
-            'mandate': [ignore_missing, unicode, convert_to_extras],
+            'mandate': [ignore_missing, to_list, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'schema': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'codelist': [ignore_missing, to_list, schema_codelist_validator, remove_blanks, ignore_empty, to_json, convert_to_extras],
+            'sla': [ignore_missing, convert_to_extras],
+
             'license_id': [unicode],
             'access_constraints': [ignore_missing, unicode],
 
@@ -296,14 +284,14 @@ class DatasetForm(p.SingletonPlugin):
             'national_statistic': [ignore_missing, convert_to_extras],
             'state': [val.ignore_not_admin, ignore_missing],
 
-            'unpublished': [ignore_missing, bool, convert_to_extras],
-            'core-dataset': [ignore_missing, bool, convert_to_extras],
+            'unpublished': [ignore_missing, bool_, convert_to_extras],
+            'core-dataset': [ignore_missing, bool_, convert_to_extras],
             'release-notes': [ignore_missing, unicode, convert_to_extras],
             'publish-date': [ignore_missing, date_to_db, convert_to_extras],
-            'publish-restricted': [ignore_missing, bool, convert_to_extras],
+            'publish-restricted': [ignore_missing, bool_, convert_to_extras],
 
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
-            'theme-secondary': [ignore_missing, unicode, convert_to_extras],
+            'theme-secondary': [ignore_missing, commas_to_list, to_json, convert_to_extras],
             'extras': default_schema.default_extras_schema(),
 
             # This is needed by the core CKAN update_resource, but isn't found by it because
@@ -364,10 +352,13 @@ class DatasetForm(p.SingletonPlugin):
             'publish-restricted': [convert_from_extras, ignore_missing],
 
             'published_via': [convert_from_extras, ignore_missing],
-            'mandate': [convert_from_extras, ignore_missing],
+            'mandate': [convert_from_extras, from_json, ignore_missing],
+            'schema': [convert_from_extras, from_json, ignore_missing, id_to_dict],
+            'codelist': [convert_from_extras, from_json, ignore_missing, id_to_dict],
+            'sla': [convert_from_extras, ignore_missing],
             'national_statistic': [convert_from_extras, ignore_missing],
             'theme-primary': [convert_from_extras, ignore_missing],
-            'theme-secondary': [convert_from_extras, ignore_missing],
+            'theme-secondary': [convert_from_extras, from_json, ignore_missing],
             '__after': [unmerge_resources],
             '__extras': [keep_extras],
             '__junk': [ignore],
@@ -449,11 +440,34 @@ def convert_from_extras(key, data, errors, context):
             and data_value == key[-1]):
             data[key] = data[('extras', data_key[1], 'value')]
 
+def remove_blanks(key, data, errors, context):
+    unfiltered = data[key]
+    if isinstance(unfiltered, basestring):
+        return
+
+    try:
+        filtered = [x for x in unfiltered if x != ""]
+        data[key] = filtered
+    except:
+        pass
+
+def to_list(key, data, errors, context):
+    item = data[key]
+    if isinstance(item, basestring):
+        data[key] = [item]
+
+def commas_to_list(key, data, errors, context):
+    item = data[key]
+    if isinstance(item, basestring):
+        data[key] = [i.strip() for i in item.split(',')]
+
 
 def use_other(key, data, errors, context):
 
     other_key = key[-1] + '-other'
-    other_value = data.get((other_key,), '').strip()
+    other_value = data.get((other_key,), '')
+    if isinstance(other_value, basestring):
+        other_value = other_value.strip()
     if other_value:
         data[key] = other_value
 
@@ -475,6 +489,7 @@ def extract_other(option_list):
 
 
 def convert_geographic_to_db(value, context):
+    from ckanext.dgu.schema import GeoCoverageType
 
     if isinstance(value, list):
         regions = value
@@ -487,7 +502,7 @@ def convert_geographic_to_db(value, context):
 
 
 def convert_geographic_to_form(value, context):
-
+    from ckanext.dgu.schema import GeoCoverageType
     return GeoCoverageType.get_instance().db_to_form(value)
 
 
@@ -516,3 +531,58 @@ def tags_schema():
         'state': [ignore],
     }
     return schema
+
+def id_to_dict(key, data, errors, context):
+    from ckanext.dgu.model.schema_codelist import Schema, Codelist
+    for i, id_ in enumerate(data[key]):
+        if key == ('schema',):
+            obj = Schema.get(id_)
+        elif key == ('codelist',):
+            obj = Codelist.get(id_)
+        else:
+            raise NotImplementedError('Bad key: %s' % key)
+        if not obj:
+            raise Invalid('%s id does not exist: %s' % (key, id_))
+        data[key][i] = obj.as_dict()
+
+def schema_codelist_validator(key, data, errors, context):
+    from ckanext.dgu.model.schema_codelist import Schema, Codelist
+    for i, schema_ref in enumerate(data[key]):
+        if not schema_ref:
+            # drop-down has no selection - ignore
+            continue
+        # form gives an ID. API might give a title.
+        if key == ('schema',):
+            obj = Schema.get(schema_ref) or Schema.by_title(schema_ref) or \
+                    Schema.by_url(schema_ref)
+        elif key == ('codelist',):
+            obj = Codelist.get(schema_ref) or Codelist.by_title(schema_ref) or\
+                    Codelist.by_url(schema_ref)
+        else:
+            raise NotImplementedError('Bad key: %s' % key)
+        if not obj:
+            raise Invalid('%s id does not exist: %r' % (key[0], schema_ref))
+        # write the ID in case it came in via the API and was a URL or title
+        data[key][i] = obj.id
+
+
+def new_resource_if_url_and_description_change(key, data, errors, context):
+    id_ = data[key]
+    if not id_:
+        return
+    old_resource = model.Resource.get(id_)
+    if not old_resource:
+        return
+    if data[(key[0], key[1], 'url')] != old_resource.url and \
+            data[(key[0], key[1], 'description')] != old_resource.description:
+        # Resource has changed so much we consider it a new one by deleting its
+        # id and other hidden properties.  We saw occasions when a resource in
+        # the form had its fields wiped and new description and URL put in, but
+        # it kept the resource ID (hidden in the form) so it still had old
+        # cached resources associated with it, incorrectly.
+        resource_columns = set(('date', 'description', 'url', 'format'))
+        for key_ in data.keys():
+            if key_[0] == key[0] and \
+                    key_[1] == key[1] and \
+                    key_[2] not in resource_columns:
+                del data[key_]

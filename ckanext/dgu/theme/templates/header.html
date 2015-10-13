@@ -1,0 +1,114 @@
+{% if c.userobj %}
+  <div id="toolbar" class="toolbar overlay-displace-top clearfix toolbar-processed">
+    <div class="toolbar-menu clearfix">
+      <ul id="toolbar-home">
+        <li class="home first last">
+          <a href="/" title="Home"><span class="home-link">Home</span></a>
+        </li>
+      </ul>
+      <ul id="toolbar-user">
+        <li class="account first">
+          <a href="/user" title="User account">Hello <strong>{{c.userobj.display_name}}</strong></a>
+        </li>
+        <li class="logout last">
+          <a href="{{ '/user/logout' if h.is_plugin_enabled('dgu_drupal_auth') else h.url_for('/data/user/logout') }}">Log out</a>
+        </li>
+      </ul>
+      <ul id="toolbar-menu">
+        <li class="menu-211 path-admin-workbench first last">
+          <a href="/admin/workbench" id="toolbar-link-admin-workbench" title="My Workbench area">
+            <span class="icon"></span>
+            Manage my content
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="toolbar-drawer clearfix">
+    </div>
+  </div>
+{% endif %}
+
+  <div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
+    <div class="container">
+      <a class="brand" href="/" rel="home"></a>
+      <div class="chevron position2"></div>
+      <nav id="dgu-nav">
+        <div class="text-links">
+           <a href="/" class="nav-home">Home</a>
+           <a href="/data" class="trigger-subnav nav-data">Data</a>
+           <a href="/apps" class="trigger-subnav nav-apps">Apps</a>
+           <a href="/interact" class="trigger-subnav nav-interact">Interact</a>
+         </div>
+        <div class="nav-search" style="width: 200px;">
+          <form action="/data/search" class="input-group input-group-sm">
+            <input type="text" name="q" class="form-control" placeholder="Search for data..." />
+            <span class="input-group-btn">
+              <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
+            </span>
+          </form>
+        </div>
+
+        <a class="nav-user btn btn-primary" href="{{ h.user_page_url() }}"><i class="icon-user"></i></a>
+
+        {% if c.userobj and h.check_access('package_create') %}
+          {# Publisher dropdown #}
+          <span class="dropdown">
+            <a class="nav-publisher btn btn-info dropdown-button" data-toggle="dropdown" href="#"><i class="icon-wrench"></i></a>
+            <ul class="dropdown-menu dgu-user-dropdown" role="menu" aria-labelledby="dLabel">
+              <li role="presentation" class="dropdown-header">Tools</li>
+              <li><a href="{{h.url_for('dataset_new')}}">Add a Dataset</a></li>
+              {% if c.userobj.sysadmin %}
+                <li><a href="{{ h.url_for('publisher_new') }}">Add a Publisher</a></li>
+              {% endif %}
+              <li><a href="{{ h.url_for('harvest') }}">Dataset Harvesting</a></li>
+
+              <li role="presentation" class="dropdown-header">My publishers</li>
+              {% for group in h.groups_for_current_user() %}
+                  <li><a href="/publisher/{{group.name}}">{{group.title}}</a></li>
+              {% endfor %}
+            </ul>
+          </span>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+  <div id="greenbar">
+    <div class="container">
+      {% set url=c.environ.get('CKAN_CURRENT_URL') %}
+      <ul class="subnav subnav-data active">
+        <li><a class="{{ 'active' if url.startswith('/data/search') or url.startswith('/dataset/') }}" href="{{ h.url_for(controller='package', action='search') }}">Datasets</a></li>
+        <li><a class="{{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
+        <li><a class="" href="/data-request">Data Requests</a></li>
+        <li><a class="{{ 'active' if url.startswith('/publisher') }}" href="/publisher">Publishers</a></li>
+        <li><a class="" href="/organogram/cabinet-office">Organograms</a></li>
+        {% if h.config_get('dgu.openspending_reports_enabled') %}
+          <li><a class="{{ 'active' if url.startswith('/data/openspending-report') }}" href="/data/openspending-report/index">Spend Reports</a></li>
+        {% endif %}
+        {% if h.ga_report_installed() %}
+          <li><a class="{{ 'active' if url.startswith('/data/site-usage') }}" href="/data/site-usage">Site Analytics</a></li>
+        {% endif %}
+        <li><a class="{{ 'active' if url.startswith('/data/report') }}" href="/data/report">Reports</a></li>
+        <li><a class="{{ 'active' if url.startswith('/data/contracts-finder-archive') }}" href="/data/contracts-finder-archive">Contracts</a></li>
+        <br/>
+
+        {% if c.userobj.sysadmin %}
+          <span class="divider-section">&nbsp; Sys Admin:</span>
+          <li><a class="{{ 'active' if url.startswith('/data/system_dashboard') }}" href="{{ h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='system_dashboard') }}">System Dashboard</a></li>
+          <li><a class="{{ 'active' if url.startswith('/harvest') }}" href="{{ h.url_for(controller='ckanext.harvest.controllers.view:ViewController', action='index') }}">Harvest Sources</a></li>
+        {% endif %}
+      </ul>
+
+      <ul class="subnav subnav-interact">
+        <li><a href="/location">Location</a></li>
+        <li><a href="/linked-data">Linked Data</a></li>
+        <li><a href="/blog">All Blogs</a></li>
+        <li><a href="/forum">All Forums</a></li>
+        <li><a href="/library">Library</a></li>
+        <li><a href="/glossary">Open data glossary</a></li>
+        <li><a href="/search/everything">Search content</a></li>
+      </ul>
+    </div>
+  </div>
+
+
+

@@ -1,0 +1,30 @@
+<div class="widget-container">
+    <table class="table table-bordered table-condensed" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+        <thead>
+          <tr>
+            <th style="width: 80px">Dataset</th>
+            <th style="width: 80px">App</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for theme in data.table|groupby('theme') %}
+          <tr><th colspan="2">{{theme.grouper}} ({{theme.list|length}})</th></tr>
+          {% for dataset in theme.list|sort(attribute='dataset_title') %}
+            <tr>
+                <td><a href="{{h.url_for(controller='package', action='read', id=dataset.dataset_name)}}">{{dataset.dataset_title}}</a></td>
+                <td>
+                  {% with %}
+                    {% set app_titles = dataset.app_titles.split('\n') %}
+                    {% set app_urls = dataset.app_urls.split('\n') %}
+
+                    {% for app_title in app_titles %}
+                    <a href="{{app_urls[loop.index0]}}">{{app_title}}</a><br/>
+                    {% endfor %}
+                  {% endwith %}
+                </td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
