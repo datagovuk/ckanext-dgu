@@ -1,5 +1,9 @@
 from collections import defaultdict
+import warnings
+import re
 
+import requests
+from requests.packages.urllib3 import exceptions
 from sqlalchemy.orm.exc import DetachedInstanceError
 
 from ckanext.dgu.bin.running_stats import Stats
@@ -34,8 +38,11 @@ class GovukPublicationLinks(object):
     @classmethod
     def autolink(cls, resource_id=None, dataset_name=None):
         '''autolink - Find clear links between gov.uk and DGU'''
+        # requests should not print InsecurePlatformWarning
+        warnings.simplefilter("ignore", exceptions.InsecurePlatformWarning)
         stats = Stats()
         resources = get_resources(resource_id=resource_id, dataset_name=dataset_name)
+        urls_that_redirect_matcher = get_urls_that_redirect_matcher()
         for res in resources:
             try:
                 pkg = res.resource_group.package
@@ -49,6 +56,16 @@ class GovukPublicationLinks(object):
             # Find the links
             objs_to_link = cls.find_govuk_objs_to_autolink(res.url)
 
+            # Sometimes the URL has been moved - look for redirect (#195)
+            if not objs_to_link and urls_that_redirect_matcher.match(res.url):
+                response = requests.head(res.url)
+                if response.headers.get('location'):
+                    objs_to_link = cls.find_govuk_objs_to_autolink(response.headers['location'])
+                    print stats.add(
+                        'URL redirected (%s link)' %
+                        ('could' if objs_to_link else 'could NOT'),
+                        res_identity)
+
             # Update the Link objects
             existing_links = model.Session.query(govuk_pubs_model.Link) \
                                   .filter_by(ckan_table='resource') \
@@ -59,7 +76,7 @@ class GovukPublicationLinks(object):
             needs_commit = False
             for govuk_type, obj in objs_to_link:
                 if obj.govuk_id in existing_link_ids:
-                    outcomes[govuk_type].append('unchanged')
+                    outcomes[govuk_type.__name__.lower()].append('unchanged')
                     existing_link_ids.remove(obj.govuk_id)
                 else:
                     link = govuk_pubs_model.Link(
@@ -70,15 +87,15 @@ class GovukPublicationLinks(object):
                     model.Session.add(link)
                     needs_commit = True
                     print 'LINK', link
-                    outcomes[govuk_type].append('added')
+                    outcomes[govuk_type.__name__.lower()].append('added')
             if existing_link_ids:
                 for link in existing_links:
                     if link.govuk_id in existing_link_ids:
+                        outcomes[link.govuk_table].append('removed')
                         model.Session.delete(link)
-                outcomes[govuk_type].append('removed')
-                needs_commit = True
+                        needs_commit = True
             if outcomes:
-                outcomes_strs = ['%s %s' % (govuk_type.__name__,
+                outcomes_strs = ['%s %s' % (govuk_type,
                                             '/'.join(outcomes[govuk_type]))
                                  for govuk_type in outcomes.keys()]
                 stats.add('Link %s' % ', '.join(outcomes_strs), res_identity)
@@ -144,3 +161,7 @@ def get_resources(resource_id=None, dataset_name=None):
     resources = resources.all()
     print '%i resources (%s)' % (len(resources), ' '.join(criteria))
     return resources
+
+
+def get_urls_that_redirect_matcher():
+    return re.compile('https://www.gov.uk/government/(publications)')
