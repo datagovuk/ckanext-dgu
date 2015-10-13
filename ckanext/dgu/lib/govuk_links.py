@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from sqlalchemy.orm.exc import DetachedInstanceError
+
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.dgu.model import govuk_publications as govuk_pubs_model
 from ckan import model
@@ -8,11 +10,16 @@ from ckan import model
 class GovukPublicationLinks(object):
     @classmethod
     def autolink(cls, resource_id=None, dataset_name=None):
+        '''autolink - Find clear links between gov.uk and DGU'''
         stats = Stats()
         resources = get_resources(resource_id=resource_id, dataset_name=dataset_name)
-        print '%i resources to gov.uk' % len(resources)
         for res in resources:
-            pkg = res.resource_group.package
+            try:
+                pkg = res.resource_group.package
+            except DetachedInstanceError:
+                # looks like we've just committed, so re-get the resource
+                res = model.Resource.get(res.id)
+                pkg = res.resource_group.package
             res_identity = '%s.%s' % (pkg.name, res.position)
 
             # Find the links
