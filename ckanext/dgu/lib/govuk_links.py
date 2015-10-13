@@ -8,6 +8,29 @@ from ckan import model
 
 
 class GovukPublicationLinks(object):
+
+    @classmethod
+    def fix_local_resources(cls, resource_id=None, dataset_name=None):
+        """
+        Find local resources that point to publications instead of attachments
+        and fix them to either:
+            1. Delete the resource if we have the a Publication that is linked to a Dataset
+            2. If the resource points at a Publication that does not have a Dataset - chances are
+                that resource.resource_group.package is the dataset - create the link
+            3. We do not have a Publication that shares a URL with this resource - call function
+                to create it.
+        """
+        results = get_packages_and_resources(resource_id=resource_id,
+                                                                        dataset_name=dataset_name,
+                                                                        url_like="https://www.gov.uk/government/publications/%")
+
+        res_count = 0
+        for _, v in results.iteritems():
+            res_count += len(v)
+        print '%i broken packages with %i broken resources that point to a publication page on GOV.UK' % (len(results), res_count,)
+
+
+
     @classmethod
     def autolink(cls, resource_id=None, dataset_name=None):
         '''autolink - Find clear links between gov.uk and DGU'''
@@ -20,6 +43,7 @@ class GovukPublicationLinks(object):
                 # looks like we've just committed, so re-get the resource
                 res = model.Resource.get(res.id)
                 pkg = res.resource_group.package
+
             res_identity = '%s.%s' % (pkg.name, res.position)
 
             # Find the links
@@ -78,6 +102,28 @@ class GovukPublicationLinks(object):
                 objs_to_link.extend([(govuk_type, obj) for obj in objs_to_link_])
         return objs_to_link
 
+def get_packages_and_resources(resource_id=None, dataset_name=None, url_like='https:\/\/www.gov.uk\/%'):
+    ''' Returns all gov.uk resources, or filtered by the given criteria. '''
+    from ckan import model
+    resources = model.Session.query(model.Resource.id, model.Package.id) \
+                .filter_by(state='active') \
+                .filter(model.Resource.url.like(url_like)) \
+                .join(model.ResourceGroup) \
+                .join(model.Package) \
+                .filter_by(state='active')
+    criteria = ['gov.uk']
+    if dataset_name:
+        resources = resources.filter(model.Package.name==dataset_name)
+        criteria.append('Dataset:%s' % dataset_name)
+    if resource_id:
+        resources = resources.filter(model.Resource.id==resource_id)
+        criteria.append('Resource:%s' % resource_id)
+
+    results = defaultdict(list)
+    for r, p in resources.all():
+        results[p].append(r)
+
+    return results
 
 def get_resources(resource_id=None, dataset_name=None):
     ''' Returns all gov.uk resources, or filtered by the given criteria. '''
