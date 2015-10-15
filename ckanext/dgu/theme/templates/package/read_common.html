@@ -76,7 +76,7 @@
         </div>
     </span>
       {% if c.user %} <!-- #1272 Only viewable if you log in -->
-        <a style="font-size: 1.1em;margin-left:2px;" class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="{{h.url_for(controller='package', action='history', id=c.pkg.name)}}">
+        <a style="margin-left:2px;" class="js-tooltip dropdown-button history-link" data-placement="top" title="" data-delay="300" data-original-title="History&nbsp;of&nbsp;changes" href="{{h.url_for(controller='package', action='history', id=c.pkg.name)}}">
           <i class="icon-time icon-2x"></i>
         </a>
       {% endif %}
