@@ -17,81 +17,35 @@ class GovukPublicationLinks(object):
     @classmethod
     def fix_local_resources(cls, resource_id=None, dataset_name=None):
         """
-        Find local resources that point to publications instead of attachments
-        and fix them to either:
-            1. Delete the resource if we have the a Publication that is linked to a Dataset
-            2. If the resource points at a Publication that does not have a Dataset - chances are
-                that resource.resource_group.package is the dataset - create the link
-            3. We do not have a Publication that shares a URL with this resource - call function
-                to create it.
+        Finds local resources that point at a publication and deletes them.  If we
+        have the publication record then when we import it we will get all of the
+        attachments - making these resources pointing at top level publication
+        pages unnecessary.
         """
         stats = Stats()
-        results = get_packages_and_resources(resource_id=resource_id,
-                                                                        dataset_name=dataset_name,
-                                                                        url_like="https://www.gov.uk/government/publications/%")
 
-        resource_deletion = defaultdict(list)
+        # Get the IDs of any resources that link to publications
+        publication_links = model.Session.query(govuk_pubs_model.Link)\
+            .filter(govuk_pubs_model.Link.ckan_table == 'resource')\
+            .filter(govuk_pubs_model.Link.govuk_table == 'publication').all()
 
-        res_count = 0
-        for _, v in results.iteritems():
-            res_count += len(v)
-        print '%i broken packages with %i broken resources that point to a publication page on GOV.UK' % (len(results), res_count,)
+        commit = False
 
-        for pkg_id, resource_ids in results.iteritems():
-            pkg = model.Package.get(pkg_id)
+        # For each resource id delete it and the link to the publication as
+        # if we have a publication, we will pick up all of the attachments
+        # anyway.
+        for publication_link in publication_links:
+            commit = True
+            resource = model.Resource.get(publication_link.ckan_id)
 
-            for resource_id in resource_ids:
-                # Is there a publication with the same URL?
-                publication_link = publication_link_from_resource(resource_id)
+            stats.add("Removing resource", resource.id)
+            stats.add("Removing resource->publication link", publication_link.id)
 
-                if publication_link:
-                    # This resource points at a publication
-                    publication_dataset_link = publication_link_to_dataset(pkg.id, publication_link.govuk_id)
+            model.Session.delete(publication_link)
+            model.Session.delete(resource)
 
-                    if publication_dataset_link:
-                        # The publication link for the resource points to a valid dataset
-                        stats.add("Has a link to a publication which references a dataset", resource_id)
+            model.Session.commit()
 
-                        if publication_dataset_link.ckan_id != pkg.id:
-                            # The dataset the publication references isn't the same one that the resource is in.
-                            # Leave the scraper to import it into the right place.
-                            stats.add("Resource references publication, but resource is in wrong dataset", resource_id)
-                            resource_deletion[pkg.name].append(resource_id)
-
-                    else:
-                        # The publication link for the resource does not point at a dataset
-                        stats.add("Has a link to a publication which DOES NOT reference a dataset", resource_id)
-                        # TODO: Try resource.resource_group.package as the link ?
-                        # TODO: Delete the resource
-
-                else:
-                        # This resource does not point at a publication, forward that URL for scraping.
-                        # Either:
-                        #   1. The publication isn't listed in a place where we can scrape
-                        #   2. It no longer exists.
-                        stats.add("Does not have a link to a publication", resource_id)
-
-                        # We should probably delete this resource.
-                        resource_deletion[pkg.name].append(resource_id)
-
-
-        # For each entry in resource_deletion, we will call package_show and then modify the dict
-        # before calling package_update.
-        context = {'model': model, 'session': model.Session}
-        for k, v in resource_deletion.iteritems():
-            print "Checking in {p} for resources to delete".format(p=k)
-            pkg_dict = logic.get_action('package_show')(context, {'id': k})
-            print "Was", len(pkg_dict['resources'])
-
-            new_resources = []
-            for res_dict in pkg_dict.get('resources'):
-                if res_dict['id'] not in v:
-                    print "Deleting resource ", res_dict['id']
-                    new_resources.append(res_dict)
-            pkg_dict['resources'] = new_resources
-
-            print len(pkg_dict['resources'])
-            break
         print stats
 
     @classmethod

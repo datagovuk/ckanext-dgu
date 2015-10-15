@@ -17,7 +17,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
 
         autolink - Find clear links between gov.uk and DGU
 
-        fixup - Finds local resource that have URLs pointing to publications and fixes them.
+        fixup - Finds local resource pointing to publications and tries to link
+                   them to attachments
 
     e.g.
 
