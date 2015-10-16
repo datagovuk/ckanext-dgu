@@ -15,14 +15,14 @@
       window.DATASET_ID = "{{c.pkg_dict.get('id')}}";
     </script>
 
-    {% if h.has_extent(c.pkg) and not h.is_unpublished_item(c.pkg_dict) %}
+    {% if h.has_extent(c.pkg_dict) and not h.is_unpublished_item(c.pkg_dict) %}
       <script src="//osinspiremappingprod.ordnancesurvey.co.uk/libraries/openlayers-openlayers-56e25fc/OpenLayers.js" type="text/javascript"></script>
       <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-dataset-map.min.js')}}"></script>
       <script type="text/javascript">
         $(document).ready(function(){
           CKAN.DguDatasetMap.tiles_url = "{{h.get_tiles_url()}}";
           CKAN.DguDatasetMap.map_type = 'os';
-          CKAN.DguDatasetMap.extent = '{{h.get_extent(c.pkg)|safe}}';
+          CKAN.DguDatasetMap.extent = '{{h.get_extent(c.pkg_dict)|safe}}';
           CKAN.DguDatasetMap.setup();
         })
       </script>
@@ -72,7 +72,7 @@
         {% if not h.is_unpublished_item(c.pkg_dict) %}
         <div class="dataset-map">
           <!-- Dataset Extent Map (only if present) -->
-          {% if h.has_extent(c.pkg) %}
+          {% if h.has_extent(c.pkg_dict) %}
             <div id="dataset-map-container"></div>
           {% endif %}
         </div>
@@ -85,14 +85,14 @@
             {{m.map_preview_button_direct(c.pkg_dict, small=False)}}
           </div>
           {% endif %}
-          {% set bounding_box = h.get_bounding_box(c.pkg)%}
-          {% if bounding_box and h.has_extent(c.pkg) %}
+          {% set bounding_box = h.get_bounding_box(c.pkg_dict)%}
+          {% if bounding_box and h.has_extent(c.pkg_dict) %}
           <h3>Dataset Extent</h3>
           <table class="table">
-              {% if h.get_spatial_name(c.pkg) %}
+              {% if h.get_spatial_name(c.pkg_dict) %}
               <tr>
                   <td class="key">Location:</td>
-                  <td class="value">{{h.get_spatial_name(c.pkg)}}</td>
+                  <td class="value">{{h.get_spatial_name(c.pkg_dict)}}</td>
               {% endif %}
             <tr>
               <td class="key">Latitude:</td>
@@ -104,7 +104,7 @@
             </tr>
           </table>
           {% endif %}
-          {% if h.has_extent(c.pkg) %}
+          {% if h.has_extent(c.pkg_dict) %}
             <div id="dataset-map-attribution"></div>
           {% endif %}
         </div>

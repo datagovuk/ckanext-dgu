@@ -110,6 +110,29 @@ def timeseries_resource_schema_to_db():
     schema['resource_type'].insert(0, validate_data_resource_types)
     return schema
 
+def inherit_publisher_extent(key, data, errors, context):
+    """
+    Take publisher values for spatial and spatial_name if use_pub_extent is set
+    """
+    use_pub_extent = None
+    for item_key in data.keys():
+        if (item_key[0] == 'extras' and item_key[-1] == 'key' and data[item_key] == 'use_pub_extent'):
+            use_pub_extent = data[(item_key[0], item_key[1], 'value')]
+            break
+
+    if (use_pub_extent == 'true'):
+        pub = model.Group.get(data.get(('owner_org',)))
+        if pub:
+            data[key] = pub.extras.get(key[0], None)
+        else:
+            data[key] = None
+
+def ignore_inherited_publisher_extent(key, data, errors, context):
+    """
+    Take publisher values for spatial and spatial_name if use_pub_extent is set
+    """
+    if (data[('use_pub_extent',)] == 'true'):
+        data[key] = None
 
 class DatasetForm(p.SingletonPlugin):
 
@@ -245,8 +268,8 @@ class DatasetForm(p.SingletonPlugin):
             'update_frequency-other': [ignore_missing],
             'precision': [ignore_missing, unicode, convert_to_extras],
             'geographic_granularity': [ignore_missing, use_other, unicode, convert_to_extras],
-            'spatial_name': [ignore_missing, convert_to_extras],
-            'spatial': [ignore_missing, convert_to_extras],
+            'spatial_name': [ignore_inherited_publisher_extent, ignore_missing, convert_to_extras],
+            'spatial': [ignore_inherited_publisher_extent, ignore_missing, convert_to_extras],
             'use_pub_extent': [ignore_missing, convert_to_extras],
             'geographic_granularity-other': [ignore_missing],
             'geographic_coverage': [ignore_missing, convert_geographic_to_db, convert_to_extras],
@@ -320,8 +343,8 @@ class DatasetForm(p.SingletonPlugin):
             'precision': [convert_from_extras, ignore_missing],
             'geographic_granularity': [convert_from_extras, ignore_missing, extract_other(geographic_granularity)],
             'geographic_coverage': [convert_from_extras, ignore_missing, convert_geographic_to_form],
-            'spatial': [convert_from_extras, ignore_missing],
-            'spatial_name': [convert_from_extras, ignore_missing],
+            'spatial': [convert_from_extras, inherit_publisher_extent, ignore_missing],
+            'spatial_name': [convert_from_extras, inherit_publisher_extent, ignore_missing],
             'use_pub_extent': [convert_from_extras, ignore_missing],
             'temporal_granularity': [convert_from_extras, ignore_missing, extract_other(temporal_granularity)],
             'temporal_coverage-from': [convert_from_extras, ignore_missing, date_to_form],
@@ -373,12 +396,6 @@ class DatasetForm(p.SingletonPlugin):
             '__junk': [ignore],
         }
         return schema
-
-    def check_data_dict(self, data_dict, package_type=None):
-        if ('use_pub_extent' in data_dict and data_dict['use_pub_extent'] == 'true'):
-            data_dict.pop("spatial", None)
-            data_dict.pop("spatial_name", None)
-        return
 
     def get_publishers(self):
         from ckan.model.group import Group

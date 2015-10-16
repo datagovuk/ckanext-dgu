@@ -1527,11 +1527,11 @@ def facet_values(facet_tuples, facet_key):
     values = sorted(values)
     return values
 
-def has_extent(pkg):
-    return bool(get_spatial_extent(pkg))
+def has_extent(pkg_dict):
+    return bool(get_spatial_extent(pkg_dict))
 
-def get_extent(pkg):
-    extent_json_str = get_spatial_extent(pkg)
+def get_extent(pkg_dict):
+    extent_json_str = get_spatial_extent(pkg_dict)
     # ensure it is JSON for security purposes, since the template will put it
     # in Javascipt unescaped using |safe
     try:
@@ -1539,36 +1539,46 @@ def get_extent(pkg):
     except ValueError:  # includes JSONDecodeError
         return ''
 
-def get_spatial_extent(pkg):
+def get_spatial_extent(pkg_dict):
     # this can be called either with a dict or a model object
-    is_dict = isinstance(pkg, dict)
+    is_dict = isinstance(pkg_dict, dict)
+    use_pub_extent = bool(pkg_dict.get('use_pub_extent')) if is_dict else bool(pkg_dict.extras.get('use_pub_extent'))
 
-    use_pub_extent = bool(pkg.get('use_pub_extent')) if is_dict else bool(pkg.extras.get('use_pub_extent'))
     if (use_pub_extent):
         # use the publisher spatial extent, if any
-        org = model.Group.get(pkg.get('owner_org')) if is_dict else pkg.get_organization()
-        return org and org.extras.get('spatial', None)
+        if (is_dict and 'spatial' in pkg_dict):
+            # field has been inherited via schema validation already
+            return pkg_dict.get('spatial')
+        else:
+            org = model.Group.get(pkg_dict.get('owner_org')) if is_dict else pkg_dict.get_organization()
+            return org and org.extras.get('spatial', None)
     else:
-        return pkg.get('spatial') if is_dict else pkg.extras.get('spatial')
+        return pkg_dict.get('spatial') if is_dict else pkg_dict.extras.get('spatial')
 
-def get_spatial_name(pkg):
-    if (bool(pkg.extras.get('use_pub_extent'))):
+def get_spatial_name(pkg_dict):
+    # this can be called either with a dict or a model object
+    is_dict = isinstance(pkg_dict, dict)
+    use_pub_extent = bool(pkg_dict.get('use_pub_extent')) if is_dict else bool(pkg_dict.extras.get('use_pub_extent'))
+
+    if (use_pub_extent):
         # use the publisher spatial name, if any
-        org = pkg.get_organization()
-        return org and org.extras.get('spatial_name', None)
-    else:
-        return pkg.extras.get('spatial_name', None)
+        if ('spatial_name' in pkg_dict):
+            # field has been inherited via schema validation already
+            return pkg_dict.get('spatial_name')
+        else:
+            org = model.Group.get(pkg_dict.get('owner_org')) if is_dict else pkg_dict.get_organization()
+            return org and org.extras.get('spatial_name', None)
 
-def get_bounding_box(pkg):
-    if (bool(pkg.extras.get('use_pub_extent'))):
-        # compute the bbox from the publisher spatial extent, if any
-        org = pkg.get_organization()
-        if (org and 'spatial' in org.extras):
-            geometry = json.loads(org.extras.get('spatial'))
-            return shapely.geometry.shape(geometry).bounds
-    else:
-        if ('bbox-west-long' in pkg.extras):
-            return [pkg.extras['bbox-west-long'], pkg.extras['bbox-south-lat'], pkg.extras['bbox-east-long'], pkg.extras['bbox-north-lat']]
+def get_bounding_box(pkg_dict):
+    # this can be called either with a dict or a model object
+    extent = get_spatial_extent(pkg_dict)
+
+    if (extent):
+        # compute the bbox from the spatial extent, if any
+        geometry = json.loads(extent)
+        return shapely.geometry.shape(geometry).bounds
+    elif ('bbox-west-long' in pkg_dict):
+            return [pkg_dict['bbox-west-long'], pkg_dict['bbox-south-lat'], pkg_dict['bbox-east-long'], pkg_dict['bbox-north-lat']]
 
     return None
 
