@@ -126,6 +126,9 @@
                 <div class="inner">
                   <div class="inner2">
                     Download all data
+                    {% if h.packagezip_size(c.pkg) %}
+                    ({{h.packagezip_size(c.pkg)|filesizeformat}})
+                    {% endif %}
                   </div>
                 </div>
               </div>
