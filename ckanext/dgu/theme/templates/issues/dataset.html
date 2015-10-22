@@ -88,21 +88,8 @@
     {% endif %}
   {% endif %}
   </div>
-    <div class="dgu-pagination">
-      <ul class="pagination">
-        {% for page in pagination.iter_pages() %}
-          <li {% if page == pagination.page %}class="disabled"{% endif %}>
-            {% if page == pagination.page %}
-              <span>{{page}}</span>
-            {% else %}
-              {% set href = h.replace_url_param(new_params={'page': page, 'per_page': pagination.per_page,'sort': sort}, extras={'dataset_id':pkg['name']}) %}
-              <a href="{{href}}">{{page}}</a>
-            {% endif %}
-          </li>
-        {% else %}
-        {% endfor %}
-      </ul>
-    </div>
+
+  {{ common.page_selector(pagination, issues_per_page, url_params={'dataset_id': pkg['id']}) }}
 
 {% endblock %}
 

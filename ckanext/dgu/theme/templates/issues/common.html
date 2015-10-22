@@ -71,3 +71,75 @@
     {% endif %}
   </div>
 {%- endmacro %}
+
+{% macro page_selector(pagination, number_per_page, url_params={}) -%}
+  {% if pagination.pages > 1 %}
+    <div class="dgu-pagination" id="page">
+      <ul class="pagination">
+      {% if pagination.has_previous %}
+        <li>
+          {% set href = h.replace_url_param(new_params={'page': pagination.page - 1}, extras=url_params) %}
+          <a id="pagination-previous-link" href="{{ href }}">«</a>
+        </li>
+      {% endif %}
+      {% if pagination.show_previous %}
+        <li>
+          {% set href = h.replace_url_param(new_params={'page': 1}, extras=url_params) %}
+          <a id="pagination-1-link"href="{{ href }}">1</a>
+        </li>
+      {% endif %}
+      {% if pagination.show_previous_ellipsis %}
+        <li class="disabled">
+          <a href="#">...</a>
+        </li>
+      {% endif %}
+      {% for page in pagination.iter_pages() %}
+        {% if page %}
+          {% set href = h.replace_url_param(new_params={'page': page}, extras=url_params) %}
+          {% if page != pagination.page %}
+            <li>
+            <a id="pagination-{{ page }}-link" href="{{ href }}">{{ page }}</a>
+            </li>
+          {% else %}
+            <li class="disabled">
+              <a href="#">{{ page }}</a>
+            </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {% if pagination.show_next_ellipsis %}
+        <li class="disabled">
+          <a href="#">...</a>
+        </li>
+      {% endif %}
+      {% if pagination.show_next %}
+        <li>
+          {% set href = h.replace_url_param(new_params={'page': pagination.pages}, extras=url_params) %}
+          <a id="pagination-{{ pagination.pages }}-link" href="{{ href }}">{{ pagination.pages }}</a>
+        </li>
+      {% endif %}
+      {% if pagination.has_next %}
+        <li>
+          {% set href = h.replace_url_param(new_params={'page': pagination.page + 1}, extras=url_params) %}
+        <a id="pagination-next-link" href="{{ href }}">»</a>
+        </li>
+      {% endif %}
+      </ul>
+    </div>
+
+    <div class="dgu-pagination" id="per_page">
+      <ul class="pagination">
+        {% for per_page_option in number_per_page %}
+          <li{% if per_page_option==pagination.per_page %} class="active"{% endif %}>
+            {% set href = h.replace_url_param(new_params={'per_page': per_page_option, 'page': 1}, extras=url_params) %}
+          <a id="per-page-{{ per_page_option }}-link" href="{{ href }}">{{ per_page_option }}</a>
+          </li>
+        {% endfor %}
+          <li class="disabled">
+          <a href="#">per page</a>
+          </li>
+      </ul>
+    </div>
+  {% endif %}
+
+{%- endmacro %}
