@@ -9,6 +9,7 @@ from sqlalchemy.orm.exc import DetachedInstanceError
 
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.dgu.model import govuk_publications as govuk_pubs_model
+import ckan.logic as logic
 from ckan import model
 
 
@@ -24,24 +25,36 @@ class GovukPublicationLinks(object):
     @classmethod
     def fix_local_resources(cls, resource_id=None, dataset_name=None):
         """
-        Find local resources that point to publications instead of attachments
-        and fix them to either:
-            1. Delete the resource if we have the a Publication that is linked to a Dataset
-            2. If the resource points at a Publication that does not have a Dataset - chances are
-                that resource.resource_group.package is the dataset - create the link
-            3. We do not have a Publication that shares a URL with this resource - call function
-                to create it.
+        Finds local resources that point at a publication and deletes them.  If we
+        have the publication record then when we import it we will get all of the
+        attachments - making these resources pointing at top level publication
+        pages unnecessary.
         """
-        results = get_packages_and_resources(resource_id=resource_id,
-                                                                        dataset_name=dataset_name,
-                                                                        url_like="https://www.gov.uk/government/publications/%")
+        stats = Stats()
 
-        res_count = 0
-        for _, v in results.iteritems():
-            res_count += len(v)
-        print '%i broken packages with %i broken resources that point to a publication page on GOV.UK' % (len(results), res_count,)
+        # Get the IDs of any resources that link to publications
+        publication_links = model.Session.query(govuk_pubs_model.Link)\
+            .filter(govuk_pubs_model.Link.ckan_table == 'resource')\
+            .filter(govuk_pubs_model.Link.govuk_table == 'publication').all()
 
+        commit = False
 
+        # For each resource id delete it and the link to the publication as
+        # if we have a publication, we will pick up all of the attachments
+        # anyway.
+        for publication_link in publication_links:
+            commit = True
+            resource = model.Resource.get(publication_link.ckan_id)
+
+            stats.add("Removing resource", resource.id)
+            stats.add("Removing resource->publication link", publication_link.id)
+
+            model.Session.delete(publication_link)
+            model.Session.delete(resource)
+
+            model.Session.commit()
+
+        print stats
 
     @classmethod
     def autolink(cls, resource_id=None, dataset_name=None):
@@ -141,8 +154,23 @@ class GovukPublicationLinks(object):
                                      for publication in publications])
         return objs_to_link
 
+
+def publication_link_to_dataset(pkg_id, pub_id):
+    return  model.Session.query(govuk_pubs_model.Link)\
+            .filter(govuk_pubs_model.Link.ckan_id == pkg_id )\
+            .filter(govuk_pubs_model.Link.ckan_table == "package")\
+            .filter(govuk_pubs_model.Link.govuk_table == "publication")\
+            .filter(govuk_pubs_model.Link.govuk_id == pub_id).first()
+
+
+def publication_link_from_resource(resource_id):
+    return model.Session.query(govuk_pubs_model.Link)\
+                        .filter(govuk_pubs_model.Link.ckan_id == resource_id )\
+                        .filter(govuk_pubs_model.Link.ckan_table == "resource")\
+                        .filter(govuk_pubs_model.Link.govuk_table == "publication").first()
+
 def get_packages_and_resources(resource_id=None, dataset_name=None, url_like='https:\/\/www.gov.uk\/%'):
-    ''' Returns all resources, grouped by package. '''
+    ''' Returns all gov.uk resource ids grouped by the package_ids.'''
     from ckan import model
     resources = model.Session.query(model.Resource.id, model.Package.id) \
                 .filter_by(state='active') \

@@ -17,7 +17,10 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
 
         autolink - Find clear links between gov.uk and DGU
 
-        fixup - Finds local resource that have URLs pointing to publications and fixes them.
+        fixup - Finds local resource pointing to publications and tries to link
+                   them to attachments
+
+        autoadd - Add new dataset or update existing dataset based on links
 
     e.g.
 
@@ -88,6 +91,9 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.fix_local_resources(resource_id=self.options.resource,
                                                dataset_name=self.options.dataset)
+            elif cmd == 'autoadd':
+                from ckanext.dgu.lib.govuk_add import GovukPublications
+                GovukPublications.autoadd(publication_url=self.options.publication)
 
 
 

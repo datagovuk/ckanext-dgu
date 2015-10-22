@@ -178,6 +178,9 @@ class GovukPublicationScraper(object):
         # Organization
         orgs = []
         for org_scraped in pub_scraped['govuk_organizations']:
+            if not org_scraped:
+                continue
+
             org = model.Session.query(govuk_pubs_model.GovukOrganization) \
                        .filter_by(url=org_scraped) \
                        .first()
@@ -189,7 +192,8 @@ class GovukPublicationScraper(object):
                     print cls.field_stats.add('Organization page redirected - error',
                                         '%s %s' % (pub_name, org_scraped))
                     continue
-            orgs.append(org)
+            if org:
+                orgs.append(org)
         is_changed = update_pub('govuk_organizations', orgs)
         if is_changed and outcome == 'Unchanged':
             outcome = 'Updated its organizations'
@@ -546,6 +550,9 @@ class GovukPublicationScraper(object):
     def scrape_and_save_organization(cls, org_url):
         # e.g. https://www.gov.uk/government/organisations/skills-funding-agency
         print 'ORG %s' % org_url
+        if not org_url:
+            return None
+
         if org_url.startswith('/government/organisations'):
             org_url = cls.add_gov_uk_domain(org_url)
         r = cls.requests.get(org_url)
