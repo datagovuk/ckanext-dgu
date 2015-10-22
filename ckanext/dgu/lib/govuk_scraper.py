@@ -24,7 +24,7 @@ class GovukPublicationScraper(object):
     def init(cls):
         if 'requests' not in dir(cls):
             cls.requests = requests_cache.CachedSession(
-                'govuk_pubs', expire_after=60*60*24*7)  # 7 days
+                'govuk_pubs', expire_after=60*60*24*30)  # 30 days
             cls.reset_stats()
 
     @classmethod
