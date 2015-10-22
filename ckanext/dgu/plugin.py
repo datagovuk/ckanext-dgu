@@ -351,7 +351,12 @@ class PublisherPlugin(p.SingletonPlugin):
             m.connect('publisher_read',
                       '/publisher/:id',
                       action='read')
-
+            m.connect('publisher_follow',
+                      '/publisher/follow/:id',
+                      action='follow')
+            m.connect('publisher_unfollow',
+                      '/publisher/unfollow/:id',
+                      action='unfollow')
         return map
 
     def after_map(self, map):

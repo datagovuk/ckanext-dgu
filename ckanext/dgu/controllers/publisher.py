@@ -4,7 +4,7 @@ from urllib import urlencode
 from urlparse import urljoin
 from sqlalchemy.orm import eagerload_all
 from ckanext.dgu.plugins_toolkit import c, request, render, _, ObjectNotFound, NotAuthorized, ValidationError, check_access, get_action
-from ckan.lib.base import BaseController, model, h, g
+from ckan.lib.base import BaseController, model, h, g, redirect
 from ckan.lib.base import abort, gettext
 from pylons.i18n import get_lang
 from ckan.lib.alphabet_paginate import AlphaPage
@@ -148,7 +148,7 @@ class PublisherController(OrganizationController):
                 reason = request.params.get('reason', None)
 
                 if model.Session.query(PublisherRequest).filter_by(user_name=c.user, group_name=id).all():
-                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True) 
+                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True)
                     h.redirect_to('publisher_apply', id=id)
                     return
                 else:
@@ -170,6 +170,40 @@ class PublisherController(OrganizationController):
         vars = {'data': data, 'errors': errors, 'error_summary': error_summary}
         c.form = render('publisher/apply_form.html', extra_vars=vars)
         return render('publisher/apply.html')
+
+    def follow(self, id):
+        '''Start following this publisher.'''
+        context = {'model': model,
+                   'session': model.Session,
+                   'user': c.user or c.author}
+        data_dict = {'id': id}
+        try:
+            get_action('follow_group')(context, data_dict)
+        except ValidationError as e:
+            error_message = (e.extra_msg or e.message or e.error_summary
+                             or e.error_dict)
+            h.flash_error(error_message)
+        except NotAuthorized as e:
+            h.flash_error(e.extra_msg)
+
+        redirect(request.referer)
+
+    def unfollow(self, id):
+        '''Stop following this publisher.'''
+        context = {'model': model,
+                   'session': model.Session,
+                   'user': c.user or c.author}
+        data_dict = {'id': id}
+        try:
+            get_action('unfollow_group')(context, data_dict)
+        except ValidationError as e:
+            error_message = (e.extra_msg or e.message or e.error_summary
+                             or e.error_dict)
+            h.flash_error(error_message)
+        except NotAuthorized as e:
+            h.flash_error(e.extra_msg)
+
+        redirect(request.referer)
 
 
     def _add_users(self, group, parameters):
@@ -465,7 +499,7 @@ class PublisherController(OrganizationController):
             c.in_group = c.req_user.is_in_group(c.req_group.id)
         except Exception, ex:
             abort(404, 'Request not found')
- 
+
         if decision:
             if decision not in ['reject', 'accept']:
                 abort(400, 'Invalid Request')

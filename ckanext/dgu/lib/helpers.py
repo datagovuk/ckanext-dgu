@@ -26,7 +26,7 @@ from pylons import config
 from pylons import request
 
 from ckan.lib.helpers import (icon, icon_html, json, unselected_facet_items,
-                              get_pkg_dict_extra, organizations_available)
+                              get_pkg_dict_extra, organizations_available, snippet)
 import ckan.lib.helpers
 
 # not importing ckan.controllers here, since we need to monkey patch it in plugin.py
@@ -670,6 +670,41 @@ def name_for_uklp_type(package):
         item_type = '%s (UK Location)' % uklp_type.capitalize()
     else:
         item_type = 'Dataset'
+
+def organization_id_for_dataset_id(dataset_id):
+    import ckan.model as model
+    pkg = model.Package.get(dataset_id)
+    if not pkg:
+        return None
+    return model.Group.get(pkg.owner_org).id
+
+def publisher_follow_button(obj_id):
+    '''Return a follow button for a publisher
+
+    If the user is not logged in return an empty string instead.
+
+    :type obj_type: string
+    :param obj_id: the id of the object to be followed when the follow button
+        is clicked
+    :type obj_id: string
+
+    :returns: a follow button as an HTML snippet
+    :rtype: string
+
+    '''
+    import ckan.model as model
+    from ckan.logic import get_action
+    # If the user is logged in show the follow/unfollow button
+    if c.user:
+        context = {'model': model, 'session': model.Session, 'user': c.user}
+        action = 'am_following_group'
+        following = get_action(action)(context, {'id': obj_id})
+        return snippet('publisher/follow_button.html',
+                       following=following,
+                       obj_id=obj_id,
+                       obj_type='publisher')
+    return ''
+
 
 def package_publisher_dict(package):
     if not package:

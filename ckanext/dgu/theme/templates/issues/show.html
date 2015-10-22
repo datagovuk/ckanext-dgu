@@ -147,6 +147,10 @@
           </span>
           <a href="{{issue.user.ckan_url}}">{{issue.user.name}}</a> opened this issue {{issue.time_ago}} &middot;
           {{ ungettext('{number} comment', '{number} comments', comment_count).format(number=comment_count) }}
+          <span class="pull-right">
+              {% set publisher_id = h.organization_id_for_dataset_id(issue.dataset_id) %}
+              {{ h.publisher_follow_button(publisher_id) }}
+          </span>
         </div>
       </div>
 
