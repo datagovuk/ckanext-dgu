@@ -1,14 +1,14 @@
 {% macro issue_item(issue, pkg, current_user) -%}
       <li class="list-group-item">
         <span class="list-group-item-number">#{{issue.number}}</span>
-        {% set has_been_reported = h.issues_user_has_reported_issue(current_user, issue.abuse_reports) %}
+        {% set reported_by_current_user = h.issues_user_has_reported_issue(current_user, issue.abuse_reports) %}
         {% if issue.visibility == 'hidden' %}
           <div class="issue-comment-label">
-            Abuse
+            Spam/Abuse - hidden from normal users
           </div>
-        {% elif has_been_reported %}
+        {% elif reported_by_current_user %}
           <div class="issue-comment-label">
-            <i class="icon-flag"></i>Notified to admin
+            <i class="icon-flag"></i>Reported by you to admins
           </div>
         {% endif%}
         <h4 class="list-group-item-name">

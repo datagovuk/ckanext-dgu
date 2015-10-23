@@ -1,3 +1,8 @@
+{#
+issue - issue dict
+comment_count - int
+dataset - package object
+#}
 {% extends "issues/base.html" %}
 
 {% block styles %}
@@ -22,15 +27,36 @@
 {% set is_publisher = h.check_access('package_update', {'id': dataset.name }) %}
 {% import 'macros/form.html' as form %}
 
-{%- macro issue_description(comment) %}
+{%- macro issue_description(issue) %}
 <div class="issue-comment-wrapper">
-  <a href="{{comment.user.ckan_url}}"
+  <a href="{{issue.user.ckan_url}}"
     class="issue-comment-avatar">
   </a>
   <div class="issue-comment">
+    {{ issue_or_comment_header(issue_or_comment=issue, dataset=dataset, issue=issue, header_is_for_issue=True, can_edit_issue=can_edit_issue) }}
+    <div class="issue-comment-content{% if issue.visibility == 'hidden' %} issue-abuse{% endif %}">
+      {{ h.render_markdown(issue.comment) }}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{%- macro issue_comment(comment) %}
+<div class="issue-comment-wrapper">
+
+  <div class="issue-comment">
+    {{ issue_or_comment_header(issue_or_comment=comment, dataset=dataset, issue=issue, header_is_for_issue=False, can_edit_issue=can_edit_issue) }}
+    <div class="issue-comment-content{% if comment.visibility == 'hidden' %} issue-abuse{% endif %}">
+      {{ h.render_markdown(comment.comment) }}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+{%- macro issue_or_comment_header(issue_or_comment, dataset, issue, header_is_for_issue, can_edit_issue) %}
     <div class="issue-comment-header">
       <div class="issue-comment-actions">
-        {% if can_edit_issue %}
+        {% if header_is_for_issue and can_edit_issue %}
           <div class="issue-comment-action" id="issue-edit-button">
             <a id="issue-edit-link" href="{{h.url_for('issues_edit', dataset_id=dataset.name, issue_number=issue.number)}}" class="subtle-btn" title="Edit">
               <i class="icon-pencil"></i>
@@ -38,10 +64,14 @@
           </div>
         {% endif %}
         {% if c.user %}
-          {% set has_been_reported = h.issues_user_has_reported_issue(c.user, issue.abuse_reports) %}
-          {% if not has_been_reported %}
+          {% set reported_by_current_user = h.issues_user_has_reported_issue(c.user, issue_or_comment_header.abuse_reports) %}
+          {% if not reported_by_current_user %}
             <div id="issue-report-abuse-button" class="issue-comment-action">
-              <form id="issue-report-form" method="post" action="{{h.url_for('issues_report', dataset_id=dataset.name, issue_number=issue.number)}}">
+              {% if header_is_for_issue %}
+                <form id="issue-report-form" method="post" action="{{h.url_for('issues_report', dataset_id=dataset.name, issue_number=issue.number)}}">
+              {% else %}
+                <form id="issue-report-form" method="post" action="{{h.url_for('issues_comment_report', dataset_id=dataset.name, issue_number=issue.number, comment_id=issue_or_comment.id)}}">
+              {% endif %}
                 <button class="subtle-btn-active subtle-btn-abuse" type="submit" title="Report spam/abuse">
                   <i class="icon-flag"></i>
                 </button>
@@ -49,8 +79,12 @@
             </div>
           {% else %}
             <div id="issue-not-abuse-button" class="issue-comment-action">
-              <form id="issue-not-abuse-button" method="post" action="{{h.url_for('issues_report_clear', dataset_id=dataset.name, issue_number=issue.number)}}">
-                <button class="subtle-btn-active subtle-btn-abuse-active" type="submit" data-toggle="tooltip" title="You have reported this as abuse, cancel the report">
+              {% if header_is_for_issue %}
+                <form id="issue-not-abuse-button" method="post" action="{{h.url_for('issues_report_clear', dataset_id=dataset.name, issue_number=issue.number)}}">
+              {% else %}
+                <form id="issue-not-abuse-button" method="post" action="{{h.url_for('issues_comment_report_clear', dataset_id=dataset.name, issue_number=issue.number, comment_id=issue_or_comment.id)}}">
+              {% endif %}
+                <button class="subtle-btn-active subtle-btn-abuse-active" type="submit" data-toggle="tooltip" title="You have reported this as abuse. Click to cancel that report.">
                   <i class="icon-remove"></i>
                   {{ _('Not abuse') }}
                 </button>
@@ -59,80 +93,24 @@
           {% endif %}
         {% endif %}
       </div>
-      {% if h.issues_user_is_owner(user=comment.user, dataset_id=dataset.id) %}
+      {% if h.issues_user_is_owner(user=issue_or_comment.user, dataset_id=dataset.id) %}
         <div class="issue-comment-label">
            Owner
         </div>
       {% endif %}
       {% if can_edit_issue %}
-        {% if comment.visibility == 'hidden' %}
+        {% if issue_or_comment.visibility == 'hidden' %}
           <div class="issue-comment-label">
-            Abuse
+            Spam/Abuse - hidden from normal users
           </div>
         {% endif %}
       {% endif %}
       <div class="issue-header-text">
-        <a href="{{comment.user.ckan_url}}" class="author">{{ comment.user.name}}</a>
+        <a href="{{issue_or_comment.user.ckan_url}}" class="author">{{ issue_or_comment.user.name}}</a>
         commented
-        <span title="{{comment.created}}">{{ h.time_ago_from_timestamp(comment.created) }}</span>
+        <span title="{{issue_or_comment.created}}">{{ h.time_ago_from_timestamp(issue_or_comment.created) }}</span>
       </div>
     </div>
-    <div class="issue-comment-content{% if comment.visibility == 'hidden' %} issue-abuse{% endif %}">
-      {{ h.render_markdown(comment.comment) }}
-    </div>
-  </div>
-</div>
-{% endmacro %}
-
-
-{%- macro issue_comment(comment) %}
-<div class="issue-comment-wrapper">
-
-  <div class="issue-comment">
-    <div class="issue-comment-header">
-      <div class="issue-comment-actions">
-        {% set has_been_reported = h.issues_user_has_reported_issue(c.user, comment.abuse_reports) %}
-        {% if has_been_reported %}
-
-            <div id="issue-not-abuse-button" class="issue-comment-action">
-              <form id="issue-not-abuse-button" method="post" action="{{h.url_for('issues_comment_report_clear', dataset_id=dataset.name, issue_number=issue.number, comment_id=comment.id)}}">
-                <button class="subtle-btn-active subtle-btn-abuse-active" type="submit" data-toggle="tooltip" title="You have reported this as abuse, cancel the report">
-                  <i class="icon-remove"></i>
-                  {{ _('Not abuse') }}
-                </button>
-              </form>
-            </div>
-        {% else %}
-            <div id="issue-report-abuse-button" class="issue-comment-action">
-              <form id="issue-report-form" method="post" action="{{h.url_for('issues_comment_report', dataset_id=dataset.name, issue_number=issue.number, comment_id=comment.id)}}">
-                <button class="subtle-btn-active subtle-btn-abuse" type="submit" title="Report spam/abuse">
-                  <i class="icon-flag"></i>
-                </button>
-              </form>
-            </div>
-        {% endif %}
-      </div>
-      {% if h.issues_user_is_owner(user=comment.user, dataset_id=dataset.id) %}
-        <div class="issue-comment-label">
-           Owner
-        </div>
-      {% endif %}
-      {% if comment.visibility == 'hidden' %}
-        <div class="issue-comment-label">
-           Reported as Abuse
-        </div>
-      {% endif %}
-      <div class="issue-header-text">
-        <a href="{{comment.user.ckan_url}}" class="author">{{ comment.user.name}}</a>
-        commented
-        <span title="{{comment.created}}">{{ h.time_ago_from_timestamp(comment.created) }}</span>
-      </div>
-    </div>
-    <div class="issue-comment-content{% if comment.visibility == 'hidden' %} issue-abuse{% endif %}">
-      {{ h.render_markdown(comment.comment) }}
-    </div>
-  </div>
-</div>
 {% endmacro %}
 
 {% block primary_content %}
