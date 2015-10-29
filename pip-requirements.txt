@@ -30,8 +30,11 @@
 # ckanext-datapreview
 -e git+https://github.com/datagovuk/ckanext-datapreview.git#egg=ckanext-datapreview
 
-# ckanext-datapreview
+# ckanext-report
 -e git+https://github.com/datagovuk/ckanext-report.git#egg=ckanext-report
+
+# ckanext-taxonomy
+-e git+https://github.com/datagovuk/ckanext-taxonomy.git#egg=ckanext-taxonomy
 
 ## Related extension dependencies
 
