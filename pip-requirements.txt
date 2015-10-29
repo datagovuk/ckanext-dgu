@@ -35,8 +35,6 @@
 -e git+https://github.com/datagovuk/ckanext-report.git#egg=ckanext-report
 
 # ckanext-taxonomy
-# seems like dependency python-skos won't install without rdflib already being there
-rdflib==4.1.2
 -e git+https://github.com/datagovuk/ckanext-taxonomy.git#egg=ckanext-taxonomy
 
 ## Related extension dependencies

@@ -30,6 +30,9 @@ cd -
 
 echo "Installing ckanext-dgu and its requirements..."
 python setup.py develop
+# seems like ckanext-taxonomy dependency 'python-skos' won't even start
+# installing without rdflib already being installed previously!
+pip install rdflib==4.1.2
 pip install -r pip-requirements.txt
 pip install -r pip-requirements-dev.txt
 pip install -r pip-requirements-local.txt
