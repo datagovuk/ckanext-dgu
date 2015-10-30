@@ -509,6 +509,8 @@ class SearchPlugin(p.SingletonPlugin):
         return search_params
 
     def after_search(self, search_results, search_params):
+        for r in search_results.get("results"):
+            del r['data_dict']
         return search_results
 
     def before_view(self, pkg_dict):
