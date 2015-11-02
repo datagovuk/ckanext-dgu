@@ -100,9 +100,10 @@ class MergeDatasets(object):
                     yield 'title', title
                 yield 'description', res['description']
                 yield 'url', url_munge_re.sub(' ', res['url'])
-                dataset = datasets_by_name[res['dataset_name']]
-                yield 'dataset-title', dataset['title']
-                yield 'dataset-notes', dataset['notes']
+                if not options.update:
+                    dataset = datasets_by_name[res['dataset_name']]
+                    yield 'dataset-title', dataset['title']
+                    yield 'dataset-notes', dataset['notes']
 
             ensure_regexes_are_initialized()
             global regexes
@@ -376,6 +377,9 @@ class MergeDatasets(object):
 
         if org.get('closed'):
             print 'CLOSED - no need to notify'
+            sys.exit(0)
+        if options.update:
+            print 'UPDATE - no need to notify'
             sys.exit(0)
 
         editors = [u for u in user_cache.values() if u is not None]
