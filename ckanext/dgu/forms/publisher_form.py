@@ -19,6 +19,7 @@ from ckan.lib.navl.dictization_functions import DataError, flatten_dict, unflatt
 from ckan.plugins import IDatasetForm, IGroupForm, IConfigurer, IOrganizationController
 from ckan.plugins import implements, SingletonPlugin
 from ckanext.dgu.plugins_toolkit import c, request, render, ValidationError, NotAuthorized, _, check_access
+import ckan.lib.search as search
 
 from ckan.lib.navl.validators import (ignore_missing,
                                       not_empty,
@@ -197,4 +198,5 @@ class PublisherForm(SingletonPlugin):
         # use the publisher extent to spatially index all its member packages
         for package in publisher.packages():
             save_package_extent(package.id, geometry)
+            search.rebuild(package.id)
 
