@@ -41,4 +41,8 @@ echo "Moving test-core.ini into a subdir..."
 mkdir subdir
 mv test-core.ini subdir
 
+# Copy who.ini into the subdir
+mkdir -p subdir/ckanext/dgu
+cp ckanext/dgu/who.ini subdir/ckanext/dgu/
+
 echo "travis-build.bash is done."
