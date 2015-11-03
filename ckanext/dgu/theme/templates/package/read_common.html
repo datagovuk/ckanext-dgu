@@ -38,38 +38,36 @@
         </span>
         {% endif %}
       <span class="dropdown">
-        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="API&nbsp;&amp;&nbsp;Apps">
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="API">
           <span class="api-icon">API</span>
           <div class="dropdown-chevron api-chevron" ></div>
         </a>
         <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
-          <div class="panel-heading">Do More With This Data</div>
+          <div class="panel-heading">API</div>
           <div class="panel-body">
-            <ul>
-              <li><a href="/node/add/app?dataset={{c.pkg_dict.get('name')}}">Share your app &raquo;</a><br/></li>
-              <li><a href="/node/add/data-request?dataset={{c.pkg_dict.get('name')}}">Request new data &raquo;</a></li>
-            </ul>
-
             <p>The information on this page (the dataset metadata) is also available in JSON format.</p>
             <ul>
               <li>
-                <b>API: </b><a href="{{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}">
-                  {{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}
-                </a>
+                <b><a href="{{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}"  target="_blank">Metadata JSON for this dataset</a></b>
               </li>
               <li>
-                <b>Data Package JSON: </b>
-                <a href="{{ h.datapackage_url(c.pkg) }}">{{ h.datapackage_url(c.pkg) }}</a></li>
+                <b><a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
+                  Metadata API Documentation
+                </a></b>
+              </li>
+              </ul>
+              <ul>
               <li>
-                <a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
-                  Read more about this site's CKAN API &raquo;
-                </a>
+                <b><a href="{{ h.datapackage_url(c.pkg) }}" target="_blank">Data Package JSON</a></b>
+              </li>
+              <li>
+                <b><a href="http://dataprotocols.org/data-packages/" target="_blank">Data Package JSON Documentation</a></b>
               </li>
             </ul>
             {% if h.has_packagezip(c.pkg) %}
             <p>A Data Package Zip containing the cached resources held by data.gov.uk is also available for download:</p>
             <ul>
-              <li><a href="{{ h.packagezip_url(c.pkg) }}">Data Package Zip</a></li>
+              <li><b><a href="{{ h.packagezip_url(c.pkg) }}">Data Package Zip</a></b></li>
             </ul>
             {% endif %}
           </div>
