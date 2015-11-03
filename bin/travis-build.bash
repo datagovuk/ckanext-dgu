@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+set -e # stop on error
+set -x # echo on
 
 echo "This is travis-build.bash..."
 
