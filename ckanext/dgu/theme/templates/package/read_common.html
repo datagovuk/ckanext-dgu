@@ -48,7 +48,7 @@
             <p>The information on this page (the dataset metadata) is also available in JSON format.</p>
             <ul>
               <li>
-                <b><a href="{{h.url_for(controller='api', register='package', action='show', id=c.pkg.name, ver='2')}}"  target="_blank">Metadata JSON for this dataset</a></b>
+                <b><a href="{{h.url_for(controller='api', action='action', ver='3', id=c.pkg.name, logic_function='package_show')}}"  target="_blank">Metadata JSON for this dataset</a></b>
               </li>
               <li>
                 <b><a href="{{h.url_for(controller='ckanext.dgu.controllers.data:DataController', action='api')}}">
