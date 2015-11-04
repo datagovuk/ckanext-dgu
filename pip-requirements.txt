@@ -37,6 +37,9 @@
 # ckanext-taxonomy
 -e git+https://github.com/datagovuk/ckanext-taxonomy.git#egg=ckanext-taxonomy
 
+# shared_dguk_assets
+-e git+https://github.com/datagovuk/shared_dguk_assets.git#egg=shared_dguk_assets
+
 ## Related extension dependencies
 
 # Copied from ckanext-spatial's pip-requirements.txt:

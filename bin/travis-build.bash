@@ -38,6 +38,23 @@ pip install -r pip-requirements.txt
 pip install -r pip-requirements-dev.txt
 pip install -r pip-requirements-local.txt
 
+echo "Node install..."
+sudo apt-get install python-software-properties python g++ make
+sudo add-apt-repository ppa:chris-lea/node.js
+sudo apt-get update
+sudo apt-get install nodejs
+sudo npm install -g grunt-cli
+npm install
+cd shared_dguk_assets
+npm install
+cd -
+
+echo "Asset compilation (grunt)..."
+grunt
+cd shared_dguk_assets
+grunt
+cd -
+
 echo "Moving test-core.ini into a subdir..."
 mkdir subdir
 mv test-core.ini subdir
