@@ -37,6 +37,8 @@ pip install rdflib==4.1.2
 pip install -r pip-requirements.txt
 pip install -r pip-requirements-dev.txt
 pip install -r pip-requirements-local.txt
+# shared assets is not python, so we can't pip install it
+git clone https://github.com/datagovuk/shared_dguk_assets.git
 
 echo "Node install..."
 sudo apt-get install python-software-properties python g++ make
