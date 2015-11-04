@@ -49,6 +49,9 @@ cd shared_dguk_assets
 npm install
 cd -
 
+echo "Download nltk stopwords..."
+python -m nltk.downloader stopwords
+
 echo "Asset compilation (grunt)..."
 grunt
 cd shared_dguk_assets
