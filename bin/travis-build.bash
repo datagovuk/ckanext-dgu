@@ -42,7 +42,7 @@ git clone https://github.com/datagovuk/shared_dguk_assets.git
 
 echo "Node install..."
 sudo apt-get install python-software-properties python g++ make
-sudo add-apt-repository ppa:chris-lea/node.js
+sudo add-apt-repository -y ppa:chris-lea/node.js
 sudo apt-get update
 sudo apt-get install nodejs
 sudo npm install -g grunt-cli
