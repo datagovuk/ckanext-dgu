@@ -407,5 +407,5 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
         revs = self._get_revisions()
         assert_equal(res['since_revision_id'], revs[0].id)
         assert_equal(res['newest_revision_id'], revs[-1].id)
-        assert 10 < res['number_of_revisions'] < 20, res['number_of_revisions']
+        assert res['number_of_revisions'] == len(revs), res['number_of_revisions']
         assert res['results_limited'] == True, res['results_limited']
