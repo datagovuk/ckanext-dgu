@@ -1,4 +1,7 @@
 from nose.tools import assert_equal, assert_raises
+import mock
+
+from paste.fixture import Field, html_unquote, Radio, _parse_attrs, Form
 
 from ckan import model
 from ckan.lib.create_test_data import CreateTestData
@@ -15,6 +18,10 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
     def setup_class(cls):
         DguCreateTestData.create_dgu_test_data()
         cls.publisher_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
+
+        # monkey patch webtest to support multiple select boxes
+        Field.classes['multiple_select'] = MultipleSelect
+        Form._parse_fields = _parse_fields
 
     @classmethod
     def teardown_class(cls):
@@ -366,3 +373,154 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
     def test_3_publisher_not_found(self):
         offset = url_for('/publisher/apply/unheardof')
         res = self.app.get(offset, status=404, extra_environ={'REMOTE_USER': 'user'})
+
+
+################################
+# From webtest, mostly v2.0.20 #
+# MIT license                  #
+################################
+
+
+class NoValue(object):
+    pass
+
+
+def stringify(value):
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, unicode):
+        return value.decode('utf8')
+    else:
+        return str(value)
+
+# MultipleSelect is taken from webtest/forms.py
+# but hacked because self.options is given to it by the old _parse_fields as 2
+# value tuples instead of 3, so the text value is not available.
+
+
+class MultipleSelect(Field):
+    """Field representing ``<select multiple="multiple">``"""
+
+    def __init__(self, *args, **attrs):
+        super(MultipleSelect, self).__init__(*args, **attrs)
+        self.options = []
+        # Undetermined yet:
+        self.selectedIndices = []
+        self._forced_values = NoValue
+
+    def force_value(self, values):
+        """Like setting a value, except forces it (even for, say, hidden
+        fields).
+        """
+        self._forced_values = values
+        self.selectedIndices = []
+
+    def select_multiple(self, value=None, texts=None):
+        if value is not None and texts is not None:
+            raise ValueError("Specify only one of value and texts.")
+
+        # don't support selecting by text in this hacked version
+        #if texts is not None:
+        #    value = self._get_value_for_texts(texts)
+
+        self.value = value
+
+    def value__set(self, values):
+        str_values = [stringify(value) for value in values]
+        self.selectedIndices = []
+        for i, (option, checked) in enumerate(self.options):
+            if option in str_values:
+                self.selectedIndices.append(i)
+                str_values.remove(option)
+        if str_values:
+            raise ValueError(
+                "Option(s) %r not found (from %s)"
+                % (', '.join(str_values),
+                   ', '.join([repr(o) for o, c in self.options])))
+
+    def value__get(self):
+        if self._forced_values is not NoValue:
+            return self._forced_values
+        elif self.selectedIndices:
+            return [self.options[i][0] for i in self.selectedIndices]
+        else:
+            selected_values = []
+            for option, checked in self.options:
+                if checked:
+                    selected_values.append(option)
+            return selected_values if selected_values else None
+    value = property(value__get, value__set)
+
+
+# _parse_fields taken from webtest 1.4.3 forms.py
+# but with the marked hack that detects multiple select
+
+def _parse_fields(self):
+    in_select = None
+    in_textarea = None
+    fields = {}
+    for match in self._tag_re.finditer(self.text):
+        end = match.group(1) == '/'
+        tag = match.group(2).lower()
+        if tag not in ('input', 'select', 'option', 'textarea',
+                       'button'):
+            continue
+        if tag == 'select' and end:
+            assert in_select, (
+                '%r without starting select' % match.group(0))
+            in_select = None
+            continue
+        if tag == 'textarea' and end:
+            assert in_textarea, (
+                "</textarea> with no <textarea> at %s" % match.start())
+            in_textarea[0].value = html_unquote(self.text[in_textarea[1]:match.start()])
+            in_textarea = None
+            continue
+        if end:
+            continue
+        attrs = _parse_attrs(match.group(3))
+        if 'name' in attrs:
+            name = attrs.pop('name')
+        else:
+            name = None
+        if tag == 'option':
+            in_select.options.append((attrs.get('value'),
+                                      'selected' in attrs))
+            continue
+        if tag == 'input' and attrs.get('type') == 'radio':
+            field = fields.get(name)
+            if not field:
+                field = Radio(self, tag, name, match.start(), **attrs)
+                fields.setdefault(name, []).append(field)
+            else:
+                field = field[0]
+                assert isinstance(field, Radio)
+            field.options.append((attrs.get('value'),
+                                  'checked' in attrs))
+            continue
+        tag_type = tag
+        if tag == 'input':
+            tag_type = attrs.get('type', 'text').lower()
+        # HACK starts
+        if tag_type == "select" and "multiple" in attrs:
+            tag_type = "multiple_select"
+        # HACK ends
+        FieldClass = Field.classes.get(tag_type, Field)
+        field = FieldClass(self, tag, name, match.start(), **attrs)
+        if tag == 'textarea':
+            assert not in_textarea, (
+                "Nested textareas: %r and %r"
+                % (in_textarea, match.group(0)))
+            in_textarea = field, match.end()
+        elif tag == 'select':
+            assert not in_select, (
+                "Nested selects: %r and %r"
+                % (in_select, match.group(0)))
+            in_select = field
+        fields.setdefault(name, []).append(field)
+    self.fields = fields
+
+
+################################
+# End of webtest bits          #
+################################
