@@ -24,8 +24,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         # Load form
         offset = url_for('/publisher/new')
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
-        assert 'Add A Publisher' in res, res
-        form = res.forms[0]
+        assert 'Save Changes' in res, res
+        form = res.forms[1]
 
         # Fill in form
         form['title'] = 'New publisher'
@@ -62,8 +62,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         group = model.Group.by_name(publisher_name)
         offset = url_for('/publisher/edit/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
-        assert 'Edit: %s' % group.title in res, res
-        form = res.forms[0]
+        assert 'Edit Publisher' in res, res
+        form = res.forms[1]
         # TODO assert_equal(form['title'].value, 'National Health Service')
         assert_equal(form['name'].value, 'national-health-service')
         assert_equal(form['description'].value, '')
@@ -117,8 +117,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         # Load form
         offset = url_for('/publisher/new')
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
-        assert 'Add A Publisher' in res, res
-        form = res.forms[0]
+        assert 'Save Changes' in res, res
+        form = res.forms[1]
 
         # Fill in form
         form['title'] = 'New publisher'
@@ -137,7 +137,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert 'Errors in form' in res.body
 
         # Check redisplayed form
-        form = res.forms[0]
+        form = res.forms[1]
         assert_equal(form['title'].value, 'New publisher')
         assert_equal(form['description'].value, 'New description')
         assert_equal(form['contact-name'].value, 'Head of Comms')
@@ -156,8 +156,9 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         group = model.Group.by_name(publisher_name)
         offset = url_for('/publisher/edit/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
-        assert 'Edit: %s' % group.title in res, res
-        form = res.forms[0]
+        assert 'Edit Publisher' in res, res
+        assert group.title in res, res
+        form = res.forms[1]
 
         # Fill in form
         # TODO form['title'] = 'Edit publisher'
@@ -176,7 +177,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert 'Errors in form' in res.body
 
         # Check redisplayed form
-        form = res.forms[0]
+        form = res.forms[1]
         # TODO assert_equal(form['title'].value, 'New publisher')
         assert_equal(form['description'].value, 'New description')
         assert_equal(form['contact-name'].value, 'Head of Comms')
@@ -194,7 +195,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         def check_related_publisher_properties():
             group = model.Group.by_name(publisher_name)
             # datasets
-            assert_equal(set([grp.name for grp in group.active_packages()]),
+            assert_equal(set([grp.name for grp in group.packages()]),
                          set([u'directgov-cota']))
             # parents
 
@@ -216,8 +217,9 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         group = model.Group.by_name(publisher_name)
         offset = url_for('/publisher/edit/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
-        assert 'Edit: %s' % group.title in res, res
-        form = res.forms[0]
+        assert 'Edit Publisher' in res, res
+        assert group.title in res, res
+        form = res.forms[1]
 
         # Make edit
         form['description'] = 'New description'
@@ -237,19 +239,20 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
 
     def test_4_delete_publisher(self):
         group_name = 'deletetest'
-        CreateTestData.create_groups([{'name': group_name,
+        CreateTestData.create_groups([{'name': group_name, 'is_organization': True,
                                        'packages': [u'cabinet-office-energy-use']}],
                                      admin_user_name='nhsadmin')
 
         group = model.Group.by_name(group_name)
-        offset = url_for(controller=self.publisher_controller, action='edit', id=group_name)
+        offset =url_for(controller=self.publisher_controller, action='edit', id=group.id)
+
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
         main_res = self.main_div(res)
-        assert 'Edit: %s' % group.title in main_res, main_res
+        assert 'Edit Publisher' in main_res, main_res
         assert 'value="active" selected' in main_res, main_res
 
         # delete
-        form = res.forms[0]
+        form = res.forms[1]
         form['state'] = 'deleted'
         form['category'] = 'private' # to get it to validate
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
@@ -263,7 +266,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         def check_related_publisher_properties():
             group = model.Group.by_name(publisher_name)
             # datasets
-            assert_equal(set([grp.name for grp in group.active_packages()]),
+            assert_equal(set([grp.name for grp in group.packages()]),
                          set([u'directgov-cota']))
             # parents
             child_groups = [grp.name for grp in model.Group.by_name('dept-health').get_children_groups('organization')]
@@ -277,8 +280,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         group = model.Group.by_name(unicode(publisher_name))
         offset = url_for('/publisher/users/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'nhsadmin'})
-        assert 'Users: %s' % group.title in res, res
-        form = res.forms[0]
+        assert 'Edit User Permissions' in res, res
+        form = res.forms[1]
         assert_equal(form['users__0__name'].value, 'nhsadmin')
         assert_equal(form['users__0__capacity'].value, 'admin')
         assert_equal(form['users__1__name'].value, 'nhseditor')
