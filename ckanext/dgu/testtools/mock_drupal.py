@@ -20,7 +20,9 @@ def get_mock_drupal_config():
         'test_users': {'62': {'name': 'testname',
                               'uid': '62',
                               'publishers': test_organisation_names,
-                              'created': '1319119762', #(2011, 10, 20, 15, 9, 22)
+                              # >>> datetime.datetime.fromtimestamp(1319119762)
+                              # datetime.datetime(2011, 10, 20, 14, 9, 22)
+                              'created': '1319119762',
                               'mail': 'joe@dept.gov.uk',
                               'roles': {'14': 'publishing user'}}
                        },
@@ -87,7 +89,7 @@ class MockDrupal(object):
         from xmlrpclib import Fault
 
         config = get_mock_drupal_config()
-        
+
         # Restrict to a particular path.
         class RequestHandler(SimpleXMLRPCRequestHandler):
             rpc_paths = (config['rpc_path'],)
@@ -101,7 +103,7 @@ class MockDrupal(object):
         class MyFuncs:
             class user: # lower case to match Drupal definition
                 @classmethod
-                def get(cls, user_id):
+                def retrieve(cls, user_id):
                     # Real example:
                     # {'status': '1',
                     # 'uid': '28',
@@ -169,14 +171,15 @@ class MockDrupal(object):
 
             class session:
                 @classmethod
-                def get(cls, session_id):
+                def retrieve(cls, session_id):
                     # return user_id given a session_id
                     # Example response:
                     #   62
                     try:
                         return config['test_sessions'][session_id]
                     except KeyError:
-                        raise Fault(404, 'There is no session with such ID.')                    
+                        raise Fault(404, 'There is no session with such ID.')
+
         server.register_instance(MyFuncs(), allow_dotted_names=True)
 
         # Run the server's main loop

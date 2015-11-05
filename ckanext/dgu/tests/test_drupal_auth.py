@@ -1,20 +1,20 @@
+import time
 import datetime
 
-import Cookie
 from nose.tools import assert_equal
 
 from ckan import model
 
 from ckanext.dgu.authentication.drupal_auth import DrupalAuthMiddleware
-from ckanext.dgu.drupalclient import DrupalClient
 from ckanext.dgu.tests import MockDrupalCase
 
 class TestCookie:
     @classmethod
     def setup_class(cls):
-        cls.drupal_cookie = '__utmz=217959684.1298907582.2.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20office%20information; __utma=217959684.1645507268.1266337989.1266337989.1298907782.2; SESSff851ac67dd7b161b4807a4288bdeaba=ae257e890935e0cc123ccc71797668e4; DRXtrArgs=bob; DRXtrArgs2=ed3d3918bf63e9c41ea81a2e5a2364ba;'
-        cls.drupal_cookies = 'SESSwrong=abc; SESSff851ac67dd7b161b4807a4288bdeaba=ae257e890935e0cc123ccc71797668e4; SESSwrongtoo=def;'
-        cls.drupal_and_ckan_cookies = '__utmz=217959684.1298907582.2.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20office%20information; __utma=217959684.1645507268.1266337989.1266337989.1298907782.2; SESSff851ac67dd7b161b4807a4288bdeaba=ae257e890935e0cc123ccc71797668e4; DRXtrArgs=bob; DRXtrArgs2=ed3d3918bf63e9c41ea81a2e5a2364ba; auth_tkt="a578c4a0d21bdbde7f80cd271d60b66f4ceabc3f4466!";'
+        # hashlib.sha256('testserver.org').hexdigest()[:32] = 'a5724d5ecd49e5f48a23fcc56d17ee0c'
+        cls.drupal_cookie = '__utmz=217959684.1298907582.2.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20office%20information; __utma=217959684.1645507268.1266337989.1266337989.1298907782.2; SESSa5724d5ecd49e5f48a23fcc56d17ee0c=ae257e890935e0cc123ccc71797668e4; DRXtrArgs=bob; DRXtrArgs2=ed3d3918bf63e9c41ea81a2e5a2364ba;'
+        cls.drupal_cookies = 'SESSwrong=abc; SESSa5724d5ecd49e5f48a23fcc56d17ee0c=ae257e890935e0cc123ccc71797668e4; SESSwrongtoo=def;'
+        cls.drupal_and_ckan_cookies = '__utmz=217959684.1298907582.2.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20office%20information; __utma=217959684.1645507268.1266337989.1266337989.1298907782.2; SESSa5724d5ecd49e5f48a23fcc56d17ee0c=ae257e890935e0cc123ccc71797668e4; DRXtrArgs=bob; DRXtrArgs2=ed3d3918bf63e9c41ea81a2e5a2364ba; auth_tkt="a578c4a0d21bdbde7f80cd271d60b66f4ceabc3f4466!";'
         cls.environ = {'SERVER_NAME': 'testserver.org'}
 
     def test_drupal_cookie_parse(self):
@@ -65,7 +65,8 @@ class MockAuthTkt:
                                      identity.get('userdata', ''))
         set_cookie = '%s=%s; Path=/;' % (self.cookie_name, ckan_session_id)
         return [('Set-Cookie', set_cookie)]
-    
+
+
 class TestDrupalAuthMiddleware(MockDrupalCase):
     @classmethod
     def setup_class(cls):
@@ -76,9 +77,9 @@ class TestDrupalAuthMiddleware(MockDrupalCase):
         if user:
             user.delete()
             model.Session.commit_and_remove()
-        
+
     def test_1_sign_in(self):
-        cookie_string = 'Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESSff851ac67dd7b161b4807a4288bdeaba=4160a72a4d6831abec1ac57d7b5a59eb;"'
+        cookie_string = 'Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESSa5724d5ecd49e5f48a23fcc56d17ee0c=4160a72a4d6831abec1ac57d7b5a59eb;"'
         assert not DrupalAuthMiddleware._is_this_a_ckan_cookie(cookie_string)
         app = MockApp()
         app_conf = None
@@ -103,7 +104,7 @@ class TestDrupalAuthMiddleware(MockDrupalCase):
         assert user
         assert_equal(user.fullname, u'testname')
         assert_equal(user.email, u'joe@dept.gov.uk')
-        assert_equal(user.created, datetime.datetime(2011, 10, 20, 15, 9, 22))
+        assert_equal(user.created, datetime.datetime(2011, 10, 20, 14, 9, 22))
 
         # check environ's HTTP_COOKIE has CKAN user info for the app to use
         assert_equal(environ['REMOTE_USER'], 'user_d62')
@@ -128,20 +129,20 @@ class TestDrupalAuthMiddleware(MockDrupalCase):
         assert_equal(remembered_environ['REMOTE_USER'], 'user_d62')
         assert_equal(set(remembered_identity.keys()), set(('tokens', 'userdata', 'repoze.who.userid')))
         assert_equal(remembered_identity['repoze.who.userid'], 'user_d62')
-        
+
     def test_2_already_signed_in(self):
         user = model.User.by_name(u'62')
-        if not user:            
+        if not user:
             user = model.User(
-                name=u'62', 
-                fullname=u'testname', 
+                name=u'62',
+                fullname=u'testname',
                 about=u'Drupal auto-generated user',
             )
             model.Session.add(user)
             model.repo.commit_and_remove()
         user = model.User.by_name(u'62')
         assert user
-        cookie_string = 'Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESSff851ac67dd7b161b4807a4288bdeaba=4160a72a4d6831abec1ac57d7b5a59eb; auth_tkt="ab48fe!4160a72a4d6831abec1ac57d7b5a59eb";"'
+        cookie_string = 'Cookie: __utma=217959684.178461911.1286034407.1286034407.1286178542.2; __utmz=217959684.1286178542.2.2.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=coi%%20london; DRXtrArgs=James+Gardner; DRXtrArgs2=3e174e7f1e1d3fab5ca138c0a023e13a; SESSa5724d5ecd49e5f48a23fcc56d17ee0c=4160a72a4d6831abec1ac57d7b5a59eb; auth_tkt="ab48fe!4160a72a4d6831abec1ac57d7b5a59eb";"'
         assert DrupalAuthMiddleware._is_this_a_ckan_cookie(cookie_string)
         app = MockApp()
         app_conf = None
@@ -156,7 +157,8 @@ class TestDrupalAuthMiddleware(MockDrupalCase):
                    # inserted by auth_tkt on seeing the auth_tkt cookie:
                    'repoze.who.identity': {
                        'repoze.who.userid': 'user_d62',
-                       'userdata': '4160a72a4d6831abec1ac57d7b5a59eb'
+                       'userdata': '4160a72a4d6831abec1ac57d7b5a59eb',
+                       'timestamp': time.time(),
                        }
                    }
         start_response = mock_start_response
