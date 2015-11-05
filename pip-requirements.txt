@@ -49,5 +49,3 @@ argparse
 selenium==2.28.0
 fabric==1.5.3
 oauthlib==0.6.3
-# SPARQLWrapper 1.7.3 release broken. Dep of rdflib.
-SPARQLWrapper==1.7.2
