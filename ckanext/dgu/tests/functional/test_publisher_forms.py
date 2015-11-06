@@ -309,6 +309,10 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         cls.publisher_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
         SmtpServerHarness.setup_class()
 
+        import ckanext.dgu.model.publisher_request as pr_model
+        pr_model.init_tables(model.meta.engine)
+
+
     @classmethod
     def teardown_class(cls):
         SmtpServerHarness.teardown_class()
@@ -323,8 +327,9 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         group = model.Group.by_name(unicode(publisher_name))
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
-        assert 'Apply for membership' in res, res
-        form = res.forms[0]
+        assert 'Please explain the reason for you to publish on data.gov.uk' in res, res
+
+        form = res.forms[1]
         parent_publisher_id = form['parent'].value
         parent_publisher_name = model.Group.get(parent_publisher_id).name
         assert_equal(parent_publisher_name, publisher_name)
@@ -339,6 +344,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         msgs = SmtpServerHarness.smtp_thread.get_smtp_messages()
         assert_equal(len(msgs), 1)
         msg = msgs[0]
+        print msg
         assert_equal(msg[1], 'info@test.ckan.net') # from (ckan.mail_from in ckan/test-core.ini)
         assert_equal(msg[2], ["dohemail@localhost.local"]) # to (dgu.admin.name/email in dgu/test-core.ini)
 
@@ -346,7 +352,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
         assert 'Apply for membership' in res, res
-        form = res.forms[0]
+        form = res.forms[1]
         form['reason'] = 'I am the director'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'user'})
         msgs = SmtpServerHarness.smtp_thread.get_smtp_messages()
