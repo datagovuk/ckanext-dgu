@@ -37,6 +37,9 @@
 # ckanext-taxonomy
 -e git+https://github.com/datagovuk/ckanext-taxonomy.git#egg=ckanext-taxonomy
 
+# ckanext-hierarchy
+-e git+https://github.com/datagovuk/ckanext-hierarchy.git#egg=ckanext-hierarchy
+
 ## Related extension dependencies
 
 # Copied from ckanext-spatial's pip-requirements.txt:
