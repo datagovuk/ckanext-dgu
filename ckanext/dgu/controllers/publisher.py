@@ -148,7 +148,7 @@ class PublisherController(OrganizationController):
                 reason = request.params.get('reason', None)
 
                 if model.Session.query(PublisherRequest).filter_by(user_name=c.user, group_name=id).all():
-                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True) 
+                    h.flash_error('A request for this publisher is already in the system. If you have waited more than a couple of days then <a href="http://data.gov.uk/contact">contact the data.gov.uk team</a>', allow_html=True)
                     h.redirect_to('publisher_apply', id=id)
                     return
                 else:
@@ -465,7 +465,7 @@ class PublisherController(OrganizationController):
             c.in_group = c.req_user.is_in_group(c.req_group.id)
         except Exception, ex:
             abort(404, 'Request not found')
- 
+
         if decision:
             if decision not in ['reject', 'accept']:
                 abort(400, 'Invalid Request')
@@ -546,6 +546,8 @@ class PublisherController(OrganizationController):
         use the available groups for the current user, but should be optional
         in case this is a top level group
         """
+        model = context['model']
+
         if group_type=='organization':
             # editing an organization?
             group = context.get('group')
@@ -556,7 +558,6 @@ class PublisherController(OrganizationController):
                 if parents:
                     c.parent = parents[0]
 
-            model = context['model']
             group_id = data_dict.get('id')
             if group_id:
                 group = model.Group.get(group_id)
