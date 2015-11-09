@@ -421,7 +421,7 @@ def render_partial_datestamp(datestamp_str):
     except:
         try:
             request_path = t.request.path
-        except TypeError:
+        except:   # This may be TypeError or KeyError
             # not in a request (e.g. in a test)
             request_path = ''
         log.error('Could not render datestamp: %r %s', datestamp_str,

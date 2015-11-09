@@ -12,7 +12,7 @@ from ckanext.dgu.lib import publisher as publib
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 
 
-class TestEdit(WsgiAppCase, HtmlCheckMethods):
+class TestEdit(WsgiAppCase):
 
     @classmethod
     def setup_class(cls):
@@ -26,6 +26,15 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
     @classmethod
     def teardown_class(cls):
         model.repo.rebuild_db()
+
+    def _main_div(self, html, div_name):
+        start_div = html.find(u'<div role="%s"' % div_name)
+        end_div = html.find(u'<!-- #%s -->' % div_name)
+        if end_div == -1:
+            end_div = html.find(u'<!-- /%s -->' % div_name)
+        div_html = html[start_div:end_div]
+        assert div_html
+        return div_html
 
     def test_0_new_publisher(self):
         # Load form
@@ -48,7 +57,9 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-web'] = 'http://whatdotheyknow.com'
         form['category'] = 'grouping'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
-        assert_equal(res.header_dict['Location'], 'http://localhost/publisher/test-name')
+
+        # The redirect is to /organization, but this is then handled by config/routing.
+        assert_equal(res.header_dict['Location'], 'http://localhost/organization/test-name')
 
         # Check saved object
         publisher = model.Group.by_name(publisher_name)
@@ -94,10 +105,12 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         form['foi-email'] = 'foi-comms@nhs.gov.uk'
         form['foi-phone'] = '0845 4567890'
         form['foi-web'] = 'http://whatdotheyknow.com'
-        form['category'] = 'alb'
+        form['category'] = 'non-ministerial-department'
         form['abbreviation'] = 'nhs'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'nhsadmin'})
-        assert_equal(res.header_dict['Location'], 'http://localhost/publisher/new-name')
+
+        # The return value is /organization, which routing then redirects to publisher
+        assert_equal(res.header_dict['Location'], 'http://localhost/organization/new-name')
 
         # Check saved object
         publisher = model.Group.by_name(publisher_name)
@@ -110,7 +123,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         assert_equal(publisher.extras['foi-email'], 'foi-comms@nhs.gov.uk')
         assert_equal(publisher.extras['foi-phone'], '0845 4567890')
         assert_equal(publisher.extras['foi-web'], 'http://whatdotheyknow.com')
-        assert_equal(publisher.extras['category'], 'alb')
+        assert_equal(publisher.extras['category'], 'non-ministerial-department')
         assert_equal(publisher.extras['abbreviation'], 'nhs')
 
         # restore name for other tests
@@ -231,7 +244,8 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         # Make edit
         form['description'] = 'New description'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'sysadmin'})
-        assert_equal(res.header_dict['Location'], 'http://localhost/publisher/national-health-service')
+        # This call will redirect users to /organization not /publisher, but we then redirect that call.
+        assert_equal(res.header_dict['Location'], 'http://localhost/organization/national-health-service')
 
         # Check saved object
         publisher = model.Group.by_name(publisher_name)
@@ -254,7 +268,7 @@ class TestEdit(WsgiAppCase, HtmlCheckMethods):
         offset =url_for(controller=self.publisher_controller, action='edit', id=group.id)
 
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'sysadmin'})
-        main_res = self.main_div(res)
+        main_res = self._main_div(res.body, "main")
         assert 'Edit Publisher' in main_res, main_res
         assert 'value="active" selected' in main_res, main_res
 
@@ -317,6 +331,8 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
     def setup_class(cls):
         DguCreateTestData.create_dgu_test_data()
         cls.publisher_controller = 'ckanext.dgu.controllers.publisher:PublisherController'
+        import ckanext.dgu.model.publisher_request as pr_model
+        pr_model.init_tables(model.meta.engine)
         SmtpServerHarness.setup_class()
 
     @classmethod
@@ -334,7 +350,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
         assert 'Apply for membership' in res, res
-        form = res.forms[0]
+        form = res.forms[1]
         parent_publisher_id = form['parent'].value
         parent_publisher_name = model.Group.get(parent_publisher_id).name
         assert_equal(parent_publisher_name, publisher_name)
@@ -356,7 +372,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         offset = url_for('/publisher/apply/%s' % publisher_name)
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
         assert 'Apply for membership' in res, res
-        form = res.forms[0]
+        form = res.forms[1]
         form['reason'] = 'I am the director'
         res = form.submit('save', status=302, extra_environ={'REMOTE_USER': 'user'})
         msgs = SmtpServerHarness.smtp_thread.get_smtp_messages()
@@ -368,7 +384,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         self.assert_application_sent_to_right_person('national-health-service', ['admin@nhs.gov.uk'])
 
     def test_2_application_sent_to_parent_publisher_admin(self):
-        self.assert_application_sent_to_right_person('barnsley-primary-care-trust', ['admin@nhs.gov.uk'])
+        self.assert_application_sent_to_right_person('newham-primary-care-trust', ['admin@nhs.gov.uk'])
 
     def test_3_publisher_not_found(self):
         offset = url_for('/publisher/apply/unheardof')

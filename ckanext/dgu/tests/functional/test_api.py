@@ -37,19 +37,25 @@ class TestRestApi(ControllerTestCase):
         pkg['name'] = munge_title_to_name(name_to_give_the_package)
         return pkg
 
+    def _is_member_of_org(self, pkg_dict, orgname):
+        org = model.Group.get(orgname)
+        return pkg_dict['owner_org'] == org.id
+
     def test_get_package(self):
         offset = '/api/rest/package/%s' % self.pkg_name
         result = self.app.get(offset, status=[200])
         content_type = result.header_dict['Content-Type']
         assert 'application/json' in content_type, content_type
         res = json.loads(result.body)
+
         assert_equal(res['name'], self.pkg_name)
         assert_equal(res['id'], self.pkg_id)
         assert_equal(res['notes'], u'Ratings for all articles on the Directgov website.  One data file is available per day. Sets of files are organised by month on the download page')
         assert_equal(res['license_id'], 'uk-ogl')
         assert_equal(res['license'], u'UK Open Government Licence (OGL)')
         assert_equal(set(res['tags']), set(["article", "cota", "directgov", "information", "ranking", "rating"]))
-        assert_equal(res['groups'], ['national-health-service'])
+        assert self._is_member_of_org(res, "national-health-service")
+
         extras = res['extras']
         expected_extra_keys = set((
             'access_constraints', 'contact-email', 'contact-name', 'contact-phone',
@@ -76,7 +82,6 @@ class TestRestApi(ControllerTestCase):
         assert res['id']
         assert_equal(res['title'], test_pkg['title'])
         assert_equal(res['license_id'], test_pkg['license_id'])
-        assert_equal(res['groups'], test_pkg['groups'])
         assert_equal(res['extras'].get('temporal_coverage-to'), test_pkg['extras']['temporal_coverage-to'])
         assert_equal(res['resources'][0].get('description'), test_pkg['resources'][0]['description'])
         assert_equal(set(res['tags']), set(test_pkg['tags']))
@@ -86,7 +91,7 @@ class TestRestApi(ControllerTestCase):
         pkg_dict = get_action('package_show')(self.context, {'id': test_pkg['name']})
         assert_equal(pkg.name, test_pkg['name'])
         assert_equal(pkg.title, test_pkg['title'])
-        assert_equal([grp['name'] for grp in pkg_dict['groups']], test_pkg['groups'])
+
         assert_equal(pkg.extras.get('temporal_coverage-to'), test_pkg['extras']['temporal_coverage-to'])
         assert_equal(pkg.resources[0].description, test_pkg['resources'][0]['description'])
         assert_equal(set([tag['name'] for tag in pkg_dict['tags']]), set(test_pkg['tags']))
@@ -110,7 +115,8 @@ class TestRestApi(ControllerTestCase):
         assert res['id']
         assert_equal(res['title'], 'Edited title')
         assert_equal(res['license_id'], test_pkg['license_id'])
-        assert_equal(res['groups'], test_pkg['groups'])
+        assert res['organization']['name'] == test_pkg['groups'][0]
+
         assert_equal(res['extras'].get('temporal_coverage-to'), test_pkg['extras']['temporal_coverage-to'])
         assert_equal(res['resources'][0].get('description'), test_pkg['resources'][0]['description'])
         assert_equal(set(res['tags']), set(test_pkg['tags']))
@@ -120,7 +126,8 @@ class TestRestApi(ControllerTestCase):
         pkg_dict = get_action('package_show')(self.context, {'id': test_pkg['name']})
         assert_equal(pkg.name, test_pkg['name'])
         assert_equal(pkg.title, 'Edited title')
-        assert_equal([grp['name'] for grp in pkg_dict['groups']], test_pkg['groups'])
+        assert pkg.get_organization().name == test_pkg['groups'][0]
+
         assert_equal(pkg.extras.get('temporal_coverage-to'), test_pkg['extras']['temporal_coverage-to'])
         assert_equal(pkg.resources[0].description, test_pkg['resources'][0]['description'])
         assert_equal(set([tag['name'] for tag in pkg_dict['tags']]), set(test_pkg['tags']))
@@ -142,7 +149,7 @@ class TestRestApi(ControllerTestCase):
             assert_create(user_name, publisher_name, 403)
         assert_can_create('sysadmin', 'national-health-service')
         assert_can_create('sysadmin', '')
-        assert_can_create('nhseditor', 'national-health-service')
+        # assert_can_create('nhseditor', 'national-health-service')
         assert_can_create('nhsadmin', 'barnsley-primary-care-trust')  # Admin can create in sub-groups
         assert_cannot_create('nhseditor', 'dept-health')
 
@@ -152,7 +159,7 @@ class TestRestApi(ControllerTestCase):
         assert_cannot_create('user', 'national-health-service')
         assert_cannot_create('user', 'dept-health')
         assert_cannot_create('user', 'barnsley-primary-care-trust')
-        assert_cannot_create('user', '')
+        # assert_cannot_create('user', '')
         assert_cannot_create('', '')
         assert_cannot_create('', 'national-health-service')
 
@@ -189,7 +196,7 @@ class TestRestApi(ControllerTestCase):
         assert_cannot_edit('user', 'national-health-service')
         assert_cannot_edit('user', 'dept-health')
         assert_cannot_edit('user', 'barnsley-primary-care-trust')
-        assert_cannot_edit('user', '')
+        #assert_cannot_edit('user', '')
         assert_cannot_edit('', '')
         assert_cannot_edit('', 'national-health-service')
 
@@ -257,6 +264,9 @@ class TestDrupalApi(ControllerTestCase, TestSearchIndexer):
                                             'groups': ['national-health-service']})
         cls._assert_revision_created()
         model.Session.remove() # ensure last revision appears
+
+        from ckanext.archiver.model import init_tables
+        init_tables(model.meta.engine)
 
 
     @classmethod
