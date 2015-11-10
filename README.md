@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/datagovuk/ckanext-dgu.svg?branch=master)](https://travis-ci.org/datagovuk/ckanext-dgu)
+
 ckanext-dgu - data.gov.uk extension
 ===================================
 
