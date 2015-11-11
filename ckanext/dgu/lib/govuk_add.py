@@ -3,8 +3,8 @@ from ckanext.dgu.model import govuk_publications as govuk_pubs_model
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.harvest.harvesters.base import HarvesterBase
 from ckan import model
-from ckan.lib.munge import munge_title_to_name
 import ckan.plugins as p
+
 
 class GovukPublications(object):
     @classmethod
@@ -12,8 +12,9 @@ class GovukPublications(object):
         cls.stats = Stats()
         if publication_url:
             try:
-                publication = model.Session.query(govuk_pubs_model.Publication)\
-                                   .filter_by(url=publication_url).one()
+                publication = \
+                    model.Session.query(govuk_pubs_model.Publication)\
+                         .filter_by(url=publication_url).one()
                 cls.add_or_update_publication(publication)
             except sqlalchemy.orm.exc.NoResultFound:
                 cls.stats.add('Error looking up Publication', publication_url)
@@ -29,9 +30,9 @@ class GovukPublications(object):
     def add_or_update_publication(cls, publication):
         try:
             link = model.Session.query(govuk_pubs_model.Link)\
-                            .filter_by(govuk_id = publication.govuk_id)\
-                            .filter_by(govuk_table = 'publication')\
-                            .filter_by(ckan_table = 'dataset').one()
+                        .filter_by(govuk_id=publication.govuk_id)\
+                        .filter_by(govuk_table='publication')\
+                        .filter_by(ckan_table='dataset').one()
             cls.stats.add('Updating Publication', publication.id)
             package = link.ckan
         except sqlalchemy.orm.exc.NoResultFound:
@@ -60,9 +61,9 @@ class GovukPublications(object):
 
         if package:
             pkg_dict['id'] = package.id
-	    package = p.toolkit.get_action('package_update')(context, pkg_dict)
+            package = p.toolkit.get_action('package_update')(context, pkg_dict)
         else:
-	    package = p.toolkit.get_action('package_create')(context, pkg_dict)
+            package = p.toolkit.get_action('package_create')(context, pkg_dict)
 
             link = govuk_pubs_model.Link(govuk_id=publication.govuk_id,
                                          govuk_table='publication',
