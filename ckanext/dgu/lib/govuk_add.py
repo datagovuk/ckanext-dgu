@@ -1,4 +1,5 @@
 import sqlalchemy
+
 from ckanext.dgu.model import govuk_publications as govuk_pubs_model
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.harvest.harvesters.base import HarvesterBase
@@ -11,21 +12,52 @@ class GovukPublications(object):
     organization_map = {}
 
     @classmethod
-    def autoadd(cls, publication_url=None):
-        cls.stats = Stats()
+    def update(cls, publication_url=None):
+        '''Updates existing datasets based on their links to publications'''
         if publication_url:
-            try:
-                publication = \
-                    model.Session.query(govuk_pubs_model.Publication)\
-                         .filter_by(url=publication_url).one()
-                cls.add_or_update_publication(publication)
-            except sqlalchemy.orm.exc.NoResultFound:
-                cls.stats.add('Error looking up Publication', publication_url)
-        else:
-            publications = model.Session.query(govuk_pubs_model.Publication)
-            for publication in publications:
-                cls.add_or_update_publication(publication)
-                #break
+            return cls._add_or_update_publication_by_url(publication_url)
+
+        cls.stats = Stats()
+        publications_with_any_link_to_datasets = \
+            model.Session.query(govuk_pubs_model.Publication)\
+                 .join(govuk_pubs_model.Link,
+                       govuk_pubs_model.Link.govuk_id ==
+                       govuk_pubs_model.Publication.govuk_id)\
+                 .filter_by(govuk_table='publication')\
+                 .filter_by(ckan_table='dataset')\
+                 .join(model.Package,
+                       govuk_pubs_model.Link.ckan_id == model.Package.id)\
+                 .distinct()\
+                 .all()
+        print 'Publications with links to datasets: %s' % \
+            len(publications_with_any_link_to_datasets)
+        for publication in publications_with_any_link_to_datasets:
+            cls._add_or_update_publication(publication)
+
+        print cls.stats
+
+    @classmethod
+    def add(cls, publication_url=None):
+        '''Adds datasets for publications that have no existing links to
+        datasets in our field
+        '''
+        if publication_url:
+            return cls._add_or_update_publication_by_url(publication_url)
+
+        cls.stats = Stats()
+        links_to_datasets = \
+            model.Session.query(govuk_pubs_model.Link.govuk_id)\
+                 .filter_by(govuk_table='publication')\
+                 .filter_by(ckan_table='dataset')
+        publications_with_no_link_to_datasets =\
+            model.Session.query(govuk_pubs_model.Publication)\
+                 .filter(~govuk_pubs_model.Publication.govuk_id.in_(
+                         links_to_datasets))\
+                 .all()
+        print 'Publications with no links to datasets: %s' % \
+            len(publications_with_no_link_to_datasets)
+        for publication in publications_with_no_link_to_datasets:
+            cls._add_or_update_publication(publication)
 
         print cls.stats
 
@@ -60,11 +92,21 @@ class GovukPublications(object):
         return publisher
 
     @classmethod
-    def add_or_update_publication(cls, publication):
+    def _add_or_update_publication_by_url(cls, publication_url):
+        try:
+            publication = \
+                model.Session.query(govuk_pubs_model.Publication)\
+                     .filter_by(url=publication_url).one()
+            cls._add_or_update_publication(publication)
+        except sqlalchemy.orm.exc.NoResultFound:
+            print 'Error looking up Publication URL: %s' % publication_url
+
+    @classmethod
+    def _add_or_update_publication(cls, publication):
         query = model.Session.query(govuk_pubs_model.Link.ckan_id.distinct())\
-                    .filter_by(govuk_id=publication.govuk_id)\
-                    .filter_by(govuk_table='publication')\
-                    .filter_by(ckan_table='dataset')
+                     .filter_by(govuk_id=publication.govuk_id)\
+                     .filter_by(govuk_table='publication')\
+                     .filter_by(ckan_table='dataset')
         try:
             ckan_id = query.one()[0]
             cls.stats.add('Updating Publication', publication.id)
