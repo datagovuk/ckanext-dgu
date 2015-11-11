@@ -1,5 +1,8 @@
 import sqlalchemy
 from ckanext.dgu.model import govuk_publications as govuk_pubs_model
+from ckanext.dgu.lib.theme import (categorize_package,
+                                   PRIMARY_THEME,
+                                   SECONDARY_THEMES)
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.harvest.harvesters.base import HarvesterBase
 from ckan import model
@@ -96,6 +99,8 @@ class GovukPublications(object):
             'license_id': 'uk-ogl',
             'owner_org': publisher.id,
             'resources': [],
+            'tags': [],
+            'extras': [],
         }
 
         for attachment in publication.attachments:
@@ -105,6 +110,13 @@ class GovukPublications(object):
                 'format': cls.normalise_format(attachment.format),
             }
             pkg_dict['resources'].append(resource)
+
+        themes = categorize_package(pkg_dict)
+        if themes:
+            pkg_dict['extras'].append({'key': PRIMARY_THEME,
+                                       'value': themes[0]})
+            pkg_dict['extras'].append({'key': SECONDARY_THEMES,
+                                       'value': themes[1:]})
 
         if package:
             pkg_dict['id'] = package.id
