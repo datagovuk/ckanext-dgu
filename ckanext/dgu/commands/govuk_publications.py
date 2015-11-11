@@ -39,6 +39,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
 
         self.parser.add_option('--page', dest='page',
             default='all', help='Page number to scrape, from the publication list (first is 1)')
+        self.parser.add_option('--start-page', dest='start_page',
+            default='1', help='Page number to start scraping from, of the publication list (first is 1)')
         self.parser.add_option('--publication', dest='publication',
             help='Publication URL to scrape')
         self.parser.add_option('--organization', dest='organization',
@@ -70,6 +72,9 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                 if self.options.page != 'all':
                     page = int(self.options.page)
                     GovukPublicationScraper.scrape_and_save_publications(page=page)
+                elif self.options.start_page != '1':
+                    start_page = int(self.options.start_page)
+                    GovukPublicationScraper.scrape_and_save_publications(start_page=start_page)
                 elif self.options.publication:
                     if 'http' not in self.options.publication:
                         sys.stderr.write('Publication needs to be a URL')

@@ -39,11 +39,12 @@ class GovukPublicationScraper(object):
             cls.field_stats.report_value_limit = 300
 
     @classmethod
-    def scrape_and_save_publications(cls, page=None, search_filter=None,
+    def scrape_and_save_publications(cls, page=None, start_page=1,
+                                     search_filter=None,
                                      publication_limit=None):
         cls.init()
 
-        pages = itertools.count(start=1) if page is None else [page]
+        pages = itertools.count(start=start_page) if page is None else [page]
         num_pages = '?'
         publications_scraped = 0
         for page_index in pages:
