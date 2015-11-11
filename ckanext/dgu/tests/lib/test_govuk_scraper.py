@@ -331,7 +331,14 @@ class TestScrapeOnly:
         assert_equal(GovukPublicationScraper.extract_name_from_url(
             'https://www.gov.uk/government/collections/farm-business-survey'),
             'farm-business-survey')
+        assert_equal(GovukPublicationScraper.extract_name_from_url(
+            'https://www.gov.uk/government/statistics/clinical-commissioning-group-ccg-prescribing-data-july-to-sept-2014'),
+            'statistics/clinical-commissioning-group-ccg-prescribing-data-july-to-sept-2014')
 
+    def test_extract_name_from_url_catchall(self):
+        assert_equal(GovukPublicationScraper.extract_name_from_url(
+            'https://www.gov.uk/something-new'),
+            'www.gov.uk/something-new')
 
     def test_extract_number_from_full_govuk_id(self):
         assert_equal(GovukPublicationScraper.extract_number_from_full_govuk_id('publication_370126'),
@@ -345,6 +352,14 @@ class TestScrapeOnly:
         assert_equal(GovukPublicationScraper.extract_url_object_type(
             'https://www.gov.uk/government/publications/xyz'),
             'publications')
+        assert_equal(GovukPublicationScraper.extract_url_object_type(
+            'https://www.gov.uk/government/statistics/xyz'),
+            'statistics')
+
+    def test_extract_url_object_type_catchall(self):
+        assert_equal(GovukPublicationScraper.extract_url_object_type(
+            'https://www.gov.uk/no-idea'),
+            None)
 
 class TestScrapeAndSave:
     '''Tests the logic of processing the dict it returns and saving it. Assumes

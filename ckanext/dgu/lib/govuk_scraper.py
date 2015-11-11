@@ -73,6 +73,9 @@ class GovukPublicationScraper(object):
                                               '%s %s' % (e.message, pub_basic['name']))
                 except GotRedirectedError, e:
                     cls.publication_stats.add('Error - Publication redirect', pub_basic['name'])
+                except IncompletePublicationError, e:
+                    cls.publication_stats.add('Error - Incomplete publication - %s' % e,
+                                              pub_basic['name'])
                 publications_scraped += 1
                 if publications_scraped == publication_limit:
                     return
@@ -237,6 +240,8 @@ class GovukPublicationScraper(object):
         except IndexError:
             cls.field_stats.add('Title not found - error', pub_name)
             pub['title'] = None
+        if not pub['title']:
+            raise IncompletePublicationError('title')
 
         try:
             pub['govuk_id'] = cls.extract_number_from_full_govuk_id(pub_doc.xpath('//main//article/@id')[0])
@@ -687,7 +692,7 @@ class GovukPublicationScraper(object):
         if '_url_obj_re' not in dir(cls):
             cls._url_obj_re = re.compile(r'^https://www.gov.uk/government/([^/]+)/')
         res = cls._url_obj_re.search(url)
-        if res.groups():
+        if res:
             return res.groups()[0]
 
 
@@ -700,3 +705,7 @@ class DuplicateNameError(Exception):
         self.object_type = object_type
         self.field = field
         super(DuplicateNameError, self).__init__(msg)
+
+
+class IncompletePublicationError(Exception):
+    pass
