@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/datagovuk/ckanext-dgu.svg?branch=master)](https://travis-ci.org/datagovuk/ckanext-dgu)
+[![Coverage Status](https://coveralls.io/repos/datagovuk/ckanext-dgu/badge.svg?branch=master&service=github)](https://coveralls.io/github/datagovuk/ckanext-dgu?branch=master)
 
 ckanext-dgu - data.gov.uk extension
 ===================================
