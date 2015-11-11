@@ -1,3 +1,4 @@
+#-*- coding: utf-8 -*-
 import re
 import dateutil
 import itertools
@@ -260,15 +261,14 @@ class GovukPublicationScraper(object):
             pub['govuk_organizations'] = []
 
         try:
-            pub['type'] = pub_doc.xpath('//div[@class="inner-heading"]/p[@class="type"]/text()')[0]
+            pub['type'] = pub_doc.xpath('//div[@class="inner-heading"]/p[@class="type"]/text()')[0].encode('utf8')
             cls.field_stats.add('Type found', pub_name)
         except IndexError:
             cls.field_stats.add('Type not found - check', pub_name)
             pub['type'] = ''
         else:
-            if pub['type'].startswith(' - '):
-                pub['type'] = re.sub('^ \- ', '', pub['type']).capitalize()
-
+            if " – " in pub['type']:
+                pub['type'] = pub['type'].replace(" – ", "").capitalize()
         try:
             pub['summary'] = cls.sanitize_unicode(pub_doc.xpath('//div[@class="summary"]/p/text()')[0].strip())
             cls.field_stats.add('Summary found', pub_name)
