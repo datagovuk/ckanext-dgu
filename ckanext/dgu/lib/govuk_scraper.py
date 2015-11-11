@@ -338,12 +338,22 @@ class GovukPublicationScraper(object):
         inline_attachments = []
         for attachment in pub_doc.xpath('//span[@class = "attachment inline"]'):
             attach = {}
-            attach['govuk_id'] = cls.extract_number_from_full_govuk_id(attachment.xpath('./@id')[0])
-            attach['title'] = attachment.xpath('./a/text()')[0]
-            attach['url'] = attachment.xpath('./a/@href')[0]
-            attach['filename'] = attach['url'].split('/')[-1]
-            attach['format'] = attachment.xpath('./span[@class="type"]//text()')[0]
-            inline_attachments.append(attach)
+            try:
+                attach['govuk_id'] = cls.extract_number_from_full_govuk_id(attachment.xpath('./@id')[0])
+                attach['title'] = attachment.xpath('./a/text()')[0]
+                attach['url'] = attachment.xpath('./a/@href')[0]
+                attach['filename'] = attach['url'].split('/')[-1]
+                try:
+                    attach['format'] = attachment.xpath('./span[@class="type"]//text()')[0]
+                except IndexError:
+                    # Some don't have a format e.g. survey in https://www.gov.uk/government/publications/nhs-foundation-trusts-survey-on-the-nhs-provider-licence
+                    cls.field_stats.add('Format not found - check', pub_name)
+                    attach['format'] = None
+
+            except IndexError:
+                cls.field_stats.add('Attachment (inline) - error', pub_name)
+            if attach:
+                inline_attachments.append(attach)
         if inline_attachments:
             cls.field_stats.add('Attachments (inline) found', pub_name)
         unmarked_attachments = []
