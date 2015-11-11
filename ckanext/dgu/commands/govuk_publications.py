@@ -71,7 +71,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                 GovukPublicationScraper.init()
                 if self.options.page != 'all':
                     page = int(self.options.page)
-                    GovukPublicationScraper.scrape_and_save_publications(page=page)
+                    GovukPublicationScraper.scrape_and_save_publications(page=page,
+                        search_filter='publication_filter_option=transparency-data')
                 elif self.options.start_page != '1':
                     start_page = int(self.options.start_page)
                     GovukPublicationScraper.scrape_and_save_publications(start_page=start_page)
@@ -87,7 +88,7 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                     GovukPublicationScraper.scrape_and_save_organization(self.options.organization)
                     print '\nFields:\n', GovukPublicationScraper.field_stats
                 else:
-                    GovukPublicationScraper.scrape_and_save_publications()
+                    GovukPublicationScraper.scrape_and_save_publications(search_filter='publication_filter_option=transparency-data')
             elif cmd == 'autolink':
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.autolink(resource_id=self.options.resource,
@@ -115,4 +116,3 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             date = report.get_cached_date()
             print '%s: %s %s' % (plugin, report_name,
                   date.strftime('%d/%m/%Y %H:%M') if date else '(not cached)')
-
