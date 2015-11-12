@@ -1675,6 +1675,10 @@ def search_facet_text(key,value):
         if value=='true':
             return 'Show NII datasets'
         return 'Hide NII datasets'
+    if key=='api':
+        if value=='true':
+            return 'Show datasets with APIs'
+        return 'Hide APIs'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'

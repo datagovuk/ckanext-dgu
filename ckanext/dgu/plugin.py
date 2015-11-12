@@ -531,6 +531,7 @@ class SearchPlugin(p.SingletonPlugin):
         SearchIndexing.add_popularity(pkg_dict)
         SearchIndexing.add_field__group_abbreviation(pkg_dict)
         SearchIndexing.add_inventory(pkg_dict)
+        SearchIndexing.add_api_flag(pkg_dict)
         SearchIndexing.add_theme(pkg_dict)
         if is_plugin_enabled('dgu_schema'):
             SearchIndexing.add_schema(pkg_dict)
