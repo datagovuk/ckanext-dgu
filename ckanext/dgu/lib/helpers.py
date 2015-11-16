@@ -1185,6 +1185,7 @@ def prep_user_detail():
         c.user_dict['fullname']     = None
         c.user_dict['email']        = None
         c.user_dict['openid']       = None
+    return ""
 
 def user_get_groups(uid):
     from ckan import model
