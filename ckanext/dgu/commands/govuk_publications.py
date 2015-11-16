@@ -2,7 +2,6 @@ import sys
 
 import ckan.plugins as p
 
-
 class GovukPublicationsCommand(p.toolkit.CkanCommand):
     '''
     Manage the mirror of gov.uk publications.
@@ -58,6 +57,12 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
         self._load_config()
         self.log = logging.getLogger('ckan.lib.cli')
 
+        from ckanext.dgu.bin.common import name_stripped_of_url
+        if self.options.dataset:
+            self.options.dataset = name_stripped_of_url(self.options.dataset)
+        if self.options.organization:
+            self.options.organization = name_stripped_of_url(self.options.organization)
+
         if not self.args:
             self.log.error('No arguments supplied and they are required')
             sys.stderr.write(self.usage)
@@ -91,17 +96,22 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                 else:
                     GovukPublicationScraper.scrape_and_save_publications()
             elif cmd == 'autolink':
+                assert not self.options.publication
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.autolink(resource_id=self.options.resource,
                                                dataset_name=self.options.dataset)
             elif cmd == "fixup":
+                assert not self.options.publication
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.fix_local_resources(resource_id=self.options.resource,
                                                dataset_name=self.options.dataset)
             elif cmd == 'update':
+                assert not self.options.resource
                 from ckanext.dgu.lib.govuk_add import GovukPublications
-                GovukPublications.update(publication_url=self.options.publication)
+                GovukPublications.update(publication_url=self.options.publication,
+                                         dataset_name=self.options.dataset)
             elif cmd == 'add':
+                assert not (self.options.resource or self.options.dataset)
                 from ckanext.dgu.lib.govuk_add import GovukPublications
                 GovukPublications.add(publication_url=self.options.publication)
 
