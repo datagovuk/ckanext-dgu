@@ -123,8 +123,8 @@ class TestGoDownTree:
                      set(['dept-health', 'national-health-service', 'barnsley-primary-care-trust', 'newham-primary-care-trust']))
 
     def test_nhs(self):
-        assert_equal(to_names(go_down_tree(model.Group.get(u'national-health-service'))),
-                     ['national-health-service', 'barnsley-primary-care-trust', 'newham-primary-care-trust'])
+        assert_equal(sorted(to_names(go_down_tree(model.Group.get(u'national-health-service')))),
+                     ['barnsley-primary-care-trust', 'national-health-service', 'newham-primary-care-trust'])
 
     def test_barnsley(self):
         assert_equal(to_names(go_down_tree(model.Group.get(u'barnsley-primary-care-trust'))),

@@ -8,8 +8,8 @@ from ckanext.dgu.testtools.mock_drupal import MOCK_DRUPAL_URL
 class TestMockDrupal(MockDrupalCase):
     s = xmlrpclib.ServerProxy(MOCK_DRUPAL_URL)
 
-    def test_user_get(self):
-        user = self.s.user.get('62')
+    def test_user_retrieve(self):
+        user = self.s.user.retrieve('62')
         assert isinstance(user, dict)
         assert user.has_key('name')
         assert user.has_key('publishers')

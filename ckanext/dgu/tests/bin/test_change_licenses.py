@@ -5,16 +5,16 @@ from ckan import model
 from ckan.tests import *
 from ckan.tests.wsgi_ckanclient import WsgiCkanClient
 from ckan.lib.create_test_data import CreateTestData
+from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 
 from pylons import config
 
 class TestChangeLicenses(TestController):
     @classmethod
     def setup_class(self):
-        # create test data
-        CreateTestData.create()
+        DguCreateTestData.create_dgu_test_data()
         username = 'annafan'
-        user = model.User.by_name(unicode(username))
+        user = model.User.by_name(unicode("nhsadmin"))
         assert user
         self.testclient = WsgiCkanClient(self.app, api_key=user.apikey, base_location='/api/2')
 
@@ -52,4 +52,4 @@ class TestChangeLicenses(TestController):
     def test_2_test_change_oct_2010(self):
         # TODO
         pass
-    
+
