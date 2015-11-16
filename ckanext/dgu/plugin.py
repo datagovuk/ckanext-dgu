@@ -210,7 +210,7 @@ class ThemePlugin(p.SingletonPlugin):
             m.connect('/data/user/reset', action='request_reset')
             #NB not /data/user/me
             m.connect('/data/user/set_lang/{lang}', action='set_lang')
-            m.connect('/data/user/{id:.*}', action='read')
+            m.connect('user_read', '/data/user/{id:.*}', action='read')
             m.connect('/data/user', action='index')
 
         map.redirect('/dashboard', '/data/user/me')
