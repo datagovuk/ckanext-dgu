@@ -263,6 +263,10 @@ def userobj_from_username(username):
     return model.User.get(username)
 
 
+def drupal_user_id_from_username(username):
+    return username.split('user_d')[-1]
+
+
 def user_properties(user):
     '''
     Given a user, returns the user object and whether they are a system user or

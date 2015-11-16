@@ -1,68 +1,76 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{#
+User details
 
-  <py:def function="page_title">${c.user_dict['display_name']} - Users</py:def>
-  <py:match path="breadcrumbs">
-    <li><a href="${request.url}">User Profile</a></li>
-  </py:match>
+Variables set in the controller (and has not changed in master as of 16/11/2015)
+* c.user_dict
+     - email/apikey values are stripped out unless its myself or am a sysadmin
+* c.is_sysadmin
+* c.user_dict
+* c.is_myself
+* c.about_formatted
+#}
 
-  <div py:match="content" py:strip="">
-    ${h.prep_user_detail()}
+{% extends "page.html" %}
+
+{% block title %}{{ c.user_dict['display_name'] }} - User Profile - {{ super() }}{% endblock %}
+
+{% block breadcrumb_content %}
+  {{ h.build_nav('user_datasets', _('User Profile'), id=c.user_dict['id']) }}
+{% endblock %}
+
+{% block primary_content_inner %}
+
+    {{ h.prep_user_detail() }}
 
   <table class="user-page-table">
     <tr>
       <td class="boxed whitebox">
         <h2>
-          <py:if test="c.user_dict['fullname']">
-            <span>${c.user_dict['fullname']}</span>
-          </py:if>
-          <py:if test="not c.user_dict['fullname']">
-            <span>${c.user_dict['name']}</span>
-          </py:if>
+            <span>{{ c.user_dict['fullname'] or c.user_dict['name'] }}</span>
         </h2>
         <dl class="vcard">
           <dt>ID</dt>
-          <dd>${c.user_dict['name']}</dd>
+          <dd>{{ c.user_dict['name'] }}</dd>
           <dt>Full Name</dt>
-          <dd>${c.user_dict['fullname'] or 'No name provided'}</dd>
+          <dd>{{ c.user_dict['fullname'] or 'No name provided' }}</dd>
           <dt>Email</dt>
           <dd>
-            <py:if test="c.user_dict['email']">
-            ${h.mail_to(c.user_dict['email'], encode='javascript')}
-            </py:if>
-            <py:if test="not c.user_dict['email']">
-            No email
-            </py:if>
+            {% if c.user_dict['email'] %}
+              {{ h.mail_to(c.user_dict['email'], encode='javascript') }}
+            {% else %}
+              (not shown)
+              <a href="/user/{{ h.drupal_user_id_from_username(c.user_dict['name']) }}/contact">Contact</a>
+            {% endif %}
           </dd>
           <dt>Registered since</dt>
-          <dd>${h.render_datetime(c.user_dict['created'])}</dd>
-          <py:if test="unicode(c.about_formatted)">
-          <dt>About</dt>
-          <dd>${c.about_formatted}</dd>
-          </py:if>
-        <py:if test="c.is_myself">
-          <!--checkpoint:is-myself-->
-          <dt>API Key</dt>
-          <dd>
-          ${c.user_dict['apikey']}
-          <br />
-          <em>&ndash; Note: your API key is visible only to you!</em>
-          </dd>
-        </py:if>
+          <dd>{{ h.render_datetime(c.user_dict['created']) }}</dd>
+          {% if c.about_formatted %}
+            <dt>About</dt>
+            <dd>{{ c.about_formatted }}</dd>
+          {% endif %}
+          {% if c.is_myself %}
+            {# checkpoint:is-myself #}
+            <dt>API Key</dt>
+            <dd>
+            {{ c.user_dict['apikey'] }}
+            <br />
+            <em>&ndash; Note: your API key is visible only to you!</em>
+            </dd>
+          {% endif %}
         </dl>
       </td>
       <td class="gutter"></td>
       <td class="listing boxed whitebox">
         <h2>Publishers</h2>
-        <a py:if="c.user == c.user_dict['name']" href="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply')}">Add a publisher to your account</a>
-
+        {% if c.is_myself %} 
+          <a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply') }}">Add a publisher to your account</a>
+        {% endif %}
         <ul>
-            <py:for each="group in h.user_get_groups(c.user_dict['id'])">
+          {% for group in h.user_get_groups(c.user_dict['id']) %}
             <li>
-              <a href="/publisher/${group.name}">${group.title}</a>
+              <a href="/publisher/{{ group.name }}">{{ group.title }}</a>
             </li>
-          </py:for>
+          {% endfor %}
         </ul>
       </td>
     </tr>
@@ -72,27 +80,27 @@
         <h2>Datasets</h2>
         <ul class="stats">
           <li>
-            <strong>${c.user_dict['number_administered_packages']}</strong>
+            <strong>{{ c.user_dict['number_administered_packages'] }}</strong>
             <span>Datasets</span>
           </li>
           <li>
-            <strong>${c.user_dict['number_of_edits']}</strong>
+            <strong>{{ c.user_dict['number_of_edits'] }}</strong>
             <span>Edits</span>
           </li>
         </ul>
         <div class="clearfix"></div>
-        ${package_list_from_dict(c.user_dict['datasets'])}
+        {{ h.package_list_from_dict(c.user_dict['datasets']) }}
       </td>
       <td class="gutter"></td>
+      {#
       <td class="boxed whitebox changes">
         <h2>Public Activity</h2>
         <div class="activity-stream">
-          ${c.user_activity_stream}
+          {{ c.user_activity_stream }}
         </div>
       </td>
+      #}
     </tr>
   </table>
-</div>
 
-  <xi:include href="layout.html" />
-</html>
+{% endblock %}
