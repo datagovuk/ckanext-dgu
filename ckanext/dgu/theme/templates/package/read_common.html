@@ -64,12 +64,6 @@
                 <b><a href="http://dataprotocols.org/data-packages/" target="_blank">Data Package JSON Documentation</a></b>
               </li>
             </ul>
-            {% if h.has_packagezip(c.pkg) %}
-            <p>A Data Package Zip containing the cached resources held by data.gov.uk is also available for download:</p>
-            <ul>
-              <li><b><a href="{{ h.packagezip_url(c.pkg) }}">Data Package Zip</a></b></li>
-            </ul>
-            {% endif %}
           </div>
         </div>
     </span>
@@ -332,4 +326,3 @@
     {% endwith %}
   </div>
 {% endblock %}
-
