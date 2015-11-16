@@ -15,7 +15,7 @@ Variables set in the controller (and has not changed in master as of 16/11/2015)
 {% block title %}{{ c.user_dict['display_name'] }} - User Profile - {{ super() }}{% endblock %}
 
 {% block breadcrumb_content %}
-  {{ h.build_nav('user_datasets', _('User Profile'), id=c.user_dict['id']) }}
+  {{ h.build_nav('user_read', _('User Profile'), id=c.user_dict['name']) }}
 {% endblock %}
 
 {% block primary_content_inner %}
@@ -30,7 +30,7 @@ Variables set in the controller (and has not changed in master as of 16/11/2015)
         </h2>
         <dl class="vcard">
           <dt>ID</dt>
-          <dd>{{ c.user_dict['name'] }}</dd>
+          <dd>{{ h.drupal_user_id_from_username(c.user_dict['name']) }} / {{ c.user_dict['name'] }}</dd>
           <dt>Full Name</dt>
           <dd>{{ c.user_dict['fullname'] or 'No name provided' }}</dd>
           <dt>Email</dt>
