@@ -11,6 +11,7 @@ Variables set in the controller (and has not changed in master as of 16/11/2015)
 #}
 
 {% extends "page.html" %}
+{% import "_dgu_jinja_util.html" as m with context %}
 
 {% block title %}{{ c.user_dict['display_name'] }} - User Profile - {{ super() }}{% endblock %}
 
@@ -18,9 +19,8 @@ Variables set in the controller (and has not changed in master as of 16/11/2015)
   {{ h.build_nav('user_read', _('User Profile'), id=c.user_dict['name']) }}
 {% endblock %}
 
-{% block primary_content_inner %}
-
-    {{ h.prep_user_detail() }}
+ {% block primary_content_inner %}
+ {{ h.prep_user_detail() }}
 
   <table class="user-page-table">
     <tr>
@@ -62,7 +62,7 @@ Variables set in the controller (and has not changed in master as of 16/11/2015)
       <td class="gutter"></td>
       <td class="listing boxed whitebox">
         <h2>Publishers</h2>
-        {% if c.is_myself %} 
+        {% if c.is_myself %}
           <a href="{{ h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='apply') }}">Add a publisher to your account</a>
         {% endif %}
         <ul>
@@ -89,7 +89,7 @@ Variables set in the controller (and has not changed in master as of 16/11/2015)
           </li>
         </ul>
         <div class="clearfix"></div>
-        {{ h.package_list_from_dict(c.user_dict['datasets']) }}
+        {{ m.package_list_from_dict(c.user_dict['datasets']) }}
       </td>
       <td class="gutter"></td>
       {#
