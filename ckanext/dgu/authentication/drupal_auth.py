@@ -19,7 +19,7 @@ class DrupalAuthMiddleware(object):
         self.drupal_client = None
         self._user_name_prefix = 'user_d'
 
-        minutes_between_checking_drupal_cookie = app_conf.get('minutes_between_checking_drupal_cookie', 30) 
+        minutes_between_checking_drupal_cookie = (app_conf.get('minutes_between_checking_drupal_cookie') if app_conf else None) or 30
         self.seconds_between_checking_drupal_cookie = int(minutes_between_checking_drupal_cookie) * 60
         # if that int() raises a ValueError then the app will not start
 
@@ -29,7 +29,7 @@ class DrupalAuthMiddleware(object):
         server_name = environ['SERVER_NAME']
         for k, v in environ.items():
             key = k.lower()
-            if key  == 'http_cookie':
+            if key == 'http_cookie':
                 is_ckan_cookie[0] = self._is_this_a_ckan_cookie(v)
                 drupal_session_id[0] = self._drupal_cookie_parse(v, server_name)
         is_ckan_cookie = is_ckan_cookie[0]
@@ -156,7 +156,7 @@ class DrupalAuthMiddleware(object):
                     #log.debug('Headers on log-out log-in result: %r', new_headers)
                     return
                 else:
-	            log.debug('Drupal cookie session stayed the same.')
+                    log.debug('Drupal cookie session stayed the same.')
                     # Drupal cookie session matches the authtkt - leave user logged ini
 
                     # Just check that authtkt cookie is not too old - in the

@@ -1,5 +1,6 @@
 import re
 import uuid
+import json
 
 import lxml.html
 from nose.tools import assert_equal
@@ -68,6 +69,12 @@ def reqd_dataset_fields(org):
 
 
 class TestPackageController(DguFunctionalTestBase):
+
+    @classmethod
+    def setup_class(self):
+        import ckanext.dgu.model.schema_codelist as s_model
+        s_model.init_tables(model.meta.engine)
+        super(DguFunctionalTestBase, self).setup_class()
 
     def test_form_renders(self):
         app = self._get_test_app()
@@ -369,39 +376,6 @@ class TestPackageController(DguFunctionalTestBase):
         assert_equal(form['foi-phone'].value, 'F123')
         assert_equal(form['foi-web'].value, 'http://foi.com')
 
-    def test_edit_theme_primary(self):
-        form, env, app, name = self._new_dataset()
-        form_field_id = 'theme-primary'
-        value = 'Crime'
-        form[form_field_id] = value
-
-        form = self._submit_with_validation_error(form, env)
-        assert_equal(form[form_field_id].value, value)
-
-        pkg = self._submit_to_save(form, name, app, env)
-        assert_equal(pkg.extras['theme-primary'], value)
-
-        form = self._edit_dataset(env, app, name)
-        assert_equal(form[form_field_id].value, value)
-
-    def test_edit_theme_secondary(self):
-        form, env, app, name = self._new_dataset()
-        form.get('theme-secondary', index=1).value__set(True)
-        form.get('theme-secondary', index=2).value__set(True)
-
-        form = self._submit_with_validation_error(form, env)
-        assert_equal(form.get('theme-secondary', index=0).checked, False)
-        assert_equal(form.get('theme-secondary', index=1).checked, True)
-        assert_equal(form.get('theme-secondary', index=2).checked, True)
-
-        pkg = self._submit_to_save(form, name, app, env)
-        assert_equal(pkg.extras.get('theme-secondary'), u'["Defence", "Economy"]')
-
-        form = self._edit_dataset(env, app, name)
-        assert_equal(form.get('theme-secondary', index=0).checked, False)
-        assert_equal(form.get('theme-secondary', index=1).checked, True)
-        assert_equal(form.get('theme-secondary', index=2).checked, True)
-
     def test_edit_tags(self):
         form, env, app, name = self._new_dataset()
         form_field_id = 'tag_string'
@@ -442,17 +416,18 @@ class TestPackageController(DguFunctionalTestBase):
     def test_edit_mandate(self):
         form, env, app, name = self._new_dataset()
         form_field_id = 'mandate'
-        value = ['http://link.com']
-        form[form_field_id] = value
+        value = 'http://link.com'
+
+        form.set(form_field_id, value, 0)
 
         form = self._submit_with_validation_error(form, env)
-        assert_equal(form[form_field_id].value, value)
+        assert_equal(form.get(form_field_id, 0).value, value)
 
         pkg = self._submit_to_save(form, name, app, env)
-        assert_equal(pkg.extras['mandate'], value)
+        assert_equal(json.loads(pkg.extras['mandate']), [value])
 
         form = self._edit_dataset(env, app, name)
-        assert_equal(form[form_field_id].value, value)
+        assert_equal(form.get(form_field_id, 0).value, value)
 
     def test_edit_temporal_coverage(self):
         form, env, app, name = self._new_dataset()

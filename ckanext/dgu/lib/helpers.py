@@ -265,6 +265,10 @@ def userobj_from_username(username):
     return model.User.get(username)
 
 
+def drupal_user_id_from_username(username):
+    return username.split('user_d')[-1]
+
+
 def user_properties(user):
     '''
     Given a user, returns the user object and whether they are a system user or
@@ -423,7 +427,7 @@ def render_partial_datestamp(datestamp_str):
     except:
         try:
             request_path = t.request.path
-        except TypeError:
+        except:   # This may be TypeError or KeyError
             # not in a request (e.g. in a test)
             request_path = ''
         log.error('Could not render datestamp: %r %s', datestamp_str,
@@ -1183,6 +1187,7 @@ def prep_user_detail():
         c.user_dict['fullname']     = None
         c.user_dict['email']        = None
         c.user_dict['openid']       = None
+    return ""
 
 def user_get_groups(uid):
     from ckan import model
