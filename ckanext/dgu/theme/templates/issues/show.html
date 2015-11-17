@@ -247,6 +247,8 @@ dataset - package object
     {% if issue.assignee %}
       {{h.linked_user(issue.assignee.name, maxlength=200)}}
       {{ issue.assignee.name }}
+    {% elif issue.assignee_id %}
+      {{ _('This issue has been assigned to an administrator for the publisher') }}
     {% else %}
       {{ _('No one') }}
     {% endif %}
