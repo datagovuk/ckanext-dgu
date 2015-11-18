@@ -3,3 +3,4 @@ omit =
     */site-packages/*
     */python?.?/*
     ckan/*
+    ckanext/dgu/tests/*
