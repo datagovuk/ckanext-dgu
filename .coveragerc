@@ -4,3 +4,5 @@ omit =
     */python?.?/*
     ckan/*
     ckanext/dgu/tests/*
+include =
+    ckanext/dgu/*
