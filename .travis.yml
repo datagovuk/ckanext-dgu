@@ -4,7 +4,7 @@ python:
 env: PGVERSION=9.1
 install:
     - bash bin/travis-build.bash
-    - pip install coveralls
+    - pip install -U coveralls
 script: sh bin/travis-run.sh
 after_success:
     - coveralls
