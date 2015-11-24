@@ -1,54 +1,118 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-      xmlns:i18n="http://genshi.edgewall.org/i18n"
-      xmlns:xi="http://www.w3.org/2001/XInclude"
-      py:strip="">
+{% extends "issues/base.html" %}
 
-  <py:def function="page_title">Issue List</py:def>
-  <link rel="stylesheet"  type="text/css" media="screen, print"
-        href="/ckanext-issues/css/main.css"
-        py:def="optional_head()" />
+{% import "issues/common.html" as common with context %}
 
-  <div py:match="content" class="package">
-    <h2 class="head">Issue List</h2>
+{% set filters = h.get_issue_filter_types() %}
+{% set issues_per_page = h.get_issues_per_page() %}
 
-    <div id="issue-page" py:choose="">
-        <span py:when="not c.categories">
-            There are currently no issues.
-        </span>
+{% block subtitle %}{{ _('Issues') }} - {{ super() }}{% endblock %}
 
-        <div py:otherwise="">
-            <ul id="issue-categories">
-                <py:for each="category in c.categories">
-                <li><a href="#${category.name}">${category.name}</a>
-                    (${category.issue_count})
-                </li>
-                </py:for>
-            </ul>
+{% block breadcrumb_content %}
+<li class="active">{% link_for 'All Issues', named_route='all_issues_page' %}</li>
+{% endblock %}
 
-            <py:for each="category in c.categories">
-            <div class="issue-category">
-                <h4 id="${category.name}">${category.name}</h4>
-                <ul>
-                    <py:for each="issue in category.issues">
-                    <li>
-                        <div py:choose="">Package:
-                            <span py:when="not issue.package_id">None</span>
-                            <span py:otherwise="">
-                                ${h.link_to(c.pkg_names[issue.package_id],
-                                            h.url_for(controller='package', action='read',
-                                                      id = c.pkg_names[issue.package_id]) + "#issue")}
-                            </span>
-                        </div>
-                        <div>Description: ${issue.description}</div>
-                        <div>Created: ${issue.created.strftime('%d %h %Y')}</div>
-                    </li>
-                    </py:for>
-                </ul>
-            </div>
-            </py:for>
-        </div>
+{% block primary_content %}
+<section class="module issues-home">
+  <div class="module-content">
+    <div class="header">
+      <h1 class="page-heading">
+        {{ _('All Issues') }}
+      </h1>
     </div>
-  </div> <!-- content -->
+    <div>
 
-  <xi:include href="../package/layout.html" />
-</html>
+<form class="search-form no-bottom-border" method="get" data-module="select-switch" _lpchecked="1">
+    <div class="search-input input-group search-giant">
+      <input type="text" class="search form-control" name="q" value="{{q}}" autocomplete="off" placeholder="Search issues...">
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
+      </span>
+   </div>
+
+    <span>
+      <input type="hidden" name="page" value="1">
+      <input type="hidden" name="per_page" value="{{pagination.per_page}}">
+      <input type="hidden" name="status" value="{{status}}">
+    </span>
+
+    <div class="form-select control-group control-order-by pull-right" style="margin-top:10px;">
+      <label for="field-order-by">Order by</label>
+      <select id="field-order-by" name="sort">
+            <option value="least_commented" {% if sort == "least_commented" %}selected="selected"{% endif%}>Least Commented</option>
+            <option value="least_recently_updated" {% if sort == "least_recently_updated" %}selected="selected"{% endif%}>Least Recently Updated</option>
+            <option value="most_commented" {% if sort == "most_commented" %}selected="selected"{% endif%}>Most Commented</option>
+            <option value="newest" {% if sort == "newest" %}selected="selected"{% endif%}>Newest</option>
+            <option value="oldest" {% if sort == "oldest" %}selected="selected"{% endif%}>Oldest</option>
+            <option value="recently_updated" {% if sort == "recently_updated" %}selected="selected"{% endif%}>Recently Update</option>
+        </select>
+        <button class="btn js-hide" type="submit">Go</button>
+      </div>
+    </form>
+    <div class="clearfix"></div>
+
+      <h2>
+        {{ ungettext('{number} issue found', '{number} issues found', pagination.total_count) .format(number=pagination.total_count) }}
+      </h2>
+    </div>
+    <div id="issue-page">
+      {% if issues %}
+        <div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Dataset</th>
+                <th>Reported</th>
+                <th>Status</th>
+                <th>Comments</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for issue in issues %}
+             {% set issue_url = h.url_for('issues_show',dataset_id=issue.dataset.name,issue_number=issue.number) %}
+              <tr class="{{'success' if issue.resolved else 'error'}}">
+                <td>
+                  <a href="{{ issue_url }}">
+                    <span class="list-group-item-number">#{{issue.id}}</span>
+                  </a>
+                </td>
+                <td>
+                  <a href="{{ issue_url }}">
+                    {{issue.title}}
+                  </a>
+                  {% if issue.resource %}
+                    <br/><br/>
+                    Resource: {{issue.resource.name or issue.resource.description}}
+                  {% endif %}
+                  {% if issue.visibility == 'hidden' %}
+                    <br/><br/>
+                    <div class="issue-comment-label">
+                      Reported as spam/abuse
+                    </div>
+                  {%endif%}
+                </td>
+                <td>{{issue.dataset.title}}</td>
+                <td><span class="timeago" title="{{h.render_datetime(issue.created, with_hours=True)}}">{{ h.time_ago_from_timestamp(issue.created) }}</span></td>
+                <td>{% if issue.resolved %}<span title="Closed by {{issue.resolver}} on {{issue.resolved}}">closed</span>{% else %}open{% endif %}</td>
+                <td>
+                  {% if issue.comment_count %}
+                    <i class="icon-comments"></i>
+                    {{ _('%s comments') % (issue.comment_count) }}
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+    {{ common.page_selector(pagination, issues_per_page) }}
+  </div>
+</section>
+{% endblock %}
+
+{% block secondary_content %}
+  {{ common.search_options_sidebar(user_can_change_visibility=False)}}
+{% endblock %}
