@@ -161,15 +161,12 @@ class ThemePlugin(p.SingletonPlugin):
         Make "/data" the homepage.
         """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
-        tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
         map.redirect('/', '/data')
         map.redirect('/data', '/data/search')
         #map.connect('/data', controller=data_controller, action='index')
 
         map.connect('/linked-data-admin', controller=data_controller, action='linked_data_admin')
-        map.connect('/data/tag', controller=tag_controller, action='index')
-        map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('dgu_search', '/data/search', controller='package', action='search')
         map.connect('api_page', '/data/metadata-api-docs', controller=data_controller, action='api')
         map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
