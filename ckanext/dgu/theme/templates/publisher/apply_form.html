@@ -22,7 +22,7 @@
 	</dt>
 	<dd>
         {% if c.group %}
-            <input type="hidden" id="parent" name="parent" disabled="disabled" value="${c.group.id}"/>
+            <input type="hidden" id="parent" name="parent" disabled="disabled" value="{{c.group.id}}"/>
             {{c.group.title}}
         {% else %}
             <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
