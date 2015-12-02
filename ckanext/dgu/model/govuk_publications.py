@@ -116,6 +116,21 @@ class Collection(Base, SimpleDomainObject):
                                     secondary=collection_publication_table,
                                     backref='collections')
 
+    def __unicode__(self):
+        repr = u'<%s' % self.__class__.__name__
+        table = orm.class_mapper(self.__class__).mapped_table
+        for col in table.c:
+            try:
+                value = unicode(getattr(self, col.name))
+            except Exception, inst:
+                value = unicode(inst)
+            # truncate the summary
+            if col.name == 'summary' and len(value) > 30:
+                value = value[:30] + '...'
+            repr += u' %s=%s' % (col.name, value)
+        repr += ' publications=%s' % len(self.publications)
+        return repr + '>'
+
 
 class Publication(Base, SimpleDomainObject):
     __tablename__ = 'publication'

@@ -51,6 +51,8 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             help='Resource ID to autolink')
         self.parser.add_option('-d', '--dataset', dest='dataset',
             help='Dataset name to autolink')
+        self.parser.add_option('--collection', dest='collection',
+            help='Collection URL to scrape')
 
     def command(self):
         import logging
@@ -94,24 +96,32 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
                         self.options.organization = 'https://www.gov.uk/government/organisations/' + self.options.organization
                     GovukPublicationScraper.scrape_and_save_organization(self.options.organization)
                     print '\nFields:\n', GovukPublicationScraper.field_stats
+                elif self.options.collection:
+                    if 'http' not in self.options.collection:
+                        self.options.collection = 'https://www.gov.uk/government/collections/' + self.options.collection
+                    collection = GovukPublicationScraper.scrape_and_save_collection(self.options.collection, including_publications=True)
+                    print collection
+                    print '\nCollections:\n', GovukPublicationScraper.collection_stats
+                    print '\nPublications:\n', GovukPublicationScraper.publication_stats
                 else:
                     GovukPublicationScraper.scrape_and_save_publications()
             elif cmd == 'autolink':
-                assert not self.options.publication
+                assert not (self.options.publication or self.options.collection)
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.autolink(resource_id=self.options.resource,
                                                dataset_name=self.options.dataset)
             elif cmd == "fixup":
-                assert not self.options.publication
+                assert not (self.options.publication or self.options.collection)
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
                 GovukPublicationLinks.fix_local_resources(resource_id=self.options.resource,
                                                dataset_name=self.options.dataset)
             elif cmd == 'update':
-                assert not self.options.resource
+                assert not (self.options.resource or self.options.collection)
                 from ckanext.dgu.lib.govuk_add import GovukPublications
                 GovukPublications.update(publication_url=self.options.publication)
             elif cmd == 'add':
-                assert not (self.options.resource or self.options.dataset)
+                assert not (self.options.resource or self.options.dataset or
+                            self.options.collection)
                 from ckanext.dgu.lib.govuk_add import GovukPublications
                 GovukPublications.add(publication_url=self.options.publication)
 

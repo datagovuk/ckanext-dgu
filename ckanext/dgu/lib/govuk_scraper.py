@@ -117,7 +117,7 @@ class GovukPublicationScraper(object):
 
     @classmethod
     def scrape_and_save_publication(cls, pub_url, pub_name=None):
-        print 'PUB', pub_url
+        print 'PUBLICATION', pub_url
         if pub_name is None:
             pub_name = cls.extract_name_from_url(pub_url)
 
@@ -212,7 +212,8 @@ class GovukPublicationScraper(object):
             if not collection:
                 # create it
                 try:
-                    collection = cls.scrape_and_save_collection(collection_url)
+                    collection = cls.scrape_and_save_collection(
+                        collection_url, including_publications=False)
                 except GotRedirectedError:
                     print cls.field_stats.add('Collection page redirected - error',
                                         '%s %s' % (pub_name, collection_url))
@@ -466,7 +467,8 @@ class GovukPublicationScraper(object):
             changes['attachments'] = '; '.join(change_list)
 
     @classmethod
-    def scrape_and_save_collection(cls, collection_url):
+    def scrape_and_save_collection(cls, collection_url,
+                                   including_publications=False):
         collection = {}
         r = cls.requests.get(collection_url)
         if not r.url.startswith('https://www.gov.uk/government/collections/'):
@@ -529,11 +531,16 @@ class GovukPublicationScraper(object):
             if outcome == 'Unchanged':
                 outcome = 'Updated its organization'
 
+        # Publications
+        if including_publications:
+            cls.scrape_and_save_collection_page_publications(r.content)
+
         cls.collection_stats.add(outcome, collection_scraped['name'])
         return collection
 
     @classmethod
     def scrape_collection_page(cls, collection_page_content, collection_url):
+        '''Scrapes the basic info about a collection. Ignores the list of publications'''
         doc = lxml.html.fromstring(collection_page_content)
         collection = {}
         collection['url'] = collection_url
@@ -561,6 +568,15 @@ class GovukPublicationScraper(object):
             cls.field_stats.add('Collection organization not found - check', collection_name)
             collection['govuk_organization'] = None
         return collection
+
+    @classmethod
+    def scrape_and_save_collection_page_publications(cls, collection_page_content):
+        '''Scrapes and saves the publications of collection. '''
+        doc = lxml.html.fromstring(collection_page_content)
+        for publication_url in doc.xpath("//ol[@class='document-list']//a/@href"):
+            publication_url = 'https://www.gov.uk' + publication_url
+            # This will add the publication to the collection too
+            cls.scrape_and_save_publication(publication_url)
 
     @classmethod
     def scrape_and_save_organization(cls, org_url):

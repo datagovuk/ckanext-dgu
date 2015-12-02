@@ -156,7 +156,7 @@ class GovukPublicationLinks(object):
 
 
 def publication_link_to_dataset(pkg_id, pub_id):
-    return  model.Session.query(govuk_pubs_model.Link)\
+    return model.Session.query(govuk_pubs_model.Link)\
             .filter(govuk_pubs_model.Link.ckan_id == pkg_id )\
             .filter(govuk_pubs_model.Link.ckan_table == "package")\
             .filter(govuk_pubs_model.Link.govuk_table == "publication")\
