@@ -12,12 +12,6 @@ log = logging.getLogger(__name__)
 
 __all__ = ['Collection', 'Publication', 'Attachment', 'init_tables']
 
-# c.f. morty's model:
-# create table publications (id integer primary key, url text, title text);
-# create table attachments (id integer primary key, url text, pub_id integer references publications(id), filename text);
-# create table collections (id integer primary key, url text, title text);
-# create table collection_publication (pub_id integer references publications(id), coll_id integer references collections(id), primary key (pub_id, coll_id))
-
 # to clear out:
 # psql ckan -c 'drop table collection, publication, govuk_organization, attachment, publink, collection_publication, organization_publication_table, publication_publink;'
 
@@ -88,7 +82,7 @@ class GovukOrganization(Base, SimpleDomainObject):
     __tablename__ = 'govuk_organization'
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
-    govuk_id = Column(types.Integer, index=True)
+    govuk_id = Column(types.UnicodeText, index=True)
     name = Column(types.UnicodeText, index=True)
     url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
@@ -149,7 +143,7 @@ class Publication(Base, SimpleDomainObject):
     __tablename__ = 'publication'
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
-    govuk_id = Column(types.Integer, index=True)
+    govuk_id = Column(types.UnicodeText, index=True)
     # name is like "publications/jobseekers-allowance-sanctions-independent-review"
     # because of clashes like:
     # https://www.gov.uk/government/publications/jobseekers-allowance-sanctions-independent-review
@@ -168,7 +162,7 @@ class Publication(Base, SimpleDomainObject):
     @classmethod
     def by_govuk_id(cls, govuk_id):
         return model.Session.query(cls) \
-                    .filter_by(govuk_id=int(govuk_id)) \
+                    .filter_by(govuk_id=govuk_id) \
                     .first()
 
 # e.g. https://www.gov.uk/government/publications/new-school-proposals has
@@ -189,7 +183,7 @@ class Attachment(Base, SimpleDomainObject):
     __tablename__ = 'attachment'
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
-    govuk_id = Column(types.Integer, index=True)
+    govuk_id = Column(types.UnicodeText, index=True)
     publication_id = Column('publication_id', types.UnicodeText,
                             ForeignKey('publication.id'))
     publication = orm.relationship('Publication',
@@ -208,7 +202,7 @@ class Attachment(Base, SimpleDomainObject):
     @classmethod
     def by_govuk_id(cls, govuk_id):
         return model.Session.query(cls) \
-                    .filter_by(govuk_id=int(govuk_id)) \
+                    .filter_by(govuk_id=govuk_id) \
                     .first()
 
 

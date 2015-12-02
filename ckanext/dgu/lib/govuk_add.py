@@ -149,8 +149,27 @@ class GovukPublications(object):
             .filter_by(ckan_id=dataset.id)\
             .filter_by(ckan_table='dataset')\
             .all()
+        collections = \
+            model.Session.query(govuk_pubs_model.Collection)\
+            .join(govuk_pubs_model.Link,
+                  govuk_pubs_model.Collection.govuk_id ==
+                  govuk_pubs_model.Link.govuk_id)\
+            .filter_by(govuk_table='collection')\
+            .filter_by(ckan_id=dataset.id)\
+            .filter_by(ckan_table='dataset')\
+            .all()
+        attachments = \
+            model.Session.query(govuk_pubs_model.Attachment)\
+            .join(govuk_pubs_model.Link,
+                  govuk_pubs_model.Attachment.govuk_id ==
+                  govuk_pubs_model.Link.govuk_id)\
+            .filter_by(govuk_table='attachment')\
+            .filter_by(ckan_id=dataset.id)\
+            .filter_by(ckan_table='dataset')\
+            .all()
 
-        dataset_dict = cls._get_dataset_dict(dataset.name, publications)
+        dataset_dict = cls._get_dataset_dict(dataset.name, publications,
+                                             collections, attachments)
         if not dataset_dict:
             print cls.stats.add('Error getting dataset_dict', dataset.name)
             return
@@ -165,7 +184,9 @@ class GovukPublications(object):
     @classmethod
     def _add_publication(cls, publication):
         dataset_dict = cls._get_dataset_dict(dataset_name=None,
-                                             publications=[publication])
+                                             publications=[publication],
+                                             collections=[],
+                                             attachments=[])
         if not dataset_dict:
             print cls.stats.add('Error getting dataset_dict', publication.name)
             return
@@ -182,13 +203,13 @@ class GovukPublications(object):
         model.Session.add(link)
         model.Session.commit()
         print cls.stats.add('Added Publication',
-                            '%s %s' % (publication.name, dataset.name))
+                            '%s %s' % (publication.name, dataset['name']))
 
     @classmethod
-    def _get_property_across_govuk_publications(cls, publications, key):
+    def _get_property_across_govuk_objects(cls, govuk_objs, key):
         values = []
-        for publication in publications:
-            val = getattr(publication, key)
+        for govuk_obj in govuk_objs:
+            val = getattr(govuk_obj, key)
             if isinstance(val, list):
                 values.extend(val)
             elif val:
@@ -202,15 +223,14 @@ class GovukPublications(object):
                 return value
 
     @classmethod
-    def _get_dataset_dict(cls, dataset_name, publications):
+    def _get_dataset_dict(cls, dataset_name, publications, collections,
+                          attachments):
         '''Returns a dataset_dict for the given publications, comprising the
         given govuk objects.
-
-        # TODO add attachments and collections to the parameters
         '''
         # map govuk organization
-        govuk_orgs = cls._get_property_across_govuk_publications(
-            publications, 'govuk_organizations')
+        govuk_orgs = cls._get_property_across_govuk_objects(
+            collections + publications, 'govuk_organizations')
         if len(set(govuk_orgs)) > 1:
             print 'Warning: multiple gov.uk organizations for dataset %s: %s' \
                 % (dataset_name, govuk_orgs)
@@ -224,16 +244,16 @@ class GovukPublications(object):
         print 'DGU org: %s', dgu_org.name
 
         # title
-        titles = cls._get_property_across_govuk_publications(
-            publications, 'title')
+        titles = cls._get_property_across_govuk_objects(
+            collections + publications, 'title')
         if len(set(titles)) > 1:
             print 'Warning: multiple titles for dataset %s: %s' \
                 % (dataset_name, titles)
         title = cls._get_first_non_none(titles)
 
-        # title
-        summaries = cls._get_property_across_govuk_publications(
-            publications, 'summary')
+        # summary
+        summaries = cls._get_property_across_govuk_objects(
+            collections + publications, 'summary')
         if len(set(summaries)) > 1:
             print 'Warning: multiple summary values for dataset %s: %s' \
                 % (dataset_name, summaries)
@@ -253,14 +273,21 @@ class GovukPublications(object):
         }
 
         # resources
-        for publication in publications:
-            for attachment in publication.attachments:
+        all_attachments = []
+        for collection in collections:
+            for pub in collection.publications:
+                all_attachments.extend(pub.attachments)
+        for pub in publications:
+            all_attachments.extend(pub.attachments)
+        all_attachments.extend(attachments)
+        for attachment in all_attachments:
                 resource = {
                     'url': attachment.url,
                     'description': attachment.title,
                     'format': cls._normalise_format(attachment.format),
                 }
-                dataset_dict['resources'].append(resource)
+                if resource not in dataset_dict['resources']:
+                    dataset_dict['resources'].append(resource)
 
         # theme
         ckanext.dgu.lib.theme.log.enabled = False
