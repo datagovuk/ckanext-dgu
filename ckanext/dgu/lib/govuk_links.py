@@ -9,7 +9,6 @@ from sqlalchemy.orm.exc import DetachedInstanceError
 
 from ckanext.dgu.bin.running_stats import Stats
 from ckanext.dgu.model import govuk_publications as govuk_pubs_model
-import ckan.logic as logic
 from ckan import model
 
 
@@ -25,10 +24,10 @@ class GovukPublicationLinks(object):
     @classmethod
     def fix_local_resources(cls, resource_id=None, dataset_name=None):
         """
-        Finds local resources that point at a publication and deletes them.  If we
-        have the publication record then when we import it we will get all of the
-        attachments - making these resources pointing at top level publication
-        pages unnecessary.
+        Finds local resources that point at a publication and deletes them.  If
+        we have the publication record then when we import it we will get all
+        of the attachments - making these resources pointing at top level
+        publication pages unnecessary.
         """
         stats = Stats()
 
@@ -177,8 +176,6 @@ class GovukPublicationLinks(object):
                     model.Session.commit()
                     print "LINK", link
                     stats.add('Collection-Dataset link added', link)
-
-
 
         print stats
 

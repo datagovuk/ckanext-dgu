@@ -25,6 +25,7 @@ class GovukPublications(object):
             print cls.stats
             return ret
 
+        # All publications
         publications_with_any_link_to_datasets = \
             model.Session.query(govuk_pubs_model.Publication)\
                  .join(govuk_pubs_model.Link,
@@ -139,7 +140,6 @@ class GovukPublications(object):
 
     @classmethod
     def _update_dataset(cls, dataset):
-        # TODO
         publications = \
             model.Session.query(govuk_pubs_model.Publication)\
             .join(govuk_pubs_model.Link,

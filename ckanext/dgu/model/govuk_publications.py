@@ -102,7 +102,7 @@ class Collection(Base, SimpleDomainObject):
     __tablename__ = 'collection'
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
-    govuk_id = Column(types.Integer, index=True, default=0)
+    govuk_id = Column(types.UnicodeText, index=True)
     name = Column(types.UnicodeText, index=True)
     url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)

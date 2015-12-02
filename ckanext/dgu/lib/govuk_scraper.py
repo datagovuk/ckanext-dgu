@@ -502,16 +502,11 @@ class GovukPublicationScraper(object):
                                         .first()
             if collection_same_name:
                 raise DuplicateNameError('collection', 'name', 'Existing %r scraped %r' % (collection_same_name.url, collection_scraped['url']))
-            collection_same_title = model.Session.query(govuk_pubs_model.Collection) \
-                                         .filter_by(title=collection_scraped['title']) \
-                                         .first()
 
             # create it (without the organization for now)
             collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
-            # Set the govuk_id to the int  generated from the hash of the ID
+            # Set the govuk_id to the url
             collection.govuk_id = collection.url
-
-            #collection.govuk_id = abs(hash(collection.id))
             model.Session.add(collection)
             model.Session.flush()  # to get an collection.id. It will get committed with the publication
             outcome = 'Created'
