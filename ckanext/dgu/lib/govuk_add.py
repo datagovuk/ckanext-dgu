@@ -16,12 +16,17 @@ class GovukPublications(object):
     organization_map = {}
 
     @classmethod
-    def update(cls, publication_url=None):
+    def update(cls, publication_url=None, dataset_name=None):
         '''Updates existing datasets based on their links to publications'''
         cls.stats = Stats()
 
         if publication_url:
             ret = cls._add_or_update_publication_by_url(publication_url)
+            print cls.stats
+            return ret
+        if dataset_name:
+            dataset = model.Package.get(dataset_name)
+            ret = cls._update_dataset(dataset)
             print cls.stats
             return ret
 

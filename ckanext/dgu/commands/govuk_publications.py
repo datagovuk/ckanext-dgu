@@ -108,17 +108,22 @@ class GovukPublicationsCommand(p.toolkit.CkanCommand):
             elif cmd == 'autolink':
                 assert not (self.options.publication or self.options.collection)
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
-                GovukPublicationLinks.autolink(resource_id=self.options.resource,
-                                               dataset_name=self.options.dataset)
+                GovukPublicationLinks.autolink(
+                    resource_id=self.options.resource,
+                    dataset_name=self.options.dataset)
             elif cmd == "fixup":
-                assert not (self.options.publication or self.options.collection)
+                assert not (self.options.publication or
+                            self.options.collection)
                 from ckanext.dgu.lib.govuk_links import GovukPublicationLinks
-                GovukPublicationLinks.fix_local_resources(resource_id=self.options.resource,
-                                               dataset_name=self.options.dataset)
+                GovukPublicationLinks.fix_local_resources(
+                    resource_id=self.options.resource,
+                    dataset_name=self.options.dataset)
             elif cmd == 'update':
                 assert not (self.options.resource or self.options.collection)
                 from ckanext.dgu.lib.govuk_add import GovukPublications
-                GovukPublications.update(publication_url=self.options.publication)
+                GovukPublications.update(
+                    publication_url=self.options.publication,
+                    dataset_name=self.options.dataset)
             elif cmd == 'add':
                 assert not (self.options.resource or self.options.dataset or
                             self.options.collection)
