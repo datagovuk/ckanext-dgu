@@ -57,13 +57,26 @@ class GovukPublicationLinks(object):
         print stats
 
     @classmethod
+    def _find_collections_for_publications(cls, objects_to_link):
+        publications = [obj[1] for obj in objects_to_link if obj[0] == govuk_pubs_model.Publication]
+
+        print publications
+
+        return objects_to_link
+
+    @classmethod
     def autolink(cls, resource_id=None, dataset_name=None):
         '''autolink - Find clear links between gov.uk and DGU'''
         # requests should not print InsecurePlatformWarning
         warnings.simplefilter("ignore", exceptions.InsecurePlatformWarning)
+
         stats = Stats()
         resources = get_resources(resource_id=resource_id, dataset_name=dataset_name)
         urls_that_redirect_matcher = get_urls_that_redirect_matcher()
+
+        publications = set()
+        collections = set()
+
         for res in resources:
             try:
                 pkg = res.resource_group.package
@@ -77,6 +90,10 @@ class GovukPublicationLinks(object):
             # Find the links
             dataset_id = res.resource_group.package.id
             objs_to_link = cls.find_govuk_objs_to_autolink(res.url, res.id, dataset_id)
+            for p in [obj[1] for obj in objs_to_link if obj[0] == govuk_pubs_model.Publication]:
+                publications.add(p)
+                for c in p.collections:
+                    collections.add(c)
 
             # Sometimes the URL has been moved - look for redirect (#195)
             if not objs_to_link and urls_that_redirect_matcher.match(res.url):
@@ -127,11 +144,48 @@ class GovukPublicationLinks(object):
             if needs_commit:
                 model.Session.commit()
                 model.Session.remove()
+
+
+        dataset_pubs = set([p.id for p in publications])
+        if collections:
+            c = next(iter(collections))
+            allpubs = set()
+
+            collection = model.Session.query(govuk_pubs_model.Collection)\
+                .filter(govuk_pubs_model.Collection.id==c.id).first()
+            for pub in collection.publications:
+                allpubs.add(pub.id)
+
+            diff_count = len(allpubs - dataset_pubs)
+            print "Difference in publications between dataset and collection: ", diff_count
+            print "50% of collection pubs", (len(allpubs) / 2.0)
+            if diff_count < (len(allpubs) / 2.0):
+                # We use the URL for the Collection (as unique govuk id) and so
+                # this will only return collections
+                existing_count = model.Session.query(govuk_pubs_model.Link)\
+                    .filter(govuk_pubs_model.Link.govuk_id == c.url)\
+                    .filter(govuk_pubs_model.Link.ckan_id == dataset_name)\
+                    .filter(govuk_pubs_model.Link.ckan_table == 'dataset')\
+                    .count()
+                if not existing_count:
+                    link = govuk_pubs_model.Link(
+                        govuk_table="collection",
+                        govuk_id=c.url,
+                        ckan_table="dataset",
+                        ckan_id=dataset_name)
+                    model.Session.add(link)
+                    model.Session.commit()
+                    print "LINK", link
+                    stats.add('Collection-Dataset link added', link)
+
+
+
         print stats
 
     @classmethod
     def find_govuk_objs_to_autolink(cls, res_url, res_id, dataset_id):
         objs_to_link = []
+        publications = set()
         # First look for links from the Resource to the Publication or Attachment
         for govuk_type in (govuk_pubs_model.Publication,
                            govuk_pubs_model.Attachment):
@@ -143,7 +197,6 @@ class GovukPublicationLinks(object):
                                      for obj in objs_to_link_])
 
                 # If Resource is linked, also link its Dataset to the Publication
-                publications = set()
                 if govuk_type == govuk_pubs_model.Publication:
                     publications |= set(objs_to_link_)
                 elif govuk_type == govuk_pubs_model.Attachment:
@@ -152,6 +205,7 @@ class GovukPublicationLinks(object):
                 objs_to_link.extend([(govuk_pubs_model.Publication, publication,
                                       'dataset', dataset_id)
                                      for publication in publications])
+
         return objs_to_link
 
 

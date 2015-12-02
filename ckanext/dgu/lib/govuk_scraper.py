@@ -493,6 +493,7 @@ class GovukPublicationScraper(object):
                     setattr(collection, field, value)
             for field in collection_scraped_excluding_org:
                 update_collection(field, collection_scraped[field])
+            update_collection("govuk_id", collection.url)
             outcome = 'Updated' if changes else 'Unchanged'
         else:
             # just check there's not one called the same
@@ -507,6 +508,10 @@ class GovukPublicationScraper(object):
 
             # create it (without the organization for now)
             collection = govuk_pubs_model.Collection(**collection_scraped_excluding_org)
+            # Set the govuk_id to the int  generated from the hash of the ID
+            collection.govuk_id = collection.url
+
+            #collection.govuk_id = abs(hash(collection.id))
             model.Session.add(collection)
             model.Session.flush()  # to get an collection.id. It will get committed with the publication
             outcome = 'Created'

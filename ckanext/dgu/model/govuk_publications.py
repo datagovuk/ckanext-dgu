@@ -102,6 +102,7 @@ class Collection(Base, SimpleDomainObject):
     __tablename__ = 'collection'
     id = Column(types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
+    govuk_id = Column(types.Integer, index=True, default=0)
     name = Column(types.UnicodeText, index=True)
     url = Column(types.UnicodeText)
     title = Column(types.UnicodeText, nullable=False)
@@ -115,6 +116,12 @@ class Collection(Base, SimpleDomainObject):
     publications = orm.relationship('Publication',
                                     secondary=collection_publication_table,
                                     backref='collections')
+
+    @classmethod
+    def by_govuk_id(cls, govuk_id):
+        return model.Session.query(cls) \
+                    .filter_by(url=govuk_id) \
+                    .first()
 
     def __unicode__(self):
         repr = u'<%s' % self.__class__.__name__
@@ -130,6 +137,12 @@ class Collection(Base, SimpleDomainObject):
             repr += u' %s=%s' % (col.name, value)
         repr += ' publications=%s' % len(self.publications)
         return repr + '>'
+
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 class Publication(Base, SimpleDomainObject):
@@ -155,7 +168,7 @@ class Publication(Base, SimpleDomainObject):
     @classmethod
     def by_govuk_id(cls, govuk_id):
         return model.Session.query(cls) \
-                    .filter_by(govuk_id=govuk_id) \
+                    .filter_by(govuk_id=int(govuk_id)) \
                     .first()
 
 # e.g. https://www.gov.uk/government/publications/new-school-proposals has
@@ -195,7 +208,7 @@ class Attachment(Base, SimpleDomainObject):
     @classmethod
     def by_govuk_id(cls, govuk_id):
         return model.Session.query(cls) \
-                    .filter_by(govuk_id=govuk_id) \
+                    .filter_by(govuk_id=int(govuk_id)) \
                     .first()
 
 
@@ -204,7 +217,7 @@ class Link(Base, SimpleDomainObject):
     id = Column('id', types.UnicodeText, primary_key=True,
                 default=model.types.make_uuid)
     govuk_table = Column(types.UnicodeText, nullable=False)
-    govuk_id = Column(types.Integer, nullable=False)
+    govuk_id = Column(types.UnicodeText, nullable=False)
     ckan_table = Column(types.UnicodeText, nullable=False)
     ckan_id = Column(types.UnicodeText, nullable=False)
     created = Column(types.DateTime, default=datetime.datetime.now)
@@ -214,15 +227,14 @@ class Link(Base, SimpleDomainObject):
         govuk_class = {'collection': Collection,
                        'publication': Publication,
                        'attachment': Attachment}[self.govuk_table]
-        govuk_obj = govuk_class.by_govuk_id(int(self.govuk_id))
+        govuk_obj = govuk_class.by_govuk_id(self.govuk_id)
         return govuk_obj
 
     @property
     def ckan(self):
         ckan_class = {'dataset': model.Package,
                       'resource': model.Resource}[self.ckan_table]
-        ckan_obj = model.Session.query(ckan_class) \
-                        .get(self.ckan_id)
+        ckan_obj = ckan_class.get(self.ckan_id)
         return ckan_obj
 
     def __unicode__(self):
