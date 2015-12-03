@@ -329,9 +329,7 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     user_name, user, user_drupal_id, type_, this_is_me = user_properties(user_name)
 
     # Now decide how to display the user
-    if c.is_an_official is '':
-        c.is_an_official = bool(c.groups or is_sysadmin())
-    if (c.is_an_official or this_is_me or type_ is None):
+    if (is_an_official() or this_is_me or type_ is None):
         # User can see the actual user name - i.e. if:
         # * viewer is an official
         # * viewing ones own user
