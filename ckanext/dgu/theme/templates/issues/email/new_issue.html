@@ -16,5 +16,5 @@ The {{ site_title }} team
 --
 
 Issue: {{ h.url_for('issues_show', dataset_id=dataset.name, issue_number=issue.number, qualified=True) }}
-Dataset: {{ h.url_for('dataset_read', id=dataset.id, qualified=True) }}
+Dataset: {{ h.url_for('dataset_read', id=dataset.name, qualified=True) }}
 
