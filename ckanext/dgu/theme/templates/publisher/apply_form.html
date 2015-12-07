@@ -1,17 +1,17 @@
 
-<form action="" method="post"
-    py:attrs="{'class':'has-errors'} if errors else {}"
-    xmlns:i18n="http://genshi.edgewall.org/i18n"
-    xmlns:py="http://genshi.edgewall.org/"
-    xmlns:xi="http://www.w3.org/2001/XInclude">
+<form action="" method="post" {% if errors%}class="has-errors"{% endif %}>
 
-<div class="error-explanation" py:if="error_summary">
+{% if error_summary%}
+<div class="error-explanation" >
 	<h2>Errors in form</h2>
 	<p>The form contains invalid entries:</p>
 	<ul>
-	  <li py:for="key, error in error_summary.items()">${"%s: %s" % (key, error)}</li>
+          {% for key, error in error_summary.items() %}
+	   <li>{{"%s: %s" % (key, error)}}</li>
+          {% endfor %}
 	</ul>
 </div>
+{% endif %}
 
 <input type="hidden" id="type" name="type" value="organization" />
 
@@ -21,24 +21,23 @@
 		<span><strong>Publisher:</strong></span>
 	</dt>
 	<dd>
-        <py:if test="c.group">
-            <input type="hidden" id="parent" name="parent" disabled="disabled" value="${c.group.id}"/>
-            ${c.group.title}
-        </py:if>
-        <py:if test="not c.group">
+        {% if c.group %}
+            <input type="hidden" id="parent" name="parent" disabled="disabled" value="{{c.group.id}}"/>
+            {{c.group.title}}
+        {% else %}
             <select id="parent" name="parent" class="chzn-select" data-placeholder="Please choose a publisher">
                 <option value=""></option>
-                    <py:for each="pg in c.possible_parents">
-                        <option py:attrs="{'selected': 'selected' if c.group and pg.id == c.group.id else None}" value="${pg.id}">${pg.title}</option>
-                    </py:for>
+                    {% for pg in c.possible_parents %}
+                        <option {% if c.group and pg.id == c.group.id %}selected="selected"{% endif%} value="{{pg.id}}">{{pg.title}}</option>
+                    {% endfor %}
                 </select>
-        </py:if>
+        {% endif %}
 	</dd>
 
 
     <dt><label class="field_opt" for="name"><strong>Reason</strong></label></dt>
     <dd>
-		<textarea rows="10" cols="60" class="" id="reason" name="reason">${data.get('reason', '')}</textarea>
+		<textarea rows="10" cols="60" class="" id="reason" name="reason">{{data.get('reason', '')}}</textarea>
 		<br/>
 		<span class="hints">Please explain the reason for you to publish on data.gov.uk. To help us authenticate you, mention your position if it includes responsibily to publish data, or name a more senior person that has delegated the responsibility.</span>
 	</dd>
@@ -47,9 +46,9 @@
 
 
 <div class="form-actions">
-  <input id="save" class="btn btn-primary" name="save" type="submit" value="${_('Send request')}" />
-  <py:if test="c.group">
-    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="${h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}" />
-  </py:if>
+  <input id="save" class="btn btn-primary" name="save" type="submit" value="{{_('Send request')}}" />
+  {% if c.group %}
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="{{_('Cancel')}}" action="{{h.url_for(controller='ckanext.dgu.controllers.publisher:PublisherController', action='read', id=c.group.name)}}" />
+  {% endif %}
 </div>
 </form>

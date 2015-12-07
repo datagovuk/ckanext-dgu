@@ -161,15 +161,12 @@ class ThemePlugin(p.SingletonPlugin):
         Make "/data" the homepage.
         """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
-        tag_controller = 'ckanext.dgu.controllers.tag:TagController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
         map.redirect('/', '/data')
         map.redirect('/data', '/data/search')
         #map.connect('/data', controller=data_controller, action='index')
 
         map.connect('/linked-data-admin', controller=data_controller, action='linked_data_admin')
-        map.connect('/data/tag', controller=tag_controller, action='index')
-        map.connect('/data/tag/{id}', controller=tag_controller, action='read')
         map.connect('dgu_search', '/data/search', controller='package', action='search')
         map.connect('api_page', '/data/metadata-api-docs', controller=data_controller, action='api')
         map.connect('system_dashboard', '/data/system_dashboard', controller=data_controller, action='system_dashboard')
@@ -178,7 +175,6 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/resource_cache/{root}/{resource_id}/{filename}', controller=data_controller, action='resource_cache')
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
-        map.connect('/data/viz/new-front-page', controller=data_controller, action='viz_front_page')
         map.connect('/data/viz/upload', controller=data_controller, action='viz_upload')
 
         map.connect('/data/contracts-finder-archive{relative_url:.*}', controller=data_controller, action='contracts_archive')

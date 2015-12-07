@@ -202,9 +202,6 @@ class DataController(BaseController):
     def viz_investment_readiness_programme(self):
         return render('viz/investment_readiness_programme.html')
 
-    def viz_front_page(self):
-        return render('viz/front_page.html')
-
     def contracts_archive(self, relative_url='/'):
         import requests
         from pylons import response
