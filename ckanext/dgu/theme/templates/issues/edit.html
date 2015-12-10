@@ -22,11 +22,18 @@ set           {% for key, error in errors.items() %}
   {% endblock %}
 
   {% block fields %}
-    {{ form.input('title', label=_('Title'), id='field-title', placeholder=_('Title'), value=issue.title, error=errors.title, classes=['control-full']) }}
-    {{ form.markdown('description', label=_('Description'), id='field-description', placeholder=_('Add a comment'), value=issue.description, error=errors.description) }}
-    {#
-    {{ form.input('resource', label=_('Resource'), id='resource', attrs={'disabled':'1'}) }}
-    #}
+
+  <div class="control-group {% if errors and errors.get('title') %}has-error{%endif%}">
+    <label for="title">Title</label>
+    <input type="text" id="field-title" name="title" placeholder="Title" class="form-control"/>
+  </div>
+
+  <div class="control-group {% if errors and errors.get('description') %}has-error{%endif%}">
+    <label for="comment">Comment</label>
+    <textarea class="form-control field_req" cols="260" id="description" name="description" rows="10"
+    placeholder="Explain the issue"></textarea>
+  </div>
+
   {% endblock %}
 
   {% block form_actions %}
