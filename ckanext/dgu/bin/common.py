@@ -3,6 +3,45 @@ import os
 class ScriptError(Exception):
     pass
 
+
+def get_ckanapi(config_ini_or_ckan_url):
+    '''Given a config.ini filepath or a remote CKAN URL, returns a ckanapi
+    instance that you can use to call action commands
+    '''
+    import ConfigParser
+    print 'Connecting to CKAN...'
+    import ckanapi
+    import sys
+    if config_ini_or_ckan_url.startswith('http'):
+        # looks like a hostname e.g. https://data.gov.uk
+        ckan_url = config_ini_or_ckan_url
+        # Load the apikey from a config file
+        config = ConfigParser.ConfigParser()
+        config_filepath = '~/.ckan'
+        try:
+            config.read(os.path.expanduser(config_filepath))
+            apikey = config.get(ckan_url, 'apikey')
+        except ConfigParser.Error, e:
+            print 'Error reading file with api keys configured: %s' % e
+            print 'Ensure you have a file: %s' % config_filepath
+            print 'With the api key of the ckan user "script", something like:'
+            print '  [%s]' % ckan_url
+            print '  apikey = fb3355-b55234-4549baac'
+            sys.exit(1)
+        ckan = ckanapi.RemoteCKAN(ckan_url,
+                                  apikey=apikey,
+                                  user_agent='dgu script')
+    else:
+        # must be a config.ini filepath
+        load_config(config_ini_or_ckan_url)
+        register_translator()
+        # use 'script' username to identify bulk changes by script (rather than
+        # a publisher)
+        ckan = ckanapi.LocalCKAN(username='script')
+    print '...connected.'
+    return ckan
+
+
 def remove_readonly_fields(pkg):
     '''Takes a package dictionary and gets rid of any read-only fields
     so that you can write the package to the API.'''
@@ -20,6 +59,7 @@ def load_config(config_filepath):
     import ckan
     ckan.config.environment.load_environment(conf.global_conf,
             conf.local_conf)
+
 
 def register_translator():
     # Register a translator in this thread so that
