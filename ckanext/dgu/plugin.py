@@ -19,6 +19,7 @@ from ckanext.dgu.lib.search import solr_escape
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
 from ckan.exceptions import CkanUrlException
+from ckanext.datapusher.interfaces import IDataPusher
 
 log = getLogger(__name__)
 
@@ -546,6 +547,9 @@ class ApiPlugin(p.SingletonPlugin):
         map.connect('/api/util/latest-unpublished', controller=api_controller, action='latest_unpublished')
         map.connect('/api/util/popular-unpublished', controller=api_controller, action='popular_unpublished')
 
+        map.connect('/dataset/:dataset_id/resource/:resource_id/api',
+            controller=api_controller, action='resource_api')
+
         return map
 
     def get_actions(self):
@@ -554,6 +558,50 @@ class ApiPlugin(p.SingletonPlugin):
             'publisher_show': publisher_show,
             'suggest_themes': suggest_themes,
             }
+
+
+class NIIDataPusherPlugin(p.SingletonPlugin):
+    p.implements(IDataPusher)
+
+    def can_upload(self, resource_id):
+        """ We only want to upload NII resources, so we need to find out if the
+            package is a core dataset or not """
+        from ckan import model
+
+        resource = model.Resource.get(resource_id)
+        if not resource:
+            log.debug('NIIDataPusher: %s not found', resource_id)
+            return False
+
+        ctx = dict(model=model, ignore_auth=True, session=model.Session)
+        package_dict = p.toolkit.get_action("package_show")(ctx, {'id': resource.get_package_id()})
+
+        return p.toolkit.asbool(package_dict.get('core-dataset', False))
+
+
+    def after_upload(self, resource_dict, package_dict):
+        """ We will update the resource to mark it as having an api """
+        import datetime
+        from ckan import model
+        from dateutil.parser import parse
+
+        for resource in package_dict['resources']:
+            if resource['id'] == resource_dict['id']:
+                resource['has-api'] = True
+                break
+
+        package_dict['has-api'] = True
+        try:
+            dt = parse(package_dict['last_major_modification'])
+            package_dict['last_major_modification'] = dt.strftime('%d/%m/%Y %H:%M')
+        except:
+            package_dict['last_major_modification'] = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+        ctx = dict(model=model, ignore_auth=True, session=model.Session)
+        p.toolkit.get_action('package_update')(ctx, package_dict)
+
+        #if not p.toolkit.asbool(resource_dict.get('has-api', False)):
+        #    resource_dict['has-api'] = True
+        #    p.toolkit.get_action('package_update')(ctx, package_dict)
 
 
 class SiteIsDownPlugin(p.SingletonPlugin):

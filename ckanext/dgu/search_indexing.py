@@ -16,6 +16,7 @@ class SearchIndexing(object):
     '''Functions that edit the package dictionary fields to affect the way it
     gets indexed in Solr.'''
 
+
     @classmethod
     def add_popularity(cls, pkg_dict):
         '''Adds the views field from the ga-report plugin, if it is installed'''

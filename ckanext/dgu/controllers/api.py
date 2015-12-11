@@ -8,10 +8,13 @@ from webhelpers.text import truncate
 from ckan.lib.base import model, abort, response, h, BaseController, request
 from ckan.controllers.api import ApiController
 from ckan.lib.helpers import OrderedDict, date_str_to_datetime, markdown_extract, json
-from ckanext.dgu.plugins_toolkit import get_action
+
+from ckanext.dgu.plugins_toolkit import (get_action,render, c, request, _)
 import ckan.plugins.toolkit as t
 from ckanext.dgu.lib.helpers import is_sysadmin
 from ckanext.dgu.lib import reports
+
+from pylons import config
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +23,23 @@ default_limit = 10
 
 class DguApiController(ApiController):
 
+    def resource_api(self, dataset_id, resource_id):
+        import ckan.model as model
+
+        context = {'model': model, 'user': c.user}
+
+        try:
+            c.pkg_dict = get_action('package_show')(context, {'id': dataset_id})
+            c.resource = get_action('resource_show')(context, {'id': resource_id})
+            c.schema = get_action('datastore_info')(context, {'id': resource_id})
+        except t.NotAuthorized:
+            abort(401, 'Not authorized to save package')
+        except t.ObjectNotFound, e:
+            abort(404, _('Dataset not found'))
+
+        c.host = config.get('ckan.site_url', '')
+
+        return render("package/resource_api_read.html")
 
     def popular_unpublished(self):
         """

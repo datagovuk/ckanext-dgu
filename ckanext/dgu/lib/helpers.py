@@ -66,6 +66,13 @@ def _is_individual_resource(resource):
     return not _is_additional_resource(resource) and \
            not _is_timeseries_resource(resource)
 
+def _is_api_resource(resource):
+    """
+    Returns true iff the given resource identifies as an API resource.
+    """
+    return resource.get('url_type', '') == 'datastore'
+
+
 # NB these 3 functions are overwritten by the other function of the same name,
 # but we should probably use these ones in preference
 def additional_resources(package):
@@ -79,6 +86,13 @@ def timeseries_resources(package):
 def individual_resources(package):
     """Extract the individual resources from a package"""
     return filter(_is_individual_resource, package.get('resources'))
+
+def api_resources():
+    r = c.pkg_dict.get('individual_resources', [])
+    if not r and not timeseries_resources() and not additional_resources():
+        r = dict(c.pkg_dict).get('resources', [])
+
+    return [res for res in r if _is_api_resource(res)]
 
 def resource_type(resource):
     """
@@ -1426,9 +1440,9 @@ def individual_resources():
     r = c.pkg_dict.get('individual_resources', [])
     # In case the schema changes, the resources may or may not be split up into
     # three keys. So combine them if necessary
-    if not r and not timeseries_resources() and not additional_resources():
+    if not r and not timeseries_resources() and not additional_resources() and not api_resources():
         r = dict(c.pkg_dict).get('resources', [])
-    return r
+    return [res for res in r if not _is_api_resource(res)]
 
 def has_group_ons_resources():
     resources = individual_resources()
@@ -2199,6 +2213,22 @@ def orgs_for_admin_report():
        all_orgs[org['name']] = org
 
     return sorted(all_orgs.values(), key=lambda x: x['title'])
+
+def random_value_from_list(l):
+    import random
+    return random.choice(l)
+
+def humanize_number(num):
+    """ Converts a number into a more human readable form by inserting
+    commas in the right places. """
+    number = str(num)
+    val = re.sub("^(-?\d+)(\d{3})", '\g<1>,\g<2>', number)
+    if number == val:
+        return val
+    return humanize_number(val)
+
+def has_api(resource):
+    return resource.get('datastore_active', False)
 
 def all_la_org_names():
     from ckan import model
