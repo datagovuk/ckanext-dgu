@@ -2254,3 +2254,9 @@ def ensure_ids_are_in_a_list_of_dicts(l):
 
 def get_sla():
     return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'
+
+def get_issue_count(pkg_id):
+    if not is_plugin_enabled('issues'):
+        return 0
+    return 10
+

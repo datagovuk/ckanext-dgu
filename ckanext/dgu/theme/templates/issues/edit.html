@@ -1,0 +1,49 @@
+{% extends "issues/base_form_page.html" %}
+
+{% block subtitle %}{{ _('Edit Issue') }} - {{super()}}{% endblock %}
+
+{% block page_heading %}{{ _('Edit Issue') }} {% endblock %}
+
+{% import 'macros/form.html' as form %}
+
+{% block ourform %}
+<form id="issue-edit" class="dataset-form form-horizontal" method="post" data-module="basic-form">
+  {% block error_summary %}
+    {% if errors %}
+      <div class="alert alert-error error-explanation">
+        <p>{{ _('The form contains invalid entries:') }}</p>
+        <ul>
+          {% for key, error in errors.items() %}
+            <li>{{ key }}: {{ error[0] }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endblock %}
+
+  {% block fields %}
+
+  <div class="control-group {% if errors and errors.get('title') %}has-error{%endif%}">
+    <label for="title">Title</label>
+    <input type="text" id="field-title" name="title" placeholder="Title" class="form-control" value="{{issue.title}}"/>
+  </div>
+
+  <div class="control-group {% if errors and errors.get('description') %}has-error{%endif%}">
+    <label for="comment">Comment</label>
+    <textarea class="form-control field_req" cols="260" id="description" name="description" rows="10"
+    placeholder="Explain the issue">{{issue.description}}</textarea>
+  </div>
+
+  {% endblock %}
+
+  {% block form_actions %}
+  <div class="form-actions">
+    {{ h.nav_link(_('Cancel'), controller='ckanext.issues.controller:IssueController', named_route='issues_show', dataset_id=c.pkg.id, issue_number=issue.number,
+    class_='btn') }}
+    <button class="btn btn-primary" type="submit" name="save" tabindex="4">{{ _('Update') }}</button>
+  </div>
+  {% endblock %}
+</form>
+
+{% endblock %}
+
