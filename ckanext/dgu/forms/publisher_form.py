@@ -168,12 +168,12 @@ class PublisherForm(SingletonPlugin):
         pass # Moved to Publisher/OrganizationControll
 
     def create(self, publisher):
-        self.check_spatial_extra(publisher)
+        self.check_spatial_extra(publisher, True)
 
     def edit(self, publisher):
-        self.check_spatial_extra(publisher)
+        self.check_spatial_extra(publisher, False)
 
-    def check_spatial_extra(self,publisher):
+    def check_spatial_extra(self,publisher, pushToDatasets):
 
         spatial = publisher.extras.get('spatial')
 
@@ -188,15 +188,18 @@ class PublisherForm(SingletonPlugin):
                 error_dict = {'spatial':[u'Error decoding JSON object: %s' % str(e)]}
                 raise ValidationError(error_dict)
 
-            self.push_extent_to_datasets(publisher,geometry)
+            self.push_extent_to_datasets(publisher,geometry, pushToDatasets)
         else:
             if 'spatial' in publisher.extras: del publisher.extras['spatial']
             if 'spatial_name' in publisher.extras: del publisher.extras['spatial_name']
-            self.push_extent_to_datasets(publisher,None)
+            self.push_extent_to_datasets(publisher,None, pushToDatasets)
 
-    def push_extent_to_datasets(self, publisher, geometry):
+    def push_extent_to_datasets(self, publisher, geometry, pushToDatasets):
         # use the publisher extent to spatially index all its member packages
+        if not pushToDatasets: h.flash_notice(_('Publisher''s datasets will be spatially reindexed at next index rebuilding.'))
+
         for package in publisher.packages():
             save_package_extent(package.id, geometry)
-            search.rebuild(package.id)
+            # postpone reindexing to weekly index rebuild task
+            if pushToDatasets: search.rebuild(package.id)
 
