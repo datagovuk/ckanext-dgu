@@ -237,7 +237,7 @@ $(function() {
 
     ckan.spatial_libs.dgu_ol3 = function() {
 
-        var geocoderServiceUrl = 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name='
+        var geocoderServiceUrl = '//unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name='
         var COPYRIGHT_STATEMENTS =
             "Map background contains data from:<br/>" +
             "Ordnance Survey &copy; Crown copyright and database right [2012];<br/>" +

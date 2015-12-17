@@ -93,7 +93,7 @@ class TestMergeResources(object):
         ignored = {}
         merge_resources(('__after',), flattened_data, errors, ignored)
         result_data = unflatten(flattened_data)
-        
+
         assert_equal(data, result_data)
 
     def test_merging_only_occurs_after_other_validation(self):
@@ -176,7 +176,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_just_timeseries_resources(self):
@@ -216,7 +216,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_just_individual_resources(self):
@@ -254,7 +254,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_mixture_of_resource_types(self):
@@ -288,7 +288,7 @@ class TestUnmergeResources(object):
             ]
         }
         expected_data.update(data)
-        
+
         assert_equal(result_data, expected_data)
 
     def test_error_keys_are_unmerged(self):
@@ -351,7 +351,7 @@ class TestResourceTypeValidators(object):
 
         # allows 'documentation'
         assert_equal (f('documentation'), 'documentation')
-        
+
         # disallows 'docs'
         assert_raises(Invalid, f, 'docs')
 
@@ -373,7 +373,7 @@ class TestResourceTypeValidators(object):
         # allows 'file' and 'api;
         assert_equal (f('api'), 'api')
         assert_equal (f('file'), 'file')
-        
+
         # disallows 'docs'
         assert_raises(Invalid, f, 'docs')
 
@@ -434,7 +434,7 @@ class TestRemoveBlankResources:
 
         assert_equal(result_data, expected_data)
         assert_equal(errors, expected_errors)
-    
+
 class TestValidateLicense:
     def check(self, license_id, access_constraints, expected_data, expected_errors):
         errors = {}
@@ -448,6 +448,8 @@ class TestValidateLicense:
 
 # DR: These are the rules from the validate_license docstring.
 #     * The first case is clear and that is what is tested mainly.
+# RJ: Access constraints are ONLY dropped if license_id is empty
+#       and has been populated from the access_constraints.
     '''
     Validation rules must be true to validate:
 
@@ -466,8 +468,8 @@ class TestValidateLicense:
 #     wrong, so I will change this as part of #308.
     def test_form_dropdown(self):
         self.check('uk-ogl', '',
-                   {('license_id',): 'uk-ogl'},
-                   {('license_id',): None})
+                   {('license_id',): 'uk-ogl', ('access_constraints',): ''},
+                   {('license_id',): None, })
 
     def test_form_free_text(self):
         self.check('', 'Free form',
@@ -476,7 +478,7 @@ class TestValidateLicense:
 
     def test_blank(self):
         self.check('', '',
-                   {('license_id',): ''},
+                   {('license_id',): '', ('access_constraints',): ''},
                    {('license_id',): ['Please enter the access constraints.']})
 
     def test_harvested_license(self):
