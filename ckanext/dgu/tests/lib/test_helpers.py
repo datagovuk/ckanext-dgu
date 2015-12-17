@@ -135,11 +135,11 @@ class TestLinkedUser(PylonsTestCase):
 
         with publisher_user():
             assert_equal(str(dgu_linked_user(user)),
-                '<a href="/data/user/user_d101">NHS Editor imported f...</a>')
+                '<a href="/users/101">NHS Editor imported f...</a>')
 
         with sysadmin_user():
             assert_equal(str(dgu_linked_user(user)),
-                '<a href="/data/user/user_d101">NHS Editor imported f...</a>')
+                '<a href="/users/101">NHS Editor imported f...</a>')
 
     def test_view_system_user(self):
         # created on the API
