@@ -144,7 +144,7 @@ dataset - package object
         </div>
       {% endif %}
       <div class="issue-header-text">
-        <a href="{{issue_or_comment.user.ckan_url}}" class="author">{{ issue_or_comment.user.name}}</a>
+        {{h.linked_user(issue_or_comment.user.name)}}
         commented
         <span title="{{issue_or_comment.created}}">{{ h.time_ago_from_timestamp(issue_or_comment.created).lower() }}</span>
       </div>
@@ -163,7 +163,7 @@ dataset - package object
           <span class="issue-header-status {{issue.status}}">
             <i class="icon-exclamation-sign"></i> {{issue.status.title()}}
           </span>
-          <a href="{{issue.user.ckan_url}}">{{issue.user.name}}</a> opened this issue {{issue.time_ago}} &middot;
+          {{h.linked_user(issue.user.name)}} opened this issue {{issue.time_ago}} &middot;
           {{ ungettext('{number} comment', '{number} comments', comment_count).format(number=comment_count) }}
         </div>
       </div>
@@ -246,7 +246,6 @@ dataset - package object
   <div id='ckanext-issues-assignee'>
     {% if issue.assignee %}
       {{h.linked_user(issue.assignee.name, maxlength=200)}}
-      {{ issue.assignee.name }}
     {% elif issue.assignee_id %}
       {{ _('This issue has been assigned to an administrator for the publisher') }}
     {% else %}

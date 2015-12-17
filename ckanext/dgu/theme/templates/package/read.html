@@ -115,7 +115,7 @@
     {% set publisher_name = c.pkg.get_organization().name %}
     {% set issue_count = h.get_issue_count(c.pkg.id) %}
 
-    {% if not h.is_unpublished_item(c.pkg_dict) %}
+    {% if not h.is_unpublished_item(c.pkg_dict) and h.packagezip_has_data(c.pkg) != None %}
       <h2>Data Package</h2>
       {% if not h.packagezip_has_data(c.pkg) %}
         <p style="margin-bottom: 20px;">
@@ -153,7 +153,8 @@
               </div><!-- /col-sm-6 -->
             </div>
           </div>
-        {% endif %}
+      {% endif %}
+    {% endif %}
 
       <div class="dataset-resources">
         <!-- Resources -->
@@ -173,7 +174,6 @@
   	      {% endfor %}
         {% endif %}
       </div>
-    {% endif %}
 
     {% if not h.is_unpublished_item(c.pkg_dict) %}
     <div class="dataset-resources-additional">
