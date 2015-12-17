@@ -339,12 +339,12 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
                 name = 'System Process (%s)' % user_name
             else:
                 name = user.fullname or user.name
-            if type_ == 'official' or not user_drupal_id:
-                # officials use the CKAN user page for the time being (useful for debug)
+
+            if not user_drupal_id:
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # Public use the Drupal user page.
                 link_url = '/users/%s' % user_drupal_id
+
             return (name, link_url)
         else:
             if type_ == 'system':
