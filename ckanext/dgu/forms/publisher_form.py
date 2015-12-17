@@ -196,10 +196,15 @@ class PublisherForm(SingletonPlugin):
 
     def push_extent_to_datasets(self, publisher, geometry, pushToDatasets):
         # use the publisher extent to spatially index all its member packages
-        if not pushToDatasets: h.flash_notice(_('Publisher''s datasets will be spatially reindexed at next index rebuilding.'))
+
+        hasUnindexedChanges = False
 
         for package in publisher.packages():
-            save_package_extent(package.id, geometry)
+            hasChanged = package.extras.get('use_pub_extent', 'false').lower() == 'true' and save_package_extent(package.id, geometry)
             # postpone reindexing to weekly index rebuild task
-            if pushToDatasets: search.rebuild(package.id)
+            if hasChanged:
+                if pushToDatasets: search.rebuild(package.id)
+                else: hasUnindexedChanges = hasUnindexedChanges or True
+
+        if hasUnindexedChanges: h.flash_notice(_('Some publisher''s datasets will be spatially reindexed at next index rebuilding.'))
 
