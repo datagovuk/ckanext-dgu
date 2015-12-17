@@ -31,7 +31,7 @@ def set_user_to(username):
     c.userobj = model.User.by_name(username)
 
     old_groups = c.groups
-    c.group = ''
+    c.groups = ''
     yield
     c.userobj = old_user
     c.groups = old_groups
