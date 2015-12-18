@@ -77,15 +77,18 @@ def register_translator():
 
 def get_resources_using_options(options, state='active'):
     '''
-    Returns resources, filtered by commandline options 'dataset' and
+    Returns resources, filtered by command-line options 'dataset' and
     'resource'.
+    TODO: add filter by organization_ref
     '''
     return get_resources(state=state, resource_id=options.resource,
                          dataset_name=options.dataset)
 
 
 def get_resources(state='active', resource_id=None, dataset_name=None):
-    ''' Returns all active resources, or filtered by the given criteria. '''
+    ''' Returns all active resources, or filtered by the given criteria.
+    TODO: add filter by organization_ref
+    '''
     from ckan import model
     resources = model.Session.query(model.Resource) \
                 .filter_by(state=state) \
@@ -105,6 +108,13 @@ def get_resources(state='active', resource_id=None, dataset_name=None):
     resources = resources.all()
     print '%i resources (%s)' % (len(resources), ' '.join(criteria))
     return resources
+
+def get_datasets_using_options(options, state='active'):
+    '''
+    Returns datasets, filtered by command-line option 'dataset'.
+    TODO: add filter by organization_ref
+    '''
+    return get_datasets(state=state, dataset_name=options.dataset)
 
 def get_datasets(state='active', dataset_name=None, organization_ref=None):
     ''' Returns all active datasets, or filtered by the given criteria. '''
