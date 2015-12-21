@@ -74,21 +74,21 @@ class TestLinkedUser(PylonsTestCase):
 
         with regular_user():
             assert_equal(str(dgu_linked_user(user)),
-                    '<a href="/users/102">John Doe - a public user</a>')
+                    '<a href="/user/102">John Doe - a public user</a>')
             assert_equal(str(dgu_linked_user(user_obj)),
-                    '<a href="/users/102">John Doe - a public user</a>')
+                    '<a href="/user/102">John Doe - a public user</a>')
 
         with publisher_user():
             assert_equal(str(dgu_linked_user(user)),
-                    '<a href="/users/102">John Doe - a public user</a>')
+                    '<a href="/user/102">John Doe - a public user</a>')
             assert_equal(str(dgu_linked_user(user_obj)),
-                    '<a href="/users/102">John Doe - a public user</a>')
+                    '<a href="/user/102">John Doe - a public user</a>')
 
         with sysadmin_user():
             assert_equal(str(dgu_linked_user(user)),
-                    '<a href="/users/102">John Doe - a public user</a>')
+                    '<a href="/user/102">John Doe - a public user</a>')
             assert_equal(str(dgu_linked_user(user_obj)),
-                    '<a href="/users/102">John Doe - a public user</a>')
+                    '<a href="/user/102">John Doe - a public user</a>')
 
     def test_view_sysadmin(self):
         # very common case
@@ -135,11 +135,11 @@ class TestLinkedUser(PylonsTestCase):
 
         with publisher_user():
             assert_equal(str(dgu_linked_user(user)),
-                '<a href="/users/101">NHS Editor imported f...</a>')
+                '<a href="/user/101">NHS Editor imported f...</a>')
 
         with sysadmin_user():
             assert_equal(str(dgu_linked_user(user)),
-                '<a href="/users/101">NHS Editor imported f...</a>')
+                '<a href="/user/101">NHS Editor imported f...</a>')
 
     def test_view_system_user(self):
         # created on the API
