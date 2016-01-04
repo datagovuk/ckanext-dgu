@@ -67,14 +67,22 @@ class SetResourceFormatsCommand(object):
                         resource['format']
 
 
-            for k in ['last_major_modification', 'schema', 'tags']:
+            # Removing the codelist or schema here does remove it during package_update
+            # Removing last_major_modification is calculated on write.
+            for k in ['last_major_modification', 'schema', 'codelist']:
                 if k in pkg:
                     del pkg[k]
+
+            if 'tags' in pkg and pkg['tags']:
+                newtags = []
+                for t in pkg['tags']:
+                    newtags.append({'name': t['name']})
+
+                pkg['tags'] = newtags
 
             if updated:
                 if options.write:
                     try:
-                        #pprint(pkg)
                         self.ckan.action.package_update(**pkg)
                         ds_stats.add("Packages updated", pkg['id'])
                     except ValidationError, ve:
