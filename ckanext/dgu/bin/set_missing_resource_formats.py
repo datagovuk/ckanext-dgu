@@ -28,6 +28,8 @@ class SetResourceFormatsCommand(object):
             if qa_info.get('format', ''):
                 resource['format'] = qa_info['format']
                 stats.add("Updating format to %s" % qa_info['format'], resource['id'])
+            else:
+                stats.add("QA format empty", resource['id'])
         except t.ObjectNotFound:
             # No QA yet
             return False
@@ -67,7 +69,7 @@ class SetResourceFormatsCommand(object):
                         resource['format']
 
 
-            # Removing the codelist or schema here does remove it during package_update
+            # Removing the codelist or schema here does NOT remove it during package_update
             # Removing last_major_modification is calculated on write.
             for k in ['last_major_modification', 'schema', 'codelist']:
                 if k in pkg:
