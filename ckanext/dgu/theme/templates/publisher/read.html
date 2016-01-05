@@ -215,7 +215,7 @@
                 {% endif %}
                 {% if packagecreate %}
                   <li>
-                    <a href="{{ h.url_for('dataset_new') }}?owner_org={{ c.group.name }}"><span class="wrap-icon"><i class="icon-plus-sign-alt"></i> </span>Add a new dataset &raquo;</a>
+                    <a href="{{ h.url_for('dataset_new') }}?owner_org={{ c.group.id }}"><span class="wrap-icon"><i class="icon-plus-sign-alt"></i> </span>Add a new dataset &raquo;</a>
                   </li>
                 {% endif %}
                 {% if organizationupdate %}
