@@ -11,6 +11,7 @@
 {% block optional_head %}
     <link rel="alternate" type="application/rdf+xml" href="{{h.url_for(controller='package', action='read', id=c.pkg.name, format='rdf')}}"/>
     <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-package.min.js')}}"></script>
+
     <script type="text/javascript">
       window.DATASET_ID = "{{c.pkg_dict.get('id')}}";
     </script>
@@ -105,13 +106,63 @@
       </div>
     </div>
 
-
     <div id="dataset">
       <!--! id=dataset for ckanext-spatial -->
     </div>
 
+
+
     {% set publisher_name = c.pkg.get_organization().name %}
+    {% set issue_count = h.get_issue_count(c.pkg.id) %}
+
     {% if not h.is_unpublished_item(c.pkg_dict) %}
+      <h2>Data Package</h2>
+      {% if h.packagezip_has_data(c.pkg) == None %}
+        <p style="margin-bottom: 20px;">
+            The Data Package Zip has not been generated for this dataset yet
+            <a class="js-tooltip" data-toggle="tooltip" data-html='true' data-placement="right" title="This is probably because the dataset is new. Please check again later." href="javascript:0" style="text-decoration:none;color:#000;">
+              <i class="icon-info-sign"></i>
+            </a>
+        </p>
+      {% elif not h.packagezip_has_data(c.pkg) %}
+        <p style="margin-bottom: 20px;">
+            The <a href="{{h.packagezip_url(c.pkg)}}">Data Package Zip</a> is not recommended for this dataset
+            <a class="js-tooltip" data-toggle="tooltip" data-html='true' data-placement="right" title="The zip file may not contain data. This occurs if the source data is not available, there are problems encountered during archival, or the data is only accessible via an API." href="javascript:0" style="text-decoration:none;color:#000;">
+              <i class="icon-info-sign"></i>
+            </a>
+        </p>
+      {% else %}
+          <p>Download a copy of all of the cached resources for this dataset</p>
+          <div class="datapackage-zip">
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="dataset-resource">
+                  <div class="dataset-resource-format">
+                    <i class="icon-25x icon-archive"></i>
+                    <span class="format-name">ZIP</span>
+                  </div>
+                  <div class="dataset-resource-text">
+                    <div class="inner">
+                      <div class="inner2">
+                        Download all data
+                        {% if h.packagezip_size(c.pkg)  %}
+                          ({{h.packagezip_size(c.pkg)|filesizeformat}})
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="dropdown" style="pointer-events:none;">
+                    <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;">
+                      <i class="icon-download-alt icon-25x"></i>
+                    </a>
+                  </div><!--/dropdown-->
+                </div><!-- /dataset-resource -->
+              </div><!-- /col-sm-6 -->
+            </div>
+          </div>
+      {% endif %}
+    {% endif %}
+
       <div class="dataset-resources">
         <!-- Resources -->
         {% if h.individual_resources() %}
@@ -130,7 +181,7 @@
   	      {% endfor %}
         {% endif %}
       </div>
-    {% endif %}
+
     {% if not h.is_unpublished_item(c.pkg_dict) %}
     <div class="dataset-resources-additional">
       {% if h.additional_resources() or h.gemini_resources() %}
@@ -193,10 +244,59 @@
     </ul>
     {% endif %}
 
-    <div id="comments-container">
+    {% if h.issues_enabled(c.pkg_dict) %}
+    <br/>
+      {% if c.user %}
+      <a href="{{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+            New Issue &raquo;
+      </a>
+      {% else %}
+      <a href="/user/login?destination={{h.url_for('issues_new', dataset_id=c.pkg_dict.name)}}" class="btn btn-primary btn-mini add-feedback-button pull-right">
+            Login to create an issue &raquo;
+      </a>
+
+      {% endif %}
+    </a>
+      <section class="module issues-home">
+      <h2>Issues</h2>
+      {% set issues = h.issues_list(c.pkg_dict.id, status='open') %}
+      {% if issues['count'] %}
+        <p>{{ ungettext('{number} open issue', '{number} open issues', issues['count']).format(number=issues['count']) }}:</p>
+        <div class="clearfix"></div>
+        {% import "issues/common.html" as common with context %}
+        <ul id="issue-list" class="issue-list-group list-group">
+          {% for issue in issues['results'] %}
+              {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>0 open issues</p>
+      {% endif %}
+      {% set closed_issues = h.issues_list(c.pkg_dict.id, status='closed') %}
+      {% if closed_issues['count'] %}
+        <p>
+          {{ ungettext('{number} closed issue', '{number} closed issues', closed_issues['count']).format(number=closed_issues['count']) }}
+          &nbsp;
+           <span class="show-closed-issues show-hide"><span style='text-decoration:underline; cursor:pointer;' >View</span> <i class="icon-chevron-right"></i></span>
+          <span class="hide-closed-issues show-hide"><span style='text-decoration:underline; cursor:pointer;' >Hide</span> <i class="icon-chevron-down"></i></span>
+        </p>
+        <ul id="issue-list-closed" class="issue-list-group list-group">
+          {% for issue in closed_issues['results'] %}
+            {{ common.issue_item(issue, c.pkg) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>0 closed issues</p>
+      {% endif %}
+      </section>
+    {% endif %}
+    <br/>
+
+ <div id="comments-container">
       <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
       <div style="height: 50px;" class="comments-spinner"></div>
-    </div>
+  </div>
+
 {% endmacro %}
 
 
@@ -206,7 +306,7 @@
     <div class="col-sm-6">
     <div class="dataset-resource">
       <div class="dataset-resource-format">
-        <i class="icon-3x icon-file-text"></i>
+        <i class="icon-25x icon-file-text"></i>
         <span class="format-name">
           {% if res.get('gemini',False) %}
             {{res.get('type','')}}

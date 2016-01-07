@@ -339,12 +339,12 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
                 name = 'System Process (%s)' % user_name
             else:
                 name = user.fullname or user.name
-            if type_ == 'official' or not user_drupal_id:
-                # officials use the CKAN user page for the time being (useful for debug)
+
+            if not user_drupal_id:
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # Public use the Drupal user page.
-                link_url = '/users/%s' % user_drupal_id
+                link_url = '/user/%s' % user_drupal_id
+
             return (name, link_url)
         else:
             if type_ == 'system':
@@ -2258,3 +2258,9 @@ def ensure_ids_are_in_a_list_of_dicts(l):
 
 def get_sla():
     return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'
+
+def get_issue_count(pkg_id):
+    if not is_plugin_enabled('issues'):
+        return 0
+    return 10
+

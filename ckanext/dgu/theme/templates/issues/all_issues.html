@@ -1,0 +1,18 @@
+{% extends "issues/organization_issues.html" %}
+
+{% import "issues/common.html" as common with context %}
+
+{% block subtitle %}{{ _('All Issues') }} - {{ super() }}{% endblock %}
+
+{% block breadcrumb_content %}
+<li class="active">{% link_for 'All Issues', named_route='all_issues_page' %}</li>
+{% endblock %}
+
+{% block page_heading %}
+  {{ _('All Issues') }}
+{% endblock %}
+
+
+{% block secondary_content %}
+  {{ common.search_options_sidebar(user_can_change_visibility=h.is_sysadmin(c.user))}}
+{% endblock %}

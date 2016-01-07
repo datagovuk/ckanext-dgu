@@ -1,0 +1,24 @@
+{% extends "issues/base.html" %}
+
+{% block subtitle %}{{ _("Confirm Delete") }}{% endblock %}
+
+{% block maintag %}<div class="row" role="main">{% endblock %}
+
+{% block breadcrumb_item %}{{ h.nav_link(issue_number, named_route='issues_delete', dataset_id=pkg.name, issue_number=issue_number) }}
+{% endblock %}
+
+{% block primary_content %}
+  <section class="module span6 offset3">
+    <div class="module-content">
+      {% block form %}
+        <p>{{ _('Are you sure you want to delete issue - {0}?').format(issue_number) }}</p>
+        <p class="form-actions">
+          <form id='ckanext-issues-confirm-delete' action="{% url_for 'issues_delete', dataset_id=pkg.id, issue_number=issue_number %}" method="post">
+            <button class="btn" type="submit" name="cancel" >{{ _('Cancel') }}</button>
+            <button class="btn btn-primary" type="submit" name="delete" >{{ _('Confirm Delete') }}</button>
+          </form>
+        </p>
+      {% endblock %}
+    </div>
+  </section>
+{% endblock %}

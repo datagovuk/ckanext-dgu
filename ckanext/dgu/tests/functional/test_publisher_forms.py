@@ -351,6 +351,7 @@ class TestApply(WsgiAppCase, HtmlCheckMethods, SmtpServerHarness):
         res = self.app.get(offset, status=200, extra_environ={'REMOTE_USER': 'user'})
         assert 'Apply for membership' in res, res
         form = res.forms[1]
+        print form
         parent_publisher_id = form['parent'].value
         parent_publisher_name = model.Group.get(parent_publisher_id).name
         assert_equal(parent_publisher_name, publisher_name)

@@ -1,22 +1,24 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
+{% import "_dgu_jinja_util.html" as m with context %}
 
-  <py:def function="page_title">User report</py:def>
-  <py:def function="page_heading">Users (${ c.count })</py:def>
+{% block title %}User Report - {{ super() }}{% endblock %}
 
-  <py:match path="breadcrumbs">
+  <h1>Users ({{c.count}})</h1>
+
+
+{% block breadcrumb_content %}
     <li><a href="/data/system_dashboard">System Dashboard</a></li>
     <li><a href="/publisher/report_users">Users report</a></li>
-  </py:match>
+{% endblock %}
 
 
-  <div py:match="content">
+{% block primary_content_inner %}
+  <div>
 
-      ${paginator(c.page)}
+      {{ m.paginator(c.page) }}
 
-      <table py:if="c.count" width="100%" class="table table-bordered">
+      {% if c.count %}
+      <table width="100%" class="table table-bordered">
         <tr>
           <th>Name</th>
           <th>Email</th>
@@ -25,30 +27,29 @@
           <th>Rights</th>
           <th>Created</th>
         </tr>
-        <py:for each="u in c.page.items">
+        {% for u in c.page.items %}
           <tr>
-            <td><a href="/data/user/${u.name}">${u.display_name}</a></td>
-            <td>${u.email}</td>
-            <td>${u.number_administered_packages()}</td>
-            <td>${u.number_of_edits()}</td>
+            <td><a href="/data/user/{{u.name}}">{{u.display_name}}</a></td>
+            <td>{{u.email}}</td>
+            <td>{{u.number_administered_packages()}}</td>
+            <td>{{u.number_of_edits()}}</td>
             <td>
-              <py:if test="h.is_sysadmin(u)">Sysadmin</py:if>
-              <py:for each="capacity in ('admin', 'editor')">
-                <py:for each="group in u.get_groups(capacity=capacity)">
-                  ${capacity.capitalize()}: <a href="/publisher/${group.name}">${group.display_name}</a>
-                </py:for>
-              </py:for>
+              {% if h.is_sysadmin(u) %} Sysadmin{% endif %}
+              {% for capacity in ('admin', 'editor') %}
+                {% for group in u.get_groups(capacity=capacity) %}
+                  {{capacity.capitalize()}}: <a href="/publisher/{{group.name}}">{{group.display_name}}</a>
+                {% endfor %}
+              {% endfor %}
             </td>
-            <td>${h.render_datetime(u.created, date_format="%d-%m-%Y")}</td>
+            <td>{{h.render_datetime(u.created, date_format="%d-%m-%Y")}}</td>
           </tr>
-        </py:for>
+        {% endfor %}
       </table>
+      {% endif %}
 
-      ${paginator(c.page)}
+      {{m.paginator(c.page)}}
 
   </div>
 
 
-  <xi:include href="../layout.html" />
-
-</html>
+{% endblock %}
