@@ -37,7 +37,7 @@
   <p>
 
     <span class="actor">
-        <a href="{{ h.url_for(controller='user', action='read', id=issue.user) }}">{{ issue.user }}</a>
+        {{h.linked_user(issue.user)}}
     </span>
     <span>created issue <a href="{{ h.url_for('issues_show', dataset_id=issue.dataset_id, issue_number=issue.number) }}">{{ issue.title }}</a></span>
     <span>
