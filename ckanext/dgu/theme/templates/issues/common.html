@@ -19,7 +19,7 @@
           </a>
         </h4>
         <ul class="list-group-item-meta">
-          <li>Opened by <a href="{{ h.url_for('user_datasets', id=issue.user) }}">{{issue.user}}</a></li>
+          <li>Opened by {{h.linked_user(issue.user)}}</li>
           <li>
             {% with update_label = "updated" if issue.comment_count else "created" %}
             <i class="icon-clock"></i>
