@@ -31,13 +31,13 @@ def add_api_resources(csv_input):
         print "  - %d resources" % len(resources)
 
         for resource in resources:
-            if resource['description'] == row['description'] \
+            if resource['url'] == row['url'] \
                     and resource['format'].lower() == 'api':
                 print "  API Resource already exists"
                 break
 
         resource = {
-            'description': row['description'],
+            u'description': row['description'],
             'url': row['url'],
             'format': 'API',
             'position': 0
