@@ -1681,7 +1681,7 @@ def search_facet_text(key,value):
     if key=='api':
         if value=='true':
             return 'Show datasets with APIs'
-        return 'Hide APIs'
+        return 'Hide datasets with APIs'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'
