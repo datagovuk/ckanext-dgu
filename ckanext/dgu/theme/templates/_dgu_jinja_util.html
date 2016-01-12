@@ -309,6 +309,13 @@
                 )}}
       <div class="facet-divider"></div>
       {{facet_box(
+                'API',
+                h.search_facets_unselected(['api']),
+                h.search_facets_selected(['api']),
+                'No further filters to apply.'
+                )}}
+      <div class="facet-divider"></div>
+      {{facet_box(
                 'Licence',
                 h.search_facets_unselected(['license_id-is-ogl']),
                 h.search_facets_selected(['license_id-is-ogl']),

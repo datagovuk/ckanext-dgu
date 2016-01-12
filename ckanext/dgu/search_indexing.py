@@ -31,6 +31,11 @@ class SearchIndexing(object):
         log.debug('Popularity: %s', pkg_dict['popularity'])
 
     @classmethod
+    def add_api_flag(cls, pkg_dict):
+        pkg_dict['api'] = 'API' in [p.upper() for p in pkg_dict['res_format']]
+        log.debug('API: %s', pkg_dict['api'])
+
+    @classmethod
     def add_inventory(cls, pkg_dict):
         ''' Sets unpublished to false if not present and also states whether the item is marked
             as never being published. '''

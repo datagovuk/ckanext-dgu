@@ -65,7 +65,7 @@
           <i class="icon-search"></i>&nbsp; View
         {% elif c.resource.get('resource_type') == 'service' %}
           <i class="icon-search"></i>&nbsp; View
-        {% elif c.resource.get('resource_type') == 'api' %}
+        {% elif c.resource.get('resource_type') == 'api' or c.resource.format.upper() == 'API'%}
           <i class="icon-code"></i>&nbsp; API Endpoint
         {% else %}
             <div class="download">
