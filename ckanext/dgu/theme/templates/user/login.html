@@ -1,21 +1,19 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">CKAN login</py:def>
-  <py:match path="breadcrumbs">
-    <li><a href="${request.url}">Log In</a></li>
-  </py:match>
-  <div py:match="content" py:strip="">
-    <!--! Am using a python block because I can't seem to get this to work:
-          py:if="'error_summary' in dir()" -->
-    <?python
-    err_msg = error_summary.values()[0] if 'error_summary' in dir() else None
-    ?>
+  {% block title %}data.gov.uk login{% endblock %}
+
+{% block breadcrumb_content %}
+    <li><a href="{{request.url}}">Log In</a></li>
+{% endblock %}
+
+  {% block primary_content_inner %}
+    {% set err_msg=error_summary.values()[0] if error_summary else None %}
+    {% if err_msg %}
     <div py:if="err_msg" class="panel panel-danger">
       <div class="panel-heading"><strong>Login Error</strong></div>
-      <div class="panel-body">${err_msg}</div>
+      <div class="panel-body">{{err_msg}}</div>
     </div>
+    {% endif %}
 
     <div class="panel panel-default">
       <div class="panel-heading"><strong>CKAN login</strong></div>
@@ -42,6 +40,4 @@
       </div>
     </div>
   </div>
-
-  <xi:include href="../layout.html" />
-</html>
+{% endblock %}

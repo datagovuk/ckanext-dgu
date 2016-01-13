@@ -1,19 +1,17 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">CKAN logout</py:def>
-  <py:match path="breadcrumbs">
+{% block title %}CKAN logout{% endif %}
+
+  {% block breadcrumbs%}
     <li><i>Logged Out</i></li>
-  </py:match>
+  {% endblock %}
 
-  <py:match path="content">
+{% block primary_content_inner %}
     <div class="panel panel-info">
       <div class="panel-heading"><strong>CKAN log out</strong></div>
       <div class="panel-body">
         You are now logged out.
       </div>
     </div>
-  </py:match>
-  <xi:include href="../layout_base.html" />
-</html>
+{% endblock %}
+
