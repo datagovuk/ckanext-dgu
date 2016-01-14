@@ -119,7 +119,9 @@
           </div>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              <input type="hidden" name="{{k}}" value="{{v}}"/>
+              {% if k != 'publisher' %}
+              <input type="hidden" name="{{k}}" value="{{v}}" />
+              {% endif %}
             {% endfor %}
           {% endif %}
           {% if set_fields %}
@@ -130,6 +132,16 @@
           {% if request.params.get('ext_bbox','') %}
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox','')}}" />
           {% endif %}
+    <select name="publisher" class="form-control chzn-select" style="max-width: 100%;">
+      <option value="">Select a publisher</option>
+      {%- for publisher_name, publisher_title in h.organization_list() %}
+        {% if c.fields_grouped.get('publisher')[0] == publisher_name %}
+        <option value="{{publisher_name}}" selected>{{publisher_title}}</option>
+        {% else %}
+        <option value="{{publisher_name}}">{{publisher_title}}</option>
+        {% endif %}
+      {%- endfor %}
+    </select>
         </form>
         {# extra_options can be passed in using the "call" syntax #}
         {% if caller %}
