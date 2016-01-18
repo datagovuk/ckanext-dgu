@@ -54,6 +54,13 @@ class SetResourceFormatsCommand(object):
             updated = False
 
             pkg = self.ckan.action.package_show(id=pkg_name)
+
+            is_harvested = len(filter(lambda x: bool(x.get('key') == 'harvest_source_reference'),
+                                                   pkg['extras'])) > 0
+            if is_harvested:
+                ds_stats.add("Skipping harvested dataset", pkg['id'])
+                continue
+
             resources = pkg['resources']
             if 'individual_resources':
                 resources = pkg.get('individual_resources', []) + \
