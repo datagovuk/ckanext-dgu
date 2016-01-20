@@ -1,0 +1,14 @@
+{% extends "page.html" %}
+
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="/ckanext-issues/style.css" />
+{% endblock %}
+
+{% block breadcrumb_content %}
+  <li>{{ h.nav_link(_('Datasets'), controller='package', action='search') }}</li>
+  <li><a href="{{ h.url_for(controller='package', action='read', id=c.pkg.name) }}" title="{{ c.pkg.title }}">{{ h.truncate(c.pkg.title, 60) }}</a></li>
+  <li><a href="{{ h.url_for('issues_dataset', dataset_id=c.pkg.name) }}">Issues</a></li>
+  <li class="active">{% block breadcrumb_item %}{% endblock %}</li>
+{% endblock %}
+

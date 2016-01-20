@@ -139,7 +139,14 @@ Passed in:
         </tr>
       </thead>
       <tbody>
-        {% for num, res in h.list_enumerate(data.get('timeseries_resources', []) + [{}]) %}
+        {# In some cases we end up with a timeseries having individual resources.  If this is the case, then show the individual resources
+            in the table so that we fail validation (until a date is filled in).  This will avoid a validation error because of mixed types
+            We want individual resources to merge only if we are in a timeseries.
+        #}
+
+        {% set individual = data.get('individual_resources', []) if h.are_timeseries_resources(data) else  [] %}
+        {% set merged_resources = data.get('timeseries_resources', []) + individual +  [{}]%}
+        {% for num, res in h.list_enumerate(merged_resources) %}
         <tr class="timeseries_resources__{{num}} resource">
           <td class="resource-move-cell">
             <div class="btn-group">
@@ -227,75 +234,78 @@ Passed in:
         </tr>
       </thead>
       <tbody>
-        {% for num, res in h.list_enumerate(data.get('individual_resources', []) + [{}]) %}
-        <tr class="individual_resources__{{num}} resource">
-          <td class="resource-move-cell">
-            <div class="btn-group">
-              <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
-              <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
-            </div>
-            <div class="hidden-resource-fields">
-              <!--! Because the resource fields are explicitly set in resource_columns, we need
-                    to pull the others from the resource keys, strip the resource_columns and then
-                    ignore resource_type, id and resource_group_id.
+        {# If we are in timeseries mode, we do not want to add individual_resources to the table in case the list isn't actually empty. #}
+        {% with individual = [] if h.are_timeseries_resources(data) else data.get('individual_resources', []) %}
+          {% for num, res in h.list_enumerate(individual + [{}]) %}
+          <tr class="individual_resources__{{num}} resource">
+            <td class="resource-move-cell">
+              <div class="btn-group">
+                <button class="btn btn-xs btn-default resource-move resource-move-up"><i class="icon-arrow-up"></i></button>
+                <button class="btn btn-xs btn-default resource-move resource-move-down"><i class="icon-arrow-down"></i></button>
+              </div>
+              <div class="hidden-resource-fields">
+                <!--! Because the resource fields are explicitly set in resource_columns, we need
+                      to pull the others from the resource keys, strip the resource_columns and then
+                      ignore resource_type, id and resource_group_id.
 
-                    Code is long hand to keep the list comp understandable -->
-              {% for col in h.resource_extra_fields(res) %}
+                      Code is long hand to keep the list comp understandable -->
+                {% for col in h.resource_extra_fields(res) %}
+                  <input
+                         id="individual_resources__{{num}}__{{col}}"
+                         name="individual_resources__{{num}}__{{col}}"
+                         type="hidden"
+                         value="{{res.get(col, '')}}"/>
+                {% endfor %}
+                <span class="resource-id"><input name="individual_resources__{{num}}__id" type="hidden" value="{{res.get('id', '')}}" /></span>
+                <span class="resource-type"><input name="individual_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
+              </div>
+            </td>
+            {% for col in resource_columns %}
+              <td class="resource-{{col}}">
+              {% if col=='description' %}
                 <input
                        id="individual_resources__{{num}}__{{col}}"
                        name="individual_resources__{{num}}__{{col}}"
-                       type="hidden"
-                       value="{{res.get(col, '')}}"/>
-              {% endfor %}
-              <span class="resource-id"><input name="individual_resources__{{num}}__id" type="hidden" value="{{res.get('id', '')}}" /></span>
-              <span class="resource-type"><input name="individual_resources__{{num}}__resource_type" type="hidden" value="{{res.get('resource_type', '')}}" /></span>
-            </div>
-          </td>
-          {% for col in resource_columns %}
-            <td class="resource-{{col}}">
-            {% if col=='description' %}
-              <input
-                     id="individual_resources__{{num}}__{{col}}"
-                     name="individual_resources__{{num}}__{{col}}"
-                     type="text"
-                     value="{{res.get(col, '')}}"
-                     class="form-control {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
-                     />
-            {% elif col=='url' %}
-              <span class="input-group {% if h.cell_has_errors(errors,'individual_resources', num, col) %}error{% endif %}">
-                <input id="individual_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       class="form-control {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                       />
+              {% elif col=='url' %}
+                <span class="input-group {% if h.cell_has_errors(errors,'individual_resources', num, col) %}error{% endif %}">
+                  <input id="individual_resources__{{num}}__{{col}}"
+                         name="individual_resources__{{num}}__{{col}}"
+                         type="text"
+                         value="{{res.get(col, '')}}"
+                         class="form-control"/>
+                  <span class="input-group-btn">
+                    <button id="individual_resources__{{num}}__validate-resource-button"
+                        class="validate-resource-button btn btn-default">Check</button>
+                  </span>
+                </span>
+                {% elif col=='format'%}
+                <input
+                       id="individual_resources__{{num}}__{{col}}"
                        name="individual_resources__{{num}}__{{col}}"
                        type="text"
                        value="{{res.get(col, '')}}"
-                       class="form-control"/>
-                <span class="input-group-btn">
-                  <button id="individual_resources__{{num}}__validate-resource-button"
-                      class="validate-resource-button btn btn-default">Check</button>
-                </span>
-              </span>
-              {% elif col=='format'%}
-              <input
-                     id="individual_resources__{{num}}__{{col}}"
-                     name="individual_resources__{{num}}__{{col}}"
-                     type="text"
-                     value="{{res.get(col, '')}}"
-                     data-provider="typeahead"
-                     data-items="8"
-                     class="form-control format-typeahead {% if h.cell_has_errors(errors,'additional_resources', num, col) %}field_error{% endif %}"
-                     />
-              {% else %}
-              <input
-                     id="individual_resources__{{num}}__{{col}}"
-                     name="individual_resources__{{num}}__{{col}}"
-                     type="text"
-                     value="{{res.get(col, '')}}"
-                     class="input-small {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
-                     />
-            {% endif %}
-            </td>
+                       data-provider="typeahead"
+                       data-items="8"
+                       class="form-control format-typeahead {% if h.cell_has_errors(errors,'additional_resources', num, col) %}field_error{% endif %}"
+                       />
+                {% else %}
+                <input
+                       id="individual_resources__{{num}}__{{col}}"
+                       name="individual_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       class="input-small {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
+                       />
+              {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
           {% endfor %}
-        </tr>
-        {% endfor %}
+        {% endwith %}
       </tbody>
       </table>
       <a href="javascript:;" id="individual_resources-add" class="btn btn-primary pull-right add-button"><i class="icon-plus"></i> &nbsp;Add Row</a>

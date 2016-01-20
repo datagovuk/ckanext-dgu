@@ -1,67 +1,33 @@
-<form id="dataset-edit" method="post"
-  py:attrs="{'class':'has-errors package_create_form ckan form-horizontal'} if errors else {'class':'package_create_form ckan form-horizontal'}"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
->
+{% import "_dgu_jinja_util.html" as m with context %}
 
-<xi:include href="../_dgu_util.html" />
+<form id="dataset-edit" method="post" class="{% if errors %}has-errors{%endif%} package_create_form ckan form-horizonal">
 
-<!--! recursive function turns errors into hierarchical lists
-This should be in a _util somewhere
--->
+  <input id="name" name="name" type="hidden" value="{{data.get('name', '')}}"/>
+  <input id="access_constraints" name="access_constraints" type="hidden" value="{{data.get('access_contraints', '')}}"/>
 
-<input id="name" name="name" type="hidden" value="${data.get('name', '')}"/>
-<input id="access_constraints" name="access_constraints" type="hidden" value="${data.get('access_contraints', '')}"/>
+  <input id="foi-email" name="foi-email" type="hidden" value="{{data.get('foi_email', ' ')}}"/>
+  <input id="foi-web" name="foi-web" type="hidden" value="{{data.get('foi_web', ' ')}}"/>
+  <input id="foi-name" name="foi-name" type="hidden" value="{{data.get('foi_name', ' ')}}"/>
+  <input id="foi-phone" name="foi-phone" type="hidden" value="{{data.get('foi_phone', ' ')}}"/>
 
-<input id="foi-email" name="foi-email" type="hidden" value="${data.get('foi_email', ' ')}"/>
-<input id="foi-web" name="foi-web" type="hidden" value="${data.get('foi_web', ' ')}"/>
-<input id="foi-name" name="foi-name" type="hidden" value="${data.get('foi_name', ' ')}"/>
-<input id="foi-phone" name="foi-phone" type="hidden" value="${data.get('foi_phone', ' ')}"/>
+  <input id="contact-email" name="contact-email" type="hidden" value="{{data.get('contact_email', ' ')}}"/>
+  <input id="contact-name" name="contact-name" type="hidden" value="{{data.get('contact_name', ' ')}}"/>
+  <input id="contact-phone" name="contact-phone" type="hidden" value="{{data.get('contact_phone', ' ')}}"/>
+  <input id="license_id" name="license_id" type="hidden" value="unpublished"/>
+  <input id="unpublished" name="unpublished" type="hidden" value="True"/>
 
-<input id="contact-email" name="contact-email" type="hidden" value="${data.get('contact_email', ' ')}"/>
-<input id="contact-name" name="contact-name" type="hidden" value="${data.get('contact_name', ' ')}"/>
-<input id="contact-phone" name="contact-phone" type="hidden" value="${data.get('contact_phone', ' ')}"/>
-<input id="license_id" name="license_id" type="hidden" value="unpublished"/>
-<input id="unpublished" name="unpublished" type="hidden" value="True"/>
+  <input id="owner_org" name="owner_org" type="hidden" value="{{data.get('owner_org')}}"/>
 
-<input id="owner_org" name="owner_org" type="hidden" value="${data.get('owner_org')}"/>
-
-
-<py:def function="dump(o)">
-  <ul py:if="type(o) is dict and bool(o)">
-    <li py:for="k,v in h.iterate_error_dict(o)">
-      <py:if test="type(v) in [str, unicode]">
-        <b>${k}:</b> ${v}
-      </py:if>
-      <py:if test="not (type(v) in [str, unicode])">
-        <b>${k}: </b> ${dump(v)}
-      </py:if>
-    </li>
-  </ul>
-  <ul py:if="type(o) is list and bool(o)">
-    <py:for each="v in o">
-      ${dump(v)}
-    </py:for>
-  </ul>
-  <li py:if="(type(o) is str or type(o) is unicode) and bool(o)">
-    ${o}
-  </li>
-</py:def>
-
-<div class="error-explanation" py:if="bool(errors)">
-<h2>Errors in form</h2>
-<p>The form contains invalid entries:</p>
-  ${dump(errors)}
-</div>
-
-  <div class="panel panel-danger error-explanation" py:if="bool(errors)">
+  {% if errors %}
+  <div class="panel panel-danger error-explanation">
     <div class="panel-heading"><strong>Errors in form</strong></div>
     <div class="panel-body">
       The form contains invalid entries:
-      ${dump(errors)}
+      {{ m.dump(errors) }}
     </div>
   </div>
+  {% endif %}
+
 
 <div class="row dgu-equal-height" data-selector=".panel-default">
   <div class="col-md-6">
@@ -75,8 +41,10 @@ This should be in a _util somewhere
                 <img src="/images/information-grey.png"/>
             </span>
           <div class="controls">
-                <input class="form-control js-title input-xlarge" id="title" name="title" type="text" value="${data.get('title', '')}"/>
-              <p class="field_error" py:if="errors.get('title', '')">${errors.get('title', '')}</p><br/>
+                <input class="form-control js-title input-xlarge" id="title" name="title" type="text" value="{{data.get('title', '')}}"/>
+                  {% if errors.get('title', '') %}
+                  <p class="field_error">{{errors.get('title', [''])[0]}}</p><br/>
+                  {% endif %}
             </div>
           <div class="control-group">
               <label class="control-label" for="name">Description</label>
@@ -86,8 +54,10 @@ This should be in a _util somewhere
                   <img src="/images/information-grey.png"/>
                 </span>
                 </p>
-                <textarea class="form-control" style="width:100%;" id="notes" name="notes" rows="10">${data.get('notes', '')}</textarea>
-                <p class="field_error" py:if="errors.get('notes', '')">${errors.get('notes', '')}</p>
+                <textarea class="form-control" style="width:100%;" id="notes" name="notes" rows="10">{{data.get('notes', '')}}</textarea>
+                {% if errors.get('notes', '') %}
+                <p class="field_error" >{{errors.get('notes', [''])[0]}}</p>
+                {% endif %}
                 </div>
             </div>
           </div>
@@ -96,13 +66,13 @@ This should be in a _util somewhere
             <div style="width: 45%; float: left; margin-right: 4%">
               <label class="control-label" for="theme-primary">Primary Theme</label>
                 <p>1. Please choose a primary theme which this data falls under from the options below.</p>
-               ${primary_theme_input(data, errors)}
+               {{ m.primary_theme_input(data, errors) }}
             </div>
 
              <div class="well" style="margin-top: 12px; width: 50%; float: left;">
                <label class="control-label" style="padding-top: 0px" for="theme">Secondary Themes</label>
                <p>2. If there are other themes in this data, select them here:</p>
-               ${secondary_theme_input(data, errors)}
+               {{ m.secondary_theme_input(data, errors) }}
              </div>
           </div>
 
@@ -120,24 +90,27 @@ This should be in a _util somewhere
             <div class="controls">
 
               <span class="js-tooltip" title="Please enter the release date for this dataset as dd/mm/yyyy">
-                  <input class="form-control js-title input-xlarge" id="publish-date" name="publish-date" type="text" value="${data.get('publish-date', '')}"/>
+                  <input class="form-control js-title input-xlarge" id="publish-date" name="publish-date" type="text" value="{{data.get('publish-date', '')}}"/>
                   <small>Please enter the date as dd/mm/yyyy</small>
               </span>
               <br/>
 
-              <input  id="publish-restricted" name="publish-restricted" type="checkbox" py:attrs="{'checked': 'checked' if data.get('publish-restricted', False) == 'true' else None}"/>
+              <input  id="publish-restricted" name="publish-restricted" type="checkbox" {% if data.get('publish-restricted', False) == 'true'%}checked=checked{% endif%}/>
 
 Please check this box if the dataset will <strong>not</strong> be released and complete the Release notes section below.
-
-              <span class="field_error" py:if="errors.get('publish-date', '')">${errors.get('publish-date', '')}</span>
+              {% if errors.get('publish-date', '') %}
+              <span class="field_error" >{{errors.get('publish-date', [''])[0]}}</span>
+              {% endif %}
             </div>
           </div>
           <div class="control-group">
             <label class="control-label" for="name">Release notes</label>
             <div class="controls">
               <p class="instructions basic">Please add information about the release of this data</p>
-              <textarea class="form-control" style="width:100%;" id="release-notes" name="release-notes" rows="10">${data.get('release-notes')}</textarea>
-              <p class="field_error" py:if="errors.get('release_notes', '')">${errors.get('release-notes', '')}</p>
+              <textarea class="form-control" style="width:100%;" id="release-notes" name="release-notes" rows="10">{{data.get('release-notes')}}</textarea>
+              {% if errors.get('release_notes', '') %}
+              <p class="field_error" >{{errors.get('release-notes', '')}}</p>
+              {% endif %}
             </div>
 
           </div>
@@ -150,11 +123,13 @@ Please check this box if the dataset will <strong>not</strong> be released and c
 <div class="col-md-12">
   <div id="disclaimer">
     <input id="save-button" class="btn btn-primary" name="save" type="submit" value="Save changes" />
-    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="${_('Cancel')}" action="/dataset/${data.get('name')}" />
+    <input id="cancel" class="btn href-action" name="cancel" type="reset" value="{{_('Cancel')}}" action="/dataset/{{data.get('name')}}" />
     <p class="hints">
-      <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="http://${config.get('dgu.drupal_host', 'data.gov.uk')}/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
+      <strong>Important:</strong> By submitting content, you agree to release your contributions under the <a href="/terms-and-conditions">terms &amp; conditions</a> of the site.  Please <strong>refrain</strong> from editing this page if you are <strong>not</strong> happy to do this.
     </p>
   </div>
 </div>
 
+
 </form>
+

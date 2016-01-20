@@ -1,0 +1,84 @@
+{% extends "issues/base.html" %}
+
+{% import "issues/common.html" as common with context %}
+
+{% block primary_content_inner %}
+  <h1 class="page-heading">
+    {% block page_heading %}
+      {{ _('Reported issues') }}
+    {% endblock %}
+  </h1>
+
+  <section class="module">
+    <div class="module-content">
+      {% if issues %}
+        <ul class="activity" data-module="activity-stream" data-module-more="False" data-module-context="user" data-module-id="issue-moderation stream" data-module-offset="0">
+          {% for issue in issues %}
+            {{ issue_description(issue) }}
+          {% endfor %}
+        </ul>
+      {% else %}
+        No reported issues.
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Organizations'), controller='organization', action='index' %}</li>
+  <li>{% link_for organization.display_name|truncate(35), controller='organization', action='read', id=organization.name %}</li>
+  <li>{% link_for 'Issues', named_route='issues_for_organization', org_id=organization.name %}</li>
+  <li class="active">Reported Issues</li>
+{% endblock %}
+
+{%- macro issue_description(issue) %}
+<li class="item comment">
+  <i class="icon icon-comment"></i>
+  <p>
+
+    <span class="actor">
+        {{h.linked_user(issue.user)}}
+    </span>
+    <span>created issue <a href="{{ h.url_for('issues_show', dataset_id=issue.dataset_id, issue_number=issue.number) }}">{{ issue.title }}</a></span>
+    <span>
+      created issue
+      <a href="{{ h.url_for('issues_show', dataset_id=issue.dataset_id, issue_number=issue.number) }}">{{ issue.title }}</a>.
+    </span>
+
+    <span class="date" title="{{ issue.created }}"> {{ h.time_ago_from_timestamp(issue.created) }}</span>
+      <a href="{{h.url_for(controller='package', action='read', id=issue.dataset_id )}}">See dataset</a>
+
+    <form id="issue-report-form" class="pull-right" method="post" action="{{h.url_for('issues_moderate', organization_id=organization.id)}}">
+      <input type="hidden" name="dataset_id" value="{{ issue.dataset_id }}">
+      <input type="hidden" name="issue_number" value="{{ issue.number }}">
+      <input type="hidden" name="comment_id" value="{{ issue.id }}">
+      <input type="hidden" name="abuse_status" value="abuse">
+      <button class="subtle-btn-active subtle-btn-abuse" type="submit" value="abuse" title="Report">
+        <i class="icon-flag"></i>
+        Abuse
+      </button>
+    </form>
+
+    <form id="issue-not-abuse-button" class="pull-right" method="post" action="{{h.url_for('issues_moderate', organization_id=organization.id)}}">
+      <input type="hidden" name="dataset_id" value="{{ issue.dataset_id }}">
+      <input type="hidden" name="issue_number" value="{{ issue.number }}">
+      <input type="hidden" name="comment_id" value="{{ issue.id }}">
+      <input type="hidden" name="abuse_status" value="not_abuse">
+      <button class="subtle-btn-active subtle-btn-abuse-active" type="submit" value="not_abuse" data-toggle="tooltip" title="Clear abuse reports">
+        <i class="icon-remove"></i>
+        {{ _('Not abuse') }}
+      </button>
+    </form>
+
+    <br/>
+  </p>
+
+  <p>
+    <span id="comment-{{ issue.id }}">
+      {{ issue.description|safe }}
+    </span>
+
+    <br/>
+  </p>
+</li>
+{% endmacro %}

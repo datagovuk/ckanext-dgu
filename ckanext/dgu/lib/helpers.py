@@ -331,9 +331,7 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
     user_name, user, user_drupal_id, type_, this_is_me = user_properties(user_name)
 
     # Now decide how to display the user
-    if c.is_an_official is '':
-        c.is_an_official = bool(c.groups or is_sysadmin())
-    if (c.is_an_official or this_is_me or type_ is None):
+    if (is_an_official() or this_is_me or type_ is None):
         # User can see the actual user name - i.e. if:
         # * viewer is an official
         # * viewing ones own user
@@ -343,12 +341,12 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
                 name = 'System Process (%s)' % user_name
             else:
                 name = user.fullname or user.name
-            if type_ == 'official' or not user_drupal_id:
-                # officials use the CKAN user page for the time being (useful for debug)
+
+            if not user_drupal_id:
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                # Public use the Drupal user page.
-                link_url = '/users/%s' % user_drupal_id
+                link_url = '/user/%s' % user_drupal_id
+
             return (name, link_url)
         else:
             if type_ == 'system':
@@ -1725,6 +1723,10 @@ def search_facet_text(key,value):
         if value=='true':
             return 'Show NII datasets'
         return 'Hide NII datasets'
+    if key=='api':
+        if value=='true':
+            return 'Show datasets with APIs'
+        return 'Hide datasets with APIs'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'
@@ -2312,3 +2314,9 @@ def ensure_ids_are_in_a_list_of_dicts(l):
 
 def get_sla():
     return 'The data publisher commits to the continuing publication of the data and to provide advance notice (on the data.gov.uk dataset page) of any changes to the structure of the data, the update schedule or cessation.'
+
+def get_issue_count(pkg_id):
+    if not is_plugin_enabled('issues'):
+        return 0
+    return 10
+

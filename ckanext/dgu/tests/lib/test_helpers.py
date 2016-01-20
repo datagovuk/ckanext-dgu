@@ -4,6 +4,7 @@ from nose.tools import assert_equal
 
 from ckan.tests.pylons_controller import PylonsTestCase
 import ckan.new_tests.factories as factories
+import ckan.new_tests.helpers as helpers
 from ckan import model
 
 from ckanext.dgu.testtools.create_test_data import DguCreateTestData
@@ -13,10 +14,33 @@ from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
+from contextlib import contextmanager
+
+def regular_user():
+    return set_user_to('user')
+
+def publisher_user():
+    return set_user_to('co_editor')
+
+def sysadmin_user():
+    return set_user_to('sysadmin')
+
+@contextmanager
+def set_user_to(username):
+    old_user = c.userobj
+    c.userobj = model.User.by_name(username)
+
+    old_groups = c.groups
+    c.groups = ''
+    yield
+    c.userobj = old_user
+    c.groups = old_groups
+
 
 class TestLinkedUser(PylonsTestCase):
     @classmethod
     def setup_class(cls):
+        helpers.reset_db()
         PylonsTestCase.setup_class()
         DguCreateTestData.create_dgu_test_data()
 
@@ -25,83 +49,112 @@ class TestLinkedUser(PylonsTestCase):
         user = 'nhseditor' # i.e. an official, needing anonymity to the public
         user_obj = model.User.by_name(unicode(user))
 
-        c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)),
-                '<a href="/publisher/national-health-service">National Health Service</a>')
-        assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/publisher/national-health-service">National Health Service</a>')
+        with regular_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/publisher/national-health-service">National Health Service</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/publisher/national-health-service">National Health Service</a>')
 
-        c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)),
-                '<a href="/data/user/nhseditor">NHS Editor</a>')
-        assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/data/user/nhseditor">NHS Editor</a>')
+        with publisher_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/data/user/nhseditor">NHS Editor</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/data/user/nhseditor">NHS Editor</a>')
+
+        with sysadmin_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/data/user/nhseditor">NHS Editor</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/data/user/nhseditor">NHS Editor</a>')
 
     def test_view_member_of_public(self):
         # most common case
         user = 'user_d102' # a member of the public, not anonymous - public comments
         user_obj = model.User.by_name(unicode(user))
 
-        c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)),
-                '<a href="/users/102">John Doe - a public user</a>')
-        assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/users/102">John Doe - a public user</a>')
+        with regular_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/user/102">John Doe - a public user</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/user/102">John Doe - a public user</a>')
 
-        c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)),
-                '<a href="/users/102">John Doe - a public user</a>')
-        assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/users/102">John Doe - a public user</a>')
+        with publisher_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/user/102">John Doe - a public user</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/user/102">John Doe - a public user</a>')
+
+        with sysadmin_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/user/102">John Doe - a public user</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/user/102">John Doe - a public user</a>')
 
     def test_view_sysadmin(self):
         # very common case
         user = 'sysadmin'
         user_obj = model.User.by_name(unicode(user))
 
-        c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)), 'System Administrator')
-        assert_equal(str(dgu_linked_user(user_obj)), 'System Administrator')
+        with regular_user():
+            assert_equal(str(dgu_linked_user(user)), 'System Administrator')
+            assert_equal(str(dgu_linked_user(user_obj)), 'System Administrator')
 
-        c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)),
-                '<a href="/data/user/sysadmin">Test Sysadmin</a>')
-        assert_equal(str(dgu_linked_user(user_obj)),
-                '<a href="/data/user/sysadmin">Test Sysadmin</a>')
+        with publisher_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/data/user/sysadmin">Test Sysadmin</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/data/user/sysadmin">Test Sysadmin</a>')
+
+        with sysadmin_user():
+            assert_equal(str(dgu_linked_user(user)),
+                    '<a href="/data/user/sysadmin">Test Sysadmin</a>')
+            assert_equal(str(dgu_linked_user(user_obj)),
+                    '<a href="/data/user/sysadmin">Test Sysadmin</a>')
 
     def test_view_non_object_user(self):
         # created by a script, but no User object exists
         user = 'random'
 
-        c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)), 'Staff')
+        with regular_user():
+            assert_equal(str(dgu_linked_user(user)), 'Staff')
 
-        c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)), 'random')
+        with publisher_user():
+            assert_equal(str(dgu_linked_user(user)), 'random')
+
+        with sysadmin_user():
+            assert_equal(str(dgu_linked_user(user)), 'random')
 
     def test_view_old_drupal_edit(self):
         # Up til Jun 2012, edits through drupal were saved like this
         # "NHS North Staffordshire (uid 6107 )"
         user = 'National Health Service (uid 101 )'
 
-        c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)),
+        with regular_user():
+            assert_equal(str(dgu_linked_user(user)),
                 '<a href="/publisher/national-health-service">National Health Service</a>')
 
-        c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user)),
-                '<a href="/data/user/user_d101">NHS Editor imported f...</a>')
+        with publisher_user():
+            assert_equal(str(dgu_linked_user(user)),
+                '<a href="/user/101">NHS Editor imported f...</a>')
+
+        with sysadmin_user():
+            assert_equal(str(dgu_linked_user(user)),
+                '<a href="/user/101">NHS Editor imported f...</a>')
 
     def test_view_system_user(self):
         # created on the API
         user_dict = get_action('get_site_user')({'model': model, 'ignore_auth': True}, {})
         user = user_dict['name']
 
-        c.is_an_official = False
-        assert_equal(str(dgu_linked_user(user)), 'System Process')
+        with regular_user():
+            assert_equal(str(dgu_linked_user(user)), 'System Process')
 
-        c.is_an_official = True
-        assert_equal(str(dgu_linked_user(user, maxlength=100)),
+        with publisher_user():
+            assert_equal(str(dgu_linked_user(user, maxlength=100)),
+                '<a href="/data/user/test.ckan.net">System Process (Site user)</a>')
+
+        with sysadmin_user():
+            assert_equal(str(dgu_linked_user(user, maxlength=100)),
                 '<a href="/data/user/test.ckan.net">System Process (Site user)</a>')
 
 

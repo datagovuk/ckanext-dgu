@@ -1,22 +1,24 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:i18n="http://genshi.edgewall.org/i18n"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
+{% import "_dgu_jinja_util.html" as m with context %}
 
-  <py:def function="page_title">Publisher report</py:def>
-  <py:def function="page_heading">Publishers and Admins/Editors (${c.count})</py:def>
+{% block title %}Publisher Report - {{ super() }}{% endblock %}
 
-  <py:match path="breadcrumbs">
+  <h1>Publishers and Admins/Editors ({{c.count}})</h1>
+
+
+{% block breadcrumb_content %}
     <li><a href="/data/system_dashboard">System Dashboard</a></li>
     <li><a href="/publisher/report_publishers_and_users">Publishers and users</a></li>
-  </py:match>
+{% endblock %}
 
 
-  <div py:match="content">
+{% block primary_content_inner %}
+  <div>
 
-      ${paginator(c.page)}
+      {{ m.paginator(c.page)}}
 
-      <table py:if="c.count" width="100%" class="table table-bordered">
+      {% if c.count %}
+      <table  width="100%" class="table table-bordered">
         <tr>
           <th>Title</th>
           <th>Number of datasets</th>
@@ -25,25 +27,25 @@
           <th>Editors</th>
           <th>Created</th>
         </tr>
-        <py:for each="g in c.page.items">
+        {% for g in c.page.items %}
           <tr>
-            <td><a href="/publisher/${g.name}">${g.title}</a></td>
-            <td>${len(g.packages())}</td>
-            <td>${g.approval_status}</td>
-            <td py:for="capacity in ('admin', 'editor')">
-              <py:for each="user in h.group_get_users(g, capacity=capacity)">
-                ${h.link_to(user.display_name, h.url_for(controller='user', action='read', id=user.name))}
-              </py:for>
+            <td><a href="/publisher/{{g.name}}">{{g.title}}</a></td>
+            <td>{{ g.packages()|length }}</td>
+            <td>{{ g.approval_status }}</td>
+            {% for capacity in ('admin', 'editor') %}
+            <td>
+                {% for user in h.group_get_users(g, capacity=capacity) %}
+                  {{h.link_to(user.display_name, h.url_for(controller='user', action='read', id=user.name))}}{% if not loop.last %},{% endif%}
+                {% endfor %}
             </td>
-            <td>${h.render_datetime(g.created, date_format="%d-%m-%Y")}</td>
+            {% endfor %}
+            <td><nobr>{{h.render_datetime(g.created, date_format="%d-%m-%Y")}}</nobr></td>
           </tr>
-        </py:for>
+          {% endfor %}
       </table>
+      {% endif %}
 
-      ${paginator(c.page)}
+      {{ m.paginator(c.page) }}
 
   </div>
-
-  <xi:include href="../layout.html" />
-
-</html>
+{% endblock %}
