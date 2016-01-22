@@ -66,24 +66,27 @@ $(function() {
   var spinDiv = $('.comments-spinner')[0];
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
 
-  var url = '/comment/get/'+window.DATASET_ID+'?comments_per_page=999999';
-  $.ajax({
-          url: url,
-          data: '',
-          dataType: 'html',
-          success: function(data, textStatus, xhr) {
-            commentsSpinner.stop();
-            $('#comments-container').html(data);
-            comments();
-          },
-          error: function(xhr, status, exception) {
-            commentsSpinner.stop();
-            $(spinDiv).hide();
-            $('#comments .boxed')
-              .append('Error loading comments: <code>'+url+'</code><br/><br/>')
-              .append($('<pre>').text(JSON.stringify(exception)));
-          }
-        });
+  // DATASET_ID is only set on dataset page, not on resource page.
+  if(DATASET_ID in window) {
+    var url = '/comment/get/'+window.DATASET_ID+'?comments_per_page=999999';
+    $.ajax({
+            url: url,
+            data: '',
+            dataType: 'html',
+            success: function(data, textStatus, xhr) {
+              commentsSpinner.stop();
+              $('#comments-container').html(data);
+              comments();
+            },
+            error: function(xhr, status, exception) {
+              commentsSpinner.stop();
+              $(spinDiv).hide();
+              $('#comments .boxed')
+                .append('Error loading comments: <code>'+url+'</code><br/><br/>')
+                .append($('<pre>').text(JSON.stringify(exception)));
+            }
+          });
+  }
 
   // Year segmentation
   $(".year .year_items").hide();
@@ -94,7 +97,6 @@ $(function() {
 
   // Show the first 'View Less' button
   $(".year .hideyear").first().show();
-
 
   // Show all but the first 'View More' button
   $(".year .showyear").show();
