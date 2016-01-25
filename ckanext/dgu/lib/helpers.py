@@ -343,7 +343,7 @@ def user_link_info(user_name, organization=None):  # Overwrite h.linked_user
             if not user_drupal_id:
                 link_url = h.url_for(controller='user', action='read', id=user.name)
             else:
-                link_url = '/users/%s' % user_drupal_id
+                link_url = '/user/%s' % user_drupal_id
 
             return (name, link_url)
         else:
@@ -1678,6 +1678,10 @@ def search_facet_text(key,value):
         if value=='true':
             return 'Show NII datasets'
         return 'Hide NII datasets'
+    if key=='api':
+        if value=='true':
+            return 'Show datasets with APIs'
+        return 'Hide datasets with APIs'
     if key=='unpublished':
         if value=='true':
             return 'Unpublished datasets'

@@ -29,9 +29,6 @@ dataset - package object
 
 {%- macro issue_description(issue) %}
 <div class="issue-comment-wrapper">
-  <a href="{{issue.user.ckan_url}}"
-    class="issue-comment-avatar">
-  </a>
   <div class="issue-comment">
     {{ issue_or_comment_header(issue_or_comment=issue, dataset=dataset, issue=issue, header_is_for_issue=True, can_edit_issue=can_edit_issue) }}
     <div class="issue-comment-content{% if issue.visibility == 'hidden' %} issue-abuse{% endif %}">
@@ -179,10 +176,6 @@ dataset - package object
       <div class="issue-comment-new">
         <div class="issue-comment-wrapper">
           {% if c.user %}
-          <a href="{{c.current_user.ckan_url}}"
-            class="issue-comment-avatar">
-
-          </a>
           <form id="issue-comment-form" class="dataset-form" method="post"
             data-module="basic-form"
             action="{{h.url_for('issues_comments', issue_number=issue.number, dataset_id=dataset.name)}}">
