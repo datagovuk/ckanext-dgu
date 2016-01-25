@@ -44,7 +44,7 @@
             <label>Sort by:</label>
             <select name="sort" class="form-control" style="display:inline-block;">
                 <!-- Can optimise this bit of the template, particularly results_sort_by -->
-                {{sort_option('Relevance', 'rank desc', 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
+                {{sort_option('Relevance', '', 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
                 {{sort_option('Popularity', 'popularity desc', 'popularity' in h.results_sort_by())}}
                 {{sort_option('Title', 'title_string asc', 'title_string' in h.results_sort_by())}}
                 {{sort_option('Last Updated', 'metadata_modified desc', 'metadata_modified' in h.results_sort_by())}}
