@@ -96,7 +96,7 @@
     <field name="organization" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="organization_titles" type="text" indexed="true" stored="true" multiValued="true"/>
     <field name="unpublished" type="boolean" indexed="true" stored="true" multiValued="true"/>
-    <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="true"/>
+    <field name="core_dataset" type="boolean" indexed="true" stored="true" multiValued="false"/>
     <field name="api" type="boolean" indexed="true" stored="true" multiValued="true"/>
     <field name="publish_restricted" type="boolean" indexed="true" stored="true" multiValued="true"/>
 
