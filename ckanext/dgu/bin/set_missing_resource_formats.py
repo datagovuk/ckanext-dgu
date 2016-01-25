@@ -48,18 +48,17 @@ class SetResourceFormatsCommand(object):
         if not options.write:
             print "NOT writing package as -w was not specified"
 
-
         # For each dataset, get resources and process those with no format.
         for pkg_name in get_datasets_fn():
             updated = False
 
             pkg = self.ckan.action.package_show(id=pkg_name)
 
-            is_harvested = len(filter(lambda x: bool(x.get('key') == 'harvest_source_reference'),
-                                                   pkg['extras'])) > 0
-            if is_harvested:
-                ds_stats.add("Skipping harvested dataset", pkg['id'])
-                continue
+            #is_harvested = len(filter(lambda x: bool(x.get('key') == 'harvest_source_reference'),
+            #                                       pkg['extras'])) > 0
+            #if is_harvested:
+            #    ds_stats.add("Skipping harvested dataset", pkg['id'])
+            #    continue
 
             resources = pkg['resources']
             if 'individual_resources':

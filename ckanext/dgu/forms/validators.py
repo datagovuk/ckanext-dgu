@@ -198,7 +198,8 @@ def unmerge_resources(key, data, errors, context):
     """
     Splits the merged resources back into their respective resource types.
 
-    And removes the 'resources' entry.
+    It leaves the 'resources' entry there too, for compatibility with other
+    sites harvesting DGU etc.
 
     This post-processing only occurs if there have been no validation errors.
     """
