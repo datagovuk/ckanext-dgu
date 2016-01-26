@@ -460,7 +460,9 @@ class SearchPlugin(p.SingletonPlugin):
         # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
         # within.
         search_params['qf'] = 'title^4 name^3 notes^2 text group_titles^0.3 extras_harvest_document_content^0.2'
-        search_params['bf'] = 'core_dataset^10000'
+        # boost NII datasets. used trial and error to get reasonable mix of useful NII ones
+        # on and relevant non-NII ones for /data/search?q=road and /data/search?q=crime
+        search_params['bf'] = 'core_dataset^20'
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
