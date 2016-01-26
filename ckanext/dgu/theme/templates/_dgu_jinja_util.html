@@ -135,7 +135,9 @@
     <select name="publisher" id="publisher-select" class="form-control chzn-select" style="max-width: 100%;" onchange="this.form.submit()">
       <option value="">Select a publisher</option>
       {%- for publisher_name, publisher_title in h.organization_list() %}
-        {% if c.fields_grouped and c.fields_grouped.get('publisher')[0] == publisher_name %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('publisher')
+           and c.fields_grouped.get('publisher')[0] == publisher_name %}
         <option value="{{publisher_name}}" selected>{{publisher_title}}</option>
         {% else %}
         <option value="{{publisher_name}}">{{publisher_title}}</option>
