@@ -67,7 +67,7 @@ $(function() {
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
 
   // DATASET_ID is only set on dataset page, not on resource page.
-  if(DATASET_ID in window) {
+  if('DATASET_ID' in window) {
     var url = '/comment/get/'+window.DATASET_ID+'?comments_per_page=999999';
     $.ajax({
             url: url,
