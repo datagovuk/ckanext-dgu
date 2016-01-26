@@ -132,18 +132,35 @@
           {% if request.params.get('ext_bbox','') %}
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox','')}}" />
           {% endif %}
-    <select name="publisher" id="publisher-select" class="form-control chzn-select" style="max-width: 100%;" onchange="this.form.submit()">
-      <option value="">Select a publisher</option>
+
+    <select name="publisher"
+            id="publisher-select"
+            data-placeholder="Publisher"
+            class="form-control chzn-select"
+            style="max-width: 100%;"
+            onchange="this.form.submit()"
+            multiple="">
+
+      {% if h.search_facets_unselected(['publisher'])|length > 1 %}
+      <optgroup label="Most Relevant">
+        {% for publisher in h.search_facets_unselected(['publisher'])[:3] %}
+        <option value="{{publisher.3}}">{{publisher.1}}</option>
+        {% endfor %}
+      </optgroup>
+      {% endif %}
+      <optgroup label="All Publishers">
       {%- for publisher_name, publisher_title in h.organization_list() %}
         {% if c.fields_grouped
            and c.fields_grouped.get('publisher')
-           and c.fields_grouped.get('publisher')[0] == publisher_name %}
+           and publisher_name in c.fields_grouped.get('publisher') %}
         <option value="{{publisher_name}}" selected>{{publisher_title}}</option>
         {% else %}
         <option value="{{publisher_name}}">{{publisher_title}}</option>
         {% endif %}
       {%- endfor %}
+      </optgroup>
     </select>
+
         </form>
         {# extra_options can be passed in using the "call" syntax #}
         {% if caller %}
@@ -272,7 +289,7 @@
         {% endfor %}
         {% for i in range(unselected|length) %}
           {% with %}
-          {% set (link,text,tooltip) = unselected[i] %}
+          {% set (link,text,tooltip,key) = unselected[i] %}
           {% set overflow = i>5 and more_button %}
           <div class="facet-option {{if_(overflow,'more-%s'%more_button)}}" style="{{if_(overflow,'display:none;')}}">
             <a href="{{link}}">

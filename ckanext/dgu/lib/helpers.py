@@ -1648,13 +1648,13 @@ def search_facets_unselected(facet_keys,sort_by='count'):
         link = dgu_drill_down_url(facet_params_to_keep(), {key: value['name']})
         text = "%s (%d)" % (search_facet_text(key,value['name']),value['count'])
         tooltip = search_facet_tooltip(key,value['name'])
-        unselected.append( (link,text,tooltip) )
+        unselected.append( (link,text,tooltip,value['name']) )
     # Special case behaviour for publishers
     if 'publisher' in facet_keys and request.params.get('publisher',''):
         params_to_keep = dict(facet_params_to_keep())
         del params_to_keep['publisher']
         link = dgu_drill_down_url(params_to_keep.items(), {'parent_publishers':request.params.get('publisher','')})
-        unselected.append( (link,'Include sub-publishers',None) )
+        unselected.append( (link,'Include sub-publishers',None,None) )
     return unselected
 
 def search_facets_selected(facet_keys):
