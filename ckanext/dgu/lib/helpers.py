@@ -2264,3 +2264,8 @@ def get_issue_count(pkg_id):
         return 0
     return 10
 
+def api_resources(resources):
+    if not resources:
+        return None
+
+    return [r for r in resources if r.format.upper() == 'API']

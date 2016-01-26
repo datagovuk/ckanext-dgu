@@ -99,6 +99,59 @@
   </div>
 {% endmacro %}
 
+
+{% macro api_cell(resources) %}
+    {% set resources=h.api_resources(resources) %}
+    {% if resources %}
+      <div class="col-sm-6">
+      <p>You can go directly to the API for this dataset by following the link below</p>
+      <div class="dataset-resource">
+        <div class="dataset-resource-format">
+          <i class="icon-25x icon-code"></i>
+          <span class="format-name">API</span>
+        </div>
+        <div class="dataset-resource-text">
+          <div class="inner">
+            <div class="inner2">
+            {% if resources|length == 1 %}
+              {{resources.0.description}}
+            {% else %}
+              Access to API
+            {% endif %}
+            </div>
+          </div>
+        </div>
+        {% if resources|length == 1 %}
+        <div class="dropdown" style="pointer-events:none;">
+          <a href="{{resources.0.url}}" class="dataset-resource-chevron" style="pointer-events:auto;">
+            <i class="icon-external-link-sign icon-25x"></i>
+          </a>
+        </div><!--/dropdown-->
+        {% else %}
+          <div class="dropdown" style="pointer-events:none;">
+            <a href="#" class="dataset-resource-chevron" data-toggle="dropdown" style="pointer-events:auto;">
+              <i class="icon-chevron-down"></i>
+            </a>
+             <ul class="dropdown-menu" role="menu" style="pointer-events:auto;">
+                {% for resource in resources %}
+                <li>
+                  <a href="{{resource.url}}">
+                    {{resource.description}}
+                  </a>
+                </li>
+                {% endfor %}
+            </ul>
+            </div>
+      {% endif %}
+      </div><!-- /dataset-resource -->
+    </div><!-- /col-sm-6 -->
+  {% else %}
+    <p style="margin-bottom: 20px;" class="col-sm-6">
+      This dataset does not yet have an API
+    </p>
+  {% endif %}
+{% endmacro %}
+
 <!-- pure one-liner to avoid whitespace glitches -->
 {% macro if_(testValue,stringIfTrue,stringIfFalse='') %}{% if testValue %}{{stringIfTrue}}{% else %}{{stringIfFalse}}{% endif%}{% endmacro %}
 
