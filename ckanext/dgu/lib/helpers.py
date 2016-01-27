@@ -488,7 +488,7 @@ def render_qa_info_for_resource(resource_dict):
            'reason_list': reason_list,
            'resource_format': resource_dict['format'],
            'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
-           'is_data': resource_dict['resource_type'] in ('file', None),
+           'is_data': resource_dict.get('resource_type') in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
 
