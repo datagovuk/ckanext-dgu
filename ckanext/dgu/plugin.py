@@ -464,8 +464,8 @@ class SearchPlugin(p.SingletonPlugin):
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
-        if search_params.get('fq'):
-            search_params['fq'] = search_params['fq'].replace('+dataset_type:dataset', '')
+        fq = search_params.get('fq', [])
+        search_params['fq'] = [item for item in fq if item != '+dataset_type:dataset']
 
         # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
         # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
@@ -481,7 +481,7 @@ class SearchPlugin(p.SingletonPlugin):
         #    ckanext/dgu/theme/templates/package/search.html
         order_by = search_params.get('sort')
         bbox = search_params.get('extras', {}).get('ext_bbox')
-        search_params_apart_from_bbox = search_params.get('q', '') + search_params.get('fq', '')
+        search_params_apart_from_bbox = any([search_params.get('q', ''), search_params.get('fq', [])])
         sort_by_location_enabled = bool(bbox and not search_params_apart_from_bbox)
 
         if order_by in (None, 'spatial desc') and sort_by_location_enabled:
