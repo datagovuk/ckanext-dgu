@@ -40,15 +40,15 @@ class SearchIndexing(object):
         ''' Sets unpublished to false if not present and also states whether the item is marked
             as never being published. '''
         pkg_dict['unpublished'] = pkg_dict.get('unpublished', False)
-        log.debug('Unpublished: %s', pkg_dict['unpublished'])
+        #log.debug('Unpublished: %s', pkg_dict['unpublished'])
 
         pkg_dict['core_dataset'] = pkg_dict.get('core-dataset', False)
-        log.debug('NII: %s', pkg_dict['core_dataset'])
+        #log.debug('NII: %s', pkg_dict['core_dataset'])
 
         # We also need to mark whether it is restricted (as in it will never be
         # released).
         pkg_dict['publish_restricted'] = pkg_dict.get('publish-restricted', False)
-        log.debug('Publish restricted: %s', pkg_dict['publish_restricted'])
+        #log.debug('Publish restricted: %s', pkg_dict['publish_restricted'])
 
 
     @classmethod
@@ -133,7 +133,7 @@ class SearchIndexing(object):
 
         if abbr:
             pkg_dict['group_abbreviation'] = abbr
-            log.debug('Abbreviations: %s', abbr)
+            #log.debug('Abbreviations: %s', abbr)
 
     @classmethod
     def add_field__publisher(cls, pkg_dict):
@@ -203,36 +203,24 @@ class SearchIndexing(object):
     @classmethod
     def add_field__openness(cls, pkg_dict):
         '''Add the openness score (stars) to the search index'''
-        import ckan
-        from ckanext.dgu.plugins_toolkit import get_action
-        context = {'model': ckan.model, 'session': ckan.model.Session,
-                   'ignore_auth': True}
-        data_dict = {'id': pkg_dict['id']}
-        try:
-            qa_openness = get_action('qa_package_openness_show')(context, data_dict)
-        except ObjectNotFound:
+        archival = pkg_dict.get('archiver')
+        if not archival:
+            log.warning('No Archiver info for package %s', pkg_dict['name'])
+            return
+        qa = pkg_dict.get('qa')
+        if not qa:
             log.warning('No QA info for package %s', pkg_dict['name'])
             return
-        except KeyError:
-            # occurs during tests or if you've not install ckanext-qa
-            log.warning('QA not installed - not indexing it.')
-            return
-        pkg_dict['openness_score'] = qa_openness.get('openness_score')
+        pkg_dict['openness_score'] = qa.get('openness_score')
         log.debug('Openness score: %s', pkg_dict['openness_score'])
 
-        try:
-            qa_broken = get_action('qa_package_broken_show')(context, data_dict)
-        except ObjectNotFound:
-            log.warning('No brokenness info for package %s', pkg_dict['name'])
-            return
         if not hasattr(cls, 'broken_links_map'):
             cls.broken_links_map = {
                     True: 'Broken',
-                    'some': 'Partially broken',
                     False: 'OK',
                     None: 'TBC'
                     }
-        pkg_dict['broken_links'] = cls.broken_links_map[qa_broken.get('archival_is_broken')]
+        pkg_dict['broken_links'] = cls.broken_links_map[archival.get('is_broken')]
         log.debug('Broken links: %s', pkg_dict['broken_links'])
 
     @classmethod
@@ -268,7 +256,7 @@ class SearchIndexing(object):
             except AttributeError, e:
                 log.error('Invalid schema_id: %r %s', schema_id, e)
         pkg_dict['schema_multi'] = schemas
-        log.debug('Schema: %s', ' '.join(schemas))
+        #log.debug('Schema: %s', ' '.join(schemas))
 
         try:
             codelist_ids = json.loads(pkg_dict.get('codelist') or '[]')
@@ -280,4 +268,4 @@ class SearchIndexing(object):
         for codelist_id in codelist_ids:
             codelists.append(Codelist.get(codelist_id).title)
         pkg_dict['codelist_multi'] = codelists
-        log.debug('Code lists: %s', ' '.join(codelists))
+        #log.debug('Code lists: %s', ' '.join(codelists))
