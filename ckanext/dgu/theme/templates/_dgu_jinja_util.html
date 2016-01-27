@@ -119,7 +119,7 @@
           </div>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              {% if k != 'publisher' %}
+              {% if k not in ['publisher', 'theme-primary'] %}
               <input type="hidden" name="{{k}}" value="{{v}}" />
               {% endif %}
             {% endfor %}
@@ -160,6 +160,25 @@
       {%- endfor %}
       </optgroup>
     </select>
+
+    <select name="theme-primary"
+            id="publisher-select"
+            data-placeholder="Theme"
+            class="form-control chzn-select"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for theme in h.get_facet_items_dict('theme-primary') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('theme-primary')
+           and theme.name in c.fields_grouped.get('theme-primary') %}
+        <option value="{{theme.name}}" selected>{{theme.display_name}} ({{theme.count}})</option>
+        {% else %}
+        <option value="{{theme.name}}">{{theme.display_name}} ({{theme.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+
 
         </form>
         {# extra_options can be passed in using the "call" syntax #}
