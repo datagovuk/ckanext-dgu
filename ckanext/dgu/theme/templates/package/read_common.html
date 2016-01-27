@@ -128,7 +128,7 @@
     </div>
 
     <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;">
-      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg.id) %}
+      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg_dict) %}
       Openness rating:
       <span class="star-rating">
         <span class="tooltip">
