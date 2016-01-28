@@ -274,6 +274,60 @@ class DguForm(p.SingletonPlugin):
 
         return map
 
+class CollectionPlugin(p.SingletonPlugin):
+    p.implements(p.IRoutes, inherit=True)
+    p.implements(p.IGroupForm, inherit=True)
+    p.implements(p.IActions)
+
+    def get_actions(self):
+        import ckanext.dgu.logic.action.update as up
+        return {
+            'add_to_collection': up.add_to_collection,
+            'remove_from_collection': up.remove_from_collection
+        }
+
+    def new_template(self):
+        return 'group/new.html'
+
+    def index_template(self):
+        return 'group/index.html'
+
+    def read_template(self):
+        return 'group/read.html'
+
+    def history_template(self):
+        return 'group/history.html'
+
+    def edit_template(self):
+        return 'group/edit.html'
+
+    def group_form(self):
+        """
+        Returns a string representing the location of the template to be
+        rendered.  e.g. "forms/group_form.html".
+        """
+        return 'group/edit_form.html'
+
+    def group_types(self):
+        return ["collection"]
+
+    def is_fallback(self):
+        return True
+
+    def form_to_db_schema(self, group_type=None):
+        from ckan.logic.schema import group_form_schema
+        return group_form_schema()
+
+    def db_to_form_schema(data, package_type=None):
+        from ckan.logic.schema import default_group_schema
+        return default_group_schema()
+
+    def before_map(self, map):
+        map.redirect('/group/{url:.*}', '/collection/{url}')
+        return map
+
+    def after_map(self, map):
+        return map
 
 class PublisherPlugin(p.SingletonPlugin):
 

@@ -35,6 +35,7 @@ setup(
         dgu_form = ckanext.dgu.plugin:DguForm
         dgu_drupal_auth = ckanext.dgu.plugin:DrupalAuthPlugin
         dgu_auth_api = ckanext.dgu.plugin:AuthApiPlugin
+        dgu_collections = ckanext.dgu.plugin:CollectionPlugin
         dgu_publishers = ckanext.dgu.plugin:PublisherPlugin
         dgu_inventory = ckanext.dgu.plugin:InventoryPlugin
         dgu_theme = ckanext.dgu.plugin:ThemePlugin

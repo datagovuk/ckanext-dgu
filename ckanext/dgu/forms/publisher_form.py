@@ -110,7 +110,7 @@ class PublisherForm(SingletonPlugin):
         As this is not the fallback controller we should return False.  If
         we were wanting to act as the fallback, we'd return True
         """
-        return True
+        return False
 
     def form_to_db_schema(self, group_type=None):
         from ckan.logic.schema import group_form_schema

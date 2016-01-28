@@ -1,0 +1,45 @@
+{% import 'macros/form.html' as form %}
+
+<form id="group-edit" class="dataset-form form-horizontal" method="post" data-module="basic-form" enctype="multipart/form-data">
+  {% block error_summary %}
+    {{ form.errors(error_summary) }}
+  {% endblock %}
+
+  {% block basic_fields %}
+
+    <div class="controls">
+        <label for='name'>Collection title</label>
+        <input type="text" class="form-control" id='title' name='title' value="{{ data.get('title','') }}"/>
+  </div>
+
+      <label class="control-label" for="name">Collection URL</label>
+       {% if data.get('name', '') and not errors.get('name') %}
+         <div class="controls ">
+          <input type="hidden" value="{{data.get('name','')}}"/>
+            https://data.gov.uk/{{data.get('name')}}
+         </div>
+       {% else %}
+        <div class="controls input-group {% if errors and errors.get('name') %}has-error{% endif %}">
+            <span class="input-group-addon" id="basic-addon1">https://data.gov.uk/collection/</span>
+            <input id="name" name="name" type="text" value="{{data.get('name', '')}}" class="js-url-input form-control"/>
+        </div>
+       {% endif %}
+
+      <label class="control-label" for="description">Collection Description</label>
+      <div class="controls">
+        <textarea id="description" name="description" rows="10" type="text" class="js-title form-control">{{data.get('description', '')}}</textarea>
+        <small>The description can be written in <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a></small>
+      </div>
+
+
+  {% endblock %}
+
+  {% block custom_fields %}
+  {% endblock %}
+
+  <div class="form-actions">
+    <button class="btn btn-primary" name="save" type="submit">{% block save_text %}{{ _('Save Collection') }}{% endblock %}</button>
+    <a class="btn btn-default" href="/collection/">Cancel</a>
+
+  </div>
+</form>

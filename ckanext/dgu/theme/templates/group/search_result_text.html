@@ -1,0 +1,19 @@
+  {% set text_query = ungettext('{number} collection found for "{query}"', '{number} collections found for "{query}"', count) %}
+  {% set text_query_none = _('No collections found for "{query}"') %}
+  {% set text_no_query = ungettext('{number} collection found', '{number} collections found', count) %}
+  {% set text_no_query_none = _('No collections found') %}
+
+
+{% if query %}
+  {%- if count -%}
+    {{ text_query.format(number=h.localised_number(count), query=query) }}
+  {%- else -%}
+    {{ text_query_none.format(query=query) }}
+  {%- endif -%}
+{%- else -%}
+  {%- if count -%}
+    {{ text_no_query.format(number=h.localised_number(count)) }}
+  {%- else -%}
+    {{ text_no_query_none }}
+  {%- endif -%}
+{%- endif -%}

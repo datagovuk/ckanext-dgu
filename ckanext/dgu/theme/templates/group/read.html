@@ -1,0 +1,26 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ c.group_dict.display_name }} - {{ _('Collection') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li><a href="/collection">Collections</a></li>
+  <li class="active"><a href="/collection/{{c.group_dict.name}}">{{c.group_dict.title}}</a></li>
+{% endblock %}
+
+{% block primary_content_inner %}
+  <h1>{{c.group_dict.title}}</h1>
+
+  <p>
+      {{h.render_markdown(c.group_dict.description)}}
+  </p>
+
+
+  <h2>Datasets</h2>
+
+  {% for package in c.group_dict['packages'] %}
+    {{package}}
+  {% else %}
+    <p>There are no datasets in this collection</p>
+  {% endfor %}
+{% endblock %}
+
