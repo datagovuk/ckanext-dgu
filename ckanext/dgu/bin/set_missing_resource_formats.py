@@ -1,66 +1,62 @@
 """
-For those resources that do not have valid formats (i.e. empty, or just whitespace), this
-script will set the value from the QA object that was previously created.
+Set the resource.format from the QA value for these resources:
+* where the resource.format is empty (or just whitespace)
+* where resource.format is not a poor one and QA is most likely more accurate
 
-This will trigger an archive/packagezip/qa cycle, so should not be used too frequently.
+This will trigger an archive/packagezip/qa cycle, so should not be used too
+frequently.
 """
 from sqlalchemy.exc import IntegrityError
-from pprint import pprint
-import ckan.plugins.toolkit as t
 from optparse import OptionParser
 
 from ckan.logic import ValidationError
-from ckanext.dgu.bin.common import get_ckanapi
+from ckanext.dgu.bin import common
 from running_stats import Stats
 
-stats = Stats()
+res_stats = Stats()
 ds_stats = Stats()
+
+UPDATE_FORMATS = {
+    'CSV / ZIP': 'CSV',  # legacy - we now drop mention of the zip
+    'XML': 'WFS',  # previously we set UKLP WFS resources as XML but we can detect WFS now
+    }
+
 
 class SetResourceFormatsCommand(object):
 
     def __init__(self, config_or_url):
-        self.ckan = get_ckanapi(config_or_url)
+        self.ckan = common.get_ckanapi(config_or_url)
 
-    def update_resource_dict(self, resource):
-        """ Set the format on the resource to the format determined by QA """
-        try:
-            qa_info = self.ckan.action.qa_resource_show(id=resource['id'])
-            if qa_info.get('format', ''):
-                resource['format'] = qa_info['format']
-                stats.add("Updating format to %s" % qa_info['format'], resource['id'])
-            else:
-                stats.add("QA format empty", resource['id'])
-        except t.ObjectNotFound:
-            # No QA yet
-            return False
-
+    def update_resource_dict(self, resource, qa_info,
+                             res_nice_name):
+        """
+        Set the format on the resource to the format determined by QA.
+        Returns whether it was changed or not.
+        """
+        existing_format = resource['format'] or '(blank)'
+        resource['format'] = qa_info['format']
+        print res_stats.add(
+            'Updating format %s to %s' %
+            (existing_format, qa_info['format']),
+            res_nice_name)
         # Resource was changed
         return True
 
     def run(self, options):
         """ Iterate over datasets and process the resources """
 
-        # Create a function to get a list of dataset names to work with
-        get_datasets_fn = self.ckan.action.package_list
-        if options.dataset:
-            get_datasets_fn = lambda: [options.dataset]
-
         if not options.write:
             print "NOT writing package as -w was not specified"
 
-        # For each dataset, get resources and process those with no format.
-        for pkg_name in get_datasets_fn():
-            updated = False
+        datasets = common.get_datasets_via_api(self.ckan, options=options)
 
-            pkg = self.ckan.action.package_show(id=pkg_name)
-
-            #is_harvested = len(filter(lambda x: bool(x.get('key') == 'harvest_source_reference'),
-            #                                       pkg['extras'])) > 0
-            #if is_harvested:
-            #    ds_stats.add("Skipping harvested dataset", pkg['id'])
-            #    continue
+        for pkg in datasets:
+            pkg_updated = False
 
             resources = pkg['resources']
+            # pkg has resources duplicated between 'resources' key and the trio
+            # of keys but when you do package_update you should only have it in
+            # the trio.
             if 'individual_resources':
                 resources = pkg.get('individual_resources', []) + \
                     pkg.get('timeseries_resources', []) + \
@@ -68,46 +64,75 @@ class SetResourceFormatsCommand(object):
                 del pkg['resources']
 
             for resource in resources:
+                res_updated = False
                 del resource['revision_id']
-                if resource['format'].strip() == '':
-                    if self.update_resource_dict(resource):
-                        updated = True
-                        resource['format']
+                res_nice_name = '%s:%s' % (pkg['name'], resource['id'][:4])
 
+                qa_info = resource.get('qa')
+                if not qa_info:
+                    res_stats.add('QA not run yet on this resource', res_nice_name)
+                    continue
+                try:
+                    qa_info = eval(qa_info)
+                except ValueError:
+                    print res_stats.add('QA not a dict', res_nice_name)
+                    print repr(qa_info)
+                    continue
+                if not qa_info.get('format', ''):
+                    res_stats.add("QA format empty", res_nice_name)
+                    continue
 
-            # Removing the codelist or schema here does NOT remove it during package_update
-            # Removing last_major_modification is calculated on write.
-            for k in ['last_major_modification', 'schema', 'codelist']:
-                if k in pkg:
-                    del pkg[k]
+                format_ = resource['format'].strip()
+                if format_ == '':
+                    res_updated = self.update_resource_dict(
+                        resource, qa_info, res_nice_name)
+                elif format_.upper() in UPDATE_FORMATS and \
+                        qa_info['format'] == UPDATE_FORMATS[format_.upper()]:
+                    res_updated = self.update_resource_dict(
+                        resource, qa_info, res_nice_name)
+                else:
+                    res_stats.add('Format already ok', res_nice_name)
+                pkg_updated |= res_updated
 
-            if 'tags' in pkg and pkg['tags']:
-                newtags = []
-                for t in pkg['tags']:
-                    newtags.append({'name': t['name']})
+            if pkg_updated:
+                # Prepare pkg to be written
+                # Removing the codelist or schema here does NOT remove it
+                # during package_update as they are in the extras Removing
+                # last_major_modification - legacy field
+                for k in ['last_major_modification', 'schema', 'codelist']:
+                    if k in pkg:
+                        del pkg[k]
 
-                pkg['tags'] = newtags
+                if 'tags' in pkg and pkg['tags']:
+                    newtags = []
+                    for t in pkg['tags']:
+                        newtags.append({'name': t['name']})
 
-            if updated:
+                    pkg['tags'] = newtags
                 if options.write:
                     try:
                         self.ckan.action.package_update(**pkg)
-                        ds_stats.add("Packages updated", pkg['id'])
                     except ValidationError, ve:
-                        print "DATASET: %s had a validation error: %s" % (pkg['name'], str(ve), )
-                    except IntegrityError, ie:
-                        print "Integrity error in", pkg['name']
-        print stats.report(show_time_taken=True)
-        print ds_stats.report(show_time_taken=True)
+                        print ds_stats.add('Validation error on update', pkg['name'])
+                        print ve
+                    except IntegrityError:
+                        print ds_stats.add('Integrity error on update', pkg['name'])
+                else:
+                    ds_stats.add('Package would be updated', pkg['name'])
+            else:
+                ds_stats.add('No change', pkg['name'])
+        print '\nResources:\n', res_stats.report(show_time_taken=True)
+        print '\nDatasets:\n', ds_stats.report(show_time_taken=True)
 
 
 usage = __doc__ + '''
 Usage:
-    python set_missing_resource_formats.py <CKAN config ini filepath> [-d DATASET_ID/NAME]  -w'''
+    python set_missing_resource_formats.py <CKAN config.ini or URL> [-d DATASET_NAME] [-o ORGANISATION_NAME] -w'''
 
 if __name__ == '__main__':
     parser = OptionParser(usage=usage)
     parser.add_option('-d', '--dataset', dest='dataset')
+    parser.add_option('-o', '--organization', dest='organization')
     parser.add_option("-w", "--write",
                       action="store_true",
                       dest="write",
