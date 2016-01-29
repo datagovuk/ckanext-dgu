@@ -15,7 +15,7 @@
       <label class="control-label" for="name">Collection URL</label>
        {% if data.get('name', '') and not errors.get('name') %}
          <div class="controls ">
-          <input type="hidden" value="{{data.get('name','')}}"/>
+          <input type="hidden" name="name" value="{{data.get('name','')}}"/>
             https://data.gov.uk/{{data.get('name')}}
          </div>
        {% else %}

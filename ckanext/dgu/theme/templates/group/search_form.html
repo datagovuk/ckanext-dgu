@@ -8,12 +8,13 @@
 <form class="search-form{% if no_bottom_border %} no-bottom-border{% endif %}" method="get" data-module="select-switch">
 
   {% block search_input %}
-    <div class="search-input control-group {{ search_class }}">
-      <input type="text" class="search" name="q" value="{{ query }}" autocomplete="off" placeholder="{{ placeholder }}">
-      <button type="submit" value="search">
-        <i class="icon-search"></i>
-        <span>{{ _('Submit') }}</span>
-      </button>
+    <div class="search-input input-group {{ search_class }}">
+      <input type="text" class="input-lg form-control" name="q" value="{{ query }}" autocomplete="off" placeholder="{{ placeholder }}">
+      <span class="input-group-btn">
+        <button type="submit" class="btn btn-default btn-lg">
+          <i class="icon-search"></i>
+        </button>
+      </span>
     </div>
   {% endblock %}
 
@@ -25,7 +26,7 @@
 
   {% block search_sortby %}
     {% if sorting %}
-      <div class="form-select control-group control-order-by">
+      <div class="form-select control-group control-order-by pull-right">
         <label for="field-order-by">{{ _('Order by') }}</label>
         <select id="field-order-by" name="sort">
           {% for label, value in sorting %}
@@ -39,12 +40,8 @@
     {% endif %}
   {% endblock %}
 
-  {% block search_title %}
-    {% if not no_title %}
-      <h2>{% snippet 'group/search_result_text.html', query=query, count=count, type=type %}</h2>
-    {% endif %}
-  {% endblock %}
-
+  <br/>
+  <h2>{% snippet 'group/search_result_text.html', query=query, count=count, type=type %}</h2>
 
 </form>
 

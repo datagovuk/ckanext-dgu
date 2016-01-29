@@ -4,11 +4,19 @@
 
 {% block breadcrumb_content %}
   <li><a href="/collection">Collections</a></li>
-  <li class="active"><a href="/collection/{{c.group_dict.name}}">{{c.group_dict.title}}</a></li>
+  <li class="active"><a href="/collection/edit/{{c.group_dict.name}}">{{c.group_dict.title}}</a></li>
 {% endblock %}
 
 {% block primary_content_inner %}
   <h1>{{c.group_dict.title}}</h1>
+
+  {% if h.check_access('group_update') %}
+    <div class="panel panel-info">
+      <div class="panel-heading"><strong>Edit Collection</strong></div>
+      <div class="panel-body"><a href="/collection/edit/{{ c.group_dict.name }}">Edit '{{ c.group_dict.title }}'</a></div>
+    </div>
+{% endif %}
+
 
   <p>
       {{h.render_markdown(c.group_dict.description)}}
