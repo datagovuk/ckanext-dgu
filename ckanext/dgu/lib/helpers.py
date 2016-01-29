@@ -2233,3 +2233,21 @@ def get_issue_count(pkg_id):
         return 0
     return 10
 
+def get_collections():
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session, 'user': c.user}
+    collections = get_action('collection_list_for_user')(context, {})
+    return [(d.get('name'), d.get('title'),) for d in collections]
+
+def packages_for_collection(collection_name):
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session, 'user': c.user}
+
+    packages = get_action('package_search')(context, {'fq': 'collection:%s' % collection_name})
+    print packages
+    return packages['results']
+

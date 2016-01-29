@@ -85,3 +85,52 @@ def codelist_list(context, data_dict):
     model = context['model']
     items = model.Session.query(Codelist).order_by('title')
     return [item.as_dict() for item in items.all()]
+
+# DGU - copied from master
+def collection_list_for_user(context, data_dict):
+    '''Return the collections that the user has a given permission for.
+
+    By default this returns the list of groups that the currently
+    authorized user can edit, i.e. the list of collections that the user is an
+    admin of.
+
+    Specifically it returns the list of collections that the currently
+    authorized user has a given permission (for example: "manage_group") against.
+
+    :param permission: the permission the user has against the
+        returned organizations, for example ``"read"`` or ``"create_dataset"``
+        (optional, default: ``"edit_group"``)
+    :type permission: string
+
+    :returns: list of organizations that the user has the given permission for
+    :rtype: list of dicts
+    '''
+    import ckan.new_authz as new_authz
+    model = context['model']
+    user = context['user']
+
+    #check_access('collection_list_for_user', context, data_dict)
+    sysadmin = new_authz.is_sysadmin(user)
+
+    orgs_q = model.Session.query(model.Group) \
+        .filter(model.Group.is_organization == False) \
+        .filter(model.Group.type == 'collection') \
+        .filter(model.Group.state == 'active')
+
+    if not sysadmin:
+        # for non-Sysadmins check they have the required permission
+
+        # NB 'edit_group' doesn't exist so by default this action returns just
+        # orgs with admin role
+        permission = data_dict.get('permission', 'edit_group')
+
+        roles = ckan.new_authz.get_roles_with_permission(permission)
+
+        if not roles:
+            return []
+        user_id = new_authz.get_user_id_for_username(user, allow_none=True)
+        if not user_id:
+            return []
+
+    orgs_list = model_dictize.group_list_dictize(orgs_q.all(), context)
+    return orgs_list

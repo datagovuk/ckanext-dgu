@@ -1,4 +1,5 @@
 from ckan.logic import auth_allow_anonymous_access
+import ckan.lib.dictization.model_dictize as model_dictize
 
 @auth_allow_anonymous_access
 def schema_list(context=None, data_dict=None):
@@ -15,3 +16,4 @@ def codelist_list(context=None, data_dict=None):
     This is always yes.
     """
     return {'success': True}
+

@@ -3,7 +3,6 @@
 
 {% import "_dgu_jinja_util.html" as m with context %}
 
-
 {% block primary_content_inner %}
   <div class="package">
   {% with is_location_data = h.is_location_data(c.pkg_dict) %}
@@ -74,7 +73,19 @@
           <i class="icon-time icon-2x"></i>
         </a>
       {% endif %}
+        <form class="form form-inline" method="post" action="/dataset/{{c.pkg.name}}/groups">
+        Add to
+          <select class="control input-sm" name='group_added' style="display:inline; margin-top: -20px;" >
+          <option value="">Select collection</option>
+          <option disabled>──────────</option>
+            {% for name,title in h.get_collections()%}
+              <option value="{{name}}">{{title}}</option>
+            {% endfor %}
+          </select>
+          <input type='submit' class="btn btn-sm" value="Add">
+        </form>
     </div>
+
     <h1>{{c.pkg_dict.get('title', c.pkg_dict['name'])}} {%if h.is_unpublished_item(c.pkg_dict) %}<span class="unpublished-text">(Unpublished)</span>{% endif %}</h1>
     <div class="h1-subheading" id="license-info">
       {% set all_licences = h.get_licenses(c.pkg) %}

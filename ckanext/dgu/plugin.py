@@ -264,6 +264,7 @@ class DguForm(p.SingletonPlugin):
 
     def before_map(self, map):
         dgu_package_controller = 'ckanext.dgu.controllers.package:PackageController'
+        map.connect('/dataset/{id}/groups', controller=dgu_package_controller, action='groups')
         map.connect('dataset_new', '/dataset/new', controller=dgu_package_controller, action='new')
         map.connect('dataset_edit', '/dataset/edit/{id}', controller=dgu_package_controller, action='edit')
         map.connect('/dataset/delete/{id}', controller=dgu_package_controller, action='delete')
@@ -281,9 +282,11 @@ class CollectionPlugin(p.SingletonPlugin):
 
     def get_actions(self):
         import ckanext.dgu.logic.action.update as up
+        import ckanext.dgu.logic.action.get as g
         return {
             'add_to_collection': up.add_to_collection,
-            'remove_from_collection': up.remove_from_collection
+            'remove_from_collection': up.remove_from_collection,
+            'collection_list_for_user': g.collection_list_for_user
         }
 
     def new_template(self):

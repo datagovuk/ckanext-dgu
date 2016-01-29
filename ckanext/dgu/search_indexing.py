@@ -109,9 +109,12 @@ class SearchIndexing(object):
         '''Adds the group titles.'''
         groups = [Group.get(g) for g in pkg_dict['groups']]
 
+        pkg_dict['groups'] = [g.name for g in groups if not g.is_organization]
+        print pkg_dict['groups']
+
         # Group titles
         if not pkg_dict.has_key('organization_titles'):
-            pkg_dict['organization_titles'] = [g.title for g in groups]
+            pkg_dict['organization_titles'] = [g.title for g in groups if g.is_organization]
         else:
             log.warning('Unable to add "organization_titles" to index, as the datadict '
                         'already contains a key of that name')
