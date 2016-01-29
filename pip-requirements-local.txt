@@ -23,3 +23,6 @@ nltk
 
 # Git Python for UK Gov Linked Data
 GitPython==0.3.2.RC1
+
+# Celery for inventory processing
+celery==2.4.2
