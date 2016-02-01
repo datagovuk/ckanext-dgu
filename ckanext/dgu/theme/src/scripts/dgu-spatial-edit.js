@@ -324,7 +324,7 @@ CKAN.DguSpatialEditor = function($) {
             "Wales" : [-5.81237, 51.32290, -2.64221, 53.45855],
             "Northern Ireland" : [-8.17384, 54.03422, -5.43013, 55.31105],
         },
-        geocoderServiceUrl: 'http://unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
+        geocoderServiceUrl: '//unlock.edina.ac.uk/ws/search?minx=-20.48&miny=48.79&maxx=3.11&maxy=62.66&format=json&name=',
         currentSuggestion: null,
         useExactGeometry: false,
         coordinateInputs: null,
