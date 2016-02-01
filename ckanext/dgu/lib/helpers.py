@@ -15,7 +15,6 @@ import itertools
 import datetime
 import random
 import types
-import json
 import shapely
 import ckan.model as model
 
@@ -42,11 +41,11 @@ def groupby(*args, **kwargs):
 def resource_as_json(resource):
     return json.dumps(resource)
 
-def is_resource_broken(resource_id):
-    from ckanext.archiver.model import Archival
-
-    archival = Archival.get_for_resource(resource_id)
-    return archival and archival.is_broken==True
+def is_resource_broken(resource):
+    archival = resource.get('archiver')
+    if not archival:
+        return None # don't know
+    return archival.get('is_broken')
 
 def _is_additional_resource(resource):
     """
@@ -67,20 +66,6 @@ def _is_individual_resource(resource):
     """
     return not _is_additional_resource(resource) and \
            not _is_timeseries_resource(resource)
-
-# NB these 3 functions are overwritten by the other function of the same name,
-# but we should probably use these ones in preference
-def additional_resources(package):
-    """Extract the additional resources from a package"""
-    return filter(_is_additional_resource, package.get('resources'))
-
-def timeseries_resources(package):
-    """Extract the timeseries resources from a package"""
-    return filter(_is_timeseries_resource, package.get('resources'))
-
-def individual_resources(package):
-    """Extract the individual resources from a package"""
-    return filter(_is_individual_resource, package.get('resources'))
 
 def resource_type(resource):
     """
@@ -434,15 +419,14 @@ def render_partial_datestamp(datestamp_str):
 
 
 def get_cache(resource_dict):
-    from ckanext.archiver.model import Archival
-    archival = Archival.get_for_resource(resource_dict['id'])
+    archival = resource_dict.get('archiver')
     if not archival:
         return (None, None)
-    url = (archival.cache_url or '').strip().replace('None', '')
+    url = (archival['cache_url'] or '').strip().replace('None', '')
     # strip off the domain, in case this is running in test
     # on a machine other than data.gov.uk
-    url = url.replace('http://data.gov.uk/', '/')
-    return url, archival.updated
+    url = re.sub('https?://data.gov.uk/', '/', url)
+    return url, render_datestamp(archival['updated'])
 
 
 # used in render_stars and read_common.html
@@ -463,16 +447,10 @@ def mini_stars_and_caption(num_stars):
     return t.literal('%s&nbsp; %s' % (mini_stars, captions[num_stars]))
 
 # Used in read_common.html
-def calculate_dataset_stars(dataset_id):
-    from ckan.logic import get_action, NotFound
-    from ckan import model
+def calculate_dataset_stars(dataset_dict):
     if not is_plugin_enabled('qa'):
         return (0, '', '')
-    try:
-        context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_package_openness_show')(context, {'id': dataset_id})
-    except NotFound:
-        return (0, '', '')
+    qa = dataset_dict.get('qa')
     if not qa:
         return (0, '', '')
     return (qa['openness_score'],
@@ -480,16 +458,10 @@ def calculate_dataset_stars(dataset_id):
             qa['updated'])
 
 # Used in resource_read.html
-def render_resource_stars(resource_id):
-    from ckan.logic import get_action, NotFound
-    from ckan import model
+def render_resource_stars(resource_dict):
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
-    try:
-        context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_resource_show')(context, {'id': resource_id})
-    except NotFound:
-        return 'To be determined'
+    qa = resource_dict.get('qa')
     if not qa:
         return 'To be determined'
     return render_stars(qa['openness_score'], qa['openness_score_reason'],
@@ -506,26 +478,19 @@ def does_detected_format_disagree(detected_format, resource_format):
     return is_disagreement
 
 # used by resource_read.html
+# This is DGU's version of h.qa_openness_stars_resource_html
 def render_qa_info_for_resource(resource_dict):
-    resource_id = resource_dict['id']
-    from ckan.logic import get_action, NotFound
-    from ckan import model
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
-    try:
-        context = {'model': model, 'session': model.Session}
-        qa = get_action('qa_resource_show')(context, {'id': resource_id})
-    except NotFound:
-        return 'To be determined'
+    qa = resource_dict.get('qa')
     if not qa:
         return 'To be determined'
     reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
-    resource = model.Resource.get(resource_id)
     ctx = {'qa': qa,
            'reason_list': reason_list,
-           'resource_format': resource.format,
+           'resource_format': resource_dict['format'],
            'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
-           'is_data': resource_dict['resource_type'] in ('file', None),
+           'is_data': resource_dict.get('resource_type') in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
 
@@ -655,17 +620,20 @@ def list_flatten(data):
         return data
 
 def dgu_format_icon(format_string):
-    fmt = formats.Formats.match(format_string.strip().lower())
-    icon_name = 'document'
-    if fmt is not None and fmt['icon']!='':
-        icon_name = fmt['icon']
-    url = '/images/fugue/%s.png' % icon_name
+    icon_filename = None
+    format_line = ckan.lib.helpers.resource_formats().get(format_string.lower().strip(' .'))
+    if format_line:
+        canonical_format = format_line[1]
+        icon_filename = formats.get_icon(canonical_format)
+    if not icon_filename:
+        icon_filename = 'document'
+    url = '/images/fugue/%s.png' % icon_filename
     return icon_html(url)
 
 def dgu_format_name(format_string):
-    fmt = formats.Formats.match(format_string.strip().lower())
-    if fmt is not None:
-        return fmt['display_name']
+    format_line = ckan.lib.helpers.resource_formats().get(format_string.lower().strip(' .'))
+    if format_line:
+        return format_line[1]
     return format_string
 
 def name_for_uklp_type(package):
@@ -954,10 +922,17 @@ def sort_by_location_disabled():
 def relevancy_disabled():
     return not(bool(t.request.params.get('q')))
 
-def get_resource_formats():
-    from ckanext.dgu.lib.formats import Formats
-    return json.dumps(Formats.by_display_name().keys())
+_canonical_formats_json = None
 
+def get_resource_formats():
+    global _canonical_formats_json
+    if not _canonical_formats_json:
+        formats = ckan.lib.helpers.resource_formats()
+        canonical_formats = set()
+        for mimetype, canonical, human in formats.values():
+            canonical_formats.add(canonical)
+        _canonical_formats_json = json.dumps(sorted(canonical_formats))
+    return _canonical_formats_json
 
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
@@ -1398,11 +1373,14 @@ def are_legacy_extras(data):
 
 def timeseries_resources():
     from ckan.lib.field_types import DateType
-    unsorted = c.pkg_dict.get('timeseries_resources', [])
+    unsorted = [res for res in c.pkg_dict.get('resources', [])
+                if _is_timeseries_resource(res)]
     get_iso_date = lambda resource: DateType.form_to_db(resource.get('date'),may_except=False)
     return sorted(unsorted, key=get_iso_date)
 
 def additional_resources():
+    return [res for res in c.pkg_dict.get('resources', [])
+            if _is_additional_resource(res)]
     return c.pkg_dict.get('additional_resources', [])
 
 def gemini_resources():
@@ -1425,7 +1403,8 @@ def gemini_resources():
     return gemini_resources
 
 def individual_resources():
-    r = c.pkg_dict.get('individual_resources', [])
+    r = [res for res in c.pkg_dict.get('resources', [])
+         if _is_individual_resource(res)]
     # In case the schema changes, the resources may or may not be split up into
     # three keys. So combine them if necessary
     if not r and not timeseries_resources() and not additional_resources():
