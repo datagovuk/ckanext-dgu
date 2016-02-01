@@ -204,9 +204,11 @@
     });
 
     /* Resource format autocomplete */
-    $('.format-typeahead').autocomplete({lookup: DGU_RESOURCE_FORMATS,
-                                         lookupLimit: 5,
-                                         triggerSelectOnValidInput: false});
+    $(document).on('keydown.autocomplete', function(){
+      $('.format-typeahead').autocomplete({lookup: DGU_RESOURCE_FORMATS,
+                                           lookupLimit: 5,
+                                           triggerSelectOnValidInput: false});
+    });
 
     /* Additional resources scraper fields */
     CKAN.Dgu.setupAdditionalResourcesScrapers();
