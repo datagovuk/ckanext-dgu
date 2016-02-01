@@ -139,6 +139,8 @@ class DatasetForm(p.SingletonPlugin):
     p.implements(p.IDatasetForm, inherit=True)
     p.implements(p.IPackageController, inherit=True)
 
+    # IDatasetForm
+
     # We don't customize the schema here - instead it is done in the validate
     # function, because there it has the context.
     #def create_package_schema(self):
@@ -438,6 +440,7 @@ class DatasetForm(p.SingletonPlugin):
 
         return dict((g['name'], g) for g in groups)
 
+    # IPackageController
 
     def create(self, package):
         self.check_spatial_extra(package)
@@ -445,9 +448,10 @@ class DatasetForm(p.SingletonPlugin):
     def edit(self, package):
         self.check_spatial_extra(package)
 
-    def check_spatial_extra(self,package):
+    def check_spatial_extra(self, package):
         '''
-        If a spatial extent is provided, make sure the corresponding bbox-* fields are set accordingly
+        If a spatial extent is provided, make sure the corresponding bbox-*
+        fields are set accordingly
         '''
 
         spatial_extra = package.extras.get('spatial')
@@ -460,23 +464,22 @@ class DatasetForm(p.SingletonPlugin):
             package.extras['bbox-east-long'] = bounds[2]
             package.extras['bbox-north-lat'] = bounds[3]
 
-
         self.check_use_publisher_extent(package)
 
-    def check_use_publisher_extent(self,package):
-        if ('use_pub_extent' in package.extras and package.extras['use_pub_extent'] == 'true'):
+    def check_use_publisher_extent(self, package):
+        if ('use_pub_extent' in package.extras and
+                package.extras['use_pub_extent'] == 'true'):
 
-            ownerOrg = package.get_organization()
-            if not ownerOrg:
+            org = package.get_organization()
+            if not org:
                 return
 
-            if 'spatial' in ownerOrg.extras:
-                spatial_extent = ownerOrg.extras['spatial']
-                spatial_name = 'spatial_name' in ownerOrg.extras and ownerOrg.extras['spatial_name']
+            if 'spatial' in org.extras:
+                spatial_extent = org.extras['spatial']
+                spatial_name = 'spatial_name' in org.extras and org.extras['spatial_name']
 
                 geometry = json.loads(spatial_extent)
                 save_package_extent(package.id, geometry)
-
 
 
 def date_to_db(value, context):
