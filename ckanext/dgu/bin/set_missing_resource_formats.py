@@ -19,6 +19,7 @@ ds_stats = Stats()
 UPDATE_FORMATS = {
     'CSV / ZIP': 'CSV',  # legacy - we now drop mention of the zip
     'XML': 'WFS',  # previously we set UKLP WFS resources as XML but we can detect WFS now
+    'XML': 'Atom',
     }
 
 
