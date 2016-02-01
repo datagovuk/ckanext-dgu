@@ -18,6 +18,7 @@
   ["MDB", "Access Database", "application/x-msaccess", []],
   ["NetCDF", "NetCDF File", "application/netcdf", []],
   ["ArcGIS Map Service", "ArcGIS Map Service", "ArcGIS Map Service", ["arcgis map service"]],
+  ["PSV", "Pipe Separated Values File", "", ["text/psv"]],
   ["TSV", "Tab Separated Values File", "text/tab-separated-values", ["text/tsv"]],
   ["WFS", "Web Feature Service", null, []],
   ["ArcGIS Online Map", "ArcGIS Online Map", "ArcGIS Online Map", ["web map application"]],
@@ -69,11 +70,12 @@
   ["GeoJSON", "Geographic JavaScript Object Notation", null, []],
   ["SHP", "Shapefile", null, ["esri shapefile"]],
   ["TORRENT", "Torrent", "application/x-bittorrent", ["bittorrent"]],
-  ["ICS", "iCalendar", "text/calendar", ["ifb", "iCal"]],
+  ["_comment", "DGU has used iCalendar for a while"],
+  ["iCalendar", "iCalendar", "text/calendar", ["ifb", "iCal", "ics"]],
 
   ["_comment", "DGU extra ones"],
   ["API", "API", null, []],
   ["Database", "Database dump", null, ["SQL"]],
   ["RDFa", "RDFa", "application/xhtml+xml", ["html+rdfa"]],
-  ["SPARQL form", "SPARQL web form", "", []]
+  ["SPARQL web form", "SPARQL web form", "", []]
 ]
