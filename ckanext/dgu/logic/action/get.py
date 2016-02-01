@@ -124,7 +124,7 @@ def collection_list_for_user(context, data_dict):
         # orgs with admin role
         permission = data_dict.get('permission', 'edit_group')
 
-        roles = ckan.new_authz.get_roles_with_permission(permission)
+        roles = new_authz.get_roles_with_permission(permission)
 
         if not roles:
             return []

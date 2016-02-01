@@ -279,6 +279,7 @@ class CollectionPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IGroupForm, inherit=True)
     p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
 
     def get_actions(self):
         import ckanext.dgu.logic.action.update as up
@@ -287,6 +288,17 @@ class CollectionPlugin(p.SingletonPlugin):
             'add_to_collection': up.add_to_collection,
             'remove_from_collection': up.remove_from_collection,
             'collection_list_for_user': g.collection_list_for_user
+        }
+
+    def get_auth_functions(self):
+        """
+        Overrides the default group_create so that we can
+        redirect to the real one if necessary, but allow a
+        different set of users to create collections.
+        """
+        import ckanext.dgu.logic.auth.create as c
+        return {
+            'group_create': c.collection_create
         }
 
     def new_template(self):
