@@ -11,6 +11,9 @@ from ckanext.dgu.testtools.create_test_data import DguCreateTestData
 from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
                                      render_partial_datestamp,
                                      render_mandates,
+                                     get_resource_formats,
+                                     dgu_format_icon,
+                                     dgu_format_name,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
@@ -263,3 +266,47 @@ class TestRenderMandates(object):
         assert_equal(render_mandates(
             {'mandate': json.dumps(['http://example.com"><script src="nasty.js">'])}),
             '<a href="http://example.com&#34;&gt;&lt;script src=&#34;nasty.js&#34;&gt;" target="_blank">http://example.com&#34;&gt;&lt;script src=&#34;nasty.js&#34;&gt;</a>')
+
+
+class TestGetResourceFormats(object):
+    def test_is_json(self):
+        assert_equal(get_resource_formats()[:2], '["')
+
+    def test_first_few_values(self):
+        assert_equal(
+            sorted(json.loads(get_resource_formats()))[:10],
+            [u'API', u'ArcGIS Map Preview', u'ArcGIS Map Service',
+             u'ArcGIS Online Map', u'Atom Feed', u'BIN',
+             u'BMP', u'CSV', u'DCR', u'DOC'])
+
+
+class TestFormatIcon(object):
+    def test_is_literal(self):
+        assert_equal(str(type(dgu_format_icon('Csv'))),
+                     "<class 'webhelpers.html.builder.literal'>")
+
+    def test_link_for_csv(self):
+        assert_equal(
+            str(dgu_format_icon('Csv')),
+            '<img src="/images/fugue/document-invoice.png" height="16px" width="16px" alt="None" class="inline-icon " /> ')
+
+    def test_link_for_word(self):
+        assert_equal(
+            str(dgu_format_icon('word')),
+            '<img src="/images/fugue/document-word.png" height="16px" width="16px" alt="None" class="inline-icon " /> ')
+
+    def test_link_for_unknown_format(self):
+        assert_equal(
+            str(dgu_format_icon('unknown')),
+            '<img src="/images/fugue/document.png" height="16px" width="16px" alt="None" class="inline-icon " /> ')
+
+
+class TestFormatName(object):
+    def test_csv(self):
+        assert_equal(dgu_format_name('Csv'), 'CSV')
+
+    def test_word(self):
+        assert_equal(dgu_format_name('word'), 'DOC')
+
+    def test_link_for_unknown_format(self):
+        assert_equal(dgu_format_name('unknown'), 'unknown')

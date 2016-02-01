@@ -1,3 +1,10 @@
+'''
+Analyses the data.gov.uk JSON dataset dumps.
+
+Gets run by gov_daily.py or from the command-line:
+  $ dump_analysis
+(in an activated pyenv with ckanext-dgu installed)
+'''
 import zipfile
 import gzip
 import json
@@ -227,7 +234,7 @@ class DumpAnalysis(object):
         self.dump_filepath = dump_filepath
         self.options = options
         self.run()
-        
+
     def run(self):
         self.save_date()
         self.analysis_dict = OrderedDict()
@@ -248,7 +255,11 @@ class DumpAnalysis(object):
             pkg_bins = self.analyse_by_theme(packages)
             for bin, pkgs in pkg_bins.items():
                 self.analysis_dict['Datasets by theme: %s' % bin] = len(pkgs)
-                
+        if self.options.analyse_by_unpublished:
+            pkg_bins = self.analyse_by_unpublished(packages)
+            for bin, pkgs in pkg_bins.items():
+                self.analysis_dict['Datasets by unpublished: %s' % bin] = len(pkgs)
+
         self.print_analysis(pkg_bins)
 
     def save_date(self):
@@ -357,6 +368,13 @@ class DumpAnalysis(object):
             pkg_bins[theme].append(pkg['name'])
         return pkg_bins
 
+    def analyse_by_unpublished(self, packages):
+        pkg_bins = defaultdict(list)
+        for pkg in packages:
+            unpublished = pkg['extras'].get('unpublished')
+            pkg_bins[asbool(unpublished)].append(pkg['name'])
+        return pkg_bins
+
     def print_analysis(self, pkg_bins):
         log.info('* Analysis by source *')
         for pkg_bin, pkgs in sorted(pkg_bins.items(), key=lambda (pkg_bin, pkgs): -len(pkgs)):
@@ -384,14 +402,17 @@ class Command(command.Command):
                                action="store_true")
         self.parser.add_option('--analyse-by-theme', dest='analyse_by_theme',
                                action="store_true")
+        self.parser.add_option('--analyse-by-unpublished', dest='analyse_by_unpublished',
+                               action="store_true")
 
     def parse_args(self):
         super(Command, self).parse_args()
         if not (self.options.analyse_by_source or
                 self.options.analyse_ons_by_published_by or
-                self.options.analyse_by_theme):
+                self.options.analyse_by_theme or
+                self.options.analyse_by_unpublished):
             self.parser.error('Need to specify one or more analysese.')
- 
+
     def command(self):
         input_file_descriptors = self.args
         input_filepaths = []
