@@ -1,6 +1,4 @@
 
-
-
 def add_to_collection(context, data_dict):
     '''
     Adds a dataset to a collection.

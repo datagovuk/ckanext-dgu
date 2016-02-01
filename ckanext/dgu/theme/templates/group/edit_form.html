@@ -1,15 +1,68 @@
 {% import 'macros/form.html' as form %}
 
-<form id="group-edit" class="dataset-form form-horizontal" method="post" data-module="basic-form" enctype="multipart/form-data">
+<form id="dataset-search" class="dataset-form form-horizontal" method="post" data-module="basic-form" enctype="multipart/form-data">
   {% block error_summary %}
     {{ form.errors(error_summary) }}
   {% endblock %}
 
   {% block basic_fields %}
+    <script>
+    function reset_names() {
+      // Reset all of the hidden field names
+        var number = 0;
+        $('#datasets div.row').each(function(elem){
+            var newname = 'packages__' + number + '__name';
+            $(this).find('input').attr('name', newname);
+            number = number + 1;
+        });
+    }
+    function add_dataset(item) {
+        var ss = ' <div class="row" style="margin: 10px;"> \
+              <div class="col-sm-11">\
+                <h3>' + item.label + '</h3>\
+                <a href="/dataset/' + item.value + '" target="_blank">Open in new window</a>\
+                <input type="hidden" name="" value="' + item.value + '" /> \
+              </div>\
+              <div class="col-sm-1">\
+                  <button class="btn btn-danger">Remove</button>\
+              </div>\
+            </div>\
+            <hr/>';
+        $('#datasets').append(ss);
+
+        reset_names();
+    }
+
+      $(function() {
+        new CKAN.Dgu.UrlEditor({slugType:'group'});
+
+        $('.package-typeahead').autocomplete({source: function (request, response) {
+              jQuery.get("/api/util/dataset/autocomplete", {
+                  incomplete: request.term,
+                  limit: 10
+              }, function (data) {
+                  var arr = new Array();
+                  for ( var i = 0; i < data.ResultSet.Result.length; i++ ) {
+                      arr.push({label:data.ResultSet.Result[i].title, value: data.ResultSet.Result[i].name})
+                  }
+
+                  response(arr);
+
+                });
+            }, items:5});
+          $( ".package-typeahead" ).autocomplete({
+            select: function( event, ui ) {
+                add_dataset(ui.item);
+                                $(this).val(''); return false;
+
+            }
+          });
+      });
+    </script>
 
     <div class="controls">
         <label for='name'>Collection title</label>
-        <input type="text" class="form-control" id='title' name='title' value="{{ data.get('title','') }}"/>
+        <input type="text" class="form-control js-title" id='title' name='title' value="{{ data.get('title','') }}" autocomplete="off"/>
   </div>
 
       <label class="control-label" for="name">Collection URL</label>
@@ -19,7 +72,7 @@
             https://data.gov.uk/{{data.get('name')}}
          </div>
        {% else %}
-        <div class="controls input-group {% if errors and errors.get('name') %}has-error{% endif %}">
+        <div class="js-url-input controls input-group {% if errors and errors.get('name') %}has-error{% endif %}">
             <span class="input-group-addon" id="basic-addon1">https://data.gov.uk/collection/</span>
             <input id="name" name="name" type="text" value="{{data.get('name', '')}}" class="js-url-input form-control"/>
         </div>
@@ -31,6 +84,24 @@
         <small>The description can be written in <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a></small>
       </div>
 
+      <label class="control-label" for="description">Collection datasets</label>
+      <div class="controls">
+        <input type="text" id='q' class="form-control input-lg package-typeahead"  placeholder="Find datasets to add to collection">
+      </div>
+      <div id='datasets' class="well" style="height: 400px; overflow-y: scroll; margin-top: 20px;">
+          {% for package in data.get('packages', []) %}
+            <div class="row" style="margin: 10px; border-bottom: solid 1px #999; padding-bottom: 10px;">
+              <div class="col-sm-11">
+                <h3>{{package.title}}</h3>
+                <input type="hidden" name="packages__{{ loop.index - 1 }}__name" value="{{ package.name }}"/>
+                <a href="/dataset/{{package.name}}" target="_blank">Open in new window</a>
+              </div>
+              <div class="col-sm-1">
+                  <a class="btn btn-danger" href="javascript:0" onclick="$(this).parent().parent().remove();reset_names();">Remove</a>
+              </div>
+            </div>
+          {% endfor %}
+      </div>
 
   {% endblock %}
 

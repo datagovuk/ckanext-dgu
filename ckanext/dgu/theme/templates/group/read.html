@@ -5,7 +5,7 @@
 
 {% block breadcrumb_content %}
   <li><a href="/collection">Collections</a></li>
-  <li class="active"><a href="/collection/edit/{{c.group_dict.name}}">{{c.group_dict.title}}</a></li>
+  <li class="active"><a href="/collection/{{c.group_dict.name}}">{{c.group_dict.title}}</a></li>
 {% endblock %}
 
 {% block primary_content_inner %}

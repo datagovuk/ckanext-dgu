@@ -2,6 +2,9 @@
 
 {% block page_title%}Edit collection{% endblock%}
 
+{% block optional_head %}
+{% endblock %}
+
 {% block breadcrumb_content %}
   <li><a href="/collection/">Collections</a></li>
   <li><a href="/collection/edit/{{c.group_dict.name}}">{{c.group_dict.title}}</a></li>

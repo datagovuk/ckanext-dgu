@@ -287,7 +287,7 @@ class CollectionPlugin(p.SingletonPlugin):
         return {
             'add_to_collection': up.add_to_collection,
             'remove_from_collection': up.remove_from_collection,
-            'collection_list_for_user': g.collection_list_for_user
+            'collection_list_for_user': g.collection_list_for_user,
         }
 
     def get_auth_functions(self):
@@ -298,7 +298,7 @@ class CollectionPlugin(p.SingletonPlugin):
         """
         import ckanext.dgu.logic.auth.create as c
         return {
-            'group_create': c.collection_create
+            'group_create': c.collection_create,
         }
 
     def new_template(self):
