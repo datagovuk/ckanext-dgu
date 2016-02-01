@@ -1,5 +1,52 @@
 '''A directory of file formats and their properties'''
 
+ICON_MAP = None
+
+
+def get_icon(format_):
+    global ICON_MAP
+    if ICON_MAP is None:
+        ICON_MAP = dict((
+            # Format, icon
+            # Where:
+            # * format is canonical format from resource_formats.json
+            # * icon is in ckanext/dgu/theme/src/images/fugue/
+            ('HTML', 'globe--arrow'),
+            ('JPEG', 'image'),
+            ('TIFF', 'image'),
+            ('Database', 'database-sql'),
+            ('API', 'server-cloud'),
+            ('TXT', 'document-text'),
+            ('PDF', 'document-pdf'),
+            ('RTF', 'document-word'),
+            ('Zip', 'folder-zipper'),
+            #'Torrent'
+            ('DOC', 'document-word'),
+            ('ODT', 'document-word'),
+            ('PPT', 'document-powerpoint'),
+            ('ODP', 'document-powerpoint'),
+            ('XLS', 'document-excel'),
+            ('SHP', 'globe-model'),
+            ('CSV', 'document-invoice'),
+            ('PSV', 'document-invoice'),
+            ('TSV', 'document-invoice'),
+            ('JSON', 'document-node'),
+            ('XML', 'document-code'),
+            ('RSS', 'feed-document'),
+            ('ODS', 'document-excel'),
+            ('WMS', 'globe-model'),
+            ('KML', 'globe-model'),
+            #'NetCDF',
+            ('IATI', 'document-code'),
+            ('iCalendar', 'calendar-day'),
+            ('RDF', 'document-rdf'),
+            ('RDFa', 'document-rdf'),
+            ('SPARQL', 'document-rdf'),
+            ('SPARQL web form', 'document-rdf'),
+            ('OWL', 'document-rdf'),
+        ))
+    return ICON_MAP.get(format_)
+
 import re
 
 class Formats(object):
