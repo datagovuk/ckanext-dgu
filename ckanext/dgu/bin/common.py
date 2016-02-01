@@ -188,5 +188,6 @@ def name_stripped_of_url(url_or_name):
 
 def is_id(id_string):
     '''Returns whether the string looks like a revision id or not'''
+    import re
     reg_ex = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     return bool(re.match(reg_ex, id_string))
