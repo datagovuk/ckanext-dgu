@@ -25,7 +25,7 @@ class TestResourceFormatCleanup:
     #def test_rdf(self): self.assert_format_clean('rdf', 'RDF')
     def test_rdf_xml(self): self.assert_format_clean('rdf/xml', 'RDF')
     def test_html_rdfa(self): self.assert_format_clean('html+rdfa', 'RDFa')
-    def test_zip(self): self.assert_format_clean('zip', 'Zip')
+    def test_zip(self): self.assert_format_clean('zip', 'ZIP')
     def test_netcdf(self): self.assert_format_clean('netcdf', 'NetCDF')
     #def test_ical(self): self.assert_format_clean('ical', 'iCal')
     def test_shapefile(self): self.assert_format_clean('shapefile', 'SHP')
