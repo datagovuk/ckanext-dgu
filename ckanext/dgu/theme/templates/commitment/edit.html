@@ -46,7 +46,7 @@
 
           <tr>
             <td colspan="3">
-              <a href="javascript:0" class="addrow btn btn-info">Add row</a>
+              <a id="add1" href="javascript:0" class="addrow btn btn-info">Add row</a>
             </td>
           </tr>
 
@@ -81,7 +81,7 @@
 
           <tr>
             <td colspan="3">
-              <a href="javascript:0" class="addrow btn btn-info">Add row</a>
+              <a id="add2" href="javascript:0" class="addrow btn btn-info">Add row</a>
             </td>
           </tr>
 
@@ -119,7 +119,7 @@
 
           <tr>
             <td colspan="3">
-              <a href="javascript:0" class="addrow btn btn-info">Add row</a>
+              <a id="add3" href="javascript:0" class="addrow btn btn-info">Add row</a>
             </td>
           </tr>
           </tbody>
@@ -147,7 +147,15 @@
 {% block optional_head %}
     <script type="text/javascript">
       $(document).ready(function(){
-        console.log( $('.addrow').length )
+          var clones = {};
+          $('.addrow').each(function(index) {
+              clones[$(this).id] = $(this).closest('tr').prev().clone(true, true);
+          });
+
+          // Only add chosen to selects after cloning
+          // https://stackoverflow.com/questions/26995336/jquery-chosen-not-working-for-cloned-row
+          $('.commitment-chzn-select').chosen();
+
           $('.addrow').on('click',function (e) {
               e.preventDefault();
 
@@ -161,7 +169,7 @@
               var previousId = currentCount - 1;
 
               var prev = $(this).closest('tr').prev();
-              var tr_new = prev.clone(true, true);
+              var tr_new = clones[$(this).id].clone(true, true);
               $(tr_new).find(':input', 'select', 'textarea').each(function(){
                   // Reset the value and update the name attributes on all of the new
                   // fields
@@ -174,14 +182,6 @@
                   if (currentName) {
                     $(this).attr('name', currentName.replace(previousId.toString(), currentCount.toString()));
                   }
-              });
-
-              $(tr_new).find('select').each(function(){
-                  // Remove all of the chosen info.
-                  $(this).removeClass("chzn-done");
-                  $(this).removeAttr("id");
-                  $(this).css("display", "block");
-                  $(this).next().remove();
               });
 
               $(tr_new).insertAfter($(prev));
