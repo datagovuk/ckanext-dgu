@@ -74,5 +74,6 @@
   ["_comment", "DGU extra ones"],
   ["API", "API", null, []],
   ["Database", "Database dump", null, ["SQL"]],
-  ["RDFa", "RDFa", "application/xhtml+xml", ["html+rdfa"]]
+  ["RDFa", "RDFa", "application/xhtml+xml", ["html+rdfa"]],
+  ["SPARQL form", "SPARQL web form", "", []]
 ]
