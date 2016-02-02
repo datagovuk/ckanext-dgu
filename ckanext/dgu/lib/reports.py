@@ -692,7 +692,7 @@ def licence_report(organization=None, include_sub_organizations=False):
             orgs = lib.go_down_tree(top_org)
         else:
             orgs = [top_org]
-        pkgs = []
+        pkgs = set()
         for org in orgs:
             org_pkgs = model.Session.query(model.Package)\
                             .filter_by(state='active')
@@ -700,7 +700,7 @@ def licence_report(organization=None, include_sub_organizations=False):
                 org_pkgs, organization,
                 include_sub_organizations=False)\
                 .all()
-            pkgs.extend(org_pkgs)
+            pkgs |= set(org_pkgs)
     else:
         pkgs = model.Session.query(model.Package)\
                     .filter_by(state='active')\
@@ -732,6 +732,7 @@ def licence_report(organization=None, include_sub_organizations=False):
 
     for licence, dataset_tuples in sorted(packages_by_licence.items(),
                                           key=lambda x: -len(x[1])):
+        dataset_tuples.sort(key=lambda x: x[0])
         dataset_names, dataset_titles = zip(*dataset_tuples)
         licence_dict = OrderedDict((
             ('licence', licence),
