@@ -1016,7 +1016,7 @@ def get_licenses(pkg):
     # pkg.license value as a License.id value.
     if pkg.license:
         licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id:
+    elif pkg.license_id and pkg.license_id != 'None':
         # However if the user selects 'free text' in the form, that is stored in
         # the same pkg.license field.
         licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
