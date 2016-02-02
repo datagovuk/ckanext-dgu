@@ -746,11 +746,13 @@ def licence_report(organization=None, include_sub_organizations=False):
         'table': rows,
         }
 
+
 def licence_combinations():
-    for organization in lib.all_organizations():
+    for organization in lib.all_organizations(include_none=True):
         for include_sub_organizations in (False, True):
                 yield {'organization': organization,
                        'include_sub_organizations': include_sub_organizations}
+
 
 licence_report_info = {
     'name': 'licence',
