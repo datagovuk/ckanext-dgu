@@ -2,7 +2,7 @@
 
  {% block title %}Users in {{c.group.display_name}}{% endblock %}
 
-{% block breadcrumbs %}
+{% block breadcrumb_content %}
     <li><a href="/publisher">Publishers</a></li>
     <li><a href="/publisher/{{c.group.name}}">{{c.group.title}}</a></li>
     <li><a href="{{request.url}}">Edit User Permissions</a></li>

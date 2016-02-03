@@ -9,7 +9,7 @@
   {% block primary_content_inner %}
     {% set err_msg=error_summary.values()[0] if error_summary else None %}
     {% if err_msg %}
-    <div py:if="err_msg" class="panel panel-danger">
+    <div class="panel panel-danger">
       <div class="panel-heading"><strong>Login Error</strong></div>
       <div class="panel-body">{{err_msg}}</div>
     </div>

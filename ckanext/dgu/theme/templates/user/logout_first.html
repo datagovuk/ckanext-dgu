@@ -2,7 +2,7 @@
 
 {% block title%}CKAN logout first{% endblock %}
 
-{% block breadcrumbs %}
+{% block breadcrumb_content %}
     <li><i>You must log out</i></li>
 {% endblock %}
 
@@ -10,7 +10,7 @@
     <div class="panel panel-danger">
       <div class="panel-heading">Error</div>
       <div class="panel-body">
-        You must <a href="{{'/logout' if ('dgu_drupal_auth' in config['ckan.plugins']) else h.url_for('/data/user/logout')}}">log out</a> before you can login.
+        You must <a href="{{'/logout' if ('dgu_drupal_auth' in h.config_get('ckan.plugins')) else h.url_for('/data/user/logout')}}">log out</a> before you can login.
       </div>
     </div>
 {% endblock %}
