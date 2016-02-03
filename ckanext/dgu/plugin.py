@@ -285,8 +285,6 @@ class CollectionPlugin(p.SingletonPlugin):
         import ckanext.dgu.logic.action.update as up
         import ckanext.dgu.logic.action.get as g
         return {
-            'add_to_collection': up.add_to_collection,
-            'remove_from_collection': up.remove_from_collection,
             'collection_list_for_user': g.collection_list_for_user,
         }
 
@@ -331,14 +329,20 @@ class CollectionPlugin(p.SingletonPlugin):
 
     def form_to_db_schema(self, group_type=None):
         from ckan.logic.schema import group_form_schema
-        return group_form_schema()
+
+        not_empty = toolkit.get_validator('not_empty')
+        s = group_form_schema()
+        s['title'] = [not_empty, unicode]
+        s['description'] = [not_empty, unicode]
+
+        return s
 
     def db_to_form_schema(data, package_type=None):
         from ckan.logic.schema import default_group_schema
         return default_group_schema()
 
     def before_map(self, map):
-        map.redirect('/group/{url:.*}', '/collection/{url}')
+        map.redirect('/group{url:.*}', '/collection{url}')
         return map
 
     def after_map(self, map):

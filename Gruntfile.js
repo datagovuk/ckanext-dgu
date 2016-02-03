@@ -26,6 +26,7 @@ module.exports = function(grunt) {
           'public/scripts/dgu-publisher-forms.min.js'      : 'src/scripts/dgu-publisher-forms.js',
           'public/scripts/dgu-publisher-index.min.js'      : 'src/scripts/dgu-publisher-index.js',
           'public/scripts/dgu-publisher-read.min.js'       : 'src/scripts/dgu-publisher-read.js',
+          'public/scripts/dgu-collections.min.js'       :  'src/scripts/dgu-collections.js',
         },
       },
       vendor: {
@@ -71,7 +72,7 @@ module.exports = function(grunt) {
         dest: 'public/css/jquery-ui-1.9.2.custom.datepicker.min.css',
       },
       recline: {
-        src: [ 
+        src: [
           'src/css/recline_pack/recline-data-explorer.min.css',
           'src/css/recline_pack/recline-grid.css',
           'src/css/recline_pack/dgu-recline-integration.css',
@@ -80,7 +81,7 @@ module.exports = function(grunt) {
       }
     },
     watch: {
-      json: { 
+      json: {
         files: 'src/scripts/json/**/*.json',
         tasks: 'copy:json'
       },
@@ -99,7 +100,7 @@ module.exports = function(grunt) {
     },
     imagemin: {
       build: {
-        options: { 
+        options: {
           optimizationLevel: 3
         },
         files: [

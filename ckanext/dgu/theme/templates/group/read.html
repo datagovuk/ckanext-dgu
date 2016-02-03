@@ -9,8 +9,6 @@
 {% endblock %}
 
 {% block primary_content_inner %}
-  <h1>{{c.group_dict.title}}</h1>
-
   {% if h.check_access('group_update') %}
     <div class="panel panel-info">
       <div class="panel-heading"><strong>Edit Collection</strong></div>
@@ -18,6 +16,8 @@
     </div>
 {% endif %}
 
+
+  <h1>{{c.group_dict.title}}</h1>
 
   <p>
       {{h.render_markdown(c.group_dict.description)}}

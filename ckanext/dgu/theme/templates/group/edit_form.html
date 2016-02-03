@@ -2,74 +2,25 @@
 
 <form id="dataset-search" class="dataset-form form-horizontal" method="post" data-module="basic-form" enctype="multipart/form-data">
   {% block error_summary %}
-    {{ form.errors(error_summary) }}
+    {% if error_summary %}
+      <div class="alert alert-danger">
+        {{ form.errors(error_summary) }}
+        </div>
+    {% endif%}
   {% endblock %}
 
   {% block basic_fields %}
-    <script>
-    function reset_names() {
-      // Reset all of the hidden field names
-        var number = 0;
-        $('#datasets div.row').each(function(elem){
-            var newname = 'packages__' + number + '__name';
-            $(this).find('input').attr('name', newname);
-            number = number + 1;
-        });
-    }
-    function add_dataset(item) {
-        var ss = ' <div class="row" style="margin: 10px;"> \
-              <div class="col-sm-11">\
-                <h3>' + item.label + '</h3>\
-                <a href="/dataset/' + item.value + '" target="_blank">Open in new window</a>\
-                <input type="hidden" name="" value="' + item.value + '" /> \
-              </div>\
-              <div class="col-sm-1">\
-                  <button class="btn btn-danger">Remove</button>\
-              </div>\
-            </div>\
-            <hr/>';
-        $('#datasets').append(ss);
-
-        reset_names();
-    }
-
-      $(function() {
-        new CKAN.Dgu.UrlEditor({slugType:'group'});
-
-        $('.package-typeahead').autocomplete({source: function (request, response) {
-              jQuery.get("/api/util/dataset/autocomplete", {
-                  incomplete: request.term,
-                  limit: 10
-              }, function (data) {
-                  var arr = new Array();
-                  for ( var i = 0; i < data.ResultSet.Result.length; i++ ) {
-                      arr.push({label:data.ResultSet.Result[i].title, value: data.ResultSet.Result[i].name})
-                  }
-
-                  response(arr);
-
-                });
-            }, items:5});
-          $( ".package-typeahead" ).autocomplete({
-            select: function( event, ui ) {
-                add_dataset(ui.item);
-                                $(this).val(''); return false;
-
-            }
-          });
-      });
-    </script>
-
-    <div class="controls">
-        <label for='name'>Collection title</label>
-        <input type="text" class="form-control js-title" id='title' name='title' value="{{ data.get('title','') }}" autocomplete="off"/>
-  </div>
+ <div class="controls {% if errors and errors.get('title') %}has-error{% endif %}">
+      <label for='name'>Collection title</label>
+      <input type="text" class="form-control js-title" id='title' name='title' value="{{ data.get('title','') }}" autocomplete="off"/>
+</div>
 
       <label class="control-label" for="name">Collection URL</label>
        {% if data.get('name', '') and not errors.get('name') %}
          <div class="controls ">
           <input type="hidden" name="name" value="{{data.get('name','')}}"/>
             https://data.gov.uk/{{data.get('name')}}
+            <span class="js-tooltip" data-original-title="Please contact the system administrator to change your URL"><img src="/images/information-grey.png"></span>
          </div>
        {% else %}
         <div class="js-url-input controls input-group {% if errors and errors.get('name') %}has-error{% endif %}">
@@ -79,10 +30,17 @@
        {% endif %}
 
       <label class="control-label" for="description">Collection Description</label>
-      <div class="controls">
+      <div class="controls {% if errors and errors.get('description') %}has-error{% endif %}">
         <textarea id="description" name="description" rows="10" type="text" class="js-title form-control">{{data.get('description', '')}}</textarea>
         <small>The description can be written in <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a></small>
       </div>
+
+     <div class="controls {% if errors and errors.get('image_url') %}has-error{% endif %}">
+        <label for='name'>Collection Image URL (optional)</label>
+        <input type="text" class="form-control js-title" id='image_url' name='image_url' value="{{ data.get('image_url','') }}" autocomplete="off"/>
+        <small>If you wish to specify an optional logo image,the image should be wider than it is tall, i.e. 180x60, or 360x120</small>
+    </div>
+
 
       <label class="control-label" for="description">Collection datasets</label>
       <div class="controls">
@@ -90,7 +48,7 @@
       </div>
       <div id='datasets' class="well" style="height: 400px; overflow-y: scroll; margin-top: 20px;">
           {% for package in data.get('packages', []) %}
-            <div class="row" style="margin: 10px; border-bottom: solid 1px #999; padding-bottom: 10px;">
+            <div class="row collection-row">
               <div class="col-sm-11">
                 <h3>{{package.title}}</h3>
                 <input type="hidden" name="packages__{{ loop.index - 1 }}__name" value="{{ package.name }}"/>
@@ -103,7 +61,20 @@
           {% endfor %}
       </div>
 
-  {% endblock %}
+
+<div id='row-template' style="display:none;">
+  <div class="row collection-row">
+    <div class="col-sm-11">
+      <h3><%title%></h3>
+      <input type="hidden" name="" value="<%name%>"/>
+      <a href="/dataset/<%name%>" target="_blank">Open in new window</a>
+    </div>
+    <div class="col-sm-1">
+        <a class="btn btn-danger" href="javascript:0" onclick="$(this).parent().parent().remove();reset_names();">Remove</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
 
   {% block custom_fields %}
   {% endblock %}

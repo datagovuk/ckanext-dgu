@@ -9,8 +9,6 @@
 {% block page_header %}{% endblock %}
 
 {% block primary_content_inner %}
-  <h1 class="hide-heading">{{ _('Collections') }}</h1>
-
   {% if h.check_access('group_create') %}
     <div class="panel panel-info">
       <div class="panel-heading"><strong>Add New Collection</strong></div>
@@ -18,6 +16,7 @@
     </div>
 {% endif %}
 
+  <h1 class="hide-heading">{{ _('Collections') }}</h1>
 
   {% block groups_search_form %}
     {% snippet 'group/search_form.html', type='collection', query=c.q, sorting_selected=c.sort_by_selected, count=c.page.item_count, placeholder=_('Search collections...'), show_empty=request.params, no_bottom_border=true if c.page.items %}

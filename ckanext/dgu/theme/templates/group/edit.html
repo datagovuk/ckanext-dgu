@@ -3,6 +3,7 @@
 {% block page_title%}Edit collection{% endblock%}
 
 {% block optional_head %}
+  <script type="text/javascript" src="{{h.url_for_static('/scripts/dgu-collections.min.js')}}?{{h.ckan_asset_timestamp()}}"></script>
 {% endblock %}
 
 {% block breadcrumb_content %}
