@@ -261,7 +261,8 @@ class TestEdit(WsgiAppCase):
     def test_4_delete_publisher(self):
         group_name = 'deletetest'
         CreateTestData.create_groups([{'name': group_name, 'is_organization': True,
-                                       'packages': [u'cabinet-office-energy-use']}],
+                                       'packages': [u'cabinet-office-energy-use'], 'title': group_name,
+                                       'description': group_name}],
                                      admin_user_name='nhsadmin')
 
         group = model.Group.by_name(group_name)

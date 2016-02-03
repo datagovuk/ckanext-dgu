@@ -3,7 +3,10 @@
 def collection_create(context=None, data_dict=None):
     """
     Does the user have permission to create a collection?
-    Only publishers and sysadmins do.
+    Only publishers and sysadmins do so permission is
+    granted if the user is a member of at least one group.
+    If the user is a sysadmin, this call won't be made as it is
+    unnecessary.
     """
     from ckan.logic.auth.create import group_create
 
