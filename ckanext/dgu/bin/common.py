@@ -156,6 +156,10 @@ def get_datasets_via_api(ckan, options=None, q=None, fq=None,
             org_id = org.id
         fq['owner_org'] = org_id
     if dataset_name:
+        if isinstance(dataset_name, list):
+            # use regex to search for multiple names
+            # name:/(name1|name2)/
+            dataset_name = '/(%s)/' % '|'.join(dataset_name)
         fq['name'] = dataset_name
     fq_str = ' '.join('%s:%s' % (k, v) for k, v in fq.items())
     page_size = 200
