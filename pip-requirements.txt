@@ -20,10 +20,10 @@
 -e git+https://github.com/datagovuk/ckanext-spatial.git@dgu#egg=ckanext-spatial
 
 # ckanext-qa
--e git+https://github.com/datagovuk/ckanext-qa.git@2.0#egg=ckanext-qa
+-e git+https://github.com/ckan/ckanext-qa.git#egg=ckanext-qa
 
 # ckanext-archiver
--e git+https://github.com/datagovuk/ckanext-archiver.git#egg=ckanext-archiver
+-e git+https://github.com/ckan/ckanext-archiver.git#egg=ckanext-archiver
 
 # ckanext-ga-report
 -e git+https://github.com/datagovuk/ckanext-ga-report.git#egg=ckanext-ga-report

@@ -38,12 +38,14 @@
         </span>
         {% endif %}
       <span class="dropdown">
-        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="API">
-          <span class="api-icon">API</span>
+        <a href="#" class="js-tooltip dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Metadata&nbsp;API">
+          <span class="api-icon">
+              <i class="icon-code icon-2x"></i>
+          </span>
           <div class="dropdown-chevron api-chevron" ></div>
         </a>
         <div class="panel panel-default dropdown-menu" role="menu" aria-labelledby="dLabel">
-          <div class="panel-heading">API</div>
+          <div class="panel-heading">Metadata API</div>
           <div class="panel-body">
             <p>The information on this page (the dataset metadata) is also available in JSON format.</p>
             <ul>
@@ -126,7 +128,7 @@
     </div>
 
     <div class="dataset-stars h1-subheading" style="margin-top: 0px;margin-bottom: 12px;">
-      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg.id) %}
+      {% with stars,reason,last_updated = h.calculate_dataset_stars(c.pkg_dict) %}
       Openness rating:
       <span class="star-rating">
         <span class="tooltip">

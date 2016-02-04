@@ -61,8 +61,13 @@ grunt
 cd -
 
 echo "Moving test-core.ini into a subdir..."
+# because it expects to find ckan's test-core.ini in a sister directory of
+# ckanext-dgu but on travis it is in a sub-directory
 mkdir subdir
 mv test-core.ini subdir
+# put resource_formats.json where the newly moved test-core.ini can find it
+mkdir subdir/config
+mv config/resource_formats.json subdir/config/resource_formats.json
 
 # Copy who.ini into the subdir
 mkdir -p subdir/ckanext/dgu

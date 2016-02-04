@@ -198,6 +198,16 @@ Passed in:
                        value="{{res.get(col, '')}}"
                        class="form-control needs-datepicker {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}"
                    />
+                {% elif col=='format'%}
+                  <input
+                       id="timeseries_resources__{{num}}__{{col}}"
+                       name="timeseries_resources__{{num}}__{{col}}"
+                       type="text"
+                       value="{{res.get(col, '')}}"
+                       data-provider="typeahead"
+                       data-items="8"
+                       class="form-control format-typeahead {% if h.cell_has_errors(errors,'timeseries_resources', num, col) %}field_error{% endif %}"
+                       />
                 {% else %}
                   <input id="timeseries_resources__{{num}}__{{col}}"
                          name="timeseries_resources__{{num}}__{{col}}"
@@ -290,7 +300,7 @@ Passed in:
                        value="{{res.get(col, '')}}"
                        data-provider="typeahead"
                        data-items="8"
-                       class="form-control format-typeahead {% if h.cell_has_errors(errors,'additional_resources', num, col) %}field_error{% endif %}"
+                       class="form-control format-typeahead {% if h.cell_has_errors(errors,'individual_resources', num, col) %}field_error{% endif %}"
                        />
                 {% else %}
                 <input
@@ -317,7 +327,7 @@ Passed in:
     <hr/>
 
     <p><b>Format:</b> This should give the file format in which the data is supplied. You may supply the data in a form not listed here, but still constrained by the <a href="http://data.gov.uk/blog/new-public-sector-transparency-board-and-public-data-transparency-principles" target="_blank">Public Sector Transparency Board's principles</a> that require that all data is available in an 'open and standardised format' that can be read by a machine. Data can also be released in formats that are not machine-processable (e.g. PDF) alongside this.<br/></p>
-    <p><b>Format choices:</b> CSV | RDF | XML | XBRL | SDMX | HTML+RDFa | Other as appropriate</p>
+    <p><b>Format choices:</b> CSV | XLS | XML | KML | WFS | RDF | Other as appropriate</p>
     <div class="well form-inline">
       <h3>Schema/Vocabulary</h3>
       <p class="instructions basic">Name any schema, vocabulary or ontology that describes the main data/file structure. To request additions to this list, email each ones' title and URL to team@data.gov.uk.</p>
