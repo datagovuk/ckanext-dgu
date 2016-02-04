@@ -1,27 +1,22 @@
-<html xmlns:py="http://genshi.edgewall.org/"
-  xmlns:xi="http://www.w3.org/2001/XInclude"
-  py:strip="">
+{% extends "page.html" %}
 
-  <py:def function="page_title">Apply</py:def>
-  <py:def function="page_heading">Apply for membership</py:def>
+{% block title %}Apply{% endblock %}
 
- <py:match path="breadcrumbs">
+{% block breadcrumb_content %}
     <li><a href="/publisher">Publishers</a></li>
-    <py:if test="not c.group">
+    {% if not c.group %}
       <li><a href="/publisher/apply}">Apply for membership</a></li>
-    </py:if>
-    <py:if test="c.group">
-      <li><a href="/publisher/${c.group.name}">${c.group.display_name}</a></li>
-      <li><a href="/publisher/apply/${c.group.name}">Apply for membership</a></li>
-    </py:if>
-  </py:match>
+    {% else %}
+      <li><a href="/publisher/{{c.group.name}}">{{c.group.display_name}}</a></li>
+      <li><a href="/publisher/apply/{{c.group.name}}">Apply for membership</a></li>
+    {% endif %}
+{% endblock%}
 
-  <div py:match="content" class="group-edit-form">
+{% block primary_content_inner %}
+<h1>Apply for membership</h1>
+  <div class="group-edit-form">
     <div class="boxed">
-      ${Markup(c.form)}
+      {{c.form|safe}}
     </div>
   </div>
-
-  <xi:include href="../layout.html" />
-</html>
-
+{% endblock %}
