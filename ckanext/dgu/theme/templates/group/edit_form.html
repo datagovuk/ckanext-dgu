@@ -35,13 +35,6 @@
         <small>The description can be written in <a href="http://daringfireball.net/projects/markdown/syntax" target="_blank">Markdown</a></small>
       </div>
 
-     <div class="controls {% if errors and errors.get('image_url') %}has-error{% endif %}">
-        <label for='name'>Collection Image URL (optional)</label>
-        <input type="text" class="form-control js-title" id='image_url' name='image_url' value="{{ data.get('image_url','') }}" autocomplete="off"/>
-        <small>If you wish to specify an optional logo image,the image should be wider than it is tall, i.e. 180x60, or 360x120</small>
-    </div>
-
-
       <label class="control-label" for="description">Collection datasets</label>
       <div class="controls">
         <input type="text" id='q' class="form-control input-lg package-typeahead"  placeholder="Find datasets to add to collection">
