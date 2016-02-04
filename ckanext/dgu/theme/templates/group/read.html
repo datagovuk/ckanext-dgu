@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block primary_content_inner %}
-  {% if h.check_access('group_update') %}
+  {% if h.check_access('group_update', {'type': 'collection', 'id': c.group_dict.name}) %}
     <div class="panel panel-info">
       <div class="panel-heading"><strong>Edit Collection</strong></div>
       <div class="panel-body"><a href="/collection/edit/{{ c.group_dict.name }}">Edit '{{ c.group_dict.title }}'</a></div>

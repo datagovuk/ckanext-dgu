@@ -73,17 +73,6 @@
           <i class="icon-time icon-2x"></i>
         </a>
       {% endif %}
-        <form class="form form-inline" method="post" action="/dataset/{{c.pkg.name}}/groups">
-        Add to
-          <select class="control input-sm" name='group_added' style="display:inline; margin-top: -20px;" >
-          <option value="">Select collection</option>
-          <option disabled>──────────</option>
-            {% for name,title in h.get_collections()%}
-              <option value="{{name}}">{{title}}</option>
-            {% endfor %}
-          </select>
-          <input type='submit' class="btn btn-sm" value="Add">
-        </form>
     </div>
 
     <h1>{{c.pkg_dict.get('title', c.pkg_dict['name'])}} {%if h.is_unpublished_item(c.pkg_dict) %}<span class="unpublished-text">(Unpublished)</span>{% endif %}</h1>
@@ -206,7 +195,7 @@
         {% set can_harvest=harvest_object and h.check_access('harvest_source_update',{'id':harvest_object.source.id}) %}
         {% set update_link=h.url_for(controller='package', action='edit', id=c.pkg.name) if not h.is_unpublished_item(c.pkg_dict) else h.url_for(controller='ckanext.dgu.controllers.inventory:InventoryController', action='edit_item', id=c.pkg.name) %}
         {% set dataset_is_from_ns_pubhub = h.dataset_is_from_ns_pubhub(c.pkg_dict) %}
-        {% set admin_mode = can_update or can_delete or can_harvest %}
+        {% set admin_mode = can_update or can_delete or can_harvest or (h.get_collections()|length > 0)%}
 
       <div class="{{m.if_(admin_mode,'col-md-8','col-md-12')}}">
         <!-- Description -->
@@ -264,10 +253,10 @@
           </div>
         </div>
       </div>
-      {% if admin_mode %}
+      {% if admin_mode  %}
       <div class="col-md-4">
         <div class="panel panel-info">
-          <div class="panel-heading" style="font-weight: bold;">Administrator Tools</div>
+          <div class="panel-heading" style="font-weight: bold;">Publisher Tools</div>
           <div class="panel-body">
             <ul class="administrator-tools">
               {% if can_update %}
@@ -306,6 +295,33 @@
                 </a>
               </li>
               {% endif %}
+
+              {% if h.get_collections()|length > 0 %}
+              <li>
+                <form id='add-to-collection' class="form form-inline" method="post" action="/dataset/{{c.pkg.name}}/groups">
+                <span class="wrap-icon"><i class="icon-plus"></i></span>
+                  <a href="javascript:0">Add to collection</a>
+                  <select class="control input-sm" name='group_added' style="display:inline; margin-top: -20px;" >
+                  <option value="">Select collection</option>
+                  <option disabled>──────────</option>
+                    {% for name,title in h.get_collections()%}
+                      <option value="{{name}}">{{title}}</option>
+                    {% endfor %}
+                  </select>
+                  <!-- autosubmit -->
+                  <noscript>
+                    <input type='submit' class="btn btn-sm" value="Add">
+                  </noscript>
+                </form>
+
+                <script>
+                $("#add-to-collection select").change(function() {
+                    $(this).closest('form').submit();
+                });
+                </script>
+            </li>
+            {% endif %}
+
             </ul>
           </div>
         </div>

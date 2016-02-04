@@ -10,13 +10,18 @@ def collection_create(context=None, data_dict=None):
     """
     from ckan.logic.auth.create import group_create
 
+    print "COLLECTION_CREATE"
+
     model = context.get('model')
     user = context.get('auth_user_obj')
     if not user:
         return {'success': False}
 
-    if context.get('type') != 'collection':
+    type = context.get('type') or (data_dict and data_dict.get('type'))
+
+    if type != 'collection':
         return group_create (context, data_dict)
 
     gids = user.get_group_ids(group_type='organization')
+    print gids
     return {'success': bool(len(gids) > 0)}

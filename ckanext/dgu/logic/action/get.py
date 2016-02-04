@@ -108,29 +108,20 @@ def collection_list_for_user(context, data_dict):
     import ckan.new_authz as new_authz
     model = context['model']
     user = context['user']
+    userobj = model.User.get(user)
+
+    if not userobj:
+        return []
 
     #check_access('collection_list_for_user', context, data_dict)
     sysadmin = new_authz.is_sysadmin(user)
+    if sysadmin:
+        groups = model.Session.query(model.Group) \
+            .filter(model.Group.is_organization == False) \
+            .filter(model.Group.type == 'collection') \
+            .filter(model.Group.state == 'active').all()
+    else:
+        groups = userobj.get_groups(group_type='collection')
 
-    orgs_q = model.Session.query(model.Group) \
-        .filter(model.Group.is_organization == False) \
-        .filter(model.Group.type == 'collection') \
-        .filter(model.Group.state == 'active')
-
-    if not sysadmin:
-        # for non-Sysadmins check they have the required permission
-
-        # NB 'edit_group' doesn't exist so by default this action returns just
-        # orgs with admin role
-        permission = data_dict.get('permission', 'edit_group')
-
-        roles = new_authz.get_roles_with_permission(permission)
-
-        if not roles:
-            return []
-        user_id = new_authz.get_user_id_for_username(user, allow_none=True)
-        if not user_id:
-            return []
-
-    orgs_list = model_dictize.group_list_dictize(orgs_q.all(), context)
-    return orgs_list
+    groups_list = model_dictize.group_list_dictize(groups, context)
+    return groups_list

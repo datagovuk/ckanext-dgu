@@ -9,7 +9,7 @@
 {% block page_header %}{% endblock %}
 
 {% block primary_content_inner %}
-  {% if h.check_access('group_create') %}
+  {% if h.check_access('group_create', {'type': 'collection'}) %}
     <div class="panel panel-info">
       <div class="panel-heading"><strong>Add New Collection</strong></div>
       <div class="panel-body"><a href="{{ h.url_for('collection_new') }}">Add collection</a></div>

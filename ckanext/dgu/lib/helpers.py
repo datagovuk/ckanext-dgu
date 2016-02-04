@@ -2248,6 +2248,5 @@ def packages_for_collection(collection_name):
     context = {'model': model, 'session': model.Session, 'user': c.user}
 
     packages = get_action('package_search')(context, {'fq': 'collection:%s' % collection_name})
-    print packages
     return packages['results']
 
