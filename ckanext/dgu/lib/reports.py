@@ -672,3 +672,96 @@ la_schemas_info = {
     'generate': la_schemas,
     'template': 'report/la_schemas.html',
     }
+
+
+# Licence report
+
+def licence_report(organization=None, include_sub_organizations=False):
+    '''
+    Returns a dictionary detailing licences for datasets in the
+    organisation specified, and optionally sub organizations.
+    '''
+    import json
+    # Get packages
+    if organization:
+        top_org = model.Group.by_name(organization)
+        if not top_org:
+            raise p.toolkit.ObjectNotFound('Publisher not found')
+
+        if include_sub_organizations:
+            orgs = lib.go_down_tree(top_org)
+        else:
+            orgs = [top_org]
+        pkgs = set()
+        for org in orgs:
+            org_pkgs = model.Session.query(model.Package)\
+                            .filter_by(state='active')
+            org_pkgs = lib.filter_by_organizations(
+                org_pkgs, organization,
+                include_sub_organizations=False)\
+                .all()
+            pkgs |= set(org_pkgs)
+    else:
+        pkgs = model.Session.query(model.Package)\
+                    .filter_by(state='active')\
+                    .all()
+
+    # Get their licences
+    packages_by_licence = collections.defaultdict(list)
+    rows = []
+    for pkg in pkgs:
+        licence = None
+        if pkg.license:
+            licence = pkg.license.title
+        elif pkg.license_id and pkg.license_id != 'None':
+            licence = pkg.license_id
+        elif 'licence' in pkg.extras:
+            licence = pkg.extras['licence']
+            # UKLP datasets have this as a list that gets json encoded
+            try:
+                licence = '; '.join(json.loads(pkg.extras['licence']))
+            except ValueError:
+                pass
+        licence_url = pkg.extras.get('licence_url')
+        if licence_url:
+            if licence:
+                licence += ' <%s>' % licence_url
+            else:
+                licence = licence_url
+        packages_by_licence[licence].append((pkg.name, pkg.title))
+
+    for licence, dataset_tuples in sorted(packages_by_licence.items(),
+                                          key=lambda x: -len(x[1])):
+        dataset_tuples.sort(key=lambda x: x[0])
+        dataset_names, dataset_titles = zip(*dataset_tuples)
+        licence_dict = OrderedDict((
+            ('licence', licence),
+            ('dataset_titles', '|'.join(t for t in dataset_titles)),
+            ('dataset_names', ' '.join(dataset_names)),
+            ))
+        rows.append(licence_dict)
+
+    return {
+        'num_datasets': len(pkgs),
+        'num_licences': len(rows),
+        'table': rows,
+        }
+
+
+def licence_combinations():
+    for organization in lib.all_organizations(include_none=True):
+        for include_sub_organizations in (False, True):
+                yield {'organization': organization,
+                       'include_sub_organizations': include_sub_organizations}
+
+
+licence_report_info = {
+    'name': 'licence',
+    'title': 'Licences',
+    'description': 'Licenses for datasets, reported by publisher.',
+    'option_defaults': OrderedDict((('organization', None),
+                                    ('include_sub_organizations', False))),
+    'option_combinations': licence_combinations,
+    'generate': licence_report,
+    'template': 'report/licence_report.html',
+    }

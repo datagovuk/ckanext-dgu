@@ -618,17 +618,20 @@ def list_flatten(data):
         return data
 
 def dgu_format_icon(format_string):
-    fmt = formats.Formats.match(format_string.strip().lower())
-    icon_name = 'document'
-    if fmt is not None and fmt['icon']!='':
-        icon_name = fmt['icon']
-    url = '/images/fugue/%s.png' % icon_name
+    icon_filename = None
+    format_line = ckan.lib.helpers.resource_formats().get(format_string.lower().strip(' .'))
+    if format_line:
+        canonical_format = format_line[1]
+        icon_filename = formats.get_icon(canonical_format)
+    if not icon_filename:
+        icon_filename = 'document'
+    url = '/images/fugue/%s.png' % icon_filename
     return icon_html(url)
 
 def dgu_format_name(format_string):
-    fmt = formats.Formats.match(format_string.strip().lower())
-    if fmt is not None:
-        return fmt['display_name']
+    format_line = ckan.lib.helpers.resource_formats().get(format_string.lower().strip(' .'))
+    if format_line:
+        return format_line[1]
     return format_string
 
 def name_for_uklp_type(package):
@@ -917,10 +920,17 @@ def sort_by_location_disabled():
 def relevancy_disabled():
     return not(bool(t.request.params.get('q')))
 
-def get_resource_formats():
-    from ckanext.dgu.lib.formats import Formats
-    return json.dumps(Formats.by_display_name().keys())
+_canonical_formats_json = None
 
+def get_resource_formats():
+    global _canonical_formats_json
+    if not _canonical_formats_json:
+        formats = ckan.lib.helpers.resource_formats()
+        canonical_formats = set()
+        for mimetype, canonical, human in formats.values():
+            canonical_formats.add(canonical)
+        _canonical_formats_json = json.dumps(sorted(canonical_formats))
+    return _canonical_formats_json
 
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
@@ -1006,7 +1016,7 @@ def get_licenses(pkg):
     # pkg.license value as a License.id value.
     if pkg.license:
         licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id:
+    elif pkg.license_id and pkg.license_id != 'None':
         # However if the user selects 'free text' in the form, that is stored in
         # the same pkg.license field.
         licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))

@@ -7,7 +7,7 @@ from paste.deploy.converters import asbool
 
 from ckan.model.group import Group
 from ckan import model
-from ckanext.dgu.lib.formats import Formats
+from ckan.lib import helpers
 from ckanext.dgu.plugins_toolkit import ObjectNotFound
 
 log = getLogger(__name__)
@@ -97,9 +97,9 @@ class SearchIndexing(object):
     @classmethod
     def _clean_format(cls, format_string):
         if isinstance(format_string, basestring):
-            matched_format = Formats.match(format_string)
+            matched_format = helpers.resource_formats().get(format_string.lower().strip(' .'))
             if matched_format:
-                return matched_format['display_name']
+                return matched_format[1]
             return re.sub(cls._disallowed_characters, '', format_string).strip()
         else:
             return format_string
