@@ -25,7 +25,7 @@ UPDATE_FORMATS = {
         'WCS',
         'WMTS',
         )),
-    'dBase': 'SHP',
+    'DBASE': 'SHP',
     'ZIP': 'SHP',
     }
 
