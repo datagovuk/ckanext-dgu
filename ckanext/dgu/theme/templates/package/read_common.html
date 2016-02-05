@@ -108,7 +108,7 @@
               {% if url %}
                 <a href="{{url}}" rel="dc:rights">{{license_text}}</a>
               {% else%}
-                <span rel="dc:rights"><em>&ldquo;{{license_text}}&rdquo;</em>{{separator}}</span>
+                <span rel="dc:rights"><em>&ldquo;{{h.linkify(license_text)}}&rdquo;</em>{{separator}}</span>
               {% endif %}
             {% endif %}
           {% endwith %}

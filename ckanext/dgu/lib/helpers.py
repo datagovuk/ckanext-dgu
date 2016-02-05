@@ -984,13 +984,18 @@ def isopen(pkg):
         # in the same pkg.license field.
         license_text = pkg.license_id
     else:
-        # UKLP might have multiple licenses and don't adhere to the License
-        # values, so are in the 'licence' extra.
-        license_text_list = json_list(pkg.extras.get('licence') or '')
-        # UKLP might also have a URL to go with its licence
-        license_text_list.extend([pkg.extras.get('licence_url', '') or '',
-                                  pkg.extras.get('licence_url_title') or ''])
-        license_text = ';'.join(license_text_list)
+        if not (pkg.extras.get('licence') or '').startswith('['):
+            # new
+            license_text = pkg.extras.get('licence') or ''
+        else:
+            # old
+            # UKLP might have multiple licenses and don't adhere to the License
+            # values, so are in the 'licence' extra.
+            license_text_list = json_list(pkg.extras.get('licence') or '')
+            # UKLP might also have a URL to go with its licence
+            license_text_list.extend([pkg.extras.get('licence_url', '') or '',
+                                    pkg.extras.get('licence_url_title') or ''])
+            license_text = ';'.join(license_text_list)
     open_licenses = [
         'Open Government Licen',
         'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
@@ -1008,9 +1013,39 @@ def isopen(pkg):
             return True
     return False
 
+
+link_regex = None
+
+def linkify(string):
+    global link_regex
+    if link_regex is None:
+        link_regex = re.compile(r'(https?://[^\s"]+?)(\.?($|\s))')
+    return Markup(link_regex.sub(r'<a href="\1" target="_blank">\1</a>\2', string))
+
+
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen, isogl), ... ]
+    licenses = []  # [(title, url, isopen, isogl), ... ]
+
+    licence = pkg.extras.get('licence') or ''
+    if not licence.startswith('['):
+        # new
+        if not licence:
+            # just license_id
+            licenses.append((pkg.license.title.split('::')[-1],
+                             pkg.license.url,
+                             pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
+        else:
+            # licence and possibly license_id too
+            if pkg.license_id == 'uk-ogl':
+                # OGL icon & link
+                licenses.append((None, None, None, True))
+            # Licence text
+            licenses.append((licence, None, None, False))
+
+        return licenses
+
+    # old
 
     # Normal datasets (created in the form) store the licence in the
     # pkg.license value as a License.id value.
@@ -1023,7 +1058,8 @@ def get_licenses(pkg):
 
     # UKLP might have multiple licenses and don't adhere to the License
     # values, so are in the 'licence' extra.
-    license_extra_list = json_list(pkg.extras.get('licence') or '')
+    licence = pkg.extras.get('licence') or ''
+    license_extra_list = json_list(licence)
     for license_extra in license_extra_list:
         license_extra_url = None
         if license_extra.startswith('http'):
@@ -2243,3 +2279,36 @@ def get_issue_count(pkg_id):
         return 0
     return 10
 
+
+licence_regexes = None
+
+
+def detect_license_id(licence_str):
+    '''Given licence free text, detects if it mentions a known licence.
+
+    :returns (license_id, is_wholely_identified)
+    '''
+    license_id = None
+
+    global licence_regexes
+    if licence_regexes is None:
+        licence_regexes = {}
+        licence_regexes['ogl'] = [
+            re.compile('open government licen[sc]e', re.IGNORECASE),
+            re.compile(r'\b\(ogl\)\b', re.IGNORECASE),
+            re.compile(r'\bogl\b', re.IGNORECASE),
+            re.compile(r'<?https?\:\/\/www.nationalarchives\.gov\.uk\/doc\/open-government-licence[^\s]+'),
+            re.compile(r'<?http\:\/\/www.ordnancesurvey\.co\.uk\/oswebsite\/docs\/licences\/os-opendata-licence.pdf'),  # because it redirects to OGL now
+            ]
+    is_ogl = False
+    for ogl_regex in licence_regexes['ogl']:
+        licence_str, replacements = ogl_regex.subn('OGL', licence_str)
+        if replacements:
+            is_ogl = True
+    if is_ogl:
+        license_id = 'uk-ogl'
+        is_wholely_identified = bool(len(licence_str) < 5)
+    else:
+        is_wholely_identified = None
+
+    return license_id, is_wholely_identified

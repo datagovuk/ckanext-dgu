@@ -14,6 +14,8 @@ from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
                                      get_resource_formats,
                                      dgu_format_icon,
                                      dgu_format_name,
+                                     detect_license_id,
+                                     linkify,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
@@ -310,3 +312,75 @@ class TestFormatName(object):
 
     def test_link_for_unknown_format(self):
         assert_equal(dgu_format_name('unknown'), 'unknown')
+
+
+class TestDetectLicenseId(object):
+    def test_blank(self):
+        assert_equal(detect_license_id(''), (None, None))
+
+    def test_not_ogl(self):
+        assert_equal(detect_license_id('Data is freely available for research or commercial use providing that the originators are acknowledged in any publications produced.'),
+                     (None, None))
+
+    def test_not_ogl2(self):
+        assert_equal(detect_license_id('bogl'),
+                     (None, None))
+
+    def test_ogl(self):
+        assert_equal(detect_license_id('Open Government Licence'),
+                     ('uk-ogl', True))
+
+    def test_ogl_mispelt(self):
+        assert_equal(detect_license_id('Open Government License'),
+                     ('uk-ogl', True))
+
+    def test_ogl_abbreviation(self):
+        assert_equal(detect_license_id('OGL Licence'),
+                     ('uk-ogl', False))
+
+    def test_ogl_abbreviation_in_parens(self):
+        assert_equal(detect_license_id('Some licence (OGL)'),
+                     ('uk-ogl', False))
+
+    def test_ogl_and_require_citation(self):
+        assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence): data is free to use for provided the source is acknowledged as specified in said document.'),
+                     ('uk-ogl', False))
+
+    def test_ogl_and_require_citation2(self):
+        assert_equal(detect_license_id('Released under the Open Government Licence (OGL), citation of publisher and online resource required on reuse.'),
+                     ('uk-ogl', False))
+
+    def test_ogl_with_other_url(self):
+        assert_equal(detect_license_id('By using this data you are accepting the terms of the Natural England-OS Open Government Licence (https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/391764/OGL-NE-OS.pdf). For further info contact Natural England (UK +44) 0 845 600 3900 enquiries@naturalengland.org.uk <https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/391764/OGL-NE-OS.pdf>'),
+                     ('uk-ogl', False))
+
+    def test_ogl_url(self):
+        assert_equal(detect_license_id('http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ne(self):
+        # should not really say it is OGL, but the slash and dash are seen as word boundaries
+        assert_equal(detect_license_id('https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/391764/OGL-NE-OS.pdf'),
+                     ('uk-ogl', False))
+
+
+class TestLinkify(object):
+    def test_no_link(self):
+        assert_equal(linkify('no link'), 'no link')
+
+    def test_just_a_link(self):
+        assert_equal(linkify('http://example.com/page.html'),
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>')
+
+    def test_link_in_text(self):
+        assert_equal(linkify('Hello http://example.com/page.html link'),
+                     'Hello '
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a> link')
+
+    def test_trailing_dot_excluded_from_link(self):
+        assert_equal(linkify('Hello http://example.com/page.html. link'),
+                     'Hello '
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>. link')

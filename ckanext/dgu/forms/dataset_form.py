@@ -196,7 +196,7 @@ class DatasetForm(p.SingletonPlugin):
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-from': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-to': [ignore_missing, unicode, convert_to_extras],
-            'access_constraints': [ignore_missing, unicode, convert_to_extras],
+            #'access_constraints': [ignore_missing, unicode, convert_to_extras],
             'groups': {
                 'name': [ignore_missing, validate_group_id_or_name_exists_if_not_blank, unicode],
                 'id': [ignore_missing, unicode],
@@ -277,7 +277,8 @@ class DatasetForm(p.SingletonPlugin):
             'sla': [ignore_missing, convert_to_extras],
 
             'license_id': [unicode],
-            'access_constraints': [ignore_missing, unicode],
+            'licence': [ignore_missing, unicode, convert_to_extras],
+            'licence_in_form': [ignore_missing, unicode],
 
             'tags': tags_schema(),
             'tag_string': [ignore_missing, val.tag_string_convert],

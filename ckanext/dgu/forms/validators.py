@@ -11,6 +11,7 @@ from ckan.lib.navl.dictization_functions import unflatten, Invalid, \
 from ckan import plugins as p
 
 from ckanext.dgu.lib.helpers import resource_type as categorise_resource
+from ckanext.dgu.lib import helpers as dgu_helpers
 
 
 def to_json(key, data, errors, context):
@@ -86,47 +87,58 @@ def populate_from_publisher_if_missing(key, data, errors, context):
         return
     data[key] = group.extras.get(field_name, None)
 
+
 def validate_license(key, data, errors, context):
     """
-    Validates the selected license options.
-
-    Validation rules must be true to validate:
-
-     license_id == ''                             => access_constraints != ''
-     license_id != '__extra__' ^ license_id != '' => access_constraints == ''
-
-    Additional transformations occur:
-
-     license_id == '__extra__' => licence_id := None
-     access_constraints != ''    => license_id := access_constraints
-     access_constraints is DROPPED
-
+    Validates and saves properly the selected license options.
     """
     # Unpublished data doesn't need a licence
     if p.toolkit.asbool(data.get(('unpublished',))):
         return
 
-    if data[('license_id',)]== '__extra__': # harvested dataset
-        data[('license_id',)] = None
-        return
-
-    license_id = bool(data[('license_id',)])
-    license_id_other = bool(data.get(('access_constraints',)))
-
-    if not (license_id ^ license_id_other):
-        if license_id:
-            # i.e. both license_id and access_constraints filled in
-            errors[('license_id',)] = ['Leave the "Access Constraints" box empty if '
-                                       'selecting a license from the list']
+    using_form = ('licence_in_form',) in data
+    if using_form:
+        licence = data.pop(('licence_in_form',))
+        license_id = data.get(('license_id',))
+        if license_id and license_id != '__other__':
+            # in the form, license_id takes priority over any value in the
+            # licence field
+            data[('licence',)] = None
         else:
-            # i.e. neither license_id nor access_constraints filled in
+            # in the form, user has selected 'other'. Transfer the value from
+            # 'licence_in_form'.
+            data[('licence',)] = licence
+
+    # 'licence' is free text to go to/from the extra.
+    # If there is a 'licence', set licence_id to any detected licence. (for
+    # harvested datasets which don't have the licence picker)
+    licence = data.get(('licence',))
+    if licence:
+        licence_bits = licence.split('; ')
+        overall_license_id = None
+        for licence_bit in licence_bits[:]:
+            license_id, is_wholely_identified = \
+                dgu_helpers.detect_license_id(licence_bit)
+            if license_id:
+                overall_license_id = license_id
+        if len(licence_bits) == 1 and is_wholely_identified:
+            licence_bits = []
+        data[('licence',)] = '; '.join(licence_bits)
+        data[('license_id',)] = overall_license_id
+
+    # Otherwise require a license_id
+    if not licence:
+        if not data.get(('license_id',)):
             errors[('license_id',)] = ['Please enter the access constraints.']
 
-    if not license_id and license_id_other:
-        data[('license_id',)] = data[('access_constraints',)]
-    if license_id_other:
-        del data[('access_constraints',)]
-    del errors[('access_constraints',)]
+    # Write the licence extra
+    licence = data.get(('licence',))
+    if licence:
+        data[('extras', 99, 'key')] = 'licence'
+        data[('extras', 99, 'value')] = licence
+
+    return
+
 
 def validate_resources(key, data, errors, context):
     """
