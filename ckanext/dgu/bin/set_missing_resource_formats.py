@@ -18,8 +18,15 @@ ds_stats = Stats()
 
 UPDATE_FORMATS = {
     'CSV / ZIP': 'CSV',  # legacy - we now drop mention of the zip
-    'XML': 'WFS',  # previously we set UKLP WFS resources as XML but we can detect WFS now
-    'XML': 'Atom Feed',
+    'XML': set((
+        'WFS',  # previously we set UKLP WFS resources as XML but we can detect WFS now
+        'Atom Feed',
+        'SHP',
+        'WCS',
+        'WMTS',
+        )),
+    'dBase': 'SHP',
+    'ZIP': 'SHP',
     }
 
 
@@ -88,7 +95,9 @@ class SetResourceFormatsCommand(object):
                     res_updated = self.update_resource_dict(
                         resource, qa_info, res_nice_name)
                 elif format_.upper() in UPDATE_FORMATS and \
-                        qa_info['format'] == UPDATE_FORMATS[format_.upper()]:
+                        (qa_info['format'] == UPDATE_FORMATS[format_.upper()]
+                         or
+                         qa_info['format'] in UPDATE_FORMATS[format_.upper()]):
                     res_updated = self.update_resource_dict(
                         resource, qa_info, res_nice_name)
                 else:
