@@ -1019,8 +1019,8 @@ link_regex = None
 def linkify(string):
     global link_regex
     if link_regex is None:
-        link_regex = re.compile(r'(https?://[^\s"]+?)(\.?($|\s))')
-    return Markup(link_regex.sub(r'<a href="\1" target="_blank">\1</a>\2', string))
+        link_regex = re.compile(r'(^|\s|\()(https?://[^\s"]+?)([\.;]?($|\s|\)))')
+    return Markup(link_regex.sub(r'\1<a href="\2" target="_blank">\2</a>\3', string))
 
 
 def get_licenses(pkg):

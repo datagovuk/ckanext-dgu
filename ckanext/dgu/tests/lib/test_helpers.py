@@ -342,6 +342,14 @@ class TestDetectLicenseId(object):
         assert_equal(detect_license_id('Some licence (OGL)'),
                      ('uk-ogl', False))
 
+    def test_ogl_url_in_parens(self):
+        assert_equal(detect_license_id('Some licence (http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)'),
+                     ('uk-ogl', False))
+
+    def test_ogl_url_with_trailing_semicolon(self):
+        assert_equal(detect_license_id('Some licence (http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/; More terms'),
+                     ('uk-ogl', False))
+
     def test_ogl_and_require_citation(self):
         assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence): data is free to use for provided the source is acknowledged as specified in said document.'),
                      ('uk-ogl', False))
@@ -384,3 +392,18 @@ class TestLinkify(object):
                      'Hello '
                      '<a href="http://example.com/page.html" target="_blank">'
                      'http://example.com/page.html</a>. link')
+
+    def test_trailing_semicolon_excluded_from_link(self):
+        # Semi-colons break up bits of licences harvested e.g. GEMINI
+        assert_equal(linkify('Hello http://example.com/page.html; link'),
+                     'Hello '
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>; link')
+
+    def test_brackets_excluded_from_link(self):
+        # Licences harvested from GEMINI will have anchors put in brackets like
+        # this
+        assert_equal(linkify('Hello (http://example.com/page.html) hello'),
+                     'Hello '
+                     '(<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>) hello')
