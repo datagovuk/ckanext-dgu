@@ -85,7 +85,7 @@ class LicenceTidy(object):
             # ast.literal_eval() is safer than eval()
             try:
                 licence_bits = ast.literal_eval(licence) or []
-            except ValueError:
+            except (ValueError, SyntaxError):
                 licence_bits = [licence]
         else:
             licence_bits = []
