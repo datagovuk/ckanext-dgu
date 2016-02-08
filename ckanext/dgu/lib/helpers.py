@@ -1030,11 +1030,14 @@ def get_licenses(pkg):
     licence = pkg.extras.get('licence') or ''
     if not licence.startswith('['):
         # new
-        if not licence:
+        if pkg.license_id and not licence:
             # just license_id
             licenses.append((pkg.license.title.split('::')[-1],
                              pkg.license.url,
                              pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
+        elif not licence:
+            # no licence at all
+            pass
         else:
             # licence and possibly license_id too
             if pkg.license_id == 'uk-ogl':

@@ -103,7 +103,7 @@ def validate_license(key, data, errors, context):
         if license_id and license_id != '__other__':
             # in the form, license_id takes priority over any value in the
             # licence field
-            data[('licence',)] = None
+            data[('licence',)] = ''
         else:
             # in the form, user has selected 'other'. Transfer the value from
             # 'licence_in_form'.
@@ -112,7 +112,7 @@ def validate_license(key, data, errors, context):
     # 'licence' is free text to go to/from the extra.
     # If there is a 'licence', set licence_id to any detected licence. (for
     # harvested datasets which don't have the licence picker)
-    licence = data.get(('licence',))
+    licence = data.get(('licence',), '')
     if licence:
         licence_bits = licence.split('; ')
         overall_license_id = None
@@ -129,13 +129,17 @@ def validate_license(key, data, errors, context):
     # Otherwise require a license_id
     if not licence:
         if not data.get(('license_id',)):
-            errors[('license_id',)] = ['Please enter the access constraints.']
+            errors[('license_id',)] = ['Please provide a licence.']
+
+    # Null values
+    data[('license_id',)] = data.get(('license_id',)) or ''
 
     # Write the licence extra
     licence = data.get(('licence',))
     if licence:
         data[('extras', 99, 'key')] = 'licence'
         data[('extras', 99, 'value')] = licence
+        del data[('licence',)]
 
     return
 
