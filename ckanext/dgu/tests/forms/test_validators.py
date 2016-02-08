@@ -459,7 +459,7 @@ class TestValidateLicense:
 
     def test_form_free_text(self):
         self.check('__other__', 'Free form', True,
-                   {('license_id',): '',
+                   {('license_id',): None,
                     ('extras', 99, 'key'): 'licence',
                     ('extras', 99, 'value'): 'Free form'},
                    {('license_id',): None})
@@ -478,7 +478,7 @@ class TestValidateLicense:
 
     def test_form_blank(self):
         self.check('', '', True,
-                   {('license_id',): '', ('licence',): ''},
+                   {('license_id',): None, ('licence',): ''},
                    {('license_id',): ['Please provide a licence.']})
 
     def test_api_license_id(self):
@@ -489,7 +489,7 @@ class TestValidateLicense:
     def test_api_free_text(self):
         # With the API, if you specify a licence then license_id gets ignored
         self.check('ignored', 'Free form', False,
-                   {('license_id',): '',
+                   {('license_id',): None,
                     ('extras', 99, 'key'): 'licence',
                     ('extras', 99, 'value'): 'Free form'},
                    {('license_id',): None})

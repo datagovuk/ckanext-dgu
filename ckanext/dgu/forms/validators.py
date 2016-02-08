@@ -131,8 +131,8 @@ def validate_license(key, data, errors, context):
         if not data.get(('license_id',)):
             errors[('license_id',)] = ['Please provide a licence.']
 
-    # Null values
-    data[('license_id',)] = data.get(('license_id',)) or ''
+    # If no license_id, it should be None
+    data[('license_id',)] = data.get(('license_id',)) or None
 
     # Write the licence extra
     licence = data.get(('licence',))
