@@ -78,7 +78,8 @@ class SetResourceFormatsCommand(object):
 
                 qa_info = resource.get('qa')
                 if not qa_info:
-                    res_stats.add('QA not run yet on this resource', res_nice_name)
+                    res_stats.add('QA not run yet on this resource',
+                                  res_nice_name)
                     continue
                 try:
                     qa_info = eval(qa_info)
@@ -122,13 +123,16 @@ class SetResourceFormatsCommand(object):
                 if options.write:
                     try:
                         self.ckan.action.package_update(**pkg)
+                        ds_stats.add('Dataset updated', pkg['name'])
                     except ValidationError, ve:
-                        print ds_stats.add('Validation error on update', pkg['name'])
+                        print ds_stats.add('Validation error on update',
+                                           pkg['name'])
                         print ve
                     except IntegrityError:
-                        print ds_stats.add('Integrity error on update', pkg['name'])
+                        print ds_stats.add('Integrity error on update',
+                                           pkg['name'])
                 else:
-                    ds_stats.add('Package would be updated', pkg['name'])
+                    ds_stats.add('Dataset would be updated', pkg['name'])
             else:
                 ds_stats.add('No change', pkg['name'])
         print '\nResources:\n', res_stats.report(show_time_taken=True)
