@@ -316,15 +316,15 @@ class TestFormatName(object):
 
 class TestDetectLicenseId(object):
     def test_blank(self):
-        assert_equal(detect_license_id(''), (None, None))
+        assert_equal(detect_license_id(''), ('', None))
 
     def test_not_ogl(self):
         assert_equal(detect_license_id('Data is freely available for research or commercial use providing that the originators are acknowledged in any publications produced.'),
-                     (None, None))
+                     ('', None))
 
     def test_not_ogl2(self):
         assert_equal(detect_license_id('bogl'),
-                     (None, None))
+                     ('', None))
 
     def test_ogl(self):
         assert_equal(detect_license_id('Open Government Licence'),

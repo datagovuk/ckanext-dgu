@@ -77,7 +77,7 @@ class LicenceTidy(object):
 
     def get_tidied_dataset(self, dataset):
         is_dataset_updated = False
-        license_id = dataset['license_id']
+        license_id = dataset['license_id'] or ''
         extras = dict((extra['key'], extra['value'])
                       for extra in dataset['extras'])
         licence = extras.get('licence') or ''

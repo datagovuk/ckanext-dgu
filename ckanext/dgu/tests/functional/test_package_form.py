@@ -289,7 +289,7 @@ class TestPackageForm(DguFunctionalTestBase):
 
         pkg = self._submit_to_save(form, name, app, env)
         assert_equal(pkg.extras['licence'], value)
-        assert_equal(pkg.license_id, None)
+        assert_equal(pkg.license_id, '')
 
         form = self._edit_dataset(env, app, name)
         assert_equal(form['license_id'].value, '__other__')

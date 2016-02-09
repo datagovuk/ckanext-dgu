@@ -34,14 +34,14 @@ class TestTidy(object):
     def test_form_free_text(self):
         self._try_fields(
             {'license_id': 'Supplied under section 47 and 50 of the Copyright, Designs and Patents Act 1988 and Schedule 1 of the Database Regulations (SI 1997/3032)'},
-            {'license_id': None,
+            {'license_id': '',
              'licence': 'Supplied under section 47 and 50 of the Copyright, Designs and Patents Act 1988 and Schedule 1 of the Database Regulations (SI 1997/3032)'}
             )
 
     def test_ckan_harvest_new_id(self):
         self._try_fields(
             {'license_id': 'uk-ogl3'},
-            {'license_id': None,
+            {'license_id': '',
              'licence': 'uk-ogl3'}
             )
 
@@ -56,14 +56,14 @@ class TestTidy(object):
         self._try_fields(
             {'license_id': None,
              'licence': ''},
-            {'license_id': None}
+            {'license_id': ''}
             )
 
     def test_inspire_free_text(self):
         self._try_fields(
             {'license_id': None,
              'licence': "['License available']"},
-            {'license_id': None,
+            {'license_id': '',
              'licence': "License available"},
             )
 
@@ -71,7 +71,7 @@ class TestTidy(object):
         self._try_fields(
             {'license_id': None,
              'licence': "['Copyright', 'Licence', 'IPR', 'Restricted']"},
-            {'license_id': None,
+            {'license_id': '',
              'licence': "Copyright; Licence; IPR; Restricted"},
             )
 
@@ -80,7 +80,7 @@ class TestTidy(object):
             {'license_id': None,
              'licence': "['License available', 'Good']",
              'licence_url': 'http://license.com/terms.html'},
-            {'license_id': None,
+            {'license_id': '',
              'licence': 'License available; Good; http://license.com/terms.html'},
             )
 
@@ -89,7 +89,7 @@ class TestTidy(object):
             {'license_id': None,
              'licence': "['License available', 'Good', 'http://license.com/terms2.html']",
              'licence_url': 'http://license.com/terms1.html'},
-            {'license_id': None,
+            {'license_id': '',
              'licence': 'License available; Good; http://license.com/terms2.html; http://license.com/terms1.html'},
             )
 
@@ -99,7 +99,7 @@ class TestTidy(object):
              'licence': "['License available', 'Good', 'http://license.com/terms2.html']",
              'licence_url': 'http://license.com/terms1.html',
              'licence_url_title': 'The terms'},
-            {'license_id': None,
+            {'license_id': '',
              'licence': 'License available; Good; http://license.com/terms2.html; The terms - http://license.com/terms1.html'},
             )
 
@@ -109,6 +109,6 @@ class TestTidy(object):
              'licence': "",
              'licence_url': 'http://license.com/terms.html',
              'licence_url_title': 'The terms'},
-            {'license_id': None,
+            {'license_id': '',
              'licence': 'The terms - http://license.com/terms.html'},
             )
