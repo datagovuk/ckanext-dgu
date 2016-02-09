@@ -2291,7 +2291,7 @@ def detect_license_id(licence_str):
 
     :returns (license_id, is_wholely_identified)
     '''
-    license_id = None
+    license_id = ''
 
     global licence_regexes
     if licence_regexes is None:

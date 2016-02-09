@@ -61,6 +61,7 @@ class LicenceTidy(object):
                 if options.write:
                     try:
                         self.ckan.action.package_update(**dataset)
+                        print stats.add('Dataset updated', dataset['name'])
                     except ValidationError, ve:
                         print stats.add('Validation error on update',
                                         dataset['name'])
@@ -69,12 +70,13 @@ class LicenceTidy(object):
                         print stats.add('Integrity error on update',
                                         dataset['name'])
                 else:
-                    stats.add('Package would be updated', dataset['name'])
+                    stats.add('Dataset would be updated', dataset['name'])
             else:
                 stats.add('No change', dataset['name'])
         print '\nDatasets:\n', stats.report(show_time_taken=True)
 
     def get_tidied_dataset(self, dataset):
+        is_dataset_updated = False
         license_id = dataset['license_id']
         extras = dict((extra['key'], extra['value'])
                       for extra in dataset['extras'])
@@ -85,6 +87,7 @@ class LicenceTidy(object):
             # ast.literal_eval() is safer than eval()
             try:
                 licence_bits = ast.literal_eval(licence) or []
+                is_dataset_updated = True
             except (ValueError, SyntaxError):
                 licence_bits = [licence]
         else:
@@ -114,17 +117,22 @@ class LicenceTidy(object):
             ckan_license_ids = [l['id'] for l in ckan_licenses]
         if license_id and license_id not in ckan_license_ids:
             licence_bits.append(license_id)
-            license_id = None
+            license_id = ''
 
         # licence is str not JSON-like list
         licence = '; '.join(licence_bits) or None
 
         # update the dataset fields
         updated_dataset = copy.deepcopy(dataset)
-        is_dataset_updated = False
         if license_id != updated_dataset['license_id']:
+            # don't mark it as an update if only changing the license from ''
+            # to None as this will not be saved on package_update if it is the
+            # only thing
+            if (updated_dataset['license_id'] and
+                    updated_dataset['license_id'] != 'None' and
+                    license_id):
+                is_dataset_updated = True
             updated_dataset['license_id'] = license_id
-            is_dataset_updated = True
         if extras.get('licence') != licence:
             if licence:
                 set_extra(updated_dataset, 'licence', licence)
