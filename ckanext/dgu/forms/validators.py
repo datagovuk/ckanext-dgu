@@ -108,11 +108,26 @@ def validate_license(key, data, errors, context):
             # in the form, user has selected 'other'. Transfer the value from
             # 'licence_in_form'.
             data[('licence',)] = licence
+    elif ('licence',) in data:
+        # licence may be as a key on its own
+        licence = data.get(('licence',), '')
+    else:
+        # licence may be in an extra e.g.
+        #   (u'extras', 14, u'key'): u'licence',
+        #   (u'extras', 14, u'value'): u'Use limitation; Copyright;',
+        i = 0
+        licence = ''
+        while True:
+            if ('extras', i, 'key') not in data:
+                break
+            if data[('extras', i, 'key')] == 'licence':
+                licence = data.get(('extras', i, 'value'), '')
+                break
+            i += 1
 
     # 'licence' is free text to go to/from the extra.
     # If there is a 'licence', set licence_id to any detected licence. (for
     # harvested datasets which don't have the licence picker)
-    licence = data.get(('licence',), '')
     if licence:
         data[('license_id',)], data[('licence',)] = \
             dgu_helpers.get_licence_fields_from_free_text(licence)
