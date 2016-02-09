@@ -115,15 +115,7 @@ def validate_license(key, data, errors, context):
         # licence may be in an extra e.g.
         #   (u'extras', 14, u'key'): u'licence',
         #   (u'extras', 14, u'value'): u'Use limitation; Copyright;',
-        i = 0
-        licence = ''
-        while True:
-            if ('extras', i, 'key') not in data:
-                break
-            if data[('extras', i, 'key')] == 'licence':
-                licence = data.get(('extras', i, 'value'), '')
-                break
-            i += 1
+        licence = _get_extra(data, 'licence', fallback='')
 
     # 'licence' is free text to go to/from the extra.
     # If there is a 'licence', set licence_id to any detected licence. (for
@@ -132,10 +124,12 @@ def validate_license(key, data, errors, context):
         data[('license_id',)], data[('licence',)] = \
             dgu_helpers.get_licence_fields_from_free_text(licence)
 
-    # Otherwise require a license_id
+    # Require some for of licence, unless this is a UKLP dataset
     if not licence:
         if not data.get(('license_id',)):
-            errors[('license_id',)] = ['Please provide a licence.']
+            uklp = _get_extra(data, 'UKLP')
+            if not uklp:
+                errors[('license_id',)] = ['Please provide a licence.']
 
     # If no license_id, it should be '' because of the 'unicode' validator,
     # otherwise if it is None it saves as u'None'.
@@ -151,6 +145,16 @@ def validate_license(key, data, errors, context):
         del data[('licence',)]
 
     return
+
+
+def _get_extra(data, key, fallback=None):
+    i = 0
+    while True:
+        if ('extras', i, 'key') not in data:
+            return None
+        if data[('extras', i, 'key')] == key:
+            return data.get(('extras', i, 'value'), fallback)
+        i += 1
 
 
 def validate_resources(key, data, errors, context):
