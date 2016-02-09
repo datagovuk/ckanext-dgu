@@ -45,6 +45,13 @@ class LicenceTidy(object):
                                  dataset.get('timeseries_resources', []) +
                                  dataset.get('additional_resources', [])):
                     del resource['revision_id']
+                    # some resources got in (dcat harvester) with a name
+                    # instead of a description. This fails validation, so swap
+                    # it
+                    if not resource['description'] and resource['name']:
+                        resource['description'] = resource['name']
+                        resource['name'] = ''
+
                 # Removing the codelist or schema here does NOT remove it
                 # during package_update as they are in the extras Removing
                 # last_major_modification - legacy field

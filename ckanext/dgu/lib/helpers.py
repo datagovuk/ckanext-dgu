@@ -1028,7 +1028,8 @@ def get_licenses(pkg):
     licenses = []  # [(title, url, isopen, isogl), ... ]
 
     licence = pkg.extras.get('licence') or ''
-    if not licence.startswith('['):
+    if not licence.startswith('[') and (not pkg.license_id or
+                                        pkg.license is not None):
         # new
         if pkg.license_id and not licence:
             # just license_id
