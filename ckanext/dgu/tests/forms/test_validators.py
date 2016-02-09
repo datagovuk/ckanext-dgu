@@ -454,7 +454,7 @@ class TestValidateLicense:
 
     def test_form_dropdown(self):
         self.check('uk-ogl', '', True,
-                   {('license_id',): 'uk-ogl', ('licence',): ''},
+                   {('license_id',): 'uk-ogl'},
                    {('license_id',): None, })
 
     def test_form_free_text(self):
@@ -471,19 +471,26 @@ class TestValidateLicense:
                     ('extras', 99, 'value'): 'OGL and other terms'},
                    {('license_id',): None})
 
+    def test_form_ogl_detected_as_part_in_uklp_list(self):
+        self.check('__other__', 'OGL; Other terms', True,
+                   {('license_id',): 'uk-ogl',
+                    ('extras', 99, 'key'): 'licence',
+                    ('extras', 99, 'value'): 'OGL; Other terms'},
+                   {('license_id',): None})
+
     def test_form_ogl_detected_in_whole(self):
         self.check('__other__', 'OGL', True,
-                   {('license_id',): 'uk-ogl', ('licence',): ''},
+                {('license_id',): 'uk-ogl'},
                    {('license_id',): None, })
 
     def test_form_blank(self):
         self.check('', '', True,
-                   {('license_id',): '', ('licence',): ''},
+                   {('license_id',): ''},
                    {('license_id',): ['Please provide a licence.']})
 
     def test_api_license_id(self):
         self.check('uk-ogl', '', False,
-                   {('license_id',): 'uk-ogl', ('licence',): ''},
+                   {('license_id',): 'uk-ogl'},
                    {('license_id',): None, })
 
     def test_api_free_text(self):

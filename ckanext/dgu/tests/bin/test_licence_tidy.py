@@ -52,6 +52,14 @@ class TestTidy(object):
             {'license_id': 'uk-ogl'}
             )
 
+    def test_inspire_ogl_as_part(self):
+        self._try_fields(
+            {'license_id': None,
+             'licence': '[\"Open Government Licence\", \"Other terms\"]'},
+            {'license_id': 'uk-ogl',
+             'licence': 'Open Government Licence; Other terms'}
+            )
+
     def test_inspire_nothing(self):
         self._try_fields(
             {'license_id': None,

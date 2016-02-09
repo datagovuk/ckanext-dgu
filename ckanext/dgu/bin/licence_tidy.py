@@ -103,13 +103,6 @@ class LicenceTidy(object):
         elif anchor_title:
             licence_bits.append('%s' % anchor_title)
 
-        # detect if OGL is in there
-        for licence_bit in licence_bits[:]:
-            license_id, is_wholely_identified = \
-                dgu_helpers.detect_license_id(licence_bit)
-            if is_wholely_identified:
-                licence_bits.remove(licence_bit)
-
         # free text in license_id moved to licence
         global ckan_license_ids
         if not ckan_license_ids:
@@ -121,6 +114,11 @@ class LicenceTidy(object):
 
         # licence is str not JSON-like list
         licence = '; '.join(licence_bits) or None
+
+        # detect if OGL is in there
+        if licence:
+            license_id, licence = \
+                dgu_helpers.get_licence_fields_from_free_text(licence)
 
         # update the dataset fields
         updated_dataset = copy.deepcopy(dataset)

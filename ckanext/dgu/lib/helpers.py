@@ -2283,6 +2283,22 @@ def get_issue_count(pkg_id):
     return 10
 
 
+def get_licence_fields_from_free_text(licence_str):
+    '''Using a free text licence (e.g. harvested), this func returns license_id
+    and licence extra ready to be saved to the dataset dict. It returns a blank
+    licence if it is wholely expressed by the license_id.
+
+    return (license_id, licence)
+    '''
+    license_id, is_wholely_identified = \
+        detect_license_id(licence_str)
+    if license_id and is_wholely_identified:
+        licence = None
+    else:
+        licence = licence_str
+    return (license_id, licence)
+
+
 licence_regexes = None
 
 

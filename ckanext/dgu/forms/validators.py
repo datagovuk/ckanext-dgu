@@ -114,17 +114,8 @@ def validate_license(key, data, errors, context):
     # harvested datasets which don't have the licence picker)
     licence = data.get(('licence',), '')
     if licence:
-        licence_bits = licence.split('; ')
-        overall_license_id = None
-        for licence_bit in licence_bits[:]:
-            license_id, is_wholely_identified = \
-                dgu_helpers.detect_license_id(licence_bit)
-            if license_id:
-                overall_license_id = license_id
-        if len(licence_bits) == 1 and is_wholely_identified:
-            licence_bits = []
-        data[('licence',)] = '; '.join(licence_bits)
-        data[('license_id',)] = overall_license_id
+        data[('license_id',)], data[('licence',)] = \
+            dgu_helpers.get_licence_fields_from_free_text(licence)
 
     # Otherwise require a license_id
     if not licence:
@@ -141,7 +132,7 @@ def validate_license(key, data, errors, context):
     if licence:
         data[('extras', 99, 'key')] = 'licence'
         data[('extras', 99, 'value')] = licence
-        del data[('licence',)]
+    del data[('licence',)]
 
     return
 
