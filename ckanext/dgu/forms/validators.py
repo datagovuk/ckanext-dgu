@@ -132,7 +132,8 @@ def validate_license(key, data, errors, context):
     if licence:
         data[('extras', 99, 'key')] = 'licence'
         data[('extras', 99, 'value')] = licence
-    del data[('licence',)]
+    if ('licence',) in data:
+        del data[('licence',)]
 
     return
 
