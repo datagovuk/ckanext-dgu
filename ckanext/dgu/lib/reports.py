@@ -710,31 +710,19 @@ def licence_report(organization=None, include_sub_organizations=False):
     packages_by_licence = collections.defaultdict(list)
     rows = []
     for pkg in pkgs:
-        licence = None
-        if pkg.license:
-            licence = pkg.license.title
-        elif pkg.license_id and pkg.license_id != 'None':
-            licence = pkg.license_id
-        elif 'licence' in pkg.extras:
-            licence = pkg.extras['licence']
-            # UKLP datasets have this as a list that gets json encoded
-            try:
-                licence = '; '.join(json.loads(pkg.extras['licence']))
-            except ValueError:
-                pass
-        licence_url = pkg.extras.get('licence_url')
-        if licence_url:
-            if licence:
-                licence += ' <%s>' % licence_url
-            else:
-                licence = licence_url
-        packages_by_licence[licence].append((pkg.name, pkg.title))
+        licence_tuple = (pkg.license_id or '',
+                         pkg.license.title if pkg.license else '',
+                         pkg.extras.get('licence', ''))
+        packages_by_licence[licence_tuple].append((pkg.name, pkg.title))
 
-    for licence, dataset_tuples in sorted(packages_by_licence.items(),
-                                          key=lambda x: -len(x[1])):
+    for licence_tuple, dataset_tuples in sorted(packages_by_licence.items(),
+                                                key=lambda x: -len(x[1])):
+        license_id, license_title, licence = licence_tuple
         dataset_tuples.sort(key=lambda x: x[0])
         dataset_names, dataset_titles = zip(*dataset_tuples)
         licence_dict = OrderedDict((
+            ('license_id', license_id),
+            ('license_title', license_title),
             ('licence', licence),
             ('dataset_titles', '|'.join(t for t in dataset_titles)),
             ('dataset_names', ' '.join(dataset_names)),

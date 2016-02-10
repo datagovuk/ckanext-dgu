@@ -4,16 +4,18 @@
 </ul>
 
 <table class="table table-bordered table-condensed" id="report-table" style="width: 100%; table-layout: fixed;">
-<thead>
+  <thead>
     <tr class="js-tooltip">
-    <th style="width: 200px">Licence</th>
+    <th style="width: 150px">data.gov.uk standard licence</th>
+    <th style="width: 400px">Custom terms</th>
     <th style="">Datasets</th>
     </tr>
-</thead>
-<tbody style="word-wrap: break-word;">
+  </thead>
+  <tbody style="word-wrap: break-word;">
     {% for row_dict in data['table'] %}
     <tr>
-    <td>{{row_dict['licence'] or '(None)'}}</td>
+    <td>{{row_dict['license_title']}} {% if not row_dict['license_title'] and row_dict['licence'] %}(Custom){% endif %}</td>
+    <td>{{row_dict['licence']}}</td>
     <td>
       {% set names = row_dict['dataset_names'].split() %}
       {% set titles = row_dict['dataset_titles'].split('|') %}
@@ -28,5 +30,5 @@
     </td>
     </tr>
     {% endfor %}
-</tbody>
+  </tbody>
 </table>

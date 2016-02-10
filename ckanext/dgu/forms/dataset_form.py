@@ -176,27 +176,25 @@ class DatasetForm(p.SingletonPlugin):
     def form_to_db_schema_options(self, context):
         '''Returns the schema for the customized DGU form.'''
         schema = self.form_to_db_schema()
-        # Sysadmins can save UKLP datasets with looser validation
-        # constraints.  This is because UKLP datasets are created using
-        # a custom schema passed in from the harvester.  However, when it
-        # comes to re-saving the dataset via the dataset form, there are
-        # some validation requirements we need to drop.  That's what this
-        # section of code does.
+        # UKLP datasets have looser validation constraints.  This is because
+        # UKLP datasets are created using a custom schema passed in from the
+        # harvester.  However, when it comes to re-saving the dataset via the
+        # dataset form or API, there are some validation requirements we need
+        # to drop.  That's what this section of code does.
         pkg = context.get('package')
-        if dgu_helpers.is_sysadmin_by_context(context) and \
-           pkg and pkg.extras.get('UKLP') == 'True':
-            self._uklp_sysadmin_schema_updates(schema)
+        if pkg and pkg.extras.get('UKLP') == 'True':
+            self._uklp_schema_updates(schema)
         if pkg and pkg.extras.get('external_reference') == 'ONSHUB':
             self._ons_schema_updates(schema)
         return schema
 
-    def _uklp_sysadmin_schema_updates(self, schema):
+    def _uklp_schema_updates(self, schema):
         schema.update(
           {
+            'notes': [ignore_missing, unicode],
             'theme-primary': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-from': [ignore_missing, unicode, convert_to_extras],
             'temporal_coverage-to': [ignore_missing, unicode, convert_to_extras],
-            'access_constraints': [ignore_missing, unicode, convert_to_extras],
             'groups': {
                 'name': [ignore_missing, validate_group_id_or_name_exists_if_not_blank, unicode],
                 'id': [ignore_missing, unicode],
@@ -207,6 +205,7 @@ class DatasetForm(p.SingletonPlugin):
                           'timeseries_resources',
                           'individual_resources'):
             schema[resources]['format'] = [unicode]  # i.e. optional
+        # in addition to these, validate_license() allows no licence
 
     def _ons_schema_updates(self, schema):
         schema.update(
@@ -277,7 +276,8 @@ class DatasetForm(p.SingletonPlugin):
             'sla': [ignore_missing, convert_to_extras],
 
             'license_id': [unicode],
-            'access_constraints': [ignore_missing, unicode],
+            'licence': [ignore_missing, unicode, convert_to_extras],
+            'licence_in_form': [ignore_missing, unicode],
 
             'tags': tags_schema(),
             'tag_string': [ignore_missing, val.tag_string_convert],

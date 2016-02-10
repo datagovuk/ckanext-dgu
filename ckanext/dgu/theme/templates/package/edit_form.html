@@ -458,7 +458,6 @@ Passed in:
 </fieldset>
 
 <fieldset class="tab-pane boxed whitebox fade form-inline" id="section-licence-field">
-  {% set licence_extra = extras.get('licence') %}
   <h3>Licence</h3>
     <div class="form-group">
     <label for="license_id">Licence:</label>
@@ -471,23 +470,23 @@ Passed in:
                user are an OGL license; a free-text non-OGL license; and the
                dataset's current license (edit form only).
 
-            2. An edit form with a license in the extra fields: this is a
-               harvested dataset.
+            2. An edit form with a "licence" in the extra fields and optionally a
+               license_id too (derived from the licence): this is a harvested dataset.
 
-            * license_extra implies an edit form with a license in the
+            * license_extra implies an edit form with a "licence" in the
               extra fields.  i.e. a harvested license.
      #}
-      {% for license_id, license_desc in h.license_choices(data) %}
-        <option value="{{license_id}}" {% if data.get('license_id', 'uk-ogl') == license_id %}selected="selected"{% endif %}>{{license_desc}}</option>
+      {# when a form is first displayed, the licence_extra value is in the extras. If there is a validation error, then get the licence value from the 'licence_in_form' instead. #}
+      {% set licence_extra = data.get('licence_in_form', '') if 'licence_in_form' in data else extras.get('licence', '') %}
+      {% set license_id = data.get('license_id', 'uk-ogl') if not licence_extra else '__other__' %}
+      {% for option_license_id, license_desc in h.license_choices(data) %}
+        <option value="{{option_license_id}}" {% if license_id == option_license_id %}selected="selected"{% endif %}>{{license_desc}}</option>
       {% endfor %}
 
-      {% if licence_extra %}
-        <option value="__extra__" selected="selected">Harvested license...</option>
-      {% endif %}
+      <option value="__other__" {% if licence_extra %}selected="selected"{% endif %}>
+        Specify other..
+      </option>
 
-      {% if not licence_extra %}
-      <option value="" {% if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) %}selected="selected"{% endif %}>Specify other...</option>
-      {% endif %}
     </select>
   </div>
   <p class="instructions basic">The licence under which the dataset is released.</p>
@@ -496,13 +495,13 @@ Passed in:
 
     <div class="form-group choose-other-licence">
       <label for="license_extra">Licence (other):</label>
-      {% if not licence_extra %}
-      <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="access_constraints">{{data.get('access_constraints', '') if data.get('access_constraints', '') else (data.get('license_id', 'uk-ogl') if (data.get('license_id', 'uk-ogl') not in h.get_ckan_licenses()) else '')}}</textarea>
-      {% endif %}
-      {% if licence_extra %}
-      <textarea class="form-control" rows="1" cols="60" id="access_constraints" name="license_extra" disabled="disabled">{{ licence_extra }}</textarea>
-      <input class="form-control" rows="10" cols="60" id="actual_access_constraints" name="access_constraints" type="hidden" value="{{extras.get('access_constraints','')}}"/>
-      {% endif %}
+      {#
+        We name the field "licence_in_form" instead of "licence", even though
+        it is the "licence" extra, because the validator (validate_license)
+        needs to differentiate between the value coming from the form and from
+        the API.
+      #}
+      <textarea class="form-control" rows="1" cols="60" id="licence_in_form" name="licence_in_form">{{licence_extra}}</textarea>
     </div>
     {{ m.display_error(errors, 'license_id', True) }}
 </fieldset>
