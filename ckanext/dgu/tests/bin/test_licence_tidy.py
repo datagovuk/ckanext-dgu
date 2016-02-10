@@ -45,6 +45,14 @@ class TestTidy(object):
              'licence': 'uk-ogl3'}
             )
 
+    def test_none_string(self):
+        self._try_fields(
+            {'license_id': 'None',
+             'licence': "['License available']"},
+            {'license_id': '',
+             'licence': "License available"},
+            )
+
     def test_inspire_just_ogl(self):
         self._try_fields(
             {'license_id': None,
@@ -75,7 +83,7 @@ class TestTidy(object):
              'licence': "License available"},
             )
 
-    def itest_inspire_multiple_text(self):
+    def test_inspire_multiple_text(self):
         self._try_fields(
             {'license_id': None,
              'licence': "['Copyright', 'Licence', 'IPR', 'Restricted']"},

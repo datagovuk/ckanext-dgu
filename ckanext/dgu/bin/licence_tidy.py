@@ -115,7 +115,8 @@ class LicenceTidy(object):
         if not ckan_license_ids:
             ckan_licenses = self.ckan.action.license_list()
             ckan_license_ids = [l['id'] for l in ckan_licenses]
-        if license_id and license_id not in ckan_license_ids:
+        if license_id and license_id not in ckan_license_ids and \
+                license_id != 'None':
             licence_bits.append(license_id)
             license_id = ''
 
