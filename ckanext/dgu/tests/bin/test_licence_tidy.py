@@ -83,6 +83,14 @@ class TestTidy(object):
              'licence': "License available"},
             )
 
+    def test_inspire_unicode(self):
+        self._try_fields(
+            {'license_id': None,
+             'licence': '[\"Public Sector End User Licence \\u2013 INSPIRE\"]'},
+            {'license_id': '',
+             'licence': 'Public Sector End User Licence ? INSPIRE'},
+            )
+
     def test_inspire_multiple_text(self):
         self._try_fields(
             {'license_id': None,

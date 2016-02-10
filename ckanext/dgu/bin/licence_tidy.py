@@ -10,6 +10,7 @@ https://github.com/datagovuk/ckanext-dgu/issues/348
 import ast
 from optparse import OptionParser
 import copy
+import re
 
 from sqlalchemy.exc import IntegrityError
 
@@ -20,6 +21,9 @@ from running_stats import Stats
 
 stats = Stats()
 ckan_license_ids = None
+
+
+mangled_unicode_re = re.compile(r'\\u\d{4,6}')
 
 
 class LicenceTidy(object):
@@ -122,6 +126,10 @@ class LicenceTidy(object):
 
         # licence is str not JSON-like list
         licence = '; '.join(licence_bits) or None
+
+        # deal with mangled unicode
+        if licence:
+            licence = mangled_unicode_re.sub(r'?', licence)
 
         # detect if OGL is in there
         if licence:
