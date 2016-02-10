@@ -2317,7 +2317,7 @@ def detect_license_id(licence_str):
             re.compile('open government licen[sc]e', re.IGNORECASE),
             re.compile(r'\b\(ogl\)\b', re.IGNORECASE),
             re.compile(r'\bogl\b', re.IGNORECASE),
-            re.compile(r'<?https?\:\/\/www.nationalarchives\.gov\.uk\/doc\/open-government-licence[^\s]+'),
+            re.compile(r'<?https?\:\/\/www.nationalarchives\.gov\.uk\/doc\/open-government-licence[^\s]*'),
             re.compile(r'<?http\:\/\/www.ordnancesurvey\.co\.uk\/oswebsite\/docs\/licences\/os-opendata-licence.pdf'),  # because it redirects to OGL now
             ]
         licence_regexes['ogl-detritus'] = re.compile(

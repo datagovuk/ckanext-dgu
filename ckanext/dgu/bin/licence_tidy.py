@@ -66,6 +66,9 @@ class LicenceTidy(object):
                 if 'tags' in dataset and dataset['tags']:
                     newtags = []
                     for t in dataset['tags']:
+                        if u'\u2014' in t['name']:
+                            # unicode doesn't validate so bin it
+                            continue
                         newtags.append({'name': t['name']})
 
                     dataset['tags'] = newtags
