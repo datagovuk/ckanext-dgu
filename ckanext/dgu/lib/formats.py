@@ -1,5 +1,52 @@
 '''A directory of file formats and their properties'''
 
+ICON_MAP = None
+
+
+def get_icon(format_):
+    global ICON_MAP
+    if ICON_MAP is None:
+        ICON_MAP = dict((
+            # Format, icon
+            # Where:
+            # * format is canonical format from resource_formats.json
+            # * icon is in ckanext/dgu/theme/src/images/fugue/
+            ('HTML', 'globe--arrow'),
+            ('JPEG', 'image'),
+            ('TIFF', 'image'),
+            ('Database', 'database-sql'),
+            ('API', 'server-cloud'),
+            ('TXT', 'document-text'),
+            ('PDF', 'document-pdf'),
+            ('RTF', 'document-word'),
+            ('Zip', 'folder-zipper'),
+            #'Torrent'
+            ('DOC', 'document-word'),
+            ('ODT', 'document-word'),
+            ('PPT', 'document-powerpoint'),
+            ('ODP', 'document-powerpoint'),
+            ('XLS', 'document-excel'),
+            ('SHP', 'globe-model'),
+            ('CSV', 'document-invoice'),
+            ('PSV', 'document-invoice'),
+            ('TSV', 'document-invoice'),
+            ('JSON', 'document-node'),
+            ('XML', 'document-code'),
+            ('RSS', 'feed-document'),
+            ('ODS', 'document-excel'),
+            ('WMS', 'globe-model'),
+            ('KML', 'globe-model'),
+            #'NetCDF',
+            ('IATI', 'document-code'),
+            ('iCalendar', 'calendar-day'),
+            ('RDF', 'document-rdf'),
+            ('RDFa', 'document-rdf'),
+            ('SPARQL', 'document-rdf'),
+            ('SPARQL web form', 'document-rdf'),
+            ('OWL', 'document-rdf'),
+        ))
+    return ICON_MAP.get(format_)
+
 import re
 
 class Formats(object):
@@ -91,9 +138,7 @@ class Formats(object):
                 ('Database', ('database','sql'), (), (), 0, 'database-sql'),
                 ('API', ('api',), (), (), 0, 'server-cloud'),
                 ('TXT', (), ('txt',), ('text/plain',), 1, 'document-text'),
-                ('TXT / Zip', (), ('txt.zip',), (), 1, 'document-text'),
                 ('PDF', (), ('pdf',), ('application/pdf',), 1, 'document-pdf'),
-                ('PDF / Zip', (), ('pdf.zip',), (), 1, 'document-pdf'),
                 ('RTF', (), ('rtf',), ('application/rtf',), 1, 'document-word'),
                 ('Zip', (), ('zip',), ('application/x-zip', 'application/x-compressed', 'application/x-zip-compressed', 'application/zip', 'multipart/x-zip', 'application/x-gzip'), 1, 'folder-zipper'),
                 ('Torrent', (), ('torrent',), ('application/x-bittorrent',), 1, ''),
@@ -102,16 +147,11 @@ class Formats(object):
                 ('PPT', ('powerpoint',), ('ppt', 'pptx', 'ppz'), ('application/mspowerpoint', 'application/vnd.ms-powerpoint.presentation.macroEnabled.12', 'application/vnd.ms-powerpoint'), 1, 'document-powerpoint'),
                 ('ODP', (), ('odp',), ('application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'), 1, 'document-powerpoint'),
                 ('XLS', ('excel',), ('xls', 'xlsx', 'xlb'), ('application/excel', 'application/x-excel', 'application/x-msexcel', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12', 'application/vnd.msexcel'), 2, 'document-excel'),
-                ('XLS / Zip', (), ('xls.zip',), (), 2, 'document-excel'),
                 ('SHP', ('shapefile', 'esri shapefile',), ('shp',), (), 2, 'globe-model'),
-                ('SHP / Zip', (), ('shp.zip',), (), 2, 'globe-model'),
                 ('CSV', ('csvfile',), ('csv',), ('text/csv','text/comma-separated-values'), 3, 'document-invoice'),
-                ('CSV / Zip', (), ('csv.zip',), (), 3, 'document-invoice'),
                 ('PSV', (), ('psv',), ('text/psv','text/pipe-separated-values'), 3, 'document-invoice'),
-                ('PSV / Zip', (), ('psv.zip',), (), 3, 'document-invoice'),
                 ('JSON', (), ('json',), ('application/json', 'text/x-json'), 3, 'document-node'),
                 ('XML', (), ('xml',), ('text/xml','application/xml'), 3, 'document-code'),
-                ('XML / Zip', (), ('xml.zip',), (), 3, 'document-code'),
                 ('RSS', (), ('rss',), ('text/rss+xml',), 3, 'feed-document'),
                 ('ODS', (), ('ods',), ('application/vnd.oasis.opendocument.spreadsheet',), 3, 'document-excel'),
                 ('WMS', (), ('wms',), ('application/vnd.ogc.wms_xml',), 3, 'globe-model'),

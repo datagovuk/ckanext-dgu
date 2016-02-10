@@ -38,7 +38,7 @@ class MergeDatasets(object):
         if options.publisher:
             org_name = common.name_stripped_of_url(options.publisher)
             if options.search:
-                results = ckan.action.package_search(q=options.search, fq='publisher:%s' % org_name, rows=100, escape_q=False)
+                results = ckan.action.package_search(q=options.search, fq='publisher:%s' % org_name, rows=100)
                 dataset_names.extend([dataset['name']
                                       for dataset in results['results']])
             else:

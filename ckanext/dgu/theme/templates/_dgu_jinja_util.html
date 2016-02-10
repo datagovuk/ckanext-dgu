@@ -117,6 +117,34 @@
               </button>
             </span>
           </div>
+
+          <div>
+      {% if mini %}
+      <span class="dropdown">
+          <a href="#" class="dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Advanced Search" style="color: #666; font-size: 12px; text-decoration: underline; text-align:center; display: block;">
+            Search Tips
+          </a>
+
+          <div class="panel panel-default dropdown-menu" style="width: 500px; margin-left: -1px;">
+            <div class="panel-heading" style="margin-top: -10px;"><strong>Search Tips</strong></div>
+            <div class="panel-body">
+
+                <ul>
+                  <li><span class='search-terms'>"armed forces" expenses</span> - search for exact phrases by putting quote marks around them</li>
+                  <li><span class='search-terms'>primary school -care</span> - exclude words or quoted phrases by using a minus sign or NOT</li>
+                  <li><span class='search-terms'>primary OR secondary school</span> - use 'OR' to allow alternatives (the default is to 'AND' all of the terms)</li>
+                  <li><span class='search-terms'>publisher:cabinet-office res_format:CSV</span> - search only in a particular field. </li>
+                </ul>
+
+                <p>For more tips on searching see the <a href="http://guidance.data.gov.uk/finding_data.html#keyword-search-tips" target="_blank">Finding Data guidance</a></p>
+
+            </div>
+          </div>
+        </span>
+        {% endif %}
+        </div>
+
+          </center>
           {% if c.fields %}
             {% for k,v in c.fields %}
               {% if k not in ['publisher', 'theme-primary'] %}

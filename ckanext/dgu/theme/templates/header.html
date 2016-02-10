@@ -80,10 +80,13 @@
         <li><a class="{{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
         <li><a class="" href="/data-request">Data Requests</a></li>
         <li><a class="{{ 'active' if url.startswith('/publisher') }}" href="/publisher">Publishers</a></li>
+        <li><a  href="https://data.gov.uk/data/api">Data API</a></li>
         <li><a class="" href="/organogram/cabinet-office">Organograms</a></li>
+        {#
         {% if h.config_get('dgu.openspending_reports_enabled') %}
           <li><a class="{{ 'active' if url.startswith('/data/openspending-report') }}" href="/data/openspending-report/index">Spend Reports</a></li>
         {% endif %}
+        #}
         {% if h.ga_report_installed() %}
           <li><a class="{{ 'active' if url.startswith('/data/site-usage') }}" href="/data/site-usage">Site Analytics</a></li>
         {% endif %}

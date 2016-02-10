@@ -12,8 +12,10 @@
 {% block secondary_content %}
 <div class="sidebar-search">
     {{ m.search_form(mini=true) }}
-    <div class="map-search-link">
-        <i class="icon-map-marker icon-large"></i> or <a href="/data/map-based-search">conduct map based search</a>
+    <div class="map-search-link" style="margin: 0;">
+        <center>
+        <i class="icon-map-marker icon-large"></i> <a href="/data/map-based-search">Conduct Map Based Search</a>
+        </center>
     </div>
 </div>
 
@@ -42,7 +44,7 @@
             <label>Sort by:</label>
             <select name="sort" class="form-control" style="display:inline-block;">
                 <!-- Can optimise this bit of the template, particularly results_sort_by -->
-                {{sort_option('Relevance', 'rank desc', 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
+                {{sort_option('Relevance', '', 'rank' in h.results_sort_by(), h.relevancy_disabled())}}
                 {{sort_option('Popularity', 'popularity desc', 'popularity' in h.results_sort_by())}}
                 {{sort_option('Title', 'title_string asc', 'title_string' in h.results_sort_by())}}
                 {{sort_option('Last Updated', 'metadata_modified desc', 'metadata_modified' in h.results_sort_by())}}

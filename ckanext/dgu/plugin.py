@@ -15,7 +15,6 @@ from ckanext.dgu.authorize import (
 from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user, is_plugin_enabled
-from ckanext.dgu.lib.search import solr_escape
 from ckanext.dgu.search_indexing import SearchIndexing
 from ckan.config.routing import SubMapper
 from ckan.exceptions import CkanUrlException
@@ -377,6 +376,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.app_dataset_theme_report_info,
                 reports.app_dataset_report_info,
                 reports.admin_editor_info,
+                reports.licence_report_info,
                 ]
 
 
@@ -460,20 +460,15 @@ class SearchPlugin(p.SingletonPlugin):
         # Set the 'qf' (queryfield) parameter to a fixed list of boosted solr fields
         # tuned for DGU. If a dismax query is run, then these will be the fields that are searched
         # within.
-        search_params['qf'] = 'title^4 name^3 notes^2 text tags^0.3 group_titles^0.3 extras_harvest_document_content^0.2'
+        search_params['qf'] = 'title^4 name^3 notes^2 text group_titles^0.3 extras_harvest_document_content^0.2'
+        # boost NII datasets. used trial and error to get reasonable mix of useful NII ones
+        # on and relevant non-NII ones for /data/search?q=road and /data/search?q=crime
+        search_params['bf'] = 'core_dataset^20'
 
         # ignore dataset_type:dataset which CKAN2 adds in - we dont use
         # dataset_type and it mucks up spatial search
         fq = search_params.get('fq', [])
         search_params['fq'] = [item for item in fq if item != '+dataset_type:dataset']
-
-        # Escape q so that you can include dashes in the search and it doesn't mean 'NOT'
-        # e.g. "Spend over 25,000 - NHS Leeds" -> "Spend over 25,000 \- NHS Leeds"
-        # You can avoid this escaping on the API by setting escape_q=False.
-        if 'q' in search_params and search_params.get('escape_q', True):
-            search_params['q'] = solr_escape(search_params['q'])
-        if 'escape_q' in search_params:
-            search_params.pop('escape_q')
 
         # If the user does not specify a "sort by" method manually,
         # then it defaults here (and the UI has to have the same logic)

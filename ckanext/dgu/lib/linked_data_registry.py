@@ -20,7 +20,6 @@ from ckan.common import OrderedDict
 from ckanext.harvest.harvesters.base import HarvesterBase
 import ckan.plugins as p
 
-from ckanext.dgu.lib.formats import Formats
 
 REG = rdflib.Namespace('http://purl.org/linked-data/registry#')
 SKOS = rdflib.Namespace('http://www.w3.org/2004/02/skos/core#')
@@ -189,7 +188,6 @@ class LinkedDataRegistryHarvester(HarvesterBase, p.SingletonPlugin):
                 ('RDF/XML', 'rdf', 'RDF'),
                 ('JSON-LD', 'jsonld', 'JSON')):
             url = uri + '?_format=%s' % format_extension
-            assert format_dgu in Formats().by_display_name()
             resources.append({'description': '%s as %s' % (dgu_type, format_display),
                               'url': url,
                               'format': format_dgu,
