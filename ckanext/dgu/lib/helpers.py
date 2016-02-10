@@ -2320,6 +2320,30 @@ def detect_license_id(licence_str):
             re.compile(r'<?https?\:\/\/www.nationalarchives\.gov\.uk\/doc\/open-government-licence[^\s]+'),
             re.compile(r'<?http\:\/\/www.ordnancesurvey\.co\.uk\/oswebsite\/docs\/licences\/os-opendata-licence.pdf'),  # because it redirects to OGL now
             ]
+        licence_regexes['ogl-detritus'] = re.compile(
+            r'(%s)' % '|'.join((
+                'OGL Terms and Conditions apply',
+                r'\bUK\b',
+                'v3\.0',
+                'version 3',
+                'for public sector information',
+                'Link to the',
+                'Ordnance Survey Open Data Licence',
+                'Licence',
+                'None',
+                'OGLs and agreements explained',
+                'In accessing or using this data, you are deemed to have accepted the terms of the',
+                'attribution required',
+                'Use of data subject to the Terms and Conditions of the OGL',
+                'data is free to use for provided the source is acknowledged as specified in said document',
+                'Released under the OGL',
+                'citation of publisher and online resource required on reuse',
+                'conditions',
+                'Public data \(Crown Copyright\)',
+                '[;\.\-:\(\),]*',
+                )), re.IGNORECASE
+            )
+        licence_regexes['spaces'] = re.compile(r'\s+')
     is_ogl = False
     for ogl_regex in licence_regexes['ogl']:
         licence_str, replacements = ogl_regex.subn('OGL', licence_str)
@@ -2327,7 +2351,11 @@ def detect_license_id(licence_str):
             is_ogl = True
     if is_ogl:
         license_id = 'uk-ogl'
-        is_wholely_identified = bool(len(licence_str) < 5)
+        # get rid of phrases that just repeat existing OGL meaning
+        licence_str = licence_regexes['ogl-detritus'].sub('', licence_str)
+        licence_str = licence_str.replace('OGL', '')
+        licence_str = licence_regexes['spaces'].sub(' ', licence_str)
+        is_wholely_identified = bool(len(licence_str) < 2)
     else:
         is_wholely_identified = None
 

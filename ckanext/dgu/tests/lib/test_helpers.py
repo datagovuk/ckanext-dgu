@@ -336,7 +336,7 @@ class TestDetectLicenseId(object):
 
     def test_ogl_abbreviation(self):
         assert_equal(detect_license_id('OGL Licence'),
-                     ('uk-ogl', False))
+                     ('uk-ogl', True))
 
     def test_ogl_abbreviation_in_parens(self):
         assert_equal(detect_license_id('Some licence (OGL)'),
@@ -351,11 +351,11 @@ class TestDetectLicenseId(object):
                      ('uk-ogl', False))
 
     def test_ogl_and_require_citation(self):
-        assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence): data is free to use for provided the source is acknowledged as specified in said document.'),
+        assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence) and you must cite "Natural England" as the source.'),
                      ('uk-ogl', False))
 
     def test_ogl_and_require_citation2(self):
-        assert_equal(detect_license_id('Released under the Open Government Licence (OGL), citation of publisher and online resource required on reuse.'),
+        assert_equal(detect_license_id('Released under the Open Government Licence (OGL), citation of "Natural England" as the source required.'),
                      ('uk-ogl', False))
 
     def test_ogl_with_other_url(self):
@@ -364,6 +364,74 @@ class TestDetectLicenseId(object):
 
     def test_ogl_url(self):
         assert_equal(detect_license_id('http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_1(self):
+        assert_equal(detect_license_id('Open Government Licence v3.0'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_2(self):
+        assert_equal(detect_license_id('Open government license for public sector information.; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_3(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Licence; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_4(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Link to the Ordnance Survey Open Data Licence; Licence; http://www.ordnancesurvey.co.uk/oswebsite/docs/licences/os-opendata-licence.pdf; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_5(self):
+        assert_equal(detect_license_id('Open Government Licence.; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_6(self):
+        assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence): data is free to use for provided the source is acknowledged as specified in said document.'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_7(self):
+        assert_equal(detect_license_id('Released under the Open Government Licence (OGL), citation of publisher and online resource required on reuse.'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_8(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Licence; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_9(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Link to the Ordnance Survey Open Data Licence; http://www.ordnancesurvey.co.uk/oswebsite/docs/licences/os-opendata-licence.pdf; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_10(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Link to the Ordnance Survey Open Data Licence; Licence; http://www.ordnancesurvey.co.uk/oswebsite/docs/licences/os-opendata-licence.pdf; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_11(self):
+        assert_equal(detect_license_id('Open Government Licence.; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_12(self):
+        assert_equal(detect_license_id('Open Government Licence; None'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_13(self):
+        assert_equal(detect_license_id('Open Government Licence; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_14(self):
+        assert_equal(detect_license_id('Open Government Licences and agreements explained; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/;'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_15(self):
+        assert_equal(detect_license_id('In accessing or using this data, you are deemed to have accepted the terms of the UK Open Government Licence v3.0. - http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_16(self):
+        assert_equal(detect_license_id('Open Government Licence: attribution required; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_17(self):
+        assert_equal(detect_license_id('Public data (Crown Copyright) - Open Government Licence Terms and Conditions apply'),
                      ('uk-ogl', True))
 
     def test_ne(self):
