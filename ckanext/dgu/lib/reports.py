@@ -3,6 +3,8 @@ import datetime
 import logging
 import os
 
+from paste.deploy.converters import asbool
+
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
@@ -681,7 +683,6 @@ def licence_report(organization=None, include_sub_organizations=False):
     Returns a dictionary detailing licences for datasets in the
     organisation specified, and optionally sub organizations.
     '''
-    import json
     # Get packages
     if organization:
         top_org = model.Group.by_name(organization)
@@ -709,11 +710,16 @@ def licence_report(organization=None, include_sub_organizations=False):
     # Get their licences
     packages_by_licence = collections.defaultdict(list)
     rows = []
+    num_pkgs = 0
     for pkg in pkgs:
+        if asbool(pkg.extras.get('unpublished')) is True:
+            # Ignore unpublished datasets
+            continue
         licence_tuple = (pkg.license_id or '',
                          pkg.license.title if pkg.license else '',
                          pkg.extras.get('licence', ''))
         packages_by_licence[licence_tuple].append((pkg.name, pkg.title))
+        num_pkgs += 1
 
     for licence_tuple, dataset_tuples in sorted(packages_by_licence.items(),
                                                 key=lambda x: -len(x[1])):
@@ -730,7 +736,7 @@ def licence_report(organization=None, include_sub_organizations=False):
         rows.append(licence_dict)
 
     return {
-        'num_datasets': len(pkgs),
+        'num_datasets': num_pkgs,
         'num_licences': len(rows),
         'table': rows,
         }
