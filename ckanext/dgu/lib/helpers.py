@@ -1015,6 +1015,7 @@ def linkify(string):
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
     licenses = []  # [(title, url, isopen, isogl), ... ]
+    licence = pkg.extras.get('licence') or ''
 
     if pkg.license_id and not licence:
         # just license_id
