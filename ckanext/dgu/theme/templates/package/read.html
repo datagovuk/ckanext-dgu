@@ -2,6 +2,7 @@
 
 {% import "inventory/inventory_util_jinja.html" as inventory_m with context %}
 {% import "_dgu_jinja_util.html" as m with context %}
+{% import "issues/common.html" as common with context %}
 
 {#
    c.pkg_dict - the result of package_show
@@ -263,7 +264,6 @@
       {% if issues['count'] %}
         <p>{{ ungettext('{number} open issue', '{number} open issues', issues['count']).format(number=issues['count']) }}:</p>
         <div class="clearfix"></div>
-        {% import "issues/common.html" as common with context %}
         <ul id="issue-list" class="issue-list-group list-group">
           {% for issue in issues['results'] %}
               {{ common.issue_item(issue, c.pkg) }}
