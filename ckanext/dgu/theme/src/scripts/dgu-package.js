@@ -1,4 +1,5 @@
 $(function() {
+
   // Truncate long .notes elements
   var notes = $('.notes');
   notes.dotdotdot({
@@ -68,7 +69,7 @@ $(function() {
 
   // DATASET_ID is only set on dataset page, not on resource page.
   if('DATASET_ID' in window) {
-    var url = '/comment/get/'+window.DATASET_ID+'?comments_per_page=999999';
+    var url = 'https://test.data.gov.uk/comment/get/'+window.DATASET_ID+'?comments_per_page=999999';
     $.ajax({
             url: url,
             data: '',

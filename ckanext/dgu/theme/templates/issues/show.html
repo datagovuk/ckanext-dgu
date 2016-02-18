@@ -18,6 +18,11 @@ dataset - package object
   {% set statusUpper = issue.status|upper %}
   <meta property="og:description" content="{{statusUpper}}: {{ description }}">
   <meta property="og:url" content="{{ h.full_current_url() }}">
+
+    <script type="text/javascript">
+        window.ISSUE_ID = "{{issue.id}}";
+    </script>
+
 {% endblock -%}
 
 {% block breadcrumb_item %}{{ h.nav_link(issue.number, named_route='issues_show', dataset_id=dataset.name, issue_number=issue.number) }}
@@ -166,6 +171,12 @@ dataset - package object
       </div>
 
       {{ issue_description(issue) }}
+
+ <div id="issue-comments-container">
+      <!-- TODO do not use id=comments! It's a duplicate id with Drupal's content. -->
+      <div style="height: 50px;" class="comments-spinner"></div>
+  </div>
+
 
       {% for comment in issue.comments %}
         {% if comment.visibility == 'visible' or can_edit_issue %}
