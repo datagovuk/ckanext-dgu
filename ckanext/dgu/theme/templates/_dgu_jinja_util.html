@@ -103,6 +103,113 @@
 {% macro if_(testValue,stringIfTrue,stringIfFalse='') %}{% if testValue %}{{stringIfTrue}}{% else %}{{stringIfFalse}}{% endif%}{% endmacro %}
 
 
+{% macro publisher_facets() %}
+<div class="form-group">
+    <h4 class="facet-title">Publisher</h4>
+
+        <select name="publisher"
+                id="publisher-select"
+                data-placeholder="Publisher"
+                class="form-control chzn-select"
+                style="width: 100%; max-width: 300px;"
+                onchange="this.form.submit()"
+                multiple="">
+
+          {% if h.search_facets_unselected(['publisher'])|length > 1 %}
+          <optgroup label="Most Relevant">
+            {% for publisher in h.search_facets_unselected(['publisher'])[:3] %}
+            <option value="{{publisher.3}}">{{publisher.1}}</option>
+            {% endfor %}
+          </optgroup>
+          {% endif %}
+          <optgroup label="All Publishers">
+          {%- for publisher_name, publisher_title in h.organization_list() %}
+            {% if c.fields_grouped
+               and c.fields_grouped.get('publisher')
+               and publisher_name in c.fields_grouped.get('publisher') %}
+            <option value="{{publisher_name}}" selected>{{publisher_title}}</option>
+            {% else %}
+            <option value="{{publisher_name}}">{{publisher_title}}</option>
+            {% endif %}
+          {%- endfor %}
+          </optgroup>
+        </select>
+    </div>
+{% endmacro %}
+
+{% macro theme_facets() %}
+<div class="form-group">
+    <h4 class="facet-title">Themes</h4>
+
+    <select name="theme-primary"
+            id="publisher-select"
+            data-placeholder="Theme"
+            class="form-control chzn-select"
+            style="width: 100%; max-width: 300px;"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for theme in h.get_facet_items_dict('theme-primary') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('theme-primary')
+           and theme.name in c.fields_grouped.get('theme-primary') %}
+        <option value="{{theme.name}}" selected>{{theme.display_name}} ({{theme.count}})</option>
+        {% else %}
+        <option value="{{theme.name}}">{{theme.display_name}} ({{theme.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+</div>
+{% endmacro %}
+
+{% macro format_facets() %}
+<div class="form-group">
+   <h4 class="facet-title">File formats</h4>
+
+    <select name="res_format"
+            id="publisher-select"
+            data-placeholder="File formats"
+            class="form-control chzn-select"
+            style="width: 100%; max-width: 300px;"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for format in h.get_facet_items_dict('res_format') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('res_format')
+           and format.name in c.fields_grouped.get('res_format') %}
+        	<option value="{{format.name}}" selected>{{format.display_name}} ({{format.count}})</option>
+        {% else %}
+            <option value="{{format.name}}">{{format.display_name}} ({{format.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+</div>
+{% endmacro %}
+
+{% macro openness_facets() %}
+<div class="form-group">
+    <h4 class="facet-title">Openness score</h4>
+
+    <select name="openness_score"
+            id="publisher-select"
+            data-placeholder=" "
+            class="form-control chzn-select"
+            style="width: 100%; max-width: 300px;"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for score in h.get_facet_items_dict('openness_score')|sort(reverse=True,attribute='name') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('openness_score')
+           and score.name in c.fields_grouped.get('openness_score') %}
+        	<option value="{{score.name}}" selected>{{h.search_facet_text('openness_score',score.display_name)}}</option>
+        {% else %}
+            <option value="{{score.name}}">{{h.search_facet_text('openness_score',score.display_name)}}  ({{score.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+</div>
+{% endmacro %}
+
 {% macro search_form(mini=False, placeholder='Search for data...', set_fields=None) %}
   <div class="search-area">
     <div class="clearfix dgu-equal-height" data-selector=".auto-height">
@@ -124,6 +231,13 @@
           <a href="#" class="dropdown-button" data-placement="top" data-delay="300" data-toggle="dropdown" title="" data-original-title="Advanced Search" style="color: #666; font-size: 12px; text-decoration: underline; text-align:center; display: block;">
             Search Tips
           </a>
+
+    <div class="map-search-link" style="margin: 0;">
+        <center>
+        <i class="icon-map-marker icon-large"></i> <a href="/data/map-based-search">Conduct Map Based Search</a>
+        </center>
+    </div>
+
 
           <div class="panel panel-default dropdown-menu" style="width: 500px; margin-left: -1px;">
             <div class="panel-heading" style="margin-top: -10px;"><strong>Search Tips</strong></div>
@@ -147,7 +261,7 @@
           </center>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              {% if k not in ['publisher', 'theme-primary'] %}
+              {% if k not in ['publisher', 'theme-primary', 'res_format', 'openness_score'] %}
               <input type="hidden" name="{{k}}" value="{{v}}" />
               {% endif %}
             {% endfor %}
@@ -161,52 +275,16 @@
             <input type="hidden" id="ext_bbox" name="ext_bbox" value="{{request.params.get('ext_bbox','')}}" />
           {% endif %}
 
-    <select name="publisher"
-            id="publisher-select"
-            data-placeholder="Publisher"
-            class="form-control chzn-select"
-            style="max-width: 100%;"
-            onchange="this.form.submit()"
-            multiple="">
+          {% if mini %}
+            <div style="margin-top: 40px;"></div>
+            {{ publisher_facets() }}
+            {{ theme_facets() }}
+            {{ format_facets() }}
+            {{ openness_facets() }}
+            <!-- License
 
-      {% if h.search_facets_unselected(['publisher'])|length > 1 %}
-      <optgroup label="Most Relevant">
-        {% for publisher in h.search_facets_unselected(['publisher'])[:3] %}
-        <option value="{{publisher.3}}">{{publisher.1}}</option>
-        {% endfor %}
-      </optgroup>
-      {% endif %}
-      <optgroup label="All Publishers">
-      {%- for publisher_name, publisher_title in h.organization_list() %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('publisher')
-           and publisher_name in c.fields_grouped.get('publisher') %}
-        <option value="{{publisher_name}}" selected>{{publisher_title}}</option>
-        {% else %}
-        <option value="{{publisher_name}}">{{publisher_title}}</option>
-        {% endif %}
-      {%- endfor %}
-      </optgroup>
-    </select>
-
-    <select name="theme-primary"
-            id="publisher-select"
-            data-placeholder="Theme"
-            class="form-control chzn-select"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for theme in h.get_facet_items_dict('theme-primary') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('theme-primary')
-           and theme.name in c.fields_grouped.get('theme-primary') %}
-        <option value="{{theme.name}}" selected>{{theme.display_name}} ({{theme.count}})</option>
-        {% else %}
-        <option value="{{theme.name}}">{{theme.display_name}} ({{theme.count}})</option>
-        {% endif %}
-      {% endfor %}
-    </select>
-
-
+            Location data -->
+          {% endif %}
 
         </form>
         {# extra_options can be passed in using the "call" syntax #}
@@ -400,43 +478,6 @@
                 'No further licence filters to apply.'
             )}}
       <div class="facet-divider"></div>
-      <div class="facets-theme-primary">
-      {{facet_box(
-                'Theme',
-                h.search_facets_unselected(['theme-primary']),
-                h.search_facets_selected(['theme-primary']),
-                'No further theme filters to apply.',
-                more_button='more-prithemes-button'
-            )}}
-      </div>
-      <div class="facet-divider"></div>
-      {{facet_box(
-                'Resource Format',
-                h.search_facets_unselected(['res_format']),
-                h.search_facets_selected(['res_format']),
-                'No further format filters to apply.',
-                more_button='more-formats-button'
-            )}}
-      <div class="facet-divider"></div>
-      {% if request.params.get('parent_publishers','') %}
-        {{facet_box(
-                    'Publisher',
-                    h.search_facets_unselected(['parent_publishers']),
-                    h.search_facets_selected(['parent_publishers']),
-                    'No further publisher filters to apply.',
-                    more_button='more-publishers-button'
-                )}}
-      {% endif %}
-      {% if not request.params.get('parent_publishers','') %}
-        {{facet_box(
-                    'Publisher',
-                    h.search_facets_unselected(['publisher']),
-                    h.search_facets_selected(['publisher']),
-                    'No further publisher filters to apply.',
-                    more_button='more-publishers-button'
-                )}}
-      {% endif %}
-      <div class="facet-divider"></div>
       {{facet_box(
                 'Schema/Vocabulary',
                 h.search_facets_unselected(['schema_multi']),
@@ -454,24 +495,10 @@
             )}}
       <div class="facet-divider"></div>
       {{facet_box(
-                'Openness Score (beta)',
-                h.search_facets_unselected(['openness_score'],'name'),
-                h.search_facets_selected(['openness_score']),
-                'No further openness filters to apply.',
-            )}}
-      <div class="facet-divider"></div>
-      {{facet_box(
                 'Broken links',
                 h.search_facets_unselected(['broken_links']),
                 h.search_facets_selected(['broken_links']),
                 'No further broken link filters to apply.'
-            )}}
-      <div class="facet-divider"></div>
-      {{facet_box(
-                'UK Location Dataset Type',
-                h.search_facets_unselected(['UKLP','resource-type','spatial-data-service-type']),
-                h.search_facets_selected(['UKLP','resource-type','spatial-data-service-type']),
-                'No further type filters to apply.'
             )}}
     </div><!-- /facet-filters -->
   </div>
