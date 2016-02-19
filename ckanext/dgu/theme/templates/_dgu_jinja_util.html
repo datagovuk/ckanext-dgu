@@ -109,7 +109,7 @@
 
         <select name="publisher"
                 id="publisher-select"
-                data-placeholder="Publisher"
+                data-placeholder=" "
                 class="form-control chzn-select"
                 style="width: 100%; max-width: 300px;"
                 onchange="this.form.submit()"
@@ -143,7 +143,7 @@
 
     <select name="theme-primary"
             id="publisher-select"
-            data-placeholder="Theme"
+            data-placeholder=" "
             class="form-control chzn-select"
             style="width: 100%; max-width: 300px;"
             onchange="this.form.submit()"
@@ -167,7 +167,7 @@
 
     <select name="res_format"
             id="publisher-select"
-            data-placeholder="File formats"
+            data-placeholder=" "
             class="form-control chzn-select"
             style="width: 100%; max-width: 300px;"
             onchange="this.form.submit()"
@@ -182,6 +182,84 @@
         {% endif %}
       {% endfor %}
     </select>
+</div>
+{% endmacro %}
+
+
+{% macro licence_facets() %}
+<div class="form-group">
+    <h4 class="facet-title">Licence</h4>
+
+    <select name="license_id-is-ogl"
+            id="publisher-select"
+            data-placeholder=" "
+            class="form-control chzn-select"
+            style="width: 100%; max-width: 300px;"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for licence in h.get_facet_items_dict('license_id-is-ogl') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('license_id-is-ogl')
+           and licence.name in c.fields_grouped.get('license_id-is-ogl') %}
+        	<option value="{{licence.name}}" selected>{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}</option>
+        {% else %}
+            <option value="{{licence.name}}">{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}  ({{licence.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+</div>
+{% endmacro %}
+
+
+{% macro schema_facets() %}
+<div class="form-group">
+    <h4 class="facet-title">Schema/Vocabulary</h4>
+
+    <select name="schema_multi"
+            id="publisher-select"
+            data-placeholder=" "
+            class="form-control chzn-select"
+            style="width: 100%; max-width: 300px;"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for schema in h.get_facet_items_dict('schema_multi') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('schema_multi')
+           and schema.name in c.fields_grouped.get('schema_multi') %}
+        	<option value="{{schema.name}}" selected>{{h.search_facet_text('schema_multi', schema.display_name)}}</option>
+        {% else %}
+            <option value="{{schema.name}}">{{h.search_facet_text('schema_multi',schema.display_name)}}  ({{schema.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+</div>
+{% endmacro %}
+
+
+{% macro codelist_facets() %}
+<div class="form-group">
+    <h4 class="facet-title">Code lists</h4>
+
+    <select name="codelist_multi"
+            id="publisher-select"
+            data-placeholder=" "
+            class="form-control chzn-select"
+            style="width: 100%; max-width: 300px;"
+            onchange="this.form.submit()"
+            multiple="">
+      {% for codelist in h.get_facet_items_dict('codelist_multi') %}
+        {% if c.fields_grouped
+           and c.fields_grouped.get('codelist_multi')
+           and codelist.name in c.fields_grouped.get('codelist_multi') %}
+        	<option value="{{codelist.name}}" selected>{{h.search_facet_text('codelist_multi', codelist.display_name)}}</option>
+        {% else %}
+            <option value="{{codelist.name}}">{{h.search_facet_text('codelist_multi', codelist.display_name)}}  ({{codelist.count}})</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
 </div>
 {% endmacro %}
 
@@ -261,7 +339,8 @@
           </center>
           {% if c.fields %}
             {% for k,v in c.fields %}
-              {% if k not in ['publisher', 'theme-primary', 'res_format', 'openness_score'] %}
+              {% if k not in ['publisher', 'theme-primary', 'res_format', 'openness_score', 'license_id-is-ogl',
+                    'schema_multi', 'codelist_multi'] %}
               <input type="hidden" name="{{k}}" value="{{v}}" />
               {% endif %}
             {% endfor %}
@@ -280,10 +359,13 @@
             {{ publisher_facets() }}
             {{ theme_facets() }}
             {{ format_facets() }}
-            {{ openness_facets() }}
-            <!-- License
+            {{ licence_facets() }}
 
-            Location data -->
+            <hr/>
+            {{ openness_facets() }}
+            {{ schema_facets() }}
+            {{ codelist_facets() }}
+
           {% endif %}
 
         </form>
@@ -450,6 +532,7 @@
           <i class="icon-remove-circle icon-4x"></i>
         </a>
       </div>
+      <!--
       {{facet_box(
                 'Published status',
                 h.search_facets_unselected(['unpublished']),
@@ -470,13 +553,7 @@
                 h.search_facets_selected(['api']),
                 'No further filters to apply.'
                 )}}
-      <div class="facet-divider"></div>
-      {{facet_box(
-                'Licence',
-                h.search_facets_unselected(['license_id-is-ogl']),
-                h.search_facets_selected(['license_id-is-ogl']),
-                'No further licence filters to apply.'
-            )}}
+
       <div class="facet-divider"></div>
       {{facet_box(
                 'Schema/Vocabulary',
@@ -493,6 +570,7 @@
                 'No further code list filters to apply.',
                 more_button='more-codelists-button'
             )}}
+
       <div class="facet-divider"></div>
       {{facet_box(
                 'Broken links',
@@ -500,7 +578,7 @@
                 h.search_facets_selected(['broken_links']),
                 'No further broken link filters to apply.'
             )}}
-    </div><!-- /facet-filters -->
+    </div> -- /facet-filters -->
   </div>
 {% endmacro %}
 
