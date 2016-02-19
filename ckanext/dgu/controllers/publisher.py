@@ -334,7 +334,7 @@ class PublisherController(OrganizationController):
 
         try:
             # Search within group
-            fq = ' publisher: "%s"' % c.group_dict.get('name')
+            fq = ['publisher: "%s"' % c.group_dict.get('name')]
             data_dict = {
                 'fq':fq,
                 'rows':limit,
