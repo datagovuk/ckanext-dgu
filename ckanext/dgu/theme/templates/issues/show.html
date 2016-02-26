@@ -208,10 +208,6 @@ dataset - package object
             </div>
             {% endblock %}
           </form>
-          {% else %}
-          <div class="not-logged-in">
-            <a href="{{h.url_for('login', came_from=h.full_current_url())}}" class="btn">{{ _('Login to comment') }}</a>
-          </div>
           {% endif %}
         </div>
       </div>
