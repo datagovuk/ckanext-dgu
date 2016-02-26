@@ -25,7 +25,7 @@ console.log('Looking for an issue')
   var commentsSpinner = new Spinner(spinConfig).spin(spinDiv);
 
   if('ISSUE_ID' in window) {
-      console.log('Found an issue')
+
     var url = '/comment/issue/get/'+window.ISSUE_ID+'?comments_per_page=999999';
     console.log("Calling " + url)
     $.ajax({

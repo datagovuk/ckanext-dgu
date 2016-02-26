@@ -178,25 +178,12 @@ dataset - package object
   </div>
 
 
-      {% for comment in issue.comments %}
-        {% if comment.visibility == 'visible' or can_edit_issue %}
-          {{ issue_comment(comment) }}
-        {% endif %}
-      {% endfor %}
-
       <div class="issue-comment-new">
         <div class="issue-comment-wrapper">
           {% if c.user %}
           <form id="issue-comment-form" class="dataset-form" method="post"
             data-module="basic-form"
             action="{{h.url_for('issues_comments', issue_number=issue.number, dataset_id=dataset.name)}}">
-            <div class="input-group input-group-lg">
-              <div class="controls editor">
-
-              <textarea class="form-control field_req" cols="260" id="comment" name="comment" rows="10"
-              placeholder="Leave a comment"></textarea>
-              </div>
-            </div>
 
             {% block form_actions %}
             <br/>
@@ -218,10 +205,6 @@ dataset - package object
                 {% endif %}
               {% endif %}
                 &nbsp;
-              <button class="pull-right btn btn-success" type="submit" name="save"
-                tabindex="2">
-                {{ _('Comment') }}
-              </button>
             </div>
             {% endblock %}
           </form>
