@@ -75,6 +75,9 @@ def resource_type(resource):
              (_is_additional_resource, _is_timeseries_resource, _is_individual_resource))
     return dropwhile(lambda (_,f): not f(resource), fs).next()[0]
 
+def format_list():
+    return sorted([f['display_name'] for f in formats.Formats.get_data()])
+
 def organization_list(top=False):
     from ckan import model
     if top:

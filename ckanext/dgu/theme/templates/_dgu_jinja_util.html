@@ -106,23 +106,29 @@
 {% macro uklp_facets() %}
 <div class="form-group">
     <h4 class="facet-title">UK LOCATION DATASET TYPE</h4>
-    <select name="resource-type"
-            id="publisher-select"
-            data-placeholder=" "
-            class="form-control chzn-select"
-            style="width: 100%; max-width: 300px;"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for t in h.get_facet_items_dict('resource-type') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('resource-type')
-           and t.name in c.fields_grouped.get('resource-type') %}
-        	<option value="{{ t.name }}" selected>{{h.search_facet_text('resource-type',t.display_name)}}</option>
-        {% else %}
-            <option value="{{ t.name }}">{{h.search_facet_text('resource-type', t.display_name) }} ({{t.count}})</option>
-        {% endif %}
-      {% endfor %}
-    </select>
+{% with facets=h.get_facet_items_dict('resource-type') %}
+    {% if facets %}
+        <select name="resource-type"
+                id="publisher-select"
+                data-placeholder=" "
+                class="form-control chzn-select"
+                style="width: 100%; max-width: 300px;"
+                onchange="this.form.submit()"
+                multiple="">
+        {% for t in facets %}
+            {% if c.fields_grouped
+            and c.fields_grouped.get('resource-type')
+            and t.name in c.fields_grouped.get('resource-type') %}
+                <option value="{{ t.name }}" selected>{{h.search_facet_text('resource-type',t.display_name)}}</option>
+            {% else %}
+                <option value="{{ t.name }}">{{h.search_facet_text('resource-type', t.display_name) }} ({{t.count}})</option>
+            {% endif %}
+        {% endfor %}
+        </select>
+    {% else %}
+        <p>No further location filters to apply</p>
+    {% endif %}
+{% endwith %}
 {% endmacro %}
 
 {% macro publisher_facets() %}
@@ -163,6 +169,8 @@
 <div class="form-group">
     <h4 class="facet-title">Themes</h4>
 
+{{ h.get_facet_items_dict('theme-primary', limit=100)|length }}
+
     <select name="theme-primary"
             id="publisher-select"
             data-placeholder=" "
@@ -170,7 +178,7 @@
             style="width: 100%; max-width: 300px;"
             onchange="this.form.submit()"
             multiple="">
-      {% for theme in h.get_facet_items_dict('theme-primary') %}
+      {% for theme in h.get_facet_items_dict('theme-primary', limit=None) %}
         {% if c.fields_grouped
            and c.fields_grouped.get('theme-primary')
            and theme.name in c.fields_grouped.get('theme-primary') %}
@@ -186,24 +194,38 @@
 {% macro format_facets() %}
 <div class="form-group">
    <h4 class="facet-title">File formats</h4>
-
-    <select name="res_format"
-            id="publisher-select"
-            data-placeholder=" "
-            class="form-control chzn-select"
-            style="width: 100%; max-width: 300px;"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for format in h.get_facet_items_dict('res_format') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('res_format')
-           and format.name in c.fields_grouped.get('res_format') %}
-        	<option value="{{format.name}}" selected>{{format.display_name}} ({{format.count}})</option>
-        {% else %}
-            <option value="{{format.name}}">{{format.display_name}} ({{format.count}})</option>
-        {% endif %}
-      {% endfor %}
-    </select>
+   {% with facets=h.get_facet_items_dict('res_format')%}
+    {% if facets %}
+        <select name="res_format"
+                id="publisher-select"
+                data-placeholder=" "
+                class="form-control chzn-select"
+                style="width: 100%; max-width: 300px;"
+                onchange="this.form.submit()"
+                multiple="">
+          {% if h.search_facets_unselected(['res_format'])|length > 1 %}
+          <optgroup label="Most Relevant">
+            {% for fmt in h.search_facets_unselected(['res_format'])[:3] %}
+            <option value="{{fmt.3}}">{{fmt.1}}</option>
+            {% endfor %}
+          </optgroup>
+          {% endif %}
+          <optgroup label="All Formats">
+            {% for format in h.format_list() %}
+                {% if c.fields_grouped
+                and c.fields_grouped.get('tres_format')
+                and format in c.fields_grouped.get('res_format') %}
+                    <option value="{{format}}" selected>{{format}}</option>
+                {% else %}
+                    <option value="{{format}}">{{format}}</option>
+                {% endif %}
+            {% endfor %}
+          </optgroup>
+        </select>
+     {% else %}
+        <p>No further format filters to apply</p>
+     {% endif %}
+   {% endwith %}
 </div>
 {% endmacro %}
 
@@ -211,25 +233,29 @@
 {% macro licence_facets() %}
 <div class="form-group">
     <h4 class="facet-title">Licence</h4>
-
-    <select name="license_id-is-ogl"
-            id="publisher-select"
-            data-placeholder=" "
-            class="form-control chzn-select"
-            style="width: 100%; max-width: 300px;"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for licence in h.get_facet_items_dict('license_id-is-ogl') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('license_id-is-ogl')
-           and licence.name in c.fields_grouped.get('license_id-is-ogl') %}
-        	<option value="{{licence.name}}" selected>{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}</option>
+    {% with facets=h.get_facet_items_dict('license_id-is-ogl') %}
+        {% if facets %}
+            <select name="license_id-is-ogl"
+                    id="publisher-select"
+                    data-placeholder=" "
+                    class="form-control chzn-select"
+                    style="width: 100%; max-width: 300px;"
+                    onchange="this.form.submit()"
+                    multiple="">
+            {% for licence in facets %}
+                {% if c.fields_grouped
+                and c.fields_grouped.get('license_id-is-ogl')
+                and licence.name in c.fields_grouped.get('license_id-is-ogl') %}
+                    <option value="{{licence.name}}" selected>{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}</option>
+                {% else %}
+                    <option value="{{licence.name}}">{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}  ({{licence.count}})</option>
+                {% endif %}
+            {% endfor %}
+            </select>
         {% else %}
-            <option value="{{licence.name}}">{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}  ({{licence.count}})</option>
+            <p>No further licence filters to apply</p>
         {% endif %}
-      {% endfor %}
-    </select>
-
+    {% endwith %}
 </div>
 {% endmacro %}
 
@@ -237,25 +263,29 @@
 {% macro schema_facets() %}
 <div class="form-group">
     <h4 class="facet-title">Schema/Vocabulary</h4>
-
-    <select name="schema_multi"
-            id="publisher-select"
-            data-placeholder=" "
-            class="form-control chzn-select"
-            style="width: 100%; max-width: 300px;"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for schema in h.get_facet_items_dict('schema_multi') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('schema_multi')
-           and schema.name in c.fields_grouped.get('schema_multi') %}
-        	<option value="{{schema.name}}" selected>{{h.search_facet_text('schema_multi', schema.display_name)}}</option>
+    {% with facets = h.get_facet_items_dict('schema_multi') %}
+        {% if facets %}
+            <select name="schema_multi"
+                    id="publisher-select"
+                    data-placeholder=" "
+                    class="form-control chzn-select"
+                    style="width: 100%; max-width: 300px;"
+                    onchange="this.form.submit()"
+                    multiple="">
+            {% for schema in facets %}
+                {% if c.fields_grouped
+                and c.fields_grouped.get('schema_multi')
+                and schema.name in c.fields_grouped.get('schema_multi') %}
+                    <option value="{{schema.name}}" selected>{{h.search_facet_text('schema_multi', schema.display_name)}}</option>
+                {% else %}
+                    <option value="{{schema.name}}">{{h.search_facet_text('schema_multi',schema.display_name)}}  ({{schema.count}})</option>
+                {% endif %}
+            {% endfor %}
+            </select>
         {% else %}
-            <option value="{{schema.name}}">{{h.search_facet_text('schema_multi',schema.display_name)}}  ({{schema.count}})</option>
+            <p>No further schema filters to apply</p>
         {% endif %}
-      {% endfor %}
-    </select>
-
+    {% endwith %}
 </div>
 {% endmacro %}
 
@@ -263,50 +293,58 @@
 {% macro codelist_facets() %}
 <div class="form-group">
     <h4 class="facet-title">Code lists</h4>
-
-    <select name="codelist_multi"
-            id="publisher-select"
-            data-placeholder=" "
-            class="form-control chzn-select"
-            style="width: 100%; max-width: 300px;"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for codelist in h.get_facet_items_dict('codelist_multi') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('codelist_multi')
-           and codelist.name in c.fields_grouped.get('codelist_multi') %}
-        	<option value="{{codelist.name}}" selected>{{h.search_facet_text('codelist_multi', codelist.display_name)}}</option>
+    {% with facets=h.get_facet_items_dict('codelist_multi') %}
+        {% if facets %}
+            <select name="codelist_multi"
+                    id="publisher-select"
+                    data-placeholder=" "
+                    class="form-control chzn-select"
+                    style="width: 100%; max-width: 300px;"
+                    onchange="this.form.submit()"
+                    multiple="">
+            {% for codelist in facets %}
+                {% if c.fields_grouped
+                and c.fields_grouped.get('codelist_multi')
+                and codelist.name in c.fields_grouped.get('codelist_multi') %}
+                    <option value="{{codelist.name}}" selected>{{h.search_facet_text('codelist_multi', codelist.display_name)}}</option>
+                {% else %}
+                    <option value="{{codelist.name}}">{{h.search_facet_text('codelist_multi', codelist.display_name)}}  ({{codelist.count}})</option>
+                {% endif %}
+            {% endfor %}
+            </select>
         {% else %}
-            <option value="{{codelist.name}}">{{h.search_facet_text('codelist_multi', codelist.display_name)}}  ({{codelist.count}})</option>
+            <p>No further codelist filters to apply</p>
         {% endif %}
-      {% endfor %}
-    </select>
-
+    {% endwith %}
 </div>
 {% endmacro %}
 
 {% macro openness_facets() %}
 <div class="form-group">
     <h4 class="facet-title">Openness score</h4>
-
-    <select name="openness_score"
-            id="publisher-select"
-            data-placeholder=" "
-            class="form-control chzn-select"
-            style="width: 100%; max-width: 300px;"
-            onchange="this.form.submit()"
-            multiple="">
-      {% for score in h.get_facet_items_dict('openness_score')|sort(reverse=True,attribute='name') %}
-        {% if c.fields_grouped
-           and c.fields_grouped.get('openness_score')
-           and score.name in c.fields_grouped.get('openness_score') %}
-        	<option value="{{score.name}}" selected>{{h.search_facet_text('openness_score',score.display_name)}}</option>
+    {% with facets=h.get_facet_items_dict('openness_score')|sort(reverse=True,attribute='name') %}
+        {% if facets %}
+            <select name="openness_score"
+                    id="publisher-select"
+                    data-placeholder=" "
+                    class="form-control chzn-select"
+                    style="width: 100%; max-width: 300px;"
+                    onchange="this.form.submit()"
+                    multiple="">
+            {% for score in facets %}
+                {% if c.fields_grouped
+                and c.fields_grouped.get('openness_score')
+                and score.name in c.fields_grouped.get('openness_score') %}
+                    <option value="{{score.name}}" selected>{{h.search_facet_text('openness_score',score.display_name)}}</option>
+                {% else %}
+                    <option value="{{score.name}}">{{h.search_facet_text('openness_score',score.display_name)}}  ({{score.count}})</option>
+                {% endif %}
+            {% endfor %}
+            </select>
         {% else %}
-            <option value="{{score.name}}">{{h.search_facet_text('openness_score',score.display_name)}}  ({{score.count}})</option>
+            <p>No further openness score filters to apply</p>
         {% endif %}
-      {% endfor %}
-    </select>
-
+    {% endwith %}
 </div>
 {% endmacro %}
 
