@@ -166,7 +166,9 @@ dataset - package object
             <i class="icon-exclamation-sign"></i> {{issue.status.title()}}
           </span>
           {{h.linked_user(issue.user.name)}} opened this issue {{issue.time_ago}} &middot;
+          <span class="comment_count">
           {{ ungettext('{number} comment', '{number} comments', comment_count).format(number=comment_count) }}
+          </span>
         </div>
       </div>
 

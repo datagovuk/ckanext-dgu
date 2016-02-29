@@ -1,8 +1,5 @@
 $(function() {
 
-
-console.log('Looking for an issue')
-
   var spinConfig = {
     lines: 9, // The number of lines to draw
     length: 5, // The length of each line
@@ -26,20 +23,33 @@ console.log('Looking for an issue')
 
   if('ISSUE_ID' in window) {
 
+    // Get count of comments
+    $.ajax({
+            url: '/comment/issue/count/'+window.ISSUE_ID,
+            data: '',
+            dataType: 'html',
+            success: function(data, textStatus, xhr) {
+               var count = parseInt(data, 10);
+               var plural = "";
+               if (count > 1) plural = "s";
+               $('.comment_count').text(count + " comment" + plural);
+            },
+            error: function(xhr, status, exception) {
+                $('.comment_count').text("");
+            }
+          });
+
     var url = '/comment/issue/get/'+window.ISSUE_ID+'?comments_per_page=999999';
-    console.log("Calling " + url)
     $.ajax({
             url: url,
             data: '',
             dataType: 'html',
             success: function(data, textStatus, xhr) {
-              console.log("Success")
               commentsSpinner.stop();
               $('#issue-comments-container').html(data);
               comments();
             },
             error: function(xhr, status, exception) {
-              console.log("Fail")
               commentsSpinner.stop();
               $(spinDiv).hide();
               $('#comments .boxed')
