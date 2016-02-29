@@ -169,8 +169,6 @@
 <div class="form-group">
     <h4 class="facet-title">Themes</h4>
 
-{{ h.get_facet_items_dict('theme-primary', limit=100)|length }}
-
     <select name="theme-primary"
             id="publisher-select"
             data-placeholder=" "
@@ -213,7 +211,7 @@
           <optgroup label="All Formats">
             {% for format in h.format_list() %}
                 {% if c.fields_grouped
-                and c.fields_grouped.get('tres_format')
+                and c.fields_grouped.get('res_format')
                 and format in c.fields_grouped.get('res_format') %}
                     <option value="{{format}}" selected>{{format}}</option>
                 {% else %}
