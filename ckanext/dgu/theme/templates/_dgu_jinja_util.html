@@ -126,7 +126,9 @@
         {% endfor %}
         </select>
     {% else %}
-        <p>No further location filters to apply</p>
+          <div class="facet-options">
+            <div class="facet-option"><em>No further location filters to apply</em></div>
+          </div>
     {% endif %}
 {% endwith %}
 {% endmacro %}
@@ -221,7 +223,9 @@
           </optgroup>
         </select>
      {% else %}
-        <p>No further format filters to apply</p>
+          <div class="facet-options">
+            <div class="facet-option"><em>No further format filters to apply</em></div>
+          </div>
      {% endif %}
    {% endwith %}
 </div>
@@ -251,7 +255,9 @@
             {% endfor %}
             </select>
         {% else %}
-            <p>No further licence filters to apply</p>
+          <div class="facet-options">
+            <div class="facet-option"><em>No further licence filters to apply</em></div>
+          </div>
         {% endif %}
     {% endwith %}
 </div>
@@ -281,7 +287,9 @@
             {% endfor %}
             </select>
         {% else %}
-            <p>No further schema filters to apply</p>
+          <div class="facet-options">
+            <div class="facet-option"><em>No further schema filters to apply</em></div>
+          </div>
         {% endif %}
     {% endwith %}
 </div>
@@ -311,7 +319,9 @@
             {% endfor %}
             </select>
         {% else %}
-            <p>No further codelist filters to apply</p>
+           <div class="facet-options">
+            <div class="facet-option"><em>No further codelist filters to apply</em></div>
+           </div>
         {% endif %}
     {% endwith %}
 </div>
@@ -340,8 +350,38 @@
             {% endfor %}
             </select>
         {% else %}
-            <p>No further openness score filters to apply</p>
+          <div class="facet-options">
+            <div class="facet-option"><em>No further openness score filters to apply</em></div>
+          </div>
         {% endif %}
+    {% endwith %}
+</div>
+{% endmacro %}
+
+{% macro tristate_facets(title,facet_key, nulllabel, onlabel,offlabel) %}
+<div class="form-group">
+    <h4 class="facet-title">{{ title }}</h4>
+
+    {% with selected=c.fields_grouped.get(facet_key)%}
+
+    <div class="radio">
+        <label>
+            <input type="radio" name="{{facet_key}}" class='facet-radio' value="" {% if not selected %}checked{% endif %} onchange="this.form.submit()">
+            {{nulllabel}}
+        </label>
+    </div>
+    <div class="radio">
+        <label>
+            <input type="radio" name="{{facet_key}}" class='facet-radio' value="true" {% if selected and 'true' in selected %}checked{% endif %} onchange="this.form.submit()">
+            {{onlabel}}
+        </label>
+    </div>
+    <div class="radio">
+        <label>
+            <input type="radio" name="{{facet_key}}" class='facet-radio' value="false" {% if selected and 'false' in selected %}checked{% endif %} onchange="this.form.submit()">
+            {{offlabel}}
+        </label>
+    </div>
     {% endwith %}
 </div>
 {% endmacro %}
@@ -398,7 +438,7 @@
           {% if c.fields %}
             {% for k,v in c.fields %}
               {% if k not in ['publisher', 'theme-primary', 'res_format', 'openness_score', 'license_id-is-ogl',
-                    'schema_multi', 'codelist_multi', 'resource-type'] %}
+                    'schema_multi', 'codelist_multi', 'resource-type', 'api', 'core-dataset', 'unpublished'] %}
               <input type="hidden" name="{{k}}" value="{{v}}" />
               {% endif %}
             {% endfor %}
@@ -419,15 +459,33 @@
             {{ format_facets() }}
             {{ licence_facets() }}
 
-            <div class="facet-divider"></div>
+            <hr/>
+
 
             {{ openness_facets() }}
+
             {{ schema_facets() }}
             {{ codelist_facets() }}
             {{ uklp_facets() }}
 
-            <div class="facet-divider"></div>
+            <hr/>
 
+            {{ tristate_facets('Published Status', 'unpublished', 'Show all', 'Only published datasets', 'Only unpublished datasets')}}
+
+            <hr/>
+
+            {{ tristate_facets('NII Datasets', 'core-dataset', 'Show all', 'Only NII datasets', 'Exclude NII datasets')}}
+
+            <hr/>
+
+            {{ tristate_facets('API', 'api', 'Show all', 'Only datasets with APIs', 'Only datasets without APIs')}}
+
+            <hr/>
+
+
+            <noscript>
+                <button class="btn btn-success">Update</button>
+            </noscript>
           {% endif %}
 
         </form>
