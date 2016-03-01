@@ -728,15 +728,16 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
+
 def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
-                       is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
+                       is_location_data, dataset_is_from_ns_pubhub):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified', 'la-function', 'la-service'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
         field_names_display_only_if_value.append('import_source')
@@ -777,8 +778,6 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-    if is_local_government_data:
-        field_names.add(('la-function', 'la-service'))
 
     field_names.add_after('date_added_to_dgu', 'theme')
     if pkg_extras.get('theme-secondary'):
@@ -1520,14 +1519,6 @@ def is_location_data(pkg_dict):
 def dataset_is_from_ns_pubhub(pkg_dict):
     if get_pkg_dict_extra(pkg_dict, 'external_reference') == 'ONSHUB':
         return True
-
-def is_local_government_data(pkg_dict):
-    if pkg_dict['organization']:
-        from ckan import model
-        org = model.Group.get(pkg_dict['organization']['id'])
-        if org:
-            if org.extras.get('category') == 'local-council':
-                return True
 
 # end of 'Type'/'Source' of dataset functions
 
