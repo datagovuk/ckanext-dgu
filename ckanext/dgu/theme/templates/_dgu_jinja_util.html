@@ -110,7 +110,7 @@
     {% if facets %}
         <select name="resource-type"
                 id="publisher-select"
-                data-placeholder=" "
+                data-placeholder="Please select a dataset type"
                 class="form-control chzn-select"
                 style="width: 100%; max-width: 300px;"
                 onchange="this.form.submit()"
@@ -139,7 +139,7 @@
 
         <select name="publisher"
                 id="publisher-select"
-                data-placeholder=" "
+                data-placeholder="Please select a publisher"
                 class="form-control chzn-select"
                 style="width: 100%; max-width: 300px;"
                 onchange="this.form.submit()"
@@ -173,7 +173,7 @@
 
     <select name="theme-primary"
             id="publisher-select"
-            data-placeholder=" "
+            data-placeholder="Please select a theme"
             class="form-control chzn-select"
             style="width: 100%; max-width: 300px;"
             onchange="this.form.submit()"
@@ -198,7 +198,7 @@
     {% if facets %}
         <select name="res_format"
                 id="publisher-select"
-                data-placeholder=" "
+                data-placeholder="Please select a file format"
                 class="form-control chzn-select"
                 style="width: 100%; max-width: 300px;"
                 onchange="this.form.submit()"
@@ -239,7 +239,7 @@
         {% if facets %}
             <select name="license_id-is-ogl"
                     id="publisher-select"
-                    data-placeholder=" "
+                    data-placeholder="Please select a licence"
                     class="form-control chzn-select"
                     style="width: 100%; max-width: 300px;"
                     onchange="this.form.submit()"
@@ -271,7 +271,7 @@
         {% if facets %}
             <select name="schema_multi"
                     id="publisher-select"
-                    data-placeholder=" "
+                    data-placeholder="Please select a schema"
                     class="form-control chzn-select"
                     style="width: 100%; max-width: 300px;"
                     onchange="this.form.submit()"
@@ -303,7 +303,7 @@
         {% if facets %}
             <select name="codelist_multi"
                     id="publisher-select"
-                    data-placeholder=" "
+                    data-placeholder="Please select a codelist"
                     class="form-control chzn-select"
                     style="width: 100%; max-width: 300px;"
                     onchange="this.form.submit()"
@@ -334,7 +334,7 @@
         {% if facets %}
             <select name="openness_score"
                     id="publisher-select"
-                    data-placeholder=" "
+                    data-placeholder="Please select an openness score"
                     class="form-control chzn-select"
                     style="width: 100%; max-width: 300px;"
                     onchange="this.form.submit()"
@@ -598,51 +598,7 @@
   {% for k, v in d.iteritems() -%}{{k}}="{{v}}"{%- endfor %}
 {%- endmacro %}
 
-{% macro facet_box(title, unselected, selected, if_empty, more_button=None) %}
-    <div class="facet-box-unboxed">
-      <h4 class="facet-title">{{title}}</h4>
-      <div class="facet-options">
-        {% for (link,text,tooltip) in selected %}
-          <div class="facet-option facet-option-selected">
-            <a href="{{link}}">
-              <div class="facet-kill pull-right">
-                <i class="icon-large icon-remove-sign"></i>
-              </div>
-              <span class="{{if_(tooltip,'js-tooltip', '')}}" data-original-title="{{tooltip}}" data-placement="right">
-                {{h.literal(text)}}
-              </span>
-            </a>
-          </div>
-        {% endfor %}
-        {% for i in range(unselected|length) %}
-          {% with %}
-          {% set (link,text,tooltip,key) = unselected[i] %}
-          {% set overflow = i>5 and more_button %}
-          <div class="facet-option {{if_(overflow,'more-%s'%more_button)}}" style="{{if_(overflow,'display:none;')}}">
-            <a href="{{link}}">
-              <span class="{{if_(tooltip,'js-tooltip', '')}}" data-original-title="{{tooltip}}" data-placement="right">
-                {{h.literal(text)}}
-              </span>
-            </a>
-          </div>
-          {% endwith %}
-        {% endfor %}
-        {% if more_button and unselected|length>5 %}
-          <a id="{{more_button}}" class="facet-expand-collapse" href="#">
-            <div class="expander">
-              <i class="icon-double-angle-down"></i>&nbsp; more &nbsp;<i class="icon-double-angle-down"></i>
-            </div>
-            <div class="collapser">
-              <i class="icon-double-angle-up"></i>&nbsp; less &nbsp;<i class="icon-double-angle-up"></i>
-            </div>
-          </a>
-        {% endif %}
-        {% if not selected|length and not unselected|length %}
-        <div class="facet-option"><em>{{if_empty}}</em></div>
-        {% endif %}
-      </div>
-    </div>
-{% endmacro %}
+
 
 {% macro facet_filters() %}
   <div class="datasets">
