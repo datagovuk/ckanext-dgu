@@ -752,10 +752,81 @@ def licence_combinations():
 licence_report_info = {
     'name': 'licence',
     'title': 'Licences',
-    'description': 'Licenses for datasets, reported by publisher.',
+    'description': 'Licenses for datasets.',
     'option_defaults': OrderedDict((('organization', None),
                                     ('include_sub_organizations', False))),
     'option_combinations': licence_combinations,
     'generate': licence_report,
     'template': 'report/licence_report.html',
+    }
+
+
+# Datasets only in PDF
+
+def pdf_datasets_report():
+    '''
+    Returns datasets that have data in PDF format, by organization.
+    '''
+    # Get packages
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')
+
+    # See if PDF
+    num_datasets_published = 0
+    num_datasets_only_pdf = 0
+    datasets_by_publisher_only_pdf = collections.defaultdict(list)
+    # use yield_per, otherwise memory use just goes up til the script is killed
+    # by the os.
+    for pkg in pkgs.yield_per(100):
+        if p.toolkit.asbool(pkg.extras.get('unpublished')):
+            continue
+        num_datasets_published += 1
+
+        formats = set([res.format.lower() for res in pkg.resources
+                       if res.resource_type != 'documentation'])
+        if 'pdf' not in formats:
+            continue
+        org = pkg.get_organization().name
+
+        data_formats = formats - set(('html', '', None))
+        if data_formats == set(('pdf',)):
+            num_datasets_only_pdf += 1
+            datasets_by_publisher_only_pdf[org].append((pkg.name, pkg.title))
+
+    rows = []
+    for org_name, datasets_only_pdf in sorted(
+            datasets_by_publisher_only_pdf.iteritems(),
+            key=lambda x: -len(x[1])):
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        top_org = list(go_up_tree(org))[-1]
+
+        row = OrderedDict((
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('num datasets only pdf', len(datasets_only_pdf)),
+            ('name datasets only pdf',
+             ' '.join(d[0] for d in datasets_only_pdf)),
+            ('title datasets only pdf',
+             '|'.join(d[1] for d in datasets_only_pdf)),
+            ))
+        rows.append(row)
+
+    return {'table': rows,
+            'num_datasets_published': num_datasets_published,
+            'num_datasets_only_pdf': num_datasets_only_pdf,
+            }
+
+
+pdf_datasets_report_info = {
+    'name': 'pdf_datasets',
+    'title': 'PDF Datasets',
+    'description': 'Datasets with data only in PDF format.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': pdf_datasets_report,
+    'template': 'report/pdf_datasets_report.html',
     }

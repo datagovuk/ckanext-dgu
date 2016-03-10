@@ -378,6 +378,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.admin_editor_info,
                 reports.licence_report_info,
                 reports.la_schemas_info,
+                reports.pdf_datasets_report_info,
                 ]
 
 
