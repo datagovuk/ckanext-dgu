@@ -830,3 +830,74 @@ pdf_datasets_report_info = {
     'generate': pdf_datasets_report,
     'template': 'report/pdf_datasets_report.html',
     }
+
+
+# Datasets with HTML link
+
+def html_datasets_report():
+    '''
+    Returns datasets that only have an HTML link, by organization.
+    '''
+    # Get packages
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')
+
+    # See if HTML
+    num_datasets_published = 0
+    num_datasets_only_html = 0
+    datasets_by_publisher_only_html = collections.defaultdict(list)
+    # use yield_per, otherwise memory use just goes up til the script is killed
+    # by the os.
+    for pkg in pkgs.yield_per(100):
+        if p.toolkit.asbool(pkg.extras.get('unpublished')):
+            continue
+        num_datasets_published += 1
+
+        formats = set([res.format.lower() for res in pkg.resources
+                       if res.resource_type != 'documentation'])
+        if 'html' not in formats:
+            continue
+        org = pkg.get_organization().name
+
+        data_formats = formats - set(('asp', '', None))
+        if data_formats == set(('html',)):
+            num_datasets_only_html += 1
+            datasets_by_publisher_only_html[org].append((pkg.name, pkg.title))
+
+    rows = []
+    for org_name, datasets_only_html in sorted(
+            datasets_by_publisher_only_html.iteritems(),
+            key=lambda x: -len(x[1])):
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        top_org = list(go_up_tree(org))[-1]
+
+        row = OrderedDict((
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('num datasets only html', len(datasets_only_html)),
+            ('name datasets only html',
+             ' '.join(d[0] for d in datasets_only_html)),
+            ('title datasets only html',
+             '|'.join(d[1] for d in datasets_only_html)),
+            ))
+        rows.append(row)
+
+    return {'table': rows,
+            'num_datasets_published': num_datasets_published,
+            'num_datasets_only_html': num_datasets_only_html,
+            }
+
+
+html_datasets_report_info = {
+    'name': 'html_datasets',
+    'title': 'HTML Datasets',
+    'description': 'Datasets with data only a link to an HTML page.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': html_datasets_report,
+    'template': 'report/html_datasets_report.html',
+    }
