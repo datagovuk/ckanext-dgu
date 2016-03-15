@@ -25,6 +25,7 @@ class Deleter(object):
 
         stats = Stats()
         for dataset_name in dataset_names:
+            dataset_name = common.name_stripped_of_url(dataset_name)
             try:
                 ckan.call_action('dataset_delete',
                                  {'id': dataset_name})
