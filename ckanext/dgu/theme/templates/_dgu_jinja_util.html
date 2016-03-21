@@ -481,39 +481,47 @@
           {% endif %}
 
           {% if mini %}
-            <div style="margin-top: 40px;"></div>
-            {{ publisher_facets() }}
-            {{ theme_facets() }}
-            {{ format_facets() }}
-            {{ licence_facets() }}
+              <div class="facet-filters">
+                <div class="visible-xs visible-sm" style="height:20px !important;">
+                  <a href="#" class="hide-facets"><i class="icon-remove-circle icon-4x"></i></a>
+                </div>
 
-            <hr/>
+                <div style="margin-top: 40px;"></div>
+                {{ publisher_facets() }}
+                {{ theme_facets() }}
+                {{ format_facets() }}
+                {{ licence_facets() }}
 
-
-            {{ openness_facets() }}
-
-            {{ schema_facets() }}
-            {{ codelist_facets() }}
-            {{ uklp_facets() }}
-
-            <hr/>
-
-            {{ inverse_tristate_facets('Published Status', 'unpublished', 'Show all', 'Only published datasets', 'Only unpublished datasets')}}
-
-            <hr/>
-
-            {{ tristate_facets('NII Datasets', 'core-dataset', 'Show all', 'Only NII datasets', 'Exclude NII datasets')}}
-
-            <hr/>
-
-            {{ tristate_facets('API', 'api', 'Show all', 'Only datasets with APIs', 'Only datasets without APIs')}}
-
-            <hr/>
+                <hr/>
 
 
-            <noscript>
-                <button class="btn btn-success">Update</button>
-            </noscript>
+                {{ openness_facets() }}
+
+                {{ schema_facets() }}
+                {{ codelist_facets() }}
+                {{ uklp_facets() }}
+
+                <hr/>
+
+                {{ inverse_tristate_facets('Published Status', 'unpublished', 'Show all', 'Only published datasets', 'Only unpublished datasets')}}
+
+                <hr/>
+
+                {{ tristate_facets('NII Datasets', 'core-dataset', 'Show all', 'Only NII datasets', 'Exclude NII datasets')}}
+
+                <hr/>
+
+                {{ tristate_facets('API', 'api', 'Show all', 'Only datasets with APIs', 'Only datasets without APIs')}}
+
+                <hr/>
+
+
+                <noscript>
+                    <button class="btn btn-success">Update</button>
+                </noscript>
+
+          </div>
+
           {% endif %}
 
         </form>
