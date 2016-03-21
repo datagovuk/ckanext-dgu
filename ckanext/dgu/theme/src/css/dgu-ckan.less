@@ -21,7 +21,7 @@
 }
 
 .btn-preview.btn-xs {
-  font-size: 11px;
+  font-size: 10px;
   width: 135px;
 }
 
@@ -513,25 +513,23 @@ table.tablesorter {
 @color_geography: @color_mapping;
 
 .dataset-summary {
-  border-left: 6px solid #e0e0e0;
   padding-left: 10px;
   margin-bottom: 30px;
   .dataset-header {
     display: block;
     padding-top: 8px;
-    padding-bottom: 8px;
     border: 0px solid #ccc;
-    border-right-width: 6px;
-    min-height: 40px;
+    min-height: 30px;
     padding-right: 10px;
     &:hover {
       text-decoration: none;
-      .underlined { text-decoration: underline; }
+      .xunderlined { text-decoration: underline; }
     }
     .underlined {
       font-size: 22px;
       line-height: 25px;
       color: #393939;
+      text-decoration: underline;
     }
     .theme-name {
       float: right;
@@ -543,7 +541,6 @@ table.tablesorter {
     }
   }
   .dataset-body {
-    border-right: 6px solid #e0e0e0;
     padding-right: 10px;
     .left {
       float: left;
@@ -556,9 +553,9 @@ table.tablesorter {
       text-align: right;
     }
     .dataset-publisher {
-      font-size: 12px;
-      color: #999;
-      margin-top: -13px;
+      color: #666;
+      margin-top: -7px;
+      font-size: 14px;
     }
   }
   .view-data-link {
@@ -566,13 +563,12 @@ table.tablesorter {
   }
 
   &.unpublished {
-    border-left-style: dotted;
     .text-unpublished {
       color: #777;
       font-style: italic;
     }
   }
-  &.theme-none           { .theme-name { display: none; color: #bbb; font-weight: normal; font-style: italic; }                                                        }
+&.theme-none           { .theme-name { display: none; color: #bbb; font-weight: normal; font-style: italic; }                                                        }
   &.theme-Crime          { .theme-name { color: @color_crime;          } .dataset-header { border-color: @color_crime;          }  }
   &.theme-Defence        { .theme-name { color: @color_defence;        } .dataset-header { border-color: @color_defence;        }  }
   &.theme-Economy        { .theme-name { color: @color_economy;        } .dataset-header { border-color: @color_economy;        }  }
@@ -1295,8 +1291,9 @@ body.controller-package {
     }
   }
   .dataset-map-info {
-    padding: 20px;
+    padding: 18px;
     color: #999;
+    max-height: 18px;
     h3 {
       text-transform: uppercase;
       font-size: 14px;
