@@ -59,6 +59,7 @@ $(function() {
   // Init jquery.placeholder plugin
   $('input[placeholder], textarea[placeholder]').placeholder();
   // Init jquery.chosen plugin
+  $(".chzn-select").hide();
   $(".chzn-select").chosen();
 
   /* Create javascript tooltips */
@@ -640,7 +641,7 @@ CKAN.Dgu.UrlEditor = (function() {
       return slug;
   };
 
-  // Called when the title changes 
+  // Called when the title changes
   UrlEditor.prototype.titleChanged =  function() {
       if (this.disableTitleChanged) { return; }
       var title = this.titleInput.val();
@@ -651,7 +652,7 @@ CKAN.Dgu.UrlEditor = (function() {
       this.urlInput.change();
   };
 
-  // Called when the url is changed 
+  // Called when the url is changed
   UrlEditor.prototype.urlChanged = function() {
       var slug = this.urlInput.val();
       if (slug == this.lastSlug) { return; }
