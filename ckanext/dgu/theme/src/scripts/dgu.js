@@ -59,7 +59,6 @@ $(function() {
   // Init jquery.placeholder plugin
   $('input[placeholder], textarea[placeholder]').placeholder();
   // Init jquery.chosen plugin
-  $(".chzn-select").hide();
   $(".chzn-select").chosen();
 
   /* Create javascript tooltips */
