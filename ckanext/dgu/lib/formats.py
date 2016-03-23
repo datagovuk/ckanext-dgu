@@ -155,6 +155,7 @@ class Formats(object):
                 ('XML', (), ('xml',), ('text/xml','application/xml'), 3, 'document-code'),
                 ('RSS', (), ('rss',), ('text/rss+xml',), 3, 'feed-document'),
                 ('ODS', (), ('ods',), ('application/vnd.oasis.opendocument.spreadsheet',), 3, 'document-excel'),
+                ('WFS', (), ('wfs',), ('application/vnd.ogc.wfs_xml',), 3, 'globe-model'),
                 ('WMS', (), ('wms',), ('application/vnd.ogc.wms_xml',), 3, 'globe-model'),
                 ('WCS', (), ('wcs',), ('application/vnd.ogc.wcs_xml',), 3, 'globe-model'),
                 ('KML', (), ('kml',), ('application/vnd.google-earth.kml+xml',), 3, 'globe-model'),
