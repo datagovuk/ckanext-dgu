@@ -2246,3 +2246,6 @@ def get_issue_count(pkg_id):
         return 0
     return 10
 
+def analytics_snippet():
+    snippet = config.get('googleanalytics.snippet', '')
+    return snippet

@@ -39,6 +39,9 @@ ckan.favicon = /assets/img/favicon.ico
 {% endblock %}
 
 {% block head_extras %}
+
+  {{ h.analytics_snippet()|safe }}
+
   {# Python-generated JS values #}
   <script type="text/javascript">
     CKAN = {};

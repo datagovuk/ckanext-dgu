@@ -182,7 +182,7 @@
         {% if c.fields_grouped
            and c.fields_grouped.get('theme-primary')
            and theme.name in c.fields_grouped.get('theme-primary') %}
-        <option value="{{theme.name}}" selected>{{theme.display_name}} ({{theme.count}})</option>
+        <option value="{{theme.name}}" selected>{{theme.display_name}}</option>
         {% else %}
         <option value="{{theme.name}}">{{theme.display_name}} ({{theme.count}})</option>
         {% endif %}
@@ -547,6 +547,7 @@
       {% endif %}
     </div>
    </div>
+
 {% endmacro %}
 
 {% macro map_preview_button_direct(pkg_dict,small=True) %}
