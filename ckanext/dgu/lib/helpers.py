@@ -935,6 +935,9 @@ def get_resource_formats():
         _canonical_formats_json = json.dumps(sorted(canonical_formats))
     return _canonical_formats_json
 
+def get_resource_formats_list():
+    return json.loads(get_resource_formats())
+
 def get_wms_info_urls(pkg_dict):
     return get_wms_info(pkg_dict)[0]
 

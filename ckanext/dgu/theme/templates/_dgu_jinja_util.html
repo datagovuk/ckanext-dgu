@@ -211,7 +211,7 @@
           </optgroup>
           {% endif %}
           <optgroup label="All Formats">
-            {% for format in h.format_list() %}
+            {% for format in h.get_resource_formats_list() %}
                 {% if c.fields_grouped
                 and c.fields_grouped.get('res_format')
                 and format in c.fields_grouped.get('res_format') %}
