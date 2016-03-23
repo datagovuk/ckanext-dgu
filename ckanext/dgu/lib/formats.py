@@ -34,6 +34,7 @@ def get_icon(format_):
             ('XML', 'document-code'),
             ('RSS', 'feed-document'),
             ('ODS', 'document-excel'),
+            ('WFS', 'globe-model'),
             ('WMS', 'globe-model'),
             ('KML', 'globe-model'),
             #'NetCDF',
