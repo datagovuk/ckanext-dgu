@@ -480,11 +480,15 @@ def does_detected_format_disagree(detected_format, resource_format):
 def render_qa_info_for_resource(resource_dict):
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
+    # Archiver holds details of whether the link is broken
+    archival = resource_dict.get('archiver')
+    reason_list = [archival['status'], archival['reason']] if archival else []
+    # QA holds details of openness score
     qa = resource_dict.get('qa')
-    if not qa:
+    if not (qa or archival):
         return 'To be determined'
-    reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
     ctx = {'qa': qa,
+           'archival': archival,
            'reason_list': reason_list,
            'resource_format': resource_dict['format'],
            'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),

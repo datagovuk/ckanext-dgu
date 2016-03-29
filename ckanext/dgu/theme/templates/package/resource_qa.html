@@ -1,5 +1,5 @@
 
-{% with is_broken = qa['archival_is_broken'] %}
+{% with is_broken = archival.get('is_broken') %}
 
   <div class="resource-qa">
     {% if is_broken %}
@@ -9,18 +9,19 @@
         </span>
     {% endif %}
     <ul>
-        {% if is_broken %}
+      {% if is_broken %}
           {% for reason in reason_list %}
             <li>{{reason}}</li>
           {% endfor%}
+          <li>Last checked: {{h.render_datestamp(archival['updated'])}}</li>
       {% else %}
-        {% if qa['openness_score']==0 and is_data%}
+        {% if qa and qa['openness_score']==0 and is_data %}
           <!--! link works but scores 0 stars - show warning -->
-          <li><span class="label label-warning">Warning</span> URL does not appear to be open data</li>
-          <li>{{qa['openness_score_reason']}}</li>
+          <li><span class="label label-warning">Warning</span> URL does not appear to be open data:</li>
+          <ul><li>{{qa['openness_score_reason']}}</li></ul>
           <!--! Reason contains the format -->
         {% endif %}
-        {% if not (qa['openness_score']==0 and is_data) %}
+        {% if qa and not (qa['openness_score']==0 and is_data) %}
           <!--! link works but since it is not data we don't care how many stars
                 so no need to show any warning -->
                 {% if is_broken%}
@@ -35,8 +36,8 @@
         {% endif %}
         <li>Last checked: {{h.render_datestamp(qa['updated'])}}</li>
       {% endif %}
-      {% if qa.get('url_redirected_to') %}
-      <li>URL redirects to: {{qa['url_redirected_to']}}</li>
+      {% if archival.get('url_redirected_to') %}
+        <li>URL redirects to: {{archival['url_redirected_to']}}</li>
       {% endif %}
     </ul>
    </div>
