@@ -1,5 +1,4 @@
 ﻿from logging import getLogger
-import json
 
 from ckan.lib.helpers import flash_notice
 import ckan.plugins as p
@@ -16,6 +15,7 @@ from ckanext.report.interfaces import IReport
 from ckan.lib.helpers import url_for
 from ckanext.dgu.lib.helpers import dgu_linked_user, is_plugin_enabled
 from ckanext.dgu.search_indexing import SearchIndexing
+from ckanext.dgu import gemini_postprocess_tasks
 from ckan.config.routing import SubMapper
 from ckan.exceptions import CkanUrlException
 
@@ -579,3 +579,26 @@ class SchemaPlugin(p.SingletonPlugin):
             'schema_list': schema_list,
             'codelist_list': codelist_list,
             }
+
+
+class DguSpatialPlugin(p.SingletonPlugin, p.toolkit.DefaultDatasetForm):
+    """
+    DGU-specific bits to do with spatial that are not in ckanext-spatial
+    """
+    p.implements(p.IDomainObjectModification, inherit=True)
+
+    # IDomainObjectModification
+
+    def notify(self, entity, operation=None):
+        from ckan import model
+        if not isinstance(entity, model.Package):
+            return
+        pkg = entity
+        if not p.toolkit.asbool(pkg.extras.get('UKLP')):
+            return
+
+        # TODO avoid infinite loop
+
+        log.debug('Notified of UKLP package event: %s %s', entity.id, operation)
+
+        gemini_postprocess_tasks.create_package_task(entity, 'priority')
