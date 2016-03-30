@@ -121,7 +121,7 @@
             and t.name in c.fields_grouped.get('resource-type') %}
                 <option value="{{ t.name }}" selected>{{h.search_facet_text('resource-type',t.display_name)}}</option>
             {% else %}
-                <option value="{{ t.name }}">{{h.search_facet_text('resource-type', t.display_name) }} ({{t.count}})</option>
+                <option value="{{ t.name }}">{{h.search_facet_text('resource-type', t.display_name) }}<option>
             {% endif %}
         {% endfor %}
         </select>
@@ -184,7 +184,7 @@
            and theme.name in c.fields_grouped.get('theme-primary') %}
         <option value="{{theme.name}}" selected>{{theme.display_name}}</option>
         {% else %}
-        <option value="{{theme.name}}">{{theme.display_name}} ({{theme.count}})</option>
+        <option value="{{theme.name}}">{{theme.display_name}}</option>
         {% endif %}
       {% endfor %}
     </select>
@@ -205,7 +205,7 @@
                 multiple="">
           {% if h.search_facets_unselected(['res_format'])|length > 1 %}
           <optgroup label="Most Relevant">
-            {% for fmt in h.search_facets_unselected(['res_format'])[:3] %}
+            {% for fmt in h.search_facets_unselected(['res_format'])[:5] %}
             <option value="{{fmt.3}}">{{fmt.1}}</option>
             {% endfor %}
           </optgroup>
@@ -250,7 +250,7 @@
                 and licence.name in c.fields_grouped.get('license_id-is-ogl') %}
                     <option value="{{licence.name}}" selected>{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}</option>
                 {% else %}
-                    <option value="{{licence.name}}">{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}  ({{licence.count}})</option>
+                    <option value="{{licence.name}}">{{h.search_facet_text('license_id-is-ogl',licence.display_name)}}</option>
                 {% endif %}
             {% endfor %}
             </select>
@@ -282,7 +282,7 @@
                 and schema.name in c.fields_grouped.get('schema_multi') %}
                     <option value="{{schema.name}}" selected>{{h.search_facet_text('schema_multi', schema.display_name)}}</option>
                 {% else %}
-                    <option value="{{schema.name}}">{{h.search_facet_text('schema_multi',schema.display_name)}}  ({{schema.count}})</option>
+                    <option value="{{schema.name}}">{{h.search_facet_text('schema_multi',schema.display_name)}}</option>
                 {% endif %}
             {% endfor %}
             </select>
@@ -314,7 +314,7 @@
                 and codelist.name in c.fields_grouped.get('codelist_multi') %}
                     <option value="{{codelist.name}}" selected>{{h.search_facet_text('codelist_multi', codelist.display_name)}}</option>
                 {% else %}
-                    <option value="{{codelist.name}}">{{h.search_facet_text('codelist_multi', codelist.display_name)}}  ({{codelist.count}})</option>
+                    <option value="{{codelist.name}}">{{h.search_facet_text('codelist_multi', codelist.display_name)}}</option>
                 {% endif %}
             {% endfor %}
             </select>
@@ -345,7 +345,7 @@
                 and score.name in c.fields_grouped.get('openness_score') %}
                     <option value="{{score.name}}" selected>{{h.search_facet_text('openness_score',score.display_name)}}</option>
                 {% else %}
-                    <option value="{{score.name}}">{{h.search_facet_text('openness_score',score.display_name)}}  ({{score.count}})</option>
+                    <option value="{{score.name}}">{{h.search_facet_text('openness_score',score.display_name)}}</option>
                 {% endif %}
             {% endfor %}
             </select>

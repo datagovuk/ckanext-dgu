@@ -1631,7 +1631,7 @@ def search_facets_unselected(facet_keys,sort_by='count'):
     unselected = []
     for key,value in unselected_raw:
         link = dgu_drill_down_url(facet_params_to_keep(), {key: value['name']})
-        text = "%s (%d)" % (search_facet_text(key,value['name']),value['count'])
+        text = "%s" % (search_facet_text(key,value['name']),)
         tooltip = search_facet_tooltip(key,value['name'])
         unselected.append( (link,text,tooltip,value['name']) )
     # Special case behaviour for publishers
