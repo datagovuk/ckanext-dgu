@@ -487,11 +487,12 @@ def render_qa_info_for_resource(resource_dict):
     qa = resource_dict.get('qa')
     if not (qa or archival):
         return 'To be determined'
+    resource_format_disagrees = does_detected_format_disagree(qa['format'], resource_dict['format']) if qa else None
     ctx = {'qa': qa,
            'archival': archival,
            'reason_list': reason_list,
            'resource_format': resource_dict['format'],
-           'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
+           'resource_format_disagrees': resource_format_disagrees,
            'is_data': resource_dict.get('resource_type') in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
