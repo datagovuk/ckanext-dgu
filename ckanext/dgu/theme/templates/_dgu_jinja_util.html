@@ -153,13 +153,13 @@
           </optgroup>
           {% endif %}
           <optgroup label="All Publishers">
-          {%- for publisher_name, publisher_title in h.organization_list() %}
+          {%- for publisher_name, publisher_title,abbr in h.organization_list() %}
             {% if c.fields_grouped
                and c.fields_grouped.get('publisher')
                and publisher_name in c.fields_grouped.get('publisher') %}
-            <option value="{{publisher_name}}" selected>{{publisher_title}}</option>
+               <option value="{{publisher_name}}" selected>{{publisher_title}}{%if abbr%} - {{abbr}}{% endif %}</option>
             {% else %}
-            <option value="{{publisher_name}}">{{publisher_title}}</option>
+            <option value="{{publisher_name}}">{{publisher_title}}{%if abbr%} - {{abbr}}{% endif %}</option>
             {% endif %}
           {%- endfor %}
           </optgroup>

@@ -80,14 +80,16 @@ def format_list():
 
 def organization_list(top=False):
     from ckan import model
+    from sqlalchemy.orm import joinedload
     if top:
         organizations = model.Group.get_top_level_groups(type='organization')
     else:
         organizations = model.Session.query(model.Group).\
+            options(joinedload('extras')).\
             filter(model.Group.type=='organization').\
             filter(model.Group.state=='active').order_by('title')
     for organization in organizations:
-        yield (organization.name, organization.title)
+        yield (organization.name, organization.title, organization.extras.get('abbreviation', ''))
 
 def publisher_hierarchy():
     from ckan.logic import get_action
