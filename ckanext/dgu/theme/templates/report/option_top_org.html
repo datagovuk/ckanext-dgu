@@ -2,7 +2,7 @@
   <form>
     <select class="inline js-auto-submit" name="top_org">
       <option value="" selected="selected">Select a top level department</option>
-        {% for org_name, org_title,abbr in h.organization_list(top=True) %}
+        {% for org_name, org_title in h.organization_list(top=True) %}
       <option value="{{org_name}}">
         {{org_title}}
       </option>
