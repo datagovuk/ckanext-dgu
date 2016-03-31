@@ -68,9 +68,14 @@ $(function() {
 
   // Init jquery.placeholder plugin
   $('input[placeholder], textarea[placeholder]').placeholder();
-  // Init jquery.chosen plugin
-  $(".chzn-select").hide();
-  $(".chzn-select").chosen();
+
+  if (/iP(od|ad|hone)/i.test(window.navigator.userAgent)) {
+    // we  not initialize chosen on iOS because it is broken
+  } else {
+    // Init jquery.chosen plugin
+    $(".chzn-select").hide();
+    $(".chzn-select").chosen();
+  }
 
   /* Create javascript tooltips */
   $('.js-tooltip').tooltip();
