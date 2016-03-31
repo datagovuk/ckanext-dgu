@@ -482,11 +482,11 @@
 
           {% if mini %}
               <div class="facet-filters">
-                <div class="visible-xs visible-sm" style="height:20px !important;">
+                <div class="visible-xs visible-sm" style="max-height:20px !important;float:right;">
                   <a href="#" class="hide-facets"><i class="icon-remove-circle icon-4x"></i></a>
                 </div>
 
-                <div style="margin-top: 40px;"></div>
+                <div style="margin-top: 40px;" class="clearfix"></div>
                 {{ publisher_facets() }}
                 {{ theme_facets() }}
                 {{ format_facets() }}
@@ -638,15 +638,6 @@
 
 
 {% macro facet_filters() %}
-  <div class="datasets">
-    <div class="facet-filters">
-      <div class="visible-xs visible-sm">
-        <a href="#" class="hide-facets">
-          <i class="icon-remove-circle icon-4x"></i>
-        </a>
-      </div>
-
-  </div>
 {% endmacro %}
 
 {% macro contact_details(name, email, phone, web_url, web_name) %}
