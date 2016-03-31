@@ -71,6 +71,11 @@ $(function() {
 
   if (/iP(od|ad|hone)/i.test(window.navigator.userAgent)) {
     // we  not initialize chosen on iOS because it is broken
+    // and we will remove the multiple attribute to make it
+    // simpler to use
+      $('.chzn-select').each(function(){
+           $(this).removeAttr('multiple');
+      });
   } else {
     // Init jquery.chosen plugin
     $(".chzn-select").hide();
