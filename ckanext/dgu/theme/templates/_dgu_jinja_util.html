@@ -482,11 +482,11 @@
 
           {% if mini %}
               <div class="facet-filters">
-                <div class="visible-xs visible-sm" style="max-height:20px !important;float:right;">
+                <div class="visible-xs visible-sm" style="max-height:20px !important;float:right;position:absolute; top:0;right:0">
                   <a href="#" class="hide-facets"><i class="icon-remove-circle icon-4x"></i></a>
                 </div>
 
-                <div style="margin-top: 40px;" class="clearfix"></div>
+                <div style="margin-top: 30px;" class="clearfix"></div>
                 {{ publisher_facets() }}
                 {{ theme_facets() }}
                 {{ format_facets() }}
