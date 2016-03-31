@@ -58,18 +58,13 @@ function feedback_delete(itemid, andban) {
 $(function() {
 
   // Make sure chosen does not refocus on touch in iOS
-  if (/iP(od|ad|hone)/i.test(window.navigator.userAgent)) {
-      $(document).on('touchend', '.chosen-container .chosen-results', function(event) {
-                    event.stopImmediatePropagation();
-                    event.preventDefault();
-                    return;
-      });
-      $(document).on('touchend', '.chosen-single', function(event) {
-                    event.stopImmediatePropagation();
-                    event.preventDefault();
-                    return;
-      });
-  }
+  //if (/iP(od|ad|hone)/i.test(window.navigator.userAgent)) {
+  //    $(document).on('touchend', '.chosen-container .chosen-results', function(event) {
+  //        event.stopImmediatePropagation();
+  //        event.preventDefault();
+  //        return;
+  //    });
+  //}
 
   // Init jquery.placeholder plugin
   $('input[placeholder], textarea[placeholder]').placeholder();
