@@ -988,18 +988,7 @@ def isopen(pkg):
         # in the same pkg.license field.
         license_text = pkg.license_id
     else:
-        if not (pkg.extras.get('licence') or '').startswith('['):
-            # new
-            license_text = pkg.extras.get('licence') or ''
-        else:
-            # old
-            # UKLP might have multiple licenses and don't adhere to the License
-            # values, so are in the 'licence' extra.
-            license_text_list = json_list(pkg.extras.get('licence') or '')
-            # UKLP might also have a URL to go with its licence
-            license_text_list.extend([pkg.extras.get('licence_url', '') or '',
-                                    pkg.extras.get('licence_url_title') or ''])
-            license_text = ';'.join(license_text_list)
+        license_text = pkg.extras.get('licence') or ''
     open_licenses = [
         'Open Government Licen',
         'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
@@ -1030,66 +1019,32 @@ def linkify(string):
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
     licenses = []  # [(title, url, isopen, isogl), ... ]
-
     licence = pkg.extras.get('licence') or ''
-    if not licence.startswith('[') and (not pkg.license_id or
-                                        pkg.license is not None):
-        # new
-        if pkg.license_id and not licence:
-            # just license_id
+
+    if pkg.license_id and not licence:
+        # just license_id
+        if pkg.license:
             licenses.append((pkg.license.title.split('::')[-1],
                              pkg.license.url,
-                             pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-        elif not licence:
-            # no licence at all
-            pass
+                             pkg.license.isopen(),
+                             pkg.license.id == 'uk-ogl'))
         else:
-            # licence and possibly license_id too
-            if pkg.license_id == 'uk-ogl':
-                # OGL icon & link
-                licenses.append((None, None, None, True))
-            # Licence text
-            licenses.append((licence, None, None, False))
+            # i.e. license_id is unknown - probably harvested from another ckan
+            licenses.append((pkg.license_id, None, None, None))
 
-        return licenses
+    elif not licence:
+        # no licence at all
+        pass
+    else:
+        # licence and possibly license_id too
+        if pkg.license_id == 'uk-ogl':
+            # OGL icon & link
+            licenses.append((None, None, None, True))
+        # Licence text
+        licenses.append((licence, None, None, False))
 
-    # old
-
-    # Normal datasets (created in the form) store the licence in the
-    # pkg.license value as a License.id value.
-    if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id and pkg.license_id != 'None':
-        # However if the user selects 'free text' in the form, that is stored in
-        # the same pkg.license field.
-        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
-
-    # UKLP might have multiple licenses and don't adhere to the License
-    # values, so are in the 'licence' extra.
-    licence = pkg.extras.get('licence') or ''
-    license_extra_list = json_list(licence)
-    for license_extra in license_extra_list:
-        license_extra_url = None
-        if license_extra.startswith('http'):
-            license_extra_url = license_extra
-        # british-waterways-inspire-compliant-service-metadata specifies OGL as
-        # only one of many licenses. Set is_ogl bar a little higher - licence
-        # text must start off saying it is OGL.
-        is_ogl = license_extra.startswith('Open Government Licen')
-        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
-
-    # UKLP might also have a URL to go with its licence
-    license_url = pkg.extras.get('licence_url')
-    if license_url:
-        license_url_is_ogl = \
-            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
-            '//reference.data.gov.uk/id/open-government-licence' in license_url
-        already_said_we_are_ogl = any([license[3] for license in licenses])
-        if not (license_url_is_ogl and already_said_we_are_ogl):
-            license_url_title = pkg.extras.get('licence_url_title') or license_url
-            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
+
 
 def get_dataset_openness(pkg):
     licenses = get_licenses(pkg) # [(title,url,isopen)...]
