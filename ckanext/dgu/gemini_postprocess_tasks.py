@@ -1,10 +1,9 @@
 import os
 
-
 from ckan.lib.celery_app import celery
 import ckan.plugins as p
 
-from ckanext.dgu.gemini_postprocess import process_resource
+from ckanext.dgu.gemini_postprocess import process_package_
 
 
 def create_package_task(package, queue):
@@ -25,8 +24,6 @@ def process_package(ckan_ini_filepath, package_id, queue='bulk'):
     '''
     Archive a package.
     '''
-    from ckan import model
-
     load_config(ckan_ini_filepath)
     register_translator()
 
@@ -37,12 +34,7 @@ def process_package(ckan_ini_filepath, package_id, queue='bulk'):
     # Also put try/except around it is easier to monitor ckan's log rather than
     # celery's task status.
     try:
-        context_ = {'model': model, 'ignore_auth': True, 'session': model.Session}
-        package = p.toolkit.get_action('package_show')(context_, {'id': package_id})
-
-        for resource in package['resources']:
-            resource_id = resource['id']
-            process_resource(ckan_ini_filepath, resource_id, queue)
+        process_package_(package_id)
     except Exception, e:
         if os.environ.get('DEBUG'):
             raise
@@ -50,10 +42,6 @@ def process_package(ckan_ini_filepath, package_id, queue='bulk'):
         log.error('Error occurred during gemini post-process of package: %s\nPackage: %r %r',
                   e, package_id, package['name'] if 'package' in dir() else '')
         raise
-
-    # Refresh the index for this dataset, so that it contains the latest
-    # archive info.
-    _update_search_index(package_id, log)
 
 
 def load_config(ckan_ini_filepath):

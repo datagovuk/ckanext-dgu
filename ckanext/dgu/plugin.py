@@ -581,7 +581,7 @@ class SchemaPlugin(p.SingletonPlugin):
             }
 
 
-class DguSpatialPlugin(p.SingletonPlugin, p.toolkit.DefaultDatasetForm):
+class DguSpatialPlugin(p.SingletonPlugin):
     """
     DGU-specific bits to do with spatial that are not in ckanext-spatial
     """
@@ -599,6 +599,6 @@ class DguSpatialPlugin(p.SingletonPlugin, p.toolkit.DefaultDatasetForm):
 
         # TODO avoid infinite loop
 
-        log.debug('Notified of UKLP package event: %s %s', entity.id, operation)
+        log.debug('Notified of UKLP package event: %s %s', pkg.name, operation)
 
         gemini_postprocess_tasks.create_package_task(entity, 'priority')

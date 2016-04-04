@@ -5,10 +5,15 @@ import socket
 import httplib
 from lxml import etree
 import traceback
+import urlparse
+import urllib
+import json
 
 from owslib import wms as owslib_wms
 
+from ckan.common import OrderedDict
 import ckan.plugins as p
+from ckan import logic
 
 log = logging.getLogger(__name__)
 
@@ -19,17 +24,56 @@ def is_id(id_string):
     return bool(re.match(reg_ex, id_string))
 
 
-def process_resource(ckan_ini_filepath, resource_id, queue):
+def hash_a_dict(dict_):
+    return json.dumps(dict_, sort_keys=True)
+
+
+def process_package_(package_id):
+    from ckan import model
+
+    # Using default CKAN schema instead of DGU, because we will write it back
+    # in the same way in a moment. However it changes formats to lowercase.
+    context_ = {'model': model, 'ignore_auth': True, 'session': model.Session,
+                #'schema': logic.schema.default_show_package_schema()
+                }
+    package = p.toolkit.get_action('package_show')(context_, {'id': package_id})
+    package_changed = None
+
+    for resource in package.get('individual_resources', []) + \
+            package.get('timeseries_resources', []) + \
+            package.get('additional_resources', []):
+        log.info('Processing package=%s resource=%s',
+                 package['name'], resource['id'][:4])
+        resource_hash_before = hash_a_dict(resource)
+        process_resource(resource)
+        if not package_changed:
+            resource_changed = hash_a_dict(resource) != resource_hash_before
+            if resource_changed:
+                package_changed = True
+    if package_changed:
+        log.info('Writing dataset changes')
+        # use default schema so that format can be missing
+        user = p.toolkit.get_action('get_site_user')({'ignore_auth': True}, {})
+        context = {'model': model,
+                   'session': model.Session,
+                   'ignore_auth': True,
+                   'user': user['name'],
+                   #'schema': logic.schema.default_update_package_schema()
+                   }
+        p.toolkit.get_action('package_update')(context, package)
+    else:
+        log.info('Writing dataset changes')
+
+
+def process_resource(resource):
+    '''
+    Edits resource in-place.
+    '''
     #log = process_resource.get_logger()
     #load_config(ckan_ini_filepath)
     #register_translator()
 
-    from ckan import model
-    from pylons import config
-
-    assert is_id(resource_id), resource_id
-    context_ = {'model': model, 'ignore_auth': True, 'session': model.Session}
-    resource = p.toolkit.get_action('resource_show')(context_, {'id': resource_id})
+    url = resource['url']
 
     # Check if the service is a view service
     is_wms = _is_wms(url)
@@ -38,7 +82,7 @@ def process_resource(ckan_ini_filepath, resource_id, queue):
         #resource['verified_date'] = datetime.now().isoformat()
         base_urls = _wms_base_urls(url)
         resource['wms_base_urls'] = ' '.join(base_urls)
-        resource_format = 'WMS'
+        resource['format'] = 'WMS'
 
 
 def _is_wms(url):
@@ -47,39 +91,66 @@ def _is_wms(url):
     '''
     # Try WMS 1.3 as that is what INSPIRE expects
     is_wms = _try_wms_url(url, version='1.3')
-    # First try using WMS 1.1.1 as that is very common
-    if not is_wms:
+    # is_wms None means socket timeout, so don't bother trying again
+    if is_wms is False:
+        # Try using WMS 1.1.1 as that is very common
         is_wms = _try_wms_url(url, version='1.1.1')
     log.debug('WMS check result: %s', is_wms)
     return is_wms
 
 
-# Like owslib_wms.WMSCapabilitiesReader(version=version).capabilities_url only
-# it deals with uppercase param keys too!
-def wms_capabilities_url(url):
-    qs = []
-    if service_url.find('?') != -1:
-        qs = cgi.parse_qsl(service_url.split('?')[1])
+def strip_session_id(url):
+    return re.sub(';jsessionid=[^/\?]+', ';jsessionid=', url)
 
-    params = [x[0] for x in qs]
 
-    if 'service' not in params:
-        qs.append(('service', 'WMS'))
-    if 'request' not in params:
-        qs.append(('request', 'GetCapabilities'))    
-    if 'version' not in params:
-        qs.append(('version', self.version))
+def get_wms_base_url(url):
+    return strip_session_id(url.split('?')[0])
 
-    urlqs = urlencode(tuple(qs))
-    return service_url.split('?')[0] + '?' + urlqs
+
+# Like owslib_wms.WMSCapabilitiesReader(version=version).capabilities_url only:
+# * it deals with uppercase param keys too!
+# * version is configurable or can be not included at all
+def wms_capabilities_url(url, version=None):
+    '''Given what is assumed to be a WMS base URL, adds any missing parameters
+    to cajole it to work ('service' & 'request'). The 'version' parameter is
+    man-handled to be what you specify or removed if necessary.
+    '''
+    if url.find('?') != -1:
+        param_list = urlparse.parse_qsl(url.split('?')[1])
+        params = OrderedDict(param_list)
+    else:
+        params = OrderedDict()
+    params_lower = (param.lower() for param in params)
+
+    if 'service' not in params_lower:
+        params['service'] = 'WMS'
+    if 'request' not in params_lower:
+        params['request'] = 'GetCapabilities'
+
+    if 'version' in params:
+        del params['version']
+    if 'VERSION' in params:
+        del params['VERSION']
+    if version:
+        params['version'] = version
+
+    urlqs = urllib.urlencode(params)
+    return url.split('?')[0] + '?' + urlqs
 
 
 def _try_wms_url(url, version='1.3'):
     # Here's a neat way to run this manually:
     # python -c "import logging; logging.basicConfig(level=logging.INFO); from ckanext.dgu.gemini_postprocess import _try_wms_url; print _try_wms_url('http://soilbio.nerc.ac.uk/datadiscovery/WebPage5.aspx')"
-    import pdb; pdb.set_trace()
+    '''Does a GetCapabilities request and returns whether it responded ok.
+
+    Returns:
+      True - got a WMS response that isn't a ServiceException
+      False - got a different response, or got HTTP/WMS error
+      None - socket timeout - host is simply not responding, and is so slow communicating there is no point trying it again
+    '''
+
     try:
-        capabilities_url = wms_capabilities_url(url)
+        capabilities_url = wms_capabilities_url(url, version)
         log.debug('WMS check url: %s', capabilities_url)
         try:
             res = urllib2.urlopen(capabilities_url, None, 10)
@@ -93,7 +164,7 @@ def _try_wms_url(url, version='1.3'):
             return False
         except socket.timeout, e:
             log.info('WMS check for %s failed due to HTTP connection timeout error "%s".', capabilities_url, e)
-            return False
+            return None
         except socket.error, e:
             log.info('WMS check for %s failed due to HTTP socket connection error "%s".', capabilities_url, e)
             return False
@@ -151,19 +222,18 @@ def _try_wms_url(url, version='1.3'):
 
 
 def _wms_base_urls(url):
-    '''Given a WMS URL this method returns the base URLs it uses. It does
-    it by making basic WMS requests.
+    '''Given a WMS URL this method returns the base URLs it uses (so that they
+    can be proxied when previewing it). It does it by making basic WMS
+    requests.
     '''
     # Here's a neat way to test this manually:
     # python -c "import logging; logging.basicConfig(level=logging.INFO); from ckanext.spatial.harvesters.gemini import GeminiSpatialHarvester; print GeminiSpatialHarvester._wms_base_urls('http://www.ordnancesurvey.co.uk/oswebsite/xml/atom/')"
     try:
-        capabilities_url = wms_capabilities_url(url)
-        # Get rid of the "version=1.1.1" param that OWSLIB adds, because
-        # the OS WMS previewer doesn't specify a version, so may receive
-        # later versions by default. And versions like 1.3 may have
-        # different base URLs. It does mean that we can't use OWSLIB to parse
-        # the result though.
-        capabilities_url = re.sub('&version=[^&]+', '', capabilities_url)
+        capabilities_url = wms_capabilities_url(url, version=None)
+        # We don't want a "version" param, because the OS WMS previewer doesn't
+        # specify a version, so may receive later versions by default.  And
+        # versions like 1.3 may have different base URLs. It does mean that we
+        # can't use OWSLIB to parse the result though.
         try:
             log.debug('WMS base url check: %s', capabilities_url)
             res = urllib2.urlopen(capabilities_url, None, 10)
@@ -201,7 +271,7 @@ def _wms_base_urls(url):
         urls = xml_tree.xpath(xpath, namespaces=namespaces)
         for url in urls:
             if url:
-                base_url = url.split('?')[0]
+                base_url = get_wms_base_url(url)
                 base_urls.add(base_url)
         log.info('Extra WMS base urls: %r', base_urls)
         return base_urls
