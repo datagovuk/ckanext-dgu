@@ -1019,9 +1019,15 @@ def get_licenses(pkg):
 
     if pkg.license_id and not licence:
         # just license_id
-        licenses.append((pkg.license.title.split('::')[-1],
-                            pkg.license.url,
-                            pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
+        if pkg.license:
+            licenses.append((pkg.license.title.split('::')[-1],
+                             pkg.license.url,
+                             pkg.license.isopen(),
+                             pkg.license.id == 'uk-ogl'))
+        else:
+            # i.e. license_id is unknown - probably harvested from another ckan
+            licenses.append((pkg.license_id, None, None, None))
+
     elif not licence:
         # no licence at all
         pass
