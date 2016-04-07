@@ -2235,6 +2235,17 @@ def get_issue_count(pkg_id):
     return 10
 
 
+def get_license_from_id(license_id):
+    '''If the license_id is known, returns the License object. If unknown it
+    returns None.'''
+    from ckan import model
+    license_register = model.Package.get_license_register()
+    try:
+        return license_register[license_id]
+    except KeyError:
+        return None
+
+
 def get_licence_fields_from_free_text(licence_str):
     '''Using a free text licence (e.g. harvested), this func returns license_id
     and licence extra ready to be saved to the dataset dict. It returns a blank
@@ -2276,6 +2287,7 @@ def detect_license_id(licence_str):
                 'OGL Terms and Conditions apply',
                 r'\bUK\b',
                 'v3\.0',
+                'v3',
                 'version 3',
                 'for public sector information',
                 'Link to the',

@@ -15,6 +15,7 @@ from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
                                      dgu_format_icon,
                                      dgu_format_name,
                                      detect_license_id,
+                                     get_license_from_id,
                                      linkify,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
@@ -312,6 +313,18 @@ class TestFormatName(object):
 
     def test_link_for_unknown_format(self):
         assert_equal(dgu_format_name('unknown'), 'unknown')
+
+
+class TestGetLicenseById(object):
+    def test_known(self):
+        assert_equal(get_license_from_id('uk-ogl').title,
+                     u'UK Open Government Licence (OGL)')
+
+    def test_ukknown(self):
+        assert_equal(get_license_from_id('made-up'), None)
+
+    def test_blank(self):
+        assert_equal(get_license_from_id(''), None)
 
 
 class TestDetectLicenseId(object):
