@@ -53,7 +53,7 @@ class CleanCachedResources(object):
                 try:
                     os.unlink(f)
                 except OSError:
-                    stats.add('Error Deleting', f.decode('utf8'))
+                    print stats.add('ERROR Deleting', f.decode('utf8'), 0)
         print 'Done'
 
 

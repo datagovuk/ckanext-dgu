@@ -47,13 +47,12 @@ class CleanCachedResources(object):
                         print stats.add('Package is deleted', f.decode('utf8'), size)
                         files_to_delete.append(f)
                     else:
-                        print stats.add('OK', f.decode('utf8'), size)
+                        stats.add('OK', f.decode('utf8'), size)
 
             count += 1
             if count % 250 == 0:
-                print '\n\n\nProgress after %s:' % count
+                print '\n\nProgress after %s:' % count
                 print stats.report()
-                print '\n\n'
 
         print stats.report()
 
@@ -63,7 +62,7 @@ class CleanCachedResources(object):
                 try:
                     os.unlink(f)
                 except OSError:
-                    stats.add('Error Deleting', f.decode('utf8'))
+                    print stats.add('ERROR Deleting', f.decode('utf8'), 0)
         print 'Done'
 
 
