@@ -331,14 +331,12 @@
           </div>
         </div>
       </div>
-      <div class="dropdown" style="pointer-events:none;">
-        <a href="#" class="dataset-resource-chevron" data-toggle="dropdown" style="pointer-events:auto;">
-          <i class="icon-chevron-down"></i>
-        </a>
+      <div class="download-box">
         {% with %}
           {% set gemini      = res.get('gemini',False) %}
           {% set is_download = not is_location_data and res.get('resource_type') == 'file' %}
-        <ul class="dropdown-menu" role="menu" style="pointer-events:auto;">
+          {# Details #}
+{#
           {% if gemini %}
             <li>
               <a href="{{res.get('url', '')}}" rel="dcat: distribution" target="_blank" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
@@ -352,41 +350,16 @@
               </a>
             </li>
           {% endif %}
-
-          {% if not gemini%}
-            <li>
-              <a href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
-                <i class="icon-download-alt"></i>&nbsp;
-                {% if is_download %}
-                  Download
-                {% else %}
-                  Direct Link
-                {% endif %}
-              </a>
-            </li>
-          {% endif %}
-          {% with %}
-            {% set cache_url, cache_timestamp = h.get_cache(res) %}
-            {% if not gemini and cache_url %}
-            <li>
-              <a href="{{cache_url}}" class="js-tooltip" data-placement="bottom" title="Cached&nbsp;by&nbsp;data.gov.uk&nbsp;on {{cache_timestamp if cache_timestamp else 'unknown date'}}" onclick="{{h.ga_download_tracking(res, publisher_name, 'download-cache')}}">
-                <i class="icon-save"></i>&nbsp;
-                Cached
-              </a>
-            </li>
-            {% endif %}
-            {% if not gemini and not cache_url %}
-              <li>
-                <a class="disabled">
-                  <i class="icon-save"></i>&nbsp;
-                  (no cache available)
-                </a>
-              </li>
-            {% endif %}
-          {% endwith %}
-        </ul><!-- /dropdown-mnu-->
+#}
+          <a class="dataset-resource-chevron js-tooltip" style="pointer-events:auto;" data-toggle="tooltip" title="{% if is_download %}Download{% else %}Direct Link{% endif %}" href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+              {% if is_download and not gemini %}
+                <i class="icon-download-alt icon-25x"></i>&nbsp;
+              {% else %}
+                <i class="icon-link icon-25x"></i>&nbsp;
+              {% endif %}
+          </a>
         {% endwith %}
-      </div><!--/dropdown-->
+      </div><!--/download-box-->
     </div><!-- /dataset-resource -->
     </div><!-- /col-sm-6 -->
     {% endfor %}
