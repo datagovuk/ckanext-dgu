@@ -317,14 +317,12 @@
       <div class="dataset-resource-text">
         <div class="inner">
          <div class="inner2">
-          <div class="inner3">
+          <div class="inner3 resource-description">
             {% if res.get('scraped') or res.get('scraper_url') %}
               {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
             {% endif %}
-            <h3>
               {{res.get('date','')}}
               {{h.resource_display_name(res)}}
-            </h3>
           </div>
           <div class="inner3">
             <span>
