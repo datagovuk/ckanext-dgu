@@ -143,19 +143,25 @@
                   </div>
                   <div class="dataset-resource-text">
                     <div class="inner">
-                      <div class="inner2">
-                        Download all data
-                        {% if h.packagezip_size(c.pkg)  %}
-                          ({{h.packagezip_size(c.pkg)|filesizeformat}})
-                        {% endif %}
+                      <div class="inner-row description">
+                        <div class="inner-cell">
+                          All data
+                        </div>
+                      </div>
+                      <div class="inner-row actions">
+                        <div class="inner-cell">
+                          <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;">
+                            <strong>
+                              Download
+                            </strong>
+                            {% if h.packagezip_size(c.pkg)  %}
+                              ({{h.packagezip_size(c.pkg)|filesizeformat}})
+                            {% endif %}
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="dropdown" style="pointer-events:none;">
-                    <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;">
-                      <i class="icon-download-alt icon-25x"></i>
-                    </a>
-                  </div><!--/dropdown-->
                 </div><!-- /dataset-resource -->
               </div><!-- /col-sm-6 -->
             </div>
@@ -355,7 +361,7 @@
                   {{ res.format }}
                 </strong>
                 {% if is_download and res.get('archiver') and res['archiver'].get('size') %}
-                  {{ res['archiver']['size']|filesizeformat }}
+                  ({{ res['archiver']['size']|filesizeformat }})
                 {% endif %}
               </a>
             </span>
