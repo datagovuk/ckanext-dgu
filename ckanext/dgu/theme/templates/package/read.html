@@ -316,7 +316,7 @@
       </div>
       <div class="dataset-resource-text">
         <div class="inner">
-          <div class="inner-row resource-description">
+          <div class="inner-row description">
             <span class="inner-cell">
               {% if res.get('scraped') or res.get('scraper_url') %}
                 {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
@@ -325,7 +325,7 @@
               {{h.resource_display_name(res)}}
             </span>
           </div>
-          <div class="inner-row">
+          <div class="inner-row actions">
            <div class="inner-cell">
             <span>
               {# exclamation mark #}

@@ -1255,20 +1255,28 @@ body.controller-package {
       height: 110px;
       overflow: hidden;
       .inner {
-        display: table;
-        height: 100%;
+        /* vertical centred */
+        position: relative;
+        top: 50%;
+        -webkit-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
       }
       .inner-row {
-        display: table-row;
+        display: ;
+        overflow: hidden;
       }
       .inner-cell {
-        display: table-cell;
+        display: block;
         padding: 8px 16px;
         vertical-align: middle;
         overflow: hidden;
       }
-      .resource-description {
+      .description {
         max-height: 80px;
+      }
+      .actions {
+        white-space: nowrap;
       }
     }
     .dropdown-menu {
