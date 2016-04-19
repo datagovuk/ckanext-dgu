@@ -316,15 +316,17 @@
       </div>
       <div class="dataset-resource-text">
         <div class="inner">
-         <div class="inner2">
-          <div class="inner3 resource-description">
-            {% if res.get('scraped') or res.get('scraper_url') %}
-              {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
-            {% endif %}
+          <div class="inner-row resource-description">
+            <span class="inner-cell">
+              {% if res.get('scraped') or res.get('scraper_url') %}
+                {{h.scraper_icon(res, alt=m.if_(res.get('scraper_url'), "This URL leads to data files which are being added automatically, using the scraper at: https://scraperwiki.com/scrapers/%s" % res.get('scraper_url'), ""))}}
+              {% endif %}
               {{res.get('date','')}}
               {{h.resource_display_name(res)}}
+            </span>
           </div>
-          <div class="inner3">
+          <div class="inner-row">
+           <div class="inner-cell">
             <span>
               {# exclamation mark #}
               {% if h.is_resource_broken(res) %}
@@ -333,24 +335,33 @@
                 </a>
               {% endif %}
               <a href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}" style="padding-right: 15px">
-                Details
+                <strong>
+                  Details
+                </strong>
               </a>
             </span>
             {% with %}
             {% set gemini      = res.get('gemini',False) %}
-            {% set is_download = not is_location_data and res.get('resource_type') == 'file' %}
+            {% set is_download = not is_location_data and res.get('resource_type') == 'file' and res.format != 'HTML' and res.get('archiver', {}).get('format') != 'HTML' %}
             <span>
-              <a style="pointer-events:auto;" href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
-                {% if is_download and not gemini %}
-                  <i class="icon-download-alt"></i>&nbsp;Download data
-                {% else %}
-                  <i class="icon-link"></i>&nbsp;Link to data
+              <a href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
+                <strong>
+                  {% if is_download and not gemini %}
+                    Download
+                  {% else %}
+                    Link
+                    {% if res.format %} to {% endif %}
+                  {% endif %}
+                  {{ res.format }}
+                </strong>
+                {% if is_download and res.get('archiver') and res['archiver'].get('size') %}
+                  {{ res['archiver']['size']|filesizeformat }}
                 {% endif %}
               </a>
             </span>
             {% endwith %}
+           </div>
           </div>
-         </div>
         </div>
       </div>
       <div class="download-box" style="display: none">

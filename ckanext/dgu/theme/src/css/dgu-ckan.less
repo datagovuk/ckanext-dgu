@@ -1258,21 +1258,17 @@ body.controller-package {
         display: table;
         height: 100%;
       }
-      .inner2 {
-        vertical-align: middle;
-        display: table-cell;
+      .inner-row {
+        display: table-row;
       }
-      .inner3 {
-        display: block;
-        padding: 4px 16px;
+      .inner-cell {
+        display: table-cell;
+        padding: 8px 16px;
+        vertical-align: middle;
         overflow: hidden;
-        text-overflow: ellipsis;
-        span {
-          display: inline-block;
-        }
       }
       .resource-description {
-        height: 50px;
+        max-height: 80px;
       }
     }
     .dropdown-menu {
