@@ -336,7 +336,7 @@
             {% with %}
             {% set is_location_data = h.is_location_data(c.pkg_dict) %}
             {% set gemini = res.get('gemini',False) %} {# i.e. the gemini metadata links, shown as resources #}
-            {% set is_download = not is_location_data and res.get('resource_type') in ('file', 'documentation') and (res.format or '').upper() not in non_download_formats and res.get('archiver', {}).get('format') not in non_download_formats %}
+            {% set is_download = not is_location_data and res.get('resource_type') != 'api' and (res.format or '').upper() not in non_download_formats and res.get('archiver', {}).get('format') not in non_download_formats %}
             {% set is_html = not is_download and (res.format == 'HTML' or res.get('archiver', {}).get('format') == 'HTML') %}
             <span>
               {# exclamation mark #}
