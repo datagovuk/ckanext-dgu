@@ -1388,15 +1388,17 @@ def gemini_resources():
         {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
          'title': 'Source GEMINI2 record',
          'type': 'XML',
+         'format': 'XML',
          'action': 'View',
          'id': '',
-         'gemini':True},
+         'gemini': True},
         {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
          'title': 'Source GEMINI2 record (formatted)',
          'type': 'HTML',
+         'format': 'HTML',
          'action': 'View',
          'id': '',
-         'gemini':True}]
+         'gemini': True}]
     return gemini_resources
 
 def individual_resources():
