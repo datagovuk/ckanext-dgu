@@ -111,7 +111,6 @@
     </div>
 
 
-
     {% set publisher_name = c.pkg.get_organization().name %}
     {% set issue_count = h.get_issue_count(c.pkg.id) %}
 
@@ -152,7 +151,7 @@
                         <div class="inner-cell">
                           <a href="{{h.packagezip_url(c.pkg)}}" class="dataset-resource-chevron" style="pointer-events:auto;">
                             <strong>
-                              Download
+                              Download ZIP
                             </strong>
                             {% if h.packagezip_size(c.pkg)  %}
                               ({{h.packagezip_size(c.pkg)|filesizeformat}})
@@ -333,6 +332,11 @@
           </div>
           <div class="inner-row actions">
            <div class="inner-cell">
+            {% with %}
+            {% set is_location_data = h.is_location_data(c.pkg_dict) %}
+            {% set gemini = res.get('gemini',False) %} {# i.e. the gemini metadata links, shown as resources #}
+            {% set is_download = not is_location_data and res.get('resource_type') in ('file', 'documentation') and (res.format or '').upper() not in ('HTML', 'API') and res.get('archiver', {}).get('format') != 'HTML' %}
+            {% set is_html = not is_download and (res.format == 'HTML' or res.get('archiver', {}).get('format') == 'HTML') %}
             <span>
               {# exclamation mark #}
               {% if h.is_resource_broken(res) %}
@@ -340,15 +344,14 @@
                   <i class="icon-exclamation-sign"></i>
                 </a>
               {% endif %}
-              <a href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}" style="padding-right: 15px">
-                <strong>
-                  Details
-                </strong>
-              </a>
+              {% if not gemini %}
+                <a href="{{h.url_for(controller='package', action='resource_read', id=c.pkg_dict['name'], resource_id=res['id'])}}" style="padding-right: 15px">
+                  <strong>
+                    Details
+                  </strong>
+                </a>
+              {% endif %}
             </span>
-            {% with %}
-            {% set gemini      = res.get('gemini',False) %}
-            {% set is_download = not is_location_data and res.get('resource_type') == 'file' and res.format != 'HTML' and res.get('archiver', {}).get('format') != 'HTML' %}
             <span>
               <a href="{{res.get('url', '')}}" onclick="{{h.ga_download_tracking(res, publisher_name)}}">
                 <strong>
@@ -356,9 +359,11 @@
                     Download
                   {% else %}
                     Link
-                    {% if res.format %} to {% endif %}
+                    {% if not is_html and res.format %} to {% endif %}
                   {% endif %}
-                  {{ res.format }}
+                  {% if not is_html and res.format %}
+                    {{ res.format }}
+                  {% endif %}
                 </strong>
                 {% if is_download and res.get('archiver') and res['archiver'].get('size') %}
                   ({{ res['archiver']['size']|filesizeformat }})
