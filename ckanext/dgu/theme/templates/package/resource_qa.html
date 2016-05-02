@@ -1,5 +1,5 @@
 
-{% with is_broken = archival.get('is_broken') %}
+{% with is_broken = archival and archival.get('is_broken') %}
 
   <div class="resource-qa">
     {% if is_broken %}
@@ -36,7 +36,7 @@
         {% endif %}
         <li>Last checked: {{h.render_datestamp(qa['updated'])}}</li>
       {% endif %}
-      {% if archival.get('url_redirected_to') %}
+      {% if archival and archival.get('url_redirected_to') %}
         <li>URL redirects to: {{archival['url_redirected_to']}}</li>
       {% endif %}
     </ul>
