@@ -26,7 +26,7 @@ def _get_resources(state, options):
     return resources
 
 
-def no_current(options):
+def no_current_resources(options):
     resources = _get_resources('active', options)
     stats = StatsList()
     need_to_commit = False
@@ -51,6 +51,60 @@ def no_current(options):
         print 'Written'
 
 
+def _get_packages(state, options):
+    if options.resource:
+        return []
+    pkgs = model.Session.query(model.Package) \
+                .filter_by(state=state) \
+                .filter_by(state='active')
+    if options.dataset:
+        pkgs = pkgs.filter(model.Package.name==options.dataset)
+    pkgs = pkgs.all()
+    print '%i packages' % len(pkgs)
+    return pkgs
+
+
+def no_current_packages(options):
+    pkgs = _get_packages('active', options)
+    stats = StatsList()
+    need_to_commit = False
+    for pkg in pkgs:
+        latest_pkg_rev = \
+            model.Session.query(model.PackageRevision) \
+            .filter_by(id=pkg.id) \
+            .order_by(model.PackageRevision.revision_timestamp.desc()) \
+            .first()
+        # sometimes a revision_timestamp is null for some reason
+        if latest_pkg_rev.revision_timestamp is None:
+            # in which case, join them to the revision table and order by those
+            # timestamps instead
+            latest_pkg_rev = \
+                model.Session.query(model.PackageRevision) \
+                .filter_by(id=pkg.id) \
+                .join(model.Revision) \
+                .order_by(model.Revision.timestamp.desc()) \
+                .first()
+
+        if not latest_pkg_rev.current:
+            print stats.add('No current revision', pkg.name)
+            if options.write:
+                latest_pkg_rev.current = True
+                need_to_commit = True
+        else:
+            stats.add('Ok', pkg.name)
+        if latest_pkg_rev.revision_id != pkg.revision_id:
+            print stats.add('Revision ID of package too old', pkg.name)
+            if options.write:
+                pkg.revision_id = latest_pkg_rev.revision_id
+                need_to_commit = True
+
+    print 'Summary', stats.report()
+    if options.write and need_to_commit:
+        model.repo.commit_and_remove()
+        print 'Written'
+    print
+
+
 def undelete(options):
     resources = _get_resources('deleted', options)
     stats = StatsList()
@@ -70,7 +124,7 @@ def undelete(options):
         # Clearly there is a gap from the 2nd to the 3rd, indicating the problem.
         res_revs = model.Session.query(model.ResourceRevision).filter_by(id=res.id).order_by('revision_timestamp').all()
         if len(res_revs) < 2:
-            print add_stat('Not enought revisions', res, stats)
+            print add_stat('Not enough revisions', res, stats)
             continue
         if res_revs[-2].expired_timestamp == res_revs[-1].revision_timestamp:
             add_stat('Ok', res, stats)
@@ -140,7 +194,7 @@ if __name__ == '__main__':
 
     usage: %prog [options] <ckan.ini> <command>
 Commands:
-    no-current - Fix resources without a current revision
+    no-current - Fix packages and resources without a current revision
     undelete - Undelete resources that were deleted because of the problem
     refix - Sort out resources that were falsely made current in a bad fix
     """
@@ -172,7 +226,8 @@ Commands:
     #logging.basicConfig(level=logging.DEBUG, format='%(message)s')
     from ckan import model
     if command == 'no-current':
-        no_current(options)
+        no_current_packages(options)
+        no_current_resources(options)
     elif command == 'undelete':
         undelete(options)
     elif command == 'refix':
