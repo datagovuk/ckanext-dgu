@@ -33,17 +33,6 @@ class StatsCount(dict):
         if not self.has_key(category):
             self[category] = copy.deepcopy(self._init_value)
         
-    def increment(self, category):
-        self._init_category(category)
-        self[category] += 1
-
-    def report_value(self, category):
-        '''Returns the value for a category and value to sort categories by.'''
-        value = repr(self[category])
-        if len(value) > self.report_value_limit:
-            value = value[:self.report_value_limit] + '...'
-        return (value, self[category])
-
     def report(self, indent=1, order_by_title=False, show_time_taken=True):
         lines = []
         indent_str = '\t' * indent
@@ -75,6 +64,7 @@ class StatsCount(dict):
     def __repr__(self):
         return self.report()
 
+
 class Stats(StatsCount):
     # {category:[values]}
     _init_value = []
@@ -85,12 +75,34 @@ class Stats(StatsCount):
         return ('%s: %s' % (category, value)).encode('ascii', 'ignore') # so you can log it too
 
     def report_value(self, category):
+        '''Returns the value for a category and value to sort categories by.'''
         value = self[category]
         number_of_values = len(value)
         value_str = '%i %r' % (number_of_values, value)
         if len(value_str) > self.report_value_limit:
             value_str = value_str[:self.report_value_limit] + '...'
         return (value_str, number_of_values)
+
+
+class StatsWithSum(Stats):
+    # {category:[(id, number_to_sum), ...]}
+    _init_value = []
+
+    def add(self, category, id_, float_to_sum):
+        self._init_category(category)
+        self[category].append((id_, float_to_sum))
+        return ('%s: %s %s' % (category, id_, float_to_sum)).encode('ascii', 'ignore') # so you can log it too
+
+    def report_value(self, category):
+        '''Returns the value for a category and value to sort categories by.'''
+        values = self[category]
+        number_of_values = len(values)
+        sum_of_nums = sum(num for id_, num in values)
+        value_str = '%i total=%s %r' % (number_of_values, sum_of_nums, values)
+        if len(value_str) > self.report_value_limit:
+            value_str = value_str[:self.report_value_limit] + '...'
+        return (value_str, number_of_values)
+
 
 # deprecated name - kept for backward compatibility
 class StatsList(Stats):

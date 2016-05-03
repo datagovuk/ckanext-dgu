@@ -480,14 +480,19 @@ def does_detected_format_disagree(detected_format, resource_format):
 def render_qa_info_for_resource(resource_dict):
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
+    # Archiver holds details of whether the link is broken
+    archival = resource_dict.get('archiver')
+    reason_list = [archival['status'], archival['reason']] if archival else []
+    # QA holds details of openness score
     qa = resource_dict.get('qa')
-    if not qa:
+    if not (qa or archival):
         return 'To be determined'
-    reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
+    resource_format_disagrees = does_detected_format_disagree(qa['format'], resource_dict['format']) if qa else None
     ctx = {'qa': qa,
+           'archival': archival,
            'reason_list': reason_list,
            'resource_format': resource_dict['format'],
-           'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
+           'resource_format_disagrees': resource_format_disagrees,
            'is_data': resource_dict.get('resource_type') in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
@@ -983,18 +988,7 @@ def isopen(pkg):
         # in the same pkg.license field.
         license_text = pkg.license_id
     else:
-        if not (pkg.extras.get('licence') or '').startswith('['):
-            # new
-            license_text = pkg.extras.get('licence') or ''
-        else:
-            # old
-            # UKLP might have multiple licenses and don't adhere to the License
-            # values, so are in the 'licence' extra.
-            license_text_list = json_list(pkg.extras.get('licence') or '')
-            # UKLP might also have a URL to go with its licence
-            license_text_list.extend([pkg.extras.get('licence_url', '') or '',
-                                    pkg.extras.get('licence_url_title') or ''])
-            license_text = ';'.join(license_text_list)
+        license_text = pkg.extras.get('licence') or ''
     open_licenses = [
         'Open Government Licen',
         'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
@@ -1025,66 +1019,32 @@ def linkify(string):
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
     licenses = []  # [(title, url, isopen, isogl), ... ]
-
     licence = pkg.extras.get('licence') or ''
-    if not licence.startswith('[') and (not pkg.license_id or
-                                        pkg.license is not None):
-        # new
-        if pkg.license_id and not licence:
-            # just license_id
+
+    if pkg.license_id and not licence:
+        # just license_id
+        if pkg.license:
             licenses.append((pkg.license.title.split('::')[-1],
                              pkg.license.url,
-                             pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-        elif not licence:
-            # no licence at all
-            pass
+                             pkg.license.isopen(),
+                             pkg.license.id == 'uk-ogl'))
         else:
-            # licence and possibly license_id too
-            if pkg.license_id == 'uk-ogl':
-                # OGL icon & link
-                licenses.append((None, None, None, True))
-            # Licence text
-            licenses.append((licence, None, None, False))
+            # i.e. license_id is unknown - probably harvested from another ckan
+            licenses.append((pkg.license_id, None, None, None))
 
-        return licenses
+    elif not licence:
+        # no licence at all
+        pass
+    else:
+        # licence and possibly license_id too
+        if pkg.license_id == 'uk-ogl':
+            # OGL icon & link
+            licenses.append((None, None, None, True))
+        # Licence text
+        licenses.append((licence, None, None, False))
 
-    # old
-
-    # Normal datasets (created in the form) store the licence in the
-    # pkg.license value as a License.id value.
-    if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id and pkg.license_id != 'None':
-        # However if the user selects 'free text' in the form, that is stored in
-        # the same pkg.license field.
-        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
-
-    # UKLP might have multiple licenses and don't adhere to the License
-    # values, so are in the 'licence' extra.
-    licence = pkg.extras.get('licence') or ''
-    license_extra_list = json_list(licence)
-    for license_extra in license_extra_list:
-        license_extra_url = None
-        if license_extra.startswith('http'):
-            license_extra_url = license_extra
-        # british-waterways-inspire-compliant-service-metadata specifies OGL as
-        # only one of many licenses. Set is_ogl bar a little higher - licence
-        # text must start off saying it is OGL.
-        is_ogl = license_extra.startswith('Open Government Licen')
-        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
-
-    # UKLP might also have a URL to go with its licence
-    license_url = pkg.extras.get('licence_url')
-    if license_url:
-        license_url_is_ogl = \
-            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
-            '//reference.data.gov.uk/id/open-government-licence' in license_url
-        already_said_we_are_ogl = any([license[3] for license in licenses])
-        if not (license_url_is_ogl and already_said_we_are_ogl):
-            license_url_title = pkg.extras.get('licence_url_title') or license_url
-            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
+
 
 def get_dataset_openness(pkg):
     licenses = get_licenses(pkg) # [(title,url,isopen)...]
@@ -1428,15 +1388,17 @@ def gemini_resources():
         {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
          'title': 'Source GEMINI2 record',
          'type': 'XML',
+         'format': 'XML',
          'action': 'View',
          'id': '',
-         'gemini':True},
+         'gemini': True},
         {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
          'title': 'Source GEMINI2 record (formatted)',
          'type': 'HTML',
+         'format': 'HTML',
          'action': 'View',
          'id': '',
-         'gemini':True}]
+         'gemini': True}]
     return gemini_resources
 
 def individual_resources():
@@ -2275,6 +2237,17 @@ def get_issue_count(pkg_id):
     return 10
 
 
+def get_license_from_id(license_id):
+    '''If the license_id is known, returns the License object. If unknown it
+    returns None.'''
+    from ckan import model
+    license_register = model.Package.get_license_register()
+    try:
+        return license_register[license_id]
+    except KeyError:
+        return None
+
+
 def get_licence_fields_from_free_text(licence_str):
     '''Using a free text licence (e.g. harvested), this func returns license_id
     and licence extra ready to be saved to the dataset dict. It returns a blank
@@ -2316,6 +2289,7 @@ def detect_license_id(licence_str):
                 'OGL Terms and Conditions apply',
                 r'\bUK\b',
                 'v3\.0',
+                'v3',
                 'version 3',
                 'for public sector information',
                 'Link to the',

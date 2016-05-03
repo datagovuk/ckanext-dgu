@@ -26,7 +26,7 @@
 
       <table class="history-table table table-striped table-bordered table-condensed">
         <tr>
-          <th>Compare</th><th>Timestamp</th><th>Author</th><th>Description of Change</th>
+          <th>Compare</th><th>View</th><th>Timestamp</th><th>Author</th><th>Description of Change</th>
         </tr>
         {% for rev in c.pkg_revisions %}
           <tr id="row_{{rev.id}}">
@@ -37,11 +37,15 @@
                 {{h.radio("selected2", rev.id, checked=(loop.index == c.pkg_revisions|length))}}
               </div>
             </td>
-            <td>
             {% with %}
-            {% set id = c.pkg_dict['name'] ~ '' ~ rev['timestamp'] %}
-            <a href="{{h.url_for(controller='package', action='read', id=id)}}" title="{{_('Read dataset as of %s') % rev['timestamp']}}">{{h.render_datetime(rev['timestamp'], with_hours=True)}}</a></td>
+            {% set id = c.pkg_dict['name'] ~ '@' ~ rev['timestamp'] %}
+            <td>
+              <a href="{{h.url_for(controller='package', action='read', id=id)}}" title="{{_('Read dataset as of %s') % rev['timestamp']}}">View</a></td>
+            </td>
             {% endwith %}
+            <td>
+              {{h.render_datetime(rev['timestamp'], with_hours=True)}}
+            </td>
             <td>{{h.linked_user(rev['author'], maxlength=200)}}</td>
             <td>{{rev['message']}}</td>
           </tr>
