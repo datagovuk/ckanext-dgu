@@ -39,6 +39,7 @@ def process_package_(package_id):
     package = p.toolkit.get_action('package_show')(context_, {'id': package_id})
     package_changed = None
 
+    # process each resource
     for resource in package.get('individual_resources', []) + \
             package.get('timeseries_resources', []) + \
             package.get('additional_resources', []):
@@ -46,12 +47,16 @@ def process_package_(package_id):
                  package['name'], resource['id'][:4])
         resource_hash_before = hash_a_dict(resource)
         process_resource(resource)
+        # note if it made a change
         if not package_changed:
             resource_changed = hash_a_dict(resource) != resource_hash_before
+            log.info('Resource change: %s %s', resource_changed, resource['url'])
             if resource_changed:
                 package_changed = True
+
     if package_changed:
         log.info('Writing dataset changes')
+        tidy_up_package(package)
         # use default schema so that format can be missing
         user = p.toolkit.get_action('get_site_user')({'ignore_auth': True}, {})
         context = {'model': model,
@@ -62,7 +67,7 @@ def process_package_(package_id):
                    }
         p.toolkit.get_action('package_update')(context, package)
     else:
-        log.info('Writing dataset changes')
+        log.info('No changes to write')
 
 
 def process_resource(resource):
@@ -225,9 +230,10 @@ def _wms_base_urls(url):
     '''Given a WMS URL this method returns the base URLs it uses (so that they
     can be proxied when previewing it). It does it by making basic WMS
     requests.
+    http://redmine.dguteam.org.uk/issues/1322
     '''
     # Here's a neat way to test this manually:
-    # python -c "import logging; logging.basicConfig(level=logging.INFO); from ckanext.spatial.harvesters.gemini import GeminiSpatialHarvester; print GeminiSpatialHarvester._wms_base_urls('http://www.ordnancesurvey.co.uk/oswebsite/xml/atom/')"
+    # python -c "import logging; logging.basicConfig(level=logging.INFO); from ckanext.dgu.gemini_postprocess import _wms_base_urls; print _wms_base_urls('http://environment.data.gov.uk/ds/wms?SERVICE=WMS&INTERFACE=ENVIRONMENT--6f51a299-351f-4e30-a5a3-2511da9688f7&request=GetCapabilities')"
     try:
         capabilities_url = wms_capabilities_url(url, version=None)
         # We don't want a "version" param, because the OS WMS previewer doesn't
@@ -278,3 +284,17 @@ def _wms_base_urls(url):
     except Exception, e:
         log.exception('WMS base url extraction %s failed with uncaught exception: %s' % (url, str(e)))
     return False
+
+
+def tidy_up_package(package):
+    '''Removes bits from the package that shouldn't be written'''
+    def del_archiver_and_qa(dict_):
+        if 'archiver' in dict_:
+            del dict_['archiver']
+        if 'qa' in dict_:
+            del dict_['qa']
+    del_archiver_and_qa(package)
+    for resource in package.get('individual_resources', []) + \
+            package.get('timeseries_resources', []) + \
+            package.get('additional_resources', []):
+        del_archiver_and_qa(resource)

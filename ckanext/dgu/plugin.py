@@ -597,8 +597,87 @@ class DguSpatialPlugin(p.SingletonPlugin):
         if not p.toolkit.asbool(pkg.extras.get('UKLP')):
             return
 
-        # TODO avoid infinite loop
-
         log.debug('Notified of UKLP package event: %s %s', pkg.name, operation)
 
+        # avoid infinite loop
+        run_gemini_postprocess = \
+            self._is_it_sufficient_change_to_run_gemini_postprocess(
+                entity, operation)
+        if not run_gemini_postprocess:
+            return
+
+        log.debug('Creating gemini post-process task: %s', pkg.name)
         gemini_postprocess_tasks.create_package_task(entity, 'priority')
+
+    # similar to ckanext-archiver's _is_it_sufficient_change_to_run_archiver
+    def _is_it_sufficient_change_to_run_gemini_postprocess(self, package,
+                                                           operation):
+        ''' Returns True if it is a new dataset or there are resources that
+        have been added or URL changed in this revision.
+        '''
+        from ckan import model
+        if operation == 'new':
+            log.debug('New package - will process')
+            # even if it has no resources, QA needs to show 0 stars against it
+            return True
+        elif operation == 'deleted':
+            log.debug('Deleted package - won\'t process')
+            return False
+        # therefore operation=changed
+
+        # check to see if resources are added or URL changed
+
+        # look for the latest revision
+        rev_list = package.all_related_revisions
+        if not rev_list:
+            log.debug('No sign of previous revisions - will process')
+            return True
+        # I am not confident we can rely on the info about the current
+        # revision, because we are still in the 'before_commit' stage. So
+        # simply ignore that if it's returned.
+        if rev_list[0][0].id == model.Session.revision.id:
+            rev_list = rev_list[1:]
+        if not rev_list:
+            log.warn('No sign of previous revisions - will process')
+            return True
+        previous_revision = rev_list[0][0]
+        log.debug('Comparing with revision: %s %s',
+                  previous_revision.timestamp, previous_revision.id)
+
+        # get the package as it was at that previous revision
+        context = {'model': model, 'session': model.Session,
+                   #'user': c.user or c.author,
+                   'ignore_auth': True,
+                   'revision_id': previous_revision.id}
+        data_dict = {'id': package.id}
+        try:
+            old_pkg_dict = p.toolkit.get_action('package_show')(
+                context, data_dict)
+        except p.toolkit.NotFound:
+            log.warn('No sign of previous package - will process anyway')
+            return True
+
+        # have any resources been added?
+        old_resources = dict((res['id'], res)
+                             for res in old_pkg_dict['resources'])
+        old_res_ids = set(old_resources.keys())
+        new_res_ids = set((res.id for res in package.resources))
+        added_res_ids = new_res_ids - old_res_ids
+        if added_res_ids:
+            log.debug('Added resources - will process. res_ids=%r',
+                      added_res_ids)
+            return True
+
+        # have any resource urls changed?
+        for res in package.resources:
+            old_res_url = old_resources[res.id]['url']
+            if old_res_url != res.url:
+                log.debug('Resource url changed - will process. '
+                          'id=%s pos=%s url="%s"->"%s"',
+                          res.id[:4], res.position, old_res_url, res.url)
+                return True
+            log.debug('Resource unchanged. pos=%s id=%s',
+                      res.position, res.id[:4])
+
+        log.debug('No new or changed resources - won\'t process')
+        return False
