@@ -13,15 +13,8 @@ from owslib import wms as owslib_wms
 
 from ckan.common import OrderedDict
 import ckan.plugins as p
-from ckan import logic
 
 log = logging.getLogger(__name__)
-
-
-def is_id(id_string):
-    '''Tells the client if the string looks like a revision id or not'''
-    reg_ex = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    return bool(re.match(reg_ex, id_string))
 
 
 def hash_a_dict(dict_):
@@ -36,7 +29,8 @@ def process_package_(package_id):
     context_ = {'model': model, 'ignore_auth': True, 'session': model.Session,
                 #'schema': logic.schema.default_show_package_schema()
                 }
-    package = p.toolkit.get_action('package_show')(context_, {'id': package_id})
+    package = p.toolkit.get_action('package_show')(
+        context_, {'id': package_id})
     package_changed = None
 
     # process each resource
@@ -50,7 +44,8 @@ def process_package_(package_id):
         # note if it made a change
         if not package_changed:
             resource_changed = hash_a_dict(resource) != resource_hash_before
-            log.info('Resource change: %s %s', resource_changed, resource['url'])
+            log.info('Resource change: %s %s',
+                     resource_changed, resource['url'])
             if resource_changed:
                 package_changed = True
 
@@ -74,17 +69,12 @@ def process_resource(resource):
     '''
     Edits resource in-place.
     '''
-    #log = process_resource.get_logger()
-    #load_config(ckan_ini_filepath)
-    #register_translator()
-
     url = resource['url']
 
     # Check if the service is a view service
     is_wms = _is_wms(url)
     if is_wms:
-        #resource['verified'] = True
-        #resource['verified_date'] = datetime.now().isoformat()
+        # this no longer sets 'verified' or 'verified_date'
         base_urls = _wms_base_urls(url)
         resource['wms_base_urls'] = ' '.join(base_urls)
         resource['format'] = 'WMS'
@@ -151,7 +141,8 @@ def _try_wms_url(url, version='1.3'):
     Returns:
       True - got a WMS response that isn't a ServiceException
       False - got a different response, or got HTTP/WMS error
-      None - socket timeout - host is simply not responding, and is so slow communicating there is no point trying it again
+      None - socket timeout - host is simply not responding, and is so slow
+             communicating there is no point trying it again
     '''
 
     try:
