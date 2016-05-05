@@ -4,7 +4,7 @@ class ScriptError(Exception):
     pass
 
 
-def get_ckanapi(config_ini_or_ckan_url):
+def get_ckanapi(config_ini_or_ckan_url, **kwargs):
     '''Given a config.ini filepath or a remote CKAN URL, returns a ckanapi
     instance that you can use to call action commands
     '''
@@ -30,7 +30,8 @@ def get_ckanapi(config_ini_or_ckan_url):
             sys.exit(1)
         ckan = ckanapi.RemoteCKAN(ckan_url,
                                   apikey=apikey,
-                                  user_agent='dgu script')
+                                  user_agent='dgu script',
+                                  **kwargs)
     else:
         # must be a config.ini filepath
         load_config(config_ini_or_ckan_url)
