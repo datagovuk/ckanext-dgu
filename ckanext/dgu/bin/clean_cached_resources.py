@@ -1,4 +1,8 @@
 '''
+Gets rid of files that have been saved by ckanext-archive but have been left
+orphaned.
+
+Conceptually similar to 'paster archiver delete-orphans'
 '''
 
 import os
