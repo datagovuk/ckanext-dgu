@@ -17,22 +17,29 @@
 {% endif %}
 
 
+<span class="col-sm-2">
+    <img src="{{ c.group_dict.image_url  or h.url_for_static('/base/images/placeholder-group.png') }}" alt="{{ c.group_dict.name }}" class="media-image">
+</span>
+
   <h1>{{c.group_dict.title}}</h1>
 
   <p>
       {{h.render_markdown(c.group_dict.description)}}
   </p>
 
+  <div class="clearfix" style="margin-top: 30px;"></div>
 
-  <h2>Datasets</h2>
+   {% if c.page.items %}
+    <h2>Datasets</h2>
 
-  {% if c.page.items %}
     <div>
       {{ collection_package_list(c.page.items,mini=True) }}
     </div>
     <div>
       {{ m.paginator(c.page) }}
     </div>
+  {% else %}
+    <h2>There are no datasets in this collection</h2>
   {% endif %}
 
 {% endblock %}
