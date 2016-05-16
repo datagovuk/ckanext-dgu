@@ -172,10 +172,9 @@
     /* Hide/Show the access constraints box when selecting the license_id */
     $('#license_id').change(function(){
       var selectedLicense = $(this).val();
-      if(selectedLicense == "" || selectedLicense == "__extra__"){
+      if(selectedLicense == "" || selectedLicense == "__other__"){
         $('.choose-other-licence').show();
       } else {
-        $('#access_constraints').val('');
         $('.choose-other-licence').hide();
       }
     });

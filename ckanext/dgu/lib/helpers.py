@@ -480,14 +480,19 @@ def does_detected_format_disagree(detected_format, resource_format):
 def render_qa_info_for_resource(resource_dict):
     if not is_plugin_enabled('qa'):
         return 'QA not installed'
+    # Archiver holds details of whether the link is broken
+    archival = resource_dict.get('archiver')
+    reason_list = [archival['status'], archival['reason']] if archival else []
+    # QA holds details of openness score
     qa = resource_dict.get('qa')
-    if not qa:
+    if not (qa or archival):
         return 'To be determined'
-    reason_list = (qa['openness_score_reason'] or '').replace('Reason: Download error. ', '').replace('Error details: ', '').split('. ')
+    resource_format_disagrees = does_detected_format_disagree(qa['format'], resource_dict['format']) if qa else None
     ctx = {'qa': qa,
+           'archival': archival,
            'reason_list': reason_list,
            'resource_format': resource_dict['format'],
-           'resource_format_disagrees': does_detected_format_disagree(qa['format'], resource_dict['format']),
+           'resource_format_disagrees': resource_format_disagrees,
            'is_data': resource_dict.get('resource_type') in ('file', None),
            }
     return t.render_snippet('package/resource_qa.html', ctx)
@@ -728,15 +733,16 @@ def get_resource_fields(resource, pkg_extras):
     # calculate displayable field values
     return  DisplayableFields(field_names, field_value_map, pkg_extras)
 
+
 def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
-                       is_location_data, dataset_is_from_ns_pubhub, is_local_government_data):
+                       is_location_data, dataset_is_from_ns_pubhub):
     from ckan.lib.base import h
     from ckan.lib.field_types import DateType
     from ckanext.dgu.schema import GeoCoverageType
     from ckanext.dgu.lib.resource_helpers import DatasetFieldNames, DisplayableFields
 
     field_names = DatasetFieldNames(['date_added_to_dgu', 'mandate', 'temporal_coverage', 'geographic_coverage', 'schema', 'codelist', 'sla'])
-    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
+    field_names_display_only_if_value = ['date_update_future', 'precision', 'update_frequency', 'temporal_granularity', 'taxonomy_url', 'data_issued', 'data_modified', 'la-function', 'la-service'] # (mostly deprecated) extra field names, but display values anyway if the metadata is there
     if is_an_official():
         field_names_display_only_if_value.append('external_reference')
         field_names_display_only_if_value.append('import_source')
@@ -777,8 +783,6 @@ def get_package_fields(package, package_dict, pkg_extras, dataset_was_harvested,
                         for date_dict in json_list(pkg_extras.get('dataset-reference-date'))])
     elif dataset_is_from_ns_pubhub:
         field_names.add(['national_statistic', 'categories'])
-    if is_local_government_data:
-        field_names.add(('la-function', 'la-service'))
 
     field_names.add_after('date_added_to_dgu', 'theme')
     if pkg_extras.get('theme-secondary'):
@@ -984,13 +988,7 @@ def isopen(pkg):
         # in the same pkg.license field.
         license_text = pkg.license_id
     else:
-        # UKLP might have multiple licenses and don't adhere to the License
-        # values, so are in the 'licence' extra.
-        license_text_list = json_list(pkg.extras.get('licence') or '')
-        # UKLP might also have a URL to go with its licence
-        license_text_list.extend([pkg.extras.get('licence_url', '') or '',
-                                  pkg.extras.get('licence_url_title') or ''])
-        license_text = ';'.join(license_text_list)
+        license_text = pkg.extras.get('licence') or ''
     open_licenses = [
         'Open Government Licen',
         'http://www.nationalarchives.gov.uk/doc/open-government-licence/',
@@ -1008,44 +1006,45 @@ def isopen(pkg):
             return True
     return False
 
+
+link_regex = None
+
+def linkify(string):
+    global link_regex
+    if link_regex is None:
+        link_regex = re.compile(r'(^|\s|\()(https?://[^\s"]+?)([\.;]?($|\s|\)))')
+    return Markup(link_regex.sub(r'\1<a href="\2" target="_blank">\2</a>\3', string))
+
+
 def get_licenses(pkg):
     # isopen is tri-state: True, False, None (for unknown)
-    licenses = [] # [(title, url, isopen, isogl), ... ]
+    licenses = []  # [(title, url, isopen, isogl), ... ]
+    licence = pkg.extras.get('licence') or ''
 
-    # Normal datasets (created in the form) store the licence in the
-    # pkg.license value as a License.id value.
-    if pkg.license:
-        licenses.append((pkg.license.title.split('::')[-1], pkg.license.url, pkg.license.isopen(), pkg.license.id == 'uk-ogl'))
-    elif pkg.license_id and pkg.license_id != 'None':
-        # However if the user selects 'free text' in the form, that is stored in
-        # the same pkg.license field.
-        licenses.append((pkg.license_id, None, None, pkg.license_id.startswith('Open Government Licen')))
+    if pkg.license_id and not licence:
+        # just license_id
+        if pkg.license:
+            licenses.append((pkg.license.title.split('::')[-1],
+                             pkg.license.url,
+                             pkg.license.isopen(),
+                             pkg.license.id == 'uk-ogl'))
+        else:
+            # i.e. license_id is unknown - probably harvested from another ckan
+            licenses.append((pkg.license_id, None, None, None))
 
-    # UKLP might have multiple licenses and don't adhere to the License
-    # values, so are in the 'licence' extra.
-    license_extra_list = json_list(pkg.extras.get('licence') or '')
-    for license_extra in license_extra_list:
-        license_extra_url = None
-        if license_extra.startswith('http'):
-            license_extra_url = license_extra
-        # british-waterways-inspire-compliant-service-metadata specifies OGL as
-        # only one of many licenses. Set is_ogl bar a little higher - licence
-        # text must start off saying it is OGL.
-        is_ogl = license_extra.startswith('Open Government Licen')
-        licenses.append((license_extra, license_extra_url, True if (is_ogl or 'OS OpenData Licence' in license_extra) else None, is_ogl))
+    elif not licence:
+        # no licence at all
+        pass
+    else:
+        # licence and possibly license_id too
+        if pkg.license_id == 'uk-ogl':
+            # OGL icon & link
+            licenses.append((None, None, None, True))
+        # Licence text
+        licenses.append((licence, None, None, False))
 
-    # UKLP might also have a URL to go with its licence
-    license_url = pkg.extras.get('licence_url')
-    if license_url:
-        license_url_is_ogl = \
-            '//www.nationalarchives.gov.uk/doc/open-government-licence' in license_url or\
-            '//reference.data.gov.uk/id/open-government-licence' in license_url
-        already_said_we_are_ogl = any([license[3] for license in licenses])
-        if not (license_url_is_ogl and already_said_we_are_ogl):
-            license_url_title = pkg.extras.get('licence_url_title') or license_url
-            isopen = (license_url=='http://www.ordnancesurvey.co.uk/docs/licences/os-opendata-licence.pdf')
-            licenses.append((license_url_title, license_url, True if isopen else None, False))
     return licenses
+
 
 def get_dataset_openness(pkg):
     licenses = get_licenses(pkg) # [(title,url,isopen)...]
@@ -1389,15 +1388,17 @@ def gemini_resources():
         {'url': '/api/2/rest/harvestobject/%s/xml' % harvest_object_id,
          'title': 'Source GEMINI2 record',
          'type': 'XML',
+         'format': 'XML',
          'action': 'View',
          'id': '',
-         'gemini':True},
+         'gemini': True},
         {'url': '/api/2/rest/harvestobject/%s/html' % harvest_object_id,
          'title': 'Source GEMINI2 record (formatted)',
          'type': 'HTML',
+         'format': 'HTML',
          'action': 'View',
          'id': '',
-         'gemini':True}]
+         'gemini': True}]
     return gemini_resources
 
 def individual_resources():
@@ -1480,14 +1481,6 @@ def is_location_data(pkg_dict):
 def dataset_is_from_ns_pubhub(pkg_dict):
     if get_pkg_dict_extra(pkg_dict, 'external_reference') == 'ONSHUB':
         return True
-
-def is_local_government_data(pkg_dict):
-    if pkg_dict['organization']:
-        from ckan import model
-        org = model.Group.get(pkg_dict['organization']['id'])
-        if org:
-            if org.extras.get('category') == 'local-council':
-                return True
 
 # end of 'Type'/'Source' of dataset functions
 
@@ -2260,3 +2253,93 @@ def packages_for_collection(collection_name):
     packages = get_action('package_search')(context, {'fq': 'collection:%s' % collection_name})
     return packages['results']
 
+
+def get_license_from_id(license_id):
+    '''If the license_id is known, returns the License object. If unknown it
+    returns None.'''
+    from ckan import model
+    license_register = model.Package.get_license_register()
+    try:
+        return license_register[license_id]
+    except KeyError:
+        return None
+
+
+def get_licence_fields_from_free_text(licence_str):
+    '''Using a free text licence (e.g. harvested), this func returns license_id
+    and licence extra ready to be saved to the dataset dict. It returns a blank
+    licence if it is wholely expressed by the license_id.
+
+    return (license_id, licence)
+    '''
+    license_id, is_wholely_identified = \
+        detect_license_id(licence_str)
+    if license_id and is_wholely_identified:
+        licence = None
+    else:
+        licence = licence_str
+    return (license_id, licence)
+
+
+licence_regexes = None
+
+
+def detect_license_id(licence_str):
+    '''Given licence free text, detects if it mentions a known licence.
+
+    :returns (license_id, is_wholely_identified)
+    '''
+    license_id = ''
+
+    global licence_regexes
+    if licence_regexes is None:
+        licence_regexes = {}
+        licence_regexes['ogl'] = [
+            re.compile('open government licen[sc]e', re.IGNORECASE),
+            re.compile(r'\b\(ogl\)\b', re.IGNORECASE),
+            re.compile(r'\bogl\b', re.IGNORECASE),
+            re.compile(r'<?https?\:\/\/www.nationalarchives\.gov\.uk\/doc\/open-government-licence[^\s]*'),
+            re.compile(r'<?http\:\/\/www.ordnancesurvey\.co\.uk\/oswebsite\/docs\/licences\/os-opendata-licence.pdf'),  # because it redirects to OGL now
+            ]
+        licence_regexes['ogl-detritus'] = re.compile(
+            r'(%s)' % '|'.join((
+                'OGL Terms and Conditions apply',
+                r'\bUK\b',
+                'v3\.0',
+                'v3',
+                'version 3',
+                'for public sector information',
+                'Link to the',
+                'Ordnance Survey Open Data Licence',
+                'Licence',
+                'None',
+                'OGLs and agreements explained',
+                'In accessing or using this data, you are deemed to have accepted the terms of the',
+                'attribution required',
+                'Use of data subject to the Terms and Conditions of the OGL',
+                'data is free to use for provided the source is acknowledged as specified in said document',
+                'Released under the OGL',
+                'citation of publisher and online resource required on reuse',
+                'conditions',
+                'Public data \(Crown Copyright\)',
+                '[;\.\-:\(\),]*',
+                )), re.IGNORECASE
+            )
+        licence_regexes['spaces'] = re.compile(r'\s+')
+    is_ogl = False
+    for ogl_regex in licence_regexes['ogl']:
+        licence_str, replacements = ogl_regex.subn('OGL', licence_str)
+        if replacements:
+            is_ogl = True
+    if is_ogl:
+        license_id = 'uk-ogl'
+        # get rid of phrases that just repeat existing OGL meaning
+        licence_str = licence_regexes['ogl-detritus'].sub('', licence_str)
+        licence_str = licence_str.replace('OGL', '')
+        licence_str = licence_regexes['spaces'].sub(' ', licence_str)
+        is_wholely_identified = bool(len(licence_str) < 2)
+    else:
+        is_wholely_identified = None
+
+    return license_id, is_wholely_identified
+>>>>>>> master

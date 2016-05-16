@@ -14,6 +14,9 @@ from ckanext.dgu.lib.helpers import (dgu_linked_user, user_properties,
                                      get_resource_formats,
                                      dgu_format_icon,
                                      dgu_format_name,
+                                     detect_license_id,
+                                     get_license_from_id,
+                                     linkify,
                                      )
 from ckanext.dgu.plugins_toolkit import c, get_action
 
@@ -310,3 +313,178 @@ class TestFormatName(object):
 
     def test_link_for_unknown_format(self):
         assert_equal(dgu_format_name('unknown'), 'unknown')
+
+
+class TestGetLicenseById(object):
+    def test_known(self):
+        assert_equal(get_license_from_id('uk-ogl').title,
+                     u'UK Open Government Licence (OGL)')
+
+    def test_ukknown(self):
+        assert_equal(get_license_from_id('made-up'), None)
+
+    def test_blank(self):
+        assert_equal(get_license_from_id(''), None)
+
+
+class TestDetectLicenseId(object):
+    def test_blank(self):
+        assert_equal(detect_license_id(''), ('', None))
+
+    def test_not_ogl(self):
+        assert_equal(detect_license_id('Data is freely available for research or commercial use providing that the originators are acknowledged in any publications produced.'),
+                     ('', None))
+
+    def test_not_ogl2(self):
+        assert_equal(detect_license_id('bogl'),
+                     ('', None))
+
+    def test_ogl(self):
+        assert_equal(detect_license_id('Open Government Licence'),
+                     ('uk-ogl', True))
+
+    def test_ogl_mispelt(self):
+        assert_equal(detect_license_id('Open Government License'),
+                     ('uk-ogl', True))
+
+    def test_ogl_abbreviation(self):
+        assert_equal(detect_license_id('OGL Licence'),
+                     ('uk-ogl', True))
+
+    def test_ogl_abbreviation_in_parens(self):
+        assert_equal(detect_license_id('Some licence (OGL)'),
+                     ('uk-ogl', False))
+
+    def test_ogl_url_in_parens(self):
+        assert_equal(detect_license_id('Some licence (http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)'),
+                     ('uk-ogl', False))
+
+    def test_ogl_url_with_trailing_semicolon(self):
+        assert_equal(detect_license_id('Some licence (http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/; More terms'),
+                     ('uk-ogl', False))
+
+    def test_ogl_and_require_citation(self):
+        assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence) and you must cite "Natural England" as the source.'),
+                     ('uk-ogl', False))
+
+    def test_ogl_and_require_citation2(self):
+        assert_equal(detect_license_id('Released under the Open Government Licence (OGL), citation of "Natural England" as the source required.'),
+                     ('uk-ogl', False))
+
+    def test_ogl_with_other_url(self):
+        assert_equal(detect_license_id('By using this data you are accepting the terms of the Natural England-OS Open Government Licence (https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/391764/OGL-NE-OS.pdf). For further info contact Natural England (UK +44) 0 845 600 3900 enquiries@naturalengland.org.uk <https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/391764/OGL-NE-OS.pdf>'),
+                     ('uk-ogl', False))
+
+    def test_ogl_url(self):
+        assert_equal(detect_license_id('http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_1(self):
+        assert_equal(detect_license_id('Open Government Licence v3.0'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_2(self):
+        assert_equal(detect_license_id('Open government license for public sector information.; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_3(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Licence; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_4(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Link to the Ordnance Survey Open Data Licence; Licence; http://www.ordnancesurvey.co.uk/oswebsite/docs/licences/os-opendata-licence.pdf; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_5(self):
+        assert_equal(detect_license_id('Open Government Licence.; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_6(self):
+        assert_equal(detect_license_id('Use of data subject to the Terms and Conditions of the OGL (Open Government Licence): data is free to use for provided the source is acknowledged as specified in said document.'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_7(self):
+        assert_equal(detect_license_id('Released under the Open Government Licence (OGL), citation of publisher and online resource required on reuse.'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_8(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Licence; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_9(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Link to the Ordnance Survey Open Data Licence; http://www.ordnancesurvey.co.uk/oswebsite/docs/licences/os-opendata-licence.pdf; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_10(self):
+        assert_equal(detect_license_id('Link to the Open Government Licence; Link to the Ordnance Survey Open Data Licence; Licence; http://www.ordnancesurvey.co.uk/oswebsite/docs/licences/os-opendata-licence.pdf; http://www.nationalarchives.gov.uk/doc/open-government-licence/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_11(self):
+        assert_equal(detect_license_id('Open Government Licence.; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_12(self):
+        assert_equal(detect_license_id('Open Government Licence; None'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_13(self):
+        assert_equal(detect_license_id('Open Government Licence; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_14(self):
+        assert_equal(detect_license_id('Open Government Licences and agreements explained; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/;'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_15(self):
+        assert_equal(detect_license_id('In accessing or using this data, you are deemed to have accepted the terms of the UK Open Government Licence v3.0. - http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_16(self):
+        assert_equal(detect_license_id('Open Government Licence: attribution required; http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/'),
+                     ('uk-ogl', True))
+
+    def test_ogl_variations_are_wholy_ogl_17(self):
+        assert_equal(detect_license_id('Public data (Crown Copyright) - Open Government Licence Terms and Conditions apply'),
+                     ('uk-ogl', True))
+
+    def test_ne(self):
+        # should not really say it is OGL, but the slash and dash are seen as word boundaries
+        assert_equal(detect_license_id('https://www.gov.uk/government/uploads/system/uploads/attachment_data/file/391764/OGL-NE-OS.pdf'),
+                     ('uk-ogl', False))
+
+
+class TestLinkify(object):
+    def test_no_link(self):
+        assert_equal(linkify('no link'), 'no link')
+
+    def test_just_a_link(self):
+        assert_equal(linkify('http://example.com/page.html'),
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>')
+
+    def test_link_in_text(self):
+        assert_equal(linkify('Hello http://example.com/page.html link'),
+                     'Hello '
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a> link')
+
+    def test_trailing_dot_excluded_from_link(self):
+        assert_equal(linkify('Hello http://example.com/page.html. link'),
+                     'Hello '
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>. link')
+
+    def test_trailing_semicolon_excluded_from_link(self):
+        # Semi-colons break up bits of licences harvested e.g. GEMINI
+        assert_equal(linkify('Hello http://example.com/page.html; link'),
+                     'Hello '
+                     '<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>; link')
+
+    def test_brackets_excluded_from_link(self):
+        # Licences harvested from GEMINI will have anchors put in brackets like
+        # this
+        assert_equal(linkify('Hello (http://example.com/page.html) hello'),
+                     'Hello '
+                     '(<a href="http://example.com/page.html" target="_blank">'
+                     'http://example.com/page.html</a>) hello')

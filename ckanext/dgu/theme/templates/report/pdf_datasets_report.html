@@ -1,0 +1,40 @@
+<div class="widget-container">
+  <ul>
+    <li>Datasets only in PDF: {{data['num_datasets_only_pdf']}} / {{data['num_datasets_published']}} ({{ '{:.0%}'.format(data['num_datasets_only_pdf']/data['num_datasets_published']) }})</li>
+    <li>Publishers with datasets only in PDF: {{table|length}}</li>
+  </ul>
+  <p>NB The full lists of datasets are available in the CSV &amp; JSON downloads</p>
+
+  <table class="table table-bordered table-condensed tablesorter" id="report-table" style="width: 100%;table-layout:fixed; margin-top: 8px;">
+    <thead>
+      <tr>
+        <th style="width: 80px" rowspan="2">Publisher</th>
+        <th style="width: 80px" rowspan="2">Top-level Publisher</th>
+        <th style="width: 300px" rowspan="2">Datasets only in PDF</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in table %}
+        <tr>
+          <td><a href="/publisher/{{row['organization name']}}">{{row['organization title']}}</a></td>
+          <td><a href="/publisher/{{row['top-level organization name']}}">{{row['top-level organization title']}}</a></td>
+          <td>
+      {% set names = row['name datasets only pdf'].split() %}
+      {% set titles = row['title datasets only pdf'].split('|') %}
+      {% set truncate = 5 %}
+      {{row['num datasets only pdf']}}:
+      {% for name in names[:truncate] %}
+        <a href="{{ h.url_for(controller='package', action='read', id=name) }}">{{ titles[loop.index0] }}</a> &nbsp;
+      {% endfor %}
+      {% if names|length > truncate %}
+         ...
+      {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+

@@ -3,6 +3,8 @@ import datetime
 import logging
 import os
 
+from paste.deploy.converters import asbool
+
 from ckan import model
 from ckan.lib.helpers import OrderedDict
 import ckan.plugins as p
@@ -681,7 +683,6 @@ def licence_report(organization=None, include_sub_organizations=False):
     Returns a dictionary detailing licences for datasets in the
     organisation specified, and optionally sub organizations.
     '''
-    import json
     # Get packages
     if organization:
         top_org = model.Group.by_name(organization)
@@ -709,32 +710,25 @@ def licence_report(organization=None, include_sub_organizations=False):
     # Get their licences
     packages_by_licence = collections.defaultdict(list)
     rows = []
+    num_pkgs = 0
     for pkg in pkgs:
-        licence = None
-        if pkg.license:
-            licence = pkg.license.title
-        elif pkg.license_id and pkg.license_id != 'None':
-            licence = pkg.license_id
-        elif 'licence' in pkg.extras:
-            licence = pkg.extras['licence']
-            # UKLP datasets have this as a list that gets json encoded
-            try:
-                licence = '; '.join(json.loads(pkg.extras['licence']))
-            except ValueError:
-                pass
-        licence_url = pkg.extras.get('licence_url')
-        if licence_url:
-            if licence:
-                licence += ' <%s>' % licence_url
-            else:
-                licence = licence_url
-        packages_by_licence[licence].append((pkg.name, pkg.title))
+        if asbool(pkg.extras.get('unpublished')) is True:
+            # Ignore unpublished datasets
+            continue
+        licence_tuple = (pkg.license_id or '',
+                         pkg.license.title if pkg.license else '',
+                         pkg.extras.get('licence', ''))
+        packages_by_licence[licence_tuple].append((pkg.name, pkg.title))
+        num_pkgs += 1
 
-    for licence, dataset_tuples in sorted(packages_by_licence.items(),
-                                          key=lambda x: -len(x[1])):
+    for licence_tuple, dataset_tuples in sorted(packages_by_licence.items(),
+                                                key=lambda x: -len(x[1])):
+        license_id, license_title, licence = licence_tuple
         dataset_tuples.sort(key=lambda x: x[0])
         dataset_names, dataset_titles = zip(*dataset_tuples)
         licence_dict = OrderedDict((
+            ('license_id', license_id),
+            ('license_title', license_title),
             ('licence', licence),
             ('dataset_titles', '|'.join(t for t in dataset_titles)),
             ('dataset_names', ' '.join(dataset_names)),
@@ -742,7 +736,7 @@ def licence_report(organization=None, include_sub_organizations=False):
         rows.append(licence_dict)
 
     return {
-        'num_datasets': len(pkgs),
+        'num_datasets': num_pkgs,
         'num_licences': len(rows),
         'table': rows,
         }
@@ -758,10 +752,152 @@ def licence_combinations():
 licence_report_info = {
     'name': 'licence',
     'title': 'Licences',
-    'description': 'Licenses for datasets, reported by publisher.',
+    'description': 'Licenses for datasets.',
     'option_defaults': OrderedDict((('organization', None),
                                     ('include_sub_organizations', False))),
     'option_combinations': licence_combinations,
     'generate': licence_report,
     'template': 'report/licence_report.html',
+    }
+
+
+# Datasets only in PDF
+
+def pdf_datasets_report():
+    '''
+    Returns datasets that have data in PDF format, by organization.
+    '''
+    # Get packages
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')
+
+    # See if PDF
+    num_datasets_published = 0
+    num_datasets_only_pdf = 0
+    datasets_by_publisher_only_pdf = collections.defaultdict(list)
+    # use yield_per, otherwise memory use just goes up til the script is killed
+    # by the os.
+    for pkg in pkgs.yield_per(100):
+        if p.toolkit.asbool(pkg.extras.get('unpublished')):
+            continue
+        num_datasets_published += 1
+
+        formats = set([res.format.lower() for res in pkg.resources
+                       if res.resource_type != 'documentation'])
+        if 'pdf' not in formats:
+            continue
+        org = pkg.get_organization().name
+
+        data_formats = formats - set(('html', '', None))
+        if data_formats == set(('pdf',)):
+            num_datasets_only_pdf += 1
+            datasets_by_publisher_only_pdf[org].append((pkg.name, pkg.title))
+
+    rows = []
+    for org_name, datasets_only_pdf in sorted(
+            datasets_by_publisher_only_pdf.iteritems(),
+            key=lambda x: -len(x[1])):
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        top_org = list(go_up_tree(org))[-1]
+
+        row = OrderedDict((
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('num datasets only pdf', len(datasets_only_pdf)),
+            ('name datasets only pdf',
+             ' '.join(d[0] for d in datasets_only_pdf)),
+            ('title datasets only pdf',
+             '|'.join(d[1] for d in datasets_only_pdf)),
+            ))
+        rows.append(row)
+
+    return {'table': rows,
+            'num_datasets_published': num_datasets_published,
+            'num_datasets_only_pdf': num_datasets_only_pdf,
+            }
+
+
+pdf_datasets_report_info = {
+    'name': 'pdf_datasets',
+    'title': 'PDF Datasets',
+    'description': 'Datasets with data only in PDF format.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': pdf_datasets_report,
+    'template': 'report/pdf_datasets_report.html',
+    }
+
+
+# Datasets with HTML link
+
+def html_datasets_report():
+    '''
+    Returns datasets that only have an HTML link, by organization.
+    '''
+    # Get packages
+    pkgs = model.Session.query(model.Package)\
+                .filter_by(state='active')
+
+    # See if HTML
+    num_datasets_published = 0
+    num_datasets_only_html = 0
+    datasets_by_publisher_only_html = collections.defaultdict(list)
+    # use yield_per, otherwise memory use just goes up til the script is killed
+    # by the os.
+    for pkg in pkgs.yield_per(100):
+        if p.toolkit.asbool(pkg.extras.get('unpublished')):
+            continue
+        num_datasets_published += 1
+
+        formats = set([res.format.lower() for res in pkg.resources
+                       if res.resource_type != 'documentation'])
+        if 'html' not in formats:
+            continue
+        org = pkg.get_organization().name
+
+        data_formats = formats - set(('asp', '', None))
+        if data_formats == set(('html',)):
+            num_datasets_only_html += 1
+            datasets_by_publisher_only_html[org].append((pkg.name, pkg.title))
+
+    rows = []
+    for org_name, datasets_only_html in sorted(
+            datasets_by_publisher_only_html.iteritems(),
+            key=lambda x: -len(x[1])):
+        org = model.Session.query(model.Group) \
+                   .filter_by(name=org_name) \
+                   .first()
+        top_org = list(go_up_tree(org))[-1]
+
+        row = OrderedDict((
+            ('organization title', org.title),
+            ('organization name', org.name),
+            ('top-level organization title', top_org.title),
+            ('top-level organization name', top_org.name),
+            ('num datasets only html', len(datasets_only_html)),
+            ('name datasets only html',
+             ' '.join(d[0] for d in datasets_only_html)),
+            ('title datasets only html',
+             '|'.join(d[1] for d in datasets_only_html)),
+            ))
+        rows.append(row)
+
+    return {'table': rows,
+            'num_datasets_published': num_datasets_published,
+            'num_datasets_only_html': num_datasets_only_html,
+            }
+
+
+html_datasets_report_info = {
+    'name': 'html_datasets',
+    'title': 'HTML Datasets',
+    'description': 'Datasets with data only a link to an HTML page.',
+    'option_defaults': None,
+    'option_combinations': None,
+    'generate': html_datasets_report,
+    'template': 'report/html_datasets_report.html',
     }

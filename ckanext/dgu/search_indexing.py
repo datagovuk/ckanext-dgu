@@ -57,7 +57,6 @@ class SearchIndexing(object):
         if 'license_id-is-ogl' not in pkg_dict:
             is_ogl = cls._is_ogl(pkg_dict)
             pkg_dict['license_id-is-ogl'] = is_ogl
-            pkg_dict['extras_license_id-is-ogl'] = is_ogl
         try:
             if asbool(pkg_dict.get('unpublished', False)):
                 pkg_dict['license_id-is-ogl'] = 'unpublished'
@@ -70,13 +69,8 @@ class SearchIndexing(object):
         Returns true iff the represented dataset has an OGL license
 
         A dataset has an OGL license if the license_id == "uk-ogl"
-        or if it's a UKLP dataset with "Open Government License" in the
-        'licence_url_title' or 'licence' extra fields
         """
-        regex = re.compile(r'open government licen[sc]e', re.IGNORECASE)
-        return pkg_dict['license_id'] == 'uk-ogl' or \
-               bool(regex.search(pkg_dict.get('extras_licence_url_title', ''))) or \
-               bool(regex.search(pkg_dict.get('extras_licence', '')))
+        return pkg_dict['license_id'] == 'uk-ogl'
 
     @classmethod
     def clean_title_string(cls, pkg_dict):

@@ -18,8 +18,15 @@ ds_stats = Stats()
 
 UPDATE_FORMATS = {
     'CSV / ZIP': 'CSV',  # legacy - we now drop mention of the zip
-    'XML': 'WFS',  # previously we set UKLP WFS resources as XML but we can detect WFS now
-    'XML': 'Atom Feed',
+    'XML': set((
+        'WFS',  # previously we set UKLP WFS resources as XML but we can detect WFS now
+        'Atom Feed',
+        'SHP',
+        'WCS',
+        'WMTS',
+        )),
+    'DBASE': 'SHP',
+    'ZIP': 'SHP',
     }
 
 
@@ -71,7 +78,8 @@ class SetResourceFormatsCommand(object):
 
                 qa_info = resource.get('qa')
                 if not qa_info:
-                    res_stats.add('QA not run yet on this resource', res_nice_name)
+                    res_stats.add('QA not run yet on this resource',
+                                  res_nice_name)
                     continue
                 try:
                     qa_info = eval(qa_info)
@@ -88,7 +96,9 @@ class SetResourceFormatsCommand(object):
                     res_updated = self.update_resource_dict(
                         resource, qa_info, res_nice_name)
                 elif format_.upper() in UPDATE_FORMATS and \
-                        qa_info['format'] == UPDATE_FORMATS[format_.upper()]:
+                        (qa_info['format'] == UPDATE_FORMATS[format_.upper()]
+                         or
+                         qa_info['format'] in UPDATE_FORMATS[format_.upper()]):
                     res_updated = self.update_resource_dict(
                         resource, qa_info, res_nice_name)
                 else:
@@ -113,13 +123,16 @@ class SetResourceFormatsCommand(object):
                 if options.write:
                     try:
                         self.ckan.action.package_update(**pkg)
+                        ds_stats.add('Dataset updated', pkg['name'])
                     except ValidationError, ve:
-                        print ds_stats.add('Validation error on update', pkg['name'])
+                        print ds_stats.add('Validation error on update',
+                                           pkg['name'])
                         print ve
                     except IntegrityError:
-                        print ds_stats.add('Integrity error on update', pkg['name'])
+                        print ds_stats.add('Integrity error on update',
+                                           pkg['name'])
                 else:
-                    ds_stats.add('Package would be updated', pkg['name'])
+                    ds_stats.add('Dataset would be updated', pkg['name'])
             else:
                 ds_stats.add('No change', pkg['name'])
         print '\nResources:\n', res_stats.report(show_time_taken=True)

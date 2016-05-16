@@ -178,7 +178,7 @@ class MergeDatasets(object):
                     pdb.set_trace()
 
         # Remove 'dataset_name' and others fields from resources
-        ignore_res_fields = set(('dataset_name', 'created', 'position', 'revision_id', 'id', 'tracking_summary'))
+        ignore_res_fields = set(('dataset_name', 'created', 'position', 'revision_id', 'id', 'tracking_summary', 'qa', 'archiver'))
         for res in resources:
             for field in ignore_res_fields & set(res.keys()):
                 del res[field]
@@ -204,6 +204,7 @@ class MergeDatasets(object):
                 'taxonomy_url',
                 'temporal_coverage-from', 'temporal_coverage-to',
                 'published_via', 'creator_user_id',
+                'qa', 'archiver',
                 ))
             first_fields = ['title', 'name', 'notes', 'theme-primary', 'theme-secondary']
             all_field_values = defaultdict(list)

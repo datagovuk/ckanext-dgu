@@ -68,7 +68,7 @@ def reqd_dataset_fields(org):
             'license_id': 'uk-ogl'}
 
 
-class TestPackageController(DguFunctionalTestBase):
+class TestPackageForm(DguFunctionalTestBase):
 
     @classmethod
     def setup_class(self):
@@ -253,10 +253,10 @@ class TestPackageController(DguFunctionalTestBase):
         value = 'Test Notes'
         form[form_field_id] = value
 
-        form = self._submit_with_validation_error(form, env, 'license_id')
+        form = self._submit_with_validation_error(form, env, 'name')
         assert_equal(form[form_field_id].value, value)
 
-        pkg = self._submit_to_save(form, name, app, env, 'license_id', 'uk-ogl')
+        pkg = self._submit_to_save(form, name, app, env, 'name', name)
         assert_equal(pkg.notes, value)
 
         form = self._edit_dataset(env, app, name)
@@ -279,41 +279,57 @@ class TestPackageController(DguFunctionalTestBase):
 
     def test_edit_license_other(self):
         form, env, app, name = self._new_dataset()
-        form_field_id = 'access_constraints'
+        form_field_id = 'licence_in_form'
         value = 'My Licence'
         form[form_field_id] = value
-        form['license_id'] = ''
-
-        form = self._submit_with_validation_error(form, env)
-        assert_equal(form[form_field_id].value, value)
-
-        pkg = self._submit_to_save(form, name, app, env)
-        assert_equal(pkg.license_id, value)
-
-        form = self._edit_dataset(env, app, name)
-        assert_equal(form[form_field_id].value, value)
-
-    def test_edit_license_harvested(self):
-        # need to create the licence extra before the form will display it
-        env, fields = _setup_user_and_org()
-        fields['extras'] = [{'key': 'licence', 'value': '["Harvest licence"]'}]
-        dataset = factories.Dataset(**fields)
-        name = dataset['name']
-        app = self._get_test_app()
-        form = self._edit_dataset(env, app, name)
-        form_field_id = 'license_extra'
-        value = '["Harvest licence"]'  # changing it in the form doesn't work
-        form[form_field_id] = value
-        form['license_id'] = '__extra__'
+        form['license_id'] = '__other__'
 
         form = self._submit_with_validation_error(form, env)
         assert_equal(form[form_field_id].value, value)
 
         pkg = self._submit_to_save(form, name, app, env)
         assert_equal(pkg.extras['licence'], value)
+        assert_equal(pkg.license_id, '')
 
         form = self._edit_dataset(env, app, name)
+        assert_equal(form['license_id'].value, '__other__')
         assert_equal(form[form_field_id].value, value)
+
+    def test_edit_license_detects_ogl_whole(self):
+        form, env, app, name = self._new_dataset()
+        form_field_id = 'licence_in_form'
+        value = 'Open Government Licence'
+        form[form_field_id] = value
+        form['license_id'] = '__other__'
+
+        form = self._submit_with_validation_error(form, env)
+        assert_equal(form[form_field_id].value, value)
+
+        pkg = self._submit_to_save(form, name, app, env)
+        assert_equal(pkg.extras.get('licence'), None)
+        assert_equal(pkg.license_id, 'uk-ogl')
+
+        form = self._edit_dataset(env, app, name)
+        assert_equal(form['license_id'].value, 'uk-ogl')
+        assert_equal(form['licence_in_form'].value, '')
+
+    def test_edit_license_detects_ogl_as_part(self):
+        form, env, app, name = self._new_dataset()
+        form_field_id = 'licence_in_form'
+        value = 'Open Government Licence and other things'
+        form[form_field_id] = value
+        form['license_id'] = '__other__'
+
+        form = self._submit_with_validation_error(form, env)
+        assert_equal(form[form_field_id].value, value)
+
+        pkg = self._submit_to_save(form, name, app, env)
+        assert_equal(pkg.extras.get('licence'), value)
+        assert_equal(pkg.license_id, 'uk-ogl')
+
+        form = self._edit_dataset(env, app, name)
+        assert_equal(form['license_id'].value, '__other__')
+        assert_equal(form['licence_in_form'].value, value)
 
     def test_edit_publisher(self):
         form, env, app, name = self._new_dataset()
