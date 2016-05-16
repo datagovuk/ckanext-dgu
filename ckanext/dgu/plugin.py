@@ -282,7 +282,6 @@ class CollectionPlugin(p.SingletonPlugin):
     p.implements(p.IAuthFunctions)
 
     def get_actions(self):
-        import ckanext.dgu.logic.action.update as up
         import ckanext.dgu.logic.action.get as g
         return {
             'collection_list_for_user': g.collection_list_for_user,

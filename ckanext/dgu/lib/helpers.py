@@ -2342,4 +2342,3 @@ def detect_license_id(licence_str):
         is_wholely_identified = None
 
     return license_id, is_wholely_identified
->>>>>>> master
