@@ -1,0 +1,208 @@
+{% extends "issues/base.html" %}
+
+{% import "issues/common.html" as common with context %}
+{% block title %}{{ _('Issues') }} - {{ super() }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li>{% link_for 'Issues', named_route='all_issues_page'  %}</li>
+  <li class="active">Moderation</li>
+{% endblock %}
+
+
+{% block primary_content_inner %}
+  <h1 class="page-heading">
+    {% block page_heading %}
+      {{ _('Moderation Queue') }}
+    {% endblock %}
+  </h1>
+
+  <section class="module issues-home" style="min-height: 500px;">
+
+        <div class="col-md-6">
+            <h2>Issues ({{ issues.count}} total)</h2>
+            <ul id="issue-list" class="issue-list-group list-group">
+                {% for issue in issues.get('results') %}
+                    {{issue_description(issue)}}
+                    <div>&nbsp;</div>
+                {% else %}
+                    No issues for moderation
+                {% endfor %}
+            </ul>
+
+            {% if issue_pages.pages > 1 %}
+            <section class="module">
+
+            <div class="dgu-pagination">
+                <ul class="pagination">
+
+
+                <li>
+                  {% if issue_pages.has_previous %}
+                    <a href="?ipage={{ipage - 1}}&cpage={{cpage}}">&laquo;</a>
+                  {% else %}
+                    <span>&laquo;</span>
+                  {% endif %}
+                </li>
+
+                  {% for index in issue_pages.iter_pages() %}
+                    <li>{% if index == ipage %}
+                            <span>{{index}}</span>
+                          {% else %}
+                          <a href="?cpage={{cpage}}&ipage={{ index }}">{{ index }}</a>
+                          {% endif %}
+                    </li>
+                  {% endfor %}
+
+
+                <li>
+                    {% if issue_pages.has_next %}
+                    <a href="?ipage={{ipage+1}}&cpage={{cpage}}">&raquo;</a>
+                    {% else %}
+                    <span>&raquo;</span>
+                  {% endif %}
+                </li>
+              </ul>
+            </div>
+            </section>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <h2>Comments ({{comments.count}} total)</h2>
+            <ul id="issue-list" class="issue-list-group list-group">
+              {% for comment in comments.get('results') %}
+                    {{ comment_description(comment) }}
+                    <div>&nbsp;</div>
+              {% else %}
+                No comments for moderation
+              {% endfor %}
+            </ul>
+
+            {% if comments_pages.pages > 1 %}
+                <section class="module">
+
+            <div class="dgu-pagination">
+                <ul class="pagination">
+
+
+                <li>
+                  {% if comments_pages.has_previous %}
+                    <a href="?ipage={{page}}&cpage={{cpage-1}}">&laquo;</a>
+                  {% else %}
+                    <span>&laquo;</span>
+                  {% endif %}
+                </li>
+
+                  {% for index in comments_pages.iter_pages() %}
+                    <li>{% if index == cpage %}
+                            <span>{{index}}</span>
+                          {% else %}
+                          <a href="?cpage={{index}}&ipage={{ ipage }}">{{ index }}</a>
+                          {% endif %}
+                    </li>
+                  {% endfor %}
+
+
+                <li>
+                    {% if comments_pages.has_next %}
+                    <a href="?ipage={{ipage}}&cpage={{cpage+1}}">&raquo;</a>
+                    {% else %}
+                    <span>&raquo;</span>
+                  {% endif %}
+                </li>
+              </ul>
+            </div>
+            </section>
+            {% endif %}
+
+
+        </div>
+  </section>
+
+{% endblock %}
+
+
+{%- macro issue_description(issue) %}
+      <li class="list-group-item">
+        <h4 class="list-group-item-name">
+
+          <a href="/dataset/{{ issue.dataset_id }}/issues/{{issue.number}}">
+                {{issue.title}}
+          </a>
+        </h4>
+        <ul class="list-group-item-meta">
+          <li>Opened by <a href="/data/user/{{issue.user}}">{{issue.user}}</a></li>
+          <li>
+
+            <i class="icon-clock"></i>
+            <span class="timeago" title="{{ issue.created }}"> {{ h.time_ago_from_timestamp(issue.created) }} </span>
+          </li>
+        </ul>
+        <hr/>
+        <p>{{issue.description|safe}}</p>
+        <div>
+            <form id="issue-report-form" class="pull-right" method="post" action="{{h.url_for('issues_moderation_delete_issue', id=issue.id)}}">
+              <input type="hidden" name="dataset_id" value="{{ issue.dataset_id }}">
+              <input type="hidden" name="issue_number" value="{{ issue.number }}">
+              <input type="hidden" name="comment_id" value="{{ issue.id }}">
+              <input type="hidden" name="abuse_status" value="abuse">
+              <button class="subtle-btn-active subtle-btn-abuse" type="submit" value="abuse" title="Report">
+                <i class="icon-trash"></i>
+                Delete
+              </button>
+            </form>
+
+            <form id="issue-not-abuse-button" class="pull-right" method="post" action="{{h.url_for('issues_moderation_reset_issue', id=issue.id)}}">
+              <input type="hidden" name="dataset_id" value="{{ issue.dataset_id }}">
+              <input type="hidden" name="issue_number" value="{{ issue.number }}">
+              <input type="hidden" name="comment_id" value="{{ issue.id }}">
+              <input type="hidden" name="abuse_status" value="not_abuse">
+              <button class="subtle-btn-active subtle-btn-abuse-active" type="submit" value="not_abuse" data-toggle="tooltip" title="Clear abuse reports">
+                <i class="icon-remove"></i>
+                {{ _('Not abuse') }}
+              </button>
+            </form>
+        </div>
+        <div class="clearfix"></div>
+</li>
+{% endmacro %}
+
+
+{%- macro comment_description(comment) %}
+      <li class="list-group-item">
+        <h4 class="list-group-item-name">
+          <a href="/dataset/{{comment.dataset_id}}/issues/{{comment.issue_number}}">
+            {{ h.truncate(comment.comment, 20)}}
+          </a>
+        </h4>
+        <ul class="list-group-item-meta">
+          <li>Opened by <a href="/data/user/{{comment.user.get('name')}}">{{comment.user.display_name}}</a></li>
+          <li>
+
+            <i class="icon-clock"></i>
+            <span class="timeago" title="{{ comment.created }}"> {{ h.time_ago_from_timestamp(comment.created) }}</span>
+          </li>
+        </ul>
+        <hr/>
+        <p>{{comment.get('comment', '')|safe}}</p>
+        <div>
+            <form id="issue-report-form" class="pull-right" method="post" action="{{h.url_for('issues_moderation_delete_comment', id=comment.id)}}">
+              <input type="hidden" name="comment_id" value="{{ comment.id }}">
+              <button class="subtle-btn-active subtle-btn-abuse" type="submit" value="abuse" title="Delete">
+                <i class="icon-trash"></i>
+                Delete
+              </button>
+            </form>
+
+            <form id="issue-not-abuse-button" class="pull-right" method="post" action="{{h.url_for('issues_moderation_reset_comment', id=comment.id)}}">
+              <input type="hidden" name="comment_id" value="{{ comment.id }}">
+              <input type="hidden" name="abuse_status" value="not_abuse">
+              <button class="subtle-btn-active subtle-btn-abuse-active" type="submit" value="not_abuse" data-toggle="tooltip" title="Clear abuse reports">
+                <i class="icon-remove"></i>
+                {{ _('Not abuse') }}
+              </button>
+            </form>
+        </div>
+        <div class="clearfix"></div>
+</li>
+{% endmacro %}

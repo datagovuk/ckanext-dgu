@@ -96,6 +96,20 @@
       </div>
     </div>
     {% endif %}
+
+    {% if h.issues_installed() %}
+    <div class="panel panel-info">
+      <div class="panel-heading">Issues</div>
+      <div class="panel-body">
+        <ul>
+          <li><a href="/issues">All issues</a></li>
+          <li><a href="/issues/moderation">Moderation Queue</a></li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+
     </div>
     </div>
 {% endblock %}
