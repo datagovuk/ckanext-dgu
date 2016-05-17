@@ -28,10 +28,12 @@
   </div>
 {% endif %}
 
+  {% set url=c.environ.get('CKAN_CURRENT_URL') %}
+  {% set is_home=url=='/' %}
   <div id="blackbar" class="{{ 'with-publisher' if h.check_access('package_create') else 'without-publisher' }}">
     <div class="container">
       <a class="brand" href="/" rel="home"></a>
-      <div class="chevron position2"></div>
+      <div class="chevron {{ 'position1' if is_home else 'position2' }}"></div>
       <nav id="dgu-nav">
         <div class="text-links">
            <a href="/" class="nav-home">Home</a>
@@ -74,8 +76,7 @@
   </div>
   <div id="greenbar">
     <div class="container">
-      {% set url=c.environ.get('CKAN_CURRENT_URL') %}
-      <ul class="subnav subnav-data active">
+      <ul class="subnav subnav-data {{ 'active' if not is_home }}">
         <li><a class="{{ 'active' if url.startswith('/data/search') or url.startswith('/dataset/') }}" href="{{ h.url_for(controller='package', action='search') }}">Datasets</a></li>
         <li><a class="{{ 'active' if url.startswith('/data/map-based-search') }}" href="/data/map-based-search">Map Search</a></li>
         <li><a class="" href="/data-request">Data Requests</a></li>

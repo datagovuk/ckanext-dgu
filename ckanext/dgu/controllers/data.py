@@ -36,6 +36,9 @@ class DataController(BaseController):
             else:
                 raise
 
+    def home(self):
+        return render('data/home.html')
+
     def linked_data_admin(self):
         """
         Instructions for installing Ruby via RVM:

@@ -170,7 +170,6 @@ class ThemePlugin(p.SingletonPlugin):
         """
         data_controller = 'ckanext.dgu.controllers.data:DataController'
         user_controller = 'ckanext.dgu.controllers.user:UserController'
-        map.redirect('/', '/data')
         map.redirect('/data', '/data/search')
         #map.connect('/data', controller=data_controller, action='index')
 
@@ -184,6 +183,7 @@ class ThemePlugin(p.SingletonPlugin):
         map.connect('/data/viz/social-investment-and-foundations', controller=data_controller, action='viz_social_investment_and_foundations')
         map.connect('/data/viz/investment-readiness-programme', controller=data_controller, action='viz_investment_readiness_programme')
         map.connect('/data/viz/upload', controller=data_controller, action='viz_upload')
+        map.connect('/', controller=data_controller, action='home')
 
         map.connect('/data/contracts-finder-archive{relative_url:.*}', controller=data_controller, action='contracts_archive')
 
