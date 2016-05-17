@@ -37,7 +37,36 @@ class DataController(BaseController):
                 raise
 
     def home(self):
-        return render('data/home.html')
+        # Get the themes from ckanext-taxonomy
+        context = {'model': model}
+        try:
+            terms = get_action('taxonomy_term_list')(context, {'name': 'dgu-themes'})
+        except sqlalchemy.exc.OperationalError, e:
+            if 'no such table: taxonomy' in str(e):
+                model.Session.remove()  # clear the erroring transaction
+                raise ImportError('ckanext-taxonomy tables not setup')
+            raise
+        themes = [t['label'] for t in terms]
+
+        # Get the dataset count using search
+        from ckan.lib.search import SearchError, SearchQueryError
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'for_view': True,
+                   'auth_user_obj': c.userobj}
+        data_dict = {
+                'q': '*:*',
+                'fq': '+dataset_type:dataset',
+                #'facet.field': facets.keys(),
+                'rows': 0,
+            }
+        query = get_action('package_search')(context, data_dict)
+
+        extra_vars = dict(
+            themes=themes,
+            num_datasets=query['count'],
+            )
+
+        return render('data/home.html', extra_vars=extra_vars)
 
     def linked_data_admin(self):
         """

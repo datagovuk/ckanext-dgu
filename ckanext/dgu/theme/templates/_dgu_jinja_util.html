@@ -170,7 +170,7 @@
         <div class="right-inner auto-height">
         <div class="chevron"></div>
         {% if not c.query_error %}
-          {% set count = c.page.item_count if c.page != '' else (c.package_count or 0) %}
+          {% set count = c.page.item_count if c.page != '' else (num_datasets or c.package_count or 0) %}
           <div class="result-count">{{count}}</div>
           <div class="result-count-footer">Dataset{{if_(count!=1,'s')}}</div>
         {% else %}

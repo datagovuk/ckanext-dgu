@@ -1,5 +1,7 @@
 {% extends "page.html" %}
 
+{% import "_dgu_jinja_util.html" as m with context %}
+
 {% block title %}data.gov.uk{% endblock %}
 
 {#  No breadcrumbs #}
@@ -9,18 +11,18 @@
 
 {% block primary_content_inner %}
 
-  <h3>Welcome to data.gov.uk - discover data from across the UK public sector</h3>
+  <h3 style="margin: 10px 0 20px;">Welcome to data.gov.uk - discover data from across the UK public sector</h3>
 
-  <h3>Search 12234 datasets</h3>
-  <form>
-  <input>Search</input>
-  </form>
 
-  <h3>Data Themes</h3>
+  {# <h3>Search {{num_datasets}} datasets</h3> #}
+  {{ m.search_form(mini=false) }}
+
+
+  <h3 style="margin-top: 20px;">Browse by theme</h3>
   <ul>
-    <li><a href="#">Environment</a></li>
-    <li><a href="#">Transport</a></li>
-    <li><a href="#">Business</a></li>
+    {% for theme in themes %}
+      <li><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></li>
+    {% endfor %}
   </ul>
   
 {% endblock %}
