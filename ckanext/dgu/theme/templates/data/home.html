@@ -1,5 +1,7 @@
 {% extends "page.html" %}
 
+{% set body_id="home-page" %}
+
 {% import "_dgu_jinja_util.html" as m with context %}
 
 {% block title %}data.gov.uk{% endblock %}
@@ -11,18 +13,22 @@
 
 {% block primary_content_inner %}
 
-  <h3 style="margin: 10px 0 20px;">Welcome to data.gov.uk - discover data from across the UK public sector</h3>
+  <div style="margin-left: auto; margin-right: auto; max-width: 650px; margin-top: 20px; margin-bottom: 20px;">
+    <h3 style="margin: 10px 0 20px;">Data.gov.uk - for discovering data across the UK public sector</h3>
+
+    {# <h3>Search {{num_datasets}} datasets</h3> #}
+
+      {{ m.search_form(mini=false) }}
 
 
-  {# <h3>Search {{num_datasets}} datasets</h3> #}
-  {{ m.search_form(mini=false) }}
+    <h3 style="margin-top: 20px;">Browse by theme</h3>
+    <!--<div style="margin-left: auto; margin-right: auto; max-width: 500px;">-->
+      <ul class="inline" style="text-align: center;">
+        {% for theme in themes %}
+          <li><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></li>
+        {% endfor %}
+      </ul>
+    <!--</div>-->
+  </div>
 
-
-  <h3 style="margin-top: 20px;">Browse by theme</h3>
-  <ul>
-    {% for theme in themes %}
-      <li><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></li>
-    {% endfor %}
-  </ul>
-  
 {% endblock %}
