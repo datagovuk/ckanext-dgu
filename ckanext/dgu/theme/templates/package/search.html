@@ -76,7 +76,27 @@
         {% endif %}
 
         {% block package_search_results_list %}
-        {{ m.package_list_from_dict(c.page.items) }}
+
+            {% set collections = h.get_collection_search(c.q) or [] %}
+            {% for collection in collections %}
+                <div class="collection collection-summary theme-none">
+                      <a class="collection-header" href="/collection/{{collection.name}}">
+                         <div class="theme-collection theme-name pull-right">Collection</div>
+                         <div class="underlined">{{collection.title}} </div>
+                       </a>
+                       <div class="collection-body">
+                            <div class="left">
+                               <div class="collection-description">
+                                    {{ h.markdown_extract(collection.description)}}
+                               </div>
+                             </div>
+
+                            <div class="clearfix clearfix-ie7"> &nbsp;</div>
+                      </div>
+                </div>
+            {% endfor %}
+
+            {{ m.package_list_from_dict(c.page.items) }}
         {% endblock %}
     </div>
 

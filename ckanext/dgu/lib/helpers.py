@@ -2342,3 +2342,19 @@ def detect_license_id(licence_str):
         is_wholely_identified = None
 
     return license_id, is_wholely_identified
+
+def get_collection_search(q):
+    from ckan.logic import get_action
+    from ckan import model
+
+    context = {'model': model, 'session': model.Session}
+    normalised = q.lower().split(' ')
+    keywords = ['transport']
+
+    for k in keywords:
+        if k in normalised:
+            search = get_action('group_search')(context=context, data_dict={'q': k})
+            return [x for x in search.get('results') if x.get('type') == 'collection']
+    return None
+
+
