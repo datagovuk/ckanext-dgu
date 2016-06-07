@@ -48,7 +48,7 @@
   ["WMTS", "Web Map Tile Service", null, []],
   ["SVG", "SVG vector image", "image/svg+xml", ["svg"]],
   ["PPT", "Powerpoint Presentation", "application/vnd.ms-powerpoint", ["PPTX", "application/vnd.openxmlformats-officedocument.presentationml.presentation"]],
-  ["ODP", "OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", []], 
+  ["ODP", "OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", []],
   ["JPEG", "JPG Image File", "image/jpeg", ["jpeg", "jpg"]],
   ["SPARQL", "SPARQL end-point", "application/sparql-results+xml", []],
   ["GIF", "GIF Image File", "image/gif", []],
@@ -78,5 +78,6 @@
   ["API", "API", null, []],
   ["Database", "Database dump", null, ["SQL"]],
   ["RDFa", "RDFa", "application/xhtml+xml", ["html+rdfa"]],
-  ["SPARQL web form", "SPARQL web form", "", []]
+  ["SPARQL web form", "SPARQL web form", "", []],
+  ["GTFS", "General Transit Feed Specification", null, []]
 ]
