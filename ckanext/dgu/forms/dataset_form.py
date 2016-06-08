@@ -411,7 +411,7 @@ def date_to_db(value, context):
     try:
         value = DateType.form_to_db(value)
     except DateConvertError, e:
-        raise Invalid(str(e))
+        raise Invalid(unicode(e).encode('ascii', 'ignore'))
     return value
 
 
@@ -419,7 +419,7 @@ def date_to_form(value, context):
     try:
         value = DateType.db_to_form(value)
     except DateConvertError, e:
-        raise Invalid(str(e))
+        raise Invalid(unicode(e).encode('ascii', 'ignore'))
     return value
 
 
