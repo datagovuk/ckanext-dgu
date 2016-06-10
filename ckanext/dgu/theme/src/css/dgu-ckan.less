@@ -946,10 +946,39 @@ ul.ui-autocomplete {
 /* PAGE: Home */
 /* ---------- */
 body#home-page {
-  ul.inline > li, ol.inline > li {
+  div.home {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 650px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    @media(min-width: 400px) {
+      margin-top: 40px;
+      margin-bottom: 30px;
+    }
+    @media(min-width: 768px) {
+      margin-top: 80px;
+      margin-bottom: 50px;
+    }
+  }
+  h3 {
+      font-size: 21px;
+      margin: 20px 0 20px;
+  }
+  h3.themes-heading {
+    @media(min-width: 768px) {margin-top: 50px;}
+  }
+  ul.inline > li {
     display: inline-block;
-    padding-right: 5px;
-    padding-left: 5px;
+    padding: 0 8px 8px;
+  }
+  @media(min-width: 768px) {
+    ul.inline > li {
+      padding: 0 20px 16px;
+    }
+  }
+  div.search-area {
+    margin-bottom: 10px;
   }
   /* Search box with wider RHS for number */
   .left  { width: 70%; }
