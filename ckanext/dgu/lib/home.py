@@ -13,13 +13,15 @@ def get_latest_blog_posts():
     log.debug('Requesting blog posts: %s', blog_feed_url)
     try:
         response = requests.get(blog_feed_url)
-        # although the first line of the XML declares it is already utf8 encoded,
-        # it contains unicode chars...
+        # although the first line of the XML declares it is already utf8
+        # encoded, it contains unicode chars...
         feed_str = response.text.encode('utf8')
-        return _get_blog_info(feed_str)
-    except Exception, e:
+        blogs = _get_blog_info(feed_str)
+    except Exception:
         log.exception('Could not get latest blog posts (see stacktrace)')
-        return []
+        blogs = []
+    log.debug('Blog posts: %s', blogs)
+    return blogs
 
 
 def _get_blog_info(feed_str):
