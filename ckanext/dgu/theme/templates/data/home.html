@@ -13,7 +13,7 @@
 
 {% block primary_content_inner %}
 
-  <div class="home">
+  <div class="home col-md-12">
     <h3 class="search-heading">Find and download government data</h3>
 
     {# <h3>Search {{num_datasets}} datasets</h3> #}
@@ -28,7 +28,29 @@
         <li><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></li>
       {% endfor %}
     </ul>
-    
+
+    {% if blogs %}
+      <h3 class="blogs-heading">Latest from the <a href="https://data.blog.gov.uk/category/open-data/" target="_blank">Data in government (open data)</a> blog:</h3>
+
+      <div class="center-wrapper row">
+      {% for title, url, img_url in blogs %}
+        <div class="col-md-4">
+          <div class="panel-pane">
+            <a href="{{url}}" target="_blank">
+              <div class="tile-image">
+                <img src="{{img_url or 'images/data.png'}}"/>
+              </div>
+              <div class="tile-text">
+                <h2>{{title}}</h2>
+              </div>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+      <!--<div class="clearfix"></div>-->
+    {% endif %}
+
   </div>
 
 {% endblock %}

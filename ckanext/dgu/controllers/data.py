@@ -15,6 +15,7 @@ from ckan.lib.helpers import flash_success, flash_error
 from ckanext.dgu.lib import helpers as dgu_helpers
 from ckan.lib.base import BaseController, model, abort, h, redirect
 from ckanext.dgu.plugins_toolkit import request, c, render, _, NotAuthorized, get_action
+from ckanext.dgu.lib.home import get_latest_blog_posts
 
 log = logging.getLogger(__name__)
 
@@ -61,9 +62,13 @@ class DataController(BaseController):
             }
         query = get_action('package_search')(context, data_dict)
 
+        # Get the latest blog posts
+        blogs = get_latest_blog_posts()
+
         extra_vars = dict(
             themes=themes,
             num_datasets=query['count'],
+            blogs=blogs
             )
 
         return render('data/home.html', extra_vars=extra_vars)

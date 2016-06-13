@@ -949,15 +949,14 @@ body#home-page {
   div.home {
     margin-left: auto;
     margin-right: auto;
-    max-width: 650px;
     margin-top: 20px;
     margin-bottom: 20px;
     @media(min-width: 400px) {
-      margin-top: 40px;
+      margin-top: 30px;
       margin-bottom: 30px;
     }
     @media(min-width: 768px) {
-      margin-top: 80px;
+      margin-top: 60px;
       margin-bottom: 50px;
     }
   }
@@ -965,8 +964,15 @@ body#home-page {
       font-size: 21px;
       margin: 20px 0 20px;
   }
+  h3.search-heading {
+    margin-top: 0px;
+  }
   h3.themes-heading {
+    margin-top: 30px;
     @media(min-width: 768px) {margin-top: 50px;}
+  }
+  h3.blogs-heading {
+    @media(min-width: 768px) {margin-top: 30px;}
   }
   ul.inline > li {
     display: inline-block;
@@ -992,6 +998,38 @@ body#home-page {
     .right { width: 35%; }
   }
 
+  /* blog posts */
+  .panel-pane {
+    @media (min-width: 768px) {
+      height: 120px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    @media (min-width: 992px) {
+      margin-bottom: 30px;
+    }
+    overflow-y: hidden;
+  }
+  .panel-pane img {
+    max-height: 100px;
+    max-width: 100px;
+  }
+  .tile-image {
+    //position: absolute;
+    float: left
+  }
+  .tile-text h2 {
+    //float: left;
+    text-transform: none;
+    text-align: left;
+    margin-left: 110px;
+  }
+  /*.tile-text {
+    padding: 10px 10px 10px 10px;
+  }*/
+  // Couldn't v centre tile-text:
+  //  * with absolute positioning it flows out of the rhs
+  //  * table doesn't work when you wrap the text in <a>
 }
 
 
