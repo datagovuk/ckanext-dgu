@@ -154,6 +154,9 @@ $(function() {
     }
     return false;
   });
+
+  // Put cursor straight into search box e.g. home page
+  $('#content input[name="q"]').focus();
 });
 
 var CKAN = CKAN || {};
