@@ -9,7 +9,6 @@ blog_feed_url = 'https://data.blog.gov.uk/feed/atom/'
 
 @cache_region('short_term', 'blog_posts')
 def get_latest_blog_posts():
-    print "MAKING REQUEST"
     log.debug('Requesting blog posts: %s', blog_feed_url)
     try:
         response = requests.get(blog_feed_url)
