@@ -11,7 +11,12 @@ blog_feed_url = 'https://data.blog.gov.uk/feed/atom/'
 def get_latest_blog_posts():
     log.debug('Requesting blog posts: %s', blog_feed_url)
     try:
-        response = requests.get(blog_feed_url)
+        # verify=False because occasionally we've received an obscure error:
+        # TypeError("initializer for ctype 'int(*)(int, X509_STORE_CTX *)'
+        # appears indeed to be 'int(*)(int, X509_STORE_CTX *)', but the types
+        # are different (check that you are not e.g. mixing up different ffi
+        # instances)",)
+        response = requests.get(blog_feed_url, verify=False)
         # although the first line of the XML declares it is already utf8
         # encoded, it contains unicode chars...
         feed_str = response.text.encode('utf8')
