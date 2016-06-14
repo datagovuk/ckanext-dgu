@@ -21,8 +21,8 @@ def get_latest_blog_posts():
         # encoded, it contains unicode chars...
         feed_str = response.text.encode('utf8')
         blogs = _get_blog_info(feed_str)
-    except Exception:
-        log.exception('Could not get latest blog posts (see stacktrace)')
+    except Exception, e:
+        log.error('Exception getting blog posts: %s', e)
         blogs = []
     log.debug('Blog posts: %s', blogs)
     return blogs
