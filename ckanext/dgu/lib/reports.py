@@ -209,7 +209,7 @@ def publisher_activity(organization, include_sub_organizations=False):
                       'Fix duplicate resources',
                       'fix_secondary_theme.py',
                       )
-    system_author_template = 'script-%'  # "%" is a wildcard
+    system_author_template = 'script%'  # "%" is a wildcard
 
     created = {'this': [], 'last': []}
     modified = {'this': [], 'last': []}
