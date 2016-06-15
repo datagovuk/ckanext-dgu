@@ -14,12 +14,13 @@
 {% block primary_content_inner %}
 
   <div class="home col-md-12">
-    <h3 class="search-heading">Find and download government data</h3>
+    <h3 class="search-heading">The best place to find and download government data</h3>
 
-    {# <h3>Search {{num_datasets}} datasets</h3> #}
+    {# <h3>Search {{ "{:,}".format(num_datasets) }} datasets</h3> #}
 
       {{ m.search_form(mini=false) }}
 
+    <p>Find out more <a href="/about">about data.gov.uk</a></p>
 
     <h3 class="themes-heading">Browse by theme</h3>
 
@@ -30,7 +31,7 @@
     </ul>
 
     {% if blogs %}
-      <h3 class="blogs-heading">Latest from the <a href="https://data.blog.gov.uk/category/open-data/" target="_blank">Data in government (open data)</a> blog:</h3>
+      <h3 class="blogs-heading">Latest from the <a href="https://data.blog.gov.uk/category/open-data/" target="_blank">blog</a>:</h3>
 
       <div class="center-wrapper row">
       {% for title, url, img_url in blogs %}
