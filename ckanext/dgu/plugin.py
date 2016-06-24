@@ -380,6 +380,7 @@ class PublisherPlugin(p.SingletonPlugin):
                 reports.la_schemas_info,
                 reports.pdf_datasets_report_info,
                 reports.html_datasets_report_info,
+                reports.gemini_records_info,
                 ]
 
 
