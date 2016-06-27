@@ -16,9 +16,6 @@ from ckanext.dgu.lib import helpers as dgu_helpers
 
 log = logging.getLogger(__name__)
 
-# 24h cache
-requests_cache.install_cache('europe', expire_after=86400)
-
 
 # NII
 
@@ -972,31 +969,144 @@ html_datasets_report_info = {
 
 # Gemini records check
 
+cache = {}  # for testing only
+use_cache = True
+import os, pickle
+from functools import wraps
+def memoize(func):
+    if not use_cache:
+        return func
+    filename = 'gemini_cache.pkl'
+    if os.path.exists(filename):
+        print 'reading cache file'
+        with open(filename) as f:
+            cache = pickle.load(f)
+    else:
+        cache = {}
+    @wraps(func)
+    def wrap(*args):
+        if args not in cache:
+            print 'Running func'
+            cache[args] = func(*args)
+            # update the cache file
+            with open(filename, 'wb') as f:
+                pickle.dump(cache, f)
+        else:
+            print 'result in cache'
+        return cache[args]
+    return wrap
+
 def gemini_records():
     ''' Gemini records in DGU compared with CSWs and European Geoportal
     '''
+    dgu_records = get_gemini_records_dgu()
     dgu_csw_records = get_csw_records('dgu')
     os_csw_records = get_csw_records('os')
     europe_records = get_gemini_records_europe()
-    dgu_records = get_gemini_records_dgu()
+
+    def example(set_of_guids):
+        if not set_of_guids:
+            return ''
+        guid = list(set_of_guids)[0]
+        pkg = model.Session.query(model.Package) \
+            .join(model.PackageExtra) \
+            .filter(model.PackageExtra.key == 'guid') \
+            .filter(model.PackageExtra.value == guid) \
+            .first()
+        if pkg:
+            name = pkg.name
+            if pkg.state != 'active':
+                name += ' (deleted)'
+            age = datetime.datetime.utcnow() - pkg.metadata_created
+            if age < datetime.timedelta(days=1):
+                name += ' (created today)'
+        else:
+            name = '(not in data.gov.uk)'
+        return 'e.g. %s %s' % (guid, name)
+
+    def check_for_duplicates(name, records):
+        guids_seen = set()
+        duplicate_guids = []
+        for guid, record in records:
+            if guid in guids_seen:
+                duplicate_guids.append(guid)
+            else:
+                guids_seen.add(guid)
+        if duplicate_guids:
+            log.error('%s: Duplicate guids %s %s',
+                      name, len(duplicate_guids), example(duplicate_guids))
+        else:
+            log.error('%s: No duplicate guids', name)
+
+        records_by_guid = dict(records)
+        log.debug('%s: %s records, %s unique',
+                  name, len(records), len(records_by_guid))
+
+        return records_by_guid
+
+    dgu_records = check_for_duplicates('data.gov.uk', dgu_records)
+    dgu_csw_records = check_for_duplicates('data.gov.uk CSW', dgu_csw_records)
+    os_csw_records = check_for_duplicates('OS CSW', os_csw_records)
+    europe_records = check_for_duplicates('Europe', europe_records)
+
+    def diff(name1, guids1, name2, guids2):
+        s1 = set(guids1)
+        s2 = set(guids2)
+        added = s2 - s1
+        missing = s1 - s2
+        names = '%s->%s' % (name1, name2)
+        if s1 == s2:
+            log.debug('%s: Records the same', names)
+        elif len(s1) == len(s2):
+            log.debug('%s: Records different but the same number: %s',
+                      names, len(s1))
+        elif len(s1) > len(s2):
+            log.debug('%s: Records reduced %s->%s',
+                      names, len(s1), len(s2))
+        else:
+            log.debug('%s: Records increased %s->%s',
+                      names, len(s1), len(s2))
+        if added:
+            log.error('%s: Records added %s %s',
+                      names, len(added), example(added))
+        if missing:
+            log.error('%s: Records missing %s %s',
+                      names, len(missing), example(missing))
+
+    diff('dgu', dgu_records, 'dgu_csw', dgu_csw_records)
+    diff('dgu_csw', dgu_csw_records, 'os_csw', os_csw_records)
+    diff('os_csw', os_csw_records, 'europe', europe_records)
 
 def get_csw_records(csw_name):
+    try:
+        records = get_csw_records_(csw_name)
+    except Exception, e:
+        import traceback
+        traceback.print_exc()
+        import pdb; pdb.set_trace()
+    return records
+
+@memoize
+def get_csw_records_(csw_name):
     from owslib.csw import CatalogueServiceWeb
     from owslib.ows import ExceptionReport
+    # 24h cache
+    requests_cache.install_cache('csw', expire_after=86400)
 
     if csw_name == 'os':
         base_url = 'http://csw.data.gov.uk/geonetwork/srv/en/csw'
-        method = 'owslib'
+        #method = 'owslib'
+        method = 'get'
+        batch_size = 1000
     elif csw_name == 'dgu':
         base_url = 'https://data.gov.uk/csw'
         method = 'get'
+        batch_size = 100
     else:
         raise NotImplementedError
     csw = CatalogueServiceWeb(base_url, lang='en-US', version='2.0.2')
-    offset = 0
-    batch_size = 1000
-    records_by_guid = {}
-    duplicate_guids = []
+    offset = 1
+    all_records = []  # list of (guid, record)
     num_records = '?'
     while True:
         print 'CSW %s %s/%s' % (csw_name, offset, num_records)
@@ -1007,37 +1117,42 @@ def get_csw_records(csw_name):
                 log.error('CSW %s: Error getting records: %r',
                           csw_name, csw.exceptionreport or csw.response)
                 return []
-            if csw.results['returned'] < batch_size:
-                break
             records = dict(csw.records)
             num_records = csw.results['matches']
+            next_record = csw.results['nextrecord']
         else:
             from StringIO import StringIO
             from lxml import etree, html
             from owslib.namespaces import Namespaces
             from owslib import util
             from owslib.iso import MD_Metadata
+            from owslib.csw import CswRecord
 
             # dgu's csw is so basic it doesn't accept posts, just kvp,
             # so call that manually then follow what owslib does to parse
-            # the response
-            batch_size = 100
+            # the responses
             url = '{base_url}?' \
                 'request=GetRecords&service=CSW&version=2.0.2&' \
-                'elementSetName=summary&resultType=results&' \
+                'elementSetName=brief&resultType=results&' \
+                'constraintLanguage=CQL_TEXT&typeNames=csw:Record&' \
                 'startPosition={startPosition}&' \
                 'maxRecords={maxRecords}'.format(
                     base_url=base_url,
                     startPosition=offset,
                     maxRecords=batch_size)
             response = requests.get(url)
-            tree = etree.parse(StringIO(response.text))
+            # convert to str because it should be encoded with a header
+            # saying what the encoding is, for etree to interpret
+            response_text = response.text.encode('utf8').lstrip()
+            tree = etree.parse(StringIO(response_text))
             namespaces = Namespaces().get_namespaces()
 
             val = tree.find(util.nspath_eval('csw:SearchResults',
                                              namespaces))
             num_records = int(val.attrib['numberOfRecordsMatched'])
-            records = {}
+            next_record = int(val.attrib['nextRecord'])
+            records = []
+            # sometimes responses are gmd:MD_Metadata
             for i in tree.findall(
                     './/' + util.nspath_eval(
                     'gmd:MD_Metadata', namespaces)) \
@@ -1047,18 +1162,39 @@ def get_csw_records(csw_name):
                 val = i.find(util.nspath_eval(
                     'gmd:fileIdentifier/gco:CharacterString', namespaces))
                 identifier = util.testXMLValue(val)
-                records[identifier] = MD_Metadata(i)
+                records.append((identifier, MD_Metadata(i)))
+            # and other times it is csw:SummaryRecord
+            for i in tree.findall(
+                    './/' + util.nspath_eval(
+                    'csw:SummaryRecord', namespaces)):
+                val = i.find(util.nspath_eval('dc:identifier', namespaces))
+                identifier = util.testXMLValue(val)
+                records.append((identifier, CswRecord(i)))
+            for i in tree.findall(
+                    './/' + util.nspath_eval(
+                    'csw:BriefRecord', namespaces)):
+                val = i.find(util.nspath_eval('dc:identifier', namespaces))
+                identifier = util.testXMLValue(val)
+                try:
+                    record = CswRecord(i)
+                except Exception, e:
+                    record = 'Error creating record: %s' % e
+                records.append((identifier, record))
+        all_records.extend(records)
 
-        duplicate_guids.extend(set(records) & set(records_by_guid))
-        records_by_guid.update(records)
-
-        if len(records) > num_records:
+        if len(all_records) > num_records:
             log.error('CSW %s: More records returned than expected: %s %r',
-                      csw_name, len(records), csw.results)
+                      csw_name, len(records), num_records)
+        if len(records) < batch_size:
+            break
         offset += batch_size
-    if duplicate_guids:
-        log.error('CSW %s: Duplicate guids %s eg', csw_name, duplicate_guids)
-    return records_by_guid
+        if next_record != offset:
+            log.error('nextRecord is out - should be %s but was %s',
+                      offset, next_record)
+    if len(all_records) < num_records:
+        log.error('CSW %s: Fewer records returned than expected: %s %r',
+                  csw_name, len(all_records), num_records)
+    return all_records
 
 def get_gemini_records_dgu():
     from ckan import model
@@ -1074,44 +1210,38 @@ def get_gemini_records_dgu():
     uklp_pkg_names = [r[0] for r in uklp_pkg_results]
     log.debug('UKLP datasets: %s', len(uklp_pkg_names))
     pkg_guid_results = \
-        model.Session.query(model.Package.name, model.PackageExtra.value) \
-        .join(model.PackageExtra) \
+        model.Session.query(model.PackageExtra.value, model.Package.name) \
+        .join(model.Package) \
         .filter(model.Package.name.in_(uklp_pkg_names)) \
         .filter(model.PackageExtra.state=='active') \
         .filter(model.PackageExtra.key=='guid') \
         .all()
     pkg_guids = dict(pkg_guid_results)
-    uklp_but_no_guid = set(uklp_pkg_names) - set(pkg_guids)
-    log.debug('UKLP but no guid: %s e.g. %s', len(uklp_but_no_guid),
-              list(uklp_but_no_guid)[0] if uklp_but_no_guid else '(none)')
-    guids_to_pkg_name = dict(((guid, name)
-                              for name, guid in pkg_guid_results))
-    return guids_to_pkg_name
+    uklp_but_no_guid = set(uklp_pkg_names) - set(pkg_guids.values())
+    if uklp_but_no_guid:
+        log.debug('UKLP but no guid: %s e.g. %s', len(uklp_but_no_guid),
+                  list(uklp_but_no_guid)[0] if uklp_but_no_guid else '(none)')
+    return pkg_guid_results
 
 def get_gemini_records_europe():
+    requests_cache.install_cache('europe', expire_after=86400)
     url = 'http://inspire-geoportal.ec.europa.eu/solr/select?facet=true&q=*:*&fl=remoteMetadataIdentifier,resourceTitle,geoportalResourceType&fq=memberStateCountryCode:uk&fq=sourceMetadataResourceLocator:%5C/*&rows=100000&wt=json'
     log.debug('Requesting records from Euro Geoportal')
     response = requests.get(url)
     res = response.json()['response']
     log.debug('Europe: %s records', res['numFound'])
-    records_by_guid = {}
-    duplicate_guids = []
+    records = []
     for record in res['docs']:
         if 'remoteMetadataIdentifier' not in record:
             # a few records appear to be mostly blank, weirdly - ignore them
             continue
         guid = record['remoteMetadataIdentifier']
-        if guid in records_by_guid:
-            duplicate_guids.append(guid)
         record_ = dict(
             title=record['resourceTitle'],
             record_type=record['geoportalResourceType'],
             )
-        records_by_guid[guid] = record_
-    log.debug('Europe: %s records with unique guid', len(records_by_guid))
-    log.debug('Europe: %s duplicate guids', len(duplicate_guids))
-
-    return records_by_guid
+        records.append((guid, record_))
+    return records
 
 gemini_records_info = {
     'name': 'gemini-records',
