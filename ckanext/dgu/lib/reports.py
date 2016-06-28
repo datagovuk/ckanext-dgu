@@ -1005,24 +1005,42 @@ def gemini_records():
     europe_records = get_gemini_records_europe()
 
     def example(set_of_guids):
+        num_guids_to_show = 10
         if not set_of_guids:
             return ''
-        guid = list(set_of_guids)[0]
-        pkg = model.Session.query(model.Package) \
-            .join(model.PackageExtra) \
-            .filter(model.PackageExtra.key == 'guid') \
-            .filter(model.PackageExtra.value == guid) \
-            .first()
-        if pkg:
-            name = pkg.name
-            if pkg.state != 'active':
-                name += ' (deleted)'
-            age = datetime.datetime.utcnow() - pkg.metadata_created
-            if age < datetime.timedelta(days=1):
-                name += ' (created today)'
+        guids = list(set_of_guids)
+        if len(set_of_guids) > num_guids_to_show:
+            examples_str = 'e.g. '
         else:
-            name = '(not in data.gov.uk)'
-        return 'e.g. %s %s' % (guid, name)
+            examples_str = '= '
+
+        examples = []
+        counts = collections.defaultdict(int)
+        for guid in guids:
+            pkg = model.Session.query(model.Package) \
+                .join(model.PackageExtra) \
+                .filter(model.PackageExtra.key == 'guid') \
+                .filter(model.PackageExtra.value == guid) \
+                .first()
+            if pkg:
+                name = pkg.name
+                if pkg.state != 'active':
+                    name += ' (deleted)'
+                    counts['deleted'] += 1
+                age = datetime.datetime.utcnow() - pkg.metadata_created
+                if age < datetime.timedelta(days=1):
+                    name += ' (created in last 24h)'
+                    counts['created in last 24h'] += 1
+            else:
+                name = '(not in data.gov.uk)'
+                counts['not in data.gov.uk'] += 1
+            if len(examples) < num_guids_to_show:
+                examples.append('%s %s' % (guid, name))
+        examples_str += ', '.join(examples)
+
+        if len(set_of_guids) > num_guids_to_show:
+            examples_str += ' Counts: %r' % (counts or None)
+        return examples_str
 
     def check_for_duplicates(name, records):
         guids_seen = set()
