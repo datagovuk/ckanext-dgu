@@ -950,31 +950,47 @@ body#home-page {
     margin-left: auto;
     margin-right: auto;
     margin-top: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 0px;
     @media(min-width: 400px) {
       margin-top: 30px;
-      margin-bottom: 30px;
+      margin-bottom: 10px;
     }
     @media(min-width: 768px) {
       margin-top: 60px;
-      margin-bottom: 50px;
+      margin-bottom: 30px;
     }
   }
   p.about {
     font-size: 20px;
     line-height: 33px;
     margin-top: 30px;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
+    @media (min-width: 641px) {
+      margin-bottom: 50px;
+    }
   }
 
   /* Themes */
-  ul.inline > li {
-    display: inline-block;
-    height: 80px;
-    overflow: hidden;
-
+  ul.theme-list {
+    padding: 0 0 0;
+    list-style: none;
+    @media (min-width: 768px) {
+      width: 33.33333%;
+      float: left;
+      }
+  }
+  li.theme {
+    min-height: 40px;
+    margin: 0 0 0;
+    @media(min-width: 768px) {
+      min-height: 80px;
+      margin: 0 0 15px;
+    }
     h4 {
       font-weight: bold;
+      font-size: 19px;
+      line-height: 1.31579;
+      margin-bottom: 0;
     }
   }
 

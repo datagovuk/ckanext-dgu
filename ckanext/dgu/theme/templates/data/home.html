@@ -21,14 +21,26 @@
 
     <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
 
-    <ul class="inline">
-      {% for theme, theme_description in themes %}
-        <li class="col-lg-3 col-md-4 col-sm-6">
+    {% macro theme_items(themes) %}
+      {% for theme, theme_description in themes[:] %}
+        <li class="theme">
           <h4><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></h4>
           <p>{{ theme_description }}</p>
         </li>
       {% endfor %}
+    {% endmacro %}
+    <ul class="theme-list">
+        {{ theme_items(themes[:4]) }}
     </ul>
+    <ul class="theme-list">
+        {{ theme_items(themes[4:8]) }}
+    </ul>
+    <ul class="theme-list">
+        {{ theme_items(themes[8:]) }}
+    </ul>
+
+    {# ensures a margin before the footer #}
+    <div class="clearfix"></div>
 
   </div>
 
