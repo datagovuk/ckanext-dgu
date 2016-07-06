@@ -22,4 +22,5 @@ def get_themes():
             model.Session.remove()  # clear the erroring transaction
             raise ImportError('ckanext-taxonomy tables not setup')
         raise
-    return [(t['label'], t['description']) for t in terms]
+
+    return [(t['label'], t['extras']['short_description']) for t in terms]

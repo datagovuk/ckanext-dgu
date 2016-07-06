@@ -39,9 +39,24 @@ class DataController(BaseController):
                 raise
 
     def home(self):
-        extra_vars = dict(
-            themes=get_themes()
-            )
+        extra_vars = {}
+
+        # Get the dataset count using search
+        from ckan.lib.search import SearchError, SearchQueryError
+        context = {'model': model, 'session': model.Session,
+                   'user': c.user or c.author, 'for_view': True,
+                   'auth_user_obj': c.userobj}
+        data_dict = {
+                'q': '*:*',
+                'fq': '+dataset_type:dataset',
+                #'facet.field': facets.keys(),
+                'rows': 0,
+            }
+        query = get_action('package_search')(context, data_dict)
+        extra_vars['num_datasets'] = query['count']
+
+        extra_vars['themes'] = get_themes()
+
         return render('data/home.html', extra_vars=extra_vars)
 
     def linked_data_admin(self):

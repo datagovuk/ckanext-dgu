@@ -17,44 +17,18 @@
 
     {# <h3>Search {{ "{:,}".format(num_datasets) }} datasets</h3> #}
 
-      {{ m.search_form(mini=false) }}
+      {{ m.search_form(mini=false, placeholder='Search for data') }}
 
-    <p>Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
+    <p class="about">Find data published by government departments and agencies, public bodies and local authorities. You can use this data to learn more about how government works, carry out research or build applications and services.</p>
 
-    <h3 class="themes-heading">Browse by theme</h3>
-
-    <ul class="inline" style="text-align: center;">
-
-
+    <ul class="inline">
       {% for theme, theme_description in themes %}
-        <li>
+        <li class="col-lg-3 col-md-4 col-sm-6">
           <h4><a href="/data/search?theme-primary={{ theme|urlencode }}">{{ theme }}</a></h4>
           <p>{{ theme_description }}</p>
         </li>
       {% endfor %}
     </ul>
-
-    {% if blogs %}
-      <h3 class="blogs-heading">Latest from the <a href="https://data.blog.gov.uk/category/open-data/" target="_blank">blog</a>:</h3>
-
-      <div class="center-wrapper row">
-      {% for title, url, img_url in blogs %}
-        <div class="col-md-4">
-          <div class="panel-pane">
-            <a href="{{url}}" target="_blank">
-              <div class="tile-image">
-                <img src="{{img_url or 'images/data.png'}}"/>
-              </div>
-              <div class="tile-text">
-                <h2>{{title}}</h2>
-              </div>
-            </a>
-          </div>
-        </div>
-      {% endfor %}
-      </div>
-      <!--<div class="clearfix"></div>-->
-    {% endif %}
 
   </div>
 

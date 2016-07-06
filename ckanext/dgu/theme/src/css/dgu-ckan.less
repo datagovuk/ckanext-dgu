@@ -960,76 +960,40 @@ body#home-page {
       margin-bottom: 50px;
     }
   }
-  h3 {
-      font-size: 21px;
-      margin: 20px 0 20px;
-  }
-  h3.search-heading {
-    margin-top: 0px;
-  }
-  h3.themes-heading {
+  p.about {
+    font-size: 20px;
+    line-height: 33px;
     margin-top: 30px;
-    @media(min-width: 768px) {margin-top: 50px;}
+    margin-bottom: 50px;
   }
-  h3.blogs-heading {
-    @media(min-width: 768px) {margin-top: 30px;}
-  }
+
+  /* Themes */
   ul.inline > li {
     display: inline-block;
-    padding: 0 8px 8px;
-  }
-  @media(min-width: 768px) {
-    ul.inline > li {
-      padding: 0 20px 16px;
+    height: 80px;
+    overflow: hidden;
+
+    h4 {
+      font-weight: bold;
     }
   }
-  div.search-area {
-    margin-bottom: 10px;
-  }
+
   /* Search box with wider RHS for number */
-  .left  { width: 70%; }
-  .right { width: 30%; }
+  .left  { width: 73%; }
+  .right { width: 27%; }
   @media(max-width: 768px) {
-    .left  { width: 68%; }
-    .right { width: 32%; }
+    .left  { width: 70%; }
+    .right { width: 30%; }
   }
     @media(max-width: 500px) {
     .left  { width: 65%; }
     .right { width: 35%; }
   }
+  /* Search box placeholder colour */
+  ::-moz-placeholder {color: #333333;}
+  ::-ms-input-placeholder {color: #333333;}
+  ::-webkit-input-placeholder {color: #333333;}
 
-  /* blog posts */
-  .panel-pane {
-    @media (min-width: 768px) {
-      height: 120px;
-      padding: 10px;
-      margin-bottom: 15px;
-    }
-    @media (min-width: 992px) {
-      margin-bottom: 30px;
-    }
-    overflow-y: hidden;
-  }
-  .panel-pane img {
-    max-height: 100px;
-    max-width: 100px;
-  }
-  .tile-image {
-    //position: absolute;
-    float: left
-  }
-  .tile-text h2 {
-    //float: left;
-    text-transform: none;
-    text-align: left;
-    margin-left: 110px;
-  }
-  /*.tile-text {
-    padding: 10px 10px 10px 10px;
-  }*/
-  // Couldn't v centre tile-text:
-  //  * with absolute positioning it flows out of the rhs
-  //  * table doesn't work when you wrap the text in <a>
 }
 
 
